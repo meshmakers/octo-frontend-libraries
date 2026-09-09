@@ -1923,7 +1923,7 @@ interface SystemReportingFileSystemEntityInterface {
   ): SystemCommunicationTag_TaggedByUnionConnection
 }
 
-"Interface for runtime entities of construction kit type 'System.StreamData-1.7.1/Archive-1'"
+"Interface for runtime entities of construction kit type 'System.StreamData-1.8.0/Archive-1'"
 interface SystemStreamDataArchiveInterface {
   ckTypeId: RtCkTypeId!
   columns: [SystemStreamDataCkArchiveColumn!]!
@@ -2694,6 +2694,28 @@ union SystemUISymbolDefinition_ChildrenUnion = SystemUISymbolDefinition
 
 "Union of types derived from System.UI/SymbolLibrary for Parent association"
 union SystemUISymbolLibrary_ParentUnion = SystemUISymbolLibrary
+
+"One rung of an archive family with its grain and MEASURED data coverage. availableFrom/availableTo are both null when the archive holds no data."
+type ArchiveCoverageInfo {
+  "Runtime id of the archive this row describes."
+  archiveRtId: OctoObjectId!
+  "Earliest timestamp with data on this rung (measured). Null when the archive holds no data."
+  availableFrom: DateTime
+  "Latest timestamp with data on this rung (measured). Null when the archive holds no data."
+  availableTo: DateTime
+  "Bucket-boundary alignment of the rung (FixedSize for base archives)."
+  bucketAlignment: BucketAlignment!
+  "Bucket width in milliseconds for a rollup rung; null for a base archive."
+  bucketSizeMs: Long
+  "True for a raw / time-range archive (no rollup sources), false for a rollup rung."
+  isBase: Boolean!
+  "Optional well-known name of the archive."
+  rtWellKnownName: String
+  "Current lifecycle status: Created / Activated / Disabled / Failed."
+  status: String!
+  "Aggregation functions stored on this rung; empty for a base archive."
+  storedFunctions: [CkRollupFunction!]!
+}
 
 "Attribute path reachable from a CK type, suitable for use as a CkArchive column."
 type ArchivePathInfo {
@@ -23598,19 +23620,21 @@ type RecomputeJobInfo {
 
 "Archive-selection decision for a resolution-aware series query: which archive to query, the effective bucket width, expected point count, reducer, and an outcome signal."
 type ResolveSeriesQueryResult {
-  "The deliverable point count when below the requested target (ResolutionLimited) or the native raw count on the refuse path. Null when the target was met."
+  "The deliverable point count when below the requested target (ResolutionLimited / CoverageLimited) or the native raw count on the refuse path. Null when the target was met."
   actualPoints: Int
   "The archive to query — a rollup, or the base archive on the refuse/raw paths."
   archiveRtId: OctoObjectId!
-  "Optional human-readable explanation of the chosen route / signal."
+  "Optional human-readable explanation of the chosen route / signal. On CoverageLimited (and on a refuse signal after a coverage exclusion) it names the excluded rung."
   diagnostic: String
   "Width in milliseconds of one output bucket; 0 when no bucketing applies / grain unknown."
   effectiveBucketMs: Long!
+  "Earliest timestamp from which the finer rung excluded by the coverage filter would be usable (AB#5157). Set only when signal is CoverageLimited; null otherwise."
+  finerRungAvailableFrom: DateTime
   "Number of points the caller can expect from the downsampling query."
   points: Int!
   "Aggregation function the downsampling query must use."
   reducingFunction: CkRollupFunction!
-  "Outcome classification (Ok / NoSuitableRollup / ResolutionLimited / UnknownBaseGrain / EmptyLadder)."
+  "Outcome classification (Ok / NoSuitableRollup / ResolutionLimited / UnknownBaseGrain / EmptyLadder / CoverageLimited). CoverageLimited (AB#5157) means the coverage filter redirected the query to a coarser rung because the finer rung holds no data for the requested window; finerRungAvailableFrom says from when the finer rung could serve."
   signal: SeriesResolutionSignal!
 }
 
@@ -23628,7 +23652,7 @@ type RollupArchiveInfo {
   aggregationCount: Int!
   "The rollup's aggregation specs (source column path + stored function), for resolution-family walking."
   aggregations: [RollupAggregationInfo!]!
-  "Bucket-boundary alignment: FixedSize / CalendarDay / Iso8601Week / CalendarMonth / CalendarYear."
+  "Bucket-boundary alignment: FixedSize / CalendarDay / Iso8601Week / CalendarMonth / CalendarQuarter / CalendarYear."
   bucketAlignment: String!
   "Bucket width in milliseconds."
   bucketSizeMs: Long!
@@ -23656,8 +23680,10 @@ type RollupArchiveInfo {
   rtId: OctoObjectId!
   "Optional well-known name of the rollup archive."
   rtWellKnownName: String
-  "Runtime id of the source archive this rollup aggregates from."
-  sourceArchiveRtId: OctoObjectId!
+  "DEPRECATED: runtime id of the single source archive. Non-null only when the rollup declares exactly one unbounded source; null for multi-source rollups and for a single source carrying a validity span. Read 'sources' instead."
+  sourceArchiveRtId: OctoObjectId @deprecated(reason: "Use 'sources' (AB#5157): a rollup can aggregate from several source archives with validity spans.")
+  "Source archives of this rollup (AB#5157), each with its half-open validity span [validFrom, validTo). The authoritative source declaration."
+  sources: [RollupSourceInfo!]!
   "Current lifecycle status: Created / Activated / Disabled / Failed."
   status: String!
   "Watermark lag in milliseconds — how far behind real-time the orchestrator stays before closing a bucket."
@@ -23672,6 +23698,16 @@ type RollupQueryMetadata {
   logicalSourcePaths: [String!]!
   "Runtime id of the rollup archive — echo of the request argument."
   rtId: OctoObjectId!
+}
+
+"One source archive of a rollup plus its half-open validity span. validFrom inclusive, validTo exclusive; null = unbounded in that direction."
+type RollupSourceInfo {
+  "Runtime id of the source archive (raw CkArchive, TimeRangeArchive or another CkRollupArchive)."
+  sourceArchiveRtId: OctoObjectId!
+  "Inclusive start of the validity span. Null = the source is authoritative for all buckets before validTo."
+  validFrom: DateTime
+  "Exclusive end of the validity span. Null = the source is authoritative for all buckets from validFrom onwards."
+  validTo: DateTime
 }
 
 "Represents a row within a runtime query execution"
@@ -28576,6 +28612,11 @@ type StreamDataModelQuery {
     "Runtime ids of the archives to fetch stats for. Empty list returns empty result."
     rtIds: [OctoObjectId!]!
   ): [ArchiveStorageStats!]!
+  "Returns the MEASURED data coverage of an archive family (AB#5157): the given archive first, then every rollup that transitively depends on it (breadth-first, once each), each with its grain and the earliest/latest timestamp that holds data. Empty when StreamData is not enabled for the tenant or the rtId is unknown. This is the information the resolver's coverage filter uses to skip rungs without data (CoverageLimited)."
+  coverageFor(
+    "Runtime id of the archive (base or rollup) whose family coverage to report."
+    rtId: OctoObjectId!
+  ): [ArchiveCoverageInfo!]!
   "Returns the most recent recompute jobs for a rollup archive (newest first, capped at 50) — for debugging why a recompute failed. AB#4184."
   recomputeJobsFor(
     "Runtime id of the CkRollupArchive to list recompute jobs for."
@@ -28591,7 +28632,7 @@ type StreamDataModelQuery {
     "Runtime id of the rollup archive to fetch metadata for."
     rtId: OctoObjectId!
   ): RollupQueryMetadata
-  "Returns every non-soft-deleted rollup archive attached to the given source archive — runtime id, status, schedule, watermark, freeze state. Rollup-archives concept §9."
+  "Returns every non-soft-deleted rollup archive that declares the given archive as one of its sources (AB#5157: membership in 'sources', any validity span) — runtime id, status, schedule, watermark, freeze state, sources. Rollup-archives concept §9."
   rollupsFor(
     "Runtime id of the source CkArchive to enumerate rollups for."
     rtId: OctoObjectId!
@@ -28633,7 +28674,7 @@ type StreamDataMutations {
     "Runtime id of the CkRollupArchive to backfill from its source."
     rtId: OctoObjectId!
   ): RecomputeJobInfo
-  "Creates a new CkRollupArchive in Created status. The inherited CkArchive attributes (TargetCkTypeId, Columns) are resolved server-side from the source archive and the supplied aggregations (RollupColumnGenerator). Returns the generated rtId."
+  "Creates a new CkRollupArchive in Created status. The inherited CkArchive attributes (TargetCkTypeId, Columns) are resolved server-side from the source archive(s) and the supplied aggregations (RollupColumnGenerator). Sources are declared via input.sources (AB#5157, validity spans) or the deprecated input.sourceArchiveRtId — exactly one of the two. Source-rule violations (duplicate / overlapping / inverted spans, target-type mismatch, missing path, cycle) surface as STREAM_DATA errors carrying the engine message. Returns the generated rtId."
   createRollupArchive(
     "Rollup-specific create payload."
     input: CreateRollupArchiveInput!
@@ -52755,7 +52796,7 @@ type SystemSortOrderItem {
   sortOrder: SystemSortOrders!
 }
 
-"Runtime entities of construction kit type 'System.StreamData-1.7.1/Archive-1'"
+"Runtime entities of construction kit type 'System.StreamData-1.8.0/Archive-1'"
 type SystemStreamDataArchive implements SystemEntityInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -53007,6 +53048,14 @@ type SystemStreamDataCkRollupAggregation {
   targetColumnName: String
 }
 
+"Runtime entities of construction kit record 'System.StreamData/CkRollupSourceReference'"
+type SystemStreamDataCkRollupSourceReference {
+  constructionKitType: CkType
+  sourceArchiveRtId: String!
+  validFrom: DateTime
+  validTo: DateTime
+}
+
 "Runtime entities of construction kit type 'System-2.2.2/StreamDataQuery-1'"
 type SystemStreamDataQuery implements SystemEntityInterface & SystemPersistentQueryInterface {
   archiveRtId: String
@@ -53214,7 +53263,7 @@ type SystemStreamDataQueryUpdateMessage {
   items: [SystemStreamDataQueryUpdate]
 }
 
-"Runtime entities of construction kit type 'System.StreamData-1.7.1/RawArchive-1'"
+"Runtime entities of construction kit type 'System.StreamData-1.8.0/RawArchive-1'"
 type SystemStreamDataRawArchive implements SystemEntityInterface & SystemStreamDataArchiveInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -53430,7 +53479,7 @@ type SystemStreamDataRawArchiveUpdateMessage {
   items: [SystemStreamDataRawArchiveUpdate]
 }
 
-"Runtime entities of construction kit type 'System.StreamData-1.7.1/RecomputeJob-1'"
+"Runtime entities of construction kit type 'System.StreamData-1.8.0/RecomputeJob-1'"
 type SystemStreamDataRecomputeJob implements SystemEntityInterface {
   archiveRtId: String!
   associations(
@@ -53647,7 +53696,7 @@ type SystemStreamDataRecomputeJobUpdateMessage {
   items: [SystemStreamDataRecomputeJobUpdate]
 }
 
-"Runtime entities of construction kit type 'System.StreamData-1.7.1/RollupArchive-1'"
+"Runtime entities of construction kit type 'System.StreamData-1.8.0/RollupArchive-1'"
 type SystemStreamDataRollupArchive implements SystemEntityInterface & SystemStreamDataArchiveInterface {
   aggregations: [SystemStreamDataCkRollupAggregation!]!
   associations(
@@ -53804,7 +53853,8 @@ type SystemStreamDataRollupArchive implements SystemEntityInterface & SystemStre
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
-  sourceArchiveRtId: String!
+  sourceArchiveRtId: String
+  sources: [SystemStreamDataCkRollupSourceReference!]
   status: SystemStreamDataCkArchiveStatus!
   taggedBy(
     "Only return edges after the specified cursor."
@@ -53872,7 +53922,7 @@ type SystemStreamDataRollupArchiveUpdateMessage {
   items: [SystemStreamDataRollupArchiveUpdate]
 }
 
-"Runtime entities of construction kit type 'System.StreamData-1.7.1/TimeRangeArchive-1'"
+"Runtime entities of construction kit type 'System.StreamData-1.8.0/TimeRangeArchive-1'"
 type SystemStreamDataTimeRangeArchive implements SystemEntityInterface & SystemStreamDataArchiveInterface {
   associations(
     "Only return edges after the specified cursor."
@@ -57128,10 +57178,21 @@ enum BlueprintUpdateMode {
   SAFE
 }
 
-"Bucket-boundary alignment for a rollup archive: FIXED_SIZE / CALENDAR_DAY / ISO_8601_WEEK / CALENDAR_MONTH / CALENDAR_YEAR."
+"Bucket-boundary alignment of a rung: FIXED_SIZE / CALENDAR_DAY / ISO_8601_WEEK / CALENDAR_MONTH / CALENDAR_QUARTER / CALENDAR_YEAR."
+enum BucketAlignment {
+  CALENDAR_DAY
+  CALENDAR_MONTH
+  CALENDAR_QUARTER
+  CALENDAR_YEAR
+  FIXED_SIZE
+  ISO_8601_WEEK
+}
+
+"Bucket-boundary alignment for a rollup archive: FIXED_SIZE / CALENDAR_DAY / ISO_8601_WEEK / CALENDAR_MONTH / CALENDAR_QUARTER / CALENDAR_YEAR."
 enum BucketAlignmentInput {
   CALENDAR_DAY
   CALENDAR_MONTH
+  CALENDAR_QUARTER
   CALENDAR_YEAR
   FIXED_SIZE
   ISO_8601_WEEK
@@ -57586,8 +57647,9 @@ enum SeriesComparisonPolicy {
   PER_SERIES
 }
 
-"Outcome of resolution-aware series routing. Non-Ok values are truthful signals the caller can surface — the resolver never silently produces a wrong or degraded result."
+"Outcome of resolution-aware series routing. Non-Ok values are truthful signals the caller can surface — the resolver never silently produces a wrong or degraded result. CoverageLimited (AB#5157): a finer rung was skipped for lacking measured coverage over the requested window."
 enum SeriesResolutionSignal {
+  COVERAGE_LIMITED
   EMPTY_LADDER
   NO_SUITABLE_ROLLUP
   OK
@@ -58039,6 +58101,8 @@ enum SystemStreamDataBucketAlignment {
   CALENDAR_DAY
   "Bucket boundaries align to UTC calendar months (first day of month 00:00:00 UTC). BucketSizeMs is informational only; month lengths vary 28-31 days."
   CALENDAR_MONTH
+  "Bucket boundaries align to calendar quarters starting 1 January / 1 April / 1 July / 1 October (00:00:00 UTC, or local wall-clock time when ReferenceTimeZone is set). BucketSizeMs is informational only; quarter lengths vary 90-92 days. AB#5157."
+  CALENDAR_QUARTER
   "Bucket boundaries align to UTC calendar years (Jan 1 00:00:00 UTC). BucketSizeMs is informational only."
   CALENDAR_YEAR
   "Default. Each bucket spans exactly BucketSizeMs; boundaries are LastAggregatedBucketEnd, LastAggregatedBucketEnd + BucketSizeMs, ..."
@@ -58755,11 +58819,11 @@ input CkEnumValueInput {
   name: String
 }
 
-"Input for createRollupArchive: source archive + bucketing/lag + aggregations. TargetCkTypeId and Columns are resolved server-side."
+"Input for createRollupArchive: source archive(s) + bucketing/lag + aggregations. TargetCkTypeId and Columns are resolved server-side. Supply either 'sources' (preferred) or the deprecated 'sourceArchiveRtId' — exactly one of the two."
 input CreateRollupArchiveInput {
   "Aggregation specs. At least one required; duplicate target column names are rejected."
   aggregations: [RollupAggregationInput!]!
-  "Optional bucket-boundary alignment. Defaults to FIXED_SIZE. Calendar variants (CALENDAR_DAY / ISO_8601_WEEK / CALENDAR_MONTH / CALENDAR_YEAR) make day/week/month/year rollups expressible and are the only ones for which referenceTimeZone has any effect."
+  "Optional bucket-boundary alignment. Defaults to FIXED_SIZE. Calendar variants (CALENDAR_DAY / ISO_8601_WEEK / CALENDAR_MONTH / CALENDAR_QUARTER / CALENDAR_YEAR) make day/week/month/quarter/year rollups expressible and are the only ones for which referenceTimeZone has any effect."
   bucketAlignment: BucketAlignmentInput = FIXED_SIZE
   "Bucket width in milliseconds. Must be > 0."
   bucketSizeMs: Long!
@@ -58769,10 +58833,22 @@ input CreateRollupArchiveInput {
   referenceTimeZone: String
   "Optional human-readable name for the rollup archive."
   rtWellKnownName: String
-  "Runtime id of the source archive (raw CkArchive or another CkRollupArchive for chained rollups)."
-  sourceArchiveRtId: OctoObjectId!
+  "DEPRECATED single-source shorthand: runtime id of the one source archive (raw CkArchive, TimeRangeArchive or another CkRollupArchive). Translated into one unbounded entry of 'sources'. Mutually exclusive with 'sources'."
+  sourceArchiveRtId: OctoObjectId
+  "Source archives of the rollup (AB#5157), each with an optional half-open validity span [validFrom, validTo). Spans must be pairwise disjoint, aligned to the rollup's bucket boundaries, and at most one source may be open-ended per direction. Required unless the deprecated 'sourceArchiveRtId' is supplied instead. An explicitly empty list is rejected — omit the field entirely to fall back to 'sourceArchiveRtId'."
+  sources: [CreateRollupSourceInput!]
   "Safety-wait after bucketEnd before aggregating, in milliseconds. >= 0."
   watermarkLagMs: Long!
+}
+
+"One source archive of a rollup plus its optional validity span. validFrom is inclusive, validTo exclusive; both null = the source is authoritative for all time."
+input CreateRollupSourceInput {
+  "Runtime id of the source archive (raw CkArchive, TimeRangeArchive or another CkRollupArchive)."
+  sourceArchiveRtId: OctoObjectId!
+  "Inclusive start of the validity span (ISO-8601, UTC). Null = unbounded towards the past. Must lie on a bucket boundary of the rollup."
+  validFrom: DateTime
+  "Exclusive end of the validity span (ISO-8601, UTC). Null = unbounded towards the future. Must lie on a bucket boundary of the rollup and be later than validFrom."
+  validTo: DateTime
 }
 
 "Input for createTimeRangeArchive: target CK type, columns, optional name + advisory period."
@@ -63029,6 +63105,12 @@ input SystemStreamDataCkRollupAggregationInput {
   targetColumnName: String
 }
 
+input SystemStreamDataCkRollupSourceReferenceInput {
+  sourceArchiveRtId: String
+  validFrom: DateTime
+  validTo: DateTime
+}
+
 input SystemStreamDataRawArchiveInput {
   columns: [SystemStreamDataCkArchiveColumnInput]
   configuredBy: [RtAssociationInput]
@@ -63120,6 +63202,7 @@ input SystemStreamDataRollupArchiveInput {
   rtBlueprintSource: String
   rtWellKnownName: String
   sourceArchiveRtId: String
+  sources: [SystemStreamDataCkRollupSourceReferenceInput]
   status: SystemStreamDataCkArchiveStatus
   taggedBy: [RtAssociationInput]
   targetCkTypeId: String
