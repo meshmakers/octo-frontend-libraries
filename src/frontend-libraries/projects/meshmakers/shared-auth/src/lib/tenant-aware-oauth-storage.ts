@@ -113,17 +113,19 @@ export class TenantAwareOAuthStorage extends OAuthStorage {
    * the cost of a silent round trip through identity. Adopting the session avoids that.
    *
    * Only a session that belongs to `tenantId` is adopted — the access token's `tenant_id`
-   * claim must match — and only into an empty slot; a session already stored for the tenant is
-   * never overwritten. Session-scoped keys (nonce, PKCE verifier) belong to the finished flow
-   * and stay where they are. Apps that never set a storage tenant are not affected.
+   * claim must match — and only into an empty slot: if any OAuth key already exists under the
+   * tenant's prefix, even a partial session, nothing is overwritten. Session-scoped keys (nonce,
+   * PKCE verifier) belong to the finished flow and stay where they are. Apps that never set a
+   * storage tenant are not affected.
    *
    * @returns true when a session was moved.
    */
   adoptUnprefixedSession(tenantId: string): boolean {
     const prefix = `${tenantId}__`;
+    const slotKeys = OAUTH_STORAGE_KEYS.filter(key => !SESSION_SCOPED_KEYS.has(key));
     let unprefixedAccessToken: string | null;
     try {
-      if (localStorage.getItem(`${prefix}access_token`) !== null) {
+      if (slotKeys.some(key => localStorage.getItem(prefix + key) !== null)) {
         return false;
       }
       unprefixedAccessToken = localStorage.getItem('access_token');
@@ -136,10 +138,7 @@ export class TenantAwareOAuthStorage extends OAuthStorage {
       return false;
     }
 
-    for (const key of OAUTH_STORAGE_KEYS) {
-      if (SESSION_SCOPED_KEYS.has(key)) {
-        continue;
-      }
+    for (const key of slotKeys) {
       const value = localStorage.getItem(key);
       if (value === null) {
         continue;

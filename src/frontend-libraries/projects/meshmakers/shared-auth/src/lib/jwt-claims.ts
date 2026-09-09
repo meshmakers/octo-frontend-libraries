@@ -14,8 +14,11 @@ export function decodeJwtPayload(token: string | null | undefined): Record<strin
     if (parts.length !== 3) {
       return null;
     }
+    // base64url → base64, and restore the padding a JWT omits: browsers' atob() forgives a
+    // missing '=' but not every runtime does, and the token is the one input we do not control.
     const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(base64)) as Record<string, unknown>;
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    return JSON.parse(atob(padded)) as Record<string, unknown>;
   } catch {
     return null;
   }

@@ -293,6 +293,17 @@ describe('TenantAwareOAuthStorage', () => {
       expect(localStorage.getItem('access_token')).toBe(jwtFor('eg1'));
     });
 
+    it('never overwrites a partially populated slot either', () => {
+      localStorage.setItem('eg1__refresh_token', 'existing-refresh');
+      storeUnprefixedSession('eg1');
+
+      expect(storage.adoptUnprefixedSession('eg1')).toBe(false);
+
+      expect(localStorage.getItem('eg1__refresh_token')).toBe('existing-refresh');
+      expect(localStorage.getItem('eg1__access_token')).toBeNull();
+      expect(localStorage.getItem('access_token')).toBe(jwtFor('eg1'));
+    });
+
     it('leaves an unprefixed session that belongs to another tenant alone', () => {
       storeUnprefixedSession('octosystem');
 

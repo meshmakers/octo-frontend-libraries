@@ -13,6 +13,16 @@ describe('jwt-claims', () => {
       expect(decodeJwtPayload(jwt({ sub: 'u1', tenant_id: 'maco' }))).toEqual({ sub: 'u1', tenant_id: 'maco' });
     });
 
+    // A JWT payload carries no '=' padding, so its length mod 4 is 0, 2 or 3 depending on the
+    // claims. Every remainder must decode, whatever the runtime's atob() tolerates.
+    it('decodes unpadded payloads of every length remainder', () => {
+      for (const t of ['a', 'ab', 'abc', 'abcd', 'abcde']) {
+        const token = jwt({ t });
+        expect(token.split('.')[1]).not.toContain('=');
+        expect(decodeJwtPayload(token)).toEqual({ t });
+      }
+    });
+
     it('returns null for a missing, malformed or undecodable token', () => {
       expect(decodeJwtPayload(null)).toBeNull();
       expect(decodeJwtPayload('')).toBeNull();
