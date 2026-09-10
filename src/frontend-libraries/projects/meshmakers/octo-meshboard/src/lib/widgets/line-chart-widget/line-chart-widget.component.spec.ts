@@ -288,6 +288,23 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
     const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
     expect(downsampledScopes).toEqual([undefined]);
   });
+
+  // AB#5157 review: the widget used to re-dimension the window as
+  // `floor(from / effectiveBucketMs) * effectiveBucketMs + points × effectiveBucketMs`. On this
+  // harness that turns a 24 h board selection into 50 minutes (10 points × 5 min); on a calendar
+  // rung it landed the axis outside the requested window entirely and cut the running period off.
+  // Bin geometry belongs to the engine, which knows the grain and the rung's alignment.
+  it('passes the board window to the downsampling query unchanged', async () => {
+    const { cmp, qe } = createResolutionAware(undefined, null);
+
+    await (cmp as unknown as {
+      loadData(): Promise<void>;
+    }).loadData();
+
+    const [params] = vi.mocked(qe.downsampleByArchive).mock.lastCall!;
+    expect(params.from).toEqual(new Date('2026-08-16T00:00:00Z'));
+    expect(params.to).toEqual(new Date('2026-08-17T00:00:00Z'));
+  });
 });
 
 // Resolution signals (AB#5157): CoverageLimited is a history gap, not a density problem — it must
