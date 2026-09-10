@@ -16,6 +16,11 @@ import { QueryFamily, queryFamily } from '../utils/query-family';
  * stream-data downsampling query against {@link archiveRtId} with `limit = points`
  * and the column aggregation set to {@link reducingFunction}. `signal` is a truthful
  * outcome the widget can surface (e.g. a "resolution-limited" hint).
+ *
+ * The coverage signal (AB#5157) rides the same fields: `signal` is `CoverageLimited` when the
+ * resolver's coverage filter skipped a finer rung because it holds no measured data over the
+ * requested window, `actualPoints` / `diagnostic` carry the deliverable count and the rung that
+ * was excluded, and {@link finerRungAvailableFrom} says from when that finer rung could serve.
  */
 export interface SeriesResolutionResult {
   archiveRtId: string;
@@ -25,6 +30,13 @@ export interface SeriesResolutionResult {
   signal: SeriesResolutionSignalDto;
   actualPoints: number | null;
   diagnostic: string | null;
+  /**
+   * Earliest instant from which the coverage-excluded finer rung would be usable (AB#5157).
+   * Set only on `CoverageLimited`, null otherwise. Passed through as the wire delivers it —
+   * a `DateTime` scalar arrives as an ISO string unless a scalar parser turns it into a `Date` —
+   * so read it through `toInstant` / `formatInstant` rather than assuming either shape.
+   */
+  finerRungAvailableFrom: Date | string | null;
 }
 
 /**
@@ -285,7 +297,8 @@ export class QueryExecutorService {
       reducingFunction: decision.reducingFunction,
       signal: decision.signal,
       actualPoints: decision.actualPoints ?? null,
-      diagnostic: decision.diagnostic ?? null
+      diagnostic: decision.diagnostic ?? null,
+      finerRungAvailableFrom: decision.finerRungAvailableFrom ?? null
     };
   }
 

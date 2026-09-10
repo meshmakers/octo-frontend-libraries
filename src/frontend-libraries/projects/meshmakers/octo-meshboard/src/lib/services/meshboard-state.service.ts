@@ -644,17 +644,26 @@ export class MeshBoardStateService {
   /**
    * The IANA time zone to forward to the resolution-aware series query so calendar
    * rollups are selected in the board's zone (AB#4190). Maps the board mode:
-   * `'utc'` → `'UTC'`, an IANA id → itself, and `'local'` → `undefined` (the browser's
-   * own zone has no server-side meaning, so the resolver stays on UTC — the same
-   * basis its calendar rungs use by default). The result is consistent with the zone
-   * `resolveCurrentTimeRange()` used to compute the `{from, to}` window.
+   * `'utc'` → `'UTC'`, an IANA id → itself, and `'local'` → the browser's own IANA
+   * zone. The result is therefore always the same basis `resolveCurrentTimeRange()`
+   * used to compute the `{from, to}` window — in `'local'` mode that window is built
+   * from browser-local wall clocks, so naming that zone is what makes the two agree.
+   *
+   * `'local'` used to send nothing, which left the resolver on UTC. Under the default
+   * per-query comparison policy a calendar rung stored in another zone then has no
+   * determinate grain and drops out of the ladder, so the board silently fell back to
+   * a finer rung, reported signal `Ok`, and drew a window that was not the one asked
+   * for (AB#5157 review). `undefined` now only means the browser named no zone at all.
    */
   resolveStreamDataTimeZone(): string | undefined {
     const mode = this.timeZoneMode();
-    if (mode === 'local') {
-      return undefined;
+    if (mode === 'utc') {
+      return 'UTC';
     }
-    return mode === 'utc' ? 'UTC' : mode;
+    if (mode === 'local') {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+    }
+    return mode;
   }
 
   /**

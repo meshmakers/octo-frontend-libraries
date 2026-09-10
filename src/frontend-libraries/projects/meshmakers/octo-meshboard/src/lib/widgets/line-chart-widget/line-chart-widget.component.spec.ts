@@ -1,12 +1,12 @@
 import type { MockedObject } from 'vitest';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { LineChartWidgetComponent } from './line-chart-widget.component';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { LineChartWidgetConfig } from '../../models/meshboard.models';
-import { QueryModeDto } from '@meshmakers/octo-services';
+import { CkRollupFunctionDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 
 function sdRow(windowStart: string, obis: string, value: number) {
   return {
@@ -287,5 +287,158 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
     expect(vi.mocked(qe.resolveSeriesQuery).mock.lastCall![0].rtIds).toBeUndefined();
     const downsampledScopes = vi.mocked(qe.downsampleByArchive).mock.calls.map(([params]) => params.rtIds);
     expect(downsampledScopes).toEqual([undefined]);
+  });
+
+  // AB#5157 review: the widget used to re-dimension the window as
+  // `floor(from / effectiveBucketMs) * effectiveBucketMs + points × effectiveBucketMs`. On this
+  // harness that turns a 24 h board selection into 50 minutes (10 points × 5 min); on a calendar
+  // rung it landed the axis outside the requested window entirely and cut the running period off.
+  // Bin geometry belongs to the engine, which knows the grain and the rung's alignment.
+  it('passes the board window to the downsampling query unchanged', async () => {
+    const { cmp, qe } = createResolutionAware(undefined, null);
+
+    await (cmp as unknown as {
+      loadData(): Promise<void>;
+    }).loadData();
+
+    const [params] = vi.mocked(qe.downsampleByArchive).mock.lastCall!;
+    expect(params.from).toEqual(new Date('2026-08-16T00:00:00Z'));
+    expect(params.to).toEqual(new Date('2026-08-17T00:00:00Z'));
+  });
+});
+
+// Resolution signals (AB#5157): CoverageLimited is a history gap, not a density problem — it must
+// surface its own badge even when the line is dense enough that a ResolutionLimited signal on the
+// very same geometry would be suppressed by the pixel-density rule.
+describe('LineChartWidgetComponent resolution signals (AB#5157)', () => {
+  const COVERAGE_DIAGNOSTIC = 'Skipped rollup-15m: no measured coverage in the requested window.';
+
+  function createWithSignal(decision: Record<string, unknown>, elementWidth: number): {
+    fixture: ComponentFixture<LineChartWidgetComponent>;
+    cmp: LineChartWidgetComponent;
+  } {
+    const qe = {
+      execute: vi.fn().mockName('QueryExecutorService.execute'),
+      fetchQueryArchive: vi.fn().mockName('QueryExecutorService.fetchQueryArchive'),
+      resolveSeriesQuery: vi.fn().mockName('QueryExecutorService.resolveSeriesQuery'),
+      downsampleByArchive: vi.fn().mockName('QueryExecutorService.downsampleByArchive'),
+      fetchSeriesLabels: vi.fn().mockName('QueryExecutorService.fetchSeriesLabels')
+    } as unknown as MockedObject<QueryExecutorService>;
+    qe.fetchQueryArchive.mockResolvedValue({ archiveRtId: 'base-1', ckTypeId: 'Basic/TemperatureSensor', rtIds: ['sensor-1'] });
+    qe.resolveSeriesQuery.mockResolvedValue(
+      decision as unknown as Awaited<ReturnType<QueryExecutorService['resolveSeriesQuery']>>);
+    qe.downsampleByArchive.mockResolvedValue([]);
+    qe.fetchSeriesLabels.mockResolvedValue(new Map<string, string>());
+
+    const stateService = {
+      resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
+      resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      resolveStreamDataTimeZone: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeZone'),
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
+      timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
+    };
+    stateService.resolveStreamDataTimeArgs.mockReturnValue({
+      from: new Date('2026-08-16T00:00:00Z'), to: new Date('2026-08-17T00:00:00Z')
+    });
+    stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
+    stateService.resolveStreamDataTimeZone.mockReturnValue('UTC');
+    stateService.getVariables.mockReturnValue([]);
+    stateService.timeZoneMode.mockReturnValue('utc');
+
+    const variableService = {
+      convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
+    };
+    variableService.convertToFieldFilterDto.mockReturnValue(undefined);
+
+    TestBed.configureTestingModule({
+      imports: [LineChartWidgetComponent],
+      providers: [
+        { provide: QueryExecutorService, useValue: qe },
+        { provide: MeshBoardStateService, useValue: stateService },
+        { provide: MeshBoardVariableService, useValue: variableService }
+      ]
+    });
+
+    const fixture = TestBed.createComponent(LineChartWidgetComponent);
+    // jsdom reports 0 for every layout box; the widget reads offsetWidth both for the pixel-density
+    // rule and for its point target, so a realistic chart width has to be stubbed in.
+    Object.defineProperty(fixture.nativeElement, 'offsetWidth', { value: elementWidth, configurable: true });
+    const cmp = fixture.componentInstance;
+    cmp.config = {
+      id: 'w1', type: 'lineChart', title: 'Test', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q1', queryFamily: 'streamData', resolutionAware: true },
+      categoryField: 'window_start', seriesGroupField: 'obisCode', valueField: 'CurrentValue'
+    } as LineChartWidgetConfig;
+    return { fixture, cmp };
+  }
+
+  /** A dense line on a wide chart: 1300px / 600 points ≈ 2.2 px per point, well under the warn threshold. */
+  function denseDecision(signal: SeriesResolutionSignalDto): Record<string, unknown> {
+    return {
+      archiveRtId: 'rollup-1d', effectiveBucketMs: 86400000, points: 600,
+      reducingFunction: CkRollupFunctionDto.AvgDto, signal,
+      actualPoints: 600, diagnostic: COVERAGE_DIAGNOSTIC,
+      finerRungAvailableFrom: '2026-06-01T00:00:00Z'
+    };
+  }
+
+  async function load(cmp: LineChartWidgetComponent): Promise<void> {
+    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+  }
+
+  it('flags CoverageLimited even when the line is dense enough to mute a ResolutionLimited warning', async () => {
+    const { cmp } = createWithSignal(denseDecision(SeriesResolutionSignalDto.CoverageLimitedDto), 1300);
+
+    await load(cmp);
+
+    const hint = cmp.resolutionHint();
+    expect(hint).not.toBeNull();
+    expect(hint!.text).toContain('no history');
+    expect(hint!.title).toContain('History at this resolution is available from');
+    expect(hint!.title).toContain('2026');
+  });
+
+  it('still mutes ResolutionLimited on the same geometry (the density rule is coverage-specific)', async () => {
+    const { cmp } = createWithSignal(denseDecision(SeriesResolutionSignalDto.ResolutionLimitedDto), 1300);
+
+    await load(cmp);
+
+    expect(cmp.resolutionHint()).toBeNull();
+  });
+
+  it('falls back to the backend diagnostic as the badge title when no finer rung start is known', async () => {
+    const decision = { ...denseDecision(SeriesResolutionSignalDto.CoverageLimitedDto), finerRungAvailableFrom: null };
+    const { cmp } = createWithSignal(decision, 1300);
+
+    await load(cmp);
+
+    expect(cmp.resolutionHint()!.title).toBe(COVERAGE_DIAGNOSTIC);
+  });
+
+  it('explains the coverage gap in plain language and appends the diagnostic', async () => {
+    const { cmp } = createWithSignal(denseDecision(SeriesResolutionSignalDto.CoverageLimitedDto), 1300);
+
+    await load(cmp);
+
+    const explanation = cmp.resolutionExplanation();
+    expect(explanation).not.toBeNull();
+    expect(explanation).toContain('holds no data for the selected time range');
+    expect(explanation).toContain(COVERAGE_DIAGNOSTIC);
+  });
+
+  it('renders the coverage badge, not the resolution-limited wording', async () => {
+    const { fixture, cmp } = createWithSignal(denseDecision(SeriesResolutionSignalDto.CoverageLimitedDto), 1300);
+
+    // The first detectChanges runs ngAfterViewInit, which kicks off its own (async) load and puts
+    // the widget into the loading state; awaiting a settled load afterwards makes the rendered
+    // state deterministic.
+    fixture.detectChanges();
+    await load(cmp);
+    fixture.detectChanges();
+
+    const badge = fixture.nativeElement.querySelector('.data-count') as HTMLElement;
+    expect(badge).not.toBeNull();
+    expect(badge.textContent).toContain('no history');
+    expect(badge.textContent).not.toContain('limited');
   });
 });

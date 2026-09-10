@@ -808,6 +808,15 @@ downsampling groups only by time bin, so it reduces (per `requiredAggregation`) 
 one aggregate line per group value. The grouping comes from the source entities' attributes because a
 rollup archive does not carry the `seriesGroupField` column.
 
+> **Coverage signal (AB#5157).** `SeriesResolutionResult.signal = CoverageLimited` means the
+> resolver's coverage filter skipped a finer rung because it holds no measured data over the
+> requested window, and `finerRungAvailableFrom` says from when that rung could serve. The widget
+> renders it as its own `⚠ no history` badge, checked **before** `ResolutionLimited` in both the
+> `resolutionHint` and `resolutionExplanation` switches, and deliberately **not** subject to the
+> `RESOLUTION_LIMIT_WARN_PX` density suppression: a dense-looking coarse line is still the wrong
+> answer to "where is my history?", so the badge always shows. The badge title names the available-
+> from date (formatted in the board's timezone), falling back to the backend diagnostic.
+
 The mechanism is domain-neutral: it groups by whatever `seriesGroupField` / `requiredAggregation`
 the widget is configured with. Only meaningful with `resolutionAware`; stream-data only.
 

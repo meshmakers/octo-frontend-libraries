@@ -8,6 +8,7 @@ query resolveSeriesQuery($input: ResolveSeriesQueryInput!) {
       signal
       actualPoints
       diagnostic
+      finerRungAvailableFrom
     }
   }
 }

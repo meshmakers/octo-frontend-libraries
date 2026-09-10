@@ -374,12 +374,29 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * Resolution-aware hint (AB#4290): a short badge describing the archive-selection outcome —
    * `null` for a clean reduction (signal OK), a warning otherwise (fewer points delivered, or no
    * compatible rollup so the raw archive was returned unreduced). Mirrors the resolver's signal.
+   * `CoverageLimited` (AB#5157) is a distinct badge: a finer rung was skipped for holding no data
+   * over the window, which is a history gap rather than a density problem — so it is always shown,
+   * bypassing the {@link RESOLUTION_LIMIT_WARN_PX} suppression that mutes a merely coarse line.
    */
   readonly resolutionHint = computed((): { text: string; title: string } | null => {
     const s = this._resolutionSignal();
     if (!s) return null;
     const diag = s.diagnostic ?? '';
     switch (s.signal) {
+      case SeriesResolutionSignalDto.CoverageLimitedDto: {
+        // Coverage, not density (AB#5157): the finer rung was skipped because it holds NO data
+        // over the window, so the pixel-density suppression must not apply — a dense-looking
+        // coarse line is still the wrong answer to "where is my history?". Always flagged.
+        const availableFrom = formatInstant(s.finerRungAvailableFrom, this.stateService.timeZoneMode(), {
+          day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+        return {
+          text: '⚠ no history',
+          title: availableFrom
+            ? `History at this resolution is available from ${availableFrom}`
+            : diag || 'A finer resolution exists but holds no data for this time range.'
+        };
+      }
       case SeriesResolutionSignalDto.ResolutionLimitedDto: {
         const delivered = s.actualPoints ?? s.points;
         const requested = this._resolutionTarget();
@@ -412,7 +429,20 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const delivered = s.actualPoints ?? s.points;
     const requested = this._resolutionTarget();
     const ofReq = requested ? ` (the chart could show ~${requested})` : '';
+    const diag = s.diagnostic ?? '';
     switch (s.signal) {
+      case SeriesResolutionSignalDto.CoverageLimitedDto: {
+        const availableFrom = formatInstant(s.finerRungAvailableFrom, this.stateService.timeZoneMode(), {
+          day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+        const from = availableFrom
+          ? ` That resolution only has history from ${availableFrom} onwards.`
+          : '';
+        return `A finer resolution exists for this series, but it holds no data for the selected time range, `
+          + `so the chart fell back to a coarser one (${delivered} point(s)${ofReq}).${from} `
+          + `The values are correct — narrow the range to a covered period to see finer detail.`
+          + (diag ? ` ${diag}` : '');
+      }
       case SeriesResolutionSignalDto.ResolutionLimitedDto:
         return `This chart auto-selects the coarsest stored resolution that still fits the view. `
           + `For this time range the finest matching rollup only provides ${delivered} point(s)${ofReq}, `
@@ -701,21 +731,15 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       return { rows: [], signal: null, requestedPoints: targetPoints };
     }
 
-    // Snap the query window to the resolver's effective-bucket grid. The downsampling engine only
-    // aggregates a stored point into a bin when the bin width equals the data grain AND the window
-    // start sits on that grid (from the epoch). An unaligned window — e.g. a relative "last N days"
-    // filter ending at the current wall-clock time (…:42:54) — otherwise makes every bin miss the
-    // hourly/interval data and yields an all-null (blank) chart. Aligning from + sizing to
-    // points × bucket makes each bin land exactly on a stored point.
-    let qFrom = from;
-    let qTo = to;
-    if (resolution.effectiveBucketMs > 0) {
-      const bucket = resolution.effectiveBucketMs;
-      const alignedFrom = Math.floor(from.getTime() / bucket) * bucket;
-      qFrom = new Date(alignedFrom);
-      qTo = new Date(alignedFrom + Math.max(1, resolution.points) * bucket);
-    }
-
+    // The requested window is passed through unchanged. The widget used to snap it to the
+    // resolver's effective-bucket grid, because the downsampling engine binned from whatever start
+    // it was handed and an unaligned window (a relative "last N days" filter ending at the current
+    // wall clock) made every bin miss the stored points. That alignment now happens where the grain
+    // is actually known — the engine snaps its own axis origin — and doing it here was wrong twice
+    // over for a calendar rung (AB#5157 review): `effectiveBucketMs` is an average, so anchoring it
+    // to the epoch landed the axis off the calendar boundaries and outside the requested window,
+    // and sizing the end as points × bucket cut the running period off. No client can compute this
+    // axis: neither the grain nor the rung's alignment is part of the query contract.
     // Group-aggregation mode (AB#4714): one downsampling call PER GROUP, each with the whole
     // group's rtIds, so the transient downsampling reduces over every member (per
     // requiredAggregation) into one aggregate line. Default mode: one call per source rtId, keeping
@@ -723,8 +747,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const downsample = (rtIds: string[] | undefined, label: string): Promise<QueryResultRow[]> =>
       this.queryExecutor.downsampleByArchive({
         archiveRtId: resolution.archiveRtId,
-        from: qFrom,
-        to: qTo,
+        from,
+        to,
         limit: Math.max(1, resolution.points),
         sourcePath,
         aggregation: resolution.reducingFunction,
