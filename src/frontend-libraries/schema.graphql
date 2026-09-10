@@ -2408,7 +2408,7 @@ union BasicEnergyOperatingFacility_FacilitiesUnion = BasicEnergyOperatingFacilit
 union BasicEnergyOperatingFacility_ParentUnion = BasicEnergyOperatingFacility
 
 "Union of types derived from Basic/TreeNode for Children association"
-union BasicTreeNode_ChildrenUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEnergyOperatingFacility | BasicState | BasicTreeNode | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicMachine | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceWorkplace | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility
+union BasicTreeNode_ChildrenUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEnergyOperatingFacility | BasicState | BasicTreeNode | EnvironmentWasteMeter | IndustryBasicMachine | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyMeter | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceWorkplace | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility
 
 "Union of types derived from Basic/TreeNode for Machine association"
 union BasicTreeNode_MachineUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEnergyOperatingFacility | BasicState | BasicTreeNode | EnvironmentWasteMeter | IndustryBasicMachine | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyMeter | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceWorkplace | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility
@@ -58856,7 +58856,7 @@ input CreateTimeRangeArchiveInput {
   "Attribute paths to materialise as CrateDB columns. At least one required."
   columns: [ArchiveColumnSpecInput!]!
   "Advisory window length in milliseconds (e.g. 900000 = 15 min). Optional; descriptive only."
-  periodMs: Int
+  periodMs: Long
   "Optional human-readable name for the archive."
   rtWellKnownName: String
   "CK type id whose rows this archive captures windowed values for."

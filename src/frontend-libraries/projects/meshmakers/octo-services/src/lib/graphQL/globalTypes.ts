@@ -5985,7 +5985,7 @@ export type BasicTreeNodeUpdateMessageDto = {
 };
 
 /** Union of types derived from Basic/TreeNode for Children association */
-export type BasicTreeNode_ChildrenUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEnergyOperatingFacilityDto | BasicStateDto | BasicTreeNodeDto | EnvironmentCarbonBudgetDto | EnvironmentCarbonEmissionDto | EnvironmentCertificateOfOriginDto | EnvironmentComplianceRecordDto | EnvironmentEnvironmentalGoalDto | EnvironmentWasteMeterDto | IndustryBasicMachineDto | IndustryEnergyDemandResponseEventDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyCostDto | IndustryEnergyEnergyForecastDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyPerformanceIndicatorDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
+export type BasicTreeNode_ChildrenUnionDto = BasicAssetDto | BasicCityDto | BasicCountryDto | BasicDistrictDto | BasicEnergyOperatingFacilityDto | BasicStateDto | BasicTreeNodeDto | EnvironmentWasteMeterDto | IndustryBasicMachineDto | IndustryEnergyEnergyConsumerDto | IndustryEnergyEnergyMeterDto | IndustryEnergyEnergyStorageDto | IndustryEnergyInverterDto | IndustryEnergyPhotovoltaicSystemDto | IndustryEnergyPhotovoltaicSystemModuleDto | IndustryEnergyPhotovoltaicSystemStringDto | IndustryFluidHeatMeterDto | IndustryFluidWaterMeterDto | IndustryMaintenanceCostCenterDto | IndustryMaintenanceEmployeeDto | IndustryMaintenanceWorkplaceDto | OctoSdkDemoMeteringPointDto | OctoSdkDemoOperatingFacilityDto;
 
 /** A connection to `BasicTreeNode_ChildrenUnion`. */
 export type BasicTreeNode_ChildrenUnionConnectionDto = {
@@ -7204,7 +7204,7 @@ export type CreateTimeRangeArchiveInputDto = {
   /** Attribute paths to materialise as CrateDB columns. At least one required. */
   columns: Array<ArchiveColumnSpecInputDto>;
   /** Advisory window length in milliseconds (e.g. 900000 = 15 min). Optional; descriptive only. */
-  periodMs?: InputMaybe<Scalars['Int']['input']>;
+  periodMs?: InputMaybe<Scalars['Long']['input']>;
   /** Optional human-readable name for the archive. */
   rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
   /** CK type id whose rows this archive captures windowed values for. */
