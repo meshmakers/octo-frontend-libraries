@@ -85,7 +85,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
               [(ngModel)]="selectedPersistentQuery"
               (querySelected)="onQuerySelected($event)"
               placeholder="Select a Query..."
-              hint="Select a query that returns time-series data with grouping.">
+              hint="Select a stream-data query on the archive you want to chart — a simple one is enough. The widget picks the rollup rung and downsamples itself; the fields below group the rows into series.">
             </mm-query-selector>
           </div>
 
