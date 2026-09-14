@@ -1,5 +1,5 @@
 import {Injectable, inject} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpParams} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {DetailedError, HttpRequest, Upload} from 'tus-js-client';
 import {AuthorizeService} from '@meshmakers/shared-auth';
@@ -36,6 +36,11 @@ export interface TusUploadOptions {
    */
   restoreArchiveData?: boolean;
   onProgress?: (bytesUploaded: number, bytesTotal: number) => void;
+  /**
+   * Status callback for the phase after the upload: invoked when the restore-job start is being
+   * retried (see the 403 retry on `startUpload`), so a progress UI can say why nothing moves.
+   */
+  onStatus?: (statusText: string) => void;
 }
 
 export interface TusUploadResult {
@@ -50,6 +55,16 @@ export class TusUploadService {
   private readonly configurationService = inject(CONFIGURATION_SERVICE);
   private readonly authorizeService = inject(AuthorizeService);
 
+  /**
+   * Delays between retries of a restore-job start that answered 403 (AB#5227). The bot service's
+   * tenant gate authorizes a parent administrator against an EXISTING child tenant, and its
+   * hierarchy answer is cached for up to 60 seconds — so a restore right after (re-)creating the
+   * tenant can be refused although the tenant is there. The ladder spans ~75s, one TTL plus slack.
+   * A genuine permission denial still fails, after the ladder, with the server's own reason.
+   * Overridable so specs don't wait.
+   */
+  public restoreForbiddenRetryDelaysMs: number[] = [5_000, 10_000, 15_000, 20_000, 25_000];
+
   public async startUpload(options: TusUploadOptions): Promise<TusUploadResult> {
     const botServicesUrl = this.configurationService.config?.botServices;
     if (!botServicesUrl) {
@@ -57,13 +72,40 @@ export class TusUploadService {
     }
 
     const tusFileId = await this.performTusUpload(botServicesUrl, options);
-    const jobResponse = await this.startRestoreJob(botServicesUrl, tusFileId, options);
+    const jobResponse = await this.startRestoreJobWithForbiddenRetry(botServicesUrl, tusFileId, options);
 
     if (!jobResponse?.jobId) {
       throw new Error('Failed to start restore job');
     }
 
     return {jobId: jobResponse.jobId};
+  }
+
+  /**
+   * Starts the restore job, retrying a 403 across the tenant-hierarchy cache TTL (see
+   * {@link restoreForbiddenRetryDelaysMs}). Only the job start is retried — the uploaded artifact
+   * is already staged, so no bytes are re-transferred. Every other error propagates immediately.
+   */
+  private async startRestoreJobWithForbiddenRetry(
+    botServicesUrl: string,
+    tusFileId: string,
+    options: TusUploadOptions
+  ): Promise<JobResponseDto | null> {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await this.startRestoreJob(botServicesUrl, tusFileId, options);
+      } catch (error) {
+        const isForbidden = error instanceof HttpErrorResponse && error.status === 403;
+        if (!isForbidden || attempt >= this.restoreForbiddenRetryDelaysMs.length) {
+          throw error;
+        }
+        const delayMs = this.restoreForbiddenRetryDelaysMs[attempt];
+        options.onStatus?.(
+          `Waiting for tenant authorization to propagate (retry ${attempt + 1} of ` +
+          `${this.restoreForbiddenRetryDelaysMs.length} in ${Math.round(delayMs / 1000)}s)...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
   }
 
   private performTusUpload(botServicesUrl: string, options: TusUploadOptions): Promise<string> {

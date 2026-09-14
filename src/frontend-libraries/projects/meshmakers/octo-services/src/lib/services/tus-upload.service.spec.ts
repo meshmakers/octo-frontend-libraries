@@ -149,6 +149,90 @@ describe('TusUploadService', () => {
       const result = await resultPromise;
       expect(result.jobId).toBe('job-456');
     });
+
+    // AB#5227: the bot service's tenant gate caches its hierarchy answer for up to 60s, so a
+    // restore right after (re-)creating the tenant can be refused although the tenant exists.
+    // Only the job start is retried — the uploaded artifact is already staged.
+    it('should retry the job start after a 403 and succeed once authorization propagates', async () => {
+      const mockFile = new File(['backup data'], 'backup.tar.gz', {type: 'application/gzip'});
+      const statusTexts: string[] = [];
+      const options: TusUploadOptions = {
+        file: mockFile,
+        tenantId: 'child-tenant',
+        databaseName: 'child_db',
+        onStatus: (text) => statusTexts.push(text)
+      };
+
+      stubTusUpload('tus-file-3');
+      service.restoreForbiddenRetryDelaysMs = [0, 0];
+
+      const resultPromise = service.startUpload(options);
+      await settle();
+
+      const url = `${baseUrl}child-tenant/v1/jobs/restore-from-upload`;
+      httpMock.expectOne((request) => request.url === url)
+        .flush({message: 'not an existing child tenant'}, {status: 403, statusText: 'Forbidden'});
+      // Two settles: the first lets the rejection reach the retry loop (which schedules its own
+      // zero-delay timer), the second lets that timer fire and issue the next request.
+      await settle();
+      await settle();
+
+      httpMock.expectOne((request) => request.url === url)
+        .flush({jobId: 'job-789'});
+
+      const result = await resultPromise;
+      expect(result.jobId).toBe('job-789');
+      expect(statusTexts.length).toBe(1);
+      expect(statusTexts[0]).toContain('retry 1 of 2');
+    });
+
+    it('should give up on 403 once the retry ladder is exhausted', async () => {
+      const mockFile = new File(['backup data'], 'backup.tar.gz', {type: 'application/gzip'});
+      const options: TusUploadOptions = {
+        file: mockFile,
+        tenantId: 'child-tenant',
+        databaseName: 'child_db'
+      };
+
+      stubTusUpload('tus-file-4');
+      service.restoreForbiddenRetryDelaysMs = [0];
+
+      const resultPromise = service.startUpload(options);
+      const rejection = expect(resultPromise).rejects.toMatchObject({status: 403});
+      await settle();
+
+      const url = `${baseUrl}child-tenant/v1/jobs/restore-from-upload`;
+      httpMock.expectOne((request) => request.url === url)
+        .flush({message: 'denied'}, {status: 403, statusText: 'Forbidden'});
+      await settle();
+      await settle();
+      httpMock.expectOne((request) => request.url === url)
+        .flush({message: 'denied'}, {status: 403, statusText: 'Forbidden'});
+
+      await rejection;
+    });
+
+    it('should not retry a non-403 failure of the job start', async () => {
+      const mockFile = new File(['backup data'], 'backup.tar.gz', {type: 'application/gzip'});
+      const options: TusUploadOptions = {
+        file: mockFile,
+        tenantId: 'child-tenant',
+        databaseName: 'child_db'
+      };
+
+      stubTusUpload('tus-file-5');
+      service.restoreForbiddenRetryDelaysMs = [0, 0];
+
+      const resultPromise = service.startUpload(options);
+      const rejection = expect(resultPromise).rejects.toMatchObject({status: 500});
+      await settle();
+
+      httpMock.expectOne(
+        (request) => request.url === `${baseUrl}child-tenant/v1/jobs/restore-from-upload`
+      ).flush({}, {status: 500, statusText: 'Internal Server Error'});
+
+      await rejection;
+    });
   });
 
   describe('buildTusEndpoint', () => {
