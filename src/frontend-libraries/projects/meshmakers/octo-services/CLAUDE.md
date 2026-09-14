@@ -376,6 +376,16 @@ Resumable file uploads using the TUS protocol for large database restore operati
 |--------|-------------|
 | `startUpload(options: TusUploadOptions)` | Upload file and start restore job, returns `{ jobId }`. `TusUploadOptions.restoreArchiveData` (default `false`, AB#4231) opts into restoring CrateDB archive data when the artifact is an `.octobak.zip`; sent as `restoreArchiveData` query param to `restore-from-upload`. |
 
+**403 retry on the job start (AB#5227).** The bot service's tenant gate authorizes a parent
+administrator only against an *existing* child tenant, and its hierarchy answer is cached for up to
+60 seconds — so a restore right after (re-)creating the tenant can be refused although the tenant is
+there. `startUpload` therefore retries a **403** of the `restore-from-upload` call across
+`restoreForbiddenRetryDelaysMs` (default 5/10/15/20/25 s, ~75 s total — one TTL plus slack; public so
+specs can shorten it). Only the job start is retried — the uploaded artifact is already staged, no
+bytes are re-transferred — and every other error propagates immediately. `TusUploadOptions.onStatus`
+receives a status line per retry so a progress UI can say why nothing moves. A genuine permission
+denial still fails after the ladder, with the server's own reason in the error body.
+
 Two hops, both on the tenant route (AB#5060): the tus transfer goes to
 `{tenantId}/v1/tus-upload`, then the restore job is started on
 `POST {tenantId}/v1/jobs/restore-from-upload`. Both are gated by the bot service's transport tenant

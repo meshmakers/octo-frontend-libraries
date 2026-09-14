@@ -79,9 +79,17 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
             }
             break;
 
-          case 'access-denied':
-            this.messageService.showError('Access denied. You do not have permission to access this tenant or resource.');
+          case 'access-denied': {
+            // The tenant authorization middleware names the denial reason in a {message} body
+            // (AB#5227) — e.g. "tenant does not exist any more, re-create it first" on a restore
+            // into a deleted tenant. Prefer that over the generic text, which reads as a
+            // permission problem it often is not.
+            const deniedMessage = (error.error as { message?: unknown } | null)?.message;
+            this.messageService.showError(typeof deniedMessage === 'string' && deniedMessage.length > 0
+              ? deniedMessage
+              : 'Access denied. You do not have permission to access this tenant or resource.');
             break;
+          }
 
           case 'api-error': {
             const apiError = error.error as ApiErrorDto;

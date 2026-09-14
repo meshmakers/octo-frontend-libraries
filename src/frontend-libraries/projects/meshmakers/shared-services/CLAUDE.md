@@ -120,7 +120,10 @@ Routes define context menus via `data.navigationMenu`:
 
 `MmHttpErrorInterceptor` handles:
 - **Status 0**: Network connectivity errors
-- **Status 403**: Access-denied toast
+- **Status 403**: Access-denied toast. When the body carries a string `message` — the tenant
+  authorization middleware names its denial reason that way since AB#5227 (e.g. "tenant does not
+  exist any more, re-create it first" on a restore into a deleted tenant) — that message is shown
+  instead of the generic text, which reads as a permission problem it often is not.
 - **Status 400 with `ApiErrorDto`**: Parses structured error response with details
 - **Status 409 with a message body**: same rendering as 400
 

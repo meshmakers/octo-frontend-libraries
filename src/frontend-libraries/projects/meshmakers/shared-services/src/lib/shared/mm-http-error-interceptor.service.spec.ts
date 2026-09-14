@@ -352,6 +352,43 @@ describe('MmHttpErrorInterceptor', () => {
         });
       }));
 
+      it('should prefer the server-provided message body for 403 Forbidden (AB#5227)', () => new Promise<void>((done) => {
+        // The tenant authorization middleware names the denial reason in a {message} body — e.g.
+        // a restore into a deleted tenant. That reason must reach the toast, not the generic text.
+        const req = new HttpRequest('POST', '/h24/v1/jobs/restore-from-upload', null);
+        const error = new HttpErrorResponse({
+          status: 403,
+          statusText: 'Forbidden',
+          error: { message: "Access to tenant 'h24' is denied: the token was issued for tenant 'ec-apphost', and 'h24' is not an existing child tenant of it." }
+        });
+        httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: () => {
+            expect(messageServiceMock.showError).toHaveBeenCalledWith(
+              "Access to tenant 'h24' is denied: the token was issued for tenant 'ec-apphost', and 'h24' is not an existing child tenant of it.");
+            done();
+          }
+        });
+      }));
+
+      it('should fall back to the generic 403 message for a non-string message body', () => new Promise<void>((done) => {
+        const req = new HttpRequest('GET', '/api/data');
+        const error = new HttpErrorResponse({
+          status: 403,
+          statusText: 'Forbidden',
+          error: { message: 42 }
+        });
+        httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: () => {
+            expect(messageServiceMock.showError).toHaveBeenCalledWith('Access denied. You do not have permission to access this tenant or resource.');
+            done();
+          }
+        });
+      }));
+
       it('should not show message for 404 Not Found', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
         const error = new HttpErrorResponse({
