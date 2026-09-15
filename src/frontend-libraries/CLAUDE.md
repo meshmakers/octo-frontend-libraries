@@ -576,6 +576,21 @@ npm run codegen:demo-app
 3. Run `npm run codegen` to regenerate TypeScript types
 4. Update the service files that use the generated types
 
+`schema.graphql` is generated too — introspected from a local tenant (`graphql.config.yml`), never
+hand-edited. Refresh it with the IDE GraphQL plugin or headlessly with the sibling repo's
+`octo-frontend-refinery-studio/scripts/om-refresh-schema.mjs <octo-cli-context> schema.graphql`
+(byte-identical output), then run `npm run codegen` **and** `npm run build:octo-services` — the
+Refinery Studio consumes `dist/`, not the sources, so an un-rebuilt library leaves the Studio
+compiling against the old base types.
+
+🔴 **This repo and `octo-frontend-refinery-studio` must be refreshed from the SAME tenant in the
+same pass.** The Studio's codegen takes its base types from `@meshmakers/octo-services`
+(`baseTypesPath`), so a CK rename that lands here but not there — or the other way round — does not
+fail at codegen, it fails at `tsc` with "has no exported member named …". That is exactly how
+`System.Communication` 4.0.0's `Pool` → `DeploymentSite` rename surfaced (AB#4924 §11a.2 part B):
+nothing in this repo's `.graphql` documents mentions `Pool`, yet `globalTypes.ts` and
+`possibleTypes.ts` both had to move because the type names derive from the CkTypeId.
+
 **File Structure:**
 ```
 projects/meshmakers/octo-services/src/lib/graphQL/
