@@ -47373,7 +47373,7 @@ enum SystemAggregationTypes {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1'
 """
 type SystemAiAiAgentConfig implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -47770,7 +47770,7 @@ type SystemAiAiAgentConfigUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1'
 """
 type SystemAiAiAgentJob implements SystemEntityInterface {
   associations(
@@ -48200,7 +48200,7 @@ type SystemAiAiAgentJob_AiResourcesUnionEdge {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1'
 """
 type SystemAiAiAgentSession implements SystemEntityInterface {
   aiResources(
@@ -48646,7 +48646,7 @@ type SystemAiAiAgentSession_OwnedByAiResourceUnionEdge {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1'
 """
 type SystemAiAiApprovalRequest implements SystemEntityInterface {
   associations(
@@ -49008,7 +49008,7 @@ type SystemAiAiApprovalRequestUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1'
 """
 type SystemAiAiAuditEvent implements SystemEntityInterface {
   actorRef: String!
@@ -49364,7 +49364,7 @@ type SystemAiAiAuditEventUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1'
 """
 type SystemAiAiCredentialBinding implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -49753,7 +49753,7 @@ type SystemAiAiCredentialBindingUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1'
 """
 type SystemAiAiCredentialTicket implements SystemEntityInterface {
   associations(
@@ -50109,7 +50109,7 @@ type SystemAiAiCredentialTicketUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1'
 """
 type SystemAiAiKnowledgeSource implements SystemConfigurationInterface & SystemEntityInterface {
   appliesToScopes: String!
@@ -50498,7 +50498,7 @@ type SystemAiAiKnowledgeSourceUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1'
 """
 type SystemAiAiPromptTemplate implements SystemConfigurationInterface & SystemEntityInterface {
   appliesTo: SystemAiJobKind!
@@ -50887,7 +50887,7 @@ type SystemAiAiPromptTemplateUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1'
 """
 type SystemAiAiQuotaLimit implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -51280,7 +51280,7 @@ type SystemAiAiQuotaLimitUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1'
 """
 type SystemAiAiSessionEvent implements SystemEntityInterface {
   actorRef: String!
@@ -51636,7 +51636,7 @@ type SystemAiAiSessionEventUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1'
 """
 type SystemAiAiTokenLease implements SystemEntityInterface {
   accessExpiresAt: DateTime!
@@ -52002,7 +52002,7 @@ type SystemAiAiTokenLeaseUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1'
 """
 type SystemAiAiToolPolicy implements SystemConfigurationInterface & SystemEntityInterface {
   approvalMode: SystemAiApprovalMode!
@@ -52393,7 +52393,7 @@ type SystemAiAiToolPolicyUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1'
+Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1'
 """
 type SystemAiAiUsageRecord implements SystemEntityInterface {
   associations(

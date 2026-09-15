@@ -28401,7 +28401,7 @@ export enum SystemAggregationTypesDto {
   TimeWeightedAverageDto = 'TIME_WEIGHTED_AVERAGE'
 }
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiAgentConfig';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -28439,7 +28439,7 @@ export type SystemAiAiAgentConfigDto = SystemConfigurationInterfaceDto & SystemE
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28454,7 +28454,7 @@ export type SystemAiAiAgentConfigAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28468,7 +28468,7 @@ export type SystemAiAiAgentConfigConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28482,7 +28482,7 @@ export type SystemAiAiAgentConfigMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28496,7 +28496,7 @@ export type SystemAiAiAgentConfigMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28510,7 +28510,7 @@ export type SystemAiAiAgentConfigRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28524,7 +28524,7 @@ export type SystemAiAiAgentConfigRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28538,7 +28538,7 @@ export type SystemAiAiAgentConfigTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentConfig-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentConfig-1' */
 export type SystemAiAiAgentConfigUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28636,7 +28636,7 @@ export type SystemAiAiAgentConfigUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiAgentConfigUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiAgentJob';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -28670,7 +28670,7 @@ export type SystemAiAiAgentJobDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28685,7 +28685,7 @@ export type SystemAiAiAgentJobAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28699,7 +28699,7 @@ export type SystemAiAiAgentJobConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28713,7 +28713,7 @@ export type SystemAiAiAgentJobMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28727,7 +28727,7 @@ export type SystemAiAiAgentJobMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobOwnedByAiResourceArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28741,7 +28741,7 @@ export type SystemAiAiAgentJobOwnedByAiResourceArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28755,7 +28755,7 @@ export type SystemAiAiAgentJobRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28769,7 +28769,7 @@ export type SystemAiAiAgentJobRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentJob-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentJob-1' */
 export type SystemAiAiAgentJobTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28892,7 +28892,7 @@ export type SystemAiAiAgentJob_AiResourcesUnionEdgeDto = {
   node?: Maybe<SystemAiAiAgentJob_AiResourcesUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiAgentSession';
   aiResources?: Maybe<SystemAiAiAgentJob_AiResourcesUnionConnectionDto>;
@@ -28934,7 +28934,7 @@ export type SystemAiAiAgentSessionDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionAiResourcesArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28948,7 +28948,7 @@ export type SystemAiAiAgentSessionAiResourcesArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28963,7 +28963,7 @@ export type SystemAiAiAgentSessionAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28977,7 +28977,7 @@ export type SystemAiAiAgentSessionConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -28991,7 +28991,7 @@ export type SystemAiAiAgentSessionMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29005,7 +29005,7 @@ export type SystemAiAiAgentSessionMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29019,7 +29019,7 @@ export type SystemAiAiAgentSessionRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29033,7 +29033,7 @@ export type SystemAiAiAgentSessionRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAgentSession-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAgentSession-1' */
 export type SystemAiAiAgentSessionTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29164,7 +29164,7 @@ export type SystemAiAiAgentSession_OwnedByAiResourceUnionEdgeDto = {
   node?: Maybe<SystemAiAiAgentSession_OwnedByAiResourceUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1' */
 export type SystemAiAiApprovalRequestDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiApprovalRequest';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -29201,7 +29201,7 @@ export type SystemAiAiApprovalRequestDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1' */
 export type SystemAiAiApprovalRequestAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29216,7 +29216,7 @@ export type SystemAiAiApprovalRequestAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1' */
 export type SystemAiAiApprovalRequestConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29230,7 +29230,7 @@ export type SystemAiAiApprovalRequestConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1' */
 export type SystemAiAiApprovalRequestMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29244,7 +29244,7 @@ export type SystemAiAiApprovalRequestMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1' */
 export type SystemAiAiApprovalRequestMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29258,7 +29258,7 @@ export type SystemAiAiApprovalRequestMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1' */
 export type SystemAiAiApprovalRequestRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29272,7 +29272,7 @@ export type SystemAiAiApprovalRequestRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1' */
 export type SystemAiAiApprovalRequestRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29286,7 +29286,7 @@ export type SystemAiAiApprovalRequestRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiApprovalRequest-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiApprovalRequest-1' */
 export type SystemAiAiApprovalRequestTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29383,7 +29383,7 @@ export type SystemAiAiApprovalRequestUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiApprovalRequestUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1' */
 export type SystemAiAiAuditEventDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiAuditEvent';
   actorRef: Scalars['String']['output'];
@@ -29417,7 +29417,7 @@ export type SystemAiAiAuditEventDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1' */
 export type SystemAiAiAuditEventAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29432,7 +29432,7 @@ export type SystemAiAiAuditEventAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1' */
 export type SystemAiAiAuditEventConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29446,7 +29446,7 @@ export type SystemAiAiAuditEventConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1' */
 export type SystemAiAiAuditEventMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29460,7 +29460,7 @@ export type SystemAiAiAuditEventMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1' */
 export type SystemAiAiAuditEventMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29474,7 +29474,7 @@ export type SystemAiAiAuditEventMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1' */
 export type SystemAiAiAuditEventRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29488,7 +29488,7 @@ export type SystemAiAiAuditEventRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1' */
 export type SystemAiAiAuditEventRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29502,7 +29502,7 @@ export type SystemAiAiAuditEventRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiAuditEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiAuditEvent-1' */
 export type SystemAiAiAuditEventTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29596,7 +29596,7 @@ export type SystemAiAiAuditEventUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiAuditEventUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiCredentialBinding';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -29630,7 +29630,7 @@ export type SystemAiAiCredentialBindingDto = SystemConfigurationInterfaceDto & S
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29645,7 +29645,7 @@ export type SystemAiAiCredentialBindingAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29659,7 +29659,7 @@ export type SystemAiAiCredentialBindingConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29673,7 +29673,7 @@ export type SystemAiAiCredentialBindingMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29687,7 +29687,7 @@ export type SystemAiAiCredentialBindingMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29701,7 +29701,7 @@ export type SystemAiAiCredentialBindingRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29715,7 +29715,7 @@ export type SystemAiAiCredentialBindingRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29729,7 +29729,7 @@ export type SystemAiAiCredentialBindingTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialBinding-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialBinding-1' */
 export type SystemAiAiCredentialBindingUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29823,7 +29823,7 @@ export type SystemAiAiCredentialBindingUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiCredentialBindingUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1' */
 export type SystemAiAiCredentialTicketDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiCredentialTicket';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -29857,7 +29857,7 @@ export type SystemAiAiCredentialTicketDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1' */
 export type SystemAiAiCredentialTicketAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29872,7 +29872,7 @@ export type SystemAiAiCredentialTicketAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1' */
 export type SystemAiAiCredentialTicketConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29886,7 +29886,7 @@ export type SystemAiAiCredentialTicketConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1' */
 export type SystemAiAiCredentialTicketMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29900,7 +29900,7 @@ export type SystemAiAiCredentialTicketMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1' */
 export type SystemAiAiCredentialTicketMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29914,7 +29914,7 @@ export type SystemAiAiCredentialTicketMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1' */
 export type SystemAiAiCredentialTicketRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29928,7 +29928,7 @@ export type SystemAiAiCredentialTicketRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1' */
 export type SystemAiAiCredentialTicketRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -29942,7 +29942,7 @@ export type SystemAiAiCredentialTicketRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiCredentialTicket-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiCredentialTicket-1' */
 export type SystemAiAiCredentialTicketTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30036,7 +30036,7 @@ export type SystemAiAiCredentialTicketUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiCredentialTicketUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiKnowledgeSource';
   appliesToScopes: Scalars['String']['output'];
@@ -30070,7 +30070,7 @@ export type SystemAiAiKnowledgeSourceDto = SystemConfigurationInterfaceDto & Sys
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30085,7 +30085,7 @@ export type SystemAiAiKnowledgeSourceAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30099,7 +30099,7 @@ export type SystemAiAiKnowledgeSourceConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30113,7 +30113,7 @@ export type SystemAiAiKnowledgeSourceMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30127,7 +30127,7 @@ export type SystemAiAiKnowledgeSourceMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30141,7 +30141,7 @@ export type SystemAiAiKnowledgeSourceRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30155,7 +30155,7 @@ export type SystemAiAiKnowledgeSourceRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30169,7 +30169,7 @@ export type SystemAiAiKnowledgeSourceTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiKnowledgeSource-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiKnowledgeSource-1' */
 export type SystemAiAiKnowledgeSourceUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30263,7 +30263,7 @@ export type SystemAiAiKnowledgeSourceUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiKnowledgeSourceUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiPromptTemplate';
   appliesTo: SystemAiJobKindDto;
@@ -30297,7 +30297,7 @@ export type SystemAiAiPromptTemplateDto = SystemConfigurationInterfaceDto & Syst
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30312,7 +30312,7 @@ export type SystemAiAiPromptTemplateAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30326,7 +30326,7 @@ export type SystemAiAiPromptTemplateConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30340,7 +30340,7 @@ export type SystemAiAiPromptTemplateMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30354,7 +30354,7 @@ export type SystemAiAiPromptTemplateMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30368,7 +30368,7 @@ export type SystemAiAiPromptTemplateRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30382,7 +30382,7 @@ export type SystemAiAiPromptTemplateRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30396,7 +30396,7 @@ export type SystemAiAiPromptTemplateTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiPromptTemplate-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiPromptTemplate-1' */
 export type SystemAiAiPromptTemplateUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30490,7 +30490,7 @@ export type SystemAiAiPromptTemplateUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiPromptTemplateUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiQuotaLimit';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -30526,7 +30526,7 @@ export type SystemAiAiQuotaLimitDto = SystemConfigurationInterfaceDto & SystemEn
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30541,7 +30541,7 @@ export type SystemAiAiQuotaLimitAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30555,7 +30555,7 @@ export type SystemAiAiQuotaLimitConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30569,7 +30569,7 @@ export type SystemAiAiQuotaLimitMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30583,7 +30583,7 @@ export type SystemAiAiQuotaLimitMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30597,7 +30597,7 @@ export type SystemAiAiQuotaLimitRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30611,7 +30611,7 @@ export type SystemAiAiQuotaLimitRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30625,7 +30625,7 @@ export type SystemAiAiQuotaLimitTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiQuotaLimit-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiQuotaLimit-1' */
 export type SystemAiAiQuotaLimitUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30721,7 +30721,7 @@ export type SystemAiAiQuotaLimitUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiQuotaLimitUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1' */
 export type SystemAiAiSessionEventDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiSessionEvent';
   actorRef: Scalars['String']['output'];
@@ -30755,7 +30755,7 @@ export type SystemAiAiSessionEventDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1' */
 export type SystemAiAiSessionEventAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30770,7 +30770,7 @@ export type SystemAiAiSessionEventAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1' */
 export type SystemAiAiSessionEventConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30784,7 +30784,7 @@ export type SystemAiAiSessionEventConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1' */
 export type SystemAiAiSessionEventMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30798,7 +30798,7 @@ export type SystemAiAiSessionEventMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1' */
 export type SystemAiAiSessionEventMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30812,7 +30812,7 @@ export type SystemAiAiSessionEventMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1' */
 export type SystemAiAiSessionEventRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30826,7 +30826,7 @@ export type SystemAiAiSessionEventRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1' */
 export type SystemAiAiSessionEventRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30840,7 +30840,7 @@ export type SystemAiAiSessionEventRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiSessionEvent-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiSessionEvent-1' */
 export type SystemAiAiSessionEventTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30934,7 +30934,7 @@ export type SystemAiAiSessionEventUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiSessionEventUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1' */
 export type SystemAiAiTokenLeaseDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiTokenLease';
   accessExpiresAt: Scalars['DateTime']['output'];
@@ -30973,7 +30973,7 @@ export type SystemAiAiTokenLeaseDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1' */
 export type SystemAiAiTokenLeaseAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -30988,7 +30988,7 @@ export type SystemAiAiTokenLeaseAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1' */
 export type SystemAiAiTokenLeaseConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31002,7 +31002,7 @@ export type SystemAiAiTokenLeaseConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1' */
 export type SystemAiAiTokenLeaseMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31016,7 +31016,7 @@ export type SystemAiAiTokenLeaseMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1' */
 export type SystemAiAiTokenLeaseMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31030,7 +31030,7 @@ export type SystemAiAiTokenLeaseMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1' */
 export type SystemAiAiTokenLeaseRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31044,7 +31044,7 @@ export type SystemAiAiTokenLeaseRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1' */
 export type SystemAiAiTokenLeaseRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31058,7 +31058,7 @@ export type SystemAiAiTokenLeaseRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiTokenLease-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiTokenLease-1' */
 export type SystemAiAiTokenLeaseTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31157,7 +31157,7 @@ export type SystemAiAiTokenLeaseUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiTokenLeaseUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiToolPolicy';
   approvalMode: SystemAiApprovalModeDto;
@@ -31192,7 +31192,7 @@ export type SystemAiAiToolPolicyDto = SystemConfigurationInterfaceDto & SystemEn
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31207,7 +31207,7 @@ export type SystemAiAiToolPolicyAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31221,7 +31221,7 @@ export type SystemAiAiToolPolicyConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31235,7 +31235,7 @@ export type SystemAiAiToolPolicyMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31249,7 +31249,7 @@ export type SystemAiAiToolPolicyMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31263,7 +31263,7 @@ export type SystemAiAiToolPolicyRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31277,7 +31277,7 @@ export type SystemAiAiToolPolicyRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31291,7 +31291,7 @@ export type SystemAiAiToolPolicyTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiToolPolicy-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiToolPolicy-1' */
 export type SystemAiAiToolPolicyUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31386,7 +31386,7 @@ export type SystemAiAiToolPolicyUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemAiAiToolPolicyUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1' */
 export type SystemAiAiUsageRecordDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAiAiUsageRecord';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -31421,7 +31421,7 @@ export type SystemAiAiUsageRecordDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1' */
 export type SystemAiAiUsageRecordAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31436,7 +31436,7 @@ export type SystemAiAiUsageRecordAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1' */
 export type SystemAiAiUsageRecordConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31450,7 +31450,7 @@ export type SystemAiAiUsageRecordConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1' */
 export type SystemAiAiUsageRecordMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31464,7 +31464,7 @@ export type SystemAiAiUsageRecordMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1' */
 export type SystemAiAiUsageRecordMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31478,7 +31478,7 @@ export type SystemAiAiUsageRecordMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1' */
 export type SystemAiAiUsageRecordRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31492,7 +31492,7 @@ export type SystemAiAiUsageRecordRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1' */
 export type SystemAiAiUsageRecordRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -31506,7 +31506,7 @@ export type SystemAiAiUsageRecordRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Ai-3.7.0/AiUsageRecord-1' */
+/** Runtime entities of construction kit type 'System.Ai-4.0.0/AiUsageRecord-1' */
 export type SystemAiAiUsageRecordTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
