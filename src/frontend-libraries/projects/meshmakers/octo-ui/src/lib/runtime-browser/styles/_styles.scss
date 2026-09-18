@@ -2338,9 +2338,22 @@
       flex-direction: column;
       overflow: hidden;
 
-      // Allow content to fill available space
-      > * {
-        flex: 1;
+      // Let a dialog whose body is ONE element fill the available space --
+      // that is what the meshboard settings/manager and the widget config
+      // dialogs need (their single wrapper carries `height: 100%`).
+      //
+      // This must stay scoped to `:only-child`. Applied to every child it
+      // divided the available height EQUALLY between them, and because the
+      // explicit `min-height: 0` also removed the automatic minimum size,
+      // nothing stopped a child from being squeezed below its content and
+      // clipped by `overflow: hidden` -- with no scrollbar to reach the rest.
+      // Every multi-element dialog body silently lost content that way (a
+      // 260px payment QR code rendered 115px tall, a due-date picker was cut
+      // in half). A body with more than one child is normal document flow:
+      // children keep their natural height and the body itself scrolls
+      // (see the `max-height` + `overflow-y: auto` rule further up).
+      > :only-child {
+        flex: 1 1 auto;
         min-height: 0;
         overflow: hidden;
       }
