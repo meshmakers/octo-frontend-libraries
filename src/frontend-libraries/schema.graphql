@@ -55367,8 +55367,40 @@ type SystemCommunicationAdapter implements SystemCommunicationDeployableEntityIn
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
   lastSyncedSequenceNumber: Int!
-  lentFromPoolRtId: String
-  lentFromTenantId: String
+  lentFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): SystemCommunicationLentAdapterPool_LentFromUnionConnection
   lifecycleMode: SystemCommunicationLifecycleMode!
   lifecycleState: SystemCommunicationLifecycleState!
   mapsFrom(
@@ -55666,8 +55698,7 @@ input SystemCommunicationAdapterInput {
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
   lastSyncedSequenceNumber: Int
-  lentFromPoolRtId: String
-  lentFromTenantId: String
+  lentFrom: [RtAssociationInput]
   lifecycleMode: SystemCommunicationLifecycleMode
   lifecycleState: SystemCommunicationLifecycleState
   mapsFrom: [RtAssociationInput]
@@ -56359,6 +56390,49 @@ type SystemCommunicationAdapter_ExecutedByUnionEdge {
 
   """The item at the end of the edge"""
   node: SystemCommunicationAdapter_ExecutedByUnion
+}
+
+"""
+Union of types derived from System.Communication/Adapter for LentTo association
+"""
+union SystemCommunicationAdapter_LentToUnion = SystemCommunicationAdapter
+
+"""
+A connection to `SystemCommunicationAdapter_LentToUnion`.
+"""
+type SystemCommunicationAdapter_LentToUnionConnection {
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+
+  """Information to aid in pagination."""
+  edges: [SystemCommunicationAdapter_LentToUnionEdge]
+
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemCommunicationAdapter_LentToUnion]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+}
+
+"""
+An edge in a connection from an object to another object of type `SystemCommunicationAdapter_LentToUnion`.
+"""
+type SystemCommunicationAdapter_LentToUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: SystemCommunicationAdapter_LentToUnion
 }
 
 """
@@ -63279,6 +63353,405 @@ type SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionEdge {
 
   """The item at the end of the edge"""
   node: SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnion
+}
+
+type SystemCommunicationLenderReference {
+  constructionKitType: CkType
+  lenderAdapterPoolRtId: String!
+  lenderTenantId: String!
+}
+
+input SystemCommunicationLenderReferenceInput {
+  lenderAdapterPoolRtId: String
+  lenderTenantId: String
+}
+
+"""
+Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1'
+"""
+type SystemCommunicationLentAdapterPool implements SystemEntityInterface {
+  associations(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """The construction kit type with the given id."""
+    ckId: String!
+
+    """The direction of the association."""
+    direction: GraphDirection!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """
+    Include indirect associations, otherwise direct associations are returned.
+    """
+    includeIndirect: Boolean
+
+    """The role id of the association."""
+    roleId: String!
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): RtEntityGenericDtoConnection
+  ckTypeId: RtCkTypeId!
+  configuredBy(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  constructionKitType: CkType
+  deploymentState: SystemCommunicationDeploymentState!
+  description: String
+  lender: SystemCommunicationLenderReference
+  lentTo(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): SystemCommunicationAdapter_LentToUnionConnection
+  mapsFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): SystemCommunicationDataPointMapping_MapsFromUnionConnection
+  mapsTo(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): SystemCommunicationDataPointMapping_MapsToUnionConnection
+  maxReplicas: Int
+  minReplicas: Int
+  name: String
+  relatesFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): SystemEntity_RelatesFromUnionConnection
+  relatesTo(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): SystemEntity_RelatesToUnionConnection
+  rtBlueprintAppliedAt: DateTime
+  rtBlueprintLocked: Boolean
+  rtBlueprintSource: String
+  rtChangedDateTime: DateTime
+  """
+  Subject id of the identity that created the entity (engine-stamped; read-only).
+  """
+  rtCreatedBy: String
+  rtCreationDateTime: DateTime
+  """
+  Engine-computed display description (from the CK type's displayDescriptionRule).
+  """
+  rtDisplayDescription: String
+  """
+  Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value.
+  """
+  rtDisplayName: String!
+  rtId: OctoObjectId!
+  rtVersion: ULong
+  rtWellKnownName: String
+  sharingMode: SystemCommunicationAdapterSharingMode!
+  taggedBy(
+    """Only return edges after the specified cursor."""
+    after: String
+
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+
+    """Sort order for items"""
+    sortOrder: [Sort]
+  ): SystemCommunicationTag_TaggedByUnionConnection
+}
+
+type SystemCommunicationLentAdapterPoolConnection {
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+
+  """Information to aid in pagination."""
+  edges: [SystemCommunicationLentAdapterPoolEdge]
+
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemCommunicationLentAdapterPool]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+}
+
+"""
+An edge in a connection from an object to another object of type `SystemCommunicationLentAdapterPool`.
+"""
+type SystemCommunicationLentAdapterPoolEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: SystemCommunicationLentAdapterPool
+}
+
+"""
+Union of types derived from System.Communication/LentAdapterPool for LentFrom association
+"""
+union SystemCommunicationLentAdapterPool_LentFromUnion = SystemCommunicationLentAdapterPool
+
+"""
+A connection to `SystemCommunicationLentAdapterPool_LentFromUnion`.
+"""
+type SystemCommunicationLentAdapterPool_LentFromUnionConnection {
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+
+  """Information to aid in pagination."""
+  edges: [SystemCommunicationLentAdapterPool_LentFromUnionEdge]
+
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemCommunicationLentAdapterPool_LentFromUnion]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+}
+
+"""
+An edge in a connection from an object to another object of type `SystemCommunicationLentAdapterPool_LentFromUnion`.
+"""
+type SystemCommunicationLentAdapterPool_LentFromUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: SystemCommunicationLentAdapterPool_LentFromUnion
 }
 
 """

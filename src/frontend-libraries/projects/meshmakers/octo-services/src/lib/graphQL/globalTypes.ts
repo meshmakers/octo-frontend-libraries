@@ -33120,8 +33120,7 @@ export type SystemCommunicationAdapterDto = SystemCommunicationDeployableEntityI
   lastDeploymentError?: Maybe<Scalars['String']['output']>;
   lastDeploymentErrorTimestamp?: Maybe<Scalars['DateTime']['output']>;
   lastSyncedSequenceNumber: Scalars['Int']['output'];
-  lentFromPoolRtId?: Maybe<Scalars['String']['output']>;
-  lentFromTenantId?: Maybe<Scalars['String']['output']>;
+  lentFrom?: Maybe<SystemCommunicationLentAdapterPool_LentFromUnionConnectionDto>;
   lifecycleMode: SystemCommunicationLifecycleModeDto;
   lifecycleState: SystemCommunicationLifecycleStateDto;
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
@@ -33227,6 +33226,20 @@ export type SystemCommunicationAdapterHelmRepositoryArgsDto = {
 
 /** Runtime entities of construction kit type 'System.Communication-4.0.0/Adapter-1' */
 export type SystemCommunicationAdapterHostedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/Adapter-1' */
+export type SystemCommunicationAdapterLentFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
   ckTypeIds: Array<Scalars['String']['input']>;
@@ -33371,8 +33384,7 @@ export type SystemCommunicationAdapterInputDto = {
   lastDeploymentError?: InputMaybe<Scalars['String']['input']>;
   lastDeploymentErrorTimestamp?: InputMaybe<Scalars['DateTime']['input']>;
   lastSyncedSequenceNumber?: InputMaybe<Scalars['Int']['input']>;
-  lentFromPoolRtId?: InputMaybe<Scalars['String']['input']>;
-  lentFromTenantId?: InputMaybe<Scalars['String']['input']>;
+  lentFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   lifecycleMode?: InputMaybe<SystemCommunicationLifecycleModeDto>;
   lifecycleState?: InputMaybe<SystemCommunicationLifecycleStateDto>;
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
@@ -33836,6 +33848,35 @@ export type SystemCommunicationAdapter_ExecutedByUnionEdgeDto = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<SystemCommunicationAdapter_ExecutedByUnionDto>;
+};
+
+/** Union of types derived from System.Communication/Adapter for LentTo association */
+export type SystemCommunicationAdapter_LentToUnionDto = SystemCommunicationAdapterDto;
+
+/** A connection to `SystemCommunicationAdapter_LentToUnion`. */
+export type SystemCommunicationAdapter_LentToUnionConnectionDto = {
+  __typename?: 'SystemCommunicationAdapter_LentToUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationAdapter_LentToUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationAdapter_LentToUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationAdapter_LentToUnion`. */
+export type SystemCommunicationAdapter_LentToUnionEdgeDto = {
+  __typename?: 'SystemCommunicationAdapter_LentToUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationAdapter_LentToUnionDto>;
 };
 
 /** Union of types derived from System.Communication/Adapter for PipelineServiceAccountOf association */
@@ -37878,6 +37919,221 @@ export type SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionEd
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node?: Maybe<SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnionDto>;
+};
+
+export type SystemCommunicationLenderReferenceDto = {
+  __typename?: 'SystemCommunicationLenderReference';
+  constructionKitType?: Maybe<CkTypeDto>;
+  lenderAdapterPoolRtId: Scalars['String']['output'];
+  lenderTenantId: Scalars['String']['output'];
+};
+
+export type SystemCommunicationLenderReferenceInputDto = {
+  lenderAdapterPoolRtId?: InputMaybe<Scalars['String']['input']>;
+  lenderTenantId?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolDto = SystemEntityInterfaceDto & {
+  __typename?: 'SystemCommunicationLentAdapterPool';
+  associations?: Maybe<RtEntityGenericDtoConnectionDto>;
+  ckTypeId: Scalars['RtCkTypeId']['output'];
+  configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  deploymentState: SystemCommunicationDeploymentStateDto;
+  description?: Maybe<Scalars['String']['output']>;
+  lender?: Maybe<SystemCommunicationLenderReferenceDto>;
+  lentTo?: Maybe<SystemCommunicationAdapter_LentToUnionConnectionDto>;
+  mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
+  mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  maxReplicas?: Maybe<Scalars['Int']['output']>;
+  minReplicas?: Maybe<Scalars['Int']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
+  relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
+  rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
+  rtBlueprintSource?: Maybe<Scalars['String']['output']>;
+  rtChangedDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Subject id of the identity that created the entity (engine-stamped; read-only). */
+  rtCreatedBy?: Maybe<Scalars['String']['output']>;
+  rtCreationDateTime?: Maybe<Scalars['DateTime']['output']>;
+  /** Engine-computed display description (from the CK type's displayDescriptionRule). */
+  rtDisplayDescription?: Maybe<Scalars['String']['output']>;
+  /** Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value. */
+  rtDisplayName: Scalars['String']['output'];
+  rtId: Scalars['OctoObjectId']['output'];
+  rtVersion?: Maybe<Scalars['ULong']['output']>;
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  sharingMode: SystemCommunicationAdapterSharingModeDto;
+  taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolAssociationsArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckId: Scalars['String']['input'];
+  direction: GraphDirectionDto;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  includeIndirect?: InputMaybe<Scalars['Boolean']['input']>;
+  roleId: Scalars['String']['input'];
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolConfiguredByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolLentToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolMapsFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolMapsToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolRelatesFromArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolRelatesToArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+/** Runtime entities of construction kit type 'System.Communication-4.0.0/LentAdapterPool-1' */
+export type SystemCommunicationLentAdapterPoolTaggedByArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  aggregations?: InputMaybe<ResultAggregationInputDto>;
+  ckTypeIds: Array<Scalars['String']['input']>;
+  fieldFilter?: InputMaybe<Array<InputMaybe<FieldFilterDto>>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  rtId?: InputMaybe<Scalars['OctoObjectId']['input']>;
+  rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
+  searchFilter?: InputMaybe<SearchFilterDto>;
+  sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+export type SystemCommunicationLentAdapterPoolConnectionDto = {
+  __typename?: 'SystemCommunicationLentAdapterPoolConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationLentAdapterPoolEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationLentAdapterPoolDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationLentAdapterPool`. */
+export type SystemCommunicationLentAdapterPoolEdgeDto = {
+  __typename?: 'SystemCommunicationLentAdapterPoolEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationLentAdapterPoolDto>;
+};
+
+/** Union of types derived from System.Communication/LentAdapterPool for LentFrom association */
+export type SystemCommunicationLentAdapterPool_LentFromUnionDto = SystemCommunicationLentAdapterPoolDto;
+
+/** A connection to `SystemCommunicationLentAdapterPool_LentFromUnion`. */
+export type SystemCommunicationLentAdapterPool_LentFromUnionConnectionDto = {
+  __typename?: 'SystemCommunicationLentAdapterPool_LentFromUnionConnection';
+  /** Result of aggregating the items of the result set. */
+  aggregation?: Maybe<AggregationDto>;
+  /** Information to aid in pagination. */
+  edges?: Maybe<Array<Maybe<SystemCommunicationLentAdapterPool_LentFromUnionEdgeDto>>>;
+  /** Result of aggregating the items by fields. */
+  fieldAggregations?: Maybe<Array<Maybe<FieldAggregationDto>>>;
+  /** A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead. */
+  items?: Maybe<Array<Maybe<SystemCommunicationLentAdapterPool_LentFromUnionDto>>>;
+  /** Information to aid in pagination. */
+  pageInfo?: Maybe<PageInfoDto>;
+  /** A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`. */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
+/** An edge in a connection from an object to another object of type `SystemCommunicationLentAdapterPool_LentFromUnion`. */
+export type SystemCommunicationLentAdapterPool_LentFromUnionEdgeDto = {
+  __typename?: 'SystemCommunicationLentAdapterPool_LentFromUnionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node?: Maybe<SystemCommunicationLentAdapterPool_LentFromUnionDto>;
 };
 
 /** Runtime entities of construction kit enum 'System.Communication/LifecycleMode' */

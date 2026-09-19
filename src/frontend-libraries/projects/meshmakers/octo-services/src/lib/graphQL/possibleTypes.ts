@@ -719,6 +719,9 @@
     "SystemCommunicationAdapter_ExecutedByUnion": [
       "SystemCommunicationAdapter"
     ],
+    "SystemCommunicationAdapter_LentToUnion": [
+      "SystemCommunicationAdapter"
+    ],
     "SystemCommunicationAdapter_PipelineServiceAccountOfUnion": [
       "SystemCommunicationAdapter"
     ],
@@ -760,6 +763,9 @@
     ],
     "SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnion": [
       "SystemCommunicationHelmRepositoryConfiguration"
+    ],
+    "SystemCommunicationLentAdapterPool_LentFromUnion": [
+      "SystemCommunicationLentAdapterPool"
     ],
     "SystemCommunicationPipelineExecution_ExecutedPipelineUnion": [
       "SystemCommunicationPipelineExecution"
@@ -950,6 +956,7 @@
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
       "SystemCommunicationHelmRepositoryConfiguration",
+      "SystemCommunicationLentAdapterPool",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
@@ -2910,6 +2917,9 @@
     "SystemCommunicationAdapter_ExecutedByUnion": [
       "SystemCommunicationAdapter"
     ],
+    "SystemCommunicationAdapter_LentToUnion": [
+      "SystemCommunicationAdapter"
+    ],
     "SystemCommunicationAdapter_PipelineServiceAccountOfUnion": [
       "SystemCommunicationAdapter"
     ],
@@ -2951,6 +2961,9 @@
     ],
     "SystemCommunicationHelmRepositoryConfiguration_HelmRepositoryUnion": [
       "SystemCommunicationHelmRepositoryConfiguration"
+    ],
+    "SystemCommunicationLentAdapterPool_LentFromUnion": [
+      "SystemCommunicationLentAdapterPool"
     ],
     "SystemCommunicationPipelineExecution_ExecutedPipelineUnion": [
       "SystemCommunicationPipelineExecution"
@@ -3141,6 +3154,7 @@
       "SystemCommunicationFinApiConfiguration",
       "SystemCommunicationGrafanaConfiguration",
       "SystemCommunicationHelmRepositoryConfiguration",
+      "SystemCommunicationLentAdapterPool",
       "SystemCommunicationLoxoneConfiguration",
       "SystemCommunicationMicrosoftGraphConfiguration",
       "SystemCommunicationPipeline",
