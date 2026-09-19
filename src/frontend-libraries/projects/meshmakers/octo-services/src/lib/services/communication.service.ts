@@ -173,14 +173,20 @@ export class CommunicationService {
 
   /**
    * Deploys a pool. For Cloud-environment pools, this triggers the central
-   * Communication Operator to provision the corresponding CommunicationPool
-   * CR and broker secret. Edge-environment pools transition state without
-   * any operator notification.
+   * Communication Operator to provision the corresponding DeploymentSite CR and
+   * broker secret. Edge-environment sites transition state without any operator
+   * notification.
+   *
+   * 🔴 The route is `/v1/deploymentsite/...`, NOT `/v1/pool/...`. The AB#4924 rename was
+   * documented as leaving the REST route alone — and then renamed the controller CLASS, which
+   * moves `[controller]` and therefore the route with it. These four URIs were the last consumers
+   * left on the old spelling: the .NET SDK had already moved, so nothing but the Studio 404'd, and
+   * the note saying the route "stays" is what stopped anyone from looking.
    */
   async deployPool(tenantId: string, poolRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
       const params = new HttpParams().set('poolRtId', poolRtId);
-      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pool/deploy`;
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/deploymentsite/deploy`;
 
       await firstValueFrom(
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})
@@ -189,14 +195,14 @@ export class CommunicationService {
   }
 
   /**
-   * Undeploys a pool. For Cloud-environment pools, this notifies the central
-   * Communication Operator to remove the CommunicationPool CR and broker
+   * Undeploys a deployment site. For Cloud-environment sites, this notifies the
+   * central Communication Operator to remove the DeploymentSite CR and broker
    * secret.
    */
   async undeployPool(tenantId: string, poolRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
       const params = new HttpParams().set('poolRtId', poolRtId);
-      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pool/undeploy`;
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/deploymentsite/undeploy`;
 
       await firstValueFrom(
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})
@@ -205,14 +211,17 @@ export class CommunicationService {
   }
 
   /**
-   * Deploys a single workload (Adapter or Application) via its parent
-   * pool. Independent of pool deploy — the workload's pool must already
-   * be deployed, but only this workload's helm-install fires.
+   * Deploys a single workload via its parent deployment site. Independent of the
+   * site's own deploy — the site must already be deployed, but only this
+   * workload's helm-install fires.
+   *
+   * Typed on `RtDeployableWorkload` server-side, so it serves Adapters,
+   * Applications AND AdapterPools (AB#5271).
    */
   async deployWorkload(tenantId: string, workloadRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
       const params = new HttpParams().set('workloadRtId', workloadRtId);
-      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pool/workloads/deploy`;
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/deploymentsite/workloads/deploy`;
 
       await firstValueFrom(
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})
@@ -263,7 +272,7 @@ export class CommunicationService {
   async undeployWorkload(tenantId: string, workloadRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
       const params = new HttpParams().set('workloadRtId', workloadRtId);
-      const uri = `${this.communicationServicesUrl}${tenantId}/v1/pool/workloads/undeploy`;
+      const uri = `${this.communicationServicesUrl}${tenantId}/v1/deploymentsite/workloads/undeploy`;
 
       await firstValueFrom(
         this.httpClient.post<void>(uri, null, {params, observe: 'response'})

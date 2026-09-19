@@ -8,6 +8,12 @@ import { AddInConfiguration } from '../shared/addInConfiguration';
 import { DeploymentState } from '../shared/communicationDtos';
 
 describe('CommunicationService', () => {
+  // 🔴 These URL literals are the CONTROLLER's routes, not our naming preference. The AB#4924
+  // rename was documented as leaving the REST route alone and then renamed the controller CLASS,
+  // which moves `[controller]` and the route with it: /v1/pool/... became /v1/deploymentsite/... .
+  // This suite asserted the old spelling and stayed green while every Deploy/Undeploy in the
+  // Studio answered 404 — the .NET SDK had already moved, so nothing else noticed. Check a change
+  // here against DeploymentSiteController's [Route], never against what reads nicer.
   let service: CommunicationService;
   let httpMock: HttpTestingController;
   let mockConfigService: MockedObject<IConfigurationService>;
@@ -130,7 +136,7 @@ describe('CommunicationService', () => {
 
       const promise = service.deployPool(tenantId, poolRtId);
 
-      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/deploy` &&
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/deploy` &&
                 request.params.get('poolRtId') === poolRtId);
       expect(req.request.method).toBe('POST');
       req.flush(null);
@@ -145,8 +151,42 @@ describe('CommunicationService', () => {
 
       const promise = service.undeployPool(tenantId, poolRtId);
 
-      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/undeploy` &&
+      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/undeploy` &&
                 request.params.get('poolRtId') === poolRtId);
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+  });
+
+  // 🔴 These two had NO coverage at all, which is why the route drift reached a user: every
+  // Deploy/Undeploy of an adapter, application or adapter pool in the Studio goes through them.
+  describe('deployWorkload', () => {
+    it('posts to the deployment-site workload route with workloadRtId', async () => {
+      const workloadRtId = 'workload-123';
+
+      const promise = service.deployWorkload(tenantId, workloadRtId);
+
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/workloads/deploy` &&
+        request.params.get('workloadRtId') === workloadRtId);
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+  });
+
+  describe('undeployWorkload', () => {
+    it('posts to the deployment-site workload route with workloadRtId', async () => {
+      const workloadRtId = 'workload-123';
+
+      const promise = service.undeployWorkload(tenantId, workloadRtId);
+
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/workloads/undeploy` &&
+        request.params.get('workloadRtId') === workloadRtId);
       expect(req.request.method).toBe('POST');
       req.flush(null);
 
