@@ -160,8 +160,8 @@ matters.
 
 The picker in `entity-selector-dialog` hands the selected node's `text` back to its caller,
 not `rtDisplayName` — the raw field would return the id that the tree had already resolved.
-`entity-detail.component.ts` still prints `rtDisplayName` in its header and therefore shows an
-id on those entities; that screen is not part of the tree and was left alone.
+The rule covers tree nodes only: screens that print `rtDisplayName` directly, such as the
+entity detail header, show whatever the backend answers, synthetic form included.
 
 ## Runtime entity queries must select rtId (cache keys)
 
