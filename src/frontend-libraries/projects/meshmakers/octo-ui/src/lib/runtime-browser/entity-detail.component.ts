@@ -184,7 +184,10 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
   getEntityDisplayName(): string {
     if (!this.entity) return 'Unknown Entity';
 
-    // Engine-computed display name (AB#4813); the backend guarantees a value
+    // Engine-computed display name (AB#4813). The backend never answers null - it falls back
+    // to "<ckTypeId>@<rtId>", so this header shows an id for entities written before the
+    // feature or imported. The tree resolves that through
+    // RuntimeBrowserDataSource.extractDisplayName (AB#5285); this screen does not yet.
     return this.entity.rtDisplayName || 'Unknown Entity';
   }
 

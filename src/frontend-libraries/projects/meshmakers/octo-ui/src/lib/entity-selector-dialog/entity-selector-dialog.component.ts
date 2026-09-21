@@ -205,8 +205,10 @@ export class EntitySelectorDialogComponent implements OnInit {
       this.selectedEntity = {
         rtId: entity.rtId,
         ckTypeId: entity.ckTypeId!,
-        // Engine-computed display name (AB#4813); the backend guarantees a value
-        name: entity.rtDisplayName,
+        // The node's text, not the raw rtDisplayName: the backend answers "<ckTypeId>@<rtId>"
+        // for entities that carry no computed name, and handing that id back as the label
+        // would undo what the tree already resolved (see extractDisplayName, AB#5285).
+        name: node.text,
       };
     } else {
       this.selectedEntity = null;

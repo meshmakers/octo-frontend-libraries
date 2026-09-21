@@ -1,4 +1,10 @@
 import type { Mock } from 'vitest';
+import type {
+  DocumentNode,
+  FieldNode,
+  OperationDefinitionNode,
+  SelectionSetNode,
+} from 'graphql';
 import { TestBed } from '@angular/core/testing';
 import { TreeItemDataTyped } from '@meshmakers/shared-services';
 import { fileIcon } from '@progress/kendo-svg-icons';
@@ -7,9 +13,15 @@ import { of, throwError } from 'rxjs';
 import { DeleteEntitiesDtoGQL } from '../../graphQL/deleteEntities';
 import { GetCkModelsDtoGQL } from '../../graphQL/getCkModels';
 import { GetCkTypeAssociationRolesDtoGQL } from '../../graphQL/getCkTypeAssociationRoles';
-import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
-import { GetTreeAssociationTargetsDtoGQL } from '../../graphQL/getTreeAssociationTargets';
-import { GetTreesDtoGQL } from '../../graphQL/getTrees';
+import {
+  GetRuntimeEntityAssociationsByIdDocumentDto,
+  GetRuntimeEntityAssociationsByIdDtoGQL,
+} from '../../graphQL/getRuntimeEntityAssociationsById';
+import {
+  GetTreeAssociationTargetsDocumentDto,
+  GetTreeAssociationTargetsDtoGQL,
+} from '../../graphQL/getTreeAssociationTargets';
+import { GetTreesDocumentDto, GetTreesDtoGQL } from '../../graphQL/getTrees';
 import { AssociationModOptionsDto, CkModelDto, CkTypeDto, GetCkModelByIdDtoGQL, GetCkTypesDtoGQL, GraphDirectionDto, RtAssociationDto, RtEntityDto, } from '@meshmakers/octo-services';
 import { UpdateRuntimeEntitiesDtoGQL } from '../../graphQL/updateRuntimeEntities';
 import { UpdateTreeNodesDtoGQL } from '../../graphQL/updateTreeNodes';
@@ -492,6 +504,110 @@ describe('RuntimeBrowserDataSource', () => {
 
       const treeNode = nodes.find((n) => n.text === 'Main Tree');
       expect(treeNode?.expandable).toBe(true);
+    });
+
+    // rtDisplayName is written when the engine stores an entity (AB#4813). Entities that
+    // predate it, or that arrived through an import, have none, and the backend answers with
+    // a synthetic "<ckTypeId>@<rtId>" instead of null - so a plain null check accepts it and
+    // the whole tree renders as ids.
+    it('falls back to the name attribute when the backend returns the synthetic display name', async () => {
+      mockGetTreesGQL.fetch.mockReturnValue(
+        of({
+          data: {
+            runtime: {
+              runtimeEntities: {
+                items: [
+                  {
+                    ...mockTreeEntity,
+                    rtDisplayName: 'Basic/Tree@tree-1',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+
+      const nodes = await service.fetchRootNodes();
+
+      expect(nodes.find((n) => n.text === 'Main Tree')).toBeTruthy();
+      expect(nodes.find((n) => n.text === 'Basic/Tree@tree-1')).toBeUndefined();
+    });
+
+    it('keeps the synthetic display name when the entity carries no name attribute either', async () => {
+      mockGetTreesGQL.fetch.mockReturnValue(
+        of({
+          data: {
+            runtime: {
+              runtimeEntities: {
+                items: [
+                  {
+                    ...mockTreeEntity,
+                    rtDisplayName: 'Basic/Tree@tree-1',
+                    attributes: { items: [] },
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+
+      const nodes = await service.fetchRootNodes();
+
+      expect(nodes.find((n) => n.text === 'Basic/Tree@tree-1')).toBeTruthy();
+    });
+
+    it('uses the well-known name when neither a computed name nor a name attribute exists', async () => {
+      // Blueprint-seeded entities carry a well-known name and often nothing else; it is a
+      // readable identifier and beats falling through to the synthetic form.
+      mockGetTreesGQL.fetch.mockReturnValue(
+        of({
+          data: {
+            runtime: {
+              runtimeEntities: {
+                items: [
+                  {
+                    ...mockTreeEntity,
+                    rtDisplayName: 'Basic/Tree@tree-1',
+                    rtWellKnownName: 'Basic/PlantTree',
+                    attributes: { items: [] },
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+
+      const nodes = await service.fetchRootNodes();
+
+      expect(nodes.find((n) => n.text === 'Basic/PlantTree')).toBeTruthy();
+    });
+
+    it('prefers a real computed display name over the name attribute', async () => {
+      // Where the engine did compute a value the CK type's displayNameRule stays in charge,
+      // even when it differs from the plain name attribute.
+      mockGetTreesGQL.fetch.mockReturnValue(
+        of({
+          data: {
+            runtime: {
+              runtimeEntities: {
+                items: [
+                  {
+                    ...mockTreeEntity,
+                    rtDisplayName: 'Werk Salzburg (AT10)',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+
+      const nodes = await service.fetchRootNodes();
+
+      expect(nodes.find((n) => n.text === 'Werk Salzburg (AT10)')).toBeTruthy();
     });
   });
 
@@ -1047,6 +1163,60 @@ describe('RuntimeBrowserDataSource', () => {
       expect(children.find((c) => c.text === 'Node 2')).toBeTruthy();
     });
 
+    // The same label rule has to hold for lazily loaded children, not just for the roots -
+    // the association targets are where a tree of ids was most visible.
+    it('labels association targets by the name attribute when the display name is synthetic', async () => {
+      mockGetTreeAssociationTargetsGQL.fetch.mockImplementation((options: {
+        variables: {
+          roleId: string;
+          first?: number;
+        };
+      }) => {
+        if (options.variables.roleId !== 'System/ParentChild') {
+          return of(targetsResponse([], 0));
+        }
+        if (options.variables.first === 1) {
+          return of(targetsResponse([], 1));
+        }
+        return of({
+          data: {
+            runtime: {
+              runtimeEntities: {
+                items: [
+                  {
+                    rtId: 'tree-1',
+                    ckTypeId: 'Basic/Tree',
+                    associations: {
+                      targets: {
+                        totalCount: 1,
+                        items: [
+                          {
+                            rtId: 'node-1',
+                            ckTypeId: 'Basic/TreeNode',
+                            rtDisplayName: 'Basic/TreeNode@node-1',
+                            rtDisplayDescription: null,
+                            rtWellKnownName: null,
+                            attributes: {
+                              items: [{ attributeName: 'name', value: 'Endfertigung' }],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        });
+      });
+
+      const children = await service.fetchChildren(makeTreeEntityNode());
+
+      expect(children.find((c) => c.text === 'Endfertigung')).toBeTruthy();
+      expect(children.find((c) => c.text === 'Basic/TreeNode@node-1')).toBeUndefined();
+    });
+
     it('should render non-parent-child roles as expandable group nodes', async () => {
       const children = await service.fetchChildren(makeTreeEntityNode());
 
@@ -1492,4 +1662,69 @@ describe('RuntimeBrowserDataSource', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
     });
   });
+});
+
+/**
+ * An RtEntity selected without rtId cannot be keyed. The shared `octoDataIdFromObject` just
+ * skips normalizing it, but a host that declares
+ * `typePolicies: { RtEntity: { keyFields: ['rtId'] } }` gets a throw instead: "Missing field
+ * 'rtId' while extracting keyFields". The data source treats that as a fetch failure and the
+ * tree silently shows no children although the server answered correctly - which is exactly
+ * how expansion broke in one app while the other looked fine. The library cannot see a host's
+ * typePolicies, so the selection is asserted here rather than left to review.
+ */
+describe('runtime entity queries carry rtId for cache normalization', () => {
+  const documents: { name: string; document: DocumentNode }[] = [
+    { name: 'getTreeAssociationTargets', document: GetTreeAssociationTargetsDocumentDto },
+    { name: 'getTrees', document: GetTreesDocumentDto },
+    { name: 'getRuntimeEntityAssociationsById', document: GetRuntimeEntityAssociationsByIdDocumentDto },
+  ];
+
+  /** Field names selected directly on a selection set (no descent). */
+  const directFields = (selectionSet: SelectionSetNode | undefined): string[] =>
+    (selectionSet?.selections ?? [])
+      .filter((s): s is FieldNode => s.kind === 'Field')
+      .map((s) => s.name.value);
+
+  /**
+   * Every `items` selection set that hangs off a field returning RtEntity rows -
+   * `runtimeEntities` and the `targets` of an association. Deliberately not "any items below
+   * runtimeEntities": `associations.definitions.items` are RtAssociation rows, which have no
+   * rtId and must not be asserted.
+   */
+  const entityItemSets = (node: {
+    selectionSet?: SelectionSetNode;
+  }): SelectionSetNode[] => {
+    const entityFields = ['runtimeEntities', 'targets'];
+    const found: SelectionSetNode[] = [];
+    const walk = (set: SelectionSetNode | undefined, insideEntityField: boolean): void => {
+      for (const selection of set?.selections ?? []) {
+        if (selection.kind !== 'Field') {
+          continue;
+        }
+        if (insideEntityField && selection.name.value === 'items' && selection.selectionSet) {
+          found.push(selection.selectionSet);
+        }
+        walk(selection.selectionSet, entityFields.includes(selection.name.value));
+      }
+    };
+    walk(node.selectionSet, false);
+    return found;
+  };
+
+  for (const { name, document } of documents) {
+    it(`${name} selects rtId directly on every entity items selection`, () => {
+      const operation = document.definitions.find(
+        (d): d is OperationDefinitionNode => d.kind === 'OperationDefinition',
+      );
+      expect(operation).toBeDefined();
+
+      const itemSets = entityItemSets(operation!);
+      expect(itemSets.length).toBeGreaterThan(0);
+
+      for (const set of itemSets) {
+        expect(directFields(set)).toContain('rtId');
+      }
+    });
+  }
 });

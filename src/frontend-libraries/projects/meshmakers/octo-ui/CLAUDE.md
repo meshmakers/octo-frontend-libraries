@@ -131,6 +131,65 @@ active light/dark theme; no per-drawer token namespace is exposed.
 `DEFAULT_RUNTIME_BROWSER_MESSAGES` for English defaults or build translated values using the
 app's translation system.
 
+## Runtime Browser node labels
+
+`RuntimeBrowserDataSource.extractDisplayName` is the single rule for the text of an entity
+node in the runtime browser and in the `entity-selector-dialog` picker, which share the data
+source. `mm-mapping-coverage-tree` has its own queries and labels nodes with
+`rtDisplayName ?? rtId`; it is not covered by this rule. The rule is not simply
+`rtDisplayName`.
+
+`rtDisplayName` (AB#4813) is **computed and stored when the engine writes the entity**, so
+entities that predate the feature or arrived through an import carry none. The backend does not
+answer `null` in that case — `RtEntityDtoType` resolves the field to a synthetic
+`"<ckTypeId>@<rtId>"`. A consumer that only checks for null therefore accepts an id as if it
+were a label, which is how the repository browser came to render a whole tree of
+`Basic/Tree@3ef2ac82…` on a tenant whose data was imported.
+
+The rule is: a computed `rtDisplayName` wins (the CK type's `displayNameRule` may compose more
+than the plain name); the synthetic form is recognised and treated as absent, and the entity's
+`name` attribute is used instead; then `rtWellKnownName`; the synthetic form only as the last
+resort.
+
+Every query that feeds a tree label therefore has to select `rtWellKnownName` and
+`attributes(attributeNames: ["name"])` next to `rtDisplayName`. There are exactly three such
+queries: `getTrees` (spatial roots), the `targets` of `getTreeAssociationTargets` (every child
+loaded on expand) and the inline `GET_ROOT_ENTITIES_BY_CK_TYPE` (perspective roots). A new
+label query that omits them will silently fall back to ids on exactly the tenants where it
+matters.
+
+The picker in `entity-selector-dialog` hands the selected node's `text` back to its caller,
+not `rtDisplayName` — the raw field would return the id that the tree had already resolved.
+`entity-detail.component.ts` still prints `rtDisplayName` in its header and therefore shows an
+id on those entities; that screen is not part of the tree and was left alone.
+
+## Runtime entity queries must select rtId (cache keys)
+
+Every selection of an `RtEntity` carries `rtId`, including the ones the caller only traverses.
+Two different mechanisms depend on it, and only one of them fails loudly:
+
+- `octoDataIdFromObject` (octo-services) returns `o['rtId']` as the cache id. Without the
+  field it returns `undefined` and Apollo simply **does not normalize** that object — no
+  error, the query still resolves.
+- A host that additionally declares `typePolicies: { RtEntity: { keyFields: ['rtId'] } }`
+  gets a hard failure instead: the cache write throws `Missing field 'rtId' while extracting
+  keyFields`, which surfaces as a **rejected fetch**, not as a cache warning. maco-app
+  declares it (AB#4767); Refinery Studio does not.
+
+That is a silent failure mode, because the data sources catch fetch errors and return an empty
+list — the UI shows *nothing* while the server answered correctly. `getTreeAssociationTargets`
+never selected `rtId` on its OUTER `runtimeEntities` selection (the entity whose associations
+are being read, not the targets). The query was written that way from the start (AB#4262) and
+only became visible when a host added the `keyFields` policy: in maco-app the whole tree
+stopped expanding — every node reported children, every expansion produced none, and the only
+trace was one console error — while the same tree in the Studio worked.
+
+**Rule: every `runtimeEntities { items { … } }` and every `targets { items { … } }` selection
+carries `rtId`, even when the caller only wants what hangs underneath it.** A guard test in
+`runtime-browser-data-source.service.spec.ts` walks the query ASTs and asserts this for the
+tree queries; extend its list when adding another one. It deliberately does not descend into
+`associations.definitions.items` — those are `RtAssociation` rows and have no `rtId`.
+
 ## Runtime Browser association navigation
 
 `RuntimeBrowserDataSource` (shared by the repository browser **and** the
