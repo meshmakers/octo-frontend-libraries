@@ -26,96 +26,70 @@ try {
         }
     }
 
-    # Verify npx is available
-    if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
-        Write-Host "npx not found in PATH" -ForegroundColor Red
+    # ng is started as "node <ng.js>" directly, not through npx: no cmd.exe/npx wrappers on Windows
+    # (see AB#3715), and the started process is the dev server itself, so its PID can be recorded
+    # and its process tree ended reliably on every platform.
+    $nodeExe = (Get-Command node -ErrorAction SilentlyContinue).Source
+    if (-not $nodeExe) {
+        Write-Host "node not found in PATH" -ForegroundColor Red
         exit 1
     }
-
-    # On Windows, run npx via cmd.exe to handle .cmd/.ps1 wrappers correctly.
-    # System.Diagnostics.Process cannot execute .ps1 files directly.
+    $ngCli = Join-Path $frontendLibsPath "node_modules/@angular/cli/bin/ng.js"
+    if (-not (Test-Path $ngCli)) {
+        Write-Host "Angular CLI not found at $ngCli (run npm ci)" -ForegroundColor Red
+        exit 1
+    }
     $onWindows = $IsWindows -or (-not ($IsMacOS -or $IsLinux))
-    if ($onWindows) {
-        $procFileName = "cmd.exe"
-        $npxPrefix = "/c npx "
-    } else {
-        $procFileName = (Get-Command npx).Source
-        $npxPrefix = ""
-    }
 
-    # Leftover dev servers on our ports: a stopped Start-Job does not reliably run the finally
-    # block below, so the ng serve processes survive Stop-Octo and keep 4201/4202 bound.
-    # On Windows only ng serve's own node process is ended (its cmd/npx parents exit on their
-    # own); anything else owning the port is reported and left alone. Messages go through the
-    # output stream so they reach the job log under Start-Octo.
-    # Callers wrap the result in @(): PowerShell unrolls function output, so an empty or
-    # single-element result would otherwise arrive as $null or a scalar.
-    function Get-PortListenerPid($port) {
-        if ($onWindows) {
-            Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction Ignore |
-                Select-Object -ExpandProperty OwningProcess -Unique
-        } else {
-            lsof -ti :$port 2>$null
-        }
-    }
+    # Dev servers left over from the previous run: a stopped Start-Job does not run the finally
+    # block below, so after Stop-Octo the ng serve processes survive and keep 4201/4202 bound.
+    # The PIDs of the servers started by the last run are recorded in a file and ended here,
+    # process tree included, before the ports are checked. Only processes this script started
+    # are touched.
+    $pidFile = Join-Path ([System.IO.Path]::GetTempPath()) "octo-start-frontend-libraries.pids"
 
-    function Stop-PortListener($port, [switch]$Force) {
-        foreach ($listenerPid in @(Get-PortListenerPid $port)) {
-            if (-not $listenerPid) { continue }
-            if ($onWindows) {
-                $name = Get-Process -Id $listenerPid -ErrorAction Ignore | Select-Object -ExpandProperty ProcessName
-                if (-not $name) {
-                    Write-Output "Port $port was held by PID $listenerPid, process already gone"
-                    continue
-                }
-                if ($name -ne "node") {
-                    Write-Output "Port $port is in use by '$name' (PID $listenerPid), not an ng serve process - leaving it alone"
-                    continue
-                }
-                Write-Output "Killing leftover ng serve process on port $port (PID $listenerPid)"
-                taskkill /PID $listenerPid /T /F 2>$null | Out-Null
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Output "taskkill failed for PID $listenerPid on port $port (exit code $LASTEXITCODE)"
-                }
-            } else {
-                # Same policy on macOS/Linux: only ng serve's node process is ended. lsof also lists
-                # client sockets of the port, so the owner check matters here as well. The full
-                # command line is used because macOS reports the process title Angular sets
-                # ("ng serve demo-app ...") where Linux reports "node".
-                $command = ((ps -o command= -p $listenerPid 2>$null) -join '').Trim()
-                if (-not $command) {
-                    Write-Output "Port $port was held by PID $listenerPid, process already gone"
-                    continue
-                }
-                if ($command -notmatch '(^|/)node( |$)|\bng serve\b') {
-                    Write-Output "Port $port is in use by '$command' (PID $listenerPid), not an ng serve process - leaving it alone"
-                    continue
-                }
-                # Native kill (PowerShell ships no kill alias there): SIGTERM first, SIGKILL from the
-                # finally sweep, as before.
-                Write-Output "Killing leftover ng serve process on port $port (PID $listenerPid)"
-                if ($Force) { kill -9 $listenerPid 2>$null } else { kill $listenerPid 2>$null }
-                if ($LASTEXITCODE -ne 0) {
-                    Write-Output "kill failed for PID $listenerPid on port $port (exit code $LASTEXITCODE)"
-                }
+    # One line per server: "<pid>|<start time as UTC ticks>". The start time is the PID reuse
+    # guard: a process that now runs under a recorded PID but started at another time is not ours.
+    function Stop-RecordedServers {
+        if (-not (Test-Path $pidFile)) { return }
+        foreach ($entry in @(Get-Content $pidFile | Where-Object { $_ -match '^\d+\|\d+$' })) {
+            $recordedPid, $recordedTicks = $entry -split '\|'
+            $recorded = Get-Process -Id ([int]$recordedPid) -ErrorAction Ignore
+            if (-not $recorded) { continue }
+            try { $startedTicks = $recorded.StartTime.ToUniversalTime().Ticks } catch { $startedTicks = -1 }
+            if ([math]::Abs($startedTicks - [long]$recordedTicks) -gt 20000000) {
+                Write-Output "PID $recordedPid from the last run belongs to another process now, leaving it alone"
+                continue
             }
+            Write-Output "Stopping leftover dev server from the last run (PID $recordedPid)"
+            try { $recorded.Kill($true) } catch { Write-Output "Could not stop PID ${recordedPid}: $($_.Exception.Message)" }
         }
+        Remove-Item $pidFile -Force -ErrorAction Ignore
     }
 
-    # Returns $true once no listener is left on the port, $false when the timeout expires first.
+    # Bind test with the same address ng serve uses (0.0.0.0). Unix needs ReuseAddress so that
+    # connections in TIME_WAIT from the previous run do not count as busy, exactly like node's own bind.
+    function Test-PortFree($port) {
+        $probe = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $port)
+        if (-not $onWindows) { $probe.Server.SetSocketOption([System.Net.Sockets.SocketOptionLevel]::Socket, [System.Net.Sockets.SocketOptionName]::ReuseAddress, $true) }
+        $errorsBefore = $Error.Count
+        try { $probe.Start(); $free = $true } catch { $free = $false } finally { $probe.Stop() }
+        # A failed bind is the expected answer here, not an error worth keeping in $Error.
+        while ($Error.Count -gt $errorsBefore) { $Error.RemoveAt(0) }
+        return $free
+    }
+
     function Wait-PortFree($port, $timeoutMs = 5000) {
         $deadline = (Get-Date).AddMilliseconds($timeoutMs)
-        while (@(Get-PortListenerPid $port).Count -gt 0 -and (Get-Date) -lt $deadline) {
-            Start-Sleep -Milliseconds 250
-        }
-        return (@(Get-PortListenerPid $port).Count -eq 0)
+        while (-not (Test-PortFree $port) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250 }
+        return (Test-PortFree $port)
     }
 
+    Stop-RecordedServers
     foreach ($port in @(4201, 4202)) {
-        Stop-PortListener $port
         if (-not (Wait-PortFree $port)) {
             # Same policy as the Refinery Studio start script: do not start against a busy port.
-            Write-Output "ERROR: Port $port is still in use after cleanup, not starting the dev servers"
+            Write-Output "ERROR: Port $port is in use, not starting the dev servers"
             exit 1
         }
     }
@@ -127,15 +101,15 @@ try {
     # This works correctly both standalone and when called from Start-Job (no console/terminal required)
     function Start-NgServe($project, $port) {
         $psi = [System.Diagnostics.ProcessStartInfo]::new()
-        $psi.FileName = $procFileName
-        $psi.Arguments = "${npxPrefix}ng serve $project --port $port --configuration $ngConfiguration"
+        $psi.FileName = $nodeExe
+        $psi.Arguments = "`"$ngCli`" serve $project --port $port --configuration $ngConfiguration"
         $psi.WorkingDirectory = $frontendLibsPath
         $psi.UseShellExecute = $false
         $psi.RedirectStandardOutput = $true
         $psi.RedirectStandardError = $true
         # Redirect stdin and close it right after start. Without this the child inherits the
-        # stdin handle of the Start-Job host (the job protocol pipe), and npx blocks on it
-        # before it ever spawns `ng serve` - the servers never come up and the log stays empty.
+        # stdin handle of the Start-Job host (the job protocol pipe); npx blocked on it before
+        # it ever spawned `ng serve` - the servers never came up and the log stayed empty.
         $psi.RedirectStandardInput = $true
         $psi.CreateNoWindow = $true
 
@@ -155,6 +129,7 @@ try {
 
     $processes = @($demoProc, $legacyProc)
     $projectNames = @("demo-app", "legacy-demo-app")
+    Set-Content -Path $pidFile -Value ($processes | ForEach-Object { "$($_.Id)|$($_.StartTime.ToUniversalTime().Ticks)" })
 
     try {
         while ($true) {
@@ -199,26 +174,10 @@ try {
         Write-Host "Stopping servers..." -ForegroundColor Yellow
         foreach ($proc in $processes) {
             if (-not $proc.HasExited) {
-                if ($IsMacOS -or $IsLinux) {
-                    # Kill the process tree
-                    kill -- -$($proc.Id) 2>$null
-                    if (-not $proc.HasExited) {
-                        $proc.Kill($true)
-                    }
-                }
-                else {
-                    taskkill /PID $proc.Id /T /F 2>$null | Out-Null
-                }
+                try { $proc.Kill($true) } catch { Write-Output "Could not stop PID $($proc.Id): $($_.Exception.Message)" }
             }
         }
-        # Final cleanup: make sure none of our dev servers is left on our ports. Only warn here,
-        # a throw inside finally would hide the original reason for stopping.
-        foreach ($port in @(4201, 4202)) {
-            Stop-PortListener $port -Force
-            if (-not (Wait-PortFree $port 2000)) {
-                Write-Output "WARNING: Port $port is still in use after shutdown"
-            }
-        }
+        Remove-Item $pidFile -Force -ErrorAction Ignore
         Write-Host "Servers stopped." -ForegroundColor Yellow
     }
 }
