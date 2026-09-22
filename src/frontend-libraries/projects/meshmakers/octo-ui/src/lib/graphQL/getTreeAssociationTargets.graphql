@@ -9,6 +9,12 @@ query getTreeAssociationTargets(
   runtime {
     runtimeEntities(rtId: $rtId, ckId: $ckTypeId, first: 1) {
       items {
+        # Nothing here reads this entity - only the targets below it. It is selected because
+        # a host that declares typePolicies { RtEntity: { keyFields: ['rtId'] } } cannot
+        # normalize an RtEntity without it: the cache write throws "Missing field 'rtId'
+        # while extracting keyFields", the data source catches that as a fetch failure and
+        # the expansion silently yields no children although the server answered with them.
+        rtId
         associations {
           targets(
             roleId: $roleId
@@ -21,7 +27,14 @@ query getTreeAssociationTargets(
               rtId
               rtDisplayName
               rtDisplayDescription
+              rtWellKnownName
               ckTypeId
+              attributes(attributeNames: ["name"]) {
+                items {
+                  attributeName
+                  value
+                }
+              }
             }
           }
         }

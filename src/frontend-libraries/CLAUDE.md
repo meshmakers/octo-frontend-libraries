@@ -406,6 +406,14 @@ them up" without checking the reason first.
   slot is empty and the unprefixed token was issued for `x`, never overwriting, never touching the
   flow-scoped sessionStorage keys. Without the move the next reload on a tenant URL finds an empty
   slot and re-authenticates silently through identity's session cookie.
+- **A sign-in without a tenant can still be scoped (AB#5311/5312).** `AuthorizeOptions.discoveryScopeTenantId`
+  makes a tenant-less `login()` send `acr_values=tenant_scope:<scope>` instead of nothing. Identity keeps
+  resolving the tenant itself — single-session shortcut or its email-first tenant discovery — but offers
+  only the tenants strictly below the scope (direct and indirect descendants, never the scope). An app host
+  that serves one subtree (the accounting app with `rootTenantId` = `accounting`) sets its root here, so a
+  user who exists only in a grouping tenant below the root signs in on the same host and sees exactly the
+  operating tenants that host renders. An explicit `login(tenantId)` or a `defaultTenantId` still wins and
+  sends `tenant:<id>` only — the scope never accompanies a named tenant.
 - **Refresh grants name the tenant.** `authorizeInterceptor` puts `acr_values=tenant:<id>` on
   every `refresh_token` grant — the storage tenant when one is set, else the tenant of the current
   token (`tokenTenantId()`). Identity otherwise resolves the tenant from an in-memory

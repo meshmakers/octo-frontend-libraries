@@ -13,13 +13,14 @@ export type GetTreeAssociationTargetsQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetTreeAssociationTargetsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', associations?: { __typename?: 'RtEntityGenericAssociation', targets?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetTreeAssociationTargetsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, associations?: { __typename?: 'RtEntityGenericAssociation', targets?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, rtWellKnownName?: string | null, ckTypeId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetTreeAssociationTargetsDocumentDto = gql`
     query getTreeAssociationTargets($rtId: OctoObjectId!, $ckTypeId: String!, $roleId: String!, $targetCkTypeId: String!, $direction: GraphDirection!, $first: Int) {
   runtime {
     runtimeEntities(rtId: $rtId, ckId: $ckTypeId, first: 1) {
       items {
+        rtId
         associations {
           targets(
             roleId: $roleId
@@ -32,7 +33,14 @@ export const GetTreeAssociationTargetsDocumentDto = gql`
               rtId
               rtDisplayName
               rtDisplayDescription
+              rtWellKnownName
               ckTypeId
+              attributes(attributeNames: ["name"]) {
+                items {
+                  attributeName
+                  value
+                }
+              }
             }
           }
         }
