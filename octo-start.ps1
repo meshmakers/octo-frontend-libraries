@@ -78,9 +78,22 @@ try {
                     Write-Output "taskkill failed for PID $listenerPid on port $port (exit code $LASTEXITCODE)"
                 }
             } else {
-                # Native kill on macOS/Linux (PowerShell ships no kill alias there): SIGTERM first,
-                # SIGKILL from the finally sweep, as before.
-                Write-Output "Killing leftover process on port $port (PID $listenerPid)"
+                # Same policy on macOS/Linux: only ng serve's node process is ended. lsof also lists
+                # client sockets of the port, so the owner check matters here as well. The full
+                # command line is used because macOS reports the process title Angular sets
+                # ("ng serve demo-app ...") where Linux reports "node".
+                $command = ((ps -o command= -p $listenerPid 2>$null) -join '').Trim()
+                if (-not $command) {
+                    Write-Output "Port $port was held by PID $listenerPid, process already gone"
+                    continue
+                }
+                if ($command -notmatch '(^|/)node( |$)|\bng serve\b') {
+                    Write-Output "Port $port is in use by '$command' (PID $listenerPid), not an ng serve process - leaving it alone"
+                    continue
+                }
+                # Native kill (PowerShell ships no kill alias there): SIGTERM first, SIGKILL from the
+                # finally sweep, as before.
+                Write-Output "Killing leftover ng serve process on port $port (PID $listenerPid)"
                 if ($Force) { kill -9 $listenerPid 2>$null } else { kill $listenerPid 2>$null }
                 if ($LASTEXITCODE -ne 0) {
                     Write-Output "kill failed for PID $listenerPid on port $port (exit code $LASTEXITCODE)"
