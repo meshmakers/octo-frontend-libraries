@@ -241,6 +241,46 @@ describe('AuthorizeService', () => {
 
         expect(oauthServiceMock.initImplicitFlow).toHaveBeenCalled();
       });
+
+      it('should send acr_values=tenant for an explicit tenant', () => {
+        service.login('tecob');
+
+        expect(oauthServiceMock.initImplicitFlow).toHaveBeenCalledWith('', { acr_values: 'tenant:tecob' });
+      });
+
+      // AB#5311/5312: an app host serving one subtree names it as the discovery scope; identity
+      // then still resolves the tenant itself, limited to the tenants below the scope.
+      it('should send acr_values=tenant_scope when no tenant is named and a discovery scope is configured', async () => {
+        await service.initialize({ ...mockOptions, discoveryScopeTenantId: 'accounting' });
+
+        service.login();
+
+        expect(oauthServiceMock.initImplicitFlow).toHaveBeenCalledWith('', { acr_values: 'tenant_scope:accounting' });
+      });
+
+      it('should prefer an explicit tenant over the discovery scope', async () => {
+        await service.initialize({ ...mockOptions, discoveryScopeTenantId: 'accounting' });
+
+        service.login('tecob');
+
+        expect(oauthServiceMock.initImplicitFlow).toHaveBeenCalledWith('', { acr_values: 'tenant:tecob' });
+      });
+
+      it('should prefer defaultTenantId over the discovery scope', async () => {
+        await service.initialize({ ...mockOptions, defaultTenantId: 'single', discoveryScopeTenantId: 'accounting' });
+
+        service.login();
+
+        expect(oauthServiceMock.initImplicitFlow).toHaveBeenCalledWith('', { acr_values: 'tenant:single' });
+      });
+
+      it('should send no acr_values without tenant, default tenant or discovery scope', async () => {
+        await service.initialize({ ...mockOptions });
+
+        service.login();
+
+        expect(oauthServiceMock.initImplicitFlow).toHaveBeenCalledWith();
+      });
     });
 
     describe('logout', () => {

@@ -45,6 +45,13 @@ export class AuthorizeOptions {
   // Default tenant ID for single-tenant apps. When set, login() uses this tenant
   // if no tenantId is explicitly provided (sends acr_values=tenant:{defaultTenantId}).
   defaultTenantId?: string;
+  // Discovery scope for an app host that serves one tenant subtree (AB#5311/5312).
+  // A login() without a tenant — and without defaultTenantId — then sends
+  // acr_values=tenant_scope:{discoveryScopeTenantId}: identity still resolves the
+  // tenant itself (single-session shortcut or its email-first tenant discovery),
+  // but offers only the tenants strictly below the scope. Typically the app's
+  // rootTenantId. Ignored when a tenant is named, explicitly or by default.
+  discoveryScopeTenantId?: string;
   // Retry policy for loadDiscoveryDocumentAndTryLogin() — covers the brief
   // window during which the Identity service is unreachable after a redeploy
   // or rolling restart. Defaults: 6 attempts, 1500ms initial, 30000ms cap.
@@ -401,7 +408,10 @@ export class AuthorizeService {
    * identity server redirects back.
    *
    * @param tenantId Optional tenant ID. When provided, includes acr_values=tenant:{tenantId}
-   *   so the identity server redirects to the correct tenant's login page.
+   *   so the identity server redirects to the correct tenant's login page. Without one
+   *   (and without a defaultTenantId) identity resolves the tenant itself; a configured
+   *   discoveryScopeTenantId then travels as acr_values=tenant_scope:{scope} and limits
+   *   that resolution to the scope's subtree (AB#5311).
    */
   public login(tenantId?: string): void {
     if (this._loginInProgress) {
@@ -413,6 +423,12 @@ export class AuthorizeService {
     const effectiveTenantId = tenantId ?? this.authorizeOptions?.defaultTenantId;
     if (effectiveTenantId) {
       this.oauthService.initImplicitFlow('', { acr_values: `tenant:${effectiveTenantId}` });
+      return;
+    }
+
+    const scopeTenantId = this.authorizeOptions?.discoveryScopeTenantId;
+    if (scopeTenantId) {
+      this.oauthService.initImplicitFlow('', { acr_values: `tenant_scope:${scopeTenantId}` });
     } else {
       this.oauthService.initImplicitFlow();
     }
