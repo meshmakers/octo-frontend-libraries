@@ -34,7 +34,8 @@ try {
 
     # On Windows, run npx via cmd.exe to handle .cmd/.ps1 wrappers correctly.
     # System.Diagnostics.Process cannot execute .ps1 files directly.
-    if ($IsWindows -or (-not ($IsMacOS -or $IsLinux))) {
+    $onWindows = $IsWindows -or (-not ($IsMacOS -or $IsLinux))
+    if ($onWindows) {
         $procFileName = "cmd.exe"
         $npxPrefix = "/c npx "
     } else {
@@ -42,17 +43,54 @@ try {
         $npxPrefix = ""
     }
 
-    # Kill any leftover processes on our ports
+    # Leftover dev servers on our ports: a stopped Start-Job does not reliably run the finally
+    # block below, so the ng serve processes survive Stop-Octo and keep 4201/4202 bound.
+    # On Windows only ng serve's own node process is ended (its cmd/npx parents exit on their
+    # own); anything else owning the port is reported and left alone. Messages go through the
+    # output stream so they reach the job log under Start-Octo.
+    # Callers wrap the result in @(): PowerShell unrolls function output, so an empty or
+    # single-element result would otherwise arrive as $null or a scalar.
+    function Get-PortListenerPid($port) {
+        if ($onWindows) {
+            Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction Ignore |
+                Select-Object -ExpandProperty OwningProcess -Unique
+        } else {
+            lsof -ti :$port 2>$null
+        }
+    }
+
+    function Stop-PortListener($port, [switch]$Force) {
+        foreach ($listenerPid in @(Get-PortListenerPid $port)) {
+            if (-not $listenerPid) { continue }
+            if ($onWindows) {
+                $name = Get-Process -Id $listenerPid -ErrorAction Ignore | Select-Object -ExpandProperty ProcessName
+                if (-not $name) {
+                    Write-Output "Port $port was held by PID $listenerPid, process already gone"
+                    continue
+                }
+                if ($name -ne "node") {
+                    Write-Output "Port $port is in use by '$name' (PID $listenerPid), not an ng serve process - leaving it alone"
+                    continue
+                }
+                Write-Output "Killing leftover ng serve process on port $port (PID $listenerPid)"
+                taskkill /PID $listenerPid /T /F 2>$null | Out-Null
+            } else {
+                Write-Output "Killing leftover process on port $port (PID $listenerPid)"
+                if ($Force) { kill -9 $listenerPid 2>$null } else { kill $listenerPid 2>$null }
+            }
+        }
+    }
+
+    function Wait-PortFree($port, $timeoutMs = 5000) {
+        $deadline = (Get-Date).AddMilliseconds($timeoutMs)
+        while (@(Get-PortListenerPid $port).Count -gt 0 -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Milliseconds 250
+        }
+    }
+
     foreach ($port in @(4201, 4202)) {
-        $existingPid = $null
-        if ($IsMacOS -or $IsLinux) {
-            $existingPid = (lsof -ti :$port 2>$null)
-        }
-        if ($existingPid) {
-            Write-Host "Killing leftover process on port $port (PID: $existingPid)" -ForegroundColor Yellow
-            kill $existingPid 2>$null
-            Start-Sleep -Milliseconds 500
-        }
+        Stop-PortListener $port
+        Wait-PortFree $port
     }
 
     # Map configuration to Angular configuration name
@@ -68,11 +106,16 @@ try {
         $psi.UseShellExecute = $false
         $psi.RedirectStandardOutput = $true
         $psi.RedirectStandardError = $true
+        # Redirect stdin and close it right after start. Without this the child inherits the
+        # stdin handle of the Start-Job host (the job protocol pipe), and npx blocks on it
+        # before it ever spawns `ng serve` - the servers never come up and the log stays empty.
+        $psi.RedirectStandardInput = $true
         $psi.CreateNoWindow = $true
 
         $proc = [System.Diagnostics.Process]::new()
         $proc.StartInfo = $psi
         $proc.Start() | Out-Null
+        $proc.StandardInput.Close()
 
         return $proc
     }
@@ -141,14 +184,9 @@ try {
                 }
             }
         }
-        # Final cleanup: make sure nothing is left on our ports
+        # Final cleanup: make sure none of our dev servers is left on our ports
         foreach ($port in @(4201, 4202)) {
-            if ($IsMacOS -or $IsLinux) {
-                $leftover = (lsof -ti :$port 2>$null)
-                if ($leftover) {
-                    kill -9 $leftover 2>$null
-                }
-            }
+            Stop-PortListener $port -Force
         }
         Write-Host "Servers stopped." -ForegroundColor Yellow
     }
