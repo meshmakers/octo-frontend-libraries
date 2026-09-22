@@ -74,23 +74,37 @@ try {
                 }
                 Write-Output "Killing leftover ng serve process on port $port (PID $listenerPid)"
                 taskkill /PID $listenerPid /T /F 2>$null | Out-Null
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Output "taskkill failed for PID $listenerPid on port $port (exit code $LASTEXITCODE)"
+                }
             } else {
+                # Native kill on macOS/Linux (PowerShell ships no kill alias there): SIGTERM first,
+                # SIGKILL from the finally sweep, as before.
                 Write-Output "Killing leftover process on port $port (PID $listenerPid)"
                 if ($Force) { kill -9 $listenerPid 2>$null } else { kill $listenerPid 2>$null }
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Output "kill failed for PID $listenerPid on port $port (exit code $LASTEXITCODE)"
+                }
             }
         }
     }
 
+    # Returns $true once no listener is left on the port, $false when the timeout expires first.
     function Wait-PortFree($port, $timeoutMs = 5000) {
         $deadline = (Get-Date).AddMilliseconds($timeoutMs)
         while (@(Get-PortListenerPid $port).Count -gt 0 -and (Get-Date) -lt $deadline) {
             Start-Sleep -Milliseconds 250
         }
+        return (@(Get-PortListenerPid $port).Count -eq 0)
     }
 
     foreach ($port in @(4201, 4202)) {
         Stop-PortListener $port
-        Wait-PortFree $port
+        if (-not (Wait-PortFree $port)) {
+            # Same policy as the Refinery Studio start script: do not start against a busy port.
+            Write-Output "ERROR: Port $port is still in use after cleanup, not starting the dev servers"
+            exit 1
+        }
     }
 
     # Map configuration to Angular configuration name
@@ -184,9 +198,13 @@ try {
                 }
             }
         }
-        # Final cleanup: make sure none of our dev servers is left on our ports
+        # Final cleanup: make sure none of our dev servers is left on our ports. Only warn here,
+        # a throw inside finally would hide the original reason for stopping.
         foreach ($port in @(4201, 4202)) {
             Stop-PortListener $port -Force
+            if (-not (Wait-PortFree $port 2000)) {
+                Write-Output "WARNING: Port $port is still in use after shutdown"
+            }
         }
         Write-Host "Servers stopped." -ForegroundColor Yellow
     }
