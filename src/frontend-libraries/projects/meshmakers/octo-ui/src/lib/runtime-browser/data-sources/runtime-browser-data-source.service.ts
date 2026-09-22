@@ -90,6 +90,12 @@ interface EntityInboundRoleGroup {
   count: number;
 }
 
+/** The fields {@link RuntimeBrowserDataSource.extractDisplayName} reads off an entity row. */
+type DisplayNameSource = Pick<
+  RtEntityDto,
+  'rtId' | 'ckTypeId' | 'rtDisplayName' | 'rtWellKnownName' | 'attributes'
+>;
+
 /** Well-known role id of the hierarchical parent-child association. */
 const PARENT_CHILD_ROLE_ID = 'System/ParentChild';
 
@@ -146,6 +152,13 @@ const GET_ROOT_ENTITIES_BY_CK_TYPE = gql`
           ckTypeId
           rtDisplayName
           rtDisplayDescription
+          rtWellKnownName
+          attributes(attributeNames: ["name"]) {
+            items {
+              attributeName
+              value
+            }
+          }
         }
       }
     }
@@ -856,12 +869,36 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   }
 
   /**
-   * Resolves the display label of an entity: the engine-computed rtDisplayName (AB#4813).
-   * The backend guarantees a value ("<ckTypeId>@<rtId>" fallback when the CK type declares
-   * no displayNameRule).
+   * Resolves the display label of an entity.
+   *
+   * The engine-computed rtDisplayName (AB#4813) wins when it carries a real value, but it is
+   * written when the entity is stored, so an entity that predates the feature or arrived
+   * through an import has none. The backend then answers with the synthetic
+   * "<ckTypeId>@<rtId>" form, which is indistinguishable from a genuine label to a caller that
+   * only checks for null - and a whole tree of "Basic/Tree@3ef2ac82..." is what the browser
+   * used to render. So the synthetic form is recognised and treated as absent, and the entity's
+   * own name attribute is used instead.
    */
-  private extractDisplayName(entity: RtEntityDto): string {
-    return entity.rtDisplayName || 'Unknown';
+  private extractDisplayName(entity: DisplayNameSource): string {
+    const fallback = `${entity.ckTypeId}@${entity.rtId}`;
+    const computed = entity.rtDisplayName?.trim();
+    if (computed && computed !== fallback) {
+      return computed;
+    }
+
+    const name = entity.attributes?.items
+      ?.find((a) => a?.attributeName === 'name')
+      ?.value;
+    // A name attribute is a scalar, not necessarily a string - a numeric name reads better
+    // than the id it would otherwise fall through to.
+    if (typeof name === 'string' || typeof name === 'number') {
+      const text = String(name).trim();
+      if (text !== '') {
+        return text;
+      }
+    }
+
+    return entity.rtWellKnownName?.trim() || fallback;
   }
 
   /** Resolves the tooltip of an entity: the engine-computed rtDisplayDescription. */
@@ -943,11 +980,8 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
             );
           }
 
-          // Engine-computed display fields (AB#4813); backend guarantees a display name
-          const text = item.rtDisplayName || item.ckTypeId || 'Unknown';
-          const tooltip =
-            item.rtDisplayDescription ||
-            `${item.ckTypeId} - ${item.rtId}`;
+          const text = this.extractDisplayName(item);
+          const tooltip = this.extractTooltip(item);
 
           result.push(
             new TreeItemDataTyped<BrowserItem>(

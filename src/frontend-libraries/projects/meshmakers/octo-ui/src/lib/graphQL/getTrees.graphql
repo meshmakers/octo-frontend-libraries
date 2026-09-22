@@ -1,3 +1,7 @@
+# rtDisplayName is only present on entities the engine wrote after AB#4813; on older or
+# imported data it is absent and the backend answers with its "<ckTypeId>@<rtId>" fallback,
+# which is not a label a person can read. The name attribute is selected alongside it so the
+# tree has something to fall back to - see extractDisplayName in the data source.
 query getTrees($ckTypeId: String!) {
   runtime {
     runtimeEntities(ckId: $ckTypeId) {
@@ -5,7 +9,14 @@ query getTrees($ckTypeId: String!) {
         rtId
         rtDisplayName
         rtDisplayDescription
+        rtWellKnownName
         ckTypeId
+        attributes(attributeNames: ["name"]) {
+          items {
+            attributeName
+            value
+          }
+        }
         associations {
           targets(
             roleId: "System/ParentChild"
