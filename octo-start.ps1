@@ -140,10 +140,12 @@ try {
             Add-Content -LiteralPath $pidFile -Value "$($proc.Id)|$($proc.StartTime.ToUniversalTime().Ticks)"
         }
 
-        # One pending ReadLineAsync per stream, so the loop only ever waits in Start-Sleep. A
-        # pipeline stop (Stop-Octo, Ctrl+C) interrupts Start-Sleep and reaches the finally block.
-        # The blocking EndOfStream/Peek reads used before could not be interrupted while the
-        # servers were silent: Stop-Octo then hung on this job and the servers survived it.
+        # One pending ReadLineAsync per stream. Each pass forwards every line that arrives within
+        # 20 ms per stream (bursts and a server's last lines before it exits included) and then
+        # waits in Start-Sleep, so a pipeline stop (Stop-Octo, Ctrl+C) interrupts it there and
+        # reaches the finally block. The blocking EndOfStream/Peek reads used before could not be
+        # interrupted while the servers were silent: Start-Octo's StopJob() then hung on this job
+        # and the servers survived it.
         $readers = @()
         for ($i = 0; $i -lt $processes.Count; $i++) {
             foreach ($stream in @($processes[$i].StandardOutput, $processes[$i].StandardError)) {
@@ -161,8 +163,8 @@ try {
 
             # Forward every complete line; a null line is the end of that stream.
             foreach ($reader in $readers) {
-                while ($reader.Pending -and $reader.Pending.IsCompleted) {
-                    $line = if ($reader.Pending.IsFaulted) { $null } else { $reader.Pending.Result }
+                while ($reader.Pending -and ($reader.Pending.IsCompleted -or [System.Threading.Tasks.Task]::WaitAny([System.Threading.Tasks.Task[]]@($reader.Pending), 20) -ge 0)) {
+                    $line = if ($reader.Pending.IsFaulted -or $reader.Pending.IsCanceled) { $null } else { $reader.Pending.Result }
                     if ($null -eq $line) { $reader.Pending = $null; break }
                     if ($line) { Write-Output "[$($reader.Name)] $line" }
                     $reader.Pending = $reader.Stream.ReadLineAsync()
@@ -170,7 +172,7 @@ try {
             }
 
             if ($allExited) {
-                Write-Host "All processes have exited." -ForegroundColor Yellow
+                Write-Output "All processes have exited."
                 break
             }
 
