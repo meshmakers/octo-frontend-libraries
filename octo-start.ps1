@@ -42,12 +42,12 @@ try {
     }
     $onWindows = $IsWindows -or (-not ($IsMacOS -or $IsLinux))
 
-    # Dev servers left over from an earlier run: a stopped Start-Job does not run the finally
-    # block below, so after Stop-Octo the ng serve processes survive and keep 4201/4202 bound.
-    # Every run records the PIDs of the servers it started in a file of its own, in a directory
-    # under the user's profile (the shared temp directory would let another local user plant a
-    # record). The next run ends exactly those process trees before the ports are checked. Only
-    # processes this script started are touched.
+    # Dev servers left over from an earlier run: when the job host of this script dies without
+    # reaching the finally block below (Start-Octo killed, terminal closed, crash), the ng serve
+    # processes survive and keep 4201/4202 bound. Every run records the PIDs of the servers it
+    # started in a file of its own, in a directory under the user's profile (the shared temp
+    # directory would let another local user plant a record). The next run ends exactly those
+    # process trees before the ports are checked. Only processes this script started are touched.
     $pidDir = Join-Path ([System.Environment]::GetFolderPath("LocalApplicationData", "Create")) "octo-frontend-libraries"
     New-Item -ItemType Directory -Path $pidDir -Force | Out-Null
     $pidFile = Join-Path $pidDir "octo-start-$PID.pids"
@@ -140,33 +140,35 @@ try {
             Add-Content -LiteralPath $pidFile -Value "$($proc.Id)|$($proc.StartTime.ToUniversalTime().Ticks)"
         }
 
-        while ($true) {
-            # Read and forward stdout/stderr from both processes
-            for ($i = 0; $i -lt $processes.Count; $i++) {
-                $proc = $processes[$i]
-                $name = $projectNames[$i]
-
-                if ($proc.StandardOutput -and !$proc.StandardOutput.EndOfStream) {
-                    while ($proc.StandardOutput.Peek() -ge 0) {
-                        $line = $proc.StandardOutput.ReadLine()
-                        if ($line) { Write-Output "[$name] $line" }
-                    }
-                }
-                if ($proc.StandardError -and !$proc.StandardError.EndOfStream) {
-                    while ($proc.StandardError.Peek() -ge 0) {
-                        $line = $proc.StandardError.ReadLine()
-                        if ($line) { Write-Output "[$name] $line" }
-                    }
-                }
+        # One pending ReadLineAsync per stream, so the loop only ever waits in Start-Sleep. A
+        # pipeline stop (Stop-Octo, Ctrl+C) interrupts Start-Sleep and reaches the finally block.
+        # The blocking EndOfStream/Peek reads used before could not be interrupted while the
+        # servers were silent: Stop-Octo then hung on this job and the servers survived it.
+        $readers = @()
+        for ($i = 0; $i -lt $processes.Count; $i++) {
+            foreach ($stream in @($processes[$i].StandardOutput, $processes[$i].StandardError)) {
+                $readers += @{ Name = $projectNames[$i]; Stream = $stream; Pending = $stream.ReadLineAsync() }
             }
+        }
 
-            # Check if all processes have exited
+        while ($true) {
             $allExited = $true
             foreach ($proc in $processes) {
                 if (-not $proc.HasExited) {
                     $allExited = $false
                 }
             }
+
+            # Forward every complete line; a null line is the end of that stream.
+            foreach ($reader in $readers) {
+                while ($reader.Pending -and $reader.Pending.IsCompleted) {
+                    $line = if ($reader.Pending.IsFaulted) { $null } else { $reader.Pending.Result }
+                    if ($null -eq $line) { $reader.Pending = $null; break }
+                    if ($line) { Write-Output "[$($reader.Name)] $line" }
+                    $reader.Pending = $reader.Stream.ReadLineAsync()
+                }
+            }
+
             if ($allExited) {
                 Write-Host "All processes have exited." -ForegroundColor Yellow
                 break
@@ -178,6 +180,7 @@ try {
     catch {
         # A failed start or a failure in the monitor loop; Ctrl+C does not come through here.
         Write-Output "ERROR: $($_.Exception.Message)"
+        exit 1
     }
     finally {
         Write-Host "Stopping servers..." -ForegroundColor Yellow
