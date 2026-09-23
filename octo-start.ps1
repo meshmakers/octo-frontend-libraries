@@ -31,40 +31,44 @@ try {
     # and its process tree ended reliably on every platform.
     $nodeExe = (Get-Command node -ErrorAction SilentlyContinue).Source
     if (-not $nodeExe) {
-        Write-Host "node not found in PATH" -ForegroundColor Red
+        Write-Output "ERROR: node not found in PATH"
         exit 1
     }
     $ngCli = Join-Path $frontendLibsPath "node_modules/@angular/cli/bin/ng.js"
     if (-not (Test-Path $ngCli)) {
-        Write-Host "Angular CLI not found at $ngCli (run npm ci)" -ForegroundColor Red
+        Write-Output "ERROR: Angular CLI not found at $ngCli (run npm ci)"
         exit 1
     }
     $onWindows = $IsWindows -or (-not ($IsMacOS -or $IsLinux))
 
-    # Dev servers left over from the previous run: a stopped Start-Job does not run the finally
+    # Dev servers left over from an earlier run: a stopped Start-Job does not run the finally
     # block below, so after Stop-Octo the ng serve processes survive and keep 4201/4202 bound.
-    # The PIDs of the servers started by the last run are recorded in a file and ended here,
-    # process tree included, before the ports are checked. Only processes this script started
-    # are touched.
-    $pidFile = Join-Path ([System.IO.Path]::GetTempPath()) "octo-start-frontend-libraries.pids"
+    # Every run records the PIDs of the servers it started in a file of its own, in a directory
+    # under the user's profile (the shared temp directory would let another local user plant a
+    # record). The next run ends exactly those process trees before the ports are checked. Only
+    # processes this script started are touched.
+    $pidDir = Join-Path ([System.Environment]::GetFolderPath("LocalApplicationData", "Create")) "octo-frontend-libraries"
+    New-Item -ItemType Directory -Path $pidDir -Force | Out-Null
+    $pidFile = Join-Path $pidDir "octo-start-$PID.pids"
 
     # One line per server: "<pid>|<start time as UTC ticks>". The start time is the PID reuse
     # guard: a process that now runs under a recorded PID but started at another time is not ours.
     function Stop-RecordedServers {
-        if (-not (Test-Path $pidFile)) { return }
-        foreach ($entry in @(Get-Content $pidFile | Where-Object { $_ -match '^\d+\|\d+$' })) {
-            $recordedPid, $recordedTicks = $entry -split '\|'
-            $recorded = Get-Process -Id ([int]$recordedPid) -ErrorAction Ignore
-            if (-not $recorded) { continue }
-            try { $startedTicks = $recorded.StartTime.ToUniversalTime().Ticks } catch { $startedTicks = -1 }
-            if ([math]::Abs($startedTicks - [long]$recordedTicks) -gt 20000000) {
-                Write-Output "PID $recordedPid from the last run belongs to another process now, leaving it alone"
-                continue
+        foreach ($record in @(Get-ChildItem -Path $pidDir -Filter "octo-start-*.pids" -ErrorAction Ignore)) {
+            foreach ($entry in @(Get-Content $record.FullName | Where-Object { $_ -match '^\d+\|\d+$' })) {
+                $recordedPid, $recordedTicks = $entry -split '\|'
+                $recorded = Get-Process -Id ([int]$recordedPid) -ErrorAction Ignore
+                if (-not $recorded) { continue }
+                try { $startedTicks = $recorded.StartTime.ToUniversalTime().Ticks } catch { $startedTicks = -1 }
+                if ([math]::Abs($startedTicks - [long]$recordedTicks) -gt 20000000) {
+                    Write-Output "PID $recordedPid from an earlier run belongs to another process now, leaving it alone"
+                    continue
+                }
+                Write-Output "Stopping leftover dev server from an earlier run (PID $recordedPid)"
+                try { $recorded.Kill($true) } catch { Write-Output "Could not stop PID ${recordedPid}: $($_.Exception.Message)" }
             }
-            Write-Output "Stopping leftover dev server from the last run (PID $recordedPid)"
-            try { $recorded.Kill($true) } catch { Write-Output "Could not stop PID ${recordedPid}: $($_.Exception.Message)" }
+            Remove-Item $record.FullName -Force -ErrorAction Ignore
         }
-        Remove-Item $pidFile -Force -ErrorAction Ignore
     }
 
     # Bind test with the same address ng serve uses (0.0.0.0). Unix needs ReuseAddress so that
@@ -121,17 +125,20 @@ try {
         return $proc
     }
 
-    Write-Host "Starting demo-app on https://localhost:4201" -ForegroundColor Cyan
-    Write-Host "Starting legacy-demo-app on https://localhost:4202" -ForegroundColor Cyan
-
-    $demoProc = Start-NgServe "demo-app" 4201
-    $legacyProc = Start-NgServe "legacy-demo-app" 4202
-
-    $processes = @($demoProc, $legacyProc)
+    $processes = @()
     $projectNames = @("demo-app", "legacy-demo-app")
-    Set-Content -Path $pidFile -Value ($processes | ForEach-Object { "$($_.Id)|$($_.StartTime.ToUniversalTime().Ticks)" })
+    $ports = @(4201, 4202)
 
     try {
+        # Each server is recorded right after its start, so a failed second start still leaves
+        # the first one recorded and reaches the finally block below.
+        for ($i = 0; $i -lt $projectNames.Count; $i++) {
+            Write-Host "Starting $($projectNames[$i]) on https://localhost:$($ports[$i])" -ForegroundColor Cyan
+            $proc = Start-NgServe $projectNames[$i] $ports[$i]
+            $processes += $proc
+            Add-Content -Path $pidFile -Value "$($proc.Id)|$($proc.StartTime.ToUniversalTime().Ticks)"
+        }
+
         while ($true) {
             # Read and forward stdout/stderr from both processes
             for ($i = 0; $i -lt $processes.Count; $i++) {
@@ -168,7 +175,8 @@ try {
         }
     }
     catch {
-        # Ctrl+C or error
+        # A failed start or a failure in the monitor loop; Ctrl+C does not come through here.
+        Write-Output "ERROR: $($_.Exception.Message)"
     }
     finally {
         Write-Host "Stopping servers..." -ForegroundColor Yellow
