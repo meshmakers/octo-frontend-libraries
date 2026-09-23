@@ -95,7 +95,7 @@ try {
         exit 1
     }
     $ngCli = Join-Path $frontendLibsPath "node_modules/@angular/cli/bin/ng.js"
-    if (-not (Test-Path $ngCli)) {
+    if (-not (Test-Path -LiteralPath $ngCli)) {
         Write-Output "ERROR: Angular CLI not found at $ngCli (run npm ci)"
         exit 1
     }
@@ -114,8 +114,8 @@ try {
     # One line per server: "<pid>|<start time as UTC ticks>". The start time is the PID reuse
     # guard: a process that now runs under a recorded PID but started at another time is not ours.
     function Stop-RecordedServers {
-        foreach ($record in @(Get-ChildItem -Path $pidDir -Filter "octo-start-*.pids" -ErrorAction Ignore)) {
-            foreach ($entry in @(Get-Content $record.FullName | Where-Object { $_ -match '^\d+\|\d+$' })) {
+        foreach ($record in @(Get-ChildItem -LiteralPath $pidDir -Filter "octo-start-*.pids" -ErrorAction Ignore)) {
+            foreach ($entry in @(Get-Content -LiteralPath $record.FullName | Where-Object { $_ -match '^\d+\|\d+$' })) {
                 $recordedPid, $recordedTicks = $entry -split '\|'
                 $recorded = Get-Process -Id ([int]$recordedPid) -ErrorAction Ignore
                 if (-not $recorded) { continue }
@@ -127,7 +127,7 @@ try {
                 Write-Output "Stopping leftover dev server from an earlier run (PID $recordedPid)"
                 try { $recorded.Kill($true) } catch { Write-Output "Could not stop PID ${recordedPid}: $($_.Exception.Message)" }
             }
-            Remove-Item $record.FullName -Force -ErrorAction Ignore
+            Remove-Item -LiteralPath $record.FullName -Force -ErrorAction Ignore
         }
     }
 
@@ -200,7 +200,7 @@ try {
             Write-Host "Starting $($projectNames[$i]) on https://localhost:$($ports[$i])" -ForegroundColor Cyan
             $proc = Start-NgServe $projectNames[$i] $ports[$i]
             $processes += $proc
-            Add-Content -Path $pidFile -Value "$($proc.Id)|$($proc.StartTime.ToUniversalTime().Ticks)"
+            Add-Content -LiteralPath $pidFile -Value "$($proc.Id)|$($proc.StartTime.ToUniversalTime().Ticks)"
         }
 
         while ($true) {
@@ -249,7 +249,7 @@ try {
                 try { $proc.Kill($true) } catch { Write-Output "Could not stop PID $($proc.Id): $($_.Exception.Message)" }
             }
         }
-        Remove-Item $pidFile -Force -ErrorAction Ignore
+        Remove-Item -LiteralPath $pidFile -Force -ErrorAction Ignore
         Write-Host "Servers stopped." -ForegroundColor Yellow
     }
 }
