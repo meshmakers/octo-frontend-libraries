@@ -253,27 +253,47 @@ try {
             }
         }
 
+        # After both servers have exited, a child of a server can still hold a pipe open, silent or
+        # writing. The drain therefore has a time limit, counted from the moment the loop first sees
+        # both servers exited: at the start of a pass, or after a forwarded line, so a child that keeps
+        # writing cannot hold a pass. The limit is checked after each line and at the end of each pass,
+        # so it can be passed by one 20 ms wait per open stream. While the drain runs, each stream gets
+        # at most 100 ms per pass, so one writing stream does not hide the last lines of the others.
+        # While a server runs, $drain stays $null and the loop forwards as before; the only addition
+        # there is reading HasExited of both servers after each forwarded line. Only a server whose
+        # HasExited reads $true counts as exited; one whose state cannot be read counts as running.
+        $drainLimitMs = 2000
+        $drain = $null
         while ($true) {
-            $allExited = $true
-            foreach ($proc in $processes) {
-                if (-not $proc.HasExited) {
-                    $allExited = $false
-                }
-            }
+            if (-not $drain -and @(@($processes.HasExited) -eq $true).Count -eq $processes.Count) { $drain = [System.Diagnostics.Stopwatch]::StartNew() }
 
             # Forward every complete line; a null line is the end of that stream.
             foreach ($reader in $readers) {
+                $turn = [System.Diagnostics.Stopwatch]::StartNew()
                 while ($reader.Pending -and ($reader.Pending.IsCompleted -or [System.Threading.Tasks.Task]::WaitAny([System.Threading.Tasks.Task[]]@($reader.Pending), 20) -ge 0)) {
                     $line = if ($reader.Pending.IsFaulted -or $reader.Pending.IsCanceled) { $null } else { $reader.Pending.Result }
                     if ($null -eq $line) { $reader.Pending = $null; break }
                     if ($line) { Write-Output "[$($reader.Name)] $line" }
                     $reader.Pending = $reader.Stream.ReadLineAsync()
+                    if (-not $drain -and @(@($processes.HasExited) -eq $true).Count -eq $processes.Count) { $drain = [System.Diagnostics.Stopwatch]::StartNew() }
+                    if ($drain -and ($drain.ElapsedMilliseconds -ge $drainLimitMs -or $turn.ElapsedMilliseconds -ge 100)) { break }
                 }
             }
 
-            if ($allExited) {
-                Write-Output "All processes have exited."
-                break
+            if ($drain) {
+                # The pipes may still hold the servers' last lines: keep forwarding until every stream
+                # has reported its end or the time limit is reached; a cut drain says so.
+                $streamsOpen = @($readers | Where-Object { $null -ne $_.Pending }).Count
+                $remainingMs = $drainLimitMs - $drain.ElapsedMilliseconds
+                if ($streamsOpen -eq 0 -or $remainingMs -le 0) {
+                    if ($streamsOpen -gt 0) {
+                        Write-Output "Stopped forwarding at the $drainLimitMs ms drain limit: $streamsOpen of $($readers.Count) output streams still open (held by another process, such as a child of a server)."
+                    }
+                    Write-Output "All processes have exited."
+                    break
+                }
+                Start-Sleep -Milliseconds ([math]::Min(50, $remainingMs))
+                continue
             }
 
             Start-Sleep -Milliseconds 500
