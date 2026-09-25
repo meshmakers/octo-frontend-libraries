@@ -327,6 +327,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           prefix: result.prefix,
           suffix: result.suffix,
           trend: result.trend,
+          comparisonText: result.comparisonText,
           filters: undefined
         };
       } else if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
@@ -352,6 +353,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           prefix: result.prefix,
           suffix: result.suffix,
           trend: result.trend,
+          comparisonText: result.comparisonText,
           filters
         };
       } else {
@@ -369,6 +371,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           prefix: result.prefix,
           suffix: result.suffix,
           trend: result.trend,
+          comparisonText: result.comparisonText,
           filters
         };
       }
@@ -402,6 +405,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           suffix: widget.suffix,
           icon: widget.icon,
           trend: widget.trend,
+          comparisonText: widget.comparisonText,
           staticValue: widget.staticValue,
           queryMode: widget.queryMode,
           queryValueField: widget.queryValueField,
