@@ -15,9 +15,12 @@ import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { firstValueFrom } from 'rxjs';
-import { KpiQueryMode, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
+import { AnyWidgetConfig, KpiQueryMode, KpiWidgetConfig, WidgetFilterConfig, EntitySelectorConfig, MeshBoardVariable } from '../../models/meshboard.models';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
+import { evaluateFormula, findVariableCycles, FormulaValidationResult, validateFormula } from '../../utils/meshboard-formula';
 import { RuntimeEntityItem, PersistentQueryItem, QueryColumnItem, CategoryValueItem, RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
@@ -26,9 +29,10 @@ import { EntitySelectorScopePickerComponent } from '../../components/entity-sele
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 
 /**
- * Data source type for KPI
+ * Data source type for KPI. `'formula'` computes the value from a formula over
+ * MeshBoard variables (stored as static data source with `valueMode: 'formula'`).
  */
-export type KpiDataSourceType = 'runtimeEntity' | 'persistentQuery' | 'static';
+export type KpiDataSourceType = 'runtimeEntity' | 'persistentQuery' | 'static' | 'formula';
 
 /**
  * Configuration result from the KPI dialog
@@ -53,6 +57,10 @@ export interface KpiConfigResult extends WidgetConfigResult {
   queryCategoryValue?: string;
   // Static fields
   staticValue?: string;
+  // Formula fields
+  formula?: string;
+  /** Publishes the displayed raw value as runtime MeshBoard variable (all modes) */
+  outputVariableName?: string;
   // Display options
   prefix?: string;
   suffix?: string;
@@ -118,6 +126,13 @@ interface TrendOption {
               [themeColor]="dataSourceType === 'static' ? 'primary' : 'base'"
               (click)="onDataSourceTypeChange('static')">
               Static
+            </button>
+            <button
+              kendoButton
+              [fillMode]="dataSourceType === 'formula' ? 'solid' : 'outline'"
+              [themeColor]="dataSourceType === 'formula' ? 'primary' : 'base'"
+              (click)="onDataSourceTypeChange('formula')">
+              Formula
             </button>
           </div>
         </div>
@@ -405,6 +420,59 @@ interface TrendOption {
           </div>
         }
 
+        <!-- ============================================================ -->
+        <!-- FORMULA -->
+        <!-- ============================================================ -->
+        @if (dataSourceType === 'formula') {
+          <div class="form-field">
+            <label>Formula <span class="required">*</span></label>
+            <kendo-textbox
+              [(ngModel)]="form.formula"
+              placeholder="e.g., (\${a} - \${b}) / 1000">
+            </kendo-textbox>
+            <p class="field-hint">
+              Reference variables with <code>{{variableSyntaxHint}}</code>. Supported: <code>+ - * / % ^</code>, parentheses,
+              <code>min</code>, <code>max</code>, <code>abs</code>, <code>round</code>, <code>clamp</code>, <code>? :</code>.
+              Numbers use a dot as decimal separator.
+            </p>
+            @if (form.formula.trim() && formulaValidation.error) {
+              <p class="field-error">{{ formulaValidation.error }}</p>
+            } @else if (form.formula.trim()) {
+              <p class="field-hint">Preview: <strong>{{ formulaPreview }}</strong></p>
+            }
+          </div>
+          <div class="form-field">
+            <label>Available Variables</label>
+            @if (formulaVariables.length > 0) {
+              <div class="variable-list">
+                @for (variable of formulaVariables; track variable.name) {
+                  <button kendoButton fillMode="flat" size="small" type="button"
+                          [title]="'Insert ' + variable.name + ' (current value: ' + (variable.value || '-') + ')'"
+                          (click)="insertVariable(variable.name)">
+                    {{ variable.name }}@if (variable.source === 'widget') { <span class="variable-source">(widget)</span> }
+                  </button>
+                }
+              </div>
+            } @else {
+              <p class="field-hint">No variables defined. Add variables in the MeshBoard settings or publish a widget value as output variable.</p>
+            }
+          </div>
+        }
+
+        <!-- Output Variable -->
+        <div class="form-field">
+          <label>Output Variable</label>
+          <kendo-textbox [(ngModel)]="form.outputVariableName" placeholder="e.g., consumption"></kendo-textbox>
+          @if (outputVariableError) {
+            <p class="field-error">{{ outputVariableError }}</p>
+          } @else {
+            <p class="field-hint">Optional. Publishes the displayed raw value as MeshBoard variable for formulas, texts and filters of other widgets.</p>
+          }
+          @if (cycleError) {
+            <p class="field-error">{{ cycleError }}</p>
+          }
+        </div>
+
         <!-- Display Options -->
         <div class="form-section">
           <h4>Display Options</h4>
@@ -589,6 +657,22 @@ interface TrendOption {
       color: var(--kendo-color-error, #dc3545);
     }
 
+    .field-error {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--kendo-color-error, #dc3545);
+    }
+
+    .variable-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .variable-source {
+      color: var(--kendo-color-subtle, #6c757d);
+    }
+
     .query-item {
       display: flex;
       flex-direction: column;
@@ -638,6 +722,8 @@ export class KpiConfigDialogComponent implements OnInit {
     'StreamDataQueryRow'
   ]);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
+  private readonly variableService = inject(MeshBoardVariableService);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
   private readonly windowRef = inject(WindowRef);
 
   @ViewChild('ckTypeSelector') ckTypeSelectorInput?: CkTypeSelectorInputComponent;
@@ -668,6 +754,12 @@ export class KpiConfigDialogComponent implements OnInit {
 
   // Initial values for static
   @Input() initialStaticValue?: string;
+
+  // Initial values for formula / output variable (AB#5364)
+  /** Id of the edited widget: excludes its own output from the checks and drives the cycle check */
+  @Input() initialWidgetId?: string;
+  @Input() initialFormula?: string;
+  @Input() initialOutputVariableName?: string;
 
   // Initial values for filters
   @Input() initialFilters?: WidgetFilterConfig[];
@@ -726,8 +818,76 @@ export class KpiConfigDialogComponent implements OnInit {
     queryCategoryField: '',
     queryCategoryValue: '',
     // Static form fields
-    staticValue: ''
+    staticValue: '',
+    // Formula form fields
+    formula: '',
+    outputVariableName: ''
   };
+
+  /** Variables a formula can reference: MeshBoard variables plus other widgets' outputs */
+  formulaVariables: MeshBoardVariable[] = [];
+
+  private formulaValidationCache?: { formula: string; result: FormulaValidationResult };
+
+  /** Validation of the current formula (memoized per formula text) */
+  get formulaValidation(): FormulaValidationResult {
+    const formula = this.form.formula;
+    if (this.formulaValidationCache?.formula !== formula) {
+      this.formulaValidationCache = {
+        formula,
+        result: validateFormula(formula, this.formulaVariables.map(v => v.name), this.expressionEvaluator)
+      };
+    }
+    return this.formulaValidationCache.result;
+  }
+
+  /** Result of the current formula over the current variable values */
+  get formulaPreview(): string {
+    const result = evaluateFormula(this.form.formula, this.formulaVariables, this.expressionEvaluator);
+    switch (result.status) {
+      case 'ok': return String(result.value);
+      case 'pending': return '- (a referenced variable has no value yet)';
+      default: return result.error;
+    }
+  }
+
+  /** Validation message for the output variable name, or `null` when valid or empty */
+  get outputVariableError(): string | null {
+    const name = this.form.outputVariableName.trim();
+    if (!name) return null;
+    if (!this.variableService.isValidVariableName(name)) {
+      return 'Use letters, digits and underscores only; the name must not start with a digit.';
+    }
+    if ((this.meshBoardStateService.meshBoardConfig().variables ?? []).some(v => v.name === name)) {
+      return `A MeshBoard variable named "${name}" already exists.`;
+    }
+    const otherProducer = this.meshBoardStateService.widgets().find(w =>
+      w.id !== this.initialWidgetId && w.type === 'kpi' && (w as KpiWidgetConfig).outputVariableName?.trim() === name);
+    if (otherProducer) {
+      return `Widget "${otherProducer.title}" already publishes "${name}".`;
+    }
+    return null;
+  }
+
+  /** Circular reference introduced by the pending formula / output name, or `null` */
+  get cycleError(): string | null {
+    if (this.dataSourceType !== 'formula') return null;
+    const widgetId = this.initialWidgetId ?? '__pending-kpi__';
+    const widgets = this.meshBoardStateService.widgets();
+    const current = widgets.find(w => w.id === widgetId);
+    const pending = {
+      ...(current ?? { id: widgetId, type: 'kpi', title: '', col: 1, row: 1, colSpan: 1, rowSpan: 1, valueAttribute: '', dataSource: { type: 'static' } }),
+      valueMode: 'formula',
+      formula: this.form.formula,
+      outputVariableName: this.form.outputVariableName.trim() || undefined
+    } as KpiWidgetConfig;
+    const pendingWidgets: AnyWidgetConfig[] = current
+      ? widgets.map(w => w.id === widgetId ? pending : w)
+      : [...widgets, pending];
+    return findVariableCycles(pendingWidgets).has(widgetId)
+      ? 'Circular reference: the formula depends on this widget\'s own output.'
+      : null;
+  }
 
   readonly variableSyntaxHint = '${variableName}';
 
@@ -745,6 +905,10 @@ export class KpiConfigDialogComponent implements OnInit {
   ];
 
   get isValid(): boolean {
+    if (this.outputVariableError) return false;
+    if (this.dataSourceType === 'formula') {
+      return this.formulaValidation.valid && !this.cycleError;
+    }
     if (this.dataSourceType === 'static') {
       return (this.form.staticValue?.trim() ?? '') !== '';
     }
@@ -784,6 +948,10 @@ export class KpiConfigDialogComponent implements OnInit {
     this.form.queryCategoryField = this.initialQueryCategoryField || '';
     this.form.queryCategoryValue = this.initialQueryCategoryValue || '';
     this.form.staticValue = this.initialStaticValue || '';
+    this.form.formula = this.initialFormula || '';
+    this.form.outputVariableName = this.initialOutputVariableName || '';
+    this.formulaVariables = this.meshBoardStateService.getVariables()
+      .filter(v => !(v.source === 'widget' && v.widgetId === this.initialWidgetId));
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -986,6 +1154,21 @@ export class KpiConfigDialogComponent implements OnInit {
       }))
       : undefined;
 
+    if (this.dataSourceType === 'formula') {
+      this.windowRef.close({
+        dataSourceType: 'formula',
+        ckTypeId: '',
+        valueAttribute: '',
+        formula: this.form.formula.trim(),
+        prefix: this.form.prefix || undefined,
+        suffix: this.form.suffix || undefined,
+        trend: this.form.trend,
+        comparisonText: this.form.comparisonText || undefined,
+        outputVariableName: this.form.outputVariableName.trim() || undefined
+      });
+      return;
+    }
+
     if (this.dataSourceType === 'static') {
       this.windowRef.close({
         dataSourceType: 'static',
@@ -995,7 +1178,8 @@ export class KpiConfigDialogComponent implements OnInit {
         prefix: this.form.prefix || undefined,
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined
+        comparisonText: this.form.comparisonText || undefined,
+        outputVariableName: this.form.outputVariableName.trim() || undefined
       });
       return;
     }
@@ -1020,6 +1204,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
+        outputVariableName: this.form.outputVariableName.trim() || undefined,
         filters: filtersDto
       });
     } else if (this.selectedCkType) {
@@ -1033,6 +1218,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
+        outputVariableName: this.form.outputVariableName.trim() || undefined,
         filters: filtersDto
       });
     }
@@ -1048,6 +1234,13 @@ export class KpiConfigDialogComponent implements OnInit {
 
   onDataSourceTypeChange(type: KpiDataSourceType): void {
     this.dataSourceType = type;
+  }
+
+  /** Appends a `${name}` reference to the formula */
+  insertVariable(name: string): void {
+    const formula = this.form.formula;
+    const separator = formula && !formula.endsWith(' ') ? ' ' : '';
+    this.form.formula = `${formula}${separator}\${${name}}`;
   }
 
   // ============================================================================

@@ -275,9 +275,11 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
       const isPersistentQuery = kpiWidget.dataSource.type === 'persistentQuery';
 
       const isStatic = kpiWidget.dataSource.type === 'static';
-      const dataSourceType = isPersistentQuery ? 'persistentQuery' : isStatic ? 'static' : 'runtimeEntity';
+      const isFormula = isStatic && kpiWidget.valueMode === 'formula';
+      const dataSourceType = isPersistentQuery ? 'persistentQuery' : isFormula ? 'formula' : isStatic ? 'static' : 'runtimeEntity';
 
       return {
+        initialWidgetId: kpiWidget.id,
         // Runtime entity fields
         initialCkTypeId: getDataSourceInfo(widget).ckTypeId,
         initialRtId: getDataSourceInfo(widget).rtId,
@@ -296,6 +298,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryCategoryValue: kpiWidget.queryCategoryValue,
         // Static fields
         initialStaticValue: kpiWidget.staticValue,
+        // Formula / output variable (AB#5364)
+        initialFormula: kpiWidget.formula,
+        initialOutputVariableName: kpiWidget.outputVariableName,
         // Display options
         initialPrefix: kpiWidget.prefix,
         initialSuffix: kpiWidget.suffix,
@@ -313,9 +318,32 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         comparisonValue: f.comparisonValue
       }));
 
-      if (result.dataSourceType === 'static') {
+      if (result.dataSourceType === 'formula') {
         return {
           ...widget,
+          dataSource: { type: 'static' as const },
+          valueMode: 'formula' as const,
+          formula: result.formula,
+          outputVariableName: result.outputVariableName,
+          valueAttribute: '',
+          staticValue: undefined,
+          labelAttribute: undefined,
+          queryMode: undefined,
+          queryValueField: undefined,
+          queryCategoryField: undefined,
+          queryCategoryValue: undefined,
+          prefix: result.prefix,
+          suffix: result.suffix,
+          trend: result.trend,
+          comparisonText: result.comparisonText,
+          filters: undefined
+        };
+      } else if (result.dataSourceType === 'static') {
+        return {
+          ...widget,
+          valueMode: undefined,
+          formula: undefined,
+          outputVariableName: result.outputVariableName,
           dataSource: { type: 'static' as const },
           valueAttribute: '',
           staticValue: result.staticValue,
@@ -343,6 +371,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
 
         return {
           ...widget,
+          valueMode: undefined,
+          formula: undefined,
+          outputVariableName: result.outputVariableName,
           dataSource,
           valueAttribute: '',
           staticValue: undefined,
@@ -360,6 +391,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         // Create RuntimeEntityDataSource (default behavior)
         return {
           ...widget,
+          valueMode: undefined,
+          formula: undefined,
+          outputVariableName: result.outputVariableName,
           dataSource: createDataSource(result, false),
           valueAttribute: result.valueAttribute,
           labelAttribute: result.labelAttribute,
@@ -407,6 +441,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           trend: widget.trend,
           comparisonText: widget.comparisonText,
           staticValue: widget.staticValue,
+          valueMode: widget.valueMode,
+          formula: widget.formula,
+          outputVariableName: widget.outputVariableName,
           queryMode: widget.queryMode,
           queryValueField: widget.queryValueField,
           queryCategoryField: widget.queryCategoryField,
@@ -443,11 +480,14 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           dataSource,
           valueAttribute: '',
           staticValue: config['staticValue'] as string | undefined,
+          valueMode: config['valueMode'] === 'formula' ? 'formula' : undefined,
+          formula: config['formula'] as string | undefined,
           prefix: config['prefix'] as string | undefined,
           suffix: config['suffix'] as string | undefined,
           icon: config['icon'] as string | undefined,
           trend: config['trend'] as KpiWidgetConfig['trend'],
-          comparisonText: config['comparisonText'] as string | undefined
+          comparisonText: config['comparisonText'] as string | undefined,
+          outputVariableName: config['outputVariableName'] as string | undefined
         };
       }
 
@@ -468,6 +508,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           icon: config['icon'] as string | undefined,
           trend: config['trend'] as KpiWidgetConfig['trend'],
           comparisonText: config['comparisonText'] as string | undefined,
+          outputVariableName: config['outputVariableName'] as string | undefined,
           filters: config['filters'] as WidgetFilterConfig[] | undefined
         };
       }
@@ -484,6 +525,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         icon: config['icon'] as string | undefined,
         trend: config['trend'] as KpiWidgetConfig['trend'],
         comparisonText: config['comparisonText'] as string | undefined,
+        outputVariableName: config['outputVariableName'] as string | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }

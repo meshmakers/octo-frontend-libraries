@@ -379,7 +379,25 @@ export interface KpiWidgetConfig extends WidgetConfig {
    * battery discharge from a `< 0`-filtered SUM).
    */
   valueMultiplier?: number;
+  /**
+   * How the value is obtained. `'formula'` computes it from {@link formula}
+   * over MeshBoard variables (the data source stays `{ type: 'static' }`);
+   * `'value'` or absent uses the data source (AB#5364).
+   */
+  valueMode?: KpiValueMode;
+  /** Formula over MeshBoard variables, e.g. `(${a} - ${b}) / 1000`. Used when `valueMode` is `'formula'`. */
+  formula?: string;
+  /**
+   * When set, the widget publishes its displayed raw value as a runtime
+   * MeshBoard variable of this name (source `'widget'`, never persisted).
+   */
+  outputVariableName?: string;
 }
+
+/**
+ * Value mode of a KPI widget: taken from the data source or computed from a formula.
+ */
+export type KpiValueMode = 'value' | 'formula';
 
 /**
  * Sorting configuration for table widget (JSON-compatible)
@@ -1107,7 +1125,7 @@ export type MeshBoardVariableType = 'string' | 'number' | 'boolean' | 'date' | '
 /**
  * Source of the variable value (extensible for future dynamic variables)
  */
-export type MeshBoardVariableSource = 'static' | 'timeFilter' | 'entitySelector';
+export type MeshBoardVariableSource = 'static' | 'timeFilter' | 'entitySelector' | 'widget';
 // Future: 'url' | 'user' | 'expression'
 
 /**
@@ -1130,6 +1148,8 @@ export interface MeshBoardVariable {
   defaultValue?: string;
   /** Which entity selector generated this variable (for entitySelector source) */
   entitySelectorId?: string;
+  /** Which widget published this variable (for widget source; runtime only, never persisted) */
+  widgetId?: string;
 }
 
 /**

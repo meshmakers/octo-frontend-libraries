@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, OnDestroy, SimpleChanges, inject, signal, computed, effect, untracked, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KpiWidgetConfig, RuntimeEntityData, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardDataService } from '../../services/meshboard-data.service';
@@ -12,6 +12,8 @@ import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { applyValueMultiplier, matchesAttributePath } from '../../utils/widget-data-utils';
+import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 
 @Component({
   selector: 'mm-kpi-widget',
@@ -21,11 +23,12 @@ import { applyValueMultiplier, matchesAttributePath } from '../../utils/widget-d
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './kpi-widget.component.scss'
 })
-export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, RuntimeEntityData>, OnInit, OnChanges {
+export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, RuntimeEntityData>, OnInit, OnChanges, OnDestroy {
   private readonly dataService = inject(DashboardDataService);
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
   /**
    * Row __typenames KPI extraction recognises.
@@ -54,6 +57,34 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   readonly error = this._error.asReadonly();
 
   /**
+   * Signal mirror of the `config` input, so computeds re-run when the config
+   * changes (the input itself is a plain property). Falls back to the input
+   * before the first lifecycle hook.
+   */
+  private readonly _config = signal<KpiWidgetConfig | undefined>(undefined);
+
+  private currentConfig(): KpiWidgetConfig | undefined {
+    return this._config() ?? this.config;
+  }
+
+  constructor() {
+    // Publishes the raw value as runtime MeshBoard variable (AB#5364).
+    effect(() => {
+      const config = this.currentConfig();
+      if (!config) return;
+      const name = config.outputVariableName?.trim();
+      const value = name ? this.publishedValue() : null;
+      untracked(() => {
+        if (name && value !== null) {
+          this.stateService.setWidgetVariable(config.id, name, value);
+        } else {
+          this.stateService.clearWidgetVariable(config.id);
+        }
+      });
+    });
+  }
+
+  /**
    * Check if widget is not configured (needs data source setup).
    * This is a method (not computed) to ensure it re-evaluates when config changes via @Input.
    */
@@ -71,37 +102,87 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return !dataSource.queryRtId;
     }
     if (dataSource.type === 'static') {
+      if (this.isFormulaMode()) {
+        return !this.config.formula?.trim();
+      }
       return false;
     }
     return false;
   }
 
-  readonly value = computed(() => {
+  /** True when the value is computed from a formula (AB#5364). */
+  isFormulaMode(): boolean {
+    return this.currentConfig()?.valueMode === 'formula';
+  }
+
+  /**
+   * Formula evaluation result, live over the MeshBoard variables.
+   * `null` outside formula mode. A widget in a circular reference is not evaluated,
+   * otherwise publishing would ping-pong between the widgets of the cycle.
+   */
+  private readonly formulaResult = computed<FormulaEvaluationResult | null>(() => {
+    const config = this.currentConfig();
+    if (config?.valueMode !== 'formula') return null;
+    if (findVariableCycles(this.stateService.widgets()).has(config.id)) {
+      return { status: 'error', error: 'Circular variable reference' };
+    }
+    return evaluateFormula(config.formula, this.stateService.getVariables(), this.expressionEvaluator);
+  });
+
+  /** Error message of the formula (syntax, evaluation or circular reference). */
+  readonly formulaError = computed(() => {
+    const result = this.formulaResult();
+    return result?.status === 'error' ? result.error : null;
+  });
+
+  /**
+   * Unformatted value: the formula result, or the value taken from the loaded data
+   * (query values already scaled by `valueMultiplier`).
+   */
+  readonly rawValue = computed<unknown>(() => {
+    const formulaResult = this.formulaResult();
+    if (formulaResult) {
+      return formulaResult.status === 'ok' ? formulaResult.value : null;
+    }
+
     const data = this._data();
-    if (!data) return '-';
+    if (!data) return null;
+    const config = this.currentConfig();
 
     // Determine attribute name based on data source type
     let attributeName: string | undefined;
-    if (this.config?.dataSource?.type === 'persistentQuery') {
+    if (config?.dataSource?.type === 'persistentQuery') {
       attributeName = '_queryValue';
-    } else if (this.config?.dataSource?.type === 'static') {
+    } else if (config?.dataSource?.type === 'static') {
       attributeName = '_staticValue';
     } else {
-      attributeName = this.config?.valueAttribute;
+      attributeName = config?.valueAttribute;
     }
 
     // First check for system properties (direct properties on RuntimeEntityData)
     const systemValue = this.getSystemPropertyValue(data, attributeName);
     if (systemValue !== undefined) {
-      return this.formatDisplayValue(systemValue);
+      return systemValue;
     }
 
     // Then check in the attributes array
-    if (!data.attributes) return '-';
-    const attr = data.attributes.find(a => a.attributeName === attributeName);
-    if (!attr) return '-';
+    return data.attributes?.find(a => a.attributeName === attributeName)?.value ?? null;
+  });
 
-    return this.formatDisplayValue(attr.value);
+  readonly value = computed(() => this.formatDisplayValue(this.rawValue()));
+
+  /**
+   * Value published as output variable: the raw value as string, or `null` while
+   * there is none (nothing loaded, pending formula, unresolved placeholder).
+   */
+  private readonly publishedValue = computed<string | null>(() => {
+    const raw = this.rawValue();
+    if (raw === null || raw === undefined) return null;
+    const str = String(raw);
+    if (str === '' || str === 'null' || this.variableService.hasUnresolvedVariables(str)) {
+      return null;
+    }
+    return str;
   });
 
   /**
@@ -202,18 +283,33 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   });
 
   readonly comparisonText = computed(() => {
-    if (!this.config?.comparisonText) return null;
+    const comparisonText = this.currentConfig()?.comparisonText;
+    if (!comparisonText) return null;
     const variables = this.stateService.getVariables();
-    return this.variableService.resolveVariables(this.config.comparisonText, variables);
+    return this.variableService.resolveVariables(comparisonText, variables);
   });
 
   ngOnInit(): void {
+    this._config.set(this.config);
     this.loadData();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['config'] && !changes['config'].firstChange) {
-      this.loadData();
+    if (changes['config']) {
+      const previous = changes['config'].previousValue as KpiWidgetConfig | undefined;
+      if (previous && previous.id !== this.config?.id) {
+        this.stateService.clearWidgetVariable(previous.id);
+      }
+      this._config.set(this.config);
+      if (!changes['config'].firstChange) {
+        this.loadData();
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.config?.id) {
+      this.stateService.clearWidgetVariable(this.config.id);
     }
   }
 
@@ -228,6 +324,13 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     }
 
     const dataSource = this.config?.dataSource;
+
+    if (this.isFormulaMode()) {
+      // Formula values are computed live from the variables (see formulaResult)
+      this._data.set(null);
+      this._error.set(null);
+      return;
+    }
 
     if (dataSource.type === 'static') {
       // Resolve static value with variable substitution

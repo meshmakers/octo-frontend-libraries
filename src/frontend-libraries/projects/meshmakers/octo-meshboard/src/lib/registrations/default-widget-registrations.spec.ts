@@ -107,4 +107,52 @@ describe('Default widget registrations — KPI', () => {
       expect(applied.comparisonText).toBeUndefined();
     });
   });
+
+  describe('formula and output variable (AB#5364)', () => {
+    it('round-trips a formula KPI with output variable and comparison text', () => {
+      const applied = applyResult(createKpiWidget(), {
+        dataSourceType: 'formula',
+        formula: '(${a} - ${b}) / 1000',
+        outputVariableName: 'delta',
+        comparisonText: 'vs. ${last}'
+      });
+      expect(applied.dataSource).toEqual({ type: 'static' });
+      expect(applied.valueMode).toBe('formula');
+
+      const restored = roundTrip(applied);
+      expect(restored.valueMode).toBe('formula');
+      expect(restored.formula).toBe('(${a} - ${b}) / 1000');
+      expect(restored.outputVariableName).toBe('delta');
+      expect(restored.comparisonText).toBe('vs. ${last}');
+    });
+
+    it('opens the dialog of a formula KPI in formula mode', () => {
+      const widget = createKpiWidget({ dataSource: { type: 'static' }, valueMode: 'formula', formula: '${a}', outputVariableName: 'x' });
+      const initial = registry.getInitialConfig(widget);
+      expect(initial['initialDataSourceType']).toBe('formula');
+      expect(initial['initialFormula']).toBe('${a}');
+      expect(initial['initialOutputVariableName']).toBe('x');
+      expect(initial['initialWidgetId']).toBe('kpi-1');
+    });
+
+    it('round-trips the output variable of a query KPI', () => {
+      const applied = applyResult(createKpiWidget(), {
+        dataSourceType: 'persistentQuery',
+        queryRtId: 'q-1',
+        queryMode: 'simpleCount',
+        outputVariableName: 'consumption'
+      });
+      const restored = roundTrip(applied);
+      expect(restored.outputVariableName).toBe('consumption');
+      expect(restored.valueMode).toBeUndefined();
+    });
+
+    it('drops the formula when switching back to a static value', () => {
+      const formulaWidget = createKpiWidget({ dataSource: { type: 'static' }, valueMode: 'formula', formula: '${a}' });
+      const applied = applyResult(formulaWidget, { dataSourceType: 'static', staticValue: '1' });
+      expect(applied.valueMode).toBeUndefined();
+      expect(applied.formula).toBeUndefined();
+      expect(roundTrip(applied).valueMode).toBeUndefined();
+    });
+  });
 });
