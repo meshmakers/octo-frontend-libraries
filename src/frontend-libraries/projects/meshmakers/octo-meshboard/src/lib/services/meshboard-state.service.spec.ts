@@ -1,4 +1,5 @@
 import type { MockedObject } from 'vitest';
+import { computed } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MeshBoardStateService } from './meshboard-state.service';
 import { MeshBoardPersistenceService, PersistedMeshBoard, PersistedWidget } from './meshboard-persistence.service';
@@ -553,6 +554,94 @@ describe('MeshBoardStateService', () => {
         expect(service.getVariable('testVar')).toBeUndefined();
         expect(service.getVariable('new1')).toBeDefined();
       });
+    });
+  });
+
+  describe('Widget Variables (AB#5364)', () => {
+    it('merges published widget variables into getVariables()', () => {
+      service.addVariable({ name: 'a', type: 'number', source: 'static', value: '1' });
+
+      service.setWidgetVariable('w1', 'consumption', '42');
+
+      const names = service.getVariables().map(v => v.name);
+      expect(names).toEqual(['a', 'consumption']);
+      expect(service.getVariable('consumption')).toEqual(
+        expect.objectContaining({ source: 'widget', widgetId: 'w1', value: '42', type: 'number' })
+      );
+    });
+
+    it('lets a configuration variable win on a name clash', () => {
+      service.addVariable({ name: 'x', type: 'string', source: 'static', value: 'config' });
+
+      service.setWidgetVariable('w1', 'x', 'widget');
+
+      expect(service.getVariables().filter(v => v.name === 'x')).toEqual([
+        expect.objectContaining({ value: 'config', source: 'static' })
+      ]);
+    });
+
+    it('replaces the variable when the same widget publishes another name', () => {
+      service.setWidgetVariable('w1', 'old', '1');
+      service.setWidgetVariable('w1', 'new', '2');
+
+      expect(service.getVariables().map(v => v.name)).toEqual(['new']);
+    });
+
+    it('does not write when name and value are unchanged', () => {
+      service.setWidgetVariable('w1', 'v', '1');
+      let runs = 0;
+      const variables = computed(() => {
+        runs++;
+        return service.getVariables();
+      });
+      variables();
+
+      service.setWidgetVariable('w1', 'v', '1');
+      variables();
+
+      expect(runs).toBe(1);
+    });
+
+    it('re-evaluates computeds reading getVariables()', () => {
+      const value = computed(() => service.getVariable('v')?.value);
+      service.setWidgetVariable('w1', 'v', '1');
+      expect(value()).toBe('1');
+
+      service.setWidgetVariable('w1', 'v', '2');
+
+      expect(value()).toBe('2');
+    });
+
+    it('clears the variable of a widget', () => {
+      service.setWidgetVariable('w1', 'a', '1');
+      service.setWidgetVariable('w2', 'b', '2');
+
+      service.clearWidgetVariable('w1');
+
+      expect(service.getVariables().map(v => v.name)).toEqual(['b']);
+    });
+
+    it('never writes widget variables into the configuration', () => {
+      service.addVariable({ name: 'a', type: 'number', source: 'static', value: '1' });
+      service.setWidgetVariable('w1', 'published', '5');
+
+      service.setVariableValue('a', '2');
+      service.addVariable({ name: 'b', type: 'number', source: 'static', value: '3' });
+
+      expect(service.meshBoardConfig().variables?.map(v => v.name)).toEqual(['a', 'b']);
+    });
+
+    it('clears widget variables on board switch', async () => {
+      service.setWidgetVariable('w1', 'published', '5');
+      mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+        meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
+        widgets: []
+      });
+      mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
+
+      await service.switchToMeshBoard('board1');
+
+      expect(service.getVariable('published')).toBeUndefined();
     });
   });
 
