@@ -40,9 +40,13 @@ const VARIABLE_REFERENCE = /\$\{([^}]+)\}|\$([a-zA-Z_]\w*)/g;
 const IDENTIFIER_PREFIX = '__v_';
 const NUMERIC_VALUE = /^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/;
 
-/** Safe expr-eval identifier for a variable name; characters outside `\w` are hex-escaped. */
+/**
+ * Safe expr-eval identifier for a variable name. Every character outside `[A-Za-z0-9]`,
+ * including `_`, is hex-escaped as `_<hex>_`, so underscores only ever delimit escapes and
+ * the mapping is injective (`my-var` and `my_2d_var` stay distinct).
+ */
 function toIdentifier(name: string): string {
-  return IDENTIFIER_PREFIX + name.replace(/[^A-Za-z0-9_]/g, c => `_${c.charCodeAt(0).toString(16)}_`);
+  return IDENTIFIER_PREFIX + name.replace(/[^A-Za-z0-9]/g, c => `_${c.charCodeAt(0).toString(16)}_`);
 }
 
 /**

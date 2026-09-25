@@ -41,6 +41,16 @@ describe('meshboard-formula', () => {
       expect(result.expression).toBe('__v_my_2d_var * 2');
       expect(result.referencedNames).toEqual(['my-var']);
     });
+
+    it('keeps names distinct whose escaped forms would otherwise collide', () => {
+      const result = rewriteFormula('${my-var} + ${my_2d_var}');
+      expect(result.expression).toBe('__v_my_2d_var + __v_my_5f_2d_5f_var');
+    });
+
+    it('evaluates names containing underscores', () => {
+      const vars: MeshBoardVariable[] = [variable('mp_rtId_count', '4')];
+      expect(evaluateFormula('${mp_rtId_count} * 2', vars, evaluator)).toEqual({ status: 'ok', value: 8 });
+    });
   });
 
   describe('validateFormula', () => {

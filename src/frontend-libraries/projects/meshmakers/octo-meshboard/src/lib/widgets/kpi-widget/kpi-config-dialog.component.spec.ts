@@ -93,6 +93,16 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     expect(component.formulaPreview).toBe('20');
   });
 
+  it('picks up an output published while the dialog is open', async () => {
+    await open([kpi('self'), kpi('other')], { initialFormula: '${late} + 1' });
+    expect(component.formulaValidation.unknownVariables).toEqual(['late']);
+
+    stateService.setWidgetVariable('other', 'late', '41');
+
+    expect(component.formulaValidation.valid).toBe(true);
+    expect(component.formulaPreview).toBe('42');
+  });
+
   it('rejects an invalid output variable name', async () => {
     await open([kpi('self')], { initialFormula: '${a}', initialOutputVariableName: '1abc' });
 

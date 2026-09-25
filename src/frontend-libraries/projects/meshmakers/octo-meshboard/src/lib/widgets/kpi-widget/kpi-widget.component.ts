@@ -173,9 +173,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
 
   /**
    * Value published as output variable: the raw value as string, or `null` while
-   * there is none (nothing loaded, pending formula, unresolved placeholder).
+   * there is none (nothing loaded, pending formula, unresolved placeholder, failed load).
+   * During a refresh the last value stays published, so dependents do not flicker to `-`.
    */
   private readonly publishedValue = computed<string | null>(() => {
+    if (this._error()) return null;
     const raw = this.rawValue();
     if (raw === null || raw === undefined) return null;
     const str = String(raw);

@@ -824,18 +824,28 @@ export class KpiConfigDialogComponent implements OnInit {
     outputVariableName: ''
   };
 
-  /** Variables a formula can reference: MeshBoard variables plus other widgets' outputs */
-  formulaVariables: MeshBoardVariable[] = [];
+  /**
+   * Variables a formula can reference: MeshBoard variables plus other widgets' outputs.
+   * Read live, so outputs published while the dialog is open (e.g. a query KPI that
+   * finished loading) become available immediately.
+   */
+  get formulaVariables(): MeshBoardVariable[] {
+    return this.meshBoardStateService.getVariables()
+      .filter(v => !(v.source === 'widget' && v.widgetId === this.initialWidgetId));
+  }
 
-  private formulaValidationCache?: { formula: string; result: FormulaValidationResult };
+  private formulaValidationCache?: { formula: string; names: string; result: FormulaValidationResult };
 
-  /** Validation of the current formula (memoized per formula text) */
+  /** Validation of the current formula (memoized per formula text and available variable names) */
   get formulaValidation(): FormulaValidationResult {
     const formula = this.form.formula;
-    if (this.formulaValidationCache?.formula !== formula) {
+    const availableNames = this.formulaVariables.map(v => v.name);
+    const names = JSON.stringify(availableNames);
+    if (this.formulaValidationCache?.formula !== formula || this.formulaValidationCache.names !== names) {
       this.formulaValidationCache = {
         formula,
-        result: validateFormula(formula, this.formulaVariables.map(v => v.name), this.expressionEvaluator)
+        names,
+        result: validateFormula(formula, availableNames, this.expressionEvaluator)
       };
     }
     return this.formulaValidationCache.result;
@@ -950,8 +960,6 @@ export class KpiConfigDialogComponent implements OnInit {
     this.form.staticValue = this.initialStaticValue || '';
     this.form.formula = this.initialFormula || '';
     this.form.outputVariableName = this.initialOutputVariableName || '';
-    this.formulaVariables = this.meshBoardStateService.getVariables()
-      .filter(v => !(v.source === 'widget' && v.widgetId === this.initialWidgetId));
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {

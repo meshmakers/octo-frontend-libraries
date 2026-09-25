@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { CkModelService } from '@meshmakers/octo-services';
 import { KpiWidgetComponent } from './kpi-widget.component';
 import { DashboardDataService } from '../../services/meshboard-data.service';
@@ -169,6 +169,31 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
     fixture.detectChanges();
 
     expect(stateService.getVariable('half')?.value).toBe('5');
+  });
+
+  it('keeps the last value during a refresh and clears it when the refresh fails', async () => {
+    queryExecutor.execute.mockReturnValue(of({ totalCount: 10, rows: [], columns: [] }));
+    render(kpi({
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-1' },
+      queryMode: 'simpleCount',
+      outputVariableName: 'count'
+    }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(stateService.getVariable('count')?.value).toBe('10');
+
+    queryExecutor.execute.mockReturnValue(throwError(() => new Error('boom')));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    component.refresh();
+    fixture.detectChanges();
+    expect(component.isLoading()).toBe(true);
+    expect(stateService.getVariable('count')?.value).toBe('10');
+
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.error()).toBeTruthy();
+    expect(stateService.getVariable('count')).toBeUndefined();
   });
 
   it('keeps the existing static value behaviour', () => {

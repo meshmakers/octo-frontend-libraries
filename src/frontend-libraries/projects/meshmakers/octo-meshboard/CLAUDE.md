@@ -519,7 +519,9 @@ next to the config (`_widgetVariables`), so publishing causes no persistence and
 state. `getVariables()` merges them in (a config variable wins on a name clash), and every
 write path (`setVariableValue`, `addVariable`, …) builds on the config variables only, so a
 widget variable never reaches the description blob. They are cleared on board switch, when
-the widget is destroyed, when the output name is removed and while the value is pending.
+the widget is destroyed, when the output name is removed, while the value is pending and
+while the widget is in error (failed load). During a refresh the last value stays
+published, so dependent formulas do not flicker to `-`.
 
 **Formula mode.** `KpiWidgetConfig.valueMode: 'formula'` with `formula`, e.g.
 `(${a} - ${b}) / 1000`; the data source stays `{ type: 'static' }`. The value is computed
