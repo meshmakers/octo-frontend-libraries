@@ -152,6 +152,15 @@ describe('meshboard-formula', () => {
       expect(findVariableCycles(widgets).size).toBe(0);
     });
 
+    it('does not link a reference shadowed by a configured variable', () => {
+      const widgets: AnyWidgetConfig[] = [
+        kpi('A', { valueMode: 'formula', formula: '${x} + 1', outputVariableName: 'y' }),
+        kpi('B', { valueMode: 'formula', formula: '${y} + 1', outputVariableName: 'x' })
+      ];
+      expect([...findVariableCycles(widgets)].sort()).toEqual(['A', 'B']);
+      expect(findVariableCycles(widgets, ['x']).size).toBe(0);
+    });
+
     it('ignores formulas of widgets not in formula mode', () => {
       const widgets: AnyWidgetConfig[] = [
         kpi('A', { valueMode: 'value', formula: '${a}', outputVariableName: 'a' })

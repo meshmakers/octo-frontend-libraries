@@ -166,9 +166,15 @@ export function isFormulaKpi(widget: AnyWidgetConfig): widget is KpiWidgetConfig
  * Finds widgets that depend on their own output, directly or through other widgets.
  *
  * Graph: a formula KPI depends on every widget whose `outputVariableName` its formula
- * references. Returns the IDs of all widgets that are part of a cycle (including self-references).
+ * references. A name that is also a configured MeshBoard variable resolves to that variable
+ * at runtime (config variables win), so it creates no dependency on the widget.
+ * Returns the IDs of all widgets that are part of a cycle (including self-references).
  */
-export function findVariableCycles(widgets: readonly AnyWidgetConfig[]): Set<string> {
+export function findVariableCycles(
+  widgets: readonly AnyWidgetConfig[],
+  configuredVariableNames: readonly string[] = []
+): Set<string> {
+  const configuredNames = new Set(configuredVariableNames);
   const producerByName = new Map<string, string>();
   for (const widget of widgets) {
     const name = widget.type === 'kpi' ? (widget as KpiWidgetConfig).outputVariableName?.trim() : undefined;
@@ -181,7 +187,7 @@ export function findVariableCycles(widgets: readonly AnyWidgetConfig[]): Set<str
   for (const widget of widgets) {
     if (!isFormulaKpi(widget)) continue;
     const producers = rewriteFormula(widget.formula ?? '').referencedNames
-      .map(name => producerByName.get(name))
+      .map(name => configuredNames.has(name) ? undefined : producerByName.get(name))
       .filter((id): id is string => id !== undefined);
     dependencies.set(widget.id, producers);
   }

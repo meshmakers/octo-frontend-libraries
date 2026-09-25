@@ -546,12 +546,17 @@ resolve variables when they load, so they pick up a published value on the next 
 
 **Cycles.** The config dialog refuses to save a formula/output combination that closes a
 cycle (`cycleError`). At runtime a widget in a cycle shows *Circular variable reference* and
-publishes nothing, so a cycle can never ping-pong values between widgets.
+publishes nothing, so a cycle can never ping-pong values between widgets. A reference whose
+name is also a configured MeshBoard variable resolves to that variable (config wins) and
+therefore creates no dependency on the widget publishing the same name.
 
 **Config dialog.** A fourth data-source button **Formula** (formula field, syntax hint, list
 of available variables including other widgets' outputs, live validation and preview) and
 an **Output Variable** field for all modes (`isValidVariableName`, no clash with a config
-variable or another widget's output).
+variable or another widget's output). Formula validation also accepts names that are declared
+but carry no value yet — other KPIs' `outputVariableName` (still loading, pending or in error)
+and the variables of entity selectors (`attributeMappings[].variableName`, `<id>_rtId`,
+`<id>_rtCkTypeId`) before an entity is picked; the preview shows them as pending.
 
 ---
 

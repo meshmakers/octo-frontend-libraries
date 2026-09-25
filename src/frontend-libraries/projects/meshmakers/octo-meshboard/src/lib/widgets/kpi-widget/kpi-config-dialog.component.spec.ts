@@ -103,6 +103,33 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     expect(component.formulaPreview).toBe('42');
   });
 
+  it('accepts a declared output that has no value yet, preview stays pending', async () => {
+    await open([kpi('self'), kpi('other', { outputVariableName: 'loading' })], { initialFormula: '${loading} * 2' });
+
+    expect(component.formulaValidation.valid).toBe(true);
+    expect(component.formulaPreview).toContain('no value yet');
+    expect(component.isValid).toBe(true);
+  });
+
+  it('accepts entity-selector variables before an entity is picked', async () => {
+    await open([kpi('self')], { initialFormula: '${mp_power} + ${mp_rtId}' });
+    stateService.updateEntitySelectors([{
+      id: 'mp',
+      label: 'Metering point',
+      ckTypeId: 'Test/MeteringPoint',
+      attributeMappings: [{ attributePath: 'power', variableName: 'mp_power' }]
+    }]);
+
+    expect(component.formulaValidation.valid).toBe(true);
+  });
+
+  it('ignores a cycle through a name shadowed by a MeshBoard variable', async () => {
+    const other = kpi('other', { valueMode: 'formula', formula: '${self_out} + 1', outputVariableName: 'a' });
+    await open([kpi('self'), other], { initialFormula: '${a} + 1', initialOutputVariableName: 'self_out' });
+
+    expect(component.cycleError).toBeNull();
+  });
+
   it('rejects an invalid output variable name', async () => {
     await open([kpi('self')], { initialFormula: '${a}', initialOutputVariableName: '1abc' });
 

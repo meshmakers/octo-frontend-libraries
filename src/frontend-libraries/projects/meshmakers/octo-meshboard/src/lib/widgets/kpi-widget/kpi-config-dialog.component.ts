@@ -836,10 +836,32 @@ export class KpiConfigDialogComponent implements OnInit {
 
   private formulaValidationCache?: { formula: string; names: string; result: FormulaValidationResult };
 
-  /** Validation of the current formula (memoized per formula text and available variable names) */
+  /**
+   * Variable names that exist by configuration even while they carry no value yet: the
+   * outputs declared by other KPIs (e.g. still loading or in error) and the variables an
+   * entity selector exposes once an entity is picked.
+   */
+  private get declaredVariableNames(): string[] {
+    const outputs = this.meshBoardStateService.widgets()
+      .filter(w => w.id !== this.initialWidgetId && w.type === 'kpi')
+      .map(w => (w as KpiWidgetConfig).outputVariableName?.trim())
+      .filter((name): name is string => !!name);
+    const selectorVariables = this.meshBoardStateService.getEntitySelectors().flatMap(selector => [
+      ...(selector.attributeMappings ?? []).map(m => m.variableName),
+      `${selector.id}_rtId`,
+      `${selector.id}_rtCkTypeId`
+    ]);
+    return [...outputs, ...selectorVariables];
+  }
+
+  /**
+   * Validation of the current formula (memoized per formula text and available variable names).
+   * Declared names count as known, so a reference to an output without a value yet can be saved;
+   * the preview keeps evaluating the live values and shows it as pending.
+   */
   get formulaValidation(): FormulaValidationResult {
     const formula = this.form.formula;
-    const availableNames = this.formulaVariables.map(v => v.name);
+    const availableNames = [...new Set([...this.formulaVariables.map(v => v.name), ...this.declaredVariableNames])];
     const names = JSON.stringify(availableNames);
     if (this.formulaValidationCache?.formula !== formula || this.formulaValidationCache.names !== names) {
       this.formulaValidationCache = {
@@ -894,7 +916,8 @@ export class KpiConfigDialogComponent implements OnInit {
     const pendingWidgets: AnyWidgetConfig[] = current
       ? widgets.map(w => w.id === widgetId ? pending : w)
       : [...widgets, pending];
-    return findVariableCycles(pendingWidgets).has(widgetId)
+    const configuredNames = (this.meshBoardStateService.meshBoardConfig().variables ?? []).map(v => v.name);
+    return findVariableCycles(pendingWidgets, configuredNames).has(widgetId)
       ? 'Circular reference: the formula depends on this widget\'s own output.'
       : null;
   }

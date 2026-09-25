@@ -123,7 +123,8 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   private readonly formulaResult = computed<FormulaEvaluationResult | null>(() => {
     const config = this.currentConfig();
     if (config?.valueMode !== 'formula') return null;
-    if (findVariableCycles(this.stateService.widgets()).has(config.id)) {
+    const configuredNames = (this.stateService.meshBoardConfig().variables ?? []).map(v => v.name);
+    if (findVariableCycles(this.stateService.widgets(), configuredNames).has(config.id)) {
       return { status: 'error', error: 'Circular variable reference' };
     }
     return evaluateFormula(config.formula, this.stateService.getVariables(), this.expressionEvaluator);
