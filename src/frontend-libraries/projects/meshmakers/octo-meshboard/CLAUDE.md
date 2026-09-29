@@ -126,8 +126,10 @@ export class MyComponent {
 | `addWidget(widget)` | `void` | Add widget to current MeshBoard |
 | `updateWidget(id, changes)` | `void` | Update widget configuration |
 | `removeWidget(id)` | `void` | Remove widget |
-| `getVariables()` | `MeshBoardVariable[]` | Get all variables |
-| `setVariableValue(name, value)` | `void` | Set variable value |
+| `getVariables()` | `MeshBoardVariable[]` | Get all variables: config variables plus runtime widget variables (config wins on a name clash) |
+| `setVariableValue(name, value)` | `void` | Set variable value (config variables only) |
+| `setWidgetVariable(widgetId, name, value)` | `void` | Publish a widget's value as runtime variable (source `widget`, not persisted; no-op when unchanged) |
+| `clearWidgetVariable(widgetId)` | `void` | Remove the runtime variable published by a widget |
 | `getEntitySelectors()` | `EntitySelectorConfig[]` | Get configured entity selectors |
 | `getEntitySelector(selectorId)` | `EntitySelectorConfig \| undefined` | Get specific selector |
 | `updateEntitySelectorSelection(selectorId, rtId, displayName?)` | `void` | Update selector selection |
@@ -202,7 +204,7 @@ const resolved2 = service.resolveVariables('ID: ${customerId}', variables);
 |--------|---------|-------------|
 | `resolveVariables(text, variables)` | `string` | Replace variable references |
 | `parseVariables(text)` | `string[]` | Extract variable names from text |
-| `validateVariableName(name)` | `boolean` | Check if name is valid |
+| `isValidVariableName(name)` | `boolean` | Check if name is valid (`[a-zA-Z_][a-zA-Z0-9_]*`) |
 | `convertToFieldFilterDto(filters, variables)` | `FieldFilterDto[]` | Convert filters with variable resolution |
 | `mapAttributeTypeToVariableType(attrType)` | `MeshBoardVariableType` | Map CK attribute type to variable type |
 | `attributePathToVariableName(path)` | `string` | Convert attribute path to camelCase variable name |
@@ -355,7 +357,7 @@ interface AggregationQuery {
 
 | Type | Description | Data Sources |
 |------|-------------|--------------|
-| `kpi` | Single numeric value with optional trend. Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge) | runtimeEntity, persistentQuery, aggregation, static |
+| `kpi` | Single numeric value with optional trend. Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
 | `gauge` | Arc, Circular, Linear, or Radial gauge | runtimeEntity, persistentQuery, aggregation, static |
 | `barChart` | Bar/Column chart | persistentQuery, constructionKitQuery |
 | `pieChart` | Pie/Donut chart | persistentQuery, constructionKitQuery |
@@ -481,10 +483,11 @@ MeshBoards support variables for dynamic content:
 interface MeshBoardVariable {
   name: string;
   type: 'string' | 'number' | 'date' | 'boolean' | 'datetime';
-  source: 'static' | 'timeFilter' | 'entitySelector';
+  source: 'static' | 'timeFilter' | 'entitySelector' | 'widget';
   value: string;
   defaultValue?: string;
   entitySelectorId?: string;     // Which entity selector generated this variable
+  widgetId?: string;             // Which widget published this variable (source 'widget')
 }
 ```
 
@@ -492,6 +495,7 @@ interface MeshBoardVariable {
 - `static` - User-defined value
 - `timeFilter` - Auto-generated from time range picker
 - `entitySelector` - Auto-generated from entity selector selections (toolbar or fixed)
+- `widget` - Published at runtime by a widget's output variable (see below); never persisted
 
 **Usage in Widget Configs:**
 - `${variableName}` - Bracket syntax (recommended)
@@ -504,6 +508,55 @@ interface MeshBoardVariable {
 // In filter config
 { attributePath: 'customerId', comparisonValue: '$customerId', operator: 'eq' }
 ```
+
+### Widget Output Variables and KPI Formulas (AB#5364)
+
+**Output variables.** Any KPI widget (query, runtime entity, static or formula) can set
+`outputVariableName`. The widget then publishes its displayed **raw** value — for query
+KPIs the value after `valueMultiplier`, not the formatted display string — through
+`MeshBoardStateService.setWidgetVariable`. Widget variables live in a transient signal
+next to the config (`_widgetVariables`), so publishing causes no persistence and no dirty
+state. `getVariables()` merges them in (a config variable wins on a name clash), and every
+write path (`setVariableValue`, `addVariable`, …) builds on the config variables only, so a
+widget variable never reaches the description blob. They are cleared on board switch, when
+the widget is destroyed, when the output name is removed, while the value is pending and
+while the widget is in error (failed load). During a refresh the last value stays
+published, so dependent formulas do not flicker to `-`.
+
+**Formula mode.** `KpiWidgetConfig.valueMode: 'formula'` with `formula`, e.g.
+`(${a} - ${b}) / 1000`; the data source stays `{ type: 'static' }`. The value is computed
+live in a `computed()` (no `loadData()`), using `utils/meshboard-formula.ts`:
+
+| Function | Purpose |
+|---|---|
+| `rewriteFormula(formula)` | `${name}` / `$name` → safe identifier `__v_<name>` (no clash with built-ins like `max`, `E`) |
+| `validateFormula(formula, names, evaluator)` | Syntax + unknown variables (bare identifiers count as unknown) |
+| `evaluateFormula(formula, variables, evaluator)` | `ok` / `error` / `pending` (a referenced variable is missing or empty → the widget shows `-`) |
+| `findVariableCycles(widgets)` | IDs of formula KPIs that depend on their own output, directly or indirectly |
+
+The evaluator is the `ExpressionEvaluatorService` of `@meshmakers/octo-process-diagrams`
+(expr-eval-fork): `+ - * / % ^`, parentheses, `min`, `max`, `abs`, `round`, `? :` plus the
+process-diagram helpers (`clamp`, `lerp`, …). Variable values are strings: numeric strings
+(dot as decimal separator) become numbers, `true`/`false` become booleans. A non-finite
+result (division by zero) is an error.
+
+**Reactivity.** Formulas, the KPI comparison text and markdown content read
+`getVariables()` inside `computed()`s and update immediately. Query filters of other widgets
+resolve variables when they load, so they pick up a published value on the next refresh.
+
+**Cycles.** The config dialog refuses to save a formula/output combination that closes a
+cycle (`cycleError`). At runtime a widget in a cycle shows *Circular variable reference* and
+publishes nothing, so a cycle can never ping-pong values between widgets. A reference whose
+name is also a configured MeshBoard variable resolves to that variable (config wins) and
+therefore creates no dependency on the widget publishing the same name.
+
+**Config dialog.** A fourth data-source button **Formula** (formula field, syntax hint, list
+of available variables including other widgets' outputs, live validation and preview) and
+an **Output Variable** field for all modes (`isValidVariableName`, no clash with a config
+variable or another widget's output). Formula validation also accepts names that are declared
+but carry no value yet — other KPIs' `outputVariableName` (still loading, pending or in error)
+and the variables of entity selectors (`attributeMappings[].variableName`, `<id>_rtId`,
+`<id>_rtCkTypeId`) before an entity is picked; the preview shows them as pending.
 
 ---
 
@@ -883,6 +936,10 @@ Current test files:
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests)
+- `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
+- `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364)
+- `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish
+- `kpi-config-dialog.component.spec.ts` - KPI dialog formula validation, output-name and cycle checks
 - `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)
 
 ---

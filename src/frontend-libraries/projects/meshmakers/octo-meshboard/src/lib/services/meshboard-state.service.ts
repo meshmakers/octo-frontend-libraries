@@ -48,6 +48,12 @@ export class MeshBoardStateService {
    * entity's own rtId). Not persisted — derived fresh from each selection.
    */
   private readonly _entitySelectorRtIds = signal<Record<string, string[]>>({});
+  /**
+   * Transient variables published by widgets (KPI output variables, AB#5364).
+   * Kept apart from `_meshBoardConfig` so publishing triggers no persistence and
+   * no dirty state. Cleared on every board switch.
+   */
+  private readonly _widgetVariables = signal<MeshBoardVariable[]>([]);
 
   // Public computed signals
   readonly meshBoardConfig = computed(() => this._meshBoardConfig());
@@ -157,6 +163,7 @@ export class MeshBoardStateService {
           console.warn(`Resolved ${movedWidgets.length} overlapping widget(s)`);
         }
 
+        this._widgetVariables.set([]);
         this._meshBoardConfig.set(config);
         this._persistedMeshBoardId.set(result.meshBoard.rtId);
         this._existingWidgetRtIds.set(result.widgets.map(w => w.rtId));
@@ -522,10 +529,57 @@ export class MeshBoardStateService {
   // ============================================================================
 
   /**
-   * Gets all variables from the current MeshBoard configuration.
+   * Gets all variables: the MeshBoard configuration's variables plus the runtime
+   * variables published by widgets. A configuration variable wins on a name clash.
+   * Reads signals, so `computed()`s calling it react to both.
    */
   getVariables(): MeshBoardVariable[] {
+    const configVariables = this.configVariables();
+    const widgetVariables = this._widgetVariables();
+    if (widgetVariables.length === 0) {
+      return configVariables;
+    }
+    const configNames = new Set(configVariables.map(v => v.name));
+    return [...configVariables, ...widgetVariables.filter(v => !configNames.has(v.name))];
+  }
+
+  /**
+   * Variables stored in the MeshBoard configuration (without widget variables).
+   * Every write path builds on this, so widget variables never reach the config.
+   */
+  private configVariables(): MeshBoardVariable[] {
     return this._meshBoardConfig().variables ?? [];
+  }
+
+  /**
+   * Publishes a widget's value as runtime variable (source `'widget'`).
+   * Replaces a variable the same widget published under another name, and does
+   * nothing when name and value are unchanged, so publishing effects cannot loop.
+   */
+  setWidgetVariable(widgetId: string, name: string, value: string): void {
+    const current = this._widgetVariables();
+    const existing = current.find(v => v.widgetId === widgetId);
+    if (existing && existing.name === name && existing.value === value) {
+      return;
+    }
+    const variable: MeshBoardVariable = {
+      name,
+      type: value !== '' && !isNaN(Number(value)) ? 'number' : 'string',
+      source: 'widget',
+      value,
+      widgetId
+    };
+    this._widgetVariables.set([...current.filter(v => v.widgetId !== widgetId), variable]);
+  }
+
+  /**
+   * Removes the runtime variable published by a widget (e.g. when it is destroyed).
+   */
+  clearWidgetVariable(widgetId: string): void {
+    const current = this._widgetVariables();
+    if (current.some(v => v.widgetId === widgetId)) {
+      this._widgetVariables.set(current.filter(v => v.widgetId !== widgetId));
+    }
   }
 
   /**
@@ -549,7 +603,7 @@ export class MeshBoardStateService {
    * Sets the value of a single variable.
    */
   setVariableValue(name: string, value: string): void {
-    const variables = [...this.getVariables()];
+    const variables = [...this.configVariables()];
     const index = variables.findIndex(v => v.name === name);
 
     if (index >= 0) {
@@ -562,7 +616,7 @@ export class MeshBoardStateService {
    * Adds a new variable to the MeshBoard.
    */
   addVariable(variable: MeshBoardVariable): void {
-    const variables = [...this.getVariables(), variable];
+    const variables = [...this.configVariables(), variable];
     this.updateVariables(variables);
   }
 
@@ -570,7 +624,7 @@ export class MeshBoardStateService {
    * Removes a variable by name.
    */
   removeVariable(name: string): void {
-    const variables = this.getVariables().filter(v => v.name !== name);
+    const variables = this.configVariables().filter(v => v.name !== name);
     this.updateVariables(variables);
   }
 
@@ -736,7 +790,7 @@ export class MeshBoardStateService {
    */
   setTimeFilterVariables(fromISO: string, toISO: string): void {
     // Filter out existing timeFilter variables
-    const currentVars = this.getVariables().filter(v => v.source !== 'timeFilter');
+    const currentVars = this.configVariables().filter(v => v.source !== 'timeFilter');
 
     // Create new time filter variables
     const timeFilterVars: MeshBoardVariable[] = [
@@ -762,7 +816,7 @@ export class MeshBoardStateService {
    * Clears time filter variables (called when time filter is disabled).
    */
   clearTimeFilterVariables(): void {
-    const currentVars = this.getVariables().filter(v => v.source !== 'timeFilter');
+    const currentVars = this.configVariables().filter(v => v.source !== 'timeFilter');
     this.updateVariables(currentVars);
   }
 
@@ -814,7 +868,7 @@ export class MeshBoardStateService {
    */
   setEntitySelectorVariables(selectorId: string, values: { name: string; value: string; type?: string }[]): void {
     // Remove existing variables for this selector
-    const currentVars = this.getVariables().filter(v =>
+    const currentVars = this.configVariables().filter(v =>
       !(v.source === 'entitySelector' && v.entitySelectorId === selectorId)
     );
 
@@ -834,7 +888,7 @@ export class MeshBoardStateService {
    * Clears entity selector variables for a given selector.
    */
   clearEntitySelectorVariables(selectorId: string): void {
-    const currentVars = this.getVariables().filter(v =>
+    const currentVars = this.configVariables().filter(v =>
       !(v.source === 'entitySelector' && v.entitySelectorId === selectorId)
     );
     this.updateVariables(currentVars);
