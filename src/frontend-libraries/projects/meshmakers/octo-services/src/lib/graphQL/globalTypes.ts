@@ -55738,6 +55738,8 @@ export type SystemTenantModeConfigurationDto = SystemConfigurationInterfaceDto &
   maintenanceLevel: SystemMaintenanceLevelsDto;
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  publishCkModelObservability?: Maybe<Scalars['Boolean']['output']>;
+  publishWorkloadObservability?: Maybe<Scalars['Boolean']['output']>;
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
   rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -55903,6 +55905,8 @@ export type SystemTenantModeConfigurationInputDto = {
   maintenanceLevel?: InputMaybe<SystemMaintenanceLevelsDto>;
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  publishCkModelObservability?: InputMaybe<Scalars['Boolean']['input']>;
+  publishWorkloadObservability?: InputMaybe<Scalars['Boolean']['input']>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;

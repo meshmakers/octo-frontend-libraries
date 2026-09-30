@@ -608,6 +608,28 @@ external package turns into a lazily initialised namespace object under the vite
 nominally different enum types (see the refinery-studio CLAUDE.md, "GraphQL types come from
 the package", for the full history).
 
+### Adding a schema field ahead of the server rollout
+
+`schema.graphql` is an **introspection snapshot** of the local `meshtest` tenant, not a
+generated artifact. When a CK model adds attributes that the snapshot does not carry yet,
+add those fields to `schema.graphql` **surgically** — the field on the object type and, if
+the UI writes it, the same field on the `*Input` type — and then run `npm run codegen`. A
+full re-introspection instead mixes tens of thousands of lines of unrelated drift into the
+feature (same rationale as AB#4967/AB#5053 in refinery-studio). The generated base types in
+`globalTypes.ts` are then real codegen output, so a consuming app never has to cast an input
+object to smuggle a field past the type system.
+
+Nullability follows the CK attribute: `isOptional: true` becomes a nullable field
+(`Boolean`, like `rtBlueprintLocked`), a required attribute keeps the `!`. CK attribute
+`description`s are **not** projected into the GraphQL schema — do not invent doc comments
+that a real introspection would not produce. Fields are in alphabetical order; keep them
+there, or the next real refresh shows a phantom diff.
+
+**Watch `possibleTypes.ts` on the way out.** The committed file is ahead of the committed
+`schema.graphql` (it carries union members the snapshot lacks), so any `codegen` run deletes
+those entries as collateral. Revert that file unless the change actually touches unions —
+adding scalar fields never does.
+
 ### GraphQL Queries
 
 Located in `projects/meshmakers/octo-meshboard/src/lib/graphQL/`:

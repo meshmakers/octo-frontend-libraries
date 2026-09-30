@@ -54641,6 +54641,8 @@ type SystemTenantModeConfiguration implements SystemConfigurationInterface & Sys
     "Sort order for items"
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
+  publishCkModelObservability: Boolean
+  publishWorkloadObservability: Boolean
   relatesFrom(
     "Only return edges after the specified cursor."
     after: String,
@@ -63296,6 +63298,8 @@ input SystemTenantModeConfigurationInput {
   maintenanceLevel: SystemMaintenanceLevels
   mapsFrom: [RtAssociationInput]
   mapsTo: [RtAssociationInput]
+  publishCkModelObservability: Boolean
+  publishWorkloadObservability: Boolean
   relatesFrom: [RtAssociationInput]
   relatesTo: [RtAssociationInput]
   rtBlueprintAppliedAt: DateTime
