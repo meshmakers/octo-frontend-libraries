@@ -1,11 +1,12 @@
 import type { MockedObject } from 'vitest';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { WindowService, WindowRef } from '@progress/kendo-angular-dialog';
+import { WindowContainerDirective, WindowService, WindowRef } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
 
 import { WindowStateService, WindowDimensions } from '../services/window-state.service';
 import { MessageDetailsDialogService } from './message-details-dialog.service';
-import { MessageDetailsDialogData } from './message-details-dialog.component';
+import { MessageDetailsDialogComponent, MessageDetailsDialogData } from './message-details-dialog.component';
 
 describe('MessageDetailsDialogService', () => {
   let service: MessageDetailsDialogService;
@@ -117,5 +118,35 @@ describe('MessageDetailsDialogService', () => {
       const openCall = vi.mocked(windowServiceMock.open).mock.lastCall![0];
       expect(openCall.title).toBe('Test Title');
     });
+  });
+});
+
+@Component({
+  standalone: true,
+  imports: [WindowContainerDirective],
+  template: `<div kendoWindowContainer></div>`,
+})
+class WindowHostComponent {}
+
+// The specs above replace WindowService, so they never build the dialog content. Kendo builds it
+// in the injector of the kendoWindowContainer, outside the WindowComponent that provides the
+// window's LocalizationService - anything in the content that needs it fails with NG0201.
+describe('MessageDetailsDialogService with the Kendo WindowService', () => {
+  it('opens the dialog inside a plain window container', () => {
+    TestBed.configureTestingModule({ providers: [MessageDetailsDialogService] });
+    const host = TestBed.createComponent(WindowHostComponent);
+    host.detectChanges();
+
+    const windowRef = TestBed.inject(MessageDetailsDialogService).showDetailsDialog({
+      title: 'Test Title',
+      details: 'Test details',
+      level: 'warning',
+      messages: { closeTitle: 'Schließen' },
+    });
+    host.detectChanges();
+
+    expect(windowRef.content.instance).toBeInstanceOf(MessageDetailsDialogComponent);
+    expect(windowRef.window.instance.messages?.closeTitle).toBe('Schließen');
+    windowRef.close();
   });
 });

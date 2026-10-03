@@ -52,6 +52,14 @@ const dialogRef = this.progressWindowService.showDeterminateProgress('Title', pr
 const result = await this.inputService.showInputDialog('Title', 'Label');
 ```
 
+A content component that a service opens through Kendo's `WindowService` / `DialogService` must
+not contain `<kendo-window-messages>` or `<kendo-dialog-messages>`. Kendo builds the content in the
+injector of the `kendoWindowContainer` / `kendoDialogContainer`, outside the window that provides
+its `LocalizationService`, so the directive fails with NG0201 and the dialog never opens. Pass the
+titlebar texts through the settings' `messages` instead, as `MessageDetailsDialogService` and
+`CkTypeSelectorDialogService` do. A spec that replaces `WindowService` with a mock does not catch
+this; `message-details-dialog.service.spec.ts` opens the dialog with the real service.
+
 Services registered via `provideMmSharedUi()`:
 - `ConfirmationService`
 - `FileUploadService`

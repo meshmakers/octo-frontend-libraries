@@ -17,11 +17,10 @@ export class MessageDetailsDialogService {
     const effectiveMessages = data.messages ?? this.defaultMessages;
 
     // Kendo's Window titlebar reads close/minimize/maximize/restore tooltips
-    // from WindowSettings.messages at open time. The same labels in the inner
-    // <kendo-window-messages> directive cannot reach the titlebar (the
-    // directive sits inside the projected content, but Kendo Window's
-    // ContentChild query runs at the <kendo-window> level), so the tooltips
-    // would stay on Kendo defaults. Forward the title slots explicitly.
+    // from WindowSettings.messages at open time - the only way in. The content
+    // component cannot carry them: WindowService builds it in the container's
+    // injector, outside the window, so a <kendo-window-messages> there finds no
+    // LocalizationService (NG0201) and could not reach the titlebar anyway.
     const windowMessages = effectiveMessages
       ? {
         closeTitle: effectiveMessages.closeTitle,
