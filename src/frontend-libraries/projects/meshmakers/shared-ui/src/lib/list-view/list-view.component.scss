@@ -75,6 +75,29 @@
   }
 }
 
+// Column alignment (`TableColumn.align`). The header cell is a flex row
+// (.k-cell-inner > .k-link, title + sort indicator), so text-align alone
+// does nothing there — the link has to justify its content. Right-aligned
+// columns are amounts in practice, hence the tabular digits on the cells.
+:host ::ng-deep .k-grid {
+  td.mm-col-align-right {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  td.mm-col-align-center {
+    text-align: center;
+  }
+
+  th.mm-col-align-right .k-cell-inner > .k-link {
+    justify-content: flex-end;
+  }
+
+  th.mm-col-align-center .k-cell-inner > .k-link {
+    justify-content: center;
+  }
+}
+
 // Single-line, ellipsised cell text. Pairs with the cell's native `title` tooltip so the
 // full value stays reachable on hover — used by columns flagged `truncate: true` (typically
 // long error messages or log lines that would otherwise wrap and bloat the row height).

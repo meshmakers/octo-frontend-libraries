@@ -287,6 +287,8 @@
                        [hidden]="isColumnHidden(column)"
                        [sortable]="column.sortable !== false"
                        [filterable]="column.filterable !== false"
+                       [class]="alignClass(column)"
+                       [headerClass]="alignClass(column)"
                        [title]="getDisplayName(column) | pascalCase">
       <ng-template kendoGridFilterCellTemplate let-filter let-gridColumn="column">
         @if (hasFilterOptions(column)) {

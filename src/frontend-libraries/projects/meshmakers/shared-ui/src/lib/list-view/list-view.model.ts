@@ -77,6 +77,14 @@ export interface TableColumn {
    */
   hideBelow?: number;
   /**
+   * Horizontal alignment of the column's header and cells. Defaults to the
+   * grid's start alignment. Amount and quantity columns should be `'right'`:
+   * right-aligned figures line up on the decimal separator so magnitudes can
+   * be compared down the column, and the cell additionally renders with
+   * tabular (fixed-width) digits so the digits themselves line up too.
+   */
+  align?: 'left' | 'center' | 'right';
+  /**
    * Status mapping for single-field statusIcons columns.
    * Use this when the column displays icons for a single field.
    */

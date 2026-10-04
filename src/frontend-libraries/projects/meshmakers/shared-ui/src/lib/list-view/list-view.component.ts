@@ -611,6 +611,15 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this.destroy$.complete();
   }
 
+  /**
+   * CSS class carrying the column's `align` to its header and body cells
+   * (`mm-col-align-right` …); empty for the default start alignment so the
+   * grid's own cell classes stay untouched.
+   */
+  protected alignClass(column: TableColumn): string {
+    return column.align ? `mm-col-align-${column.align}` : '';
+  }
+
   /** Whether the column is hidden at the current component width (`hideBelow`). */
   protected isColumnHidden(column: TableColumn): boolean {
     const width = this.containerWidth();
