@@ -1386,6 +1386,12 @@ export interface RuntimeEntityData {
   rtId: string;
   ckTypeId: string;
   rtWellKnownName?: string;
+  /**
+   * The engine-computed display name (the type's `displayNameRule`, e.g. the
+   * fiscal year's `${Name}`); what the platform UI labels an entity with
+   * (AB#4808). Present only where the query asks for it.
+   */
+  rtDisplayName?: string;
   rtCreationDateTime?: string;
   rtChangedDateTime?: string;
   attributes: EntityAttribute[];

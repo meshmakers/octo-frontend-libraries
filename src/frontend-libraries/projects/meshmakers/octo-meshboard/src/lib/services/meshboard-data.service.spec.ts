@@ -143,6 +143,7 @@ describe('MeshBoardDataService', () => {
               items: [{
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
+                rtDisplayName: 'Test Entity',
                 attributes: { items: [] },
                 associations: { definitions: { items: [] } }
               }]
@@ -234,6 +235,7 @@ describe('MeshBoardDataService', () => {
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
                 rtWellKnownName: 'test-name',
+                rtDisplayName: 'Test Entity',
                 rtCreationDateTime: '2024-01-01T00:00:00Z',
                 rtChangedDateTime: '2024-01-02T00:00:00Z',
                 attributes: {
@@ -289,6 +291,7 @@ describe('MeshBoardDataService', () => {
               items: [{
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
+                rtDisplayName: 'Test Entity',
                 attributes: {
                   items: [
                     null,
@@ -326,6 +329,7 @@ describe('MeshBoardDataService', () => {
               items: [{
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
+                rtDisplayName: 'Test Entity',
                 attributes: { items: [] },
                 associations: {
                   definitions: {
@@ -370,6 +374,7 @@ describe('MeshBoardDataService', () => {
               items: [{
                 rtId: 'entity-1',
                 ckTypeId: 'EntityType',
+                rtDisplayName: 'Test Entity',
                 attributes: { items: [] },
                 associations: { definitions: { items: [] } }
               }]
@@ -1037,6 +1042,7 @@ describe('MeshBoardDataService', () => {
                     rtId: 'machine-1',
                     ckTypeId: 'OctoSdk/Machine',
                     rtWellKnownName: 'Machine Alpha',
+                    rtDisplayName: 'Test Entity',
                     attributes: {
                       items: [
                         { attributeName: 'status', value: 'Running' },
@@ -1258,6 +1264,7 @@ describe('MeshBoardDataService', () => {
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
                 rtWellKnownName: null,
+                rtDisplayName: 'Test Entity',
                 attributes: { items: [] },
                 associations: { definitions: { items: [] } }
               }]
@@ -1270,6 +1277,32 @@ describe('MeshBoardDataService', () => {
 
       service.fetchRuntimeEntity(dataSource).subscribe(result => {
         expect(result?.rtWellKnownName).toBeUndefined();
+        done();
+      });
+    }));
+
+    it('maps rtDisplayName — the label the entity selector shows for a default selection', () => new Promise<void>((done) => {
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
+        data: {
+          runtime: {
+            runtimeEntities: {
+              items: [{
+                rtId: 'fy-2026',
+                ckTypeId: 'Meshmakers.Accounting/FiscalYear',
+                rtWellKnownName: null,
+                rtDisplayName: '2026',
+                attributes: { items: [] },
+                associations: { definitions: { items: [] } }
+              }]
+            }
+          }
+        },
+        loading: false,
+        networkStatus: 7
+      }));
+
+      service.fetchRuntimeEntity({ type: 'runtimeEntity', rtId: 'fy-2026', ckTypeId: 'Meshmakers.Accounting/FiscalYear' }).subscribe(result => {
+        expect(result?.rtDisplayName).toBe('2026');
         done();
       });
     }));

@@ -1412,7 +1412,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // stream-data query by the resolved source rtIds.
       await this.resolveEntitySelectorScopeRtIds(selector, rtId);
 
-      return entity.rtWellKnownName || entity.rtId;
+      // Label the selection the way the pick dialog does: by the engine's
+      // display name (the type's displayNameRule — "2026" for a fiscal year),
+      // not the well-known name, which most entities do not carry. Without it
+      // a board opened on its defaultRtId showed the raw rtId in the toolbar
+      // until the user re-picked the very same entity.
+      return entity.rtDisplayName || entity.rtWellKnownName || entity.rtId;
     } catch (error) {
       console.error(`Error resolving entity selector '${selector.id}':`, error);
       return undefined;

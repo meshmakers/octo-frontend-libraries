@@ -5,6 +5,7 @@ query getDashboardEntity($rtId: OctoObjectId!, $ckTypeId: String!) {
         rtId
         ckTypeId
         rtWellKnownName
+        rtDisplayName
         rtCreationDateTime
         rtChangedDateTime
         attributes(resolveEnumValuesToNames: true) {

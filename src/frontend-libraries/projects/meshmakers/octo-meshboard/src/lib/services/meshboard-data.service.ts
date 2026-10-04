@@ -140,6 +140,7 @@ export class MeshBoardDataService {
     rtId: string;
     ckTypeId: string;
     rtWellKnownName?: string | null;
+    rtDisplayName?: string | null;
     rtCreationDateTime?: string | null;
     rtChangedDateTime?: string | null;
     attributes?: { items?: ({ attributeName?: string | null; value?: unknown } | null)[] | null } | null;
@@ -177,6 +178,7 @@ export class MeshBoardDataService {
       rtId: entity.rtId,
       ckTypeId: entity.ckTypeId,
       rtWellKnownName: entity.rtWellKnownName ?? undefined,
+      rtDisplayName: entity.rtDisplayName ?? undefined,
       rtCreationDateTime: entity.rtCreationDateTime ?? undefined,
       rtChangedDateTime: entity.rtChangedDateTime ?? undefined,
       attributes,
