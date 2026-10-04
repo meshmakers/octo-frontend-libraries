@@ -620,6 +620,27 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return column.align ? `mm-col-align-${column.align}` : '';
   }
 
+  /**
+   * Below this column width the date and numeric row-filter cells render
+   * compact (see `isCompactFilter`). Kendo's date filter cell is a date picker
+   * plus an operator picker: in a 120px column the calendar toggle (33px) and
+   * the operator (34px) leave the date input 35px — three characters of a
+   * dd.MM.yyyy. The threshold is the width at which the full cell fits.
+   */
+  private static readonly COMPACT_FILTER_BELOW = 180;
+
+  /**
+   * Whether the column's row-filter cell drops its secondary controls — the
+   * calendar toggle of a date filter (Alt+Down still opens the calendar, the
+   * masked input stays), the spinners of a numeric filter — and tightens its
+   * padding, because the column is narrower than `COMPACT_FILTER_BELOW`.
+   * Auto-sized columns without a width are never compact.
+   */
+  protected isCompactFilter(column: TableColumn): boolean {
+    const width = this.getEffectiveWidth(column);
+    return width !== undefined && width < ListViewComponent.COMPACT_FILTER_BELOW;
+  }
+
   /** Whether the column is hidden at the current component width (`hideBelow`). */
   protected isColumnHidden(column: TableColumn): boolean {
     const width = this.containerWidth();

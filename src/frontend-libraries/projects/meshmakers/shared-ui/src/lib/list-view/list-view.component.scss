@@ -98,6 +98,36 @@
   }
 }
 
+// Compact row-filter cells (`isCompactFilter`, columns narrower than 180px):
+// the calendar toggle goes (the masked date input stays, Alt+Down still opens
+// the calendar), the operator picker shrinks to its icon and the input gives
+// up its side padding — otherwise a 120px date column shows three characters
+// of its filter value. Kendo renders these internals, hence ::ng-deep.
+:host ::ng-deep .k-filter-row .mm-filter-compact {
+  .k-filtercell-wrapper {
+    gap: 2px;
+  }
+
+  .k-datepicker > .k-input-button {
+    display: none;
+  }
+
+  .k-input-inner {
+    padding-left: 4px;
+    padding-right: 4px;
+    font-size: 12px;
+  }
+
+  .k-filtercell-operator .k-dropdown-operator {
+    width: 26px;
+    min-width: 0;
+
+    .k-input-button {
+      padding: 2px;
+    }
+  }
+}
+
 // Single-line, ellipsised cell text. Pairs with the cell's native `title` tooltip so the
 // full value stays reachable on hover — used by columns flagged `truncate: true` (typically
 // long error messages or log lines that would otherwise wrap and bloat the row height).

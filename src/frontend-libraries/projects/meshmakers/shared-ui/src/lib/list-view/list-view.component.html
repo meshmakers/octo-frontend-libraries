@@ -350,13 +350,15 @@
         } @else {
           @switch (getFilterType(column)) {
             @case ('numeric') {
-              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"></kendo-grid-numeric-filter-cell>
+              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"
+                                              [spinners]="!isCompactFilter(column)" [class.mm-filter-compact]="isCompactFilter(column)"></kendo-grid-numeric-filter-cell>
             }
             @case ('boolean') {
               <kendo-grid-boolean-filter-cell [column]="gridColumn" [filter]="filter"></kendo-grid-boolean-filter-cell>
             }
             @case ('date') {
-              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"></kendo-grid-date-filter-cell>
+              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"
+                                           [class.mm-filter-compact]="isCompactFilter(column)"></kendo-grid-date-filter-cell>
             }
             @default {
               <kendo-grid-string-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-string-filter-cell>
