@@ -250,6 +250,28 @@
     box-shadow: none;
   }
 
+  // MeshBoard tiles are cards too. The shared tile rules paint them with the
+  // dark theme's translucent surfaces (tile --surface-elevated-60, body
+  // --deep-sea-50), which on the light page resolve to two greys on grey: a
+  // chart tile read as a tinted slab while a table tile looked white only
+  // because the grid inside paints its own white. One treatment for every
+  // widget, the same as the other cards above; the !important matches the
+  // base rules', which would otherwise keep winning.
+  kendo-tilelayout kendo-tilelayout-item {
+    background: #ffffff !important;
+    border: 1px solid rgba(7, 23, 43, 0.1) !important;
+    box-shadow: 0 1px 3px rgba(7, 23, 43, 0.07);
+
+    &:hover {
+      border-color: rgba(7, 23, 43, 0.18) !important;
+      box-shadow: 0 2px 8px rgba(7, 23, 43, 0.1);
+    }
+
+    kendo-tilelayout-item-body {
+      background: #ffffff !important;
+    }
+  }
+
   // Table chrome. In dark the header/toolbar/pager band is LIGHTER than the
   // data; on a light ground it has to be darker, or the table loses its frame
   // and reads as a borderless white slab.
