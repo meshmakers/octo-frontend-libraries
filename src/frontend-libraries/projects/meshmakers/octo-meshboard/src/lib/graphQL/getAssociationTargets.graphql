@@ -22,6 +22,7 @@ query getAssociationTargets(
               rtId
               ckTypeId
               rtWellKnownName
+              rtDisplayName
               attributes(
                 attributeNames: $attributeNames
                 resolveEnumValuesToNames: true

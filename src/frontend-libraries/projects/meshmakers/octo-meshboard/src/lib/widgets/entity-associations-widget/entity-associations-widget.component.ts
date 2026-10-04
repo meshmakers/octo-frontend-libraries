@@ -203,7 +203,7 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
       expanded.delete(key);
     } else {
       expanded.add(key);
-      // Load target attributes when expanding, if configured
+      // Load the targets (display names, plus attributes when configured) on expand
       this.loadTargetAttributes(group);
     }
 
@@ -227,7 +227,7 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
       return cached.map(t => ({
         rtId: t.rtId,
         ckTypeId: t.ckTypeId,
-        displayName: t.rtWellKnownName || t.rtId,
+        displayName: t.rtDisplayName || t.rtWellKnownName || t.rtId,
         attributes: t.attributes
       }));
     }
@@ -284,8 +284,10 @@ export class EntityAssociationsWidgetComponent implements DashboardWidget<Entity
   }
 
   private loadTargetAttributes(group: GroupedAssociation): void {
-    const targetAttributePaths = this.config?.targetAttributePaths;
-    if (!targetAttributePaths?.length) return;
+    // Always fetch on expand, also without configured target attributes: the
+    // same query carries each target's rtDisplayName, and the fallback list
+    // built from the bare association rows can only show rtIds.
+    const targetAttributePaths = this.config?.targetAttributePaths ?? [];
 
     const cacheKey = this.getGroupCacheKey(group);
 

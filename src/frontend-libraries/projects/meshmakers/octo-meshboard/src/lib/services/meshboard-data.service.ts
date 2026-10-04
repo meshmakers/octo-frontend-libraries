@@ -47,6 +47,8 @@ export interface TargetEntityWithAttributes {
   rtId: string;
   ckTypeId: string;
   rtWellKnownName?: string;
+  /** Engine-computed display name (the type's displayNameRule); what the target is labelled with. */
+  rtDisplayName?: string;
   attributes: EntityAttribute[];
 }
 
@@ -513,6 +515,7 @@ export class MeshBoardDataService {
             rtId: t.rtId,
             ckTypeId: t.ckTypeId,
             rtWellKnownName: t.rtWellKnownName ?? undefined,
+            rtDisplayName: t.rtDisplayName ?? undefined,
             attributes: (t.attributes?.items ?? [])
               .filter((a): a is NonNullable<typeof a> => a !== null && a.attributeName !== null)
               .map(a => ({
