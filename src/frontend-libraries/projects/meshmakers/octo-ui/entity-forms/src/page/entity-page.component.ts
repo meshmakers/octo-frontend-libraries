@@ -61,6 +61,19 @@ export interface EntityPageNavigateEvent {
   ckTypeId?: string;
 }
 
+/** Event of {@link EntityPageComponent.saved}: an entity was created or updated. */
+export interface EntityPageSavedEvent {
+  kind: 'create' | 'update';
+  rtId: string;
+  ckTypeId: string;
+}
+
+/** Event of {@link EntityPageComponent.deleted}. */
+export interface EntityPageDeletedEvent {
+  rtId: string;
+  ckTypeId: string;
+}
+
 /** Which part of the page is shown. */
 export type EntityPageView = 'loading' | 'list' | 'form' | 'error';
 
@@ -118,6 +131,10 @@ export class EntityPageComponent implements HasUnsavedChanges {
 
   /** Emitted for every list / create / edit transition. */
   readonly navigate = output<EntityPageNavigateEvent>();
+  /** Emitted after a successful create or update (not for "no changes"). Hosts refresh their lists on it. */
+  readonly saved = output<EntityPageSavedEvent>();
+  /** Emitted after the open entity was deleted from the form (before the navigation to the list). */
+  readonly deleted = output<EntityPageDeletedEvent>();
 
   // Queried by template reference so specs can swap in stubs with the same selector.
   private readonly form = viewChild<EntityFormComponent>('entityForm');
@@ -250,6 +267,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
         }
         const rtId = await this.dataService.create(model, ckTypeId, changeSet);
         this.notificationService.showSuccess(m.createSuccess, 3000);
+        this.saved.emit({ kind: 'create', rtId, ckTypeId });
         if (this.isSingleton()) {
           this.singletonWellKnownName.set(null);
           await this.openEntity(model, { rtId }, this.loadToken);
@@ -270,6 +288,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
       }
       await this.dataService.update(rtId, ckTypeId, changeSet);
       this.notificationService.showSuccess(m.saveSuccess, 3000);
+      this.saved.emit({ kind: 'update', rtId, ckTypeId });
       const reloaded = await this.dataService.load(model, { rtId });
       if (reloaded) {
         this.applyLoaded(reloaded.rtId, reloaded.ckTypeId, reloaded.state, reloaded.rtDisplayName);
@@ -326,6 +345,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
       }
       this.notificationService.showSuccess(m.deleteSuccess, 3000);
       this.suppressGuard = true;
+      this.deleted.emit({ rtId, ckTypeId });
       await this.go({ kind: 'list' });
     } catch (error) {
       console.error('mm-entity-page: delete failed', error);

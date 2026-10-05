@@ -85,6 +85,14 @@ Navigation is always **relative** (`..`, `new`, `:rtId`, with `replaceUrl` after
 the routes work under any mount point. The `navigate` output (`{ kind: 'list'|'create'|'edit', rtId?, ckTypeId? }`)
 is emitted for every transition.
 
+Two more outputs let a host that embeds the page (e.g. the Studio's Data Explorer peek) keep its
+own lists current:
+
+| Output | Payload | When |
+|--------|---------|------|
+| `saved` | `{ kind: 'create' \| 'update', rtId, ckTypeId }` | After a successful create or update (not for an empty change set) |
+| `deleted` | `{ rtId, ckTypeId }` | After the open entity was deleted from the form, before the navigation to the list |
+
 Breadcrumb labels set via `BreadCrumbService.updateBreadcrumbLabels`: `entityFormTitle` (the
 resolved form title) and `entityName` (entity `name`, else `rtWellKnownName`, else `rtId`; the
 create title on `new`).
