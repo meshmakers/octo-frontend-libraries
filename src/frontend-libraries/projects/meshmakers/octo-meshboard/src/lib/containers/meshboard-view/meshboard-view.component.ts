@@ -42,6 +42,7 @@ import {
   EntitySelectorClearEvent
 } from '../../components/entity-selector-toolbar/entity-selector-toolbar.component';
 import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
+import { MeshBoardEmptyStateComponent } from '../../components/meshboard-empty-state/meshboard-empty-state.component';
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
 import { EditWidgetDialogComponent, WidgetPositionUpdate } from '../../dialogs/edit-widget-dialog/edit-widget-dialog.component';
 import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
@@ -74,7 +75,8 @@ import {
     SVGIconModule,
     EditWidgetDialogComponent,
     TimeRangePickerComponent,
-    EntitySelectorToolbarComponent
+    EntitySelectorToolbarComponent,
+    MeshBoardEmptyStateComponent
   ],
   hostDirectives: [UnsavedChangesDirective],
   providers: [
