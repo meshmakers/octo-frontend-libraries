@@ -72,3 +72,23 @@ if (!('innerText' in HTMLElement.prototype)) {
 afterEach(() => {
   vi.restoreAllMocks();
 });
+
+// localStorage / sessionStorage. Node >= 22 defines a `localStorage` getter on globalThis that yields
+// `undefined` unless the process runs with `--localstorage-file`, and Vitest's jsdom environment does
+// not overwrite a global that already exists — so on such a Node every spec touching storage dies with
+// "Cannot read properties of undefined (reading 'getItem')". Install a plain in-memory Storage when
+// the global resolves to undefined; jsdom's own implementation is kept wherever it is present.
+class MemoryStorageShim implements Storage {
+  private readonly entries = new Map<string, string>();
+  get length(): number { return this.entries.size; }
+  clear(): void { this.entries.clear(); }
+  getItem(key: string): string | null { return this.entries.has(key) ? this.entries.get(key)! : null; }
+  key(index: number): string | null { return [...this.entries.keys()][index] ?? null; }
+  removeItem(key: string): void { this.entries.delete(key); }
+  setItem(key: string, value: string): void { this.entries.set(key, String(value)); }
+}
+for (const name of ['localStorage', 'sessionStorage'] as const) {
+  if (typeof (globalThis as unknown as Record<string, unknown>)[name] === 'undefined') {
+    Object.defineProperty(globalThis, name, { value: new MemoryStorageShim(), configurable: true, writable: true });
+  }
+}
