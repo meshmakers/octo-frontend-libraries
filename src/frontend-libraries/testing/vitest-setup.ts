@@ -76,19 +76,47 @@ afterEach(() => {
 // localStorage / sessionStorage. Node >= 22 defines a `localStorage` getter on globalThis that yields
 // `undefined` unless the process runs with `--localstorage-file`, and Vitest's jsdom environment does
 // not overwrite a global that already exists — so on such a Node every spec touching storage dies with
-// "Cannot read properties of undefined (reading 'getItem')". Install a plain in-memory Storage when
-// the global resolves to undefined; jsdom's own implementation is kept wherever it is present.
-class MemoryStorageShim implements Storage {
-  private readonly entries = new Map<string, string>();
-  get length(): number { return this.entries.size; }
-  clear(): void { this.entries.clear(); }
-  getItem(key: string): string | null { return this.entries.has(key) ? this.entries.get(key)! : null; }
-  key(index: number): string | null { return [...this.entries.keys()][index] ?? null; }
-  removeItem(key: string): void { this.entries.delete(key); }
-  setItem(key: string, value: string): void { this.entries.set(key, String(value)); }
-}
-for (const name of ['localStorage', 'sessionStorage'] as const) {
-  if (typeof (globalThis as unknown as Record<string, unknown>)[name] === 'undefined') {
-    Object.defineProperty(globalThis, name, { value: new MemoryStorageShim(), configurable: true, writable: true });
+// "Cannot read properties of undefined (reading 'getItem')". Install an in-memory Storage when the
+// global resolves to undefined; jsdom's own implementation is kept wherever it is present.
+//
+// The shim lives on `Storage.prototype` (jsdom's class) rather than on a class of its own, so specs
+// that patch `Storage.prototype.getItem/setItem` (e.g. octo-ui branding theme.service.spec) still
+// intercept every read and write. Each instance gets its own map, keyed by the instance.
+if (typeof (globalThis as unknown as Record<string, unknown>)['localStorage'] === 'undefined') {
+  const backing = new WeakMap<object, Map<string, string>>();
+  const mapOf = (owner: object): Map<string, string> => {
+    let map = backing.get(owner);
+    if (!map) {
+      map = new Map<string, string>();
+      backing.set(owner, map);
+    }
+    return map;
+  };
+  const proto: object = typeof Storage !== 'undefined' ? Storage.prototype : {};
+  Object.defineProperties(proto, {
+    getItem: { configurable: true, writable: true, value(this: object, key: string): string | null {
+      const map = mapOf(this);
+      return map.has(key) ? map.get(key)! : null;
+    } },
+    setItem: { configurable: true, writable: true, value(this: object, key: string, value: string): void {
+      mapOf(this).set(key, String(value));
+    } },
+    removeItem: { configurable: true, writable: true, value(this: object, key: string): void {
+      mapOf(this).delete(key);
+    } },
+    clear: { configurable: true, writable: true, value(this: object): void {
+      mapOf(this).clear();
+    } },
+    key: { configurable: true, writable: true, value(this: object, index: number): string | null {
+      return [...mapOf(this).keys()][index] ?? null;
+    } },
+    length: { configurable: true, get(this: object): number {
+      return mapOf(this).size;
+    } },
+  });
+  for (const name of ['localStorage', 'sessionStorage'] as const) {
+    if (typeof (globalThis as unknown as Record<string, unknown>)[name] === 'undefined') {
+      Object.defineProperty(globalThis, name, { value: Object.create(proto) as Storage, configurable: true, writable: true });
+    }
   }
 }
