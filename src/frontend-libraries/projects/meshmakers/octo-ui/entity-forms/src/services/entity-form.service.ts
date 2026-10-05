@@ -5,6 +5,7 @@ import { toKebabTypeKey } from '../core/attribute-path';
 import { RawCkRecord, RawCkType, toCkRecordInfo, toCkTypeInfo } from '../core/ck-metadata';
 import { parseEntityForms, RawRtEntityRow } from '../core/entity-form-parser';
 import { resolveEntityForm } from '../core/entity-form-resolver';
+import { ENTITY_FORM_FALLBACK_FORMS, withFallbackForms } from '../core/fallback-forms';
 import { isRecordType } from '../core/entity-form-value-mapper';
 import { EntityFormTypeProbeDtoGQL } from '../graphQL/entityFormTypeProbe';
 import { EntityFormGetCkRecordDtoGQL } from '../graphQL/getEntityFormCkRecord';
@@ -24,6 +25,8 @@ import {
  *   2.7.0); otherwise, and when the forms query fails, every type resolves to the built-in form.
  * - Results are cached per tenant (`TENANT_ID_PROVIDER`, empty string when not provided) in a
  *   `Map<string, Promise<…>>`; a failed entry is evicted so the next call retries.
+ * - Host fallback forms (`ENTITY_FORM_FALLBACK_FORMS`) are appended for target types no loaded form
+ *   targets — also when the forms cannot be loaded (AB#5524).
  * - Resolver warnings are logged with `console.warn`.
  */
 @Injectable({ providedIn: 'root' })
@@ -33,6 +36,7 @@ export class EntityFormService {
   private readonly ckTypeGql = inject(EntityFormGetCkTypeDtoGQL);
   private readonly ckRecordGql = inject(EntityFormGetCkRecordDtoGQL);
   private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
+  private readonly fallbackForms = inject(ENTITY_FORM_FALLBACK_FORMS, { optional: true });
 
   private readonly cache = new Map<string, Promise<unknown>>();
 
@@ -41,8 +45,16 @@ export class EntityFormService {
     this.cache.clear();
   }
 
-  /** All parsed `System.UI/EntityForm` definitions of the current tenant (`[]` when not installed). */
+  /**
+   * All parsed `System.UI/EntityForm` definitions of the current tenant (`[]` when not installed),
+   * plus the host fallback forms for target types without a loaded form.
+   */
   async getForms(): Promise<EntityFormDefinition[]> {
+    const loaded = await this.loadForms();
+    return withFallbackForms(loaded, this.fallbackForms);
+  }
+
+  private async loadForms(): Promise<EntityFormDefinition[]> {
     return this.cached('forms', async () => {
       try {
         const probe = await firstValueFrom(this.probeGql.fetch({ fetchPolicy: 'network-only' }));

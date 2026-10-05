@@ -24,6 +24,7 @@ and other packages, and hosts that do not use it keep the primary bundle unchang
 | `parseEntityForms`, `pickEntityForm`, `resolveEntityForm`, … | Pure functions behind the service, e.g. for a forms editor |
 | `entityFormCatalog(forms)`, `entityFormKey(form)` | Settings overview: one entry per target type whose effective form has a `Category`, with the URL key |
 | `EntityFormsMessages`, `DEFAULT_ENTITY_FORMS_MESSAGES` | All UI strings (English defaults; pass `Partial<…>` via `messages`) |
+| `ENTITY_FORM_FALLBACK_FORMS`, `withFallbackForms` | Host-provided built-in forms that apply per type until the tenant has a form for it (see below) |
 
 ## Usage
 
@@ -132,6 +133,27 @@ override. `resolveByFormKey` accepts both forms.
 
 `EntityFormDataService.count(ckTypeId, includeDerivedTypes?)` counts entities without reading
 attributes (`attributeNames: []`); without `includeDerivedTypes` only the exact type is counted.
+
+## Fallback forms (`ENTITY_FORM_FALLBACK_FORMS`)
+
+A host can ship built-in copies of delivered forms, for example while a new version of the
+seeding blueprint has not been rolled out yet (AB#5524):
+
+```ts
+providers: [{ provide: ENTITY_FORM_FALLBACK_FORMS, useValue: MY_FALLBACK_FORMS }]
+```
+
+- `EntityFormService.getForms()` appends a fallback **only when no loaded form (tenant or seeded)
+  targets the same type** (exact type, case-insensitive); the first fallback per type wins. The
+  result therefore feeds `resolve`, `resolveByFormKey` and `entityFormCatalog` unchanged.
+- Fallbacks are also used when the forms cannot be loaded (no System.UI 2.7.0, query error).
+- They count as delivered forms (`isTenantForm` is forced to `false`, `source: 'seeded'`). Use the
+  delivered `rtWellKnownName` (`form-<kebab-type>`) so URL keys do not change when the seeded form
+  arrives, and leave `rtId` empty.
+- A tenant form for the type without `Category` hides the entry, exactly like it hides a seeded one.
+
+This is the per-type counterpart of the built-in `form-default` safety net; the host is
+responsible for keeping its copies in step with the seed.
 
 ## `<mm-entity-list>`
 
