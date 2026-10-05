@@ -427,12 +427,58 @@ describe('MmTableComponent', () => {
       component.rowFilterEnabled = true;
       component.cardModeBelow = 600;
       api().containerWidth.set(400);
+      component.hasExternalFilters = true;
 
       // Cards have no column headers for a filter row to live in, so toggling
       // it would do nothing — but a filter set before the switch must still be
       // clearable.
       expect(ids()).not.toContain('rowFilter');
       expect(ids()).toContain('reset');
+    });
+
+    describe('reset only while something is filtered', () => {
+      interface FilterApi {
+        searchValue: string;
+        dataBindingDirective?: { currentState: { filter?: unknown; sort?: unknown[] } };
+      }
+      const filterApi = () => component as unknown as FilterApi;
+
+      it('hides reset on the default view', () => {
+        expect(ids()).not.toContain('reset');
+        // The remaining commands keep their order with reset gone.
+        expect(ids().slice(-1)).toEqual(['refresh']);
+      });
+
+      it('shows reset while a free-text search is active', () => {
+        filterApi().searchValue = 'pump';
+        expect(ids()).toContain('reset');
+        filterApi().searchValue = '   ';
+        expect(ids()).not.toContain('reset');
+      });
+
+      it('shows reset while the host reports its own filters', () => {
+        component.hasExternalFilters = true;
+        expect(ids()).toContain('reset');
+        component.hasExternalFilters = false;
+        expect(ids()).not.toContain('reset');
+      });
+
+      it('shows reset for a row filter or a column sort in the grid state', () => {
+        filterApi().dataBindingDirective = { currentState: { filter: { logic: 'and', filters: [] }, sort: [] } };
+        expect(ids()).not.toContain('reset');
+
+        filterApi().dataBindingDirective = {
+          currentState: { filter: { logic: 'and', filters: [{ field: 'name', operator: 'contains', value: 'a' }] } }
+        };
+        expect(ids()).toContain('reset');
+
+        filterApi().dataBindingDirective = { currentState: { sort: [{ field: 'name', dir: 'asc' }] } };
+        expect(ids()).toContain('reset');
+
+        // Kendo keeps a descriptor without a direction once a sort is cleared.
+        filterApi().dataBindingDirective = { currentState: { sort: [{ field: 'name' }] } };
+        expect(ids()).not.toContain('reset');
+      });
     });
 
     it('routes each command to its handler', () => {

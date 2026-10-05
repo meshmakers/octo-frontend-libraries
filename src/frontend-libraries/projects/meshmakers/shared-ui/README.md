@@ -137,6 +137,8 @@ Configurable data grid with Kendo Grid integration.
 
 **Features:** Pagination, sorting, filtering, row selection, search, context menus, action menus, Excel/PDF export, toolbar actions, column types (text, numeric, boolean, date, bytes, status icons, cron expressions).
 
+The toolbar's "Reset Filters" button only appears while something narrows the default view: a row filter, a column sort, a free-text search, or host-side filters. Hosts with their own quick-view/bar filters announce them via `[hasExternalFilters]="myBarFilterIsSet"` so the button shows (and `(resetFilters)` lets them clear those filters when it is clicked).
+
 ```html
 <mm-list-view
   appMyDataSource

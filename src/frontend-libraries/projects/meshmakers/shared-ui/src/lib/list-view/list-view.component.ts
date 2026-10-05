@@ -356,6 +356,33 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    */
   @Input() public collapseCommandsBelow = 900;
 
+  /**
+   * Tells the list that the host holds filters of its own (quick-view bars,
+   * app-side field filters) that a reset would clear. The toolbar's reset
+   * button only shows while something is filtered, and the list cannot see
+   * those host filters by itself.
+   */
+  @Input() public hasExternalFilters = false;
+
+  /**
+   * Whether anything narrows or reorders the default view right now: a row
+   * filter, a column sort, free-text search, or host-side filters announced
+   * through {@link hasExternalFilters}. Paging is deliberately not counted —
+   * the pager already gets back to page 1.
+   */
+  protected get hasActiveFilters(): boolean {
+    if (this.hasExternalFilters || this.searchValue.trim().length > 0) {
+      return true;
+    }
+    const state = this.dataBindingDirective?.currentState;
+    if (!state) {
+      return false;
+    }
+    const hasRowFilter = (state.filter?.filters?.length ?? 0) > 0;
+    const hasSort = (state.sort ?? []).some(descriptor => !!descriptor.dir);
+    return hasRowFilter || hasSort;
+  }
+
   /** True while the command buttons are collapsed into the overflow menu. */
   protected get commandsCollapsed(): boolean {
     const width = this.containerWidth();
@@ -366,8 +393,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    * The commands available right now, in toolbar order. The row filter is
    * omitted in card mode: cards have no column headers for a filter row to
    * appear in, and the grid already drops `filterable` there — leaving the
-   * button visible offered to toggle something that cannot exist. Reset stays
-   * available, or a filter set before the switch could never be cleared.
+   * button visible offered to toggle something that cannot exist. Reset shows
+   * only while something is actually filtered, sorted or searched (see
+   * {@link hasActiveFilters}); on the default view there is nothing to reset,
+   * so the button would only be noise. It is independent of card mode, so a
+   * filter set before the switch can still be cleared.
    */
   protected get toolbarCommands(): ListViewCommand[] {
     const commands: ListViewCommand[] = [];
@@ -377,9 +407,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     commands.push(
       { id: 'excel', text: this._messages.exportToExcel, svgIcon: this.excelSVG },
       { id: 'pdf', text: this._messages.exportToPdf, svgIcon: this.pdfSVG },
-      { id: 'reset', text: this._messages.resetFilters, svgIcon: this.resetFilterIcon },
-      { id: 'refresh', text: this._messages.refreshData, svgIcon: this.refreshIcon },
     );
+    if (this.hasActiveFilters) {
+      commands.push({ id: 'reset', text: this._messages.resetFilters, svgIcon: this.resetFilterIcon });
+    }
+    commands.push({ id: 'refresh', text: this._messages.refreshData, svgIcon: this.refreshIcon });
     return commands;
   }
 
