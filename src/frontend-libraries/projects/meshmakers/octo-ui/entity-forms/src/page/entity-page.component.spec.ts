@@ -280,6 +280,42 @@ describe('EntityPageComponent', () => {
     expect(dataService.load).toHaveBeenCalledTimes(2);
   });
 
+  it('emits saved after a create and after an update, but not for "no changes"', async () => {
+    formService.resolve.mockResolvedValue(makeModel());
+    dataService.create.mockResolvedValue('r9');
+    await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new' });
+    const events: unknown[] = [];
+    component.saved.subscribe((e) => events.push(e));
+    await component.saveChanges();
+    expect(events).toEqual([{ kind: 'create', rtId: 'r9', ckTypeId: 'System.Communication/SftpConfiguration' }]);
+  });
+
+  it('emits saved with kind update and skips an empty change set', async () => {
+    formService.resolve.mockResolvedValue(makeModel());
+    dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+    dataService.update.mockResolvedValue(undefined as never);
+    await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+    const events: unknown[] = [];
+    component.saved.subscribe((e) => events.push(e));
+    await component.saveChanges();
+    expect(events).toEqual([{ kind: 'update', rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration' }]);
+    stubForm().changeSet = { attributes: [], associations: [], isEmpty: true };
+    await component.saveChanges();
+    expect(events.length).toBe(1);
+  });
+
+  it('emits deleted before navigating back to the list', async () => {
+    formService.resolve.mockResolvedValue(makeModel());
+    dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+    dataService.delete.mockResolvedValue(true);
+    await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+    const events: unknown[] = [];
+    component.deleted.subscribe((e) => events.push(e));
+    await (component as unknown as { onDelete(): Promise<void> }).onDelete();
+    expect(events).toEqual([{ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration' }]);
+    expect(router.navigate).toHaveBeenCalledWith(['..'], expect.anything());
+  });
+
   it('shows an error when no form resolves for the key', async () => {
     formService.resolveByFormKey.mockResolvedValue(null);
     await create({ formKey: 'unknown' });
