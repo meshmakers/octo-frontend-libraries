@@ -29,9 +29,11 @@ $kendo-success: #37b400;
 /// Include this on :host or a container (e.g. .kendo-theme-provider).
 /// When Kendo is imported by the host, these variables override Kendo's defaults.
 @mixin variables {
-  // Typography
-  --lcars-font-primary: "Montserrat", "Roboto", "Helvetica Neue", sans-serif;
-  --lcars-font-mono: "Roboto Mono", "Consolas", monospace;
+  // Typography — aliases of the Deep Sea font tokens (_theme.scss
+  // foundation-tokens); the literal stacks are the fallback for hosts that
+  // include variables() without theme(). Kept for one release (AB#5519).
+  --lcars-font-primary: var(--theme-font-display, "Montserrat", "Roboto", "Helvetica Neue", sans-serif);
+  --lcars-font-mono: var(--theme-font-mono, "Roboto Mono", "Consolas", monospace);
   --lcars-border-color: #{$lcars-border-color};
 
   --pink: #{$pink};
@@ -68,7 +70,9 @@ $kendo-success: #37b400;
   --kendo-color-primary-on-surface: var(--theme-text-accent, var(--octo-mint));
   --kendo-color-app-surface: var(--theme-bg-app, var(--deep-sea));
   --kendo-color-on-app-surface: var(--octo-text-color);
-  font-family: var(--lcars-font-primary);
+  // Body text uses the UI face (Roboto); Montserrat is the display face for
+  // titles, reached through --lcars-font-primary / --theme-font-display.
+  font-family: var(--theme-font-ui, var(--lcars-font-primary));
 
   // Derived colors for gradients/overlays (theme-aware)
   --octo-mint-05: color-mix(in srgb, var(--octo-mint) 5%, transparent);
@@ -171,10 +175,13 @@ $kendo-success: #37b400;
   --lcars-glow-violet: 0 0 10px var(--royal-violet-40);
   --lcars-glow-pink: 0 0 10px var(--bubblegum-40);
 
-  // LCARS Border Radius (asymmetric is characteristic)
-  --lcars-radius-sm: 4px;
-  --lcars-radius-md: 8px;
-  --lcars-radius-lg: 16px;
+  // LCARS Border Radius — sm/md/lg alias the Deep Sea radius scale
+  // (_theme.scss foundation-tokens: 4/6/8 px); the literals are the LCARS
+  // fallback for hosts without theme(). xl and pill have no Deep Sea
+  // counterpart and are retired together with the LCARS classes (AB#5526).
+  --lcars-radius-sm: var(--theme-radius-sm, 4px);
+  --lcars-radius-md: var(--theme-radius-md, 8px);
+  --lcars-radius-lg: var(--theme-radius-lg, 16px);
   --lcars-radius-xl: 24px;
   --lcars-radius-pill: 50px;
 
