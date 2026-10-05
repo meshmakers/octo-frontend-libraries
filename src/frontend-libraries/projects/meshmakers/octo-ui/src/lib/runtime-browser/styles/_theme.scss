@@ -79,7 +79,7 @@
   // Text (pure white is too hot on navy)
   --theme-text-primary: #e6edf5;
   --theme-text-secondary: #9aa8bb;
-  --theme-text-muted: #77869c; // ≥ 4.5:1 on bg-input/app/surface (placeholders)
+  --theme-text-muted: #77869c; // concept §6.2 #687890 (4.0:1) raised to ≥ 4.5:1 on bg-input/app/surface
   --theme-text-on-accent: #07172b;
   --theme-text-accent: #64ceb9;
   --theme-text-code: #c6d2de; // (new)
@@ -171,9 +171,9 @@
 
   --theme-text-primary: #0f1c2e;
   --theme-text-secondary: #4b5a6e;
-  --theme-text-muted: #657189; // ≥ 4.5:1 on bg-input/app
+  --theme-text-muted: #657189; // concept §6.2 #75829a (3.9:1) darkened to ≥ 4.5:1 on bg-input/app
   --theme-text-on-accent: #ffffff;
-  --theme-text-accent: #2c7d6d; // ≥ 4.5:1 on bg-app (#f4f6f9) and bg-surface
+  --theme-text-accent: #2c7d6d; // concept §6.2 #2e8473 (4.16:1 on bg-app) darkened to ≥ 4.5:1
   --theme-text-code: #1f2d40;
 
   // Neutral, not mint. A mint hairline measures 1.12:1 on a light ground —
@@ -185,7 +185,7 @@
   --theme-focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #2c7d6d;
 
   --theme-accent: #2c7d6d;
-  --theme-accent-hover: #24685a;
+  --theme-accent-hover: #24685a; // concept #266f61, shifted with the accent
   --theme-accent-subtle: rgba(44, 125, 109, 0.1);
   --theme-accent-2: #0277a6;
   --theme-ai: #6c4da8;
@@ -304,6 +304,11 @@
 // the same number: #07172b on #64ceb9 is again 9.49:1 — one pair, two roles.
 // ----------------------------------------------------------------------------
 @mixin light-theme-surface-overrides {
+  // DEFERRED to AB#5526: this block predates Deep Sea and still hard-codes the
+  // light card/band/drawer treatment. It is reworked (and largely deleted
+  // where dark and light now agree) together with the LCARS classes it
+  // targets. Until then only the accent hue is kept consistent: former
+  // rgba(46,132,115,…) tints derive from --theme-accent.
   // Cards lift off the ground again.
   .k-grid,
   .lcars-content-panel,
@@ -354,16 +359,16 @@
   .k-pager,
   .k-grid-pager {
     background: #d7ebe5;
-    border-color: rgba(46, 132, 115, 0.3);
+    border-color: color-mix(in srgb, var(--theme-accent) 30%, transparent);
   }
 
   .k-grid .k-grid-header {
-    border-bottom: 2px solid rgba(46, 132, 115, 0.45);
+    border-bottom: 2px solid color-mix(in srgb, var(--theme-accent) 45%, transparent);
   }
 
   .k-pager,
   .k-grid-pager {
-    border-top: 1px solid rgba(46, 132, 115, 0.3);
+    border-top: 1px solid color-mix(in srgb, var(--theme-accent) 30%, transparent);
   }
 
   .k-grid .k-grid-content {

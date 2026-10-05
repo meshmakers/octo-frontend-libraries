@@ -137,7 +137,7 @@ export class CustomerDataSourceDirective extends OctoGraphQlDataSource<CustomerD
 | `FieldFilterEditorComponent` | Visual filter editor for queries |
 | `EntityIdInfoComponent` | Entity ID display with copy-to-clipboard dropdown |
 | `OctoLoaderComponent` | Animated OctoMesh logo loading indicator |
-| `PageComponent` | `<mm-page>` page layout: optional header (title, subtitle, actions) + scrolling content, no footer |
+| `PageComponent` (`MM_PAGE`) | `<mm-page>` page layout: optional header (title, subtitle, actions) + scrolling content, no footer |
 
 ## Available Services
 
@@ -212,7 +212,9 @@ contract for the surface ladder.
 
 `<mm-page>` (`PageComponent`) is the token-based page frame that replaces the
 LCARS header / content panel / footer triple: an optional header (title,
-subtitle, `[mmPageActions]`) and a scrolling content area, no footer. See
+subtitle, `[mmPageActions]`) and a scrolling content area, no footer. Import
+`MM_PAGE` (component + slot directives); the title defaults to heading level 2
+and the header is a plain `<div>`. See
 [`src/lib/page/README.md`](./src/lib/page/README.md).
 
 ```html
@@ -247,7 +249,22 @@ marked *new* were added in AB#5519.
 
 Aliases kept for one release: `--lcars-font-primary` → `--theme-font-display`,
 `--lcars-font-mono` → `--theme-font-mono`, `--lcars-radius-sm/md/lg` →
-`--theme-radius-sm/md/lg`. The Kendo bridge points `--kendo-color-primary`,
+`--theme-radius-sm/md/lg`, `--lcars-input-focus` → `--theme-focus-ring`,
+`--lcars-transition-fast/-normal` → `--theme-motion-fast/-base` + easing (so
+reduced motion reaches them). `--lcars-glow-*` and `--lcars-btn-base*` still
+carry the LCARS look and are removed with the LCARS classes (AB#5526).
+
+Body text: `octo.styles()` sets `body { font-family: var(--lcars-font-primary) }`,
+which now resolves to `--theme-font-display`, so body text **stays Montserrat**
+for now; Kendo components (`--kendo-font-family`) and anything that opts into
+`--theme-font-ui` use Roboto. Switching body text to Roboto is
+deferred to AB#5526.
+
+Deviations from concept §6.2 (contrast-driven): light `--theme-text-accent` /
+`--theme-accent` `#2c7d6d` (concept `#2e8473`, 4.16:1 on the light canvas →
+4.55:1), light `--theme-accent-hover` `#24685a` (concept `#266f61`),
+`--theme-text-muted` dark `#77869c` (concept `#687890`) and light `#657189`
+(concept `#75829a`), both ≥ 4.5:1 on `--theme-bg-input`. The Kendo bridge points `--kendo-color-primary`,
 `--kendo-color-surface(-alt)`, `--kendo-color-border`, `--kendo-color-base*`,
 `--kendo-border-radius-*` and `--kendo-font-family` at these tokens.
 

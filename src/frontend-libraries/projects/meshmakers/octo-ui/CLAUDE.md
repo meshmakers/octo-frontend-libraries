@@ -71,8 +71,14 @@ gradient tokens flat. New tokens: `--theme-bg-sunken/-selected/-hover`,
 `--theme-space-1..8`, `--theme-radius-xs/sm/md/lg`,
 `--theme-motion-fast/-base/-easing` (durations `0ms` under
 `prefers-reduced-motion`). `--lcars-font-*` and `--lcars-radius-sm/md/lg` in
-`_variables.scss` are aliases of the new tokens; the `:root` `font-family` is
-now `--theme-font-ui` (Roboto) and Montserrat is the display face. The full
+`_variables.scss` are aliases of the new tokens, as are `--lcars-input-focus`
+(→ focus ring) and `--lcars-transition-*` (→ motion tokens). The `:root`
+`font-family` is `--theme-font-ui`, but `styles()` still sets
+`body { font-family: var(--lcars-font-primary) }` (→ display face), so body
+text stays Montserrat until AB#5526; Kendo components use Roboto. Light accent
+and both muted text values deviate from concept §6.2 for contrast (see README).
+`light-theme-surface-overrides` is deliberately left as is (only its accent
+tints follow `--theme-accent`) and is reworked in AB#5526. The full
 list is in the README ("Theme tokens"). Deleting LCARS decoration is AB#5526.
 
 **Kendo colour bridge.** `theme()` also declares the `--kendo-color-*` tokens

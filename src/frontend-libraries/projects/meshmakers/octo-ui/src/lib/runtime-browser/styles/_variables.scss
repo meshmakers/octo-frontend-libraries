@@ -166,11 +166,16 @@ $kendo-success: #37b400;
     transparent
   );
 
-  // LCARS-specific design tokens
+  // LCARS-specific design tokens.
+  // --lcars-glow-* and --lcars-btn-base* still carry the LCARS glow/gradient
+  // look; they are consumed by the LCARS classes in _styles.scss and are
+  // deleted together with them in AB#5526 — do not use them in new code.
   --lcars-glow-primary: 0 0 10px var(--octo-mint-40);
   --lcars-btn-base: linear-gradient(180deg, var(--octo-mint-15), var(--octo-mint-05));
   --lcars-btn-base-hover: linear-gradient(180deg, var(--octo-mint-25), var(--octo-mint-15));
-  --lcars-input-focus: 0 0 8px var(--octo-mint-30);
+  // Input focus = the Deep Sea keyboard focus ring (no mint glow); the glow
+  // is only the fallback for hosts that include variables() without theme().
+  --lcars-input-focus: var(--theme-focus-ring, 0 0 8px var(--octo-mint-30));
   --lcars-glow-cyan: 0 0 10px var(--neo-cyan-40);
   --lcars-glow-violet: 0 0 10px var(--royal-violet-40);
   --lcars-glow-pink: 0 0 10px var(--bubblegum-40);
@@ -189,9 +194,11 @@ $kendo-success: #37b400;
   --lcars-panel-border: 1px solid var(--octo-mint-20);
   --lcars-panel-bg: var(--surface-elevated-60);
 
-  // Transitions
-  --lcars-transition-fast: 150ms ease;
-  --lcars-transition-normal: 250ms ease;
+  // Transitions — aliases of the Deep Sea motion tokens, so
+  // prefers-reduced-motion (which zeroes --theme-motion-*) reaches every
+  // LCARS transition too. Literals are the fallback without theme().
+  --lcars-transition-fast: var(--theme-motion-fast, 150ms) var(--theme-motion-easing, ease);
+  --lcars-transition-normal: var(--theme-motion-base, 250ms) var(--theme-motion-easing, ease);
 
   // Designer/Symbol Editor Panel Variables (theme-aware with LCARS fallbacks)
   --designer-panel-bg: var(--theme-bg-elevated, var(--surface-elevated));

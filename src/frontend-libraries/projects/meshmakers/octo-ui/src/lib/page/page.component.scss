@@ -11,6 +11,15 @@
   font-family: var(--theme-font-ui, inherit);
 }
 
+// [hidden] must win over the display rules below.
+[hidden] {
+  display: none !important;
+}
+
+.mm-page__slot {
+  display: contents;
+}
+
 .mm-page__header {
   display: flex;
   flex-wrap: wrap;

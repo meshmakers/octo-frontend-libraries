@@ -10,10 +10,10 @@ Existing pages are migrated to it per area in AB#5526.
 ## Usage
 
 ```typescript
-import { PageActionsDirective, PageComponent } from '@meshmakers/octo-ui';
+import { MM_PAGE } from '@meshmakers/octo-ui';
 
 @Component({
-  imports: [PageComponent, PageActionsDirective, ButtonModule],
+  imports: [MM_PAGE, ButtonModule],
   template: `
     <mm-page pageTitle="Adapters" pageSubtitle="12 registered">
       <div mmPageActions>
@@ -46,14 +46,20 @@ Rich title or subtitle content is projected instead of passed as text:
 </mm-page>
 ```
 
+`MM_PAGE` bundles `PageComponent` and the three slot directives
+(`PageTitleDirective`, `PageSubtitleDirective`, `PageActionsDirective`).
+Importing it is the recommended form, but the slots do not depend on it:
+projected content is detected from the rendered DOM after each render, so a
+template that imports only `PageComponent` still gets its header.
+
 ## API
 
 | Input | Type | Default | Description |
 |---|---|---|---|
 | `pageTitle` | `string \| null \| undefined` | — | Title text. Named `pageTitle` (not `title`) so the host never gets a native tooltip. |
 | `pageSubtitle` | `string \| null \| undefined` | — | Text under the title. |
-| `headingLevel` | `1 \| 2 \| 3` | `1` | `aria-level` of the title (`role="heading"`). |
-| `padded` | `boolean` | `true` | Pads the content area with the page gutter. `false` for full-bleed grids, editors and canvases (adds `mm-page--flush`). |
+| `headingLevel` | `1 \| 2 \| 3` | `2` | `aria-level` of the title (`role="heading"`). Level 1 belongs to the app/space shell. |
+| `padded` | `boolean` (`booleanAttribute`) | `true` | Pads the content area with the page gutter. `padded="false"` or `[padded]="false"` for full-bleed grids, editors and canvases (adds `mm-page--flush`). |
 
 | Projection slot | Directive | Placement |
 |---|---|---|
@@ -62,9 +68,11 @@ Rich title or subtitle content is projected instead of passed as text:
 | `[mmPageActions]` | `PageActionsDirective` | End of the header; wraps below the title on narrow screens |
 | default | — | Content area |
 
-The header is rendered only when there is a title, subtitle or actions;
-otherwise the host gets `mm-page--headerless` and the content starts at the
-gutter.
+The header is a plain `<div>` (no `<header>`/banner landmark — the app shell
+owns that) and is shown only when there is a title, subtitle or actions;
+otherwise it is `hidden`, the host gets `mm-page--headerless` and the content
+starts at the gutter. Slots that appear later (e.g. actions behind an `@if`)
+are picked up on the next render.
 
 ## Layout and styling
 
