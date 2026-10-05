@@ -102,6 +102,29 @@ routes) never rewrite the URL. Appending an rtId to a route without an
 `:rtId` variant would fall through to the app's `'**'` wildcard route (bouncing
 the user back to home) or fail with a `NavigationError` (AB#4457).
 
+### Pinning MeshBoards to the host navigation
+
+The MeshBoard manager dialog offers a pin toggle per board. A pinned board is
+meant to appear in the host application's end-user navigation (the Refinery
+Studio Home mode lists pinned boards next to its Cockpit).
+Pinning does not change who may *open* a board — the host's routes decide that.
+
+The flag is stored with the other encoded board settings in the description
+blob (`navigation: { pinned: true, order?: number }`), so no CK change is
+needed. Host apps read it from a board's raw description:
+
+```typescript
+import { readMeshBoardNavigation, compareMeshBoardNavigation } from '@meshmakers/octo-meshboard';
+
+const pinned = boards
+  .map(b => ({ ...b, navigation: readMeshBoardNavigation(b.description) }))
+  .filter(b => b.navigation?.pinned)
+  .sort(compareMeshBoardNavigation);
+```
+
+`MeshBoardStateService.setMeshBoardPinned(rtId, pinned)` toggles the flag and
+keeps every other encoded setting (variables, time filter, auto-refresh, …).
+
 ## Architecture
 
 ```
