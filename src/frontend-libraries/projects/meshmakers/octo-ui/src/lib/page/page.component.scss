@@ -1,0 +1,70 @@
+// mm-page — token-based page layout (Deep Sea, AB#5519).
+// Neutral fallbacks keep it usable in hosts that do not include octo.theme().
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  color: var(--theme-text-primary, inherit);
+  font-family: var(--theme-font-ui, inherit);
+}
+
+.mm-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--theme-space-3, 12px) var(--theme-space-4, 16px);
+  padding: var(--theme-space-4, 16px) var(--theme-space-4, 16px) var(--theme-space-3, 12px);
+  flex: 0 0 auto;
+}
+
+.mm-page__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--theme-space-1, 4px);
+  min-width: 0;
+}
+
+.mm-page__title {
+  margin: 0;
+  font-family: var(--theme-font-display, inherit);
+  font-size: 1.25rem; // 20/28 at the 16 px reference size
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--theme-text-primary, inherit);
+  overflow-wrap: anywhere;
+}
+
+.mm-page__subtitle {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--theme-text-secondary, inherit);
+  overflow-wrap: anywhere;
+}
+
+.mm-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--theme-space-2, 8px);
+  margin-left: auto;
+}
+
+.mm-page__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 var(--theme-space-4, 16px) var(--theme-space-4, 16px);
+}
+
+// Without a header the content starts at the gutter, not flush with the top.
+:host(.mm-page--headerless) .mm-page__content {
+  padding-top: var(--theme-space-4, 16px);
+}
+
+:host(.mm-page--flush) .mm-page__content {
+  padding: 0;
+}

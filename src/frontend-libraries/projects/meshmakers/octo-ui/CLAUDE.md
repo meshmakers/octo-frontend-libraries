@@ -29,6 +29,7 @@ src/lib/
 ├── entity-id-info/               # Entity ID display with copy dropdown
 ├── field-filter-editor/          # Filter editor component
 ├── octo-loader/                  # Animated loading indicator
+├── page/                         # mm-page layout (header slot + content, no footer)
 ├── property-grid/                # Property grid component
 └── tenant-switcher/              # Tenant switching badge with popup
     ├── components/               # Grid and value display components
@@ -59,9 +60,26 @@ include; none of them keeps its own palette any more:
   `--surface-elevated`) are redirected at `--theme-*`, so existing
   `var(--iron-navy)` usages follow the active theme automatically.
 
+**Deep Sea values (AB#5519).** The token values follow the "Deep Sea" palette
+of the Studio concept (`ui-concept-ai-os.md` §6.2–6.4): surfaces close to the
+canvas, neutral hairline borders, mint only as accent, glows `none`, the former
+gradient tokens flat. New tokens: `--theme-bg-sunken/-selected/-hover`,
+`--theme-border-default`, `--theme-focus-ring`, `--theme-accent(-hover/-subtle)`,
+`--theme-accent-2`, `--theme-ai(-subtle)`, `--theme-text-code`,
+`--theme-status-neutral`, `--theme-status-*-subtle`, and the theme-invariant
+`foundation-tokens` mixin: `--theme-font-display/-ui/-mono`,
+`--theme-space-1..8`, `--theme-radius-xs/sm/md/lg`,
+`--theme-motion-fast/-base/-easing` (durations `0ms` under
+`prefers-reduced-motion`). `--lcars-font-*` and `--lcars-radius-sm/md/lg` in
+`_variables.scss` are aliases of the new tokens; the `:root` `font-family` is
+now `--theme-font-ui` (Roboto) and Montserrat is the display face. The full
+list is in the README ("Theme tokens"). Deleting LCARS decoration is AB#5526.
+
 **Kendo colour bridge.** `theme()` also declares the `--kendo-color-*` tokens
-(surface, surface-alt, subtle, border, base-on-subtle, and
-secondary/tertiary/info/success/warning/error) against our theme tokens.
+(surface, surface-alt, subtle, border, base-on-subtle, primary/-hover/-active,
+on-primary, and secondary/tertiary/info/success/warning/error) against our
+theme tokens, plus `--kendo-border-radius-*` (from `--theme-radius-*`, capped
+at 8 px; `full` untouched) and `--kendo-font-family` (`--theme-font-ui`).
 
 One rule when extending it: Kendo derives every `*-on-subtle` **ink** from the
 matching `*-subtle` **surface**, assuming that surface is light. So overriding a
@@ -74,8 +92,7 @@ FULL `@progress/kendo-theme-material` itself does not get them and falls back to
 Material's light defaults — which is what made the Meshmakers App's grids,
 toolbars and pagers render white on the dark theme. The `:root` declarations
 cover both entry points and, unlike a compiled `$kendo-colors` merge, follow the
-active theme at runtime. Values resolve to exactly what the slim theme produced,
-so this is a no-op for hosts that were already on it.
+active theme at runtime.
 
 **Ink overlays (`--theme-ink-02` … `--theme-ink-70`).** The dark-only idiom
 `rgba(255,255,255,.03)` — "one step raised off the page" — has no surface-colour
