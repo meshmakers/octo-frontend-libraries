@@ -477,6 +477,44 @@ The feature couples directly to the `SystemUIBranding` CK runtime type
 (`rtWellKnownName = "Branding"`), which is service-managed and auto-distributed
 to every tenant by `octo-admin-panel`.
 
+## Entity forms (AB#5522)
+
+Secondary entry point `@meshmakers/octo-ui/entity-forms` (`entity-forms/`, usage and route
+contract in `entity-forms/README.md`): form-driven list / create / edit pages driven by
+`System.UI/EntityForm` (System.UI ≥ 2.7.0) with a built-in copy of the seeded `form-default` as
+fallback. Public surface: `<mm-entity-page>`, `entityFormRoutes()`, `<mm-entity-list>`,
+`<mm-entity-form>`, `EntityFormService`, `EntityFormDataService`, the pure parser / resolver.
+
+- **Own GraphQL documents** in `entity-forms/src/graphQL/` (own `codegen.yml` block, operation
+  names prefixed `entityForm`). A secondary entry point cannot import `src/lib` internals, so the
+  Runtime Browser classes (`AttributeMapperService`, its GQL classes) are not reused; their value
+  rules are ported into the pure `core/entity-form-value-mapper.ts`. No `schema.graphql` change:
+  everything goes through the generic `runtimeEntities` / `constructionKit` API, and forms are
+  only queried after a CK probe confirms `System.UI/EntityForm` exists.
+- **Secret rule (security, reviewers must enforce):** every document that selects `attributes`
+  declares `$attributeNames: [String]!` and passes an explicit non-secret list. An omitted
+  variable makes the server return **all** attributes including secrets; `[]` returns none
+  (used for "first entity" probes). The filter matches camelCase names only and is also applied
+  inside records, so record sub-attribute names must be listed too. Secret presence is read with
+  an `IS_NOT_NULL` filter (`totalCount`), never by reading the value. A `password` editor is
+  write-only even without `Secret: true`. The update mutation selects no attributes.
+- **Paths:** forms write PascalCase (`Host`), CK attribute names are camelCase (`host`);
+  matching is case-insensitive and the canonical form is the CK name.
+- **List:** `runtimeEntities(ckId)` returns derived types, so the list adds a `ckTypeId EQUALS`
+  filter unless the form includes derived types or the type is abstract. Rows are flattened so a
+  column `field` is the GraphQL attribute path. Copy ID submenu + Delete (`canWrite && CanDelete`).
+- **Page:** inputs `formKey` / `ckTypeId` / `rtId` (`'new'` = create) / `canWrite` / `messages`,
+  bound by `withComponentInputBinding()` or read from `ActivatedRoute` (data inherited from
+  ancestors). The concrete type of a create / derived edit travels in the `?type=` query param
+  (not `ckTypeId`, which input binding would map onto the form-type input). Navigation is
+  relative (`..`, `new`, `:rtId`). Singleton forms skip the list. Implements `HasUnsavedChanges`;
+  routes carry `canDeactivate: [UnsavedChangesGuard]`.
+- **Write permission comes from the host** (`canWrite`); the library knows no role names.
+- **Known backend limits:** CK record attributes always report `isOptional: false` (record
+  sub-fields are treated as optional in the UI); the `attributeNames` filter passes into records.
+- Specs need `npm run build:octo-ui` first (`@meshmakers/octo-ui` resolves to `dist`). Demo:
+  `demo-app` → `demos/entity-forms`.
+
 ## Documentation and Testing Standards
 
 - **All developer documentation must be written in English**

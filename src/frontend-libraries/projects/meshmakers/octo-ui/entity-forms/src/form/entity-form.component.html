@@ -1,0 +1,159 @@
+@let m = resolvedMessages();
+@let rev = revision();
+<form class="mm-entity-form" [formGroup]="form()" (submit)="$event.preventDefault()" novalidate>
+  @for (section of model().sections; track section.key) {
+    @if (visibleFieldCount(section) > 0) {
+      <section
+        class="mm-ef-section"
+        [class.mm-ef-section--generated]="section.generated"
+        [class.mm-ef-section--collapsed]="isCollapsed(section)"
+        [attr.data-section-key]="section.key"
+      >
+        @if (section.title) {
+          <button
+            type="button"
+            class="mm-ef-section__header"
+            [attr.aria-expanded]="!isCollapsed(section)"
+            (click)="toggleSection(section)"
+          >
+            <kendo-svgicon [icon]="isCollapsed(section) ? chevronRightIcon : chevronDownIcon"></kendo-svgicon>
+            <span class="mm-ef-section__title">{{ section.title }}</span>
+          </button>
+        }
+        @if (!isCollapsed(section)) {
+          @if (section.description) {
+            <p class="mm-ef-section__description">{{ section.description }}</p>
+          }
+          <div class="mm-ef-section__grid" [class.mm-ef-section__grid--two]="section.columns === 2">
+            @for (field of section.fields; track field.key) {
+              @if (isFieldVisible(field)) {
+                @let ctrl = control(field.key);
+                @let ro = isReadOnly(field);
+                <mm-entity-form-field
+                  [field]="field"
+                  [control]="ctrl"
+                  [messages]="m"
+                  [secretState]="secretState(field)"
+                  [readOnly]="ro"
+                  [required]="isRequired(field)"
+                  [revision]="rev"
+                >
+                  @switch (field.editor) {
+                    @case ('multiline') {
+                      <kendo-textarea
+                        [formControl]="ctrl"
+                        [rows]="4"
+                        resizable="vertical"
+                        [placeholder]="placeholder(field)"
+                        [readonly]="ro"
+                      ></kendo-textarea>
+                    }
+                    @case ('json') {
+                      <kendo-textarea
+                        class="mm-ef-mono"
+                        [formControl]="ctrl"
+                        [rows]="8"
+                        resizable="vertical"
+                        [placeholder]="placeholder(field)"
+                        [readonly]="ro"
+                      ></kendo-textarea>
+                    }
+                    @case ('yaml') {
+                      <kendo-textarea
+                        class="mm-ef-mono"
+                        [formControl]="ctrl"
+                        [rows]="8"
+                        resizable="vertical"
+                        [placeholder]="placeholder(field)"
+                        [readonly]="ro"
+                      ></kendo-textarea>
+                    }
+                    @case ('number') {
+                      <kendo-numerictextbox
+                        [formControl]="ctrl"
+                        [decimals]="isIntegerField(field) ? 0 : 6"
+                        [format]="isIntegerField(field) ? 'n0' : 'n'"
+                        [placeholder]="placeholder(field)"
+                        [readonly]="ro"
+                      ></kendo-numerictextbox>
+                    }
+                    @case ('toggle') {
+                      <kendo-switch
+                        [formControl]="ctrl"
+                        [onLabel]="m.toggleOn"
+                        [offLabel]="m.toggleOff"
+                      ></kendo-switch>
+                    }
+                    @case ('enum') {
+                      <kendo-dropdownlist
+                        [formControl]="ctrl"
+                        [data]="field.enumOptions ?? []"
+                        textField="name"
+                        valueField="key"
+                        [valuePrimitive]="true"
+                        [defaultItem]="enumDefaultItem()"
+                      ></kendo-dropdownlist>
+                    }
+                    @case ('datetime') {
+                      <kendo-datetimepicker
+                        [formControl]="ctrl"
+                        [placeholder]="placeholder(field)"
+                        [readOnlyInput]="ro"
+                      ></kendo-datetimepicker>
+                    }
+                    @case ('cron') {
+                      <mm-cron-builder [formControl]="ctrl"></mm-cron-builder>
+                    }
+                    @case ('chips') {
+                      <mm-entity-form-chips-editor
+                        [formControl]="ctrl"
+                        [numeric]="isIntArray(field)"
+                        [placeholder]="field.placeholder ?? m.chipsPlaceholder"
+                        [invalidMessage]="m.validationNumber"
+                      ></mm-entity-form-chips-editor>
+                    }
+                    @case ('reference') {
+                      <mm-entity-form-reference-field
+                        [formControl]="ctrl"
+                        [targetCkTypeId]="field.reference?.targetCkTypeId ?? ''"
+                        [multiple]="field.reference?.multiple ?? false"
+                        [placeholder]="field.placeholder ?? m.referencePlaceholder"
+                        [readOnly]="ro"
+                      ></mm-entity-form-reference-field>
+                    }
+                    @case ('records') {
+                      <mm-entity-form-records-field
+                        [formControl]="ctrl"
+                        [ckRecordId]="field.record?.ckRecordId ?? ''"
+                        [columns]="field.record?.columns ?? []"
+                        [single]="field.record?.single ?? false"
+                        [readOnly]="ro"
+                      ></mm-entity-form-records-field>
+                    }
+                    @case ('unsupported') {
+                      <div class="mm-ef-unsupported" [attr.title]="m.unsupportedEditor">
+                        <span class="mm-ef-mono">{{ displayUnsupported(field) }}</span>
+                      </div>
+                    }
+                    @default {
+                      <!-- text, password, url, email -->
+                      <kendo-textbox
+                        [formControl]="ctrl"
+                        [type]="field.secret || field.editor === 'password' ? 'password' : 'text'"
+                        [inputAttributes]="field.secret || field.editor === 'password' ? { autocomplete: 'new-password' } : {}"
+                        [placeholder]="placeholder(field)"
+                        [readonly]="ro"
+                      ></kendo-textbox>
+                    }
+                  }
+                </mm-entity-form-field>
+              }
+            }
+          </div>
+        }
+      </section>
+    }
+  } @empty {
+    <p class="mm-ef-empty">{{ m.noFieldsToShow }}</p>
+  }
+</form>

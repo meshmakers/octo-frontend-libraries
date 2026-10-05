@@ -1,0 +1,11 @@
+# Probes whether System.UI/EntityForm is installed on the tenant (System.UI >= 2.7.0).
+# The forms query runs only when this returns an item.
+query entityFormTypeProbe {
+  constructionKit {
+    types(rtCkId: "System.UI/EntityForm", first: 1) {
+      items {
+        rtCkTypeId
+      }
+    }
+  }
+}

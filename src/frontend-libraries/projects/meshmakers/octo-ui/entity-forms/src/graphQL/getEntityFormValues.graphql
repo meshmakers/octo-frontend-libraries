@@ -1,0 +1,30 @@
+# Reads the values of one entity for the entity form.
+# SECURITY: $attributeNames is declared non-null on purpose. Omitting the argument makes the
+# server return EVERY attribute, secrets included. The list must hold camelCase names and, for
+# record attributes, the record's sub-attribute names as well (the filter is applied to records).
+query entityFormGetValues(
+  $ckTypeId: String!
+  $rtId: OctoObjectId
+  $fieldFilters: [FieldFilter]
+  $attributeNames: [String]!
+) {
+  runtime {
+    runtimeEntities(ckId: $ckTypeId, rtId: $rtId, fieldFilter: $fieldFilters, first: 1) {
+      totalCount
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        rtDisplayName
+        rtCreationDateTime
+        rtChangedDateTime
+        attributes(attributeNames: $attributeNames) {
+          items {
+            attributeName
+            value
+          }
+        }
+      }
+    }
+  }
+}

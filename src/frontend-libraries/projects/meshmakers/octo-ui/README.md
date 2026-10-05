@@ -207,6 +207,18 @@ See [`src/lib/branding/BRANDING_USAGE.md`](./src/lib/branding/BRANDING_USAGE.md)
 for the full list of CSS variables the library updates and the host-app
 contract for the surface ladder.
 
+## Secondary Entry Points
+
+Heavy admin editors live in their own entry points so apps that do not use them keep the
+primary bundle small. Each one imports only the public API of `@meshmakers/octo-ui`.
+
+| Entry point | Contents |
+|-------------|----------|
+| `@meshmakers/octo-ui/branding` | Branding services, `provideOctoBranding`, theme switcher |
+| `@meshmakers/octo-ui/branding-settings` | Branding settings page (`BRANDING_ROUTES`) |
+| `@meshmakers/octo-ui/tree-navigation-settings` | Editor for `System.UI/TreeNavigationConfiguration` |
+| `@meshmakers/octo-ui/entity-forms` | Form-driven entity list / create / edit pages (`<mm-entity-page>`, `<mm-entity-list>`, `<mm-entity-form>`, `entityFormRoutes()`), driven by `System.UI/EntityForm` — see [`entity-forms/README.md`](./entity-forms/README.md) |
+
 ## Build
 
 ```bash

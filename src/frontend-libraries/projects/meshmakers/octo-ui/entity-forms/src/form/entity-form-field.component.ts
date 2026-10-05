@@ -1,0 +1,99 @@
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { AbstractControl } from '@angular/forms';
+import { EntityFormsMessages, formatEntityFormsMessage } from '../entity-forms.messages';
+import { ResolvedField } from '../models/entity-form.models';
+import { firstErrorKey } from './entity-form-controls';
+
+/** Secret state shown next to a secret field: set on the server, not set, or not a secret. */
+export type EntityFormSecretState = 'set' | 'notSet' | null;
+
+/**
+ * Field shell of `mm-entity-form`: label (with required marker and secret badge), the projected
+ * editor, help text and the first validation error. Purely presentational; the parent bumps
+ * `revision` whenever the form's value, status or touched state changes so this OnPush shell
+ * re-renders its error line.
+ */
+@Component({
+  selector: 'mm-entity-form-field',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'mm-ef-field',
+    '[class.mm-ef-field--full]': "field().width === 'full'",
+    '[class.mm-ef-field--half]': "field().width === 'half'",
+    '[class.mm-ef-field--invalid]': 'errorText() !== null',
+    '[class.mm-ef-field--readonly]': 'readOnly()',
+    '[attr.data-field-key]': 'field().key',
+  },
+  template: `
+    <div class="mm-ef-field__label-row">
+      <label class="mm-ef-field__label">
+        {{ field().label }}
+        @if (showRequired()) {
+          <span class="mm-ef-field__required" aria-hidden="true">*</span>
+        }
+      </label>
+      @if (field().secret) {
+        <span
+          class="mm-ef-field__badge"
+          [class.mm-ef-field__badge--set]="secretState() === 'set'"
+          [class.mm-ef-field__badge--not-set]="secretState() === 'notSet'"
+          [attr.data-secret-state]="secretState()"
+          [attr.title]="messages().secretHelp"
+        >{{ messages().secretBadge }}</span>
+      }
+    </div>
+    <div class="mm-ef-field__editor">
+      <ng-content></ng-content>
+    </div>
+    @if (errorText(); as err) {
+      <div class="mm-ef-field__error" role="alert">{{ err }}</div>
+    } @else if (field().help) {
+      <div class="mm-ef-field__help">{{ field().help }}</div>
+    }
+  `,
+})
+export class EntityFormFieldComponent {
+  readonly field = input.required<ResolvedField>();
+  readonly control = input<AbstractControl | null>(null);
+  readonly messages = input.required<EntityFormsMessages>();
+  readonly secretState = input<EntityFormSecretState>(null);
+  readonly readOnly = input(false);
+  /** Whether the field is required in the current mode (secrets: only when not set). */
+  readonly required = input(false);
+  /** Change counter from the parent form; read so `errorText` recomputes on every form event. */
+  readonly revision = input(0);
+
+  protected readonly showRequired = computed(() => this.required() && !this.readOnly());
+
+  protected readonly errorText = computed<string | null>(() => {
+    this.revision();
+    const control = this.control();
+    if (!control || control.disabled || !control.invalid || !(control.touched || control.dirty)) {
+      return null;
+    }
+    const key = firstErrorKey(control.errors);
+    const m = this.messages();
+    const f = this.field();
+    switch (key) {
+      case null:
+        return null;
+      case 'required':
+        return m.validationRequired;
+      case 'min':
+        return formatEntityFormsMessage(m.validationMin, { min: f.min ?? '' });
+      case 'max':
+        return formatEntityFormsMessage(m.validationMax, { max: f.max ?? '' });
+      case 'pattern':
+        return formatEntityFormsMessage(m.validationPattern, { pattern: f.pattern ?? '' });
+      case 'email':
+        return m.validationEmail;
+      case 'url':
+        return m.validationUrl;
+      case 'json':
+        return m.validationJson;
+      default:
+        return m.formInvalid;
+    }
+  });
+}

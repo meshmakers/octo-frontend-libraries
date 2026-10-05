@@ -1,0 +1,201 @@
+# @meshmakers/octo-ui/entity-forms
+
+Form-driven list, create and edit pages for OctoMesh runtime entities (AB#5522).
+
+The layout of a page — sections, field order, labels, help texts, editors, visibility rules,
+list columns, capabilities — comes from the tenant's `System.UI/EntityForm` entities
+(System.UI ≥ 2.7.0, seeded by the `System.UI.EntityForms` blueprint). Types without a form, and
+tenants without System.UI, fall back to a built-in copy of the seeded `form-default`, so every
+CK type gets a usable page.
+
+This is a **secondary entry point**: it imports only the public API of `@meshmakers/octo-ui`
+and other packages, and hosts that do not use it keep the primary bundle unchanged.
+
+## Building blocks
+
+| Export | Purpose |
+|--------|---------|
+| `<mm-entity-page>` (`EntityPageComponent`) | Route component: list, create, edit and singleton flows, save, delete, unsaved-changes guard, breadcrumbs |
+| `entityFormRoutes(opts?)` | The three child routes `''` / `new` / `:rtId` of a page |
+| `<mm-entity-list>` (`EntityListComponent`) | `mm-list-view` of a resolved form (columns, Copy ID, delete, "New" incl. subtype picker) |
+| `<mm-entity-form>` (`EntityFormComponent`) | The form itself (sections, editors, validation, change set) |
+| `EntityFormService` | Loads forms + CK metadata (cached per tenant) and resolves the form for a type or form key |
+| `EntityFormDataService` | Reads values / secret presence / associations; create, update, delete |
+| `parseEntityForms`, `pickEntityForm`, `resolveEntityForm`, … | Pure functions behind the service, e.g. for a forms editor |
+| `EntityFormsMessages`, `DEFAULT_ENTITY_FORMS_MESSAGES` | All UI strings (English defaults; pass `Partial<…>` via `messages`) |
+
+## Usage
+
+### Routes (recommended)
+
+```ts
+import { entityFormRoutes } from '@meshmakers/octo-ui/entity-forms';
+
+export const routes: Routes = [
+  {
+    path: 'sftp',
+    children: entityFormRoutes({
+      formKey: 'sftp-configuration',          // or ckTypeId: 'System.Communication/SftpConfiguration'
+      breadcrumbUrl: 'communication/sftp',    // optional; adds {{entityFormTitle}} / {{entityName}} crumbs
+      canWrite: true,                         // optional; default true
+    }),
+  },
+];
+```
+
+The host must provide what the library services expect:
+
+- `provideOctoUi()` — includes `provideMmSharedUi()` (`ConfirmationService`,
+  `NotificationDisplayService`, `EntitySelectDialogService` for the reference picker) and
+  `CkTypeSelectorDialogService` (subtype picker). Hosts that do not use `provideOctoUi()` must
+  call `provideMmSharedUi()` themselves.
+- A `<div kendoDialogContainer></div>` (record row dialog, confirmations) and
+  `<div kendoWindowContainer></div>` (CK type selector) in the app shell.
+- Apollo for the tenant; optionally `TENANT_ID_PROVIDER` (cache scope per tenant) and
+  `BreadCrumbService` (breadcrumb labels; skipped when absent).
+
+### Route-parameter contract (stable; used by the Refinery Studio, AB#5523)
+
+| URL (relative to the mount point) | Page state |
+|-----------------------------------|------------|
+| `''` | List. A **singleton** form skips the list and opens its entity (see below). |
+| `new` | Create form. Route data `rtId: 'new'`. |
+| `new?type=<rtCkTypeId>` | Create form for a concrete subtype (required for abstract types; set by the list's subtype picker). |
+| `:rtId` | Edit form; read-only view when `canWrite` is false or the form has `CanEdit: false`. |
+| `:rtId?type=<rtCkTypeId>` | Edit form for an entity of a derived type (set when the list opens such a row). Without it the page detects the type after loading and re-resolves. |
+
+Page inputs (bound by `withComponentInputBinding()` from route params / data, otherwise read from
+`ActivatedRoute` — params, route data of the route and its ancestors, query params):
+
+| Input | Source fallback | Meaning |
+|-------|-----------------|---------|
+| `formKey` | `data.formKey` | `form-sftp-configuration` (rtWellKnownName) or the kebab type key `sftp-configuration`. Wins over `ckTypeId`. |
+| `ckTypeId` | `data.ckTypeId` | Runtime CK type id of the target type. |
+| `rtId` | `params.rtId`, `data.rtId` | Absent = list; `'new'` = create; otherwise edit. |
+| `canWrite` | `data.canWrite`, then `true` | Write permission; the host maps roles to it (the library knows no role names). |
+| `messages` | `data.messages` | `Partial<EntityFormsMessages>`. |
+| `routerNavigation` | — | Default `true`. Set `false` and handle the `navigate` output to drive navigation yourself. |
+
+The query parameter is deliberately named `type`, not `ckTypeId`, so input binding never
+overwrites the page's `ckTypeId` (the form's target type).
+
+Navigation is always **relative** (`..`, `new`, `:rtId`, with `replaceUrl` after a create), so
+the routes work under any mount point. The `navigate` output (`{ kind: 'list'|'create'|'edit', rtId?, ckTypeId? }`)
+is emitted for every transition.
+
+Breadcrumb labels set via `BreadCrumbService.updateBreadcrumbLabels`: `entityFormTitle` (the
+resolved form title) and `entityName` (entity `name`, else `rtWellKnownName`, else `rtId`; the
+create title on `new`).
+
+### Singleton forms
+
+`Singleton: true` skips the list:
+
+1. With `SingletonWellKnownName` the entity is loaded by that well-known name.
+2. Without it, the first entity of the type is used.
+3. If none exists, the create form opens (with write permission) and the well-known name is
+   written on first save; afterwards the page stays on the same URL in edit mode.
+
+### Saving
+
+`saveChanges(): Promise<boolean>` (also called by `UnsavedChangesGuard` on "Yes"):
+
+- invalid form → all fields touched, warning, `false`;
+- create → `EntityFormDataService.create`, then navigation to `:rtId` (replacing `new`);
+- edit → only the changed attributes are sent (empty change set = "no changes"), then the
+  values are read again.
+
+### Embedding without routes
+
+```html
+<mm-entity-list [model]="model" [canWrite]="canWrite" (openRequested)="open($event)" (createRequested)="create($event)" />
+<mm-entity-form [model]="model" mode="edit" [state]="state" (dirtyChange)="dirty = $event" />
+```
+
+Resolve `model` with `EntityFormService.resolve(rtCkTypeId)` / `resolveByFormKey(key)` and the
+state with `EntityFormDataService.load(model, { rtId })`.
+
+## `<mm-entity-list>`
+
+- Inputs: `model` (required), `canWrite = true`, `messages`, `listStateKey`.
+- Outputs: `createRequested { ckTypeId }`, `openRequested { rtId, ckTypeId }`, `deleted { rtId, ckTypeId }[]`.
+- Rows are flattened (`rtId`, `ckTypeId`, `rtWellKnownName`, `rtDisplayName`,
+  `rtCreationDateTime`, `rtChangedDateTime`, `<attributeName>: value`), so a column `field`
+  equals the GraphQL attribute path and server-side sort / filter / search work.
+- Derived types are listed when the form has `IncludeDerivedTypes` or the type is abstract;
+  otherwise a `ckTypeId EQUALS` field filter restricts the list to the exact type
+  (`runtimeEntities(ckId)` returns derived types by default).
+- Column display: `chip` → badge, `date` → ISO date, `mono` → monospace cell, else text.
+- Context menu: **Copy ID** (RtId / CkTypeId / RtCkTypeId / RtEntityId), then — only with
+  `canWrite && CanDelete` — Delete with a confirmation. Toolbar "New" only with
+  `canWrite && CanCreate`.
+- **Abstract types** (`createRequiresSubtype`): "New" opens `CkTypeSelectorDialogService`
+  restricted to concrete subtypes (`derivedFromRtCkTypeId`, `allowAbstract: false`);
+  cancelling emits nothing.
+
+## Secrets (write-only)
+
+Secret values never reach the browser:
+
+- A field is secret when the form says `Secret: true`, **or its editor is `password` (a
+  password editor is always write-only, even without `Secret: true`)**, or the CK attribute
+  carries the metadata `secret=true`.
+- Value reads, the list and the reference picker use documents whose `$attributeNames` is
+  declared `[String]!` and always pass the explicit non-secret names. Never add a document that
+  selects `attributes` without that argument — **omitting it makes the server return every
+  attribute, secrets included.**
+- Whether a secret is set is read with an `IS_NOT_NULL` field filter (`totalCount`), not by
+  reading the value. The field shows "•••• set — leave empty to keep" or "Not set" and is never
+  prefilled.
+- An empty secret is left out of the change set (unchanged). A required secret is required
+  only on create or while it is not set.
+- Secret list columns are dropped. The update mutation selects no attributes (no echo).
+- The CK description of `EntityFormField.Secret` says "masked … revealed on demand"; the concept
+  (§5.8, write-only) wins.
+
+## Editors (MVP)
+
+| Editor | Implementation |
+|--------|----------------|
+| text, multiline, email, url, password, number, toggle, enum, datetime | Kendo inputs; email / url validators by editor; `Min`/`Max` on numbers, `Pattern` on text |
+| chips | Array editor for `STRING_ARRAY` / `INT_ARRAY` |
+| cron | shared-ui `mm-cron-builder` |
+| **json / yaml** | Monospace `kendo-textarea` (no Monaco / YAML library in the workspace). `json` validates with `JSON.parse`, `yaml` is not validated. Both are stored as STRING. The Studio can swap in Monaco later via `CustomComponent`. |
+| **reference** | shared-ui `mm-entity-select-input` (typeahead plus its **grid dialog**, multi-select for `N` roles) on a secret-safe data source that selects no attributes. Deviates from concept §5.4, which names `mm-entity-selector-dialog` — that one is a perspective tree picker without type filter or multi-select, and configuration types are not in a tree. |
+| records | Table with add / remove / move / edit; rows are edited in a dialog generated from the record's CK attributes. Nested records are read-only. |
+| unsupported (BINARY, GEOSPATIAL_POINT, TIME_SPAN, …) | Read-only display |
+
+## Form resolution (summary)
+
+1. Forms targeting the exact type win; otherwise the nearest ancestor with forms that set
+   `IncludeDerivedTypes` supplies the candidates (`form-default` targets `System/Entity`).
+2. Tenant forms beat seeded forms (empty `RtBlueprintSource`), then higher `Priority`, then
+   `rtWellKnownName` / `rtId` ascending (deterministic tie-break).
+3. No match → built-in default form with a warning. Forms are never merged.
+4. Attribute paths match case-insensitively (forms write `Host`, CK names are `host`); unknown
+   paths are skipped, dotted paths are skipped with a warning; unmentioned attributes go to a
+   generated "Further attributes" section unless `GenerateRemainingFields: false`.
+
+## Known backend limits
+
+- **CK record attributes always report `isOptional: false`.** Record sub-fields are therefore
+  treated as optional in the UI; the server still enforces mandatory sub-attributes and answers
+  `ASSET1004`.
+- **The `attributeNames` filter is applied inside records too.** Reading a record attribute
+  returns its rows with empty `attributes` unless the record's sub-attribute names are listed as
+  well, so `readAttributeNames` contains them. When a sub-attribute name equals a secret
+  top-level attribute name it is dropped and the record field becomes read-only (warning), so a
+  save cannot erase that sub-value.
+- The edit flow relies on a partial `RtEntityUpdate` keeping the attributes that are not sent
+  (unchanged values, secrets). That is what makes the write-only secret handling safe.
+
+## Tests
+
+Specs live next to the sources and run with the octo-ui test target
+(`../**/*.spec.ts`). `@meshmakers/octo-ui` resolves to `dist`, so build first:
+
+```bash
+npm run build:octo-ui && npm run test:octo-ui
+```
+
+Demo: `demo-app` → `demos/entity-forms` (SFTP configuration form).

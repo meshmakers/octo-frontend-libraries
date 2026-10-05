@@ -1,0 +1,33 @@
+# Candidate targets for a reference field. Selects NO attributes at all (secret-safe picker).
+query entityFormGetReferenceOptions(
+  $ckTypeId: String!
+  $first: Int
+  $after: String
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+) {
+  runtime {
+    runtimeEntities(
+      ckId: $ckTypeId
+      first: $first
+      after: $after
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+    ) {
+      totalCount
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        rtDisplayName
+        rtDisplayDescription
+      }
+    }
+  }
+}

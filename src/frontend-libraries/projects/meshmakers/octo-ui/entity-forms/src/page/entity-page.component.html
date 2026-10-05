@@ -1,0 +1,88 @@
+<div class="mm-entity-page">
+  @switch (view()) {
+    @case ('loading') {
+      <div class="mm-entity-page__state">{{ msgs().loading }}</div>
+    }
+
+    @case ('error') {
+      <div class="mm-entity-page__state mm-entity-page__state--error" role="alert">
+        <p>{{ errorMessage() }}</p>
+        @if (baseModel() && !isSingleton()) {
+          <button kendoButton fillMode="flat" [svgIcon]="backIcon" (click)="onBack()">{{ msgs().back }}</button>
+        }
+      </div>
+    }
+
+    @case ('list') {
+      @if (baseModel(); as model) {
+        <header class="mm-entity-page__header">
+          <div class="mm-entity-page__titles">
+            <h2 class="mm-entity-page__title">{{ model.title }}</h2>
+            @if (model.description) {
+              <p class="mm-entity-page__description">{{ model.description }}</p>
+            }
+          </div>
+        </header>
+        <mm-entity-list
+          #entityList
+          class="mm-entity-page__list"
+          [model]="model"
+          [canWrite]="effectiveCanWrite()"
+          [messages]="msgs()"
+          (createRequested)="onCreateRequested($event)"
+          (openRequested)="onOpenRequested($event)"
+        />
+      }
+    }
+
+    @case ('form') {
+      @if (formModel(); as model) {
+        <header class="mm-entity-page__header">
+          <div class="mm-entity-page__titles">
+            <h2 class="mm-entity-page__title">{{ title() }}</h2>
+            @if (mode() !== 'create' && entityRtId()) {
+              <mm-entity-id-info
+                [rtId]="entityRtId()!"
+                [rtCkTypeId]="entityCkTypeId() ?? model.rtCkTypeId"
+                [ckTypeId]="entityCkTypeId() ?? model.rtCkTypeId"
+              />
+            }
+          </div>
+          <div class="mm-entity-page__actions">
+            @if (!isSingleton()) {
+              <button kendoButton fillMode="flat" [svgIcon]="backIcon" (click)="onBack()">
+                {{ mode() === 'view' ? msgs().back : msgs().cancel }}
+              </button>
+            }
+            @if (canDeleteEntity()) {
+              <button kendoButton fillMode="outline" themeColor="error" [svgIcon]="deleteIcon" (click)="onDelete()">
+                {{ msgs().delete }}
+              </button>
+            }
+            @if (mode() !== 'view') {
+              <button kendoButton themeColor="primary" [svgIcon]="saveIcon" [disabled]="saving()" (click)="onSave()">
+                {{ msgs().save }}
+              </button>
+            }
+          </div>
+        </header>
+        @if (mode() === 'view') {
+          <p class="mm-entity-page__notice">{{ msgs().readOnlyNotice }}</p>
+        }
+        @if (mode() === 'create' && singletonWellKnownName()) {
+          <p class="mm-entity-page__notice">{{ msgs().singletonCreateHint }}</p>
+        }
+        <mm-entity-form
+          #entityForm
+          class="mm-entity-page__form"
+          [model]="model"
+          [mode]="mode()"
+          [state]="state()"
+          [readOnly]="readOnly()"
+          [messages]="msgs()"
+          [records]="records()"
+        />
+      }
+    }
+  }
+</div>

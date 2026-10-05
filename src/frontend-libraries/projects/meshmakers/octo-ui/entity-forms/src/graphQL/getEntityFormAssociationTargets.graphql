@@ -1,0 +1,29 @@
+# Current targets of one association role of an entity. Selects NO attributes of the targets
+# (secret-safe); the outer rtId is selected for Apollo cache normalization only.
+query entityFormGetAssociationTargets(
+  $ckTypeId: String!
+  $rtId: OctoObjectId!
+  $roleId: String!
+  $targetCkTypeId: String!
+  $direction: GraphDirection!
+  $first: Int
+) {
+  runtime {
+    runtimeEntities(ckId: $ckTypeId, rtId: $rtId, first: 1) {
+      items {
+        rtId
+        associations {
+          targets(roleId: $roleId, ckId: $targetCkTypeId, direction: $direction, first: $first) {
+            totalCount
+            items {
+              rtId
+              ckTypeId
+              rtWellKnownName
+              rtDisplayName
+            }
+          }
+        }
+      }
+    }
+  }
+}

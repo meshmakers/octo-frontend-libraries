@@ -1,0 +1,45 @@
+# CK metadata of one record (sub-attributes for the record row editor and the read set).
+query entityFormGetCkRecord($ckRecordId: String!) {
+  constructionKit {
+    records(ckId: $ckRecordId, first: 1) {
+      items {
+        ckRecordId {
+          fullName
+        }
+        isAbstract
+        attributes(first: 1000) {
+        items {
+          attributeName
+          attributeValueType
+          isOptional
+          ckAttributeId {
+            fullName
+          }
+          attribute {
+            description
+            defaultValues
+            metaData {
+              key
+              value
+            }
+            ckEnum {
+              ckEnumId {
+                fullName
+              }
+              values {
+                key
+                name
+              }
+            }
+            ckRecord {
+              ckRecordId {
+                fullName
+              }
+            }
+          }
+        }
+        }
+      }
+    }
+  }
+}

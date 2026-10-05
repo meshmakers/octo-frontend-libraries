@@ -1,0 +1,120 @@
+import { Route, Routes } from '@angular/router';
+import { UnsavedChangesGuard } from '@meshmakers/shared-ui';
+import { SVGIcon } from '@progress/kendo-svg-icons';
+import { EntityFormsMessages } from '../entity-forms.messages';
+
+/**
+ * Options of {@link entityFormRoutes}.
+ *
+ * Route parameter contract (stable, relied upon by the Refinery Studio, AB#5523):
+ *
+ * | Path      | Page state                                                          |
+ * |-----------|---------------------------------------------------------------------|
+ * | `''`      | list (a singleton form opens its entity directly)                   |
+ * | `new`     | create form; `?type=<rtCkTypeId>` = concrete type (abstract forms)   |
+ * | `:rtId`   | edit form (view form without write permission); optional `?type=`   |
+ *
+ * Route `data` carries `formKey` / `ckTypeId` / `canWrite` / `messages` (bound to the page
+ * inputs by `withComponentInputBinding()`, read from `ActivatedRoute` otherwise), the `new`
+ * route additionally `rtId: 'new'`, and the `breadcrumb` items with the `{{entityFormTitle}}` /
+ * `{{entityName}}` labels the page fills via `BreadCrumbService.updateBreadcrumbLabels`.
+ */
+export interface EntityFormRoutesOptions {
+  /** Form key (`form-sftp-configuration` or `sftp-configuration`). Wins over `ckTypeId`. */
+  formKey?: string;
+  /** Runtime CK type id of the target type, used when no `formKey` is given. */
+  ckTypeId?: string;
+  /**
+   * Write permission for every user who can reach the routes. Hosts with role-dependent
+   * permissions bind `canWrite` on their own wrapper or pass it as route data of a parent.
+   */
+  canWrite?: boolean;
+  /** Message overrides passed to the page. */
+  messages?: Partial<EntityFormsMessages>;
+  /**
+   * Breadcrumb URL of the list (relative to the host's breadcrumb root, e.g.
+   * `communication/sftp`). Without it no breadcrumb items are added.
+   */
+  breadcrumbUrl?: string;
+  /** Label of the list breadcrumb. Default `{{entityFormTitle}}` (the resolved form title). */
+  breadcrumbLabel?: string;
+  /** Label of the create breadcrumb. Default `New`. */
+  newBreadcrumbLabel?: string;
+  /** Label of the edit breadcrumb. Default `{{entityName}}`. */
+  entityBreadcrumbLabel?: string;
+  /** Icon of the list breadcrumb. */
+  svgIcon?: SVGIcon;
+  /** Additional route data merged into all three routes (e.g. `roles`). */
+  data?: Record<string, unknown>;
+}
+
+/**
+ * Builds the three child routes of an entity form page: `''` (list), `new` (create) and
+ * `:rtId` (edit), each rendering `EntityPageComponent` lazily and guarded by
+ * `UnsavedChangesGuard`. Mount them under any path:
+ *
+ * ```ts
+ * { path: 'sftp', children: entityFormRoutes({ formKey: 'sftp-configuration', breadcrumbUrl: 'communication/sftp' }) }
+ * ```
+ */
+export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
+  const {
+    formKey,
+    ckTypeId,
+    canWrite,
+    messages,
+    breadcrumbUrl,
+    breadcrumbLabel = '{{entityFormTitle}}',
+    newBreadcrumbLabel = 'New',
+    entityBreadcrumbLabel = '{{entityName}}',
+    svgIcon,
+    data = {},
+  } = opts;
+
+  const baseData: Record<string, unknown> = {
+    ...data,
+    ...(formKey !== undefined && { formKey }),
+    ...(ckTypeId !== undefined && { ckTypeId }),
+    ...(canWrite !== undefined && { canWrite }),
+    ...(messages !== undefined && { messages }),
+  };
+
+  const listCrumb = breadcrumbUrl !== undefined
+    ? { label: breadcrumbLabel, url: breadcrumbUrl, ...(svgIcon && { svgIcon }) }
+    : null;
+  const crumbs = (extra?: { label: string; url: string }): Record<string, unknown> => {
+    if (!listCrumb) {
+      return {};
+    }
+    return { breadcrumb: extra ? [listCrumb, extra] : [listCrumb] };
+  };
+
+  const loadComponent = () => import('./entity-page.component').then((m) => m.EntityPageComponent);
+
+  const listRoute: Route = {
+    path: '',
+    loadComponent,
+    canDeactivate: [UnsavedChangesGuard],
+    data: { ...baseData, ...crumbs() },
+  };
+  const newRoute: Route = {
+    path: 'new',
+    loadComponent,
+    canDeactivate: [UnsavedChangesGuard],
+    data: {
+      ...baseData,
+      rtId: 'new',
+      ...crumbs({ label: newBreadcrumbLabel, url: `${breadcrumbUrl}/new` }),
+    },
+  };
+  const editRoute: Route = {
+    path: ':rtId',
+    loadComponent,
+    canDeactivate: [UnsavedChangesGuard],
+    data: {
+      ...baseData,
+      ...crumbs({ label: entityBreadcrumbLabel, url: `${breadcrumbUrl}/:rtId` }),
+    },
+  };
+  return [listRoute, newRoute, editRoute];
+}

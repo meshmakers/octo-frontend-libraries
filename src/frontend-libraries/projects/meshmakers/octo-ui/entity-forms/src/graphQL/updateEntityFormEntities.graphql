@@ -1,0 +1,11 @@
+# Updates entities from an entity form. Returns rtId only: selecting attributes here would echo
+# secret values back to the client.
+mutation entityFormUpdateEntities($entities: [RtEntityUpdate]!) {
+  runtime {
+    runtimeEntities {
+      update(entities: $entities) {
+        rtId
+      }
+    }
+  }
+}

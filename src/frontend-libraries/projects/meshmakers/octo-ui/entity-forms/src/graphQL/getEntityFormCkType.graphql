@@ -1,0 +1,108 @@
+# CK metadata of one type for the entity form resolver: inherited attributes, ancestor chain
+# (baseType nested 10 levels) and association roles.
+query entityFormGetCkType($rtCkTypeId: String!) {
+  constructionKit {
+    types(rtCkId: $rtCkTypeId, first: 1) {
+      items {
+        ckTypeId {
+          fullName
+        }
+        rtCkTypeId
+        isAbstract
+        description
+        baseType {
+          rtCkTypeId
+          isAbstract
+          baseType {
+            rtCkTypeId
+            isAbstract
+            baseType {
+              rtCkTypeId
+              isAbstract
+              baseType {
+                rtCkTypeId
+                isAbstract
+                baseType {
+                  rtCkTypeId
+                  isAbstract
+                  baseType {
+                    rtCkTypeId
+                    isAbstract
+                    baseType {
+                      rtCkTypeId
+                      isAbstract
+                      baseType {
+                        rtCkTypeId
+                        isAbstract
+                        baseType {
+                          rtCkTypeId
+                          isAbstract
+                          baseType {
+                            rtCkTypeId
+                            isAbstract
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        attributes(first: 1000) {
+        items {
+          attributeName
+          attributeValueType
+          isOptional
+          ckAttributeId {
+            fullName
+          }
+          attribute {
+            description
+            defaultValues
+            metaData {
+              key
+              value
+            }
+            ckEnum {
+              ckEnumId {
+                fullName
+              }
+              values {
+                key
+                name
+              }
+            }
+            ckRecord {
+              ckRecordId {
+                fullName
+              }
+            }
+          }
+        }
+        }
+        associations {
+          in {
+            all {
+          rtRoleId
+          navigationPropertyName
+          multiplicity
+          rtTargetCkTypeId
+          rtOriginCkTypeId
+            }
+          }
+          out {
+            all {
+          rtRoleId
+          navigationPropertyName
+          multiplicity
+          rtTargetCkTypeId
+          rtOriginCkTypeId
+            }
+          }
+        }
+      }
+    }
+  }
+}
