@@ -1,11 +1,11 @@
-import { Injectable, inject } from '@angular/core';
+import { EnvironmentProviders, Injectable, inject, provideEnvironmentInitializer } from '@angular/core';
 import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 import { toKebabTypeKey } from '../core/attribute-path';
 import { RawCkRecord, RawCkType, toCkRecordInfo, toCkTypeInfo } from '../core/ck-metadata';
 import { parseEntityForms, RawRtEntityRow } from '../core/entity-form-parser';
 import { resolveEntityForm } from '../core/entity-form-resolver';
-import { ENTITY_FORM_FALLBACK_FORMS, withFallbackForms } from '../core/fallback-forms';
+import { ENTITY_FORM_FALLBACK_FORMS, selectFallbackForms, withFallbackForms } from '../core/fallback-forms';
 import { isRecordType } from '../core/entity-form-value-mapper';
 import { EntityFormTypeProbeDtoGQL } from '../graphQL/entityFormTypeProbe';
 import { EntityFormGetCkRecordDtoGQL } from '../graphQL/getEntityFormCkRecord';
@@ -25,8 +25,9 @@ import {
  *   2.7.0); otherwise, and when the forms query fails, every type resolves to the built-in form.
  * - Results are cached per tenant (`TENANT_ID_PROVIDER`, empty string when not provided) in a
  *   `Map<string, Promise<…>>`; a failed entry is evicted so the next call retries.
- * - Host fallback forms (`ENTITY_FORM_FALLBACK_FORMS`) are appended for target types no loaded form
- *   targets — also when the forms cannot be loaded (AB#5524).
+ * - Host fallback forms (`ENTITY_FORM_FALLBACK_FORMS`, `registerFallbackForms`) are appended where
+ *   the normal resolution would end at `form-default` — also when the forms cannot be loaded
+ *   (AB#5524).
  * - Resolver warnings are logged with `console.warn`.
  */
 @Injectable({ providedIn: 'root' })
@@ -39,6 +40,19 @@ export class EntityFormService {
   private readonly fallbackForms = inject(ENTITY_FORM_FALLBACK_FORMS, { optional: true });
 
   private readonly cache = new Map<string, Promise<unknown>>();
+  private readonly registeredFallbacks: (readonly EntityFormDefinition[])[] = [];
+
+  /**
+   * Adds host fallback forms at runtime (see `provideEntityFormFallbacks`). Registering the same
+   * array again is a no-op; a new one drops the cached forms and resolutions.
+   */
+  registerFallbackForms(forms: readonly EntityFormDefinition[]): void {
+    if (!forms.length || this.registeredFallbacks.includes(forms)) {
+      return;
+    }
+    this.registeredFallbacks.push(forms);
+    this.invalidate();
+  }
 
   /** Drops every cached form, type, record and resolution (all tenants). */
   invalidate(): void {
@@ -51,7 +65,17 @@ export class EntityFormService {
    */
   async getForms(): Promise<EntityFormDefinition[]> {
     const loaded = await this.loadForms();
-    return withFallbackForms(loaded, this.fallbackForms);
+    const fallbacks = [...(this.fallbackForms ?? []), ...this.registeredFallbacks.flat()];
+    if (!fallbacks.length) {
+      return loaded;
+    }
+    // CK metadata of the candidate types (cached), to check the ancestor forms.
+    const candidates = withFallbackForms(loaded, fallbacks).slice(loaded.length);
+    const types = new Map<string, CkTypeInfo | null>();
+    await Promise.all(candidates.map(async (f) => {
+      types.set(f.targetCkTypeId.toLowerCase(), await this.getCkType(f.targetCkTypeId).catch(() => null));
+    }));
+    return [...loaded, ...selectFallbackForms(loaded, fallbacks, (id) => types.get(id.toLowerCase()))];
   }
 
   private async loadForms(): Promise<EntityFormDefinition[]> {
@@ -176,4 +200,14 @@ export class EntityFormService {
     });
     return promise;
   }
+}
+
+/**
+ * Registers host fallback forms in the root `EntityFormService` when the providing (lazy) route's
+ * environment injector is created — one service, one cache, and the entry point stays out of the
+ * initial bundle (AB#5524). Put it into the `providers` of every lazy route that renders entity
+ * forms; registering the same array several times is harmless.
+ */
+export function provideEntityFormFallbacks(forms: readonly EntityFormDefinition[]): EnvironmentProviders {
+  return provideEnvironmentInitializer(() => inject(EntityFormService).registerFallbackForms(forms));
 }
