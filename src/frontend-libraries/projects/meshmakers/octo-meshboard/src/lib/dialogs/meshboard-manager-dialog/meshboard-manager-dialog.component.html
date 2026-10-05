@@ -89,12 +89,25 @@
                     @if (isActive(item)) {
                       <span class="active-badge">Active</span>
                     }
+                    @if (isPinned(item)) {
+                      <span class="pinned-badge" title="Shown on Home">Pinned</span>
+                    }
                   </h4>
                   @if (getDisplayDescription(item)) {
                     <p class="item-description">{{ getDisplayDescription(item) }}</p>
                   }
                 </div>
                 <div class="item-actions">
+                  <button
+                    kendoButton
+                    [svgIcon]="isPinned(item) ? unpinIcon : pinIcon"
+                    [class.pinned]="isPinned(item)"
+                    (click)="togglePinned(item); $event.stopPropagation()"
+                    [disabled]="isLoading() || isPinning()"
+                    fillMode="flat"
+                    size="small"
+                    [title]="isPinned(item) ? 'Remove from Home' : 'Pin to Home'">
+                  </button>
                   @if (canExport) {
                     <button
                       kendoButton

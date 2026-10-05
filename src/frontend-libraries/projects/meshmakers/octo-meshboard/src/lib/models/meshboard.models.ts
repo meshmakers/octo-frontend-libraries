@@ -1359,7 +1359,24 @@ export interface MeshBoardConfig {
    * tab is hidden. Stream-data and runtime widgets refresh identically.
    */
   autoRefreshSeconds?: number;
+  /**
+   * Host-app navigation settings. A pinned board is listed in the host's
+   * end-user (Home) navigation; `undefined` means not pinned. Stored
+   * in the encoded description blob like the other settings above.
+   */
+  navigation?: MeshBoardNavigationConfig;
   widgets: AnyWidgetConfig[];
+}
+
+/**
+ * Navigation settings of a MeshBoard in the host application.
+ * Only `pinned: true` is ever persisted; an unpinned board stores nothing.
+ */
+export interface MeshBoardNavigationConfig {
+  /** Shown in the host app's end-user navigation. */
+  pinned: boolean;
+  /** Sort position among pinned boards (ascending). Boards without one sort last, by name. */
+  order?: number;
 }
 
 /** @deprecated Use MeshBoardConfig instead */

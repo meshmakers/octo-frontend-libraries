@@ -14,7 +14,9 @@ import {
   gridLayoutIcon,
   downloadIcon,
   uploadIcon,
-  copyIcon
+  copyIcon,
+  pinIcon,
+  unpinIcon
 } from '@progress/kendo-svg-icons';
 import { AssetRepoService, JobManagementService, TENANT_ID_PROVIDER, TenantIdProvider } from '@meshmakers/octo-services';
 import { ImportStrategyDialogService } from '@meshmakers/shared-ui';
@@ -22,10 +24,12 @@ import { firstValueFrom } from 'rxjs';
 
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { PersistedMeshBoard } from '../../services/meshboard-persistence.service';
+import { MESHBOARD_DESCRIPTION_MARKER, readMeshBoardNavigation } from '../../utils/meshboard-description-codec';
 
 /**
  * Dialog for managing multiple MeshBoards.
- * Provides actions to switch, create, rename, and delete MeshBoards.
+ * Provides actions to switch, create, rename, delete, and pin MeshBoards
+ * (pinned boards appear in the host app's end-user navigation).
  */
 @Component({
   selector: 'mm-meshboard-manager-dialog',
@@ -60,7 +64,7 @@ export class MeshBoardManagerDialogComponent implements OnInit {
   private readonly DASHBOARD_CK_TYPE_ID = 'System.UI/Dashboard';
 
   // Marker used in description to encode variables (same as in persistence service)
-  private readonly VARIABLES_MARKER = '---MESHBOARD_VARIABLES---';
+  private readonly VARIABLES_MARKER = MESHBOARD_DESCRIPTION_MARKER;
 
   /**
    * Gets the tenant ID provider from either external property or DI.
@@ -79,11 +83,14 @@ export class MeshBoardManagerDialogComponent implements OnInit {
   protected readonly downloadIcon = downloadIcon;
   protected readonly uploadIcon = uploadIcon;
   protected readonly copyIcon = copyIcon;
+  protected readonly pinIcon = pinIcon;
+  protected readonly unpinIcon = unpinIcon;
 
-  // Export/Import/Duplicate state
+  // Export/Import/Duplicate/Pin state
   protected readonly isExporting = signal(false);
   protected readonly isImporting = signal(false);
   protected readonly isDuplicating = signal(false);
+  protected readonly isPinning = signal(false);
 
   // State - use computed to ensure reactivity
   protected readonly meshBoards = computed(() => this.stateService.availableMeshBoards());
@@ -159,6 +166,27 @@ export class MeshBoardManagerDialogComponent implements OnInit {
     }
     // Include a newline before the marker to separate from the user description
     return '\n' + meshBoard.description.substring(markerIndex);
+  }
+
+  /**
+   * Whether a MeshBoard is pinned to the host app's end-user navigation.
+   */
+  isPinned(meshBoard: PersistedMeshBoard): boolean {
+    return readMeshBoardNavigation(meshBoard.description)?.pinned === true;
+  }
+
+  /**
+   * Pins or unpins a MeshBoard for the host app's end-user navigation.
+   */
+  async togglePinned(meshBoard: PersistedMeshBoard): Promise<void> {
+    this.isPinning.set(true);
+    try {
+      await this.stateService.setMeshBoardPinned(meshBoard.rtId, !this.isPinned(meshBoard));
+    } catch (err) {
+      console.error('Error pinning MeshBoard:', err);
+    } finally {
+      this.isPinning.set(false);
+    }
   }
 
   /**

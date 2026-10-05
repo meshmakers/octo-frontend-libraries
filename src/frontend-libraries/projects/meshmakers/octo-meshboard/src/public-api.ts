@@ -20,6 +20,19 @@ export {
   RuntimeEntityDialogDataSource
 } from './lib/utils/runtime-entity-data-sources';
 
+// Description codec: the encoded settings blob (variables, time filter,
+// navigation pin, …) that MeshBoards persist in their description field
+export {
+  MESHBOARD_DESCRIPTION_MARKER,
+  splitEncodedDescription,
+  joinEncodedDescription,
+  readMeshBoardNavigation,
+  withMeshBoardNavigation,
+  normalizeNavigation,
+  compareMeshBoardNavigation
+} from './lib/utils/meshboard-description-codec';
+export type { EncodedDescription } from './lib/utils/meshboard-description-codec';
+
 // Query family classification (runtime vs stream-data persistent queries)
 export type { QueryFamily, QueryKind, QueryClassification } from './lib/utils/query-family';
 export { classifyQuery, queryFamily } from './lib/utils/query-family';

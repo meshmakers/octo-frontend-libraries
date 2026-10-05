@@ -478,6 +478,24 @@ export class MeshBoardStateService {
   }
 
   /**
+   * Pins or unpins the specified MeshBoard for the host app's end-user
+   * navigation and refreshes the list. The active board's config follows, so
+   * a later save does not revert the change.
+   */
+  async setMeshBoardPinned(rtId: string, pinned: boolean): Promise<void> {
+    const meshBoard = this._availableMeshBoards().find(m => m.rtId === rtId);
+    if (!meshBoard) {
+      return;
+    }
+    await this.persistenceService.setMeshBoardPinned(meshBoard, pinned);
+    await this.refreshMeshBoardList();
+
+    if (this._persistedMeshBoardId() === rtId) {
+      this.updateConfig(c => ({ ...c, navigation: pinned ? { pinned: true, order: c.navigation?.order } : undefined }));
+    }
+  }
+
+  /**
    * Duplicates an existing MeshBoard including all its widgets, variables, and time filter settings.
    * Returns the rtId of the newly created MeshBoard.
    */
