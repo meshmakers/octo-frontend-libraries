@@ -251,14 +251,44 @@ Aliases kept for one release: `--lcars-font-primary` → `--theme-font-display`,
 `--lcars-font-mono` → `--theme-font-mono`, `--lcars-radius-sm/md/lg` →
 `--theme-radius-sm/md/lg`, `--lcars-input-focus` → `--theme-focus-ring`,
 `--lcars-transition-fast/-normal` → `--theme-motion-fast/-base` + easing (so
-reduced motion reaches them). `--lcars-glow-*` and `--lcars-btn-base*` still
-carry the LCARS look and are removed with the LCARS classes (AB#5526).
+reduced motion reaches them). Since AB#5526 `--lcars-glow-*` resolve to `none`,
+`--lcars-btn-base` to `transparent` and `--lcars-btn-base-hover` to
+`--theme-bg-hover`; nothing in the library uses them any more and they are
+deleted in AB#5526 phase 2.
 
-Body text: `octo.styles()` sets `body { font-family: var(--lcars-font-primary) }`,
-which now resolves to `--theme-font-display`, so body text **stays Montserrat**
-for now; Kendo components (`--kendo-font-family`) and anything that opts into
-`--theme-font-ui` use Roboto. Switching body text to Roboto is
-deferred to AB#5526.
+Body text: `octo.styles()` sets `body { font-family: var(--theme-font-ui) }`
+(Roboto) since AB#5526; `h1`–`h3`, page and dialog titles, `mm-page` titles and
+KPI numbers use `--theme-font-display` (Montserrat 600).
+
+### Component styling in `octo.styles()` (Deep Sea, AB#5526)
+
+- **Buttons are flat**: primary = `--theme-accent` with `--theme-text-on-accent`
+  (hover `--theme-accent-hover`), base = `--theme-bg-elevated` with a
+  `--theme-border-default` hairline (hover `--theme-bg-hover` +
+  `--theme-border-strong`), outline/flat variants transparent; error =
+  `--theme-status-error`. Sentence case, `--theme-font-ui`, `--theme-radius-sm`,
+  keyboard focus `--theme-focus-ring`. Both themes use the same rules, so the
+  former light-only button overrides are no-ops.
+- **No decoration**: no gradients, glows, pulses, scanlines or text-shadows;
+  grid headers, tabs, dialog titles and context menus are sentence case; popups,
+  dialogs and menus use `--theme-bg-overlay` + `--theme-border-default` +
+  `--theme-shadow-popup`; the drawer is flat `--theme-bg-elevated`.
+- **`theme-overrides()`**: `light-theme-surface-overrides` was reduced to what
+  the tokens cannot express (the old light card, `#d7ebe5` table band, drawer
+  and app-bar treatments are gone — both themes agree now). It also emits a
+  sentence-case rule (`html:root .k-label, kendo-label, .section-title`) that
+  outranks host component styles in both themes.
+- **Retiring LCARS classes** (deleted in AB#5526 phase 2, kept *neutral* until
+  then for the Studio areas not yet on `mm-page` and for the Meshmakers App):
+  `.lcars-page-header`, `.page-title` / `.title-prefix` / `.title-main`,
+  `.header-content`, `.header-stats`, `.stat-badge`, `.lcars-content-panel`
+  (surface card), `.lcars-panel`, `.lcars-panel-asymmetric` (now symmetric),
+  `.lcars-header-bar`, `.lcars-divider`, `.lcars-text-*`, `.lcars-bg-*`,
+  `.lcars-border-mint`; `.lcars-header-accent`, `.lcars-header-line`,
+  `.panel-accent-top/-bottom`, `.lcars-footer` and `.footer-*` render nothing
+  (`display: none` — the "READY" footer has no successor). `.lcars-glow-*`,
+  `.lcars-scanline`, `.lcars-pulse`, `.lcars-corner-accent` and
+  `.lcars-border-glow` were removed. New pages use `<mm-page>`.
 
 Deviations from concept §6.2 (contrast-driven): light `--theme-text-accent` /
 `--theme-accent` `#2c7d6d` (concept `#2e8473`, 4.16:1 on the light canvas →

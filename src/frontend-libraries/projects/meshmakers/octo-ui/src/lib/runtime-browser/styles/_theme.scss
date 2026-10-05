@@ -234,41 +234,37 @@
 }
 
 // ----------------------------------------------------------------------------
-// Light-theme button contrast — the library's primary/base button gradients
-// (mint at 15–30% alpha) read fine on dark surfaces but wash out on white,
-// leaving confirmation-dialog buttons hard to tell apart and the secondary
-// button looking disabled. Apply solid theme-token fills in light mode.
+// Light-theme buttons (AB#5526).
 //
-// Dialog/window action buttons are styled by the lcars-button mixin scoped to
-// `.k-dialog .k-dialog-actions` (and friends), which has specificity (0,4,0).
-// These selectors have to match or beat that — they land at (0,5,1).
+// Buttons are flat and token-driven in both themes now (_lcars-button.scss and
+// the `.k-button` block in _styles.scss: primary = --theme-accent with
+// --theme-text-on-accent, base = --theme-bg-elevated with a neutral border),
+// so the light theme needs no separate treatment. The mixins stay — they are
+// forwarded by the styles entry point — and emit the same flat token rules,
+// which also keeps dialog action rows (specificity (0,4,0) from the
+// lcars-button mixin) and page buttons identical.
 // ----------------------------------------------------------------------------
 @mixin light-theme-button-primary {
-  background: var(--theme-text-accent);
-  border-color: var(--theme-text-accent);
-  color: #ffffff;
+  background: var(--theme-accent);
+  border-color: var(--theme-accent);
+  color: var(--theme-text-on-accent);
 
   .k-svg-icon,
   .k-icon,
   svg {
-    fill: #ffffff;
-    color: #ffffff;
+    fill: var(--theme-text-on-accent);
+    color: var(--theme-text-on-accent);
   }
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--theme-text-accent) 88%, black);
-    border-color: color-mix(in srgb, var(--theme-text-accent) 88%, black);
-    box-shadow: var(--theme-glow-accent);
-  }
-
-  &:active:not(:disabled) {
-    background: color-mix(in srgb, var(--theme-text-accent) 75%, black);
+    background: var(--theme-accent-hover);
+    border-color: var(--theme-accent-hover);
   }
 }
 
 @mixin light-theme-button-base {
   background: var(--theme-bg-elevated);
-  border-color: var(--theme-border-strong);
+  border-color: var(--theme-border-default);
   color: var(--theme-text-primary);
 
   .k-svg-icon,
@@ -279,196 +275,46 @@
   }
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--theme-text-accent) 12%, var(--theme-bg-elevated));
-    border-color: var(--theme-text-accent);
-  }
-
-  &:active:not(:disabled) {
-    background: color-mix(in srgb, var(--theme-text-accent) 20%, var(--theme-bg-elevated));
+    background: var(--theme-bg-hover);
+    border-color: var(--theme-border-strong);
   }
 }
 
 // ----------------------------------------------------------------------------
-// Light-theme structure.
+// Light-theme structure (reworked in AB#5526, concept §6.5).
 //
-// The LCARS palette is built to glow, and glowing means light. Ported to a
-// light ground by inverting lightness alone, every role it plays collapses:
-// octo-mint carries 9.49:1 as text on #07172b and 1.75:1 on #f3f6fa, and the
-// mint tints that draw every panel edge fall from 1.53:1 to 1.12:1.
-//
-// So the ROLE changes with the theme, not just the value: in dark, colour is
-// the figure — thin bright lines and glowing text. In light, colour becomes
-// the ground — solid brand blocks carrying dark text, structure carried by
-// surface elevation and neutral rules. That is also closer to real LCARS,
-// which is built from coloured blocks rather than hairlines. The proof is in
-// the same number: #07172b on #64ceb9 is again 9.49:1 — one pair, two roles.
+// Dark and light now follow the same rules — surfaces carry structure,
+// borders are neutral hairlines, no glows — so the former light-only card,
+// table band (#d7ebe5), drawer and app-bar treatments were deleted: the
+// token values handle both themes. What is left is only what the tokens
+// cannot express.
 // ----------------------------------------------------------------------------
 @mixin light-theme-surface-overrides {
-  // DEFERRED to AB#5526: this block predates Deep Sea and still hard-codes the
-  // light card/band/drawer treatment. It is reworked (and largely deleted
-  // where dark and light now agree) together with the LCARS classes it
-  // targets. Until then only the accent hue is kept consistent: former
-  // rgba(46,132,115,…) tints derive from --theme-accent.
-  // Cards lift off the ground again.
-  .k-grid,
-  .lcars-content-panel,
-  .lcars-panel {
-    background: #ffffff;
-    border: 1px solid rgba(7, 23, 43, 0.1);
-    box-shadow: 0 1px 3px rgba(7, 23, 43, 0.07);
+  // MeshBoard tiles keep their !important surfaces from styles(); restate
+  // the hairline hover so the light canvas does not get the dark shadow.
+  kendo-tilelayout kendo-tilelayout-item:hover {
+    box-shadow: var(--theme-shadow-panel);
   }
+}
 
-  // A grid inside a content panel must not become a second card: the panel
-  // already supplies the border, the radius and the surface. Two nested cards
-  // is what left the toolbar's rounded top corners floating inside a white
-  // sheet, with a transparent filter strip wedged between them.
-  .lcars-content-panel .k-grid {
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-  }
+// Kept as a no-op for hosts that include it directly: dark and light buttons
+// are identical now (see above).
+@mixin light-theme-button-overrides {
+  // intentionally empty
+}
 
-  // MeshBoard tiles are cards too. The shared tile rules paint them with the
-  // dark theme's translucent surfaces (tile --surface-elevated-60, body
-  // --deep-sea-50), which on the light page resolve to two greys on grey: a
-  // chart tile read as a tinted slab while a table tile looked white only
-  // because the grid inside paints its own white. One treatment for every
-  // widget, the same as the other cards above; the !important matches the
-  // base rules', which would otherwise keep winning.
-  kendo-tilelayout kendo-tilelayout-item {
-    background: #ffffff !important;
-    border: 1px solid rgba(7, 23, 43, 0.1) !important;
-    box-shadow: 0 1px 3px rgba(7, 23, 43, 0.07);
-
-    &:hover {
-      border-color: rgba(7, 23, 43, 0.18) !important;
-      box-shadow: 0 2px 8px rgba(7, 23, 43, 0.1);
-    }
-
-    kendo-tilelayout-item-body {
-      background: #ffffff !important;
-    }
-  }
-
-  // Table chrome. In dark the header/toolbar/pager band is LIGHTER than the
-  // data; on a light ground it has to be darker, or the table loses its frame
-  // and reads as a borderless white slab.
-  .k-grid .k-grid-header,
-  .k-grid-toolbar,
-  .k-toolbar,
-  .k-pager,
-  .k-grid-pager {
-    background: #d7ebe5;
-    border-color: color-mix(in srgb, var(--theme-accent) 30%, transparent);
-  }
-
-  .k-grid .k-grid-header {
-    border-bottom: 2px solid color-mix(in srgb, var(--theme-accent) 45%, transparent);
-  }
-
-  .k-pager,
-  .k-grid-pager {
-    border-top: 1px solid color-mix(in srgb, var(--theme-accent) 30%, transparent);
-  }
-
-  .k-grid .k-grid-content {
-    background: #ffffff;
-  }
-
-  // Uppercase plus letter-spacing costs width and legibility in a dense table,
-  // and mint column headers are unreadable on a light band anyway.
-  .k-grid .k-grid-header th {
-    color: var(--theme-text-primary);
-    text-transform: none;
-    letter-spacing: 0;
-    font-weight: 600;
-  }
-
+// ----------------------------------------------------------------------------
+// Sentence case in both themes (concept §6.3: no uppercase + letter-spacing
+// labels). Component stylesheets of host apps still set it on labels and
+// section titles; `html:root` (0,2,1) outranks their (0,2,0) attribute-scoped
+// selectors. Removed once the hosts are migrated (AB#5526 phase 2).
+// ----------------------------------------------------------------------------
+@mixin sentence-case-overrides {
   .k-label,
   kendo-label,
   .section-title {
     text-transform: none;
-    letter-spacing: 0;
-  }
-
-  // Brand as block, never as ink.
-  .lcars-header-accent {
-    background: var(--octo-mint);
-    border-radius: 4px;
-    box-shadow: none;
-  }
-
-  .page-title .title-prefix {
-    background: var(--octo-mint);
-    color: #07172b;
-    padding: 3px 10px;
-    border-radius: 3px;
-    font-weight: 700;
-  }
-
-  .page-title .title-main {
-    color: var(--theme-text-primary);
-  }
-
-  .lcars-header-line {
-    background: rgba(7, 23, 43, 0.1);
-    height: 1px;
-  }
-
-  .k-drawer .k-drawer-item.k-selected {
-    background: var(--octo-mint);
-    color: #07172b;
-    border-left: none;
-    font-weight: 600;
-
-    // The count badge is mint-on-mint once the row itself is a mint block.
-    .drawer-badge {
-      color: #07172b;
-      background: rgba(255, 255, 255, 0.8);
-      border-color: rgba(7, 23, 43, 0.18);
-    }
-  }
-
-  // The app bar carried four treatments on one edge: a 1px mint border
-  // (1.18:1 — invisible), the 2px gradient ::after the host draws, a
-  // dark-theme drop shadow, and the host's breadcrumb wash. Keep the gradient
-  // as the single statement.
-  .k-appbar {
-    border-bottom: none;
-    box-shadow: 0 1px 2px rgba(7, 23, 43, 0.08);
-  }
-
-  // Decoration that carries the theme in dark and carries nothing in light.
-  .lcars-status-bar,
-  .lcars-footer .footer-bar {
-    display: none;
-  }
-}
-
-@mixin light-theme-button-overrides {
-  // Dialog action buttons (kendo-dialog-actions used by ConfirmationService etc.)
-  .k-dialog .k-dialog-actions,
-  .k-window > .k-actions {
-    .k-button.k-button-solid-primary,
-    .k-button.k-button-primary,
-    .k-button[themecolor="primary"] {
-      @include light-theme-button-primary;
-    }
-
-    // Base/default button (the "No"/"Cancel"/secondary action)
-    .k-button:not(.k-button-primary):not(.k-button-solid-primary):not([themecolor="primary"]):not(.k-button-flat):not(.k-button-outline):not([themecolor="error"]) {
-      @include light-theme-button-base;
-    }
-  }
-
-  // General-purpose primary/base buttons outside dialogs (top-level scope so
-  // host-app pages get the same emphasis without each page having to opt in)
-  .k-button.k-button-solid-primary {
-    @include light-theme-button-primary;
-  }
-
-  .k-button.k-button-solid-base {
-    @include light-theme-button-base;
+    letter-spacing: normal;
   }
 }
 
@@ -603,15 +449,17 @@
 // style budget.
 // ----------------------------------------------------------------------------
 @mixin theme-overrides {
+  html:root {
+    @include sentence-case-overrides;
+  }
+
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
       @include light-theme-surface-overrides;
-      @include light-theme-button-overrides;
     }
   }
 
   :root[data-theme="light"] {
     @include light-theme-surface-overrides;
-    @include light-theme-button-overrides;
   }
 }

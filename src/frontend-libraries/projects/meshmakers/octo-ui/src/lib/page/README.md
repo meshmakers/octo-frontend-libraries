@@ -5,7 +5,9 @@ It replaces the LCARS triple `lcars-page-header` / `lcars-content-panel` /
 `lcars-footer`: an **optional header** (title, subtitle, actions) above a
 **content area**. There is no footer — the LCARS "READY" bar has no successor.
 
-Existing pages are migrated to it per area in AB#5526.
+Existing pages are migrated to it per area in AB#5526 (phase 1 done for most
+Studio areas and `mm-runtime-browser`; the remaining LCARS page classes in
+`octo.styles()` are neutral until phase 2 deletes them).
 
 ## Usage
 

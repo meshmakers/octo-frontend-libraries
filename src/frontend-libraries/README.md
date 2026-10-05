@@ -131,7 +131,7 @@ npm run codegen
 
 ### Theme-Agnostic Components
 
-All library components **must use neutral, theme-agnostic styling**. No LCARS-specific or other theme-specific colors, fonts, or design language should appear in library code.
+All library components **must use neutral, theme-agnostic styling**. No theme-specific colors, fonts, or design language should appear in library code.
 
 Components use **CSS custom properties (variables)** with neutral defaults, so host applications can apply their own theme via overrides.
 
@@ -173,7 +173,7 @@ All CSS custom properties follow the pattern `--mm-{component}-{property}`:
 
 ### Important Notes
 
-- Theme-specific styling (e.g., LCARS dark theme) is the responsibility of the consuming host application
+- Theme-specific styling (e.g., the Deep Sea theme) is the responsibility of the consuming host application
 - Host apps set overrides in their `styles.scss` by targeting the component selector
 - Components rendered outside the component scope (e.g., Kendo popups) may need direct global styles in the host app in addition to CSS variable overrides
 

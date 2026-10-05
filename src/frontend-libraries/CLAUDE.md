@@ -60,8 +60,8 @@ The full command reference is in [Testing (Vitest)](#testing-vitest) below.
 - New shared components should have:
   - Developer documentation in the component folder
   - Demo page in demo-app with usage examples
-- **All library components must use neutral/theme-agnostic styling** — no LCARS-specific colors, fonts, or design language. Use CSS custom properties (variables) with neutral defaults so host applications can apply their own theme.
-- Theme-specific styling (e.g., LCARS) is the responsibility of the consuming host application (via `styles.scss` or CSS variable overrides)
+- **All library components must use neutral/theme-agnostic styling** — no app-specific colors, fonts, or design language. Use CSS custom properties (variables) with neutral defaults so host applications can apply their own theme.
+- Theme-specific styling (e.g., the Deep Sea theme) is the responsibility of the consuming host application (via `styles.scss` or CSS variable overrides)
 
 ## Testing (REQUIRED)
 
