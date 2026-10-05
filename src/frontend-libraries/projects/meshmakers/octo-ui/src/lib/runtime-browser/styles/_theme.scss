@@ -79,7 +79,7 @@
   // Text (pure white is too hot on navy)
   --theme-text-primary: #e6edf5;
   --theme-text-secondary: #9aa8bb;
-  --theme-text-muted: #687890;
+  --theme-text-muted: #77869c; // ≥ 4.5:1 on bg-input/app/surface (placeholders)
   --theme-text-on-accent: #07172b;
   --theme-text-accent: #64ceb9;
   --theme-text-code: #c6d2de; // (new)
@@ -171,9 +171,9 @@
 
   --theme-text-primary: #0f1c2e;
   --theme-text-secondary: #4b5a6e;
-  --theme-text-muted: #75829a;
+  --theme-text-muted: #657189; // ≥ 4.5:1 on bg-input/app
   --theme-text-on-accent: #ffffff;
-  --theme-text-accent: #2e8473;
+  --theme-text-accent: #2c7d6d; // ≥ 4.5:1 on bg-app (#f4f6f9) and bg-surface
   --theme-text-code: #1f2d40;
 
   // Neutral, not mint. A mint hairline measures 1.12:1 on a light ground —
@@ -182,11 +182,11 @@
   --theme-border-default: rgba(7, 23, 43, 0.12);
   --theme-border-strong: rgba(7, 23, 43, 0.22);
   --theme-border-divider: var(--theme-border-subtle);
-  --theme-focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #2e8473;
+  --theme-focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #2c7d6d;
 
-  --theme-accent: #2e8473;
-  --theme-accent-hover: #266f61;
-  --theme-accent-subtle: rgba(46, 132, 115, 0.1);
+  --theme-accent: #2c7d6d;
+  --theme-accent-hover: #24685a;
+  --theme-accent-subtle: rgba(44, 125, 109, 0.1);
   --theme-accent-2: #0277a6;
   --theme-ai: #6c4da8;
   --theme-ai-subtle: rgba(108, 77, 168, 0.1);
