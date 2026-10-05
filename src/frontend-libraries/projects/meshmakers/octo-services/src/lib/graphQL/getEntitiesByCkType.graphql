@@ -1,5 +1,11 @@
+# Generic runtime selection — SECRET-safe (AB#5542): `attributes` is restricted to
+# `$attributeNames`. It defaults to `[]` (no attributes) so callers that only need the
+# rt* system fields stay safe; callers that read attributes must pass an explicit camelCase
+# list (see `toAttributeNameFilter`). Omitting the argument would return EVERY attribute,
+# passwords and client secrets included.
 query getEntitiesByCkType(
   $ckTypeId: String!
+  $attributeNames: [String!]! = []
   $rtId: OctoObjectId
   $after: String
   $first: Int
@@ -26,7 +32,7 @@ query getEntitiesByCkType(
         rtDisplayDescription
         rtCreationDateTime
         rtChangedDateTime
-        attributes(resolveEnumValuesToNames: true) {
+        attributes(attributeNames: $attributeNames, resolveEnumValuesToNames: true) {
           items {
             attributeName
             value

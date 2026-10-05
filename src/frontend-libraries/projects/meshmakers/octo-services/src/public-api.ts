@@ -12,6 +12,7 @@ export * from './lib/shared/graphQL';
 export * from './lib/shared/ckTypeMetaData';
 export * from './lib/shared/rtAssociationMetaData';
 export * from './lib/shared/levelMetaData';
+export * from './lib/shared/secret-safe-attributes';
 export * from './lib/shared/octo-error-link';
 export * from './lib/shared/externalLoginDto';
 export * from './lib/shared/userDto';

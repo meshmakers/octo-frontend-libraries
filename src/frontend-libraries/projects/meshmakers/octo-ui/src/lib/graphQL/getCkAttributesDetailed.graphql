@@ -30,6 +30,10 @@ query getCkAttributesDetailed($ckId: String!) {
                 }
               }
               defaultValues
+              metaData {
+                key
+                value
+              }
             }
           }
         }

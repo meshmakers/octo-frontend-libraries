@@ -791,6 +791,8 @@ export class RuntimeBrowserComponent implements AfterViewInit {
           variables: {
             ckTypeId: ckTypeId,
             rtId: rtId,
+            // Existence check only — no attributes (SECRET-safe, AB#5542).
+            attributeNames: [],
           },
         }),
       );

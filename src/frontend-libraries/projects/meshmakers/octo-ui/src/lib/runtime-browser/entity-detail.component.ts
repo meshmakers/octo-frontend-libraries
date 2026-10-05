@@ -21,6 +21,7 @@ import { EntitySelectorDialogService } from '../entity-selector-dialog';
 import { EntityDetailViewComponent } from './components/entity-detail-view.component';
 import { DataPointMappingItem } from './components/data-mapping/data-mapping-list.component';
 import { EntityDetailDataSource } from './data-sources/entity-detail-data-source.service';
+import { DATA_POINT_MAPPING_ATTRIBUTE_NAMES } from './services/secret-safe-attribute-names.service';
 import { RtEntityId, RtEntityIdHelper } from './models/rt-entity-id';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
@@ -244,7 +245,7 @@ export class EntityDetailComponent implements OnInit, OnDestroy {
     try {
       const entityResult = await firstValueFrom(
         this.getEntityByIdGQL.fetch({
-          variables: { rtId, ckTypeId },
+          variables: { rtId, ckTypeId, attributeNames: [...DATA_POINT_MAPPING_ATTRIBUTE_NAMES] },
         }),
       );
 

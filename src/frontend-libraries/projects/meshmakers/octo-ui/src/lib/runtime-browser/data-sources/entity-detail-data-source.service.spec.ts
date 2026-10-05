@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
 import { RtEntityDto } from '@meshmakers/octo-services';
 import { EntityDetailDataSource } from './entity-detail-data-source.service';
+import { SecretSafeAttributeNamesService } from '../services/secret-safe-attribute-names.service';
 
 describe('EntityDetailDataSource', () => {
   let service: EntityDetailDataSource;
@@ -40,6 +41,10 @@ describe('EntityDetailDataSource', () => {
     fetch: vi.fn().mockName('fetch').mockReturnValue(of(mockGQLResponse)),
   };
 
+  const mockSecretSafeNames = {
+    forCkType: vi.fn().mockName('forCkType').mockResolvedValue(['name', 'description']),
+  };
+
   beforeEach(async () => {
     // Suppress expected console.error messages in error tests
     consoleErrorSpy = vi.spyOn(console, 'error').mockReturnValue(undefined);
@@ -51,6 +56,7 @@ describe('EntityDetailDataSource', () => {
           provide: GetRuntimeEntityByIdDtoGQL,
           useValue: mockGetRuntimeEntityByIdGQL,
         },
+        { provide: SecretSafeAttributeNamesService, useValue: mockSecretSafeNames },
       ],
     }).compileComponents();
 
@@ -83,6 +89,14 @@ describe('EntityDetailDataSource', () => {
       const callArgs = vi.mocked(mockGetRuntimeEntityByIdGQL.fetch).mock.lastCall![0];
       expect(callArgs.variables.rtId).toBe('entity-123');
       expect(callArgs.variables.ckTypeId).toBe('Custom/Type');
+    });
+
+    it('requests only the secret-safe attribute names of the type (AB#5542)', async () => {
+      await service.fetchEntityDetails('entity-123', 'Custom/Type');
+
+      expect(mockSecretSafeNames.forCkType).toHaveBeenCalledWith('Custom/Type');
+      const callArgs = vi.mocked(mockGetRuntimeEntityByIdGQL.fetch).mock.lastCall![0];
+      expect(callArgs.variables.attributeNames).toEqual(['name', 'description']);
     });
 
     it('should return null when entity not found', async () => {

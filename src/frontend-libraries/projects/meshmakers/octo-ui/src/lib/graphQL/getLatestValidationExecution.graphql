@@ -1,3 +1,4 @@
+# SECRET-safe (AB#5542): explicit attribute list — only the execution result is read.
 query getLatestValidationExecution(
   $pipelineRtId: OctoObjectId!
   $pipelineCkTypeId: String!
@@ -20,7 +21,7 @@ query getLatestValidationExecution(
             items {
               rtId
               ckTypeId
-              attributes(resolveEnumValuesToNames: true) {
+              attributes(attributeNames: ["outputData", "completedAt"], resolveEnumValuesToNames: true) {
                 items {
                   attributeName
                   value

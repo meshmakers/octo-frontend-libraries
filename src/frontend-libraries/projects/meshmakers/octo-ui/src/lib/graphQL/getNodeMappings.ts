@@ -31,7 +31,10 @@ export const GetNodeMappingsDocumentDto = gql`
             items {
               rtId
               ckTypeId
-              attributes(resolveEnumValuesToNames: true) {
+              attributes(
+                attributeNames: ["name", "enabled", "sourceAttributePath", "targetAttributePath", "mappingExpression"]
+                resolveEnumValuesToNames: true
+              ) {
                 items {
                   attributeName
                   value

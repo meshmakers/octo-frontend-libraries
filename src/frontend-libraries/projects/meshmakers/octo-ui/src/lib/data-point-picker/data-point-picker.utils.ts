@@ -20,6 +20,13 @@
  */
 export const DEFAULT_DATA_POINT = 'currentValue';
 
+/**
+ * Attributes {@link extractDataPoints} reads, as the SECRET-safe `attributeNames` filter of
+ * `getRuntimeEntityById` (AB#5542). The filter also applies inside records, so the record
+ * sub-attributes (`name`, `currentValue`) are part of the same list.
+ */
+export const DATA_POINT_ATTRIBUTE_NAMES: readonly string[] = ['currentValue', 'states', 'dataPoints', 'name'];
+
 /** Minimal shape we accept for an attribute item. */
 export interface AttributeItemLike {
   attributeName?: string | null;

@@ -472,13 +472,14 @@ export class DataMappingOverviewComponent implements OnInit {
     const attrs = entity.attributes?.items ?? [];
     const assocs = entity.associations?.definitions?.items ?? [];
 
-    const getAttr = (name: string): string =>
-      (attrs.find(a => a?.attributeName === name)?.value as string) ?? '';
+    // The server returns camelCase attribute names; compare case-insensitively.
+    const findAttr = (name: string) => attrs.find(a => a?.attributeName?.toLowerCase() === name.toLowerCase());
+    const getAttr = (name: string): string => (findAttr(name)?.value as string) ?? '';
 
     const mapsFrom = assocs.find(a => a && String(a.ckAssociationRoleId).includes('MapsFrom'));
     const mapsTo = assocs.find(a => a && String(a.ckAssociationRoleId).includes('MapsTo'));
 
-    const enabledRaw = attrs.find(a => a?.attributeName === 'Enabled')?.value;
+    const enabledRaw = findAttr('Enabled')?.value;
     const enabled = enabledRaw === true || enabledRaw === 'true' || enabledRaw === 'True';
 
     return {
@@ -559,13 +560,14 @@ export class DataMappingOverviewComponent implements OnInit {
       try {
         const result = await firstValueFrom(
           this.getEntityByIdGQL.fetch({
-            variables: { rtId: ref.rtId, ckTypeId: ref.ckTypeId },
+            // Only the display name is needed (SECRET-safe explicit list, AB#5542).
+            variables: { rtId: ref.rtId, ckTypeId: ref.ckTypeId, attributeNames: ['name'] },
           })
         );
         const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
         if (entity) {
           const nameAttr = entity.attributes?.items?.find(
-            a => a?.attributeName === 'Name'
+            a => a?.attributeName?.toLowerCase() === 'name'
           );
           const name = nameAttr?.value as string
             ?? entity.rtWellKnownName

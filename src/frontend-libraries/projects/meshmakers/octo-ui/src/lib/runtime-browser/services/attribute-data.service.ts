@@ -1,10 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, of } from 'rxjs';
+import { Observable, from, map, of, switchMap } from 'rxjs';
 import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
 import { RtEntityValuesResponse } from '../components/attributes-group/attributes-group.component';
 import { Attribute } from '../models/attribute';
 import { AttributeMapperService } from './attribute-mapper.service';
 import { AttributeMetadataResolverService } from './attribute-metadata-resolver.service';
+import { SecretSafeAttributeNamesService } from './secret-safe-attribute-names.service';
 
 /**
  * Fetches form-ready attribute definitions and runtime entity values for the repository browser.
@@ -22,6 +23,7 @@ export class AttributeDataService {
   private readonly getRtEntityAttributesGQL = inject(
     GetRuntimeEntityByIdDtoGQL,
   );
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   /** Observable of attribute list for a CK type or record. Sorted: required first, optional last. */
   getAttributesDefinition$(
@@ -62,32 +64,37 @@ export class AttributeDataService {
     });
   }
 
-  /** Fetches runtime entity attribute items by rtId and ckTypeId; returns empty array when absent. */
+  /**
+   * Fetches runtime entity attribute items by rtId and ckTypeId; returns empty array when absent.
+   * Only the type's non-secret attributes are read (SECRET-safe, AB#5542) — secrets stay
+   * write-only in the edit form.
+   */
   private fetchRtEntityAttributes(
     rtId: string,
     ckTypeId: string,
   ): Observable<RtEntityValuesResponse['initial']> {
-    return this.getRtEntityAttributesGQL
-      .fetch({ variables: { rtId: rtId, ckTypeId: ckTypeId } })
-      .pipe(
-        map((res) => {
-          const items =
-            res.data?.runtime?.runtimeEntities?.items?.[0]?.attributes?.items ??
-            [];
-          return items
-            .filter(
-              (
-                item,
-              ): item is {
-                attributeName?: string | null;
-                value?: unknown | null;
-              } => !!item?.attributeName,
-            )
-            .map((item) => ({
-              attributeName: item.attributeName ?? '',
-              value: item.value ?? null,
-            }));
-        }),
-      );
+    return from(this.secretSafeNames.forCkType(ckTypeId)).pipe(
+      switchMap((attributeNames) =>
+        this.getRtEntityAttributesGQL.fetch({ variables: { rtId, ckTypeId, attributeNames } }),
+      ),
+      map((res) => {
+        const items =
+          res.data?.runtime?.runtimeEntities?.items?.[0]?.attributes?.items ??
+          [];
+        return items
+          .filter(
+            (
+              item,
+            ): item is {
+              attributeName?: string | null;
+              value?: unknown | null;
+            } => !!item?.attributeName,
+          )
+          .map((item) => ({
+            attributeName: item.attributeName ?? '',
+            value: item.value ?? null,
+          }));
+      }),
+    );
   }
 }

@@ -117,6 +117,7 @@ import {
                               [isRecord]="true"
                               [parentFormGroup]="asFormGroup(item)"
                               [initialValues]="getRawInitialValue(attr.attributeName, $index)"
+                              [secretsWriteOnly]="secretsWriteOnly()"
                               [messages]="_messages"
                             />
                           </div>
@@ -173,6 +174,7 @@ import {
                         asFormGroup(parentFormGroup().get(attr.attributeName)!)
                       "
                       [initialValues]="getRawInitialValue(attr.attributeName)"
+                      [secretsWriteOnly]="secretsWriteOnly()"
                       [messages]="_messages"
                     />
                   </div>
@@ -269,6 +271,7 @@ import {
                 [control]="parentFormGroup().get(attr.attributeName)!"
                 [baselineValue]="getBaselineValue(attr.attributeName)"
                 [fieldId]="attr.attributeName"
+                [hintText]="attr.secret && secretsWriteOnly() ? (_messages.secretWriteOnlyHint ?? '') : ''"
                 [errorMessage]="_messages.attributeField?.errorMessage ?? 'This field is required or invalid.'"
               >
                 @if (recognition.isNumber(attr.attributeValueType)) {
@@ -351,6 +354,13 @@ import {
                     valueField="key"
                     [valuePrimitive]="true"
                   />
+                } @else if (attr.secret) {
+                  <kendo-textbox
+                    type="password"
+                    autocomplete="new-password"
+                    [focusableId]="attr.attributeName"
+                    [formControlName]="attr.attributeName"
+                  />
                 } @else {
                   <kendo-textbox
                     [focusableId]="attr.attributeName"
@@ -387,6 +397,11 @@ export class AttributesGroupComponent {
   parentFormGroup = input.required<FormGroup>();
   isRecord = input<boolean>(false);
   initialValues = input<RawInitialValue[]>();
+  /**
+   * Edit mode for secrets (AB#5542): secret attributes start empty (their value is never read),
+   * are not required, and an empty value keeps the stored credential.
+   */
+  secretsWriteOnly = input<boolean>(false);
 
   protected _messages: RuntimeBrowserMessages = { ...DEFAULT_RUNTIME_BROWSER_MESSAGES };
   @Input() set messages(value: Partial<RuntimeBrowserMessages> | undefined) {
@@ -452,9 +467,12 @@ export class AttributesGroupComponent {
 
           // Use parsed initial when entity data exists; otherwise use attribute.value from resource (already has Default or Empty from mapper)
           const hasInitialFromEntity = rawValue !== undefined && rawValue !== null;
-          const finalValue = hasInitialFromEntity
-            ? this.mapper.getFormValueFromRawInitial(attrMetadata, rawValue)
-            : attrMetadata.value;
+          const writeOnlySecret = !!attrMetadata.secret && this.secretsWriteOnly();
+          const finalValue = writeOnlySecret
+            ? null
+            : hasInitialFromEntity
+              ? this.mapper.getFormValueFromRawInitial(attrMetadata, rawValue)
+              : attrMetadata.value;
 
           if (!form.contains(attrMetadata.attributeName)) {
             this.initializeControl(form, attrMetadata, finalValue);
@@ -534,10 +552,11 @@ export class AttributesGroupComponent {
       this.setBaselineForAttr(attr, initialValue);
       return;
     } else {
-      // Plain text/numeric/etc. field
+      // Plain text/numeric/etc. field. A write-only secret may stay empty (= keep, AB#5542).
+      const required = !attr.isOptional && !(attr.secret && this.secretsWriteOnly());
       control = new FormControl(
         initialValue,
-        attr.isOptional ? [] : [Validators.required],
+        required ? [Validators.required] : [],
       );
     }
 

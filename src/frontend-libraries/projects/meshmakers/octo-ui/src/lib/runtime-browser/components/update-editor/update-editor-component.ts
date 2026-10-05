@@ -27,6 +27,7 @@ import {
 import { AttributeCoordinatorService } from '../../services/attribute-coordinator.service';
 import { AttributeDataService } from '../../services/attribute-data.service';
 import { AttributeMapperService } from '../../services/attribute-mapper.service';
+import { SecretSafeAttributeNamesService } from '../../services/secret-safe-attribute-names.service';
 import { AttributesGroupComponent } from '../attributes-group/attributes-group.component';
 import { SharedEditor } from '../shared-editor/shared-editor';
 
@@ -91,6 +92,7 @@ import { SharedEditor } from '../shared-editor/shared-editor';
             [ckId]="updateInput().rtCkTypeId"
             [parentFormGroup]="form()!"
             [initialValues]="$safeNavigationMigration(entityData()?.initial)"
+            [secretsWriteOnly]="true"
             [isRecord]="false"
             [messages]="resolvedMessages()"
           />
@@ -157,6 +159,7 @@ export class UpdateEditorComponent {
   private readonly mapperService = inject(AttributeMapperService);
   private readonly coordinatorService = inject(AttributeCoordinatorService);
   private readonly sharedEditor = inject(SharedEditor);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   private dataLoaded = computed(() => !!this.entityData());
 
@@ -270,11 +273,14 @@ export class UpdateEditorComponent {
 
     try {
       const attributesMetadata = await this.fetchAttributesMetadata(rtCkTypeId);
-      const mappedAttributes = await firstValueFrom(
-        this.mapFormToAttributes$(
-          currentForm.getRawValue(),
-          attributesMetadata,
-        ),
+      const formValue = currentForm.getRawValue();
+      const mapped = await firstValueFrom(
+        this.mapFormToAttributes$(formValue, attributesMetadata),
+      );
+      const mappedAttributes = await this.withoutRecordsCarryingSecrets(
+        mapped,
+        input.ckTypeId,
+        formValue,
       );
 
       if (!this.hasValidMappedAttributes(mappedAttributes)) {
@@ -316,6 +322,41 @@ export class UpdateEditorComponent {
     } finally {
       this.isUpdating.set(false);
     }
+  }
+
+  /**
+   * Drops RECORD / RECORD_ARRAY attributes whose record type contains a secret (AB#5542). Their
+   * secret sub-values are never read, and a record is written as a whole, so saving the record
+   * would erase the stored secrets. Changed records are reported to the user instead.
+   */
+  private async withoutRecordsCarryingSecrets(
+    mapped: { attributeName: string; value: unknown }[],
+    ckTypeId: string,
+    formValue: Record<string, unknown>,
+  ): Promise<{ attributeName: string; value: unknown }[]> {
+    const { recordsWithSecrets } = await this.secretSafeNames.analyse(ckTypeId);
+    if (recordsWithSecrets.length === 0) return mapped;
+
+    const blocked = new Set(recordsWithSecrets.map((n) => n.toLowerCase()));
+    let initial: Record<string, unknown> = {};
+    try {
+      initial = JSON.parse(this.initialValue() ?? '{}') as Record<string, unknown>;
+    } catch {
+      initial = {};
+    }
+    const changed = Object.keys(formValue).some(
+      (key) =>
+        blocked.has(key.toLowerCase()) &&
+        JSON.stringify(formValue[key]) !== JSON.stringify(initial[key]),
+    );
+    if (changed) {
+      this.sharedEditor.showErrorNotification(
+        this.resolvedMessages().recordWithSecretNotSaved ??
+          DEFAULT_RUNTIME_BROWSER_MESSAGES.recordWithSecretNotSaved ??
+          '',
+      );
+    }
+    return mapped.filter((a) => !blocked.has(a.attributeName.toLowerCase()));
   }
 
   /** Fetches attribute definitions for the given runtime CK type (single emission). */
