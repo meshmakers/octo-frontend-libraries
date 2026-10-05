@@ -1,4 +1,4 @@
-import type { MockedObject } from 'vitest';
+import type { Mock, MockedObject } from 'vitest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FieldFilterOperatorsDto } from '@meshmakers/octo-services';
@@ -20,6 +20,7 @@ import {
   toEntityListRow,
 } from './entity-list-data-source.directive';
 import { EntityListComponent, toEntityListColumn } from './entity-list.component';
+import { ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
 
 function makeModel(overrides: Partial<ResolvedEntityForm> = {}): ResolvedEntityForm {
   return {
@@ -63,6 +64,7 @@ describe('EntityListComponent', () => {
   let notifications: MockedObject<NotificationDisplayService>;
   let dataService: MockedObject<EntityFormDataService>;
   let ckTypeDialog: MockedObject<CkTypeSelectorDialogService>;
+  let actionHook: Mock<(r: unknown) => Promise<boolean>>;
 
   beforeEach(async () => {
     confirmation = {
@@ -75,6 +77,7 @@ describe('EntityListComponent', () => {
     dataService = {
       delete: vi.fn().mockResolvedValue(true),
     } as unknown as MockedObject<EntityFormDataService>;
+    actionHook = vi.fn<(r: unknown) => Promise<boolean>>().mockResolvedValue(true);
     ckTypeDialog = {
       openCkTypeSelector: vi.fn(),
     } as unknown as MockedObject<CkTypeSelectorDialogService>;
@@ -86,6 +89,7 @@ describe('EntityListComponent', () => {
         { provide: NotificationDisplayService, useValue: notifications },
         { provide: EntityFormDataService, useValue: dataService },
         { provide: CkTypeSelectorDialogService, useValue: ckTypeDialog },
+        { provide: ENTITY_FORM_ACTION_CONFIRMATION, useValue: (r: unknown) => actionHook(r) },
       ],
     })
       // mm-list-view is not under test here: render the host element only.
@@ -202,6 +206,21 @@ describe('EntityListComponent', () => {
     expect(confirmation.showYesNoConfirmationDialog).toHaveBeenCalled();
     expect(dataService.delete).toHaveBeenCalledWith([{ rtId: 'r1', ckTypeId: 'A/B' }]);
     expect(deleted).toContainEqual([{ rtId: 'r1', ckTypeId: 'A/B' }]);
+  });
+
+  it('asks the host action confirmation (production check) before the yes/no dialog (AB#5524)', async () => {
+    const hook = actionHook.mockResolvedValue(false);
+    setInputs(makeModel());
+    const del = component.contextMenuItems().find((i) => i.id === 'delete')!;
+    await del.onClick!({ commandItem: del, data: [{ rtId: 'r1', ckTypeId: 'A/B' }, { rtId: 'r2', ckTypeId: 'A/B' }] });
+    expect(hook).toHaveBeenCalledWith({ action: 'delete', ckTypeId: 'A/B', count: 2, description: 'delete 2 entities' });
+    expect(confirmation.showYesNoConfirmationDialog).not.toHaveBeenCalled();
+    expect(dataService.delete).not.toHaveBeenCalled();
+
+    hook.mockResolvedValue(true);
+    await del.onClick!({ commandItem: del, data: { rtId: 'r1', ckTypeId: 'A/B' } });
+    expect(confirmation.showYesNoConfirmationDialog).toHaveBeenCalled();
+    expect(dataService.delete).toHaveBeenCalledWith([{ rtId: 'r1', ckTypeId: 'A/B' }]);
   });
 
   it('does not delete when the confirmation is declined', async () => {

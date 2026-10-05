@@ -26,6 +26,7 @@ import { ResolvedEntityForm, ResolvedListColumn } from '../models/entity-form.mo
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityListDataSourceDirective, EntityListRow } from './entity-list-data-source.directive';
 import { EntityListMonoCellComponent } from './entity-list-mono-cell.component';
+import { confirmEntityFormAction, ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
 
 /** Payload of {@link EntityListComponent.createRequested}: the concrete type to create. */
 export interface EntityListCreateRequest {
@@ -83,6 +84,7 @@ export function toEntityListColumn(column: ResolvedListColumn): TableColumn {
 })
 export class EntityListComponent {
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly actionConfirmation = inject(ENTITY_FORM_ACTION_CONFIRMATION, { optional: true });
   private readonly notificationService = inject(NotificationDisplayService);
   private readonly dataService = inject(EntityFormDataService);
   private readonly ckTypeSelectorDialog = inject(CkTypeSelectorDialogService, { optional: true });
@@ -230,6 +232,15 @@ export class EntityListComponent {
       (r): r is EntityListRow => !!(r as EntityListRow | undefined)?.rtId,
     );
     if (rows.length === 0) {
+      return;
+    }
+    const allowed = await confirmEntityFormAction(this.actionConfirmation, {
+      action: 'delete',
+      ckTypeId: rows[0].ckTypeId || this.model().rtCkTypeId,
+      count: rows.length,
+      description: rows.length === 1 ? 'delete 1 entity' : `delete ${rows.length} entities`,
+    });
+    if (!allowed) {
       return;
     }
     const m = this.msgs();

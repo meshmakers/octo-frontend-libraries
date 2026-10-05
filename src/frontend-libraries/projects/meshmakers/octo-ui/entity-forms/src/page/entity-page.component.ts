@@ -42,6 +42,7 @@ import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
 import { entityListIncludesDerivedTypes } from '../list/entity-list-data-source.directive';
 import { EntityListComponent, EntityListCreateRequest, EntityListOpenRequest } from '../list/entity-list.component';
+import { confirmEntityFormAction, ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
 
 /** Value of the `rtId` input / route parameter that opens the create form. */
 export const ENTITY_PAGE_NEW = 'new';
@@ -114,6 +115,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
   private readonly listGQL = inject(EntityFormGetListDtoGQL);
   private readonly notificationService = inject(NotificationDisplayService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly actionConfirmation = inject(ENTITY_FORM_ACTION_CONFIRMATION, { optional: true });
   private readonly breadCrumbService = inject(BreadCrumbService, { optional: true });
 
   /** Form key (`form-sftp-configuration` or `sftp-configuration`). Wins over `ckTypeId`. */
@@ -327,6 +329,9 @@ export class EntityPageComponent implements HasUnsavedChanges {
     const rtId = this.entityRtId();
     const ckTypeId = this.entityCkTypeId();
     if (!rtId || !ckTypeId || !this.canDeleteEntity()) {
+      return;
+    }
+    if (!await confirmEntityFormAction(this.actionConfirmation, { action: 'delete', ckTypeId, count: 1, description: 'delete 1 entity' })) {
       return;
     }
     const m = this.msgs();

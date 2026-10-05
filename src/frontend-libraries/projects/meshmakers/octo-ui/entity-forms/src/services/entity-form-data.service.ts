@@ -149,7 +149,7 @@ export class EntityFormDataService {
 
     const [records, secretPresence, associations] = await Promise.all([
       recordsPromise,
-      this.loadSecretPresence(model.secretFields, entityCkTypeId, rtId),
+      this.loadSecretPresence(model.secretFields, entityCkTypeId, rtId, fields),
       this.loadAssociations(fields, entityCkTypeId, rtId),
     ]);
 
@@ -272,10 +272,24 @@ export class EntityFormDataService {
     return records;
   }
 
-  private async loadSecretPresence(secretFields: string[], ckTypeId: string, rtId: string): Promise<Record<string, boolean>> {
+  /**
+   * "Set / not set" per secret: not null AND — for STRING secrets — not the empty string (an empty
+   * string is "no secret", AB#5524; same rule as the Studio's service account page).
+   */
+  private async loadSecretPresence(
+    secretFields: string[],
+    ckTypeId: string,
+    rtId: string,
+    fields: ResolvedField[] = [],
+  ): Promise<Record<string, boolean>> {
     const entries = await Promise.all(secretFields.map(async (name) => {
+      const valueType = fields.find((f) => f.attributeName === name)?.valueType ?? 'STRING';
+      const fieldFilters = [
+        { attributePath: name, operator: FieldFilterOperatorsDto.IsNotNullDto },
+        ...(valueType === 'STRING' ? [{ attributePath: name, operator: FieldFilterOperatorsDto.NotEqualsDto, comparisonValue: '' }] : []),
+      ];
       const result = await firstValueFrom(this.presenceGql.fetch({
-        variables: { ckTypeId, rtId, fieldFilters: [{ attributePath: name, operator: FieldFilterOperatorsDto.IsNotNullDto }] },
+        variables: { ckTypeId, rtId, fieldFilters },
         fetchPolicy: 'network-only',
       }));
       return [name, (result.data?.runtime?.runtimeEntities?.totalCount ?? 0) > 0] as const;
