@@ -1,0 +1,44 @@
+# Candidate targets for a reference field that shows display attributes next to the name
+# (field `referenceDisplayAttributes`, e.g. a Helm repository's URL and channel; AB#5547).
+# SECURITY: $attributeNames is declared non-null on purpose and always carries exactly the
+# configured, non-secret display attribute names. Omitting it would return EVERY attribute.
+# Fields without display attributes use entityFormGetReferenceOptions (no attributes at all).
+query entityFormGetReferenceOptionsWithAttributes(
+  $ckTypeId: String!
+  $first: Int
+  $after: String
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+  $attributeNames: [String]!
+) {
+  runtime {
+    runtimeEntities(
+      ckId: $ckTypeId
+      first: $first
+      after: $after
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+    ) {
+      totalCount
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        rtDisplayName
+        rtDisplayDescription
+        attributes(attributeNames: $attributeNames) {
+          items {
+            attributeName
+            value
+          }
+        }
+      }
+    }
+  }
+}
