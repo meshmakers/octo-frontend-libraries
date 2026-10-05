@@ -1,0 +1,353 @@
+// ============================================================================
+// DOCKVIEW THEME — Deep Sea (AB#5526)
+//
+// Usage in host application (styles.scss):
+//   @use '@meshmakers/octo-process-diagrams/styles/dockview-theme' as dockview;
+//   @include dockview.dockview-theme();
+//
+// The mixin emits --dv-* variables and element overrides that reference the
+// host's --theme-* tokens (surfaces, neutral hairline borders, accent for the
+// active tab, focus and drop targets) with neutral dark fallbacks, so hosts
+// without theme tokens still get a sensible default. Flat: no gradients, no
+// glows, sentence-case tabs and labels in the UI face.
+//
+// `_dockview-lcars-theme.scss` (mixins `lcars-theme` / `lcars-css-variables`)
+// remains as a deprecated alias for one release.
+// ============================================================================
+
+// Mixin to apply the Deep Sea theme to dockview, driven by host --theme-* tokens
+@mixin dockview-theme() {
+  // Override CSS variables for dockview - target the actual dockview elements
+  mm-process-designer,
+  mm-symbol-editor {
+    // Panel backgrounds
+    --dv-background-color: var(--theme-bg-app, #07172b);
+    --dv-pane-background-color: var(--theme-bg-elevated, #1f2e40);
+    --dv-group-view-background-color: var(--theme-bg-elevated, #1f2e40);
+    --dv-tabs-and-actions-container-background-color: var(--theme-bg-surface, #394555);
+    --dv-tabs-overflow-dropdown-background-color: var(--theme-bg-surface, #394555);
+    --dv-icon-hover-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+    --dv-tab-divider-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+
+    // Tab colors - active group
+    --dv-activegroup-visiblepanel-tab-background-color: var(--theme-bg-elevated, #1f2e40);
+    --dv-activegroup-hiddenpanel-tab-background-color: var(--theme-bg-surface, #394555);
+    --dv-activegroup-visiblepanel-tab-color: var(--theme-text-accent, #64ceb9);
+    --dv-activegroup-hiddenpanel-tab-color: var(--theme-text-secondary, #9292a6);
+
+    // Tab colors - inactive group
+    --dv-inactivegroup-visiblepanel-tab-background-color: var(--theme-bg-surface, #394555);
+    --dv-inactivegroup-hiddenpanel-tab-background-color: color-mix(in srgb, var(--theme-bg-surface, #394555) 70%, transparent);
+    --dv-inactivegroup-visiblepanel-tab-color: var(--theme-text-secondary, #9292a6);
+    --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
+
+    // Borders and separators
+    --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+
+    // Tab active indicator
+    --dv-tab-active-border-bottom: 2px solid var(--theme-text-accent, #64ceb9);
+
+    // Drag overlay
+    --dv-drag-over-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+    --dv-drag-over-border-color: var(--theme-accent, #64ceb9);
+
+    // Sash (resizer)
+    --dv-sash-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    --dv-sash-hover-color: var(--theme-accent, #64ceb9);
+  }
+
+  // Direct style overrides for dockview elements (higher specificity)
+  mm-process-designer .dv-dockview,
+  mm-process-designer .dv-grid-view,
+  mm-symbol-editor .dv-dockview,
+  mm-symbol-editor .dv-grid-view {
+    background-color: var(--theme-bg-app, #07172b) !important;
+    --dv-background-color: var(--theme-bg-app, #07172b);
+    --dv-pane-background-color: var(--theme-bg-elevated, #1f2e40);
+    --dv-group-view-background-color: var(--theme-bg-elevated, #1f2e40);
+    --dv-tabs-and-actions-container-background-color: var(--theme-bg-surface, #394555);
+    --dv-tabs-overflow-dropdown-background-color: var(--theme-bg-surface, #394555);
+    --dv-icon-hover-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+    --dv-tab-divider-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    --dv-activegroup-visiblepanel-tab-background-color: var(--theme-bg-elevated, #1f2e40);
+    --dv-activegroup-hiddenpanel-tab-background-color: var(--theme-bg-surface, #394555);
+    --dv-activegroup-visiblepanel-tab-color: var(--theme-text-accent, #64ceb9);
+    --dv-activegroup-hiddenpanel-tab-color: var(--theme-text-secondary, #9292a6);
+    --dv-inactivegroup-visiblepanel-tab-background-color: var(--theme-bg-surface, #394555);
+    --dv-inactivegroup-hiddenpanel-tab-background-color: color-mix(in srgb, var(--theme-bg-surface, #394555) 70%, transparent);
+    --dv-inactivegroup-visiblepanel-tab-color: var(--theme-text-secondary, #9292a6);
+    --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
+    --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    --dv-sash-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    --dv-sash-hover-color: var(--theme-accent, #64ceb9);
+    --dv-drag-over-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+    --dv-drag-over-border-color: var(--theme-accent, #64ceb9);
+  }
+
+  // Direct element overrides for tabs and containers
+  mm-process-designer,
+  mm-symbol-editor {
+    .dv-tabs-container {
+      background-color: var(--theme-bg-surface, #394555) !important;
+    }
+
+    .dv-tabs-and-actions-container {
+      background-color: var(--theme-bg-surface, #394555) !important;
+      border-bottom: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08)) !important;
+    }
+
+    .dv-tab {
+      background-color: var(--theme-bg-surface, #394555) !important;
+      color: var(--theme-text-secondary, #9292a6) !important;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
+      font-weight: 500;
+      font-size: 11px;
+      transition: all 0.15s ease;
+
+      &.dv-active-tab {
+        background-color: var(--theme-bg-elevated, #1f2e40) !important;
+        color: var(--theme-text-accent, #64ceb9) !important;
+        border-bottom: 2px solid var(--theme-text-accent, #64ceb9) !important;
+      }
+
+      &:hover:not(.dv-active-tab) {
+        background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06)) !important;
+        color: var(--theme-text-primary, #ffffff) !important;
+      }
+    }
+
+    .dv-default-tab-action {
+      color: var(--theme-text-secondary, #9292a6) !important;
+
+      &:hover {
+        color: var(--theme-text-accent, #64ceb9) !important;
+      }
+    }
+
+    .dv-groupview {
+      background-color: var(--theme-bg-elevated, #1f2e40) !important;
+    }
+
+    .dv-content-container {
+      background-color: var(--theme-bg-elevated, #1f2e40) !important;
+    }
+
+    .dv-sash {
+      background-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08)) !important;
+
+      &:hover,
+      &.dv-active {
+        background-color: var(--theme-accent, #64ceb9) !important;
+      }
+    }
+
+    .dv-drop-target-dropzone {
+      background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06)) !important;
+      border: 1px dashed var(--theme-accent, #64ceb9) !important;
+    }
+
+    // Floating overflow dropdown
+    .dv-tabs-overflow-container {
+      background-color: var(--theme-bg-surface, #394555) !important;
+      border: 1px solid var(--theme-border-default, rgba(200, 214, 229, 0.14)) !important;
+      box-shadow: var(--theme-shadow-popup, 0 4px 20px rgba(0, 0, 0, 0.4)) !important;
+    }
+  }
+
+  // Additional styling for dockview elements
+  mm-process-designer,
+  mm-symbol-editor {
+    // View menu dropdown styling
+    .view-menu-dropdown {
+      background: var(--theme-bg-elevated, #1f2e40);
+      border: 1px solid var(--theme-border-default, rgba(200, 214, 229, 0.14));
+      box-shadow: var(--theme-shadow-popup, 0 4px 20px rgba(0, 0, 0, 0.4));
+    }
+
+    .view-menu-item {
+      color: var(--theme-text-primary, #ffffff);
+
+      &:hover {
+        background: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+      }
+    }
+
+    .view-menu-check {
+      color: var(--theme-text-accent, #64ceb9);
+    }
+
+    .view-menu-shortcut {
+      color: var(--theme-text-secondary, #9292a6);
+    }
+
+    .view-menu-divider {
+      background: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    }
+  }
+
+  // Panel wrapper component backgrounds
+  mm-elements-panel,
+  mm-symbols-panel,
+  mm-properties-panel,
+  mm-transform-panel,
+  mm-animations-panel,
+  mm-simulation-panel-wrapper,
+  mm-settings-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--theme-bg-elevated, #1f2e40) !important;
+
+    .panel-container,
+    .elements-panel,
+    .symbols-panel,
+    .properties-panel,
+    .settings-panel,
+    .exposures-panel,
+    .animations-panel,
+    .simulation-panel {
+      background: var(--theme-bg-elevated, #1f2e40) !important;
+      color: var(--theme-text-primary, #ffffff);
+    }
+
+    .panel-content {
+      background: var(--theme-bg-elevated, #1f2e40) !important;
+    }
+
+    .no-selection {
+      color: var(--theme-text-secondary, #9292a6);
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
+
+      .hint {
+        color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
+      }
+    }
+
+    // Section headers
+    .section-header,
+    .panel-section-header {
+      color: var(--theme-text-accent, #64ceb9);
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
+      font-weight: 600;
+      font-size: 11px;
+      border-bottom: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    }
+
+    // Form inputs
+    input,
+    select,
+    textarea {
+      background: var(--theme-bg-input, #07172b);
+      border: 1px solid var(--theme-border-default, rgba(200, 214, 229, 0.14));
+      color: var(--theme-text-primary, #ffffff);
+      border-radius: 4px;
+
+      &:focus {
+        border-color: var(--theme-accent, #64ceb9);
+        outline: none;
+      }
+    }
+
+    label {
+      color: var(--theme-text-secondary, #9292a6);
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
+      font-size: 11px;
+    }
+
+    // Buttons in panels
+    button {
+      background: transparent;
+      border: 1px solid var(--theme-border-default, rgba(200, 214, 229, 0.14));
+      color: var(--theme-text-accent, #64ceb9);
+      border-radius: 4px;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
+      font-weight: 500;
+      font-size: 11px;
+      transition: all 0.15s ease;
+
+      &:hover:not(:disabled) {
+        background: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+        border-color: var(--theme-accent, #64ceb9);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  // Palette items (primitives, symbols)
+  mm-elements-panel,
+  mm-symbols-panel {
+    .palette-category {
+      background: transparent;
+      border-bottom: 1px solid var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+
+      .category-header {
+        color: var(--theme-text-secondary, #9292a6);
+        font-family: var(--theme-font-ui, "Roboto", sans-serif);
+        font-size: 11px;
+
+        &:hover {
+          background: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+        }
+      }
+
+      .category-count {
+        color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
+      }
+    }
+
+    .palette-item {
+      background: color-mix(in srgb, var(--theme-bg-surface, #394555) 50%, transparent);
+      border: 1px solid var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+      border-radius: 4px;
+      color: var(--theme-text-primary, #ffffff);
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+        border-color: var(--theme-border-default, rgba(200, 214, 229, 0.14));
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .item-label {
+        color: var(--theme-text-secondary, #9292a6);
+        font-size: 10px;
+      }
+
+      svg {
+        stroke: var(--theme-accent, #64ceb9);
+        fill: none;
+      }
+    }
+  }
+}
+
+// CSS-only alternative (can be applied without SCSS)
+// Add these CSS variables to your :root or component host. These reference
+// --theme-* host tokens with neutral dark fallbacks, so the result adapts to
+// the host's active theme (or stays dark if no host theme is defined).
+@mixin dockview-css-variables() {
+  --dv-background-color: var(--theme-bg-app, #07172b);
+  --dv-pane-background-color: var(--theme-bg-elevated, #1f2e40);
+  --dv-group-view-background-color: var(--theme-bg-elevated, #1f2e40);
+  --dv-tabs-and-actions-container-background-color: var(--theme-bg-surface, #394555);
+  --dv-tabs-overflow-dropdown-background-color: var(--theme-bg-surface, #394555);
+  --dv-icon-hover-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+  --dv-tab-divider-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+  --dv-activegroup-visiblepanel-tab-background-color: var(--theme-bg-elevated, #1f2e40);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--theme-bg-surface, #394555);
+  --dv-activegroup-visiblepanel-tab-color: var(--theme-text-accent, #64ceb9);
+  --dv-activegroup-hiddenpanel-tab-color: var(--theme-text-secondary, #9292a6);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--theme-bg-surface, #394555);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: color-mix(in srgb, var(--theme-bg-surface, #394555) 70%, transparent);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--theme-text-secondary, #9292a6);
+  --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
+  --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+  --dv-tab-active-border-bottom: 2px solid var(--theme-text-accent, #64ceb9);
+  --dv-drag-over-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+  --dv-drag-over-border-color: var(--theme-accent, #64ceb9);
+  --dv-sash-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+  --dv-sash-hover-color: var(--theme-accent, #64ceb9);
+}
