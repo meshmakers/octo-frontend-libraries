@@ -182,8 +182,10 @@ export class EntityPageComponent implements HasUnsavedChanges {
     // Read the route data signal so a data change re-evaluates the context.
     this.routeData();
     return {
-      formKey: this.formKey() ?? asString(this.inheritedData('formKey')),
-      ckTypeId: this.ckTypeId() ?? asString(this.inheritedData('ckTypeId')),
+      // Route params come last: a host can mount the routes under `:formKey` (Refinery Studio
+      // settings, AB#5523); the param reaches the child routes by params inheritance.
+      formKey: this.formKey() ?? asString(this.inheritedData('formKey')) ?? paramValue(params, 'formKey'),
+      ckTypeId: this.ckTypeId() ?? asString(this.inheritedData('ckTypeId')) ?? paramValue(params, 'ckTypeId'),
       rtId: this.rtId() ?? paramValue(params, 'rtId') ?? asString(this.route.snapshot?.data?.['rtId']),
       type: paramValue(query, ENTITY_PAGE_TYPE_QUERY_PARAM),
     };

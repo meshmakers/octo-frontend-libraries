@@ -147,6 +147,19 @@ describe('EntityPageComponent', () => {
     expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenCalledWith(expect.objectContaining({ entityFormTitle: 'SFTP configurations' }));
   });
 
+  it('takes the form key from an inherited :formKey route param (settings mount, AB#5523)', async () => {
+    formService.resolveByFormKey.mockResolvedValue(makeModel());
+    await create({}, { category: 'connections', formKey: 'sftp-configuration' });
+    expect(formService.resolveByFormKey).toHaveBeenCalledWith('sftp-configuration');
+    expect(api.view()).toBe('list');
+  });
+
+  it('prefers route data over the :formKey param', async () => {
+    formService.resolveByFormKey.mockResolvedValue(makeModel());
+    await create({ formKey: 'grafana-configuration' }, { formKey: 'sftp-configuration' });
+    expect(formService.resolveByFormKey).toHaveBeenCalledWith('grafana-configuration');
+  });
+
   it("opens the create form for the 'new' route", async () => {
     formService.resolve.mockResolvedValue(makeModel());
     await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new' });

@@ -40,6 +40,8 @@ export {
   DEFAULT_GENERATED_SECTION_TITLE,
 } from './core/entity-form-resolver';
 export type { EntityFormSource, ResolveEntityFormOptions } from './core/entity-form-resolver';
+export { entityFormCatalog, entityFormKey } from './core/entity-form-catalog';
+export type { EntityFormCatalogEntry } from './core/entity-form-catalog';
 export { BUILT_IN_DEFAULT_FORM } from './core/built-in-default-form';
 export { canonicalisePath, SYSTEM_PROPERTIES, toKebabTypeKey } from './core/attribute-path';
 export type { CanonicalPath } from './core/attribute-path';
