@@ -10,6 +10,7 @@ import { EntityFormDeleteEntitiesDtoGQL } from '../graphQL/deleteEntityFormEntit
 import { EntityFormGetAttributePresenceDtoGQL } from '../graphQL/getEntityAttributePresence';
 import { EntityFormGetAssociationDefinitionsDtoGQL } from '../graphQL/getEntityFormAssociationDefinitions';
 import { EntityFormGetAssociationTargetsDtoGQL } from '../graphQL/getEntityFormAssociationTargets';
+import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
 import { EntityFormGetReferenceOptionsDtoGQL } from '../graphQL/getEntityFormReferenceOptions';
 import { EntityFormGetValuesDtoGQL } from '../graphQL/getEntityFormValues';
 import { EntityFormUpdateEntitiesDtoGQL } from '../graphQL/updateEntityFormEntities';
@@ -30,6 +31,7 @@ describe('EntityFormDataService', () => {
   let create: ReturnType<typeof fn>;
   let update: ReturnType<typeof fn>;
   let del: ReturnType<typeof fn>;
+  let list: ReturnType<typeof fn>;
 
   const sftpModel = resolveEntityForm(toCkTypeInfo(LIVE_SFTP_CK_TYPE), [parseEntityForm(LIVE_FORM_SFTP_ROW)!]);
   const sftpDefaultModel = resolveEntityForm(toCkTypeInfo(LIVE_SFTP_CK_TYPE), [parseEntityForm(LIVE_FORM_DEFAULT_ROW)!]);
@@ -49,12 +51,15 @@ describe('EntityFormDataService', () => {
     create = fn();
     update = fn();
     del = fn();
+    list = fn();
+    list.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { totalCount: 2, items: [] } } } }));
     values.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { totalCount: 1, items: [entity] } } } }));
     presence.fetch.mockImplementation(({ variables }: { variables: { fieldFilters: { attributePath: string }[] } }) =>
       of({ data: { runtime: { runtimeEntities: { totalCount: variables.fieldFilters[0].attributePath === 'password' ? 1 : 0 } } } }));
     TestBed.configureTestingModule({
       providers: [
         { provide: EntityFormGetValuesDtoGQL, useValue: values },
+        { provide: EntityFormGetListDtoGQL, useValue: list },
         { provide: EntityFormGetAttributePresenceDtoGQL, useValue: presence },
         { provide: EntityFormGetAssociationTargetsDtoGQL, useValue: targets },
         { provide: EntityFormGetAssociationDefinitionsDtoGQL, useValue: definitions },
@@ -180,6 +185,26 @@ describe('EntityFormDataService', () => {
       const result = await service.load(model, { rtId: 'src' });
       expect(definitions.fetch).toHaveBeenCalledTimes(2);
       expect(result?.state.associations['assoc:T/Owner']).toEqual([{ rtId: 'x1', ckTypeId: 'T/X', displayName: 'Xavier' }]);
+    });
+  });
+
+  describe('count', () => {
+    it('counts the exact type with no attributes read', async () => {
+      await expect(service.count(SFTP)).resolves.toBe(2);
+      expect(list.fetch).toHaveBeenCalledWith(expect.objectContaining({
+        variables: expect.objectContaining({
+          ckTypeId: SFTP,
+          attributeNames: [],
+          fieldFilters: [{ attributePath: 'ckTypeId', operator: 'EQUALS', comparisonValue: SFTP }],
+        }),
+      }));
+    });
+
+    it('includes derived types without a type filter', async () => {
+      await service.count('System/Configuration', true);
+      expect(list.fetch).toHaveBeenCalledWith(expect.objectContaining({
+        variables: expect.objectContaining({ ckTypeId: 'System/Configuration', fieldFilters: null, attributeNames: [] }),
+      }));
     });
   });
 });

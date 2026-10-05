@@ -22,6 +22,7 @@ and other packages, and hosts that do not use it keep the primary bundle unchang
 | `EntityFormService` | Loads forms + CK metadata (cached per tenant) and resolves the form for a type or form key |
 | `EntityFormDataService` | Reads values / secret presence / associations; create, update, delete |
 | `parseEntityForms`, `pickEntityForm`, `resolveEntityForm`, … | Pure functions behind the service, e.g. for a forms editor |
+| `entityFormCatalog(forms)`, `entityFormKey(form)` | Settings overview: one entry per target type whose effective form has a `Category`, with the URL key |
 | `EntityFormsMessages`, `DEFAULT_ENTITY_FORMS_MESSAGES` | All UI strings (English defaults; pass `Partial<…>` via `messages`) |
 
 ## Usage
@@ -69,8 +70,8 @@ Page inputs (bound by `withComponentInputBinding()` from route params / data, ot
 
 | Input | Source fallback | Meaning |
 |-------|-----------------|---------|
-| `formKey` | `data.formKey` | `form-sftp-configuration` (rtWellKnownName) or the kebab type key `sftp-configuration`. Wins over `ckTypeId`. |
-| `ckTypeId` | `data.ckTypeId` | Runtime CK type id of the target type. |
+| `formKey` | `data.formKey`, then `params.formKey` | `form-sftp-configuration` (rtWellKnownName) or the kebab type key `sftp-configuration`. Wins over `ckTypeId`. |
+| `ckTypeId` | `data.ckTypeId`, then `params.ckTypeId` | Runtime CK type id of the target type. |
 | `rtId` | `params.rtId`, `data.rtId` | Absent = list; `'new'` = create; otherwise edit. |
 | `canWrite` | `data.canWrite`, then `true` | Write permission; the host maps roles to it (the library knows no role names). |
 | `messages` | `data.messages` | `Partial<EntityFormsMessages>`. |
@@ -114,6 +115,23 @@ create title on `new`).
 
 Resolve `model` with `EntityFormService.resolve(rtCkTypeId)` / `resolveByFormKey(key)` and the
 state with `EntityFormDataService.load(model, { rtId })`.
+
+## Settings overview (catalog)
+
+`entityFormCatalog(await formService.getForms())` returns one entry per target type whose
+**effective** form (tenant form before seeded, then higher `Priority`) has a `Category`:
+`key`, `category` (lower case), `title` (form `Name`, else the humanized type name),
+`description`, `icon`, `targetCkTypeId`, `includeDerivedTypes`, `singleton`.
+`form-default` has no category and never appears. A tenant form replaces the delivered entry
+(and can move it to another category, or hide it by leaving `Category` empty).
+
+`entityFormKey(form)` is the URL key: the well-known name without `form-`
+(`form-email-sender-configuration` → `email-sender-configuration`), otherwise the kebab type
+name. The catalog prefers a delivered `form-*` name of the type, so URLs survive a tenant
+override. `resolveByFormKey` accepts both forms.
+
+`EntityFormDataService.count(ckTypeId, includeDerivedTypes?)` counts entities without reading
+attributes (`attributeNames: []`); without `includeDerivedTypes` only the exact type is counted.
 
 ## `<mm-entity-list>`
 

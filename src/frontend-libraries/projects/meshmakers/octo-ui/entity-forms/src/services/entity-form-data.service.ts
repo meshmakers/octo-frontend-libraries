@@ -14,6 +14,7 @@ import { EntityFormDeleteEntitiesDtoGQL } from '../graphQL/deleteEntityFormEntit
 import { EntityFormGetAttributePresenceDtoGQL } from '../graphQL/getEntityAttributePresence';
 import { EntityFormGetAssociationDefinitionsDtoGQL } from '../graphQL/getEntityFormAssociationDefinitions';
 import { EntityFormGetAssociationTargetsDtoGQL } from '../graphQL/getEntityFormAssociationTargets';
+import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
 import { EntityFormGetReferenceOptionsDtoGQL } from '../graphQL/getEntityFormReferenceOptions';
 import { EntityFormGetValuesDtoGQL } from '../graphQL/getEntityFormValues';
 import { EntityFormUpdateEntitiesDtoGQL } from '../graphQL/updateEntityFormEntities';
@@ -77,6 +78,7 @@ export class EntityFormDataService {
   private readonly createGql = inject(EntityFormCreateEntitiesDtoGQL);
   private readonly updateGql = inject(EntityFormUpdateEntitiesDtoGQL);
   private readonly deleteGql = inject(EntityFormDeleteEntitiesDtoGQL);
+  private readonly listGql = inject(EntityFormGetListDtoGQL);
   private readonly formService = inject(EntityFormService);
 
   /**
@@ -88,6 +90,29 @@ export class EntityFormDataService {
     model.sections.flatMap((s) => s.fields).filter((f) => f.secret && f.attributeName)
       .forEach((f) => secrets.add((f.attributeName as string).toLowerCase()));
     return [...new Set(model.readAttributeNames ?? [])].filter((n) => !secrets.has(n.toLowerCase()));
+  }
+
+  /**
+   * Number of entities of a type (e.g. for a settings overview). Without `includeDerivedTypes`
+   * only entities of exactly that type are counted (`runtimeEntities(ckId)` includes derived
+   * types by default). Reads no attributes (`attributeNames: []`, never omitted).
+   */
+  async count(ckTypeId: string, includeDerivedTypes = false): Promise<number> {
+    const fieldFilters: FieldFilterDto[] = includeDerivedTypes
+      ? []
+      : [{ attributePath: 'ckTypeId', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: ckTypeId }];
+    const result = await firstValueFrom(
+      this.listGql.fetch({
+        variables: {
+          ckTypeId,
+          first: 1,
+          fieldFilters: fieldFilters.length > 0 ? fieldFilters : null,
+          attributeNames: [],
+        },
+        fetchPolicy: 'network-only',
+      }),
+    );
+    return result.data?.runtime?.runtimeEntities?.totalCount ?? 0;
   }
 
   /** Loads values, secret presence and associations of one entity in parallel; `null` if not found. */
