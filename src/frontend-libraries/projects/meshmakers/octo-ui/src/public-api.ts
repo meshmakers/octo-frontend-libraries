@@ -29,6 +29,7 @@ export * from './lib/entity-id-info';
 export * from './lib/entity-selector-dialog';
 export * from './lib/field-filter-editor';
 export * from './lib/octo-loader';
+export * from './lib/page';
 export * from './lib/property-grid';
 export * from './lib/runtime-browser';
 export * from './lib/runtime-entity-variable-dialog';

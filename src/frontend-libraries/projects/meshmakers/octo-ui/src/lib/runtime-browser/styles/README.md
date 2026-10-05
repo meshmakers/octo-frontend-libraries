@@ -1,12 +1,13 @@
 # Runtime Browser Styles
 
-LCARS-inspired theme styles for the runtime-browser and related components. The styles are **Kendo-independent** by default and integrate with Kendo when the host app already imports a Kendo theme.
+Theme styles for the runtime-browser and related components. Token values follow the "Deep Sea" palette (AB#5519); the LCARS decoration classes in `_styles.scss` are being retired (AB#5526). The styles are **Kendo-independent** by default and integrate with Kendo when the host app already imports a Kendo theme.
 
 ## File Structure
 
 | File | Purpose |
 |------|---------|
 | `_variables.scss` | Design tokens (SCSS variables) and `variables` mixin (CSS custom properties). No Kendo dependency. |
+| `_theme.scss` | Semantic `--theme-*` tokens (Deep Sea, dark + light), `foundation-tokens` (fonts, spacing, radius, motion), Kendo bridge; `theme()` / `theme-overrides()` entry points. |
 | `_lcars-flat-btn.scss` | Mixin for flat/outline button overrides in dialogs. |
 | `_lcars-input.scss` | Mixin for LCARS input styling (text, number, select). |
 | `_lcars-button.scss` | Mixin for LCARS button styles (toolbars, dialogs). |

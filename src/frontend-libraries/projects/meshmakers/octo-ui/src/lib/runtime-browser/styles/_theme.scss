@@ -1,10 +1,18 @@
 // ============================================================================
-// RUNTIME BROWSER - Theme tokens (dark default + light)
+// RUNTIME BROWSER - Theme tokens (dark default + light) — "Deep Sea"
 //
-// `_variables.scss` defines the LCARS brand palette and *consumes* the
-// semantic `--theme-*` tokens with dark fallbacks. This file is where those
-// semantic tokens are actually defined, for both themes, so that every host
-// app resolves them identically instead of maintaining its own copy.
+// `_variables.scss` defines the brand palette and *consumes* the semantic
+// `--theme-*` tokens with dark fallbacks. This file is where those semantic
+// tokens are actually defined, for both themes, so that every host app
+// resolves them identically instead of maintaining its own copy.
+//
+// Values follow the "Deep Sea" palette (Refinery Studio concept
+// `ui-concept-ai-os.md` §6.2–6.4, AB#5519): surfaces sit close to the canvas
+// and carry structure, borders are neutral hairlines, mint is the accent
+// (focus ring, primary action, active state) rather than chrome, glows
+// resolve to `none` and the former gradients are flat. Every token name of
+// the LCARS era is kept so component SCSS does not break; new tokens are
+// marked "(new)".
 //
 // Usage in a host app's global stylesheet:
 //
@@ -15,55 +23,109 @@
 //
 // Dark is the default. Light is applied either by OS preference (when the
 // host has not forced dark) or by an explicit `data-theme="light"` on the
-// root element — see ThemeService in @meshmakers/octo-ui/branding.
+// root element — see ThemeModeService in @meshmakers/octo-ui.
 // ============================================================================
 
 @use "variables" as vars;
 
 // ----------------------------------------------------------------------------
+// FOUNDATION (theme-invariant): typography, spacing, radius, motion.
+// ----------------------------------------------------------------------------
+@mixin foundation-tokens {
+  // Typography (new). Display = titles and KPI numbers, UI = everything else,
+  // mono = ids, versions, YAML/JSON, cron, URLs. `--lcars-font-*` alias these.
+  --theme-font-display: "Montserrat", "Roboto", "Helvetica Neue", sans-serif;
+  --theme-font-ui: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  --theme-font-mono: "Roboto Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  // Spacing on a 4 px grid (new). Page gutter = --theme-space-4.
+  --theme-space-1: 4px;
+  --theme-space-2: 8px;
+  --theme-space-3: 12px;
+  --theme-space-4: 16px;
+  --theme-space-5: 20px;
+  --theme-space-6: 24px;
+  --theme-space-7: 28px;
+  --theme-space-8: 32px;
+
+  // Radius — symmetric edges, no pills (new). `--lcars-radius-sm/md/lg` alias these.
+  --theme-radius-xs: 2px; // chips
+  --theme-radius-sm: 4px; // buttons, inputs, tabs
+  --theme-radius-md: 6px; // cards, panels
+  --theme-radius-lg: 8px; // dialogs, popovers, palette
+
+  // Motion (new). Collapsed to 0 under prefers-reduced-motion (see theme()).
+  --theme-motion-fast: 120ms;
+  --theme-motion-base: 200ms;
+  --theme-motion-easing: cubic-bezier(0.2, 0, 0, 1);
+}
+
+// ----------------------------------------------------------------------------
 // DARK THEME (default)
 // ----------------------------------------------------------------------------
 @mixin dark-theme-tokens {
-  // Surfaces & backgrounds
+  // Surfaces & backgrounds. Panels sit 1–2 % above the canvas and let a
+  // hairline do the rest (the LCARS Iron Navy #394555 read as a heavy slab).
   --theme-bg-app: #07172b;
   --theme-bg-app-end: #07172b;
-  --theme-bg-surface: #394555;
-  --theme-bg-elevated: #1f2e40;
-  --theme-bg-overlay: rgba(31, 46, 64, 0.4);
-  --theme-bg-input: #1f2e40;
+  --theme-bg-surface: #0c1e35;
+  --theme-bg-elevated: #122540;
+  --theme-bg-overlay: #182d4a;
+  --theme-bg-input: #0a1a2f;
+  --theme-bg-sunken: #050f1f; // (new) code/YAML editors, wells
+  --theme-bg-selected: color-mix(in srgb, var(--theme-accent) 14%, transparent); // (new)
+  --theme-bg-hover: var(--theme-ink-04); // (new)
 
-  // Text
-  --theme-text-primary: #ffffff;
-  --theme-text-secondary: #9292a6;
-  --theme-text-muted: #6b7689;
+  // Text (pure white is too hot on navy)
+  --theme-text-primary: #e6edf5;
+  --theme-text-secondary: #9aa8bb;
+  --theme-text-muted: #77869c; // concept §6.2 #687890 (4.0:1) raised to ≥ 4.5:1 on bg-input/app/surface
   --theme-text-on-accent: #07172b;
   --theme-text-accent: #64ceb9;
+  --theme-text-code: #c6d2de; // (new)
 
-  // Borders
-  --theme-border-subtle: rgba(100, 206, 185, 0.2);
-  --theme-border-strong: rgba(100, 206, 185, 0.45);
-  --theme-border-divider: rgba(255, 255, 255, 0.08);
+  // Borders — neutral hairlines, not mint
+  --theme-border-subtle: rgba(200, 214, 229, 0.08);
+  --theme-border-default: rgba(200, 214, 229, 0.14); // (new) panel/card edges, inputs
+  --theme-border-strong: rgba(200, 214, 229, 0.26);
+  --theme-border-divider: var(--theme-border-subtle); // kept for compatibility
+  --theme-focus-ring: 0 0 0 2px #07172b, 0 0 0 4px #64ceb9; // (new) box-shadow value
 
-  // Effects
-  --theme-glow-primary: 0 0 10px rgba(100, 206, 185, 0.4);
-  --theme-glow-accent: 0 0 15px rgba(100, 206, 185, 0.5);
-  --theme-shadow-panel: 0 4px 30px rgba(0, 0, 0, 0.3);
-  --theme-shadow-popup: 0 8px 32px rgba(0, 0, 0, 0.5);
+  // Accent & brand roles (new)
+  --theme-accent: #64ceb9;
+  --theme-accent-hover: #7fd8c6;
+  --theme-accent-subtle: rgba(100, 206, 185, 0.12);
+  --theme-accent-2: #00a8dc;
+  --theme-ai: #8b6fd0;
+  --theme-ai-subtle: rgba(139, 111, 208, 0.14);
 
-  // Gradients
-  --theme-gradient-page: linear-gradient(180deg, rgba(7, 23, 43, 0.95), rgba(7, 23, 43, 1));
-  --theme-gradient-header: linear-gradient(180deg, #394555, #1f2e40);
-  --theme-accent-bar: linear-gradient(180deg, var(--octo-mint), var(--neo-cyan));
-  --theme-accent-line: linear-gradient(90deg, var(--octo-mint), var(--neo-cyan), transparent);
-  --theme-panel-rule: linear-gradient(90deg, var(--octo-mint), var(--neo-cyan), var(--royal-violet));
+  // Effects — no glows; flat surfaces. Tokens kept so component SCSS does not break.
+  --theme-glow-primary: none;
+  --theme-glow-accent: none;
+  --theme-shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --theme-shadow-popup: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--theme-border-default);
 
-  // Status (semantic)
-  --theme-status-success: #37b400;
-  --theme-status-warning: #da9162;
-  --theme-status-error: #ec658f;
-  --theme-status-info: #00a8dc;
+  // Former gradients, now flat (every consumer uses them as `background:`).
+  --theme-gradient-page: var(--theme-bg-app);
+  --theme-gradient-header: var(--theme-bg-elevated);
+  --theme-accent-bar: var(--theme-accent);
+  --theme-accent-line: var(--theme-accent);
+  --theme-panel-rule: var(--theme-accent);
 
-  // Chart palette (8 series)
+  // Status (semantic) — the only loud colour; re-tuned for navy
+  --theme-status-success: #34c98a;
+  --theme-status-warning: #e0a060;
+  --theme-status-error: #f0708f;
+  --theme-status-info: #3fb9e6;
+  --theme-status-neutral: #7c8ba1; // (new) unknown/undeployed/paused
+  // (new) chip backgrounds, 14 % tints
+  --theme-status-success-subtle: color-mix(in srgb, var(--theme-status-success) 14%, transparent);
+  --theme-status-warning-subtle: color-mix(in srgb, var(--theme-status-warning) 14%, transparent);
+  --theme-status-error-subtle: color-mix(in srgb, var(--theme-status-error) 14%, transparent);
+  --theme-status-info-subtle: color-mix(in srgb, var(--theme-status-info) 14%, transparent);
+  --theme-status-neutral-subtle: color-mix(in srgb, var(--theme-status-neutral) 14%, transparent);
+
+  // Chart palette (8 series) — brand colours stay good series colours
   --theme-chart-1: #64ceb9;
   --theme-chart-2: #00a8dc;
   --theme-chart-3: #6c4da8;
@@ -73,24 +135,21 @@
   --theme-chart-7: #546fbd;
   --theme-chart-8: #9292a6;
 
-  // Kendo bridge
+  // Kendo bridge (theme-specific part; the rest is in kendo-bridge below)
   --kendo-color-on-base: #c8cdd3;
-  --kendo-color-on-primary: #07172b;
   --kendo-color-base-on-surface: #c8cdd3;
 
   // Kendo's Material default --kendo-color-base is the Ash-Blue #9292a6,
-  // which lands as a washed-out medium-grey on the LCARS dark surfaces and
-  // is the source of the low-contrast "Copy ID" / kendo-dropdownbutton look
-  // (white-ish text on light-ish grey, hard to read against the deep-sea bg).
-  // Repoint --kendo-color-base and its subtle/emphasis siblings at the LCARS
-  // surface palette so every solid-base button (kendo-dropdownbutton, menu
-  // buttons, .k-button-solid-base) blends with the surrounding panels while
-  // keeping enough contrast against the page background.
-  --kendo-color-base: #394555; // = iron-navy / theme-bg-surface
-  --kendo-color-base-subtle: #1f2e40; // = surface-elevated / theme-bg-elevated
-  --kendo-color-base-emphasis: #4a5970; // one notch brighter for hover/active
-  --kendo-color-base-hover: #475569; // explicit hover override (Material derives it from --base otherwise, which Kendo computes as still-too-light)
-  --kendo-color-base-active: #4a5970;
+  // which lands as a washed-out medium-grey on the dark surfaces (white-ish
+  // text on light-ish grey). Repoint --kendo-color-base and its siblings at
+  // the Deep Sea surface ladder so every solid-base button
+  // (kendo-dropdownbutton, menu buttons, .k-button-solid-base) blends with
+  // the surrounding panels while keeping contrast against the page.
+  --kendo-color-base: #182d4a; // = theme-bg-overlay
+  --kendo-color-base-subtle: #122540; // = theme-bg-elevated
+  --kendo-color-base-emphasis: #22395a; // one notch brighter for hover/active
+  --kendo-color-base-hover: #22395a; // explicit (Material would derive a still-too-light value)
+  --kendo-color-base-active: #2a4366;
 }
 
 // ----------------------------------------------------------------------------
@@ -98,44 +157,60 @@
 // query and the explicit [data-theme="light"] override).
 // ----------------------------------------------------------------------------
 @mixin light-theme-tokens {
-  // The page needs to sit BELOW the cards, or there is no depth at all:
-  // #ffffff on #f3f6fa measured 1.08:1 — card and page were the same surface.
-  // #e9edf3 puts it at 1.35:1, which is what the dark theme has (1.85:1).
-  --theme-bg-app: #e9edf3;
-  --theme-bg-app-end: #e9edf3;
+  // Cards are white on a slightly sunken canvas; the edge is carried by
+  // --theme-border-default plus --theme-shadow-panel, not by the fill alone.
+  --theme-bg-app: #f4f6f9;
+  --theme-bg-app-end: #f4f6f9;
   --theme-bg-surface: #ffffff;
-  --theme-bg-elevated: #f4f7fa;
-  --theme-bg-overlay: rgba(255, 255, 255, 0.92);
+  --theme-bg-elevated: #ffffff;
+  --theme-bg-overlay: #ffffff;
   --theme-bg-input: #ffffff;
+  --theme-bg-sunken: #e9edf3;
+  --theme-bg-selected: color-mix(in srgb, var(--theme-accent) 12%, transparent);
+  --theme-bg-hover: var(--theme-ink-04);
 
-  --theme-text-primary: #07172b;
-  --theme-text-secondary: #4b576b;
-  --theme-text-muted: #6b7689;
+  --theme-text-primary: #0f1c2e;
+  --theme-text-secondary: #4b5a6e;
+  --theme-text-muted: #657189; // concept §6.2 #75829a (3.9:1) darkened to ≥ 4.5:1 on bg-input/app
   --theme-text-on-accent: #ffffff;
-  --theme-text-accent: #2e8473;
+  --theme-text-accent: #2c7d6d; // concept §6.2 #2e8473 (4.16:1 on bg-app) darkened to ≥ 4.5:1
+  --theme-text-code: #1f2d40;
 
   // Neutral, not mint. A mint hairline measures 1.12:1 on a light ground —
   // it is not a subtle border, it is an invisible one.
-  --theme-border-subtle: rgba(7, 23, 43, 0.12);
+  --theme-border-subtle: rgba(7, 23, 43, 0.08);
+  --theme-border-default: rgba(7, 23, 43, 0.12);
   --theme-border-strong: rgba(7, 23, 43, 0.22);
-  --theme-border-divider: rgba(7, 23, 43, 0.1);
+  --theme-border-divider: var(--theme-border-subtle);
+  --theme-focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #2c7d6d;
 
-  // A glow needs a dark room. On a light ground it only muddies the edge.
+  --theme-accent: #2c7d6d;
+  --theme-accent-hover: #24685a; // concept #266f61, shifted with the accent
+  --theme-accent-subtle: rgba(44, 125, 109, 0.1);
+  --theme-accent-2: #0277a6;
+  --theme-ai: #6c4da8;
+  --theme-ai-subtle: rgba(108, 77, 168, 0.1);
+
   --theme-glow-primary: none;
   --theme-glow-accent: none;
-  --theme-shadow-panel: 0 2px 8px rgba(7, 23, 43, 0.08);
-  --theme-shadow-popup: 0 8px 24px rgba(7, 23, 43, 0.15);
+  --theme-shadow-panel: 0 1px 2px rgba(7, 23, 43, 0.08);
+  --theme-shadow-popup: 0 8px 24px rgba(7, 23, 43, 0.14), 0 0 0 1px var(--theme-border-default);
 
-  --theme-gradient-page: linear-gradient(180deg, #f3f6fa, #ffffff);
-  --theme-gradient-header: linear-gradient(180deg, #ffffff, #eef2f7);
-  --theme-accent-line: linear-gradient(90deg, #2e8473, #0288b8, transparent);
-  // accent-bar and panel-rule keep the brand gradient (defined in the dark
-  // block, which always runs first, and deliberately not redefined here).
+  // The flat gradient tokens (page/header/accent-bar/accent-line/panel-rule)
+  // are not redeclared: they reference bg-app/bg-elevated/accent, which are
+  // substituted on :root, so they already follow the light values.
 
-  --theme-status-success: #2e8b00;
-  --theme-status-warning: #b56b3c;
-  --theme-status-error: #c63d6a;
+  --theme-status-success: #1f8a5b;
+  --theme-status-warning: #a9622f;
+  --theme-status-error: #c0385f;
   --theme-status-info: #0277a6;
+  --theme-status-neutral: #6b7a90;
+  // 10 % tints on a light ground
+  --theme-status-success-subtle: color-mix(in srgb, var(--theme-status-success) 10%, transparent);
+  --theme-status-warning-subtle: color-mix(in srgb, var(--theme-status-warning) 10%, transparent);
+  --theme-status-error-subtle: color-mix(in srgb, var(--theme-status-error) 10%, transparent);
+  --theme-status-info-subtle: color-mix(in srgb, var(--theme-status-info) 10%, transparent);
+  --theme-status-neutral-subtle: color-mix(in srgb, var(--theme-status-neutral) 10%, transparent);
 
   --theme-chart-1: #2e8473;
   --theme-chart-2: #0277a6;
@@ -146,15 +221,13 @@
   --theme-chart-7: #3f5394;
   --theme-chart-8: #6b7689;
 
-  --kendo-color-on-base: #07172b;
-  --kendo-color-on-primary: #ffffff;
-  --kendo-color-base-on-surface: #07172b;
+  --kendo-color-on-base: #0f1c2e;
+  --kendo-color-base-on-surface: #0f1c2e;
 
-  // Light-theme counterparts to the LCARS dark-theme overrides above.
-  // Light buttons should sit on a pale neutral that reads against the
-  // off-white app background without disappearing into it.
-  --kendo-color-base: #eef2f7; // = theme-bg-elevated (light)
-  --kendo-color-base-subtle: #f3f6fa; // = theme-bg-app (lightest)
+  // Light buttons sit on a pale neutral that reads against the canvas
+  // without disappearing into it.
+  --kendo-color-base: #eef2f7;
+  --kendo-color-base-subtle: #f4f6f9; // = theme-bg-app
   --kendo-color-base-emphasis: #d8e0ea; // one notch darker for hover/active
   --kendo-color-base-hover: #d8e0ea;
   --kendo-color-base-active: #c8d2dd;
@@ -231,6 +304,11 @@
 // the same number: #07172b on #64ceb9 is again 9.49:1 — one pair, two roles.
 // ----------------------------------------------------------------------------
 @mixin light-theme-surface-overrides {
+  // DEFERRED to AB#5526: this block predates Deep Sea and still hard-codes the
+  // light card/band/drawer treatment. It is reworked (and largely deleted
+  // where dark and light now agree) together with the LCARS classes it
+  // targets. Until then only the accent hue is kept consistent: former
+  // rgba(46,132,115,…) tints derive from --theme-accent.
   // Cards lift off the ground again.
   .k-grid,
   .lcars-content-panel,
@@ -281,16 +359,16 @@
   .k-pager,
   .k-grid-pager {
     background: #d7ebe5;
-    border-color: rgba(46, 132, 115, 0.3);
+    border-color: color-mix(in srgb, var(--theme-accent) 30%, transparent);
   }
 
   .k-grid .k-grid-header {
-    border-bottom: 2px solid rgba(46, 132, 115, 0.45);
+    border-bottom: 2px solid color-mix(in srgb, var(--theme-accent) 45%, transparent);
   }
 
   .k-pager,
   .k-grid-pager {
-    border-top: 1px solid rgba(46, 132, 115, 0.3);
+    border-top: 1px solid color-mix(in srgb, var(--theme-accent) 30%, transparent);
   }
 
   .k-grid .k-grid-content {
@@ -409,15 +487,39 @@
 // :root custom properties covers both entry points and, unlike a compiled
 // $kendo-colors merge, follows the active theme at runtime.
 //
-// Values deliberately resolve to what the slim theme already produced, so this
-// changes nothing for hosts that were already on it.
+// Surface/border/primary colours, the radius scale and the font family all
+// point at the Deep Sea tokens (concept §6.6 step 2), so most of the Kendo
+// re-skin happens here without selector overrides.
 // ----------------------------------------------------------------------------
 @mixin kendo-bridge {
   --kendo-color-surface: var(--theme-bg-surface);
   --kendo-color-surface-alt: var(--theme-bg-elevated);
   --kendo-color-on-surface: var(--kendo-color-base-on-surface);
   --kendo-color-subtle: var(--theme-text-secondary);
-  --kendo-color-border: var(--theme-border-divider);
+  --kendo-color-border: var(--theme-border-default);
+
+  // Primary = the Deep Sea accent (mint in dark, darkened teal in light).
+  // Overrides the mint that `variables()` sets for hosts without theme().
+  --kendo-color-primary: var(--theme-accent);
+  --kendo-color-primary-hover: var(--theme-accent-hover);
+  --kendo-color-primary-active: var(--theme-accent-hover);
+  --kendo-color-on-primary: var(--theme-text-on-accent);
+
+  // Radius: symmetric edges from the --theme-radius-* scale. Kendo Material
+  // uses sm for chips, md for buttons/inputs and lg for cards/dialogs; the
+  // larger steps are capped at the dialog radius ("edges, not pills" —
+  // `full` stays for switches and badges, which are round by nature).
+  --kendo-border-radius-base: var(--theme-radius-sm);
+  --kendo-border-radius-xs: var(--theme-radius-xs);
+  --kendo-border-radius-sm: var(--theme-radius-xs);
+  --kendo-border-radius-md: var(--theme-radius-sm);
+  --kendo-border-radius-lg: var(--theme-radius-lg);
+  --kendo-border-radius-xl: var(--theme-radius-lg);
+  --kendo-border-radius-xxl: var(--theme-radius-lg);
+  --kendo-border-radius-xxxl: var(--theme-radius-lg);
+
+  // Typography: Kendo components use the UI face (Roboto).
+  --kendo-font-family: var(--theme-font-ui);
 
   // Kendo derives every `*-on-subtle` ink from its own `*-subtle` surface,
   // assuming that surface is light. We repoint --kendo-color-base-subtle at a
@@ -463,6 +565,7 @@
 @mixin theme {
   :root {
     @include vars.variables;
+    @include foundation-tokens;
     @include dark-theme-tokens;
     @include kendo-bridge;
     @include ink-overlays;
@@ -478,6 +581,14 @@
   // ----- LIGHT THEME via explicit override -----
   :root[data-theme="light"] {
     @include light-theme-tokens;
+  }
+
+  // ----- Reduced motion: every token-driven transition becomes instant -----
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --theme-motion-fast: 0ms;
+      --theme-motion-base: 0ms;
+    }
   }
 }
 
