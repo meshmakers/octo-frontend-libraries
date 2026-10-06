@@ -11,6 +11,7 @@ import { EntityFormGetAttributePresenceDtoGQL } from '../graphQL/getEntityAttrib
 import { EntityFormGetAssociationDefinitionsDtoGQL } from '../graphQL/getEntityFormAssociationDefinitions';
 import { EntityFormGetAssociationTargetsDtoGQL } from '../graphQL/getEntityFormAssociationTargets';
 import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
+import { EntityFormGetCountDtoGQL, EntityFormGetCountDocumentDto } from '../graphQL/getEntityFormCount';
 import { EntityFormGetReferenceOptionsDtoGQL } from '../graphQL/getEntityFormReferenceOptions';
 import { EntityFormGetValuesDtoGQL } from '../graphQL/getEntityFormValues';
 import { EntityFormUpdateEntitiesDtoGQL } from '../graphQL/updateEntityFormEntities';
@@ -60,6 +61,7 @@ describe('EntityFormDataService', () => {
       providers: [
         { provide: EntityFormGetValuesDtoGQL, useValue: values },
         { provide: EntityFormGetListDtoGQL, useValue: list },
+        { provide: EntityFormGetCountDtoGQL, useValue: list },
         { provide: EntityFormGetAttributePresenceDtoGQL, useValue: presence },
         { provide: EntityFormGetAssociationTargetsDtoGQL, useValue: targets },
         { provide: EntityFormGetAssociationDefinitionsDtoGQL, useValue: definitions },
@@ -241,19 +243,23 @@ describe('EntityFormDataService', () => {
     it('counts the exact type with no attributes read', async () => {
       await expect(service.count(SFTP)).resolves.toBe(2);
       expect(list.fetch).toHaveBeenCalledWith(expect.objectContaining({
-        variables: expect.objectContaining({
-          ckTypeId: SFTP,
-          attributeNames: [],
-          fieldFilters: [{ attributePath: 'ckTypeId', operator: 'EQUALS', comparisonValue: SFTP }],
-        }),
+        variables: { ckTypeId: SFTP, fieldFilters: [{ attributePath: 'ckTypeId', operator: 'EQUALS', comparisonValue: SFTP }] },
+        context: { octoSilentErrors: true },
       }));
     });
 
     it('includes derived types without a type filter', async () => {
       await service.count('System/Configuration', true);
       expect(list.fetch).toHaveBeenCalledWith(expect.objectContaining({
-        variables: expect.objectContaining({ ckTypeId: 'System/Configuration', fieldFilters: null, attributeNames: [] }),
+        variables: { ckTypeId: 'System/Configuration', fieldFilters: null },
       }));
+    });
+
+    it('the count document selects no items and no attributes (AB#5523)', () => {
+      const source = EntityFormGetCountDocumentDto.loc?.source.body ?? '';
+      expect(source).toContain('totalCount');
+      expect(source).not.toContain('items');
+      expect(source).not.toContain('attributes');
     });
   });
 });
