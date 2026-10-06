@@ -48,6 +48,10 @@ export interface RuntimeBrowserMessages {
   longitudeHint?: string;
   /** Hint for GEO latitude input. */
   latitudeHint?: string;
+  /** Hint under a write-only secret field in the edit form (AB#5542). */
+  secretWriteOnlyHint?: string;
+  /** Warning when an edited field could not be saved because its value is not fully loaded (secret inside, AB#5542). */
+  recordWithSecretNotSaved?: string;
 
   /**
    * Drag-and-drop messages for the binary attribute drop zone
@@ -232,6 +236,9 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
     'The longitude of the point on the Earth surface (-180 to 180 degrees).',
   latitudeHint:
     'The latitude of the point on the Earth surface (-90 to 90 degrees).',
+  secretWriteOnlyHint: 'Write-only. The stored value is never shown; leave empty to keep it.',
+  recordWithSecretNotSaved:
+    'Some changed fields contain secret values that are never loaded here; those changes were not saved.',
   title: 'Runtime Browser',
   badgeLabel: 'Entities & Data',
   titlePrefix: 'REPOSITORY',

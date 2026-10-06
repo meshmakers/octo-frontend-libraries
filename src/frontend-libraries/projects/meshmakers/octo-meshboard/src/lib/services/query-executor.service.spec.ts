@@ -1,5 +1,6 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { firstValueFrom, of, throwError } from 'rxjs';
 import { CkRollupFunctionDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { QueryExecutorService } from './query-executor.service';
@@ -62,6 +63,8 @@ describe('QueryExecutorService', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        // SECRET-safe attribute lists (AB#5542): the type's non-secret attributes.
+        { provide: SecretSafeAttributeNamesService, useValue: { forCkType: vi.fn().mockResolvedValue(['name', 'value', 'groupKey']), restrict: vi.fn((_t: string, names: string[]) => Promise.resolve(names.filter((n) => !/password|secret/i.test(n)))) } },
         QueryExecutorService,
         { provide: ExecuteRuntimeQueryDtoGQL, useValue: runtimeGqlSpy },
         { provide: ExecuteStreamDataQueryDtoGQL, useValue: streamDataGqlSpy },

@@ -106,6 +106,34 @@ describe('AttributeMapperService', () => {
     });
   });
 
+  describe('secrets are write-only (AB#5542)', () => {
+    it('flags credential-like and metadata-marked attributes as secret in mapToFormAttribute', () => {
+      expect(service.mapToFormAttribute(ckMeta('password', 'STRING')).secret).toBe(true);
+      expect(service.mapToFormAttribute({
+        ...ckMeta('value', 'STRING'),
+        attribute: { metaData: [{ key: 'secret', value: 'true' }] },
+      }).secret).toBe(true);
+      expect(service.mapToFormAttribute(ckMeta('name', 'STRING')).secret).toBeUndefined();
+      expect(service.mapToFormAttribute(ckMeta('isSecret', 'BOOLEAN')).secret).toBeUndefined();
+    });
+
+    it('omits an empty secret (keep) instead of clearing it, also when optional', async () => {
+      const secret = { ...attr('password', 'STRING', true), secret: true };
+      const requiredSecret = { ...attr('clientSecret', 'STRING'), secret: true };
+      const result = await service.mapFormValueToGraphQLAttributes(
+        { password: null, clientSecret: '', name: 'x' },
+        [secret, requiredSecret, attr('name', 'STRING')],
+      );
+      expect(result).toEqual([{ attributeName: 'name', value: 'x' }]);
+    });
+
+    it('sends a secret that was typed', async () => {
+      const secret = { ...attr('password', 'STRING', true), secret: true };
+      const result = await service.mapFormValueToGraphQLAttributes({ password: 'new' }, [secret]);
+      expect(result).toEqual([{ attributeName: 'password', value: 'new' }]);
+    });
+  });
+
   describe('BINARY / BINARY_LINKED handling', () => {
     it('converts BINARY File to a byte array', async () => {
       const file = new File([new Uint8Array([1, 2, 3])], 'x.bin', {

@@ -1,4 +1,9 @@
-query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!) {
+# Generic runtime selection — SECRET-safe (AB#5542): `$attributeNames` is required and
+# non-nullable. Pass `[]` when only rt* fields are needed, a fixed camelCase list when the
+# caller reads known attributes, or `SecretSafeAttributeNamesService.forCkType()` to show
+# all non-credential attributes of a type. Omitting the argument would return EVERY
+# attribute, passwords and client secrets included.
+query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!, $attributeNames: [String!]!) {
   runtime {
     runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
       items {
@@ -9,7 +14,7 @@ query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!) {
         rtWellKnownName
         rtCreationDateTime
         rtChangedDateTime
-        attributes(resolveEnumValuesToNames: true) {
+        attributes(attributeNames: $attributeNames, resolveEnumValuesToNames: true) {
           items {
             attributeName
             value

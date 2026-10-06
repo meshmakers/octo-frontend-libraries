@@ -1,5 +1,6 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { of } from 'rxjs';
 import { SummaryCardWidgetComponent } from './summary-card-widget.component';
 import { GetDashboardEntityDtoGQL } from '../../graphQL/getDashboardEntity';
@@ -55,6 +56,8 @@ describe('SummaryCardWidgetComponent — stream-data persistent-query tiles', ()
     TestBed.configureTestingModule({
       imports: [SummaryCardWidgetComponent],
       providers: [
+        // SECRET-safe attribute lists (AB#5542): the type's non-secret attributes.
+        { provide: SecretSafeAttributeNamesService, useValue: { forCkType: vi.fn().mockResolvedValue(['name', 'value', 'groupKey']), restrict: vi.fn((_t: string, names: string[]) => Promise.resolve(names.filter((n) => !/password|secret/i.test(n)))) } },
         { provide: GetDashboardEntityDtoGQL, useValue: entityGQL },
         { provide: MeshBoardDataService, useValue: dataService },
         { provide: QueryExecutorService, useValue: queryExecutor },

@@ -8,7 +8,7 @@ export type UpdateRuntimeEntitiesMutationVariablesDto = Types.Exact<{
 }>;
 
 
-export type UpdateRuntimeEntitiesMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', runtimeEntities?: { __typename?: 'RtEntityMutations', update?: Array<{ __typename?: 'RtEntity', rtId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null };
+export type UpdateRuntimeEntitiesMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', runtimeEntities?: { __typename?: 'RtEntityMutations', update?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any } | null> | null } | null } | null };
 
 export const UpdateRuntimeEntitiesDocumentDto = gql`
     mutation UpdateRuntimeEntities($entities: [RtEntityUpdate]!) {
@@ -16,12 +16,7 @@ export const UpdateRuntimeEntitiesDocumentDto = gql`
     runtimeEntities {
       update(entities: $entities) {
         rtId
-        attributes {
-          items {
-            attributeName
-            value
-          }
-        }
+        ckTypeId
       }
     }
   }

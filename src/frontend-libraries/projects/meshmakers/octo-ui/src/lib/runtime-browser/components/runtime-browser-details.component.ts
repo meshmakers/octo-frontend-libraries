@@ -39,6 +39,7 @@ import { EntitySelectorDialogService } from '../../entity-selector-dialog';
 import { DataPointMappingItem, ExpressionValidatorFn } from './data-mapping/data-mapping-list.component';
 import { CkTypeEntitiesDataSourceDirective } from '../data-sources/ck-type-entities-data-source.directive';
 import { EntityDetailDataSource } from '../data-sources/entity-detail-data-source.service';
+import { DATA_POINT_MAPPING_ATTRIBUTE_NAMES } from '../services/secret-safe-attribute-names.service';
 import { RtEntityIdHelper } from '../models/rt-entity-id';
 import {
   DEFAULT_RUNTIME_BROWSER_MESSAGES,
@@ -713,7 +714,7 @@ implements OnChanges, AfterViewInit
       // Load entity attributes
       const entityResult = await firstValueFrom(
         this.getEntityByIdGQL.fetch({
-          variables: { rtId, ckTypeId },
+          variables: { rtId, ckTypeId, attributeNames: [...DATA_POINT_MAPPING_ATTRIBUTE_NAMES] },
         }),
       );
 

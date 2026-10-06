@@ -1,14 +1,11 @@
-mutation UpdateRuntimeEntities ($entities: [RtEntityUpdate]!) {
+# SECRET-safe (AB#5542): returns only the ids — callers re-read what they display with an
+# explicit attribute list instead of receiving every attribute (incl. credentials) back.
+mutation UpdateRuntimeEntities($entities: [RtEntityUpdate]!) {
   runtime {
     runtimeEntities {
-      update (entities: $entities) {
+      update(entities: $entities) {
         rtId
-        attributes {
-          items {
-            attributeName
-            value
-          }
-        } 
+        ckTypeId
       }
     }
   }

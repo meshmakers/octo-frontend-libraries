@@ -13,6 +13,8 @@ export interface CkAttributeMetadata {
   ckAttributeId?: { fullName?: string | null } | null;
   attribute?: {
     defaultValues?: (unknown | null)[] | null;
+    /** CK attribute metadata; `{ key: 'secret', value: 'true' }` marks a secret (AB#5542). */
+    metaData?: ({ key?: string | null; value?: string | null } | null)[] | null;
     ckRecord?: { ckRecordId?: { fullName?: string | null } | null } | null;
     ckEnum?: {
       ckEnumId?: { fullName?: string | null } | null;

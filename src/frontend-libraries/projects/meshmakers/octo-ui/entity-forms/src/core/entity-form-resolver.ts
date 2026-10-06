@@ -12,6 +12,7 @@ import {
   ResolvedListColumn,
   ResolvedSection,
 } from '../models/entity-form.models';
+import { isSecretAttributeCandidate } from '@meshmakers/octo-services';
 import { canonicalisePath, isForcedReadOnly } from './attribute-path';
 import { BUILT_IN_DEFAULT_FORM } from './built-in-default-form';
 import { parseDefault, isArrayType, isDateType, isNumericType, isRecordType } from './entity-form-value-mapper';
@@ -40,16 +41,28 @@ const KNOWN_EDITORS: readonly EntityFormEditor[] = [
 const SCALAR_LIST_TYPES: readonly string[] = ['STRING', 'INT', 'INTEGER', 'INT_64', 'INTEGER_64', 'DOUBLE', 'BOOLEAN', 'ENUM', 'DATE_TIME', 'DATE_TIME_OFFSET'];
 
 /**
- * Defensive secret heuristic (addition to plan D5.1, AB#5522): until the CK carries the `secret`
- * metaData marker (§5.8), attributes whose name ends in one of these words are treated as secret
- * unless the form explicitly says `Secret: false`. Without it, a type that only has form-default
- * (or the built-in form) would read and prefill e.g. `password`.
+ * Secret decision of an attribute (AB#5522 D5, AB#5542) — the shared octo-services rule
+ * `isSecretAttributeCandidate` with one precedence everywhere:
+ * 1. an explicit form decision (`Secret: true|false`; editor `password` counts as `true`),
+ * 2. the CK metaData marker (`secret: true|false` — `false` opts out of the name rule),
+ * 3. the credential-name rule for TEXTUAL attributes only (suffixes password, passphrase, secret,
+ *    secretKey, privateKey, apiKey, token, connectionString, credential(s), encryptedValue), so
+ *    `isSecret: BOOLEAN` or a `credentials` record are never secrets by name.
+ * The name rule covers types without the marker (form-default, built-in form) until the SECRET
+ * value type (AB#5528) exists.
  */
-const SECRET_NAME_PATTERN = /(password|passphrase|secret|privatekey|apikey|token)$/i;
+function decideSecret(attribute: CkAttributeInfo, formDecision?: boolean | null): boolean {
+  const metaSecret = attribute.metaSecret ?? (attribute.secret ? true : undefined);
+  return isSecretAttributeCandidate({
+    attributeName: attribute.attributeName,
+    attributeValueType: attribute.valueType,
+    secret: formDecision ?? metaSecret,
+  });
+}
 
-/** True when a CK attribute is secret by metaData or by the name heuristic. */
+/** True when a CK attribute is secret by metaData or by the name heuristic (no form decision). */
 export function isSecretAttribute(attribute: CkAttributeInfo): boolean {
-  return attribute.secret || SECRET_NAME_PATTERN.test(attribute.attributeName);
+  return decideSecret(attribute);
 }
 
 const sameId = (a: string | null | undefined, b: string | null | undefined): boolean =>
@@ -234,8 +247,9 @@ function buildAttributeField(
 ): ResolvedField {
   let editor = resolveEditor(def, attribute, warnings);
   const explicitPassword = (def?.editor ?? '').trim().toLowerCase() === 'password';
-  const secret = def?.secret === true || explicitPassword || attribute.secret
-    || (def?.secret !== false && SECRET_NAME_PATTERN.test(attribute.attributeName));
+  // A `password` editor always means secret (it cannot be opted out of with Secret: false).
+  const formDecision = def?.secret === true || explicitPassword ? true : def?.secret === false ? false : undefined;
+  const secret = decideSecret(attribute, formDecision);
   let readOnly = parseReadOnly(def?.readOnly);
   if (isForcedReadOnly(attribute.attributeName) || editor === 'unsupported') {
     readOnly = 'always';
@@ -602,8 +616,8 @@ export function resolveEntityForm(
   const attributeFields = allFields.filter((f) => f.kind === 'attribute' && f.attributeName);
   const secretNames = new Set<string>([
     ...attributeFields.filter((f) => f.secret).map((f) => f.attributeName as string),
-    ...type.attributes.filter((a) => a.secret).map((a) => a.attributeName),
-    ...type.attributes.filter((a) => SECRET_NAME_PATTERN.test(a.attributeName) && !attributeFields.some((f) => f.attributeName === a.attributeName && !f.secret)).map((a) => a.attributeName),
+    // Attributes without a field: metaData > name rule (a field's own decision is above).
+    ...type.attributes.filter((a) => !attributeFields.some((f) => f.attributeName === a.attributeName) && isSecretAttribute(a)).map((a) => a.attributeName),
   ]);
   const secretFields = attributeFields.filter((f) => f.secret).map((f) => f.attributeName as string);
   const read = new Set<string>();

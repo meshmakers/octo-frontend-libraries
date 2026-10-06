@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, firstValueFrom, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
@@ -162,6 +163,7 @@ export class QueryExecutorService {
   private readonly queryArchiveGql = inject(GetStreamDataQueryArchiveDtoGQL);
   private readonly downsampleGql = inject(TransientDownsamplingDtoGQL);
   private readonly entitiesGql = inject(GetEntitiesByCkTypeDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   /**
    * Cache of resolved query families, keyed by query rtId. Filled lazily for
@@ -374,9 +376,10 @@ export class QueryExecutorService {
     const map = new Map<string, string>();
     const canon = (s: string): string => s.toLowerCase().replace(/[^a-z0-9]/g, '');
     const wanted = canon(labelField);
+    const attributeNames = await this.matchingAttributeNames(ckTypeId, wanted, canon);
     await Promise.all(rtIds.map(async rtId => {
       try {
-        const res = await firstValueFrom(this.entitiesGql.fetch({ variables: { ckTypeId, rtId, first: 1 } }));
+        const res = await firstValueFrom(this.entitiesGql.fetch({ variables: { ckTypeId, rtId, first: 1, attributeNames } }));
         const item = res.data?.runtime?.runtimeEntities?.items?.[0];
         const attr = item?.attributes?.items?.find(a => !!a?.attributeName && canon(a.attributeName) === wanted);
         if (attr?.value != null) {
@@ -387,6 +390,15 @@ export class QueryExecutorService {
       }
     }));
     return map;
+  }
+
+  /**
+   * The non-secret attribute names of `ckTypeId` whose canonical form matches `wanted`
+   * (SECRET-safe explicit list, AB#5542). Empty when nothing matches — the caller then falls back
+   * as for a missing attribute.
+   */
+  private async matchingAttributeNames(ckTypeId: string, wanted: string, canon: (s: string) => string): Promise<string[]> {
+    return (await this.secretSafeNames.forCkType(ckTypeId)).filter(n => canon(n) === wanted);
   }
 
   /** Cap on the source-entity population read for group-aggregation (AB#4714). A truncated read is
@@ -412,8 +424,9 @@ export class QueryExecutorService {
     const wanted = canon(groupField);
     const restrict = restrictRtIds && restrictRtIds.length > 0 ? new Set(restrictRtIds) : null;
 
+    const attributeNames = await this.matchingAttributeNames(ckTypeId, wanted, canon);
     const res = await firstValueFrom(
-      this.entitiesGql.fetch({ variables: { ckTypeId, first: QueryExecutorService.ENTITY_GROUP_FETCH_CAP } })
+      this.entitiesGql.fetch({ variables: { ckTypeId, attributeNames, first: QueryExecutorService.ENTITY_GROUP_FETCH_CAP } })
     );
     const connection = res.data?.runtime?.runtimeEntities;
     const items = connection?.items ?? [];

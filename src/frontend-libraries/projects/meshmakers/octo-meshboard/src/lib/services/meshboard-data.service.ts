@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, of } from 'rxjs';
+import { Observable, from, map, of, switchMap } from 'rxjs';
 import { GetDashboardEntityDtoGQL } from '../graphQL/getDashboardEntity';
 import { GetCkModelsWithStateDtoGQL, GetCkModelsWithStateQueryDto } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
@@ -19,6 +19,7 @@ import {
   RepeaterQueryDataSource
 } from '../models/meshboard.models';
 import { FieldFilterDto, GraphDirectionDto } from '@meshmakers/octo-services';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { firstValueFrom } from 'rxjs';
 import { Apollo, gql } from 'apollo-angular';
 import { MeshBoardStateService } from './meshboard-state.service';
@@ -84,6 +85,7 @@ export class MeshBoardDataService {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly getAssociationTargetsGQL = inject(GetAssociationTargetsDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
   private readonly getCkTypeAttributesGQL = inject(GetCkTypeAttributesForMeshboardDtoGQL);
   private readonly apollo = inject(Apollo);
   private readonly stateService = inject(MeshBoardStateService);
@@ -111,7 +113,7 @@ export class MeshBoardDataService {
       return of(null);
     }
 
-    return this.getDashboardEntityGQL.fetch({ variables: { rtId: dataSource.rtId, ckTypeId: dataSource.ckTypeId } }).pipe(
+    return this.fetchDashboardEntity(dataSource.rtId, dataSource.ckTypeId).pipe(
       map(result => {
         const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
         if (!entity) return null;
@@ -125,13 +127,23 @@ export class MeshBoardDataService {
    * Fetches a single entity with associations by rtId and ckTypeId (using generic query)
    */
   fetchEntityWithAssociations(rtId: string, ckTypeId: string): Observable<RuntimeEntityData | null> {
-    return this.getDashboardEntityGQL.fetch({ variables: { rtId, ckTypeId } }).pipe(
+    return this.fetchDashboardEntity(rtId, ckTypeId).pipe(
       map(result => {
         const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
         if (!entity) return null;
 
         return this.mapToRuntimeEntityData(entity);
       })
+    );
+  }
+
+  /**
+   * Loads one entity with all NON-secret attributes of its type (record sub-attributes included;
+   * SECRET-safe, AB#5542 — credentials never reach the dashboard).
+   */
+  private fetchDashboardEntity(rtId: string, ckTypeId: string) {
+    return from(this.secretSafeNames.forCkType(ckTypeId)).pipe(
+      switchMap(attributeNames => this.getDashboardEntityGQL.fetch({ variables: { rtId, ckTypeId, attributeNames } }))
     );
   }
 
@@ -271,6 +283,7 @@ export class MeshBoardDataService {
       this.getEntitiesByCkTypeGQL.fetch({
         variables: {
           ckTypeId,
+          attributeNames: [], // count only — no attributes (SECRET-safe, AB#5542)
           first: 1, // We only need the count, not the entities
           fieldFilters
         }
@@ -432,10 +445,13 @@ export class MeshBoardDataService {
       const variables = this.stateService.getVariables();
       const fieldFilters = this.variableService.convertToFieldFilterDto(filters, variables);
 
+      // Repeater templates may reference any attribute: all non-secret ones (SECRET-safe, AB#5542).
+      const attributeNames = await this.secretSafeNames.forCkType(ckTypeId);
       const result = await firstValueFrom(
         this.getEntitiesByCkTypeGQL.fetch({
           variables: {
             ckTypeId,
+            attributeNames,
             first: maxItems ?? 50,
             fieldFilters
           }
@@ -491,20 +507,20 @@ export class MeshBoardDataService {
   ): Observable<TargetEntityWithAttributes[]> {
     const graphDirection = direction === 'out' ? GraphDirectionDto.OutboundDto : GraphDirectionDto.InboundDto;
 
-    return this.getAssociationTargetsGQL.fetch({
-      variables: {
-        rtId: sourceRtId,
-        ckTypeId: sourceCkTypeId,
-        targetCkTypeId,
-        roleId,
-        direction: graphDirection,
-        first: first ?? 100,
-        // The server's `attributes` resolver rejects a null attributeNames argument
-        // (ARGUMENT_NULL); send an empty list when the caller doesn't need attributes
-        // (e.g. childScope rtId resolution, which only reads rtId).
-        attributeNames: attributeNames ?? []
-      }
-    }).pipe(
+    // Type-aware (AB#5542): only requested names that are non-secret attributes of the target type.
+    return from(this.secretSafeNames.restrict(targetCkTypeId, attributeNames ?? [])).pipe(
+      switchMap(safeAttributeNames => this.getAssociationTargetsGQL.fetch({
+        variables: {
+          rtId: sourceRtId,
+          ckTypeId: sourceCkTypeId,
+          targetCkTypeId,
+          roleId,
+          direction: graphDirection,
+          first: first ?? 100,
+          // Always explicit; empty when the caller doesn't need attributes (e.g. childScope rtId resolution).
+          attributeNames: safeAttributeNames
+        }
+      })),
       map(result => {
         const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
         const targets = entity?.associations?.targets?.items ?? [];

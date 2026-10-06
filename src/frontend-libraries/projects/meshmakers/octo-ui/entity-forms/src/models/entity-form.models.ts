@@ -30,6 +30,11 @@ export interface CkAttributeInfo {
   ckRecordId?: string | null;
   /** True when the CK attribute metaData carries `secret = true`. */
   secret: boolean;
+  /**
+   * The CK metaData `secret` marker as a tri-state (AB#5542): `true`, `false` (explicit opt-out of
+   * the credential-name rule) or `undefined` (no marker).
+   */
+  metaSecret?: boolean;
 }
 
 /** One association role a type takes part in. */

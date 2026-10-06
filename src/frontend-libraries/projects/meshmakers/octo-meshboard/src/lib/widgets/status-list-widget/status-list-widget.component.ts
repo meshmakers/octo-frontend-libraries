@@ -5,6 +5,7 @@ import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { firstValueFrom } from 'rxjs';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 
 interface StatusListItem {
   label: string;
@@ -104,6 +105,7 @@ interface StatusListItem {
 })
 export class StatusListWidgetComponent implements DashboardWidget<StatusListWidgetConfig, StatusListItem[]>, OnInit, OnChanges {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   @Input() config!: StatusListWidgetConfig;
 
@@ -141,10 +143,13 @@ export class StatusListWidgetComponent implements DashboardWidget<StatusListWidg
     this._error.set(null);
 
     try {
+      // Only the configured label and status fields, type-aware (SECRET-safe, AB#5542).
+      const attributeNames = await this.secretSafeNames.restrict(this.config.ckTypeId, [this.config.labelField, this.config.statusField]);
       const result = await firstValueFrom(
         this.getEntitiesByCkTypeGQL.fetch({
           variables: {
             ckTypeId: this.config.ckTypeId,
+            attributeNames,
             first: 50
           }
         })

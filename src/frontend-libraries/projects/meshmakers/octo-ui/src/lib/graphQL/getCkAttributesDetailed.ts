@@ -8,7 +8,7 @@ export type GetCkAttributesDetailedQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type GetCkAttributesDetailedQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', ckTypeId: { __typename?: 'CkTypeId', fullName: string }, attributes?: { __typename?: 'CkTypeAttributeDtoConnection', items?: Array<{ __typename?: 'CkTypeAttribute', attributeName: string, attributeValueType: Types.AttributeValueTypeDto, isOptional: boolean, autoCompleteValues?: Array<string | null> | null, ckAttributeId: { __typename?: 'CkAttributeId', fullName: string }, attribute?: { __typename?: 'CkAttribute', defaultValues?: Array<any | null> | null, ckRecord?: { __typename?: 'CkRecord', ckRecordId: { __typename?: 'CkRecordId', fullName: string } } | null, ckEnum?: { __typename?: 'CkEnum', ckEnumId: { __typename?: 'CkEnumId', fullName: string }, values: Array<{ __typename?: 'CkEnumValue', key?: number | null, name?: string | null } | null> } | null } | null } | null> | null } | null } | null> | null } | null } | null };
+export type GetCkAttributesDetailedQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', ckTypeId: { __typename?: 'CkTypeId', fullName: string }, attributes?: { __typename?: 'CkTypeAttributeDtoConnection', items?: Array<{ __typename?: 'CkTypeAttribute', attributeName: string, attributeValueType: Types.AttributeValueTypeDto, isOptional: boolean, autoCompleteValues?: Array<string | null> | null, ckAttributeId: { __typename?: 'CkAttributeId', fullName: string }, attribute?: { __typename?: 'CkAttribute', defaultValues?: Array<any | null> | null, ckRecord?: { __typename?: 'CkRecord', ckRecordId: { __typename?: 'CkRecordId', fullName: string } } | null, ckEnum?: { __typename?: 'CkEnum', ckEnumId: { __typename?: 'CkEnumId', fullName: string }, values: Array<{ __typename?: 'CkEnumValue', key?: number | null, name?: string | null } | null> } | null, metaData?: Array<{ __typename?: 'CkAttributeMetaData', key: string, value?: string | null } | null> | null } | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetCkAttributesDetailedDocumentDto = gql`
     query getCkAttributesDetailed($ckId: String!) {
@@ -43,6 +43,10 @@ export const GetCkAttributesDetailedDocumentDto = gql`
                 }
               }
               defaultValues
+              metaData {
+                key
+                value
+              }
             }
           }
         }

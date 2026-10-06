@@ -50,6 +50,16 @@ export interface RawCkRecord {
   attributes?: { items?: (RawCkAttribute | null)[] | null } | null;
 }
 
+/**
+ * The CK attribute metaData `secret` marker: `true`, `false` (explicit opt-out of the
+ * credential-name rule) or `undefined` when there is no (valid) marker.
+ */
+export function secretMetaDataMarker(metaData: readonly ({ key: string; value?: string | null } | null)[] | null | undefined): boolean | undefined {
+  const marker = (metaData ?? []).find((m) => !!m && m.key?.toLowerCase() === 'secret');
+  const value = (marker?.value ?? '').trim().toLowerCase();
+  return value === 'true' ? true : value === 'false' ? false : undefined;
+}
+
 /** True when the CK attribute metaData marks the attribute as secret (`secret = true`). */
 export function isSecretMetaData(metaData: readonly ({ key: string; value?: string | null } | null)[] | null | undefined): boolean {
   return (metaData ?? []).some((m) => !!m && m.key?.toLowerCase() === 'secret' && (m.value ?? '').trim().toLowerCase() === 'true');
@@ -65,6 +75,10 @@ export function toCkAttributeInfo(raw: RawCkAttribute): CkAttributeInfo {
     ckRecordId: raw.attribute?.ckRecord?.ckRecordId?.fullName ?? null,
     secret: isSecretMetaData(raw.attribute?.metaData),
   };
+  const marker = secretMetaDataMarker(raw.attribute?.metaData);
+  if (marker !== undefined) {
+    info.metaSecret = marker;
+  }
   const values = raw.attribute?.ckEnum?.values;
   if (values?.length) {
     info.enumOptions = values

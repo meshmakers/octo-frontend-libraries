@@ -1231,6 +1231,8 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
           .fetch({
             variables: {
               ckTypeId: this.config.validationPipelineCkTypeId,
+              // Only the pipeline definition is read (SECRET-safe explicit list, AB#5542).
+              attributeNames: ['pipelineDefinition'],
               first: 200,
               after: GraphQL.offsetToCursor(0),
             },
@@ -1542,6 +1544,8 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
           .fetch({
             variables: {
               ckTypeId: this.activeRootCkTypeId(),
+              // Only rt* fields are read (SECRET-safe, AB#5542).
+              attributeNames: [],
               first: 200,
               after: GraphQL.offsetToCursor(0),
             },
@@ -1655,7 +1659,8 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
           const data = await firstValueFrom(
             this.getRuntimeEntityByIdGQL
               .fetch({
-                variables: { rtId: ref.rtId, ckTypeId: ref.ckTypeId },
+                // Only rtDisplayName is read — no attributes (SECRET-safe, AB#5542).
+                variables: { rtId: ref.rtId, ckTypeId: ref.ckTypeId, attributeNames: [] },
                 fetchPolicy: 'cache-first',
               })
               .pipe(map(r => r.data?.runtime?.runtimeEntities?.items?.[0])),
