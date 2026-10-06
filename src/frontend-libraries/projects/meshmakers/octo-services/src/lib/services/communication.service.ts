@@ -1,9 +1,10 @@
 import {Injectable, inject} from '@angular/core';
 import {HttpClient, HttpErrorResponse, HttpHeaders, HttpParams} from '@angular/common/http';
 import {firstValueFrom, of, throwError} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import {catchError, map} from 'rxjs/operators';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {
+  AdapterMetricsResultDto,
   AdapterMetricsSampleDto,
   DeploymentResultDto,
   PipelineExecutionDataDto,
@@ -139,8 +140,22 @@ export class CommunicationService {
     adapterCkTypeId: string,
     since?: Date
   ): Promise<AdapterMetricsSampleDto[]> {
+    return (await this.getAdapterMetricsResult(tenantId, adapterRtId, adapterCkTypeId, since)).samples;
+  }
+
+  /**
+   * Like {@link getAdapterMetrics}, but reports a 404 (adapter not connected / unknown to the
+   * controller) as `notFound: true` instead of hiding it, so pollers can back off (AB#5546).
+   * Other errors are rethrown.
+   */
+  async getAdapterMetricsResult(
+    tenantId: string,
+    adapterRtId: string,
+    adapterCkTypeId: string,
+    since?: Date
+  ): Promise<AdapterMetricsResultDto> {
     if (!this.communicationServicesUrl) {
-      return [];
+      return {samples: [], notFound: false};
     }
 
     const rtEntityId = encodeURIComponent(`${adapterCkTypeId}@${adapterRtId}`);
@@ -154,12 +169,13 @@ export class CommunicationService {
       this.httpClient
         .get<AdapterMetricsSampleDto[]>(uri, {params, headers: this.noCacheHeaders})
         .pipe(
+          map((samples): AdapterMetricsResultDto => ({samples: samples ?? [], notFound: false})),
           catchError((err: HttpErrorResponse) => {
             // 404 = adapter not connected yet / unknown to the controller;
             // surface as "no samples" so the UI can render an empty state
             // instead of a toast.
             if (err.status === 404) {
-              return of([] as AdapterMetricsSampleDto[]);
+              return of({samples: [] as AdapterMetricsSampleDto[], notFound: true});
             }
             return throwError(() => err);
           })

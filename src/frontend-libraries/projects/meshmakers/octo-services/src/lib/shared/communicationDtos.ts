@@ -173,3 +173,13 @@ export interface AdapterMetricsSampleDto {
   /** Total thread count of the adapter process. */
   threadCount: number;
 }
+
+/**
+ * Result of `CommunicationService.getAdapterMetricsResult`: the samples plus whether the
+ * controller knows the adapter at all. `notFound` (HTTP 404) means the adapter is not connected
+ * or not loaded by the controller, so callers can back off instead of polling at full rate.
+ */
+export interface AdapterMetricsResultDto {
+  samples: AdapterMetricsSampleDto[];
+  notFound: boolean;
+}
