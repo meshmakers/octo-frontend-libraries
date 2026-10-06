@@ -8,6 +8,7 @@ import { MeshBoardVariableService } from './meshboard-variable.service';
 import { GetDashboardEntityDtoGQL } from '../graphQL/getDashboardEntity';
 import { GetCkModelsWithStateDtoGQL } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
+import { GetAssociationTargetsDtoGQL } from '../graphQL/getAssociationTargets';
 import { QueryExecutorService, QueryExecutionResult } from './query-executor.service';
 import { Apollo } from 'apollo-angular';
 import { RuntimeEntityDataSource, StaticDataSource, PersistentQueryDataSource, AggregationQuery, ConstructionKitQueryDataSource, RepeaterQueryDataSource, MeshBoardVariable, RuntimeEntityData } from '../models/meshboard.models';
@@ -83,7 +84,7 @@ describe('MeshBoardDataService', () => {
     TestBed.configureTestingModule({
       providers: [
         // SECRET-safe attribute lists (AB#5542): the type's non-secret attributes.
-        { provide: SecretSafeAttributeNamesService, useValue: { forCkType: vi.fn().mockResolvedValue(['name', 'value', 'groupKey']) } },
+        { provide: SecretSafeAttributeNamesService, useValue: { forCkType: vi.fn().mockResolvedValue(['name', 'value', 'groupKey']), restrict: vi.fn((_t: string, names: string[]) => Promise.resolve(names.filter((n) => !/password|secret/i.test(n)))) } },
         MeshBoardDataService,
         { provide: GetDashboardEntityDtoGQL, useValue: getDashboardEntityGQLSpy },
         { provide: GetCkModelsWithStateDtoGQL, useValue: getCkModelsWithStateGQLSpy },
@@ -367,6 +368,17 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
   // fetchEntityWithAssociations Tests
   // ========================================================================
+
+  describe('fetchAssociationTargets (AB#5542)', () => {
+    it('requests only the type-aware safe subset of the configured attribute names', async () => {
+      const gql = TestBed.inject(GetAssociationTargetsDtoGQL);
+      const fetch = vi.spyOn(gql, 'fetch').mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } }) as never);
+
+      await firstValueFrom(service.fetchAssociationTargets('r1', 'Src/Type', 'Tgt/Type', 'Role', 'out', ['name', 'password']));
+
+      expect(fetch.mock.lastCall![0]!.variables!.attributeNames).toEqual(['name']);
+    });
+  });
 
   describe('fetchEntityWithAssociations', () => {
     it('requests only the secret-safe attribute names of the type (AB#5542)', async () => {

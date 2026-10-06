@@ -52,4 +52,4 @@ export { parseVisibleWhen, isVisible } from './core/visible-when';
 export { toFormValue, toAttributeInputs, parseDefault } from './core/entity-form-value-mapper';
 export { buildChangeSet, associationRoleName } from './core/change-set-builder';
 export type { BuildChangeSetOptions, EntityFormReferenceValue } from './core/change-set-builder';
-export { toCkTypeInfo, toCkRecordInfo, isSecretMetaData } from './core/ck-metadata';
+export { toCkTypeInfo, toCkRecordInfo, isSecretMetaData, secretMetaDataMarker } from './core/ck-metadata';

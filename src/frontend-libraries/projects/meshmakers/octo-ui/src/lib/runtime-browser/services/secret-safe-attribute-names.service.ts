@@ -84,6 +84,18 @@ export class SecretSafeAttributeNamesService {
     return (await this.analyse(rtCkTypeId)).attributeNames;
   }
 
+  /**
+   * Type-aware restriction of a requested name list (e.g. widget-configured fields): the requested
+   * names (camelCased) that are non-secret attributes of the type. Names that are unknown to the
+   * type or secret are dropped; a failed CK lookup yields `[]` (fail closed).
+   */
+  async restrict(rtCkTypeId: string | null | undefined, requested: readonly (string | null | undefined)[]): Promise<string[]> {
+    const wanted = toUniqueCamelCaseNames(requested);
+    if (wanted.length === 0) return [];
+    const safe = new Set(await this.forCkType(rtCkTypeId));
+    return wanted.filter((n) => safe.has(n));
+  }
+
   /** Full analysis: safe names, secret names and the attributes an editor must not write back. */
   async analyse(rtCkTypeId: string | null | undefined): Promise<SecretSafeAttributeAnalysis> {
     if (!rtCkTypeId) return { attributeNames: [], secretNames: [], blockedAttributes: [] };

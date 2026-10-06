@@ -183,6 +183,21 @@ describe('resolveEntityForm with live fixtures', () => {
     expect(model.readAttributeNames).toContain('isSecret');
   });
 
+  it('applies the shared precedence: form decision > CK metadata (true/false) > name rule (AB#5542)', () => {
+    // metadata secret: false opts out of the name rule
+    expect(isSecretAttribute(attr('apiToken', 'STRING', { metaSecret: false }))).toBe(false);
+    // metadata secret: true wins over a harmless name
+    expect(isSecretAttribute(attr('host', 'STRING', { secret: true, metaSecret: true }))).toBe(true);
+    const type = ckType('Test/Cfg', {
+      attributes: [attr('apiToken', 'STRING', { metaSecret: false }), attr('host', 'STRING', { secret: true, metaSecret: true }), attr('password')],
+    });
+    expect(resolveEntityForm(type, []).secretFields).toEqual(['host', 'password']);
+    // an explicit form decision beats the metadata
+    const optedOut = resolveEntityForm(type, [form('Test/Cfg', { fields: [{ attributePath: 'Host', secret: false }] })]);
+    expect(field(optedOut, 'host')?.secret).toBe(false);
+    expect(optedOut.readAttributeNames).toContain('host');
+  });
+
   it('with no forms, the built-in default resolves exactly like the parsed seed form-default', () => {
     const seeded = resolveEntityForm(sftpType, [defaultForm]);
     const builtIn = resolveEntityForm(sftpType, []);

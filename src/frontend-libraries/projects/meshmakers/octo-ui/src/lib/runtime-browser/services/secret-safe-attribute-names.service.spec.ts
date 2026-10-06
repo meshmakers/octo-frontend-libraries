@@ -147,6 +147,13 @@ describe('SecretSafeAttributeNamesService (AB#5542)', () => {
     expect(analysis.blockedAttributes).toEqual(['viaB', 'viaA']);
   });
 
+  it('restrict keeps only requested names that are non-secret attributes of the type (type-aware)', async () => {
+    typeReturns([meta('Label'), meta('IsSecret', 'BOOLEAN'), meta('Password')]);
+
+    expect(await service.restrict('Test/Type', ['Label', 'isSecret', 'password', 'unknown', null])).toEqual(['label', 'isSecret']);
+    expect(await service.restrict('Test/Type', [])).toEqual([]);
+  });
+
   it('fails closed (no attributes) when the CK lookup fails', async () => {
     vi.spyOn(console, 'error').mockReturnValue(undefined);
     typeGql.fetch.mockReturnValue(throwError(() => new Error('boom')) as never);

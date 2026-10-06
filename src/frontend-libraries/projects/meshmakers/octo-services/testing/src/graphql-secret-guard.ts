@@ -1,5 +1,5 @@
 import { DocumentNode, getNamedType, GraphQLSchema, print, TypeInfo, visit, visitWithTypeInfo } from 'graphql';
-import { isCredentialLikeAttributeName } from './secret-safe-attributes';
+import { isCredentialLikeAttributeName } from '@meshmakers/octo-services';
 
 /**
  * SECRET-safe GraphQL document rule (AB#5542), shared by the guard specs of the libraries

@@ -64,7 +64,7 @@ describe('QueryExecutorService', () => {
     TestBed.configureTestingModule({
       providers: [
         // SECRET-safe attribute lists (AB#5542): the type's non-secret attributes.
-        { provide: SecretSafeAttributeNamesService, useValue: { forCkType: vi.fn().mockResolvedValue(['name', 'value', 'groupKey']) } },
+        { provide: SecretSafeAttributeNamesService, useValue: { forCkType: vi.fn().mockResolvedValue(['name', 'value', 'groupKey']), restrict: vi.fn((_t: string, names: string[]) => Promise.resolve(names.filter((n) => !/password|secret/i.test(n)))) } },
         QueryExecutorService,
         { provide: ExecuteRuntimeQueryDtoGQL, useValue: runtimeGqlSpy },
         { provide: ExecuteStreamDataQueryDtoGQL, useValue: streamDataGqlSpy },

@@ -18,7 +18,7 @@ import {
   WidgetFilterConfig,
   RepeaterQueryDataSource
 } from '../models/meshboard.models';
-import { FieldFilterDto, GraphDirectionDto, toAttributeNameFilter } from '@meshmakers/octo-services';
+import { FieldFilterDto, GraphDirectionDto } from '@meshmakers/octo-services';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { firstValueFrom } from 'rxjs';
 import { Apollo, gql } from 'apollo-angular';
@@ -507,19 +507,20 @@ export class MeshBoardDataService {
   ): Observable<TargetEntityWithAttributes[]> {
     const graphDirection = direction === 'out' ? GraphDirectionDto.OutboundDto : GraphDirectionDto.InboundDto;
 
-    return this.getAssociationTargetsGQL.fetch({
-      variables: {
-        rtId: sourceRtId,
-        ckTypeId: sourceCkTypeId,
-        targetCkTypeId,
-        roleId,
-        direction: graphDirection,
-        first: first ?? 100,
-        // Always an explicit list without credential-like names (SECRET-safe, AB#5542);
-        // empty when the caller doesn't need attributes (e.g. childScope rtId resolution).
-        attributeNames: toAttributeNameFilter(attributeNames ?? [])
-      }
-    }).pipe(
+    // Type-aware (AB#5542): only requested names that are non-secret attributes of the target type.
+    return from(this.secretSafeNames.restrict(targetCkTypeId, attributeNames ?? [])).pipe(
+      switchMap(safeAttributeNames => this.getAssociationTargetsGQL.fetch({
+        variables: {
+          rtId: sourceRtId,
+          ckTypeId: sourceCkTypeId,
+          targetCkTypeId,
+          roleId,
+          direction: graphDirection,
+          first: first ?? 100,
+          // Always explicit; empty when the caller doesn't need attributes (e.g. childScope rtId resolution).
+          attributeNames: safeAttributeNames
+        }
+      })),
       map(result => {
         const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
         const targets = entity?.associations?.targets?.items ?? [];

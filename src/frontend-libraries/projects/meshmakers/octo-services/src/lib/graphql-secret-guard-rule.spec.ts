@@ -1,5 +1,5 @@
 import { buildSchema, parse } from 'graphql';
-import { extractGraphQlDocuments, findSecretUnsafeSelections } from './graphql-secret-guard';
+import { extractGraphQlDocuments, findSecretUnsafeSelections } from '../../testing/src/public-api';
 
 describe('findSecretUnsafeSelections (AB#5542)', () => {
   const schema = buildSchema(`

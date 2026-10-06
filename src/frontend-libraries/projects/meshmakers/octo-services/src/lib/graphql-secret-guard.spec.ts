@@ -1,5 +1,5 @@
 import { buildSchema, parse } from 'graphql';
-import { extractGraphQlDocuments, findSecretUnsafeSelections, SecretGuardViolation } from './shared/graphql-secret-guard';
+import { extractGraphQlDocuments, findSecretUnsafeSelections, SecretGuardViolation } from '../../testing/src/public-api';
 
 /**
  * SECRET-safe GraphQL guard (AB#5542) for every library in this workspace.
