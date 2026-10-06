@@ -57,6 +57,25 @@ describe('parseEntityForm', () => {
     expect(def.fields).toEqual([{ attributePath: 'Rows', recordColumns: ['a', 'b'] }, { attributePath: 'Other', recordColumns: ['c'] }]);
   });
 
+  it('reads referenceDisplayAttributes (System.UI 2.8.0) from field records', () => {
+    const def = parseEntityForm({ rtId: 'x', attributes: { items: [
+      { attributeName: 'targetCkTypeId', value: 'T/X' },
+      { attributeName: 'fields', value: [
+        { ckRecordId: 'System.UI/EntityFormField', attributes: [
+          { attributeName: 'attributePath', value: 'HelmRepository' },
+          { attributeName: 'referenceDisplayAttributes', value: ['repositoryUrl', 'channel'] },
+        ] },
+        { attributePath: 'Pool', referenceDisplayAttributes: null },
+        { attributePath: 'Name' },
+      ] },
+    ] } })!;
+    expect(def.fields).toEqual([
+      { attributePath: 'HelmRepository', referenceDisplayAttributes: ['repositoryUrl', 'channel'] },
+      { attributePath: 'Pool', referenceDisplayAttributes: null },
+      { attributePath: 'Name' },
+    ]);
+  });
+
   it('drops rows without a target type', () => {
     expect(parseEntityForms([{ rtId: 'x', attributes: { items: [] } }, null, LIVE_FORM_DEFAULT_ROW]).map((f) => f.rtId)).toEqual(['670300000000000000000001']);
   });
