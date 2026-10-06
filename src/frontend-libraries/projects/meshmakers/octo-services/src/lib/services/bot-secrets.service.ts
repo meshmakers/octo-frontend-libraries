@@ -21,6 +21,11 @@ import {
  *
  * Roles (handover §6): status — any user with tenant access; sweep runs — `AdminPanelManagement`;
  * starting a sweep and deleting a dump — `SecretManagement`.
+ *
+ * Tenant (handover §13, 410ade02): the `{tenantId}/v1/secrets/...` routes (status, sweep runs, dump
+ * delete) accept only the token's OWN tenant — always pass the current tenant, never a child tenant
+ * (child-tenant links only navigate into that tenant). A restore appears as a run with
+ * `trigger: Restore`, mode `Encrypt` and `dump: null`.
  */
 @Injectable({ providedIn: 'root' })
 export class BotSecretsService {
