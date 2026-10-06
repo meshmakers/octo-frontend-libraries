@@ -194,7 +194,10 @@ throwing hook) cancels. The Refinery Studio maps it to its production-mode confi
 - Derived types are listed when the form has `IncludeDerivedTypes` or the type is abstract;
   otherwise a `ckTypeId EQUALS` field filter restricts the list to the exact type
   (`runtimeEntities(ckId)` returns derived types by default).
-- Column display: `chip` → badge, `date` → ISO date, `mono` → monospace cell, else text.
+- Column display: `chip` → badge, `date` → localized date, `mono` → monospace cell, else text.
+  Cells are formatted by the CK value type of the attribute like the reference display (AB#5547):
+  ENUM → the enum value's name (the API returns the key, e.g. `0`), BOOLEAN → yes / no
+  (`toggleOn` / `toggleOff` messages); a `chip` column maps the keys via `badgeMapping`.
 - Context menu: **Copy ID** (RtId / CkTypeId / RtCkTypeId / RtEntityId), then — only with
   `canWrite && CanDelete` — Delete with a confirmation. Toolbar "New" only with
   `canWrite && CanCreate`.

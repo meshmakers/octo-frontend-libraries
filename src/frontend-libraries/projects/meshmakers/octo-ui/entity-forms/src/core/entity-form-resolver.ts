@@ -488,7 +488,7 @@ function resolveListColumns(form: EntityFormDefinition, type: CkTypeInfo, secret
       column = { field: c.name, label: def.label || SYSTEM_COLUMN_LABELS[c.name], kind: 'system', display: 'text' };
       column.display = normaliseDisplay(def.display, c.name === 'rtWellKnownName' ? 'STRING' : 'DATE_TIME');
     } else if (c.kind === 'attribute' && !secretNames.has(c.name) && !isSecretAttribute(c.attribute) && !isRecordType(c.attribute.valueType)) {
-      column = { field: c.name, label: def.label || humanize(c.name), kind: 'attribute', display: normaliseDisplay(def.display, c.attribute.valueType) };
+      column = { field: c.name, label: def.label || humanize(c.name), kind: 'attribute', display: normaliseDisplay(def.display, c.attribute.valueType), ...listColumnType(c.attribute) };
     }
     if (column && !seen.has(column.field)) {
       if (def.width !== null && def.width !== undefined) {
@@ -511,8 +511,16 @@ function resolveListColumns(form: EntityFormDefinition, type: CkTypeInfo, secret
     .filter((a) => a.attributeName !== 'name' && !isSecretAttribute(a) && !secretNames.has(a.attributeName)
       && !isForcedReadOnly(a.attributeName) && SCALAR_LIST_TYPES.includes(a.valueType))
     .slice(0, 3)
-    .forEach((a) => derived.push({ field: a.attributeName, label: humanize(a.attributeName), kind: 'attribute', display: normaliseDisplay(null, a.valueType) }));
+    .forEach((a) => derived.push({ field: a.attributeName, label: humanize(a.attributeName), kind: 'attribute', display: normaliseDisplay(null, a.valueType), ...listColumnType(a) }));
   return derived;
+}
+
+/** Value type (and enum options) of an attribute column, used to format its cells. */
+function listColumnType(attribute: CkAttributeInfo): Pick<ResolvedListColumn, 'valueType' | 'enumOptions'> {
+  return {
+    valueType: attribute.valueType,
+    ...(attribute.enumOptions?.length ? { enumOptions: attribute.enumOptions } : {}),
+  };
 }
 
 function normaliseDisplay(display: string | null | undefined, valueType: string): ResolvedListColumn['display'] {

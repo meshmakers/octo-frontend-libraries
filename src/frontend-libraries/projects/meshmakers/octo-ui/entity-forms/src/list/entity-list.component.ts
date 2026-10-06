@@ -11,6 +11,7 @@ import {
 import { CkTypeSelectorDialogService } from '@meshmakers/octo-ui';
 import { CommandItem, CommandItemExecuteEventArgs } from '@meshmakers/shared-services';
 import {
+  BadgeMappingTable,
   ConfirmationService,
   ListViewComponent,
   NotificationDisplayService,
@@ -22,7 +23,8 @@ import {
   formatEntityFormsMessage,
   mergeEntityFormsMessages,
 } from '../entity-forms.messages';
-import { ResolvedEntityForm, ResolvedListColumn } from '../models/entity-form.models';
+import { CkAttributeInfo, ResolvedEntityForm, ResolvedListColumn } from '../models/entity-form.models';
+import { formatReferenceDisplayValue } from '../form/reference/reference-display-format';
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityListDataSourceDirective, EntityListRow } from './entity-list-data-source.directive';
 import { EntityListMonoCellComponent } from './entity-list-mono-cell.component';
@@ -39,16 +41,58 @@ export interface EntityListOpenRequest {
   ckTypeId: string;
 }
 
-/** Maps a resolved list column onto an `mm-list-view` column definition. */
-export function toEntityListColumn(column: ResolvedListColumn): TableColumn {
+/** Labels of boolean list cells (default "Yes" / "No"). */
+export interface EntityListCellLabels {
+  yes?: string;
+  no?: string;
+}
+
+/** Whether a column's cells need formatting by CK value type (enum names, yes/no). */
+function isFormattedType(column: ResolvedListColumn): boolean {
+  const type = (column.valueType ?? '').toUpperCase().replace(/_ARRAY$/, '');
+  return type === 'ENUM' || type === 'BOOLEAN';
+}
+
+/**
+ * Badge mapping of a `chip` column over an ENUM / BOOLEAN attribute: the raw key (`0`, `true`)
+ * shows the enum value name / yes-no label in the neutral pill (AB#5547).
+ */
+function chipLabels(column: ResolvedListColumn, labels: EntityListCellLabels): BadgeMappingTable | undefined {
+  const type = (column.valueType ?? '').toUpperCase();
+  if (type === 'ENUM' && column.enumOptions?.length) {
+    const table: BadgeMappingTable = {};
+    for (const option of column.enumOptions) {
+      table[String(option.key)] = { label: option.name };
+      table[option.name] = { label: option.name };
+    }
+    return table;
+  }
+  if (type === 'BOOLEAN') {
+    return { true: { label: labels.yes ?? 'Yes' }, false: { label: labels.no ?? 'No' } };
+  }
+  return undefined;
+}
+
+/**
+ * Maps a resolved list column onto an `mm-list-view` column definition. Cells are formatted by the
+ * CK value type like the reference display of the form (AB#5547): ENUM → the enum value's name
+ * (the API returns the key), BOOLEAN → yes/no, dates → localized date and time.
+ */
+export function toEntityListColumn(column: ResolvedListColumn, labels: EntityListCellLabels = {}): TableColumn {
   const base: TableColumn = {
     field: column.field,
     displayName: column.label,
     ...(column.width ? { width: column.width } : { minWidth: 120 }),
   };
+  const attribute: CkAttributeInfo | undefined = column.valueType
+    ? { attributeName: column.field, valueType: column.valueType, isOptional: true, defaultValues: [], secret: false, enumOptions: column.enumOptions }
+    : undefined;
+  const format = (value: unknown): string => formatReferenceDisplayValue(value, attribute, labels) ?? '';
   switch (column.display) {
-    case 'chip':
-      return { ...base, dataType: 'badge' };
+    case 'chip': {
+      const badgeMapping = chipLabels(column, labels);
+      return { ...base, dataType: 'badge', ...(badgeMapping ? { badgeMapping } : {}) };
+    }
     case 'date':
       return { ...base, dataType: 'iso8601', format: 'medium' };
     case 'mono':
@@ -56,10 +100,13 @@ export function toEntityListColumn(column: ResolvedListColumn): TableColumn {
         ...base,
         dataType: 'component',
         cellComponent: EntityListMonoCellComponent,
-        cellInputs: (item: unknown) => ({ value: (item as Record<string, unknown>)[column.field] }),
+        cellInputs: (item: unknown) => {
+          const value = (item as Record<string, unknown>)[column.field];
+          return { value: isFormattedType(column) ? format(value) : value };
+        },
       };
     default:
-      return { ...base, dataType: 'text', truncate: true };
+      return { ...base, dataType: 'text', truncate: true, ...(isFormattedType(column) ? { formatter: format } : {}) };
   }
 }
 
@@ -117,7 +164,9 @@ export class EntityListComponent {
   }));
 
   protected readonly columns = computed<TableColumn[]>(() => {
-    const columns = this.model().listColumns.map(toEntityListColumn);
+    const m = this.msgs();
+    const labels: EntityListCellLabels = { yes: m.toggleOn, no: m.toggleOff };
+    const columns = this.model().listColumns.map((c) => toEntityListColumn(c, labels));
     if (this.showTypeColumn() && !columns.some((c) => c.field === 'ckTypeId')) {
       const changed = columns.findIndex((c) => c.field === 'rtChangedDateTime');
       const typeColumn: TableColumn = {
