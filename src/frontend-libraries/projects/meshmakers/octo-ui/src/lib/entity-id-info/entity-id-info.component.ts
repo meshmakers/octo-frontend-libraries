@@ -93,8 +93,6 @@ interface CopyOption {
       font-size: 0.7rem;
       font-weight: 600;
       color: var(--kendo-color-primary, #64ceb9);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .copy-value {

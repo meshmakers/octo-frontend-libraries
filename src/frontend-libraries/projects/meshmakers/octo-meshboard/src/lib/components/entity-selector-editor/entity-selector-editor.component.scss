@@ -41,13 +41,13 @@
   .selector-ck-type {
     font-size: 0.8rem;
     color: var(--kendo-color-subtle, #757575);
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: var(--theme-font-mono);
   }
 
   .selector-mappings {
     font-size: 0.8rem;
     color: var(--kendo-color-primary, #3f51b5);
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: var(--theme-font-mono);
   }
 
   .selector-actions {
@@ -102,7 +102,6 @@
   .field-label {
     font-weight: 500;
     font-size: 0.875rem;
-    text-transform: uppercase;
     color: var(--kendo-color-on-app-surface, #424242);
   }
 
@@ -166,7 +165,7 @@
 
   .mapping-path {
     font-size: 0.8rem;
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: var(--theme-font-mono);
     color: var(--kendo-color-subtle, #757575);
     min-width: 150px;
     padding-top: 5px;
@@ -193,7 +192,7 @@
   }
 
   .mapping-var-prefix {
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: var(--theme-font-mono);
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--kendo-color-primary, #3f51b5);

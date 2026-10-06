@@ -189,7 +189,6 @@ import { DEFAULT_PROPERTY_GRID_MESSAGES, PropertyGridMessages } from '../propert
       font-size: 0.75em;
       padding: 2px 6px;
       border-radius: 3px;
-      text-transform: uppercase;
       font-weight: 500;
       background: var(--kendo-color-base-subtle);
       color: var(--kendo-color-on-base);

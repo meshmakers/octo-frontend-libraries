@@ -1,0 +1,14 @@
+@use "variables" as *;
+
+// Deep Sea outline button for dialog/window action rows (AB#5526): flat,
+// neutral hairline border, no gradient. Internal to octo.styles() (formerly
+// `lcars-flat-btn`, renamed in AB#5526).
+@mixin flat-button {
+  background: transparent !important;
+  border: 1px solid var(--theme-border-default, var(--octo-mint-30)) !important;
+  color: var(--theme-text-primary, var(--octo-text-color)) !important;
+  &:hover:not(:disabled) {
+    background: var(--theme-bg-hover, var(--octo-mint-10)) !important;
+    border-color: var(--theme-border-strong, var(--octo-mint-50)) !important;
+  }
+}

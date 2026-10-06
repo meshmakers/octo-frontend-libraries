@@ -1,0 +1,16 @@
+@use "variables" as *;
+
+// Deep Sea input (AB#5526): input surface, neutral border, accent border +
+// focus ring on focus. Internal to octo.styles() (formerly `lcars-input`,
+// renamed in AB#5526).
+@mixin field-input {
+  background: var(--theme-bg-input, var(--deep-sea)) !important;
+  border: 1px solid var(--theme-border-default, var(--octo-mint-30)) !important;
+  color: var(--theme-text-primary, var(--octo-text-color)) !important;
+  border-radius: var(--theme-radius-sm, 4px) !important;
+  &:focus {
+    border-color: var(--theme-accent, var(--octo-mint)) !important;
+    box-shadow: var(--theme-focus-ring) !important;
+    outline: none !important;
+  }
+}

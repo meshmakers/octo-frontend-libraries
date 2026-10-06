@@ -95,8 +95,11 @@ export interface RuntimeBrowserMessages {
   };
 
   title: string;
+  /** @deprecated No longer rendered since the page uses `mm-page` (AB#5526). */
   badgeLabel: string;
+  /** @deprecated No longer rendered since the page uses `mm-page` (AB#5526). */
   titlePrefix: string;
+  /** @deprecated No longer rendered — the LCARS "READY" footer was removed (AB#5526). */
   ready: string;
   selectItem: string;
   noPropertiesAvailable: string;

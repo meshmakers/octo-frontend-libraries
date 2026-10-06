@@ -1,11 +1,13 @@
 # mm-page — page layout
 
 `PageComponent` (`<mm-page>`) is the page frame of the Deep Sea theme (AB#5519).
-It replaces the LCARS triple `lcars-page-header` / `lcars-content-panel` /
-`lcars-footer`: an **optional header** (title, subtitle, actions) above a
-**content area**. There is no footer — the LCARS "READY" bar has no successor.
+It replaces the retired LCARS page triple (header, content panel, READY
+footer): an **optional header** (title, subtitle, actions) above a
+**content area**. There is no footer.
 
-Existing pages are migrated to it per area in AB#5526.
+All Refinery Studio pages and `mm-runtime-browser` use it since AB#5526; the
+neutral LCARS page classes left in `octo.styles()` serve only the Meshmakers
+App until it migrates.
 
 ## Usage
 

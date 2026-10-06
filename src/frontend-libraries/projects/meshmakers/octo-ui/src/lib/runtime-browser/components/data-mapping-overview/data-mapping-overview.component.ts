@@ -231,8 +231,6 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
 
     .summary-label {
       font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       color: var(--kendo-color-subtle, #6c757d);
     }
 
@@ -300,8 +298,6 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
     .detail-row label {
       font-size: 0.75rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       color: var(--kendo-color-subtle, #6c757d);
       padding-top: 2px;
     }
