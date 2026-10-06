@@ -81,6 +81,41 @@ entering edit mode the view removes the parameter from the URL (`replaceUrl`), s
 copied link does not re-enter edit mode. Hosts creating boards use `newMeshBoardConfig(name)`
 for the layout defaults (the same `MeshBoardStateService.createNewMeshBoard` uses).
 
+### Header mode (`headerMode` / `meshBoardHeaderMode`)
+
+How much of its header the view shows is decided by the **host page**, not by the board: the
+same board appears with its name in a board designer list and without it on a page that
+already names it (e.g. a Home tab under a greeting).
+
+| Mode | Shows |
+|------|-------|
+| `full` (default) | Board name, description and the controls |
+| `compact` | Only the controls (time filter, entity selectors, refresh; on editable boards also manager, settings, edit, add widget, save) in a slim row aligned right, without its own bar background |
+| `none` | No header row — for hosts that offer their own controls |
+
+Hints (unselected entity selectors, variable resolution errors) and the "MeshBoard Not Found" /
+"MeshBoard Not Available" help are shown in every mode.
+
+Bind the input when embedding the view in a template, or set the route data key when a route
+loads the view directly (the bound input wins; unknown values fall back to `full`):
+
+```html
+<mm-meshboard-view headerMode="compact"></mm-meshboard-view>
+```
+
+```typescript
+{
+  path: "boards/:rtId",
+  loadComponent: () =>
+    import('@meshmakers/octo-meshboard').then(m => m.MeshBoardViewComponent),
+  data: { meshBoardReadonly: true, meshBoardHeaderMode: 'compact' }
+}
+```
+
+There is deliberately no per-board setting: a board stored with "no header" would lose its
+name in the designer, where the name is the only orientation. Exported helpers:
+`MeshBoardHeaderMode`, `MESHBOARD_HEADER_MODE_ROUTE_DATA`, `resolveMeshBoardHeaderMode`.
+
 ### URL Sync (`meshBoardSyncUrl`)
 
 After the initial load and after every post-init board switch (e.g. via the

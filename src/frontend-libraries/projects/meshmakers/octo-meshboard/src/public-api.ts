@@ -47,6 +47,10 @@ export type { CategoryStatus } from './lib/utils/chart-categories';
 // `?edit=1` opens a board in edit mode
 export { MESHBOARD_EDIT_QUERY_PARAM } from './lib/utils/edit-mode-url';
 
+// Header mode of an embedded board (input `headerMode` / route data `meshBoardHeaderMode`)
+export type { MeshBoardHeaderMode } from './lib/utils/meshboard-header';
+export { MESHBOARD_HEADER_MODE_ROUTE_DATA, isMeshBoardHeaderMode, resolveMeshBoardHeaderMode } from './lib/utils/meshboard-header';
+
 // Query family classification (runtime vs stream-data persistent queries)
 export type { QueryFamily, QueryKind, QueryClassification } from './lib/utils/query-family';
 export { classifyQuery, queryFamily } from './lib/utils/query-family';
