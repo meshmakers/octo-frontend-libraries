@@ -214,6 +214,22 @@ describe('BotService', () => {
       expect(result instanceof Blob).toBe(true);
     });
 
+    it('fetches the whole artifact in one plain GET, without Range / resume (handover §14: encrypted storage serves no ranges)', async () => {
+      const resultPromise = service.downloadJobResultBinary('tenant-1', 'job-123');
+      const req = httpMock.expectOne(`${baseUrl}system/v1/jobs/download?tenantId=tenant-1&id=job-123`);
+      expect(req.request.headers.has('Range')).toBe(false);
+      expect(req.request.headers.has('If-Range')).toBe(false);
+      req.flush(new Blob(['plain tar.gz bytes']));
+      expect(await resultPromise).toBeInstanceOf(Blob);
+    });
+
+    it('rejects an aborted transfer instead of returning a partial file', async () => {
+      const resultPromise = service.downloadJobResultBinary('tenant-1', 'job-123');
+      httpMock.expectOne(`${baseUrl}system/v1/jobs/download?tenantId=tenant-1&id=job-123`)
+        .error(new ProgressEvent('error'), { status: 0, statusText: 'Unknown Error' });
+      await expect(resultPromise).rejects.toBeTruthy();
+    });
+
     it('should return null when config is not available', async () => {
       mockConfigService.config = null;
 

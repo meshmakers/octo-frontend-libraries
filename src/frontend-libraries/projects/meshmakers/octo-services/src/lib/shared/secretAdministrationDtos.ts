@@ -34,16 +34,25 @@ export interface SecretEnvironmentStatusDto {
   /** This tenant's last Verify run (ISO-8601), `null` if none. */
   lastVerifyAt: string | null;
   /**
-   * Warning codes (AB#5534, handover §9): `NoKeyRing` when `keyRingConfigured` is false,
+   * Key ids still needed to read the existing encrypted dumps (pre-sweep dumps and tenant dumps in the
+   * artifact store, handover §14 / AB#5559): each must stay in the key ring until its newest dump has
+   * expired. Absent on older bots.
+   */
+  requiredKeyIds?: string[];
+  /**
+   * Warning codes (AB#5534, handover §9/§14): `NoKeyRing` when `keyRingConfigured` is false,
    * `NoLegacyV1Key` when the tenant's last completed sweep found enc:v1 values but no legacy key is
-   * configured. Unknown codes are shown as a generic warning. Absent on older bots.
+   * configured, `DumpKeyMissing` when an existing dump's key id is not in the key ring (that dump
+   * cannot be restored). Unknown codes are shown as a generic warning. Absent on older bots.
    */
   warnings?: string[];
 }
 
-/** `SecretEnvironmentStatusDto.warnings` codes (handover §9). */
+/** `SecretEnvironmentStatusDto.warnings` codes (handover §9/§14). */
 export const SECRET_STATUS_WARNING_NO_KEY_RING = 'NoKeyRing';
 export const SECRET_STATUS_WARNING_NO_LEGACY_V1_KEY = 'NoLegacyV1Key';
+/** An existing encrypted dump's key id is not in the key ring: that dump cannot be restored (handover §14). */
+export const SECRET_STATUS_WARNING_DUMP_KEY_MISSING = 'DumpKeyMissing';
 
 /** The pseudo key id of a legacy enc:v1 value (handover §10); shown as "legacy key (enc:v1)". */
 export const SECRET_LEGACY_V1_KEY_ID = 'enc:v1';
@@ -121,6 +130,26 @@ export interface SecretSweepRunDto {
 
 /** Result of `DELETE {tenantId}/v1/secrets/sweep-runs/{runId}/dump`: 204 / 404 / 409. */
 export type SecretSweepDumpDeleteResult = 'Deleted' | 'NotFound' | 'AlreadyDeleted';
+
+/**
+ * Result of `POST {tenantId}/v1/secrets/sweep-runs/{runId}/restore-dump?confirm=true` (handover §14,
+ * AB#5559), mapped from the answer instead of thrown, so the page explains it in place:
+ * - `Started` — `200 JobResponseDto`: the restore job was enqueued (`jobId`); it restores the tenant
+ *   database from the dump and runs Verify afterwards;
+ * - `NotFound` — `404`: unknown run, the run has no dump, or the dump is no longer stored;
+ * - `DumpDeleted` — `409 DumpDeleted`: the dump was deleted early or expired;
+ * - `DumpKeyMissing` — `409 DumpKeyMissing`: the dump's key id is not in the key ring;
+ * - `Forbidden` — `403`: no `SecretManagement` role, or not the token's own tenant;
+ * - `ConfirmationRequired` — `400` without `confirm=true`.
+ * `message` is the server's value-free message, when it sent one.
+ */
+export type SecretSweepDumpRestoreResult =
+  | { status: 'Started'; jobId: string }
+  | { status: 'NotFound' | 'DumpDeleted' | 'DumpKeyMissing' | 'Forbidden' | 'ConfirmationRequired'; message: string | null };
+
+/** Error codes of the dump restore (`statusDescription` of the 409 body, handover §14). */
+export const SECRET_DUMP_RESTORE_ERROR_DUMP_DELETED = 'DumpDeleted';
+export const SECRET_DUMP_RESTORE_ERROR_DUMP_KEY_MISSING = 'DumpKeyMissing';
 
 /** Reference to one secret attribute of one entity (`SecretValueReferenceDto`) — never a value. */
 export interface SecretValueReferenceDto {

@@ -732,10 +732,12 @@ blocked with `saveBlockedReason()` when a required secret cannot be entered — 
 members with badge + write-only input in the record row editor, omitted on save when kept), IdP
 DTO (`clientSecretIsSet` / `clientSecretKeyMissing` / `clientSecretSetAt`, `clientSecret`
 write-only), bot `BotSecretsService` (status incl. `warnings` — `SECRET_STATUS_WARNING_NO_KEY_RING`,
-`SECRET_STATUS_WARNING_NO_LEGACY_V1_KEY`; legacy pseudo key id `SECRET_LEGACY_V1_KEY_ID` — sweeps, runs
+`SECRET_STATUS_WARNING_NO_LEGACY_V1_KEY`, `SECRET_STATUS_WARNING_DUMP_KEY_MISSING`, `requiredKeyIds` (handover §14);
+legacy pseudo key id `SECRET_LEGACY_V1_KEY_ID` — sweeps, runs
 (`SecretSweepRunDto.totals` = forms as found, `totalsAfter` = after the run, `encryptedCount`,
 `valuesRewritten`, `skippedConcurrentlyModified` > 0 ⇒ `CompletedWithFailures`; all optional for older bots),
-dumps; the sweep-run read marks 403 as caller-handled with shared-services `MM_CALLER_HANDLED_STATUSES`,
+dumps — delete, and restore via `restoreSecretSweepDump(tenantId, runId, confirm)` → `SecretSweepDumpRestoreResult`
+(200 / 400 / 403 / 404 / 409 `DumpDeleted` / 409 `DumpKeyMissing` mapped, all caller-handled); the sweep-run read marks 403 as caller-handled with shared-services `MM_CALLER_HANDLED_STATUSES`,
 an `HttpContextToken` that keeps `MmHttpErrorInterceptor` from toasting statuses the caller explains
 itself) and the `SecretManagement` role. Entity forms show "Needs re-entry" for a required SECRET
 without a value (same rule as the secrets inventory).
