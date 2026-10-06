@@ -4,6 +4,13 @@ import {MessageService} from '@meshmakers/shared-services';
 import {ApolloLink} from '@apollo/client/core';
 import { CombinedGraphQLErrors, ErrorLike } from '@apollo/client';
 
+/**
+ * Operation context flag: errors of an operation with `context: { [OCTO_SILENT_ERRORS]: true }`
+ * are logged to the console only, never shown as a toast. For best-effort background reads whose
+ * caller handles the failure itself (e.g. the Settings counts, AB#5523).
+ */
+export const OCTO_SILENT_ERRORS = 'octoSilentErrors';
+
 @Injectable()
 export class OctoErrorLink extends ApolloLink {
   private errorLink: ApolloLink;
@@ -14,9 +21,13 @@ export class OctoErrorLink extends ApolloLink {
 
     // There is currently no other way to inject a service into an Apollo Link,
     // because Apollo deprecated without replacement
-    this.errorLink = onError(({error}) => {
+    this.errorLink = onError(({error, operation}) => {
 
       if (error) {
+        if (OctoErrorLink.isSilent(operation)) {
+          console.warn(`GraphQL error in ${operation?.operationName ?? 'operation'} (not shown)`, error);
+          return;
+        }
 
         if (error instanceof CombinedGraphQLErrors) {
           this.showError(error);
@@ -30,6 +41,15 @@ export class OctoErrorLink extends ApolloLink {
       // toast appears twice — observed on the AB#4289 rollup-activation reject. Returning nothing
       // lets the original error propagate to the caller's own error handling.
     });
+  }
+
+  /** True when the operation opted out of error toasts ({@link OCTO_SILENT_ERRORS}). */
+  static isSilent(operation: ApolloLink.Operation | undefined): boolean {
+    try {
+      return operation?.getContext?.()?.[OCTO_SILENT_ERRORS] === true;
+    } catch {
+      return false;
+    }
   }
 
   private showErrorLike(error: ErrorLike): void {
