@@ -4,7 +4,7 @@
   "peerDependencies": {
     "@angular/common": "^22.0.0",
     "@angular/core": "^22.0.0",
-    "@apollo/client": "^4.2.3",
+    "@apollo/client": "^4.1.0",
     "@meshmakers/shared-auth": "*",
     "@meshmakers/shared-services": "*",
     "apollo-angular": "^14.0.0",
