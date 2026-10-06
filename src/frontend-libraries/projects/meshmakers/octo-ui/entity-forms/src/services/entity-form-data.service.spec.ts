@@ -104,7 +104,11 @@ describe('EntityFormDataService', () => {
     expect(result?.state.secretPresence).toEqual({ password: true, privateKey: false, privateKeyPassphrase: false });
     expect(presence.fetch).toHaveBeenCalledTimes(3);
     expect(presence.fetch).toHaveBeenCalledWith(expect.objectContaining({
-      variables: { ckTypeId: SFTP, rtId: RT_ID, fieldFilters: [{ attributePath: 'password', operator: 'IS_NOT_NULL' }] },
+      // Not null AND not empty (AB#5524): an empty string is "no secret".
+      variables: { ckTypeId: SFTP, rtId: RT_ID, fieldFilters: [
+        { attributePath: 'password', operator: 'IS_NOT_NULL' },
+        { attributePath: 'password', operator: 'NOT_EQUALS', comparisonValue: '' },
+      ] },
       fetchPolicy: 'network-only',
     }));
   });

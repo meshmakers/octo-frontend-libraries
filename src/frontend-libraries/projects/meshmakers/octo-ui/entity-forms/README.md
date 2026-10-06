@@ -24,6 +24,8 @@ and other packages, and hosts that do not use it keep the primary bundle unchang
 | `parseEntityForms`, `pickEntityForm`, `resolveEntityForm`, … | Pure functions behind the service, e.g. for a forms editor |
 | `entityFormCatalog(forms)`, `entityFormKey(form)` | Settings overview: one entry per target type whose effective form has a `Category`, with the URL key |
 | `EntityFormsMessages`, `DEFAULT_ENTITY_FORMS_MESSAGES` | All UI strings (English defaults; pass `Partial<…>` via `messages`) |
+| `ENTITY_FORM_FALLBACK_FORMS`, `provideEntityFormFallbacks`, `selectFallbackForms` | Host-provided built-in forms that apply per type where the resolution would end at `form-default` (see below) |
+| `ENTITY_FORM_ACTION_CONFIRMATION` | Optional host hook asked before a delete (e.g. a production-mode check) |
 
 ## Usage
 
@@ -141,6 +143,41 @@ override. `resolveByFormKey` accepts both forms.
 `EntityFormDataService.count(ckTypeId, includeDerivedTypes?)` counts entities without reading
 attributes (`attributeNames: []`); without `includeDerivedTypes` only the exact type is counted.
 
+## Fallback forms (`ENTITY_FORM_FALLBACK_FORMS` / `provideEntityFormFallbacks`)
+
+A host can ship built-in copies of delivered forms, for example while a new version of the
+seeding blueprint has not been rolled out yet (AB#5524). Two ways to provide them:
+
+```ts
+// root (pulls the entry point into the initial bundle):
+providers: [{ provide: ENTITY_FORM_FALLBACK_FORMS, useValue: MY_FALLBACK_FORMS }]
+// or on every lazy route that renders entity forms (registers them in the root service, one cache):
+{ path: 'settings', providers: [provideEntityFormFallbacks(MY_FALLBACK_FORMS)], loadChildren: … }
+```
+
+- `EntityFormService.getForms()` appends a fallback **only where the normal resolution would end
+  at the chain end** — no form at all, or `form-default` (a form on `System/Entity`). A tenant or
+  seeded form for the exact type, or for an ancestor with `IncludeDerivedTypes`, always wins
+  (`selectFallbackForms`). Fallbacks for types the tenant does not have (no CK metadata) are
+  dropped. The first fallback per type wins. The result feeds `resolve`, `resolveByFormKey` and
+  `entityFormCatalog` unchanged.
+- Fallbacks are also used when the forms cannot be loaded (no System.UI 2.7.0, query error).
+- `registerFallbackForms(forms)` (behind `provideEntityFormFallbacks`) is idempotent per array and
+  drops the cached forms and resolutions once.
+- They count as delivered forms (`isTenantForm` is forced to `false`, `source: 'seeded'`). Use the
+  delivered `rtWellKnownName` (`form-<kebab-type>`) so URL keys do not change when the seeded form
+  arrives, and leave `rtId` empty.
+- A tenant form for the type without `Category` hides the entry, exactly like it hides a seeded one.
+
+This is the per-type counterpart of the built-in `form-default` safety net; the host is
+responsible for keeping its copies in step with the seed.
+
+## Action confirmation (`ENTITY_FORM_ACTION_CONFIRMATION`)
+
+Optional `(request: { action: 'delete', ckTypeId, count, description }) => Promise<boolean>`,
+asked by `mm-entity-list` and `mm-entity-page` **before** their own yes/no dialog; `false` (or a
+throwing hook) cancels. The Refinery Studio maps it to its production-mode confirmation.
+
 ## `<mm-entity-list>`
 
 - Inputs: `model` (required), `canWrite = true`, `messages`, `listStateKey`.
@@ -170,7 +207,8 @@ Secret values never reach the browser:
   declared `[String]!` and always pass the explicit non-secret names. Never add a document that
   selects `attributes` without that argument — **omitting it makes the server return every
   attribute, secrets included.**
-- Whether a secret is set is read with an `IS_NOT_NULL` field filter (`totalCount`), not by
+- Whether a secret is set is read with an `IS_NOT_NULL` field filter — plus `NOT_EQUALS ""` for
+  STRING secrets, an empty string counts as not set (AB#5524) — and `totalCount`, not by
   reading the value. The field shows "•••• set — leave empty to keep" or "Not set" and is never
   prefilled.
 - An empty secret is left out of the change set (unchanged). A required secret is required

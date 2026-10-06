@@ -43,6 +43,9 @@ export type { EntityFormSource, ResolveEntityFormOptions } from './core/entity-f
 export { entityFormCatalog, entityFormKey } from './core/entity-form-catalog';
 export type { EntityFormCatalogEntry } from './core/entity-form-catalog';
 export { BUILT_IN_DEFAULT_FORM } from './core/built-in-default-form';
+export { ENTITY_FORM_FALLBACK_FORMS, withFallbackForms, selectFallbackForms, isChainEndForm } from './core/fallback-forms';
+export { ENTITY_FORM_ACTION_CONFIRMATION, confirmEntityFormAction } from './core/action-confirmation';
+export type { EntityFormActionConfirmation, EntityFormActionRequest } from './core/action-confirmation';
 export { canonicalisePath, SYSTEM_PROPERTIES, toKebabTypeKey } from './core/attribute-path';
 export type { CanonicalPath } from './core/attribute-path';
 export { parseVisibleWhen, isVisible } from './core/visible-when';
