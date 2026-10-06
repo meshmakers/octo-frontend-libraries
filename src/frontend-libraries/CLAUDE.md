@@ -635,13 +635,17 @@ adding scalar fields never does.
 The backend has the **SECRET value type** (AB#5528; `schema.graphql` refreshed 2026-10-06 from the
 local SECRET backend, contract `octo-construction-kit-engine/docs/secret-frontend-handover.md`
 01fda94e): SECRET values are encrypted at rest and never projected — typed fields are
-`OctoSecretState { isSet }`, generic attributes return `value: null` + `secretIsSet`, record members
-the marker `{ isSet }` (echoing it back means "unchanged"), update inputs (`<Type>InputUpdate`,
+`OctoSecretState { isSet }`, generic attributes return `value: null` + `secretIsSet` (also for the
+members inside a generic record value; typed record members are `{ isSet }` — echoing a marker back
+means "unchanged", omitting the member carries it over by the record key), update inputs (`<Type>InputUpdate`,
 `RtEntityUpdate`) take `clearSecretAttributes`. `keyMissing` / `setAt` (`secretKeyMissing` /
 `secretSetAt`) are contract fields not served by the local backend yet: the octo-services helpers
 (`secret-state.ts`: `SecretState`, `secretStateFromAttribute`, `toSecretState`, `secretStatusOf`,
-`isSecretPresent`, `formatSecretStatus`, `secretInputValue`, `SECRET_VALUE_TYPE`) treat them as
-optional; documents carry `TODO(AB#5542)` to select them after the backend rebuild.
+`isSecretPresent`, `isSecretStateObject`, `formatSecretStatus` + `DEFAULT_SECRET_STATUS_LABELS`,
+`secretInputValue`, `SECRET_VALUE_TYPE`, `isSecretValueType`) treat them as optional. These are the
+ONLY definitions of the secret state, the SECRET type check and the status wording — hosts (Studio)
+and the entity forms (`EntityFormSecretFieldState` is an alias of `SecretState`, badge labels via
+`secretStatusLabelsOf(messages)`) must not redefine them; documents carry `TODO(AB#5542)` to select them after the backend rebuild.
 Credentials of models that have not switched to SECRET still come back in clear text, so the
 generic `attributes` field (`RtEntityAttributeDtoConnection`) can still return passwords, client
 secrets, API keys when `attributeNames` is omitted:
@@ -721,12 +725,15 @@ backend refusal of SECRET attributes as query columns (`SecretAttributeNotQuerya
 **SECRET status (AB#5542 / AB#5544 item 4, 2026-10-06):** done — codegen with the SECRET schema,
 SECRET in the shared rule, property grid / runtime browser badge, entity forms (automatic
 write-only field, badge incl. key missing / set at, staged Clear → `clearSecretAttributes`, Show
-for the typed value, multiline PEM editor, `ENTITY_FORM_SECRET_KEY_RING_CONFIGURED` for Q17),
-IdP DTO (`clientSecretIsSet` / `clientSecretKeyMissing` / `clientSecretSetAt`, `clientSecret`
-write-only). Open: select `keyMissing` / `setAt` after the backend rebuild; the runtime-browser
-update editor still has no Clear (use the entity form); SECRET record members are read-only in
-the entity-form record row editor (kept via the marker); the CK attribute editor offering SECRET
-is AB#5544 work.
+for the typed value, multiline PEM editor masked by transparent text + line count (works in
+Firefox), `ENTITY_FORM_SECRET_KEY_RING_CONFIGURED` for Q17 — reactive to late status changes, create
+blocked with `saveBlockedReason()` when a required secret cannot be entered — and SECRET record
+members with badge + write-only input in the record row editor, omitted on save when kept), IdP
+DTO (`clientSecretIsSet` / `clientSecretKeyMissing` / `clientSecretSetAt`, `clientSecret`
+write-only), bot `BotSecretsService` (status, sweeps, runs, dumps) and the `SecretManagement` role.
+Open: select `keyMissing` / `setAt` after the backend rebuild (`TODO(AB#5542)` in
+`getEntityFormValues.graphql`, `getRuntimeEntityById.graphql`); the runtime-browser update editor
+still has no Clear (use the entity form).
 
 ### GraphQL Queries
 

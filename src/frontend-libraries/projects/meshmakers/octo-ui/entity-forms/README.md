@@ -237,6 +237,10 @@ Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, deci
   Read-only users get no input, no "Show" and no "Clear".
 - **Show** reveals only the value typed in this session, never a stored one; it is disabled while
   the input is empty (Q10).
+- **Multiline** (PEM keys): the text area renders its text transparent until **Show** (caret,
+  selection and placeholder stay visible) and a status line reports only the number of lines
+  entered. This works in every browser — Firefox has no reliable `-webkit-text-security`, and a
+  password input would drop the PEM line breaks.
 - **Clear** (optional SECRET fields with a stored value, edit mode, write access) is staged and
   sent on Save as `clearSecretAttributes` (Q8). Clear and a new value are mutually exclusive:
   Clear is disabled while a value is typed; a staged clear replaces the input by a note with
@@ -244,17 +248,29 @@ Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, deci
   server accepts `clearSecretAttributes` only for SECRET attributes).
 - **No key ring** (Q17): when the host provides `ENTITY_FORM_SECRET_KEY_RING_CONFIGURED`
   (a `Signal<boolean | null | undefined>`) and it is `false`, secret inputs are disabled with a
-  hint. Without a provider secrets are writable. The Studio wires it once the bot status endpoint
-  `GET {tenantId}/v1/secrets/status` exists (AB#5544, secrets admin).
+  hint. Without a provider (or while the signal is `null` / `undefined`) secrets are writable.
+  The signal may change after the form was built (status loaded asynchronously): the controls
+  follow it. In **create** mode a visible, required secret that cannot be entered blocks the form:
+  the field stays required (marker + hint), `isValid()` is `false` and the public signal
+  `saveBlockedReason()` names the fields — `mm-entity-page` disables Save with that text as
+  tooltip and the form shows it as a notice; other hosts should do the same. Edit mode is not
+  blocked (the server enforces required secrets only on create). The Studio provides the token
+  app-wide from the bot status endpoint `GET {tenantId}/v1/secrets/status`
+  (`SecretEnvironmentStatusService`, fail-open).
 
 **Writing**
 
 - An empty secret is left out of the change set (unchanged). A required secret is required
   only on create or while it is not present (set or key missing).
 - Secret list columns are dropped. The update mutation selects no attributes (no echo).
-- Record members of value type SECRET are shown read-only in the record row editor and written
-  back as received (the `{ isSet }` marker means "unchanged"; an omitted member is carried over
-  by the record key).
+- Record members of value type SECRET: the generic read returns `value: null` + `secretIsSet` per
+  member; the form keeps that state (never a value). The records grid and the row editor show the
+  shared status badge (**Set** / **Not set** / **Key missing — re-enter**); the row editor offers
+  an empty password input (read-only users: badge only). A typed value replaces the member
+  (grid: "New value (unsaved)"); an empty input keeps it — on save the member is **omitted** and
+  the server carries the stored value over from the element with the same record key (handover
+  §2). Changing an element's record key therefore drops its stored secret. A state object is
+  never sent back.
 - The CK description of `EntityFormField.Secret` says "masked … revealed on demand"; the concept
   (§5.8, write-only) wins.
 
