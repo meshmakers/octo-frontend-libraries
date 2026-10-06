@@ -4,6 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
 import { of } from 'rxjs';
 import { EntityFormGetReferenceOptionsDtoGQL } from '../../graphQL/getEntityFormReferenceOptions';
+import { EntityFormGetReferenceOptionsWithAttributesDtoGQL } from '../../graphQL/getEntityFormReferenceOptionsWithAttributes';
 import { EntityFormReferenceFieldComponent, EntityFormReferenceValue } from './entity-form-reference-field.component';
 import { EntityReferenceDataSource } from './entity-reference-data-source';
 
@@ -45,7 +46,10 @@ describe('EntityFormReferenceFieldComponent', () => {
   async function setup(opts: { multiple?: boolean; readOnly?: boolean; value?: EntityFormReferenceValue[] } = {}): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [HostComponent],
-      providers: [{ provide: EntityFormGetReferenceOptionsDtoGQL, useValue: { fetch: vi.fn().mockReturnValue(of({ data: null })) } }]
+      providers: [
+        { provide: EntityFormGetReferenceOptionsDtoGQL, useValue: { fetch: vi.fn().mockReturnValue(of({ data: null })) } },
+        { provide: EntityFormGetReferenceOptionsWithAttributesDtoGQL, useValue: { fetch: vi.fn().mockReturnValue(of({ data: null })) } }
+      ]
     })
       .overrideComponent(EntityFormReferenceFieldComponent, {
         remove: { imports: [EntitySelectInputComponent] },

@@ -291,7 +291,7 @@ function buildAttributeField(
     // Attribute-held reference: the STRING attribute stores the target rtId (single).
     const target = def?.referenceCkTypeId;
     if (target) {
-      field.reference = { targetCkTypeId: target, multiple: false };
+      field.reference = { targetCkTypeId: target, multiple: false, ...displayAttributesOf(def) };
     } else {
       warnings.push(`Field '${def?.attributePath}': editor 'reference' needs ReferenceCkTypeId or AssociationRoleId; using text.`);
       editor = 'text';
@@ -347,6 +347,11 @@ function buildSystemField(name: string, def: EntityFormFieldDef, type: CkTypeInf
   return field;
 }
 
+function displayAttributesOf(def: EntityFormFieldDef | undefined | null): { displayAttributes?: string[] } {
+  const names = (def?.referenceDisplayAttributes ?? []).map((n) => n.trim()).filter((n) => !!n);
+  return names.length ? { displayAttributes: names } : {};
+}
+
 function findRole(type: CkTypeInfo, roleId: string): CkAssociationRoleInfo | undefined {
   const matches = type.associations.filter((r) => sameId(r.rtRoleId, roleId));
   return matches.find((r) => r.direction === 'out') ?? matches[0];
@@ -368,6 +373,7 @@ function buildAssociationField(role: CkAssociationRoleInfo, def: EntityFormField
       targetCkTypeId: def.referenceCkTypeId || role.otherRtCkTypeId,
       role,
       multiple: role.multiplicity === 'N',
+      ...displayAttributesOf(def),
     },
   };
   if (def.help) {

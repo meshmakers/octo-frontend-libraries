@@ -106,6 +106,8 @@ export class EntityFormComponent {
   // --- Icons (node_modules imports are safe as field initialisers) ---
   protected readonly chevronDownIcon = chevronDownIcon;
   protected readonly chevronRightIcon = chevronRightIcon;
+  /** Stable empty list for reference fields without display attributes. */
+  protected readonly noDisplayAttributes: readonly string[] = [];
 
   // --- State ---
   protected readonly resolvedMessages = computed(() => mergeEntityFormsMessages(this.messages()));
