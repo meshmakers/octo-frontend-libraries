@@ -94,11 +94,29 @@ describe('BotSecretsService', () => {
     await expect(forbidden).rejects.toBeInstanceOf(HttpErrorResponse);
   });
 
+  it('reads the last sweep report and maps 404 to null', async () => {
+    const report = { tenantId: 'meshmakers', mode: 'CleanupUnreadable', unreadable: [], steps: [] };
+    const promise = service.getSecretSweepReport('meshmakers');
+    const req = httpMock.expectOne(`${baseUrl}meshmakers/v1/jobs/secret-sweep/report`);
+    expect(req.request.method).toBe('GET');
+    req.flush(report);
+    expect(await promise).toEqual(report);
+
+    const none = service.getSecretSweepReport('meshmakers');
+    httpMock.expectOne(`${baseUrl}meshmakers/v1/jobs/secret-sweep/report`).flush(null, { status: 404, statusText: 'Not Found' });
+    expect(await none).toBeNull();
+
+    const forbidden = service.getSecretSweepReport('meshmakers');
+    httpMock.expectOne(`${baseUrl}meshmakers/v1/jobs/secret-sweep/report`).flush(null, { status: 403, statusText: 'Forbidden' });
+    await expect(forbidden).rejects.toBeInstanceOf(HttpErrorResponse);
+  });
+
   it('returns null without a bot service URL', async () => {
     config.config = null;
     expect(await service.getSecretEnvironmentStatus('t')).toBeNull();
     expect(await service.startSecretSweep('t', 'Verify')).toBeNull();
     expect(await service.getSecretSweepRuns('t')).toBeNull();
+    expect(await service.getSecretSweepReport('t')).toBeNull();
     expect(await service.deleteSecretSweepDump('t', 'r')).toBeNull();
   });
 });

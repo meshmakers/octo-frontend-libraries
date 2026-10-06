@@ -7,6 +7,7 @@ import {
   SecretEnvironmentStatusDto,
   SecretSweepDumpDeleteResult,
   SecretSweepMode,
+  SecretSweepReportDto,
   SecretSweepRunDto,
 } from '../shared/secretAdministrationDtos';
 
@@ -51,6 +52,22 @@ export class BotSecretsService {
       params = params.set('confirm', true);
     }
     return firstValueFrom(this.httpClient.post<JobResponseDto>(`${baseUrl}jobs/secret-sweep`, null, { params }));
+  }
+
+  /**
+   * `GET {tenantId}/v1/jobs/secret-sweep/report` — the last sweep report of the tenant (counts,
+   * unreadable / cleared references, never values); `null` when there is none (`404`) or the bot
+   * service URL is not configured. Role `AdminPanelManagement`.
+   */
+  public async getSecretSweepReport(tenantId: string): Promise<SecretSweepReportDto | null> {
+    const baseUrl = this.baseUrl(tenantId);
+    if (!baseUrl) return null;
+    try {
+      return await firstValueFrom(this.httpClient.get<SecretSweepReportDto>(`${baseUrl}jobs/secret-sweep/report`));
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) return null;
+      throw error;
+    }
   }
 
   /** `GET {tenantId}/v1/secrets/sweep-runs?limit=` — newest first. Role `AdminPanelManagement`. */

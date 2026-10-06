@@ -85,3 +85,77 @@ export interface SecretSweepRunDto {
 
 /** Result of `DELETE {tenantId}/v1/secrets/sweep-runs/{runId}/dump`: 204 / 404 / 409. */
 export type SecretSweepDumpDeleteResult = 'Deleted' | 'NotFound' | 'AlreadyDeleted';
+
+/** Reference to one secret attribute of one entity (`SecretValueReferenceDto`) — never a value. */
+export interface SecretValueReferenceDto {
+  ckTypeId: string;
+  rtId: string;
+  /** camelCase; record members as `endpoints[key=prod].token`. */
+  attributePath: string;
+  /** Storage form before the step changed it (`NotSet`, `Plaintext`, `EncV1`, `EncV2`, …). */
+  previousForm?: string;
+}
+
+/** A stored secret whose key id is unknown in this environment (`SecretUnreadableValueDto`). */
+export interface SecretUnreadableValueDto {
+  ckTypeId: string;
+  rtId: string;
+  attributePath: string;
+  keyId: string | null;
+}
+
+/** A value a sweep step could not process (`SecretSweepFailureReportDto`); the reason never contains a value. */
+export interface SecretSweepFailureDto {
+  ckTypeId: string;
+  rtId: string;
+  attributePath: string;
+  reason: string;
+}
+
+/** Counts of one secret slot (`SecretSlotCountsReportDto`). */
+export interface SecretSlotCountsDto {
+  ckTypeId: string;
+  attributePath: string;
+  counts: SecretFormCountsDto;
+}
+
+/** One step of a sweep run (`SecretSweepStepReportDto`). */
+export interface SecretSweepStepReportDto {
+  mode: SecretSweepMode;
+  startedAt: string;
+  completedAt: string | null;
+  ckTypesScanned: number;
+  entitiesScanned: number;
+  entitiesRewritten: number;
+  valuesRewritten: number;
+  placeholdersNormalized: number;
+  skippedConcurrentlyModified: number;
+  success: boolean;
+  totals: SecretFormCountsDto;
+  slots: SecretSlotCountsDto[];
+  /** Only filled by CleanupUnreadable. */
+  cleared: SecretValueReferenceDto[];
+  unreadable: SecretUnreadableValueDto[];
+  failures: SecretSweepFailureDto[];
+}
+
+/** Last sweep report of a tenant: `GET {tenantId}/v1/jobs/secret-sweep/report` (`SecretSweepReportDto`). */
+export interface SecretSweepReportDto {
+  tenantId: string;
+  mode: SecretSweepMode;
+  trigger: SecretSweepTrigger;
+  outcome: SecretSweepOutcome;
+  reason: string | null;
+  startedAt: string;
+  completedAt: string;
+  backupFileName: string | null;
+  activeKeyId: string | null;
+  strictModeActive: boolean;
+  strictModeViolation: boolean;
+  remainingLegacyValues: number;
+  steps: SecretSweepStepReportDto[];
+  secretsToReEnter: SecretValueReferenceDto[];
+  placeholdersNormalized: number;
+  /** Re-entry list of the run (decision 2026-10-06). */
+  unreadable: SecretUnreadableValueDto[];
+}
