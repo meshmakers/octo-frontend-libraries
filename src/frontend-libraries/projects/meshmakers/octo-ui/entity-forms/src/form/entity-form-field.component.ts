@@ -7,11 +7,12 @@ import { ResolvedField } from '../models/entity-form.models';
 import { firstErrorKey } from './entity-form-controls';
 
 /**
- * Secret state shown next to a secret field (AB#5542 / AB#5544 item 4): set on the server, not set,
+ * Secret state shown next to a secret field (AB#5542 / AB#5544 item 4): set on the server, not set
+ * (`needsReEntry` for a required SECRET — same wording as the secrets inventory),
  * stored but unreadable (`keyMissing`, re-entry needed), clear staged for the next save, or `null`
  * (not a secret, or create mode — then the plain "Secret" badge is shown).
  */
-export type EntityFormSecretState = 'set' | 'notSet' | 'keyMissing' | 'clearStaged' | null;
+export type EntityFormSecretState = 'set' | 'notSet' | 'needsReEntry' | 'keyMissing' | 'clearStaged' | null;
 
 /**
  * Field shell of `mm-entity-form`: label (with required marker and secret badge), the projected
@@ -43,7 +44,7 @@ export type EntityFormSecretState = 'set' | 'notSet' | 'keyMissing' | 'clearStag
         <span
           class="mm-ef-field__badge"
           [class.mm-ef-field__badge--set]="secretState() === 'set'"
-          [class.mm-ef-field__badge--not-set]="secretState() === 'notSet'"
+          [class.mm-ef-field__badge--not-set]="secretState() === 'notSet' || secretState() === 'needsReEntry'"
           [class.mm-ef-field__badge--key-missing]="secretState() === 'keyMissing'"
           [class.mm-ef-field__badge--clear-staged]="secretState() === 'clearStaged'"
           [attr.data-secret-state]="secretState()"
@@ -94,6 +95,8 @@ export class EntityFormFieldComponent {
           (date) => formatDate(date, 'medium', this.locale),
           secretStatusLabelsOf(m),
         );
+      case 'needsReEntry':
+        return m.secretStatusNeedsReEntry;
       case 'clearStaged':
         return m.secretStatusClearStaged;
       default:

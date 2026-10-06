@@ -208,6 +208,13 @@
     }
   }
 
+  // Disabled Show / Clear must look disabled in every theme (visual check 2026-10-06).
+  [data-secret-show]:disabled,
+  [data-secret-clear]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   .mm-ef-secret__masked {
     color: var(--theme-text-muted, inherit);
     font-size: 0.8em;

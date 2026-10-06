@@ -1,3 +1,4 @@
+import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HttpErrorResponse, provideHttpClient, withXhr } from '@angular/common/http';
@@ -69,6 +70,8 @@ describe('BotSecretsService', () => {
     const promise = service.getSecretSweepRuns('meshmakers', 10);
     const req = httpMock.expectOne((r) => r.url === `${baseUrl}meshmakers/v1/secrets/sweep-runs`);
     expect(req.request.params.get('limit')).toBe('10');
+    // A 403 is explained by the page, not by the global "Access denied" toast.
+    expect(req.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403]);
     req.flush(runs);
     expect(await promise).toEqual(runs);
   });

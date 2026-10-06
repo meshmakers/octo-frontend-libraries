@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
 import { firstValueFrom } from 'rxjs';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { JobResponseDto } from '../shared/jobResponseDto';
@@ -75,12 +76,17 @@ export class BotSecretsService {
     }
   }
 
-  /** `GET {tenantId}/v1/secrets/sweep-runs?limit=` — newest first. Role `AdminPanelManagement`. */
+  /**
+   * `GET {tenantId}/v1/secrets/sweep-runs?limit=` — newest first. Role `AdminPanelManagement`.
+   * A `403` is rethrown WITHOUT the global "Access denied" toast (`MM_CALLER_HANDLED_STATUSES`): the
+   * caller explains it in place.
+   */
   public async getSecretSweepRuns(tenantId: string, limit = 20): Promise<SecretSweepRunDto[] | null> {
     const baseUrl = this.baseUrl(tenantId);
     if (!baseUrl) return null;
     const params = new HttpParams().set('limit', limit);
-    return (await firstValueFrom(this.httpClient.get<SecretSweepRunDto[]>(`${baseUrl}secrets/sweep-runs`, { params }))) ?? [];
+    const context = new HttpContext().set(MM_CALLER_HANDLED_STATUSES, [403]);
+    return (await firstValueFrom(this.httpClient.get<SecretSweepRunDto[]>(`${baseUrl}secrets/sweep-runs`, { params, context }))) ?? [];
   }
 
   /**
