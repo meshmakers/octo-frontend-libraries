@@ -12,10 +12,12 @@ import { EntityFormGetCkRecordDtoGQL } from '../graphQL/getEntityFormCkRecord';
 import { EntityFormGetCkTypeDtoGQL } from '../graphQL/getEntityFormCkType';
 import { EntityFormGetEntityFormsDtoGQL } from '../graphQL/getEntityForms';
 import {
+  CkAttributeInfo,
   CkRecordInfo,
   CkTypeInfo,
   EntityFormDefinition,
   ResolvedEntityForm,
+  ResolvedField,
 } from '../models/entity-form.models';
 
 /**
@@ -149,11 +151,36 @@ export class EntityFormService {
       }
       const records = await this.getRecordsFor(type);
       const resolved = resolveEntityForm(type, forms, { records });
+      await this.attachDisplayAttributeInfo(resolved);
       for (const warning of resolved.warnings) {
         console.warn(`EntityFormService: ${warning}`);
       }
       return resolved;
     });
+  }
+
+  /**
+   * Adds the target type's CK metadata of the display attributes to every reference field that
+   * has `displayAttributes` (AB#5547: the channel enum showed its key `0` instead of "Release").
+   * A display attribute marked secret on the target is dropped (it must never be read).
+   */
+  private async attachDisplayAttributeInfo(resolved: ResolvedEntityForm): Promise<void> {
+    const fields = resolved.sections.flatMap((s) => s.fields).filter((f) => f.reference?.displayAttributes?.length);
+    await Promise.all(fields.map(async (field) => {
+      const reference = field.reference as NonNullable<ResolvedField['reference']>;
+      const target = await this.getCkType(reference.targetCkTypeId).catch(() => null);
+      if (!target) {
+        return;
+      }
+      const byName = new Map(target.attributes.map((a) => [a.attributeName.toLowerCase(), a]));
+      const names = reference.displayAttributes ?? [];
+      const kept = names.filter((n) => !byName.get(n.toLowerCase())?.secret);
+      if (kept.length !== names.length) {
+        resolved.warnings.push(`Field '${field.key}': secret display attributes ignored.`);
+      }
+      reference.displayAttributes = kept;
+      reference.displayAttributeInfo = kept.map((n) => byName.get(n.toLowerCase())).filter((a): a is CkAttributeInfo => !!a);
+    }));
   }
 
   /**

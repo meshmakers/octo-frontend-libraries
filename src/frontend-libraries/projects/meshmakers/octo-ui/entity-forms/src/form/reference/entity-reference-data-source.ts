@@ -6,13 +6,14 @@ import {
   DialogFetchResult,
   EntitySelectDialogDataSource
 } from '@meshmakers/shared-ui';
-import { SearchFilterDto, SearchFilterTypesDto } from '@meshmakers/octo-services';
+import { FieldFilterOperatorsDto, SearchFilterDto, SearchFilterTypesDto } from '@meshmakers/octo-services';
 import {
   EntityFormGetReferenceOptionsDtoGQL,
   EntityFormGetReferenceOptionsQueryDto,
   EntityFormGetReferenceOptionsQueryVariablesDto
 } from '../../graphQL/getEntityFormReferenceOptions';
 import { EntityFormGetReferenceOptionsWithAttributesDtoGQL } from '../../graphQL/getEntityFormReferenceOptionsWithAttributes';
+import { formatReferenceDisplayValue, ReferenceDisplayFormat } from './reference-display-format';
 
 /** One candidate target of a reference field. Carries system properties only, never attributes. */
 export interface EntityReferenceItem {
@@ -81,23 +82,24 @@ type AnyReferenceRow = ReferenceRow & DisplayAttributeSource;
 
 /**
  * `name · value1 · value2` for configured display attributes (in the configured order, empty values
- * skipped); the plain display name otherwise.
+ * skipped); the plain display name otherwise. Values are formatted by their CK value type when
+ * `format.attributes` carries the target's metadata (enum key → name, booleans yes/no, dates).
  */
-export function referenceLabel(base: string, row: DisplayAttributeSource, displayAttributes: readonly string[]): string {
+export function referenceLabel(base: string, row: DisplayAttributeSource, displayAttributes: readonly string[], format: ReferenceDisplayFormat = {}): string {
   if (!displayAttributes.length) {
     return base;
   }
   const values = new Map((row.attributes?.items ?? [])
     .filter((i): i is { attributeName: string; value?: unknown } => !!i?.attributeName)
     .map(i => [i.attributeName.toLowerCase(), i.value]));
+  const infos = new Map((format.attributes ?? []).map(a => [a.attributeName.toLowerCase(), a]));
   const parts = displayAttributes
-    .map(name => values.get(name.toLowerCase()))
-    .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
-    .map(v => String(v));
+    .map(name => formatReferenceDisplayValue(values.get(name.toLowerCase()), infos.get(name.toLowerCase()), format))
+    .filter((v): v is string => v !== null && v.trim() !== '');
   return parts.length ? `${base} · ${parts.join(' · ')}` : base;
 }
 
-function toItem(row: AnyReferenceRow, displayAttributes: readonly string[]): EntityReferenceItem {
+function toItem(row: AnyReferenceRow, displayAttributes: readonly string[], format: ReferenceDisplayFormat): EntityReferenceItem {
   const rtId = String(row.rtId);
   const ckTypeId = String(row.ckTypeId);
   const base = referenceDisplayName({ rtId, ckTypeId, rtWellKnownName: row.rtWellKnownName, rtDisplayName: row.rtDisplayName, name: nameAttributeOf(row) });
@@ -107,7 +109,7 @@ function toItem(row: AnyReferenceRow, displayAttributes: readonly string[]): Ent
     rtWellKnownName: row.rtWellKnownName ?? undefined,
     rtDisplayName: row.rtDisplayName ?? undefined,
     rtDisplayDescription: row.rtDisplayDescription ?? undefined,
-    displayName: referenceLabel(base, row, displayAttributes)
+    displayName: referenceLabel(base, row, displayAttributes, format)
   };
 }
 
@@ -131,14 +133,17 @@ implements EntitySelectDataSource<EntityReferenceItem>, EntitySelectDialogDataSo
   /**
    * @param displayAttributes Non-secret target attributes shown next to the name (field
    *   `referenceDisplayAttributes`). Non-empty → the options are read with
-   *   `entityFormGetReferenceOptionsWithAttributes` and exactly these `attributeNames`.
+   *   `entityFormGetReferenceOptionsWithAttributes` and exactly these `attributeNames` (plus the
+   *   non-secret `name`, which the plain document reads for the label as well).
+   * @param format CK metadata and labels used to format the display attribute values.
    */
   constructor(
     private readonly gql: EntityFormGetReferenceOptionsDtoGQL,
     readonly targetCkTypeId: string,
     columnLabels?: Partial<EntityReferenceColumnLabels>,
     readonly displayAttributes: readonly string[] = [],
-    private readonly attributesGql?: EntityFormGetReferenceOptionsWithAttributesDtoGQL
+    private readonly attributesGql?: EntityFormGetReferenceOptionsWithAttributesDtoGQL,
+    private readonly format: ReferenceDisplayFormat = {}
   ) {
     this.columnLabels = { ...DEFAULT_COLUMN_LABELS, ...(columnLabels ?? {}) };
   }
@@ -183,18 +188,47 @@ implements EntitySelectDataSource<EntityReferenceItem>, EntitySelectDialogDataSo
     return entity.rtId;
   }
 
+  /**
+   * The targets with the given rtIds, labelled like the picker rows (display attributes included).
+   * Used for the label of the current value; ids that cannot be read are missing from the map.
+   */
+  async lookup(rtIds: readonly string[]): Promise<Map<string, EntityReferenceItem>> {
+    const ids = [...new Set(rtIds.filter(id => !!id))];
+    const found = new Map<string, EntityReferenceItem>();
+    if (!ids.length) {
+      return found;
+    }
+    const variables: EntityFormGetReferenceOptionsQueryVariablesDto = {
+      ckTypeId: this.targetCkTypeId,
+      first: ids.length,
+      fieldFilters: [{ attributePath: 'rtId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: ids }]
+    };
+    const page = await firstValueFrom(this.request(variables));
+    for (const item of page.data) {
+      if (item) {
+        found.set(item.rtId, item);
+      }
+    }
+    return found;
+  }
+
   private fetchPage(searchTerm: string | null, first: number, skip: number): Observable<DialogFetchResult<EntityReferenceItem>> {
-    const variables = this.buildVariables(searchTerm, first, skip);
+    return this.request(this.buildVariables(searchTerm, first, skip));
+  }
+
+  private request(variables: EntityFormGetReferenceOptionsQueryVariablesDto): Observable<DialogFetchResult<EntityReferenceItem>> {
     const names = [...this.displayAttributes];
+    // `name` keeps the label rule of the plain document (real display name > name > well-known name).
+    const attributeNames = [...new Set(['name', ...names])];
     const request = names.length && this.attributesGql
-      ? this.attributesGql.fetch({ variables: { ...variables, attributeNames: names }, fetchPolicy: 'network-only' })
+      ? this.attributesGql.fetch({ variables: { ...variables, attributeNames }, fetchPolicy: 'network-only' })
       : this.gql.fetch({ variables, fetchPolicy: 'network-only' });
     return from(request).pipe(
       map(result => {
         const connection = (result.data as EntityFormGetReferenceOptionsQueryDto | undefined)?.runtime?.runtimeEntities;
         const data = (connection?.items ?? [])
           .filter((row): row is ReferenceRow => row !== null && row !== undefined)
-          .map(row => toItem(row as AnyReferenceRow, names));
+          .map(row => toItem(row as AnyReferenceRow, names, this.format));
         return { data, totalCount: connection?.totalCount ?? data.length };
       })
     );

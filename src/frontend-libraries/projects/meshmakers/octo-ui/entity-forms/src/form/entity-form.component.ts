@@ -30,6 +30,7 @@ import { formValuesEqual } from '../core/entity-form-value-mapper';
 import { isVisible } from '../core/visible-when';
 import { EntityFormsMessages, formatEntityFormsMessage, mergeEntityFormsMessages } from '../entity-forms.messages';
 import {
+  CkAttributeInfo,
   CkRecordInfo,
   EntityFormChangeSet,
   EntityFormMode,
@@ -120,6 +121,7 @@ export class EntityFormComponent {
   protected readonly chevronRightIcon = chevronRightIcon;
   /** Stable empty list for reference fields without display attributes. */
   protected readonly noDisplayAttributes: readonly string[] = [];
+  protected readonly noDisplayAttributeInfo: readonly CkAttributeInfo[] = [];
 
   // --- State ---
   protected readonly resolvedMessages = computed(() => mergeEntityFormsMessages(this.messages()));

@@ -165,4 +165,50 @@ describe('EntityFormReferenceFieldComponent', () => {
       expect(host.control.value).toEqual([]);
     });
   });
+
+  describe('display attributes of the current value (AB#5547)', () => {
+    const helmRow = {
+      rtId: 'h1', ckTypeId: 'System.Communication/HelmRepositoryConfiguration', rtWellKnownName: 'main', rtDisplayName: null,
+      attributes: { items: [{ attributeName: 'name', value: 'Main charts' }, { attributeName: 'channel', value: 0 }] }
+    };
+
+    it('shows the current value with its formatted display attributes, and a pick with the picker label', async () => {
+      const withAttributes = { fetch: vi.fn().mockReturnValue(of({ data: { runtime: { runtimeEntities: { totalCount: 1, items: [helmRow] } } } })) };
+      await TestBed.configureTestingModule({
+        imports: [EntityFormReferenceFieldComponent],
+        providers: [
+          { provide: EntityFormGetReferenceOptionsDtoGQL, useValue: { fetch: vi.fn().mockReturnValue(of({ data: null })) } },
+          { provide: EntityFormGetReferenceOptionsWithAttributesDtoGQL, useValue: withAttributes }
+        ]
+      })
+        .overrideComponent(EntityFormReferenceFieldComponent, {
+          remove: { imports: [EntitySelectInputComponent] },
+          add: { imports: [EntitySelectInputStubComponent] }
+        })
+        .compileComponents();
+      const f = TestBed.createComponent(EntityFormReferenceFieldComponent);
+      f.componentRef.setInput('targetCkTypeId', 'System.Communication/HelmRepositoryConfiguration');
+      f.componentRef.setInput('displayAttributes', ['channel']);
+      f.componentRef.setInput('displayAttributeInfo', [{
+        attributeName: 'channel', valueType: 'ENUM', isOptional: true, defaultValues: [], secret: false,
+        enumOptions: [{ key: 0, name: 'Release' }]
+      }]);
+      f.componentInstance.writeValue([{ rtId: 'h1', ckTypeId: 'System.Communication/HelmRepositoryConfiguration', displayName: 'Main charts' }]);
+      f.detectChanges();
+      await f.whenStable();
+      f.detectChanges();
+
+      const name = (f.nativeElement as HTMLElement).querySelector('.mm-efref-name');
+      expect(name?.textContent?.trim()).toBe('Main charts · Release');
+      expect(withAttributes.fetch).toHaveBeenCalledTimes(1);
+      // The field value keeps its plain display name; only the shown label changes.
+      expect(f.componentInstance.getValue()[0].displayName).toBe('Main charts');
+
+      f.componentInstance.onPicked([{ rtId: 'h2', ckTypeId: 'X/Y', displayName: 'Other · Preview' }]);
+      f.detectChanges();
+      await f.whenStable();
+      expect((f.nativeElement as HTMLElement).querySelector('.mm-efref-name')?.textContent?.trim()).toBe('Other · Preview');
+      expect(withAttributes.fetch).toHaveBeenCalledTimes(1);
+    });
+  });
 });
