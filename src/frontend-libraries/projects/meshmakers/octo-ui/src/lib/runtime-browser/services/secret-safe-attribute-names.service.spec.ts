@@ -79,23 +79,72 @@ describe('SecretSafeAttributeNamesService (AB#5542)', () => {
 
     const analysis = await service.analyse('Test/Type');
 
-    expect(analysis.attributeNames).toEqual(['states', 'name', 'currentValue', 'providers', 'key']);
+    expect(analysis.attributeNames).toEqual(['states', 'providers', 'name', 'currentValue', 'key']);
     expect(analysis.secretNames).toEqual(['apiKey']);
-    expect(analysis.recordsWithSecrets).toEqual(['providers']);
+    expect(analysis.blockedAttributes).toEqual(['providers']);
   });
 
   it('excludes a name everywhere when it is a secret at any level', async () => {
     records['Override-1'] = [meta('Key'), meta('Value', 'STRING', { secretMeta: true })];
     typeReturns([meta('Value'), meta('Overrides', 'RECORD_ARRAY', { recordId: 'Override-1' })]);
 
-    expect(await service.forCkType('Test/Type')).toEqual(['overrides', 'key']);
+    const analysis = await service.analyse('Test/Type');
+    expect(analysis.attributeNames).toEqual(['overrides', 'key']);
+    // Top-level `value` is not loaded (collision) and the record carries the secret: both blocked.
+    expect(analysis.blockedAttributes).toEqual(['value', 'overrides']);
+  });
+
+  it('keeps non-secret types with credential-like names: Helm Values record round-trips isSecret (review fix)', async () => {
+    records['System.Communication/ValueOverride-1'] = [meta('Path'), meta('Value'), meta('IsSecret', 'BOOLEAN')];
+    typeReturns([meta('Name'), meta('Values', 'RECORD_ARRAY', { recordId: 'System.Communication/ValueOverride-1' })]);
+
+    const analysis = await service.analyse('System.Communication/Application');
+
+    expect(analysis.attributeNames).toEqual(['name', 'values', 'path', 'value', 'isSecret']);
+    expect(analysis.blockedAttributes).toEqual([]);
+  });
+
+  it('keeps a record attribute named like a credential (Credentials) and blocks it only if it carries a secret', async () => {
+    records['Creds-1'] = [meta('UserName'), meta('Password')];
+    records['Labels-1'] = [meta('Text')];
+    typeReturns([
+      meta('Credentials', 'RECORD', { recordId: 'Creds-1' }),
+      meta('Tokens', 'RECORD_ARRAY', { recordId: 'Labels-1' }),
+    ]);
+
+    const analysis = await service.analyse('Test/Type');
+
+    expect(analysis.attributeNames).toEqual(['credentials', 'tokens', 'userName', 'text']);
+    expect(analysis.secretNames).toEqual(['password']);
+    expect(analysis.blockedAttributes).toEqual(['credentials']);
+  });
+
+  it('blocks a record whose definition could not be loaded (fail closed)', async () => {
+    typeReturns([meta('Endpoint', 'RECORD', { recordId: 'Missing-1' })]);
+
+    expect((await service.analyse('Test/Type')).blockedAttributes).toEqual(['endpoint']);
   });
 
   it('survives recursive record definitions', async () => {
     records['Node-1'] = [meta('Label'), meta('Children', 'RECORD_ARRAY', { recordId: 'Node-1' })];
     typeReturns([meta('Root', 'RECORD', { recordId: 'Node-1' })]);
 
-    expect(await service.forCkType('Test/Tree')).toEqual(['root', 'label', 'children']);
+    const analysis = await service.analyse('Test/Tree');
+    expect(analysis.attributeNames).toEqual(['root', 'label', 'children']);
+    expect(analysis.blockedAttributes).toEqual([]);
+  });
+
+  it('does not treat a record reached through a cycle as secret-free (review fix)', async () => {
+    // A -> B -> A, and the secret sits in A: B must be "carries a secret" as well, regardless of
+    // the visiting order.
+    records['A-1'] = [meta('Token'), meta('Next', 'RECORD', { recordId: 'B-1' })];
+    records['B-1'] = [meta('Label'), meta('Back', 'RECORD', { recordId: 'A-1' })];
+    typeReturns([meta('ViaB', 'RECORD', { recordId: 'B-1' }), meta('ViaA', 'RECORD', { recordId: 'A-1' })]);
+
+    const analysis = await service.analyse('Test/Cycle');
+
+    expect(analysis.secretNames).toEqual(['token']);
+    expect(analysis.blockedAttributes).toEqual(['viaB', 'viaA']);
   });
 
   it('fails closed (no attributes) when the CK lookup fails', async () => {

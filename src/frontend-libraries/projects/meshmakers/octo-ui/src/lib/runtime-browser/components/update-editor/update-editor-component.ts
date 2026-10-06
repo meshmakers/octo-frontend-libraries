@@ -28,6 +28,7 @@ import { AttributeCoordinatorService } from '../../services/attribute-coordinato
 import { AttributeDataService } from '../../services/attribute-data.service';
 import { AttributeMapperService } from '../../services/attribute-mapper.service';
 import { SecretSafeAttributeNamesService } from '../../services/secret-safe-attribute-names.service';
+import { planSecretSafeUpdate } from '../../services/secret-safe-update';
 import { AttributesGroupComponent } from '../attributes-group/attributes-group.component';
 import { SharedEditor } from '../shared-editor/shared-editor';
 
@@ -277,11 +278,26 @@ export class UpdateEditorComponent {
       const mapped = await firstValueFrom(
         this.mapFormToAttributes$(formValue, attributesMetadata),
       );
-      const mappedAttributes = await this.withoutRecordsCarryingSecrets(
+      const analysis = await this.secretSafeNames.analyse(input.ckTypeId);
+      const plan = planSecretSafeUpdate(
         mapped,
-        input.ckTypeId,
+        attributesMetadata,
+        analysis,
         formValue,
+        this.initialValue(),
       );
+      if (plan.blockedChanged) {
+        this.sharedEditor.showErrorNotification(
+          this.resolvedMessages().recordWithSecretNotSaved ??
+            DEFAULT_RUNTIME_BROWSER_MESSAGES.recordWithSecretNotSaved ??
+            '',
+        );
+      }
+      if (!plan.otherChanged) {
+        // Nothing that may be written back changed — skip the call (one message, AB#5542).
+        return;
+      }
+      const mappedAttributes = plan.attributes;
 
       if (!this.hasValidMappedAttributes(mappedAttributes)) {
         this.sharedEditor.showErrorNotification(
@@ -322,41 +338,6 @@ export class UpdateEditorComponent {
     } finally {
       this.isUpdating.set(false);
     }
-  }
-
-  /**
-   * Drops RECORD / RECORD_ARRAY attributes whose record type contains a secret (AB#5542). Their
-   * secret sub-values are never read, and a record is written as a whole, so saving the record
-   * would erase the stored secrets. Changed records are reported to the user instead.
-   */
-  private async withoutRecordsCarryingSecrets(
-    mapped: { attributeName: string; value: unknown }[],
-    ckTypeId: string,
-    formValue: Record<string, unknown>,
-  ): Promise<{ attributeName: string; value: unknown }[]> {
-    const { recordsWithSecrets } = await this.secretSafeNames.analyse(ckTypeId);
-    if (recordsWithSecrets.length === 0) return mapped;
-
-    const blocked = new Set(recordsWithSecrets.map((n) => n.toLowerCase()));
-    let initial: Record<string, unknown> = {};
-    try {
-      initial = JSON.parse(this.initialValue() ?? '{}') as Record<string, unknown>;
-    } catch {
-      initial = {};
-    }
-    const changed = Object.keys(formValue).some(
-      (key) =>
-        blocked.has(key.toLowerCase()) &&
-        JSON.stringify(formValue[key]) !== JSON.stringify(initial[key]),
-    );
-    if (changed) {
-      this.sharedEditor.showErrorNotification(
-        this.resolvedMessages().recordWithSecretNotSaved ??
-          DEFAULT_RUNTIME_BROWSER_MESSAGES.recordWithSecretNotSaved ??
-          '',
-      );
-    }
-    return mapped.filter((a) => !blocked.has(a.attributeName.toLowerCase()));
   }
 
   /** Fetches attribute definitions for the given runtime CK type (single emission). */

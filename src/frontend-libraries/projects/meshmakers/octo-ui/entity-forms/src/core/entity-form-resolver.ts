@@ -12,6 +12,7 @@ import {
   ResolvedListColumn,
   ResolvedSection,
 } from '../models/entity-form.models';
+import { isSecretAttributeCandidate } from '@meshmakers/octo-services';
 import { canonicalisePath, isForcedReadOnly } from './attribute-path';
 import { BUILT_IN_DEFAULT_FORM } from './built-in-default-form';
 import { parseDefault, isArrayType, isDateType, isNumericType, isRecordType } from './entity-form-value-mapper';
@@ -41,15 +42,20 @@ const SCALAR_LIST_TYPES: readonly string[] = ['STRING', 'INT', 'INTEGER', 'INT_6
 
 /**
  * Defensive secret heuristic (addition to plan D5.1, AB#5522): until the CK carries the `secret`
- * metaData marker (§5.8), attributes whose name ends in one of these words are treated as secret
+ * metaData marker (§5.8), a TEXTUAL attribute with a credential-like name is treated as secret
  * unless the form explicitly says `Secret: false`. Without it, a type that only has form-default
- * (or the built-in form) would read and prefill e.g. `password`.
+ * (or the built-in form) would read and prefill e.g. `password`. The name rule is the shared one
+ * of octo-services (`isSecretAttributeCandidate`, AB#5542): suffixes password, passphrase, secret,
+ * secretKey, privateKey, apiKey, token, connectionString, credential(s), encryptedValue — text
+ * value types only, so `isSecret: BOOLEAN` or a `credentials` record are never secrets by name.
  */
-const SECRET_NAME_PATTERN = /(password|passphrase|secret|privatekey|apikey|token)$/i;
+function hasCredentialName(attribute: CkAttributeInfo): boolean {
+  return isSecretAttributeCandidate({ attributeName: attribute.attributeName, attributeValueType: attribute.valueType });
+}
 
 /** True when a CK attribute is secret by metaData or by the name heuristic. */
 export function isSecretAttribute(attribute: CkAttributeInfo): boolean {
-  return attribute.secret || SECRET_NAME_PATTERN.test(attribute.attributeName);
+  return attribute.secret || hasCredentialName(attribute);
 }
 
 const sameId = (a: string | null | undefined, b: string | null | undefined): boolean =>
@@ -235,7 +241,7 @@ function buildAttributeField(
   let editor = resolveEditor(def, attribute, warnings);
   const explicitPassword = (def?.editor ?? '').trim().toLowerCase() === 'password';
   const secret = def?.secret === true || explicitPassword || attribute.secret
-    || (def?.secret !== false && SECRET_NAME_PATTERN.test(attribute.attributeName));
+    || (def?.secret !== false && hasCredentialName(attribute));
   let readOnly = parseReadOnly(def?.readOnly);
   if (isForcedReadOnly(attribute.attributeName) || editor === 'unsupported') {
     readOnly = 'always';
@@ -603,7 +609,7 @@ export function resolveEntityForm(
   const secretNames = new Set<string>([
     ...attributeFields.filter((f) => f.secret).map((f) => f.attributeName as string),
     ...type.attributes.filter((a) => a.secret).map((a) => a.attributeName),
-    ...type.attributes.filter((a) => SECRET_NAME_PATTERN.test(a.attributeName) && !attributeFields.some((f) => f.attributeName === a.attributeName && !f.secret)).map((a) => a.attributeName),
+    ...type.attributes.filter((a) => hasCredentialName(a) && !attributeFields.some((f) => f.attributeName === a.attributeName && !f.secret)).map((a) => a.attributeName),
   ]);
   const secretFields = attributeFields.filter((f) => f.secret).map((f) => f.attributeName as string);
   const read = new Set<string>();

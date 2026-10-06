@@ -1,6 +1,6 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { Apollo } from 'apollo-angular';
 import { AttributeSelectorService } from './attribute-selector.service';
 import { GetCkTypeAvailableQueryColumnsDtoGQL, GetCkTypeAvailableQueryColumnsQueryDto } from '../graphQL/getCkTypeAvailableQueryColumns';
@@ -169,6 +169,23 @@ describe('AttributeSelectorService', () => {
         done();
       });
     }));
+
+    it('never offers credential columns (AB#5542)', async () => {
+      const response = structuredClone(mockResponse) as unknown as { data: { constructionKit: { types: { items: { availableQueryColumns: { totalCount: number; items: unknown[] } }[] } } } };
+      const columns = response.data.constructionKit.types.items[0].availableQueryColumns;
+      columns.items.push(
+        { __typename: 'CkTypeQueryColumn', attributePath: 'password', attributeValueType: AttributeValueTypeDto.StringDto },
+        { __typename: 'CkTypeQueryColumn', attributePath: 'endpoint.apiKey', attributeValueType: AttributeValueTypeDto.StringDto },
+        { __typename: 'CkTypeQueryColumn', attributePath: 'isSecret', attributeValueType: AttributeValueTypeDto.BooleanDto },
+      );
+      columns.totalCount = 6;
+      getCkTypeAvailableQueryColumnsGQLMock.fetch.mockReturnValue(of(response as unknown as MockQueryResult));
+
+      const result = await firstValueFrom(service.getAvailableAttributes('TestModel/Customer'));
+
+      expect(result.items.map(i => i.attributePath)).toEqual(['name', 'age', 'email', 'isSecret']);
+      expect(result.totalCount).toBe(4);
+    });
 
     it('should filter out null items in the response', () => new Promise<void>((done) => {
       const responseWithNulls = {

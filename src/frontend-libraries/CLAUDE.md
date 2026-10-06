@@ -647,28 +647,47 @@ Until the SECRET value type (AB#5528) masks values on the server:
   (`DATA_POINT_ATTRIBUTE_NAMES`, `DATA_POINT_MAPPING_ATTRIBUTE_NAMES`); screens that show "all
   attributes" of an arbitrary type use octo-ui `SecretSafeAttributeNamesService.forCkType(rtCkTypeId)`
   (CK attributes + record sub-attributes, minus secret candidates; a CK lookup failure yields `[]`).
-- The rule lives in octo-services `secret-safe-attributes.ts`: `isCredentialLikeAttributeName`
-  (suffix heuristic: password, passphrase, secret, secretKey, token, apiKey, privateKey,
-  connectionString, credential(s), encryptedValue), `isSecretAttributeCandidate` (+ `secret: true`
-  CK metadata; non-textual types never match by name) and `toAttributeNameFilter`.
+- ONE credential rule, in octo-services `secret-safe-attributes.ts` — `isSecretAttributeCandidate`:
+  explicit decision (`secret: true|false`, e.g. form `Secret: false`) → CK metadata `secret` →
+  otherwise a TEXTUAL attribute (`STRING`, `STRING_ARRAY`, unknown) whose name ends in password,
+  passphrase, secret, secretKey, privateKey, apiKey, token, connectionString, credential(s) or
+  encryptedValue. Non-textual attributes (`isSecret: BOOLEAN`, a `credentials` RECORD) are never
+  secrets by name. Entity forms (`entity-form-resolver.ts`), the runtime browser, MeshBoard and the
+  Studio Data Explorer all use it; concept §5.3 documents it. Never add another pattern.
+- Lists that feed an EDITOR must be type-aware (`SecretSafeAttributeNamesService`,
+  `toUniqueCamelCaseNames`). `toAttributeNameFilter` (name-only drop) is for read-only callers
+  without type information (widget configuration fields). Anything excluded from the load is
+  never written back: `analyse().blockedAttributes` + `planSecretSafeUpdate` (records carrying a
+  secret or an excluded sub-attribute, name collisions, attributes missing from the loaded list).
+  The record graph is analysed as a whole (fixpoint), so cycles cannot hide a secret.
 - Typed queries never select credential String fields; show presence with a count
   (`fieldFilter: [{ attributePath: "<secret>", operator: IS_NOT_NULL }]` → `totalCount`).
 - Mutations return only `rtId` (and `ckTypeId`) unless the caller really reads more.
 - The runtime-browser edit form treats secret candidates as write-only (`secretsWriteOnly` on
   `mm-attributes-group`: empty, not required, password input; an empty value is omitted from the
-  payload = keep). Records whose type contains a secret are not written by the update editor
-  (their secret sub-values are never read, and a record is replaced as a whole).
+  payload = keep). Blocked attributes are not written by the update editor; a change to one is
+  reported once, and the call is skipped when nothing else changed.
+- Column pickers (`AttributeSelectorService`) never offer credential columns (`isSecretQueryColumn`).
 
-**Guard:** `projects/meshmakers/octo-services/src/lib/graphql-secret-guard.spec.ts` (runs with
-`npm run test:octo-services`) scans every `.graphql` under `projects/` and inline `gql` documents
-against `schema.graphql` and fails on a generic `attributes` without a non-nullable
-`attributeNames`, a credential-like literal in it, or a typed credential-like String field.
+**Guard:** the rule is `findSecretUnsafeSelections` / `extractGraphQlDocuments` (octo-services
+`shared/graphql-secret-guard.ts`, exported, unit-tested). `projects/meshmakers/octo-services/src/lib/graphql-secret-guard.spec.ts`
+(runs with `npm run test:octo-services`) scans every `.graphql` under `projects/` and inline `gql`
+documents against `schema.graphql`; the Studio guard imports the same functions from
+`@meshmakers/octo-services`. It fails on a generic `attributes` without a non-nullable
+`attributeNames`, a credential-like name in it (list or single string), or a typed
+credential-like String field.
 Justified exceptions go into its `ALLOW_LIST` with a reason; today it holds only entity-forms
 `getEntityForms` (System.UI/EntityForm carries no secret-capable attributes, and a filter would
 cut the record contents the parser reads). A stale entry fails the test.
 - Meshboard widgets that show arbitrary attributes (entity card/detail, table, repeater,
   summary card) use `SecretSafeAttributeNamesService.forCkType`; widgets with configured fields
   (status list, alerts, series labels/groups) send only those names.
+
+**Remaining exposure (not fixable by document rules):** runtime query results —
+`executeRuntimeQuery`, `getTransient*RuntimeQuery` and persistent-query row `cells` — project the
+values of whatever columns a user picked, credentials included. The column pickers no longer offer
+credential columns, but stored queries that already contain one still return it. The fix is the
+backend refusal of SECRET attributes as query columns (`SecretAttributeNotQueryable`, AB#5528 phase 3).
 
 **Schema-dependent (AB#5542, after the backend handover note
 `octo-construction-kit-engine/docs/secret-frontend-handover.md` exists):** codegen with

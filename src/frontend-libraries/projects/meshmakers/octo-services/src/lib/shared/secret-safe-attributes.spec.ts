@@ -3,6 +3,8 @@ import {
   isSecretAttributeCandidate,
   toAttributeNameFilter,
   toCamelCaseAttributeName,
+  toUniqueCamelCaseNames,
+  isSecretQueryColumn,
 } from './secret-safe-attributes';
 
 describe('secret-safe attributes (AB#5542)', () => {
@@ -52,7 +54,31 @@ describe('secret-safe attributes (AB#5542)', () => {
         attributeValueType: 'STRING',
         metaData: [{ key: 'secret', value: 'false' }, null],
       })).toBe(false);
+      expect(isSecretAttributeCandidate({ attributeName: 'value', attributeValueType: 'STRING', metaData: [null] })).toBe(false);
     });
+  });
+
+  describe('isSecretAttributeCandidate — one rule, text types only, opt-out (AB#5542 review)', () => {
+    it('never treats non-textual attributes as secrets by name', () => {
+      expect(isSecretAttributeCandidate({ attributeName: 'credentials', attributeValueType: 'RECORD' })).toBe(false);
+      expect(isSecretAttributeCandidate({ attributeName: 'tokens', attributeValueType: 'RECORD_ARRAY' })).toBe(false);
+      expect(isSecretAttributeCandidate({ attributeName: 'apiKey', attributeValueType: 'STRING_ARRAY' })).toBe(true);
+    });
+
+    it('honours an explicit decision before metadata and the name rule', () => {
+      expect(isSecretAttributeCandidate({ attributeName: 'password', attributeValueType: 'STRING', secret: false })).toBe(false);
+      expect(isSecretAttributeCandidate({ attributeName: 'label', attributeValueType: 'STRING', secret: true })).toBe(true);
+    });
+
+    it('lets `secret: false` metadata opt out of the name rule', () => {
+      expect(isSecretAttributeCandidate({
+        attributeName: 'tokenSecret', attributeValueType: 'STRING', metaData: [{ key: 'secret', value: 'false' }],
+      })).toBe(false);
+    });
+  });
+
+  it('toUniqueCamelCaseNames keeps credential-like names (type-aware callers filter themselves)', () => {
+    expect(toUniqueCamelCaseNames(['IsSecret', 'isSecret', 'Credentials', null])).toEqual(['isSecret', 'credentials']);
   });
 
   describe('toAttributeNameFilter', () => {
@@ -70,5 +96,14 @@ describe('secret-safe attributes (AB#5542)', () => {
     expect(toCamelCaseAttributeName('RtWellKnownName')).toBe('rtWellKnownName');
     expect(toCamelCaseAttributeName('URL')).toBe('uRL');
     expect(toCamelCaseAttributeName('')).toBe('');
+  });
+
+  it('isSecretQueryColumn judges the last path segment by the shared rule', () => {
+    expect(isSecretQueryColumn('password', 'STRING')).toBe(true);
+    expect(isSecretQueryColumn('endpoint.apiKey', 'STRING')).toBe(true);
+    expect(isSecretQueryColumn('parent->clientSecret', 'STRING')).toBe(true);
+    expect(isSecretQueryColumn('isSecret', 'BOOLEAN')).toBe(false);
+    expect(isSecretQueryColumn('passwordPolicy.name', 'STRING')).toBe(false);
+    expect(isSecretQueryColumn(null)).toBe(false);
   });
 });

@@ -50,7 +50,7 @@ export interface RuntimeBrowserMessages {
   latitudeHint?: string;
   /** Hint under a write-only secret field in the edit form (AB#5542). */
   secretWriteOnlyHint?: string;
-  /** Warning when an edited record could not be saved because it contains a secret (AB#5542). */
+  /** Warning when an edited field could not be saved because its value is not fully loaded (secret inside, AB#5542). */
   recordWithSecretNotSaved?: string;
 
   /**
@@ -235,7 +235,7 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
     'The latitude of the point on the Earth surface (-90 to 90 degrees).',
   secretWriteOnlyHint: 'Write-only. The stored value is never shown; leave empty to keep it.',
   recordWithSecretNotSaved:
-    'Records that contain secret fields cannot be changed here; their changes were not saved.',
+    'Some changed fields contain secret values that are never loaded here; those changes were not saved.',
   title: 'Runtime Browser',
   badgeLabel: 'Entities & Data',
   titlePrefix: 'REPOSITORY',

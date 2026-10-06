@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GetCkTypeAvailableQueryColumnsDtoGQL } from '../graphQL/getCkTypeAvailableQueryColumns';
 import { AttributeValueTypeDto } from '../graphQL/globalTypes';
+import { isSecretQueryColumn } from '../shared/secret-safe-attributes';
 
 export interface AttributeItem {
   attributePath: string;
@@ -54,8 +55,12 @@ export class AttributeSelectorService {
           return { items: [], totalCount: 0 };
         }
 
-        const items = (type.availableQueryColumns?.items || [])
-          .filter((item): item is NonNullable<typeof item> => item !== null)
+        const all = (type.availableQueryColumns?.items || [])
+          .filter((item): item is NonNullable<typeof item> => item !== null);
+        // Credential columns are never offered (SECRET-safe, AB#5542): a runtime query row would
+        // project their value in clear text.
+        const items = all
+          .filter(item => !isSecretQueryColumn(item.attributePath, item.attributeValueType))
           .map(item => ({
             attributePath: item.attributePath,
             attributeValueType: item.attributeValueType,
@@ -64,7 +69,7 @@ export class AttributeSelectorService {
 
         return {
           items,
-          totalCount: type.availableQueryColumns?.totalCount || 0
+          totalCount: Math.max(0, (type.availableQueryColumns?.totalCount || 0) - (all.length - items.length))
         };
       })
     );
