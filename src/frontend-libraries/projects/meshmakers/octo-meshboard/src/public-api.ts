@@ -216,6 +216,9 @@ export type { AttentionListConfigResult } from './lib/cockpit/widgets/attention-
 export { CockpitKpiWidgetComponent, kpiKindOf, NOT_AVAILABLE_TEXT } from './lib/cockpit/widgets/cockpit-kpi-widget.component';
 export { CockpitKpiConfigDialogComponent } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
 export type { CockpitKpiConfigResult } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
+export { RecentItemsWidgetComponent, DEFAULT_RECENT_ITEMS_MAX, MAX_RECENT_ITEMS, recentRelativeTime } from './lib/cockpit/widgets/recent-items-widget.component';
+export { RecentItemsConfigDialogComponent } from './lib/cockpit/widgets/recent-items-config-dialog.component';
+export type { RecentItemsConfigResult } from './lib/cockpit/widgets/recent-items-config-dialog.component';
 export { provideCockpitWidgets, registerCockpitWidgets, BUILT_IN_ATTENTION_PROVIDERS } from './lib/cockpit/cockpit-widget-registrations';
 
 // Shared rules, also used by the Refinery Studio (one implementation)

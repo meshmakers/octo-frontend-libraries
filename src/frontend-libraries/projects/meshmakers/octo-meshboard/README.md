@@ -404,11 +404,12 @@ Registered separately — not by `provideMeshBoard()` — because they need host
 ```typescript
 providers: [
   provideMeshBoard(),
-  provideCockpitWidgets(),                       // registers the 4 types + built-in checks
+  provideCockpitWidgets(),                       // registers the 5 types + built-in checks
   provideCockpitWidgetHost({
     access: () => { const auth = inject(AuthorizeService); return { isInRole: r => auth.isInRole(r) }; },
     links: () => myLinkResolver,                 // CockpitLinkTarget -> app URL (or null)
-    explain: () => myAssistantBridge             // optional "✦ Explain"
+    explain: () => myAssistantBridge,            // optional "✦ Explain"
+    recents: () => myRecentItemsSource           // optional, feeds "Recent items"
   }),
   // optional host checks
   { provide: COCKPIT_ATTENTION_PROVIDERS, useClass: MyCheck, multi: true }
@@ -420,6 +421,7 @@ providers: [
 | `attentionList` | Attention List | Findings, errors first: CK models in ResolveFailed, adapters in error / offline > 10 min, pools not registered, features enabled but not installed, plus host checks (Refinery Studio: secrets needing re-entry) | each provider: AdminPanelManagement / CommunicationManagement + `System.Communication` / TenantManagement | `{ "providerIds"?: string[], "maxItems"?: number, "showExplain"?: boolean }` — no `providerIds` = all checks, including ones added later |
 | `adapterStatus` | Adapter Status | Adapters online / expected to run (shared rule `utils/adapter-online.ts`) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean }` |
 | `ckModelState` | CK Model State | CK models available / all; ResolveFailed = error, importing = warning | AdminPanelManagement | `{ "showDetail"?: boolean }` |
+| `recentItems` | Recent Items | The viewer's recently opened pages, entities and boards (most recent first, glyph, kind, relative time as `<time>`), real links; optional "⌘K shows the same list" | none — per user, from the host's `COCKPIT_RECENT_ITEMS`; without it "Not available" + collapsed | `{ "maxItems"?: number }` (default 8, 1–20) |
 | `pipelineExecutions` | Pipeline Executions 24 h | Executions of all data flows, failed count, hourly sparkline (same counting as the Studio's Data Flows list) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean, "showSparkline"?: boolean }` |
 
 - **Role abstraction.** The library never imports the host's auth: `COCKPIT_VIEWER_ACCESS`
@@ -439,8 +441,14 @@ providers: [
   query emitting findings once) and register it on `COCKPIT_ATTENTION_PROVIDERS`.
 - **Data.** Lean documents with explicit fields in `graphQL/cockpit*.graphql`; the adapter states
   and CK model counts are shared per tenant for 10 s between the KPI and the attention list.
+- **Recent items source.** `CockpitRecentItemsSource` = `items(limit)` (most recent first, only
+  entries the viewer may still open, each with a real `href`), `open(item)` for plain left clicks
+  (modified clicks stay with the browser), optional `revision` signal (re-read on change),
+  `openPalette()` + `paletteShortcut`. The Refinery Studio feeds it from the same history as the
+  empty Cmd+K palette. `recentItems` is not one of `COCKPIT_WIDGET_TYPES` (the health widgets).
 - **Seeded board.** octo-platform-services' `System.UI.TenantCockpit` blueprint (≥ 1.1.0) seeds the
-  four widgets on every tenant's `cockpit` board; `cockpit-widget-registrations.spec.ts` pins the
+  four health widgets on every tenant's `cockpit` board, since 1.3.0 also "Recently opened"
+  (`recentItems`, 3 columns) next to the CK-model pie (3 columns); `cockpit-widget-registrations.spec.ts` pins the
   seed's encoding against `toPersistedConfig`.
 - **Theming.** Neutral defaults via `--mm-cockpit-*` custom properties (text, text-muted, surface,
   border, border-strong, success, warning, error, info, neutral, accent, ai) falling back to Kendo colours.

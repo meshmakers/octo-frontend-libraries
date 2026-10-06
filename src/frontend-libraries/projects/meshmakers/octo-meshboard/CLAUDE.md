@@ -371,6 +371,7 @@ interface AggregationQuery {
 | `process` | Process diagram (HMI) | runtimeEntity, persistentQuery (runtime + stream-data) |
 | `markdown` | Static markdown content with themed styling | static |
 | `attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions` | Cockpit widgets (AB#5558) — see *Cockpit Widgets* | none (static) |
+| `recentItems` | The viewer's recently opened places from the host (`COCKPIT_RECENT_ITEMS`, AB#5558) — see *Cockpit Widgets* | none (static) |
 | `heatmap` | Day × time-slot density grid (count/sum/avg per slot) | persistentQuery (runtime + stream-data) |
 
 > **Heatmap color modes.** `HeatmapWidgetConfig.colorMode` selects how cells are
@@ -1067,18 +1068,18 @@ literal was a new object on every change detection. Rules:
 ## Cockpit Widgets (AB#5558)
 
 `src/lib/cockpit/` — the Home cockpit elements of the Refinery Studio (AB#5545) as widget types
-(`attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions`); catalogue and host
-setup in the README ("Cockpit Widgets").
+(`attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions`) plus the per-user
+`recentItems` list; catalogue and host setup in the README ("Cockpit Widgets").
 
 ```
 cockpit/
-├── cockpit-host.ts                  # COCKPIT_VIEWER_ACCESS / COCKPIT_LINK_RESOLVER / COCKPIT_EXPLAIN_HANDLER, provideCockpitWidgetHost
+├── cockpit-host.ts                  # COCKPIT_VIEWER_ACCESS / COCKPIT_LINK_RESOLVER / COCKPIT_EXPLAIN_HANDLER / COCKPIT_RECENT_ITEMS, provideCockpitWidgetHost
 ├── cockpit-context.service.ts       # tenant, allows(roles, models) (fails closed), resolveLink, explain
 ├── cockpit-widget-registrations.ts  # registerCockpitWidgets / provideCockpitWidgets (+ built-in providers)
 ├── attention/                       # AttentionProvider contract, CockpitAttentionService, providers/
 ├── data/                            # adapter states + CK model counts (10 s per-tenant share)
 ├── kpi/                             # pure KPI mapping (adapterKpi, executionKpi, ckModelKpi, sparklineGeometry) + CockpitKpiService
-└── widgets/                         # AttentionListWidget, CockpitKpiWidget (one component for 3 types), config dialogs, shared styles
+└── widgets/                         # AttentionListWidget, CockpitKpiWidget (one component for 3 types), RecentItemsWidget, config dialogs, shared styles
 ```
 
 - **Shared rules live here now.** `utils/adapter-online.ts` (THE adapter online rule) and
@@ -1090,6 +1091,12 @@ cockpit/
   calls `MeshBoardStateService.setWidgetHiddenForViewer`; `MeshBoardViewComponent.visibleWidgets`
   drops such widgets outside edit mode and closes empty rows (`utils/compact-layout.ts`
   `collapseEmptyRows`, presentation only). The flag set is cleared on board switch.
+- **Recent items** (`recentItems`) is per user: the board stores only `maxItems` (default 8,
+  clamped 1–20); rows come from the host's `COCKPIT_RECENT_ITEMS` source (`items(limit)`, `open`,
+  optional `revision` signal / `openPalette`). The library never imports host code; the host
+  re-checks visibility and owns navigation (real `href` + `open` on a plain left click). No
+  source = "Not available" + collapsed. It is **not** in `COCKPIT_WIDGET_TYPES` (those are the
+  health widgets hosts use to decide on their fallbacks).
 - **Persistence** is `dataSourceType: 'static'` + small JSON (`providerIds` omitted for "all",
   never an empty array; unknown provider ids are ignored at run time). The parser tolerates
   foreign values (wrong types → defaults).
@@ -1097,7 +1104,7 @@ cockpit/
   a fixture, checks they deserialize/serialize identically and do not overlap, and compares the
   fixture with the real seed when `../../../octo-platform-services` exists (worktree pair).
 - Tests: `attention.spec.ts`, `providers/attention-providers.spec.ts`, `kpi/cockpit-kpi.spec.ts`,
-  `data/cockpit-data.spec.ts`, `widgets/cockpit-widgets.spec.ts`, `cockpit-widget-registrations.spec.ts`,
+  `data/cockpit-data.spec.ts`, `widgets/cockpit-widgets.spec.ts`, `widgets/recent-items-widget.spec.ts`, `cockpit-widget-registrations.spec.ts`,
   `utils/adapter-online.spec.ts`, `utils/pipeline-executions.spec.ts`.
 
 ---

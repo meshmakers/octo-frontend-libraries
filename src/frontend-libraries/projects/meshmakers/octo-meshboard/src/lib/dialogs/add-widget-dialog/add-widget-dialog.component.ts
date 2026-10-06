@@ -23,6 +23,7 @@ import {
   connectorIcon,
   dataIcon,
   chartAreaRangeIcon,
+  clockArrowRotateIcon,
   SVGIcon
 } from '@progress/kendo-svg-icons';
 
@@ -123,6 +124,8 @@ export class AddWidgetDialogComponent implements OnInit {
         return dataIcon;
       case 'pipelineExecutions':
         return chartAreaRangeIcon;
+      case 'recentItems':
+        return clockArrowRotateIcon;
       default:
         return chartLineIcon;
     }
@@ -171,6 +174,8 @@ export class AddWidgetDialogComponent implements OnInit {
         return 'Construction Kit models available, ResolveFailed as error';
       case 'pipelineExecutions':
         return 'Pipeline executions in the last 24 hours with failures and an hourly sparkline';
+      case 'recentItems':
+        return 'Pages, entities and boards the viewer opened recently — personal, from the host application';
       default:
         return 'Widget for displaying data';
     }
