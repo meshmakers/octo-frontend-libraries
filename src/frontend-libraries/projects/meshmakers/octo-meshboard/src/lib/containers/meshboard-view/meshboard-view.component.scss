@@ -410,3 +410,27 @@ kendo-tilelayout {
     gap: 2px;
   }
 }
+
+// Plain chrome (input `chrome="plain"` / route data `meshBoardChrome`, AB#5558): the host page
+// provides the surface and the gutter, so the view drops its own outer frame — background,
+// header bar (background + bottom border) and the padding around the grid. The widget frames and
+// the grid gap are untouched. `!important` where the global theme styles (octo-ui
+// runtime-browser `_styles.scss`) set these with `!important` themselves.
+.meshboard-view.chrome-plain {
+  background: transparent !important;
+
+  .meshboard-toolbar {
+    padding: 0 0 var(--theme-space-3, 12px);
+    background: transparent !important;
+    border-bottom: none !important;
+  }
+
+  kendo-tilelayout {
+    padding: 0 !important;
+  }
+
+  .banner-zone-item:not(.banner-edit) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

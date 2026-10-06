@@ -1,4 +1,4 @@
-<div class="meshboard-view">
+<div class="meshboard-view" [class.chrome-plain]="effectiveChrome() === 'plain'">
   @if (isLoading()) {
     <div class="loading-container">
       <div class="k-loading-mask">

@@ -12,22 +12,24 @@ import { WidgetRegistryService } from '../../services/widget-registry.service';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { MeshBoardHeaderMode } from '../../utils/meshboard-header';
+import { MeshBoardChrome } from '../../utils/meshboard-chrome';
 
 /** A host binding the input, the way an embedding page (e.g. a Home tab) uses the view. */
 @Component({
   standalone: true,
   imports: [MeshBoardViewComponent],
-  template: '<mm-meshboard-view [headerMode]="mode()"></mm-meshboard-view>'
+  template: '<mm-meshboard-view [headerMode]="mode()" [chrome]="chrome()"></mm-meshboard-view>'
 })
 class HostComponent {
   readonly mode = signal<MeshBoardHeaderMode | undefined>(undefined);
+  readonly chrome = signal<MeshBoardChrome | undefined>(undefined);
 }
 
 /**
  * Header mode of the view (AB#5558): `full` shows name + description, `compact` only the
  * controls, `none` no header row. The bound input wins over the route data.
  */
-describe('MeshBoardViewComponent — header mode', () => {
+describe('MeshBoardViewComponent — header mode and chrome', () => {
   function setup(routeData: Record<string, unknown>, readonly = true) {
     const config = signal({
       name: 'Tenant Cockpit',
@@ -88,8 +90,9 @@ describe('MeshBoardViewComponent — header mode', () => {
     return TestBed.createComponent(HostComponent);
   }
 
-  async function render(fixture: ReturnType<typeof setup>, mode?: MeshBoardHeaderMode): Promise<HTMLElement> {
+  async function render(fixture: ReturnType<typeof setup>, mode?: MeshBoardHeaderMode, chrome?: MeshBoardChrome): Promise<HTMLElement> {
     fixture.componentInstance.mode.set(mode);
+    fixture.componentInstance.chrome.set(chrome);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -141,5 +144,45 @@ describe('MeshBoardViewComponent — header mode', () => {
     state.switchToMeshBoardByWellKnownName.mockResolvedValue(null);
     const el = await render(fixture, 'none');
     expect(el.textContent).toContain('MeshBoard Not Found');
+  });
+
+  // Outer frame (AB#5558): `framed` (default) draws background, header bar and grid padding;
+  // `plain` leaves them to the host page. Widgets are rendered either way.
+  describe('chrome', () => {
+    it('is framed by default', async () => {
+      const el = await render(setup({}));
+      expect(el.querySelector('.meshboard-view')).not.toBeNull();
+      expect(el.querySelector('.meshboard-view.chrome-plain')).toBeNull();
+    });
+
+    it('plain marks the view so it drops its outer frame', async () => {
+      const el = await render(setup({}), 'compact', 'plain');
+      expect(el.querySelector('.meshboard-view.chrome-plain')).not.toBeNull();
+      expect(el.querySelector('.meshboard-toolbar.compact')).not.toBeNull();
+    });
+
+    it('reads the chrome from the route data when no input is bound', async () => {
+      const el = await render(setup({ meshBoardChrome: 'plain' }));
+      expect(el.querySelector('.meshboard-view.chrome-plain')).not.toBeNull();
+    });
+
+    it('lets the bound input win over the route data', async () => {
+      const el = await render(setup({ meshBoardChrome: 'plain' }), undefined, 'framed');
+      expect(el.querySelector('.meshboard-view.chrome-plain')).toBeNull();
+    });
+
+    it('falls back to framed for unknown route data', async () => {
+      const el = await render(setup({ meshBoardChrome: 'borderless' }));
+      expect(el.querySelector('.meshboard-view.chrome-plain')).toBeNull();
+    });
+
+    it('keeps the plain chrome on the "not found" help', async () => {
+      const fixture = setup({ meshBoardChrome: 'plain' });
+      const state = TestBed.inject(MeshBoardStateService) as unknown as { switchToMeshBoardByWellKnownName: ReturnType<typeof vi.fn> };
+      state.switchToMeshBoardByWellKnownName.mockResolvedValue(null);
+      const el = await render(fixture);
+      expect(el.textContent).toContain('MeshBoard Not Found');
+      expect(el.querySelector('.meshboard-view.chrome-plain')).not.toBeNull();
+    });
   });
 });

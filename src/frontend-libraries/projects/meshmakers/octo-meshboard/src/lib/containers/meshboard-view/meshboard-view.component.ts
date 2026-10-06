@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
 import { urlWithoutEditParam, wantsEditModeFromUrl } from '../../utils/edit-mode-url';
 import { MESHBOARD_HEADER_MODE_ROUTE_DATA, MeshBoardHeaderMode, resolveMeshBoardHeaderMode } from '../../utils/meshboard-header';
+import { MESHBOARD_CHROME_ROUTE_DATA, MeshBoardChrome, resolveMeshBoardChrome } from '../../utils/meshboard-chrome';
 import { TileLayoutModule, TileLayoutComponent, TileLayoutReorderEvent, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DialogService, DialogModule, WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
@@ -169,6 +170,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private readonly routeHeaderMode = signal<unknown>(undefined);
   protected readonly effectiveHeaderMode = computed(() =>
     resolveMeshBoardHeaderMode(this.headerMode(), this.routeHeaderMode()));
+
+  /**
+   * Whether the view draws its own outer frame: `framed` (default) paints the view background,
+   * the header bar and the grid padding; `plain` leaves all three to the host page, so the
+   * widgets sit on the host surface and align with its gutter (widget frames and the gap between
+   * widgets unchanged). Overrides the route data `meshBoardChrome`.
+   */
+  readonly chrome = input<MeshBoardChrome | undefined>(undefined);
+  private readonly routeChrome = signal<unknown>(undefined);
+  protected readonly effectiveChrome = computed(() =>
+    resolveMeshBoardChrome(this.chrome(), this.routeChrome()));
 
   // Computed link to MeshBoard page with tenant
   protected readonly meshBoardPageLink = computed(() => {
@@ -357,6 +369,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       const hideEntitySelectors = this.route.snapshot.data['meshBoardHideEntitySelectors'] as boolean | undefined;
       this._hideEntitySelectors.set(hideEntitySelectors === true);
       this.routeHeaderMode.set(this.route.snapshot.data[MESHBOARD_HEADER_MODE_ROUTE_DATA]);
+      this.routeChrome.set(this.route.snapshot.data[MESHBOARD_CHROME_ROUTE_DATA]);
       const labels = this.route.snapshot.data['timeRangeLabels'] as TimeRangePickerLabels | undefined;
       if (labels) this.timeRangeLabels.set(labels);
 
