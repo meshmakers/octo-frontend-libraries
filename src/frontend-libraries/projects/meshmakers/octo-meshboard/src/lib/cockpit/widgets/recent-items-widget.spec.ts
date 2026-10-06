@@ -14,7 +14,7 @@ const item = (key: string, extra: Partial<CockpitRecentItem> = {}): CockpitRecen
 });
 
 describe('RecentItemsWidgetComponent (AB#5558)', () => {
-  const boardState = { setWidgetHiddenForViewer: vi.fn() };
+  const boardState = { setWidgetHiddenForViewer: vi.fn(), setWidgetContentHeight: vi.fn() };
   let revision: ReturnType<typeof signal<number>>;
   let source: { revision: ReturnType<typeof signal<number>>; items: ReturnType<typeof vi.fn>; open: ReturnType<typeof vi.fn>; openPalette?: ReturnType<typeof vi.fn>; paletteShortcut?: string };
 

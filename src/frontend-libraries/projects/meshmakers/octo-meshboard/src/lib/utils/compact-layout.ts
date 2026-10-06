@@ -52,10 +52,40 @@ export interface WidgetPlacement {
   rowSpan: number;
 }
 
+/**
+ * Space of a tile around its widget body (header, borders, body padding) in px, used to turn a
+ * reported content height into rows. Generous on purpose: one spare row beats a clipped card.
+ */
+export const TILE_CHROME_HEIGHT = 64;
+/** Upper bound of a content-sized tile on the phone tier; beyond it the widget scrolls. */
+export const MAX_CONTENT_ROWS = 8;
+
+/**
+ * Rows a tile needs for a widget whose content is `contentHeight` px high (AB#5558), at least
+ * `minRows` and at most {@link MAX_CONTENT_ROWS}: `rows * rowHeight + (rows - 1) * gap` must hold
+ * the content plus {@link TILE_CHROME_HEIGHT}.
+ */
+export function rowSpanForContent(contentHeight: number, rowHeight: number, gap: number, minRows: number): number {
+  if (!(contentHeight > 0) || !(rowHeight > 0)) {
+    return minRows;
+  }
+  const rows = Math.ceil((contentHeight + TILE_CHROME_HEIGHT + Math.max(0, gap)) / (rowHeight + Math.max(0, gap)));
+  return Math.max(minRows, Math.min(MAX_CONTENT_ROWS, rows));
+}
+
+/** Content heights for {@link placeWidgetsForTier}: only used on the phone tier. */
+export interface ContentSizing {
+  /** Natural content height per widget id (`MeshBoardStateService.widgetContentHeights`). */
+  heights: ReadonlyMap<string, number>;
+  rowHeight: number;
+  gap: number;
+}
+
 export function placeWidgetsForTier(
   widgets: AnyWidgetConfig[],
   tier: MeshBoardCompactTier,
-  configuredColumns: number
+  configuredColumns: number,
+  contentSizing?: ContentSizing
 ): WidgetPlacement[] {
   if (tier === 'none') {
     return widgets.map(widget => ({
@@ -76,6 +106,16 @@ export function placeWidgetsForTier(
       rowSpan: widget.rowSpan
     }));
   fitRowsToColumns(placements, configuredColumns, columns);
+  if (tier === 'phone' && contentSizing) {
+    // Single column (AB#5558): a content-sized widget (e.g. the cockpit attention list, whose
+    // cards stack on a phone) grows its tile instead of clipping the content.
+    for (const placement of placements) {
+      const height = contentSizing.heights.get(placement.widget.id);
+      if (height !== undefined) {
+        placement.rowSpan = rowSpanForContent(height, contentSizing.rowHeight, contentSizing.gap, placement.rowSpan);
+      }
+    }
+  }
   return placements;
 }
 

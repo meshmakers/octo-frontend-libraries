@@ -14,6 +14,8 @@ import { of } from 'rxjs';
 import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
 import { ResolvedEntityForm } from '../models/entity-form.models';
 import { EntityFormDataService } from '../services/entity-form-data.service';
+import { EntityFormService } from '../services/entity-form.service';
+import { form } from '../core/testing/factories';
 import {
   EntityListDataSourceDirective,
   entityListAttributeNames,
@@ -65,6 +67,7 @@ describe('EntityListComponent', () => {
   let dataService: MockedObject<EntityFormDataService>;
   let ckTypeDialog: MockedObject<CkTypeSelectorDialogService>;
   let actionHook: Mock<(r: unknown) => Promise<boolean>>;
+  let formService: { getForms: Mock<() => Promise<unknown[]>> };
 
   beforeEach(async () => {
     confirmation = {
@@ -78,6 +81,7 @@ describe('EntityListComponent', () => {
       delete: vi.fn().mockResolvedValue(true),
     } as unknown as MockedObject<EntityFormDataService>;
     actionHook = vi.fn<(r: unknown) => Promise<boolean>>().mockResolvedValue(true);
+    formService = { getForms: vi.fn<() => Promise<unknown[]>>().mockResolvedValue([]) };
     ckTypeDialog = {
       openCkTypeSelector: vi.fn(),
     } as unknown as MockedObject<CkTypeSelectorDialogService>;
@@ -88,6 +92,7 @@ describe('EntityListComponent', () => {
         { provide: ConfirmationService, useValue: confirmation },
         { provide: NotificationDisplayService, useValue: notifications },
         { provide: EntityFormDataService, useValue: dataService },
+        { provide: EntityFormService, useValue: formService },
         { provide: CkTypeSelectorDialogService, useValue: ckTypeDialog },
         { provide: ENTITY_FORM_ACTION_CONFIRMATION, useValue: (r: unknown) => actionHook(r) },
       ],
@@ -117,7 +122,22 @@ describe('EntityListComponent', () => {
     fixture.componentRef.setInput('showTypeColumn', true);
     const type = cols().find((c) => c.field === 'ckTypeId')!;
     expect(type.displayName).toBe('Type');
-    expect(type.formatter!('System.Communication/SftpConfiguration', {})).toBe('Sftp configuration');
+    expect(type.formatter!('System.Communication/SftpConfiguration', {})).toBe('SFTP configuration');
+  });
+
+  it('labels the Type column with form titles, else a humanized type name (AB#5524)', async () => {
+    formService.getForms.mockResolvedValue([
+      form('System.Communication/HelmRepository', { name: 'Helm repository' }),
+    ]);
+    setInputs(makeModel());
+    fixture.componentRef.setInput('showTypeColumn', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const type = (component as unknown as { columns: () => { field: string; formatter?: (v: unknown, i: unknown) => string }[] })
+      .columns().find((c) => c.field === 'ckTypeId')!;
+    expect(type.formatter!('System.Communication/HelmRepository', {})).toBe('Helm repository');
+    expect(type.formatter!('System.Communication/EMailReceiverConfiguration', {})).toBe('E-mail receiver configuration');
+    expect(formService.getForms).toHaveBeenCalledTimes(1);
   });
 
   it('offers the Copy ID submenu with RtId, CkTypeId, RtCkTypeId and RtEntityId', () => {
@@ -240,6 +260,16 @@ describe('EntityListComponent', () => {
     await del.onClick!({ commandItem: del, data: { rtId: 'r1', ckTypeId: 'A/B' } });
     expect(dataService.delete).not.toHaveBeenCalled();
   });
+
+  it('uses the yes/no messages for boolean columns of the list', () => {
+    setInputs(makeModel({
+      listColumns: [{ field: 'enabled', label: 'Enabled', display: 'text', kind: 'attribute', valueType: 'BOOLEAN' }],
+    }));
+    fixture.componentRef.setInput('messages', { toggleOn: 'Ja', toggleOff: 'Nein' });
+    const column = (component as unknown as { columns: () => { field: string; formatter?: (v: unknown, i: unknown) => string }[] })
+      .columns().find((c) => c.field === 'enabled')!;
+    expect(column.formatter!(true, {})).toBe('Ja');
+  });
 });
 
 describe('entity list helpers', () => {
@@ -250,6 +280,36 @@ describe('entity list helpers', () => {
     const mono = toEntityListColumn({ field: 'a', label: 'A', display: 'mono', kind: 'attribute' });
     expect(mono.dataType).toBe('component');
     expect(mono.cellInputs!({ a: 'x' })).toEqual({ value: 'x' });
+  });
+
+  it('formats enum, boolean and date cells by CK value type (AB#5547)', () => {
+    const enumOptions = [{ key: 0, name: 'Release' }, { key: 1, name: 'Dev' }];
+    const chip = toEntityListColumn({ field: 'channel', label: 'Channel', display: 'chip', kind: 'attribute', valueType: 'ENUM', enumOptions });
+    expect(chip.dataType).toBe('badge');
+    expect(chip.badgeMapping!['0'].label).toBe('Release');
+    expect(chip.badgeMapping!['1'].label).toBe('Dev');
+    expect(chip.badgeMapping!['Dev'].label).toBe('Dev');
+
+    const text = toEntityListColumn({ field: 'channel', label: 'Channel', display: 'text', kind: 'attribute', valueType: 'ENUM', enumOptions });
+    expect(text.formatter!(1, {})).toBe('Dev');
+    expect(text.formatter!(7, {})).toBe('7');
+    expect(text.formatter!(null, {})).toBe('');
+
+    const flag = toEntityListColumn({ field: 'enabled', label: 'Enabled', display: 'text', kind: 'attribute', valueType: 'BOOLEAN' }, { yes: 'Ja', no: 'Nein' });
+    expect(flag.formatter!(true, {})).toBe('Ja');
+    expect(flag.formatter!(false, {})).toBe('Nein');
+    const flagChip = toEntityListColumn({ field: 'enabled', label: 'Enabled', display: 'chip', kind: 'attribute', valueType: 'BOOLEAN' });
+    expect(flagChip.badgeMapping!['true'].label).toBe('Yes');
+    expect(flagChip.badgeMapping!['false'].label).toBe('No');
+
+    const mono = toEntityListColumn({ field: 'channel', label: 'Channel', display: 'mono', kind: 'attribute', valueType: 'ENUM', enumOptions });
+    expect(mono.cellInputs!({ channel: 0 })).toEqual({ value: 'Release' });
+
+    const date = toEntityListColumn({ field: 'validUntil', label: 'Valid until', display: 'date', kind: 'attribute', valueType: 'DATE_TIME' });
+    expect(date.dataType).toBe('iso8601');
+
+    // Strings keep the plain text column without a formatter.
+    expect(toEntityListColumn({ field: 'url', label: 'URL', display: 'text', kind: 'attribute', valueType: 'STRING' }).formatter).toBeUndefined();
   });
 
   it('reads only non-secret attribute columns', () => {

@@ -70,7 +70,11 @@ The host must provide what the library services expect:
 Optional `entityFormRoutes` options for the page heading and list: `title` (route data
 `entityListTitle`) replaces the resolved form title as the list heading and breadcrumb label
 (e.g. "All configurations" over `System/Configuration`); `showTypeColumn` (route data
-`entityListTypeColumn`) adds a "Type" column with the short CK type name of each row. A
+`entityListTypeColumn`) adds a "Type" column with the display name of each row's CK type: the
+`Name` of the type's entity form (`entityFormTypeTitles` / `ckTypeDisplayName`), else
+`humanizeCkTypeName` — sentence case with known acronyms and brands (`EMailReceiverConfiguration`
+→ "E-mail receiver configuration", `FinApiConfiguration` → "finAPI configuration",
+`SftpConfiguration` → "SFTP configuration"; AB#5524). A
 **singleton** form is titled with its form name (e.g. "Tenant mode"), never "Edit <entity name>".
 
 Page inputs (bound by `withComponentInputBinding()` from route params / data, otherwise read from
@@ -194,7 +198,10 @@ throwing hook) cancels. The Refinery Studio maps it to its production-mode confi
 - Derived types are listed when the form has `IncludeDerivedTypes` or the type is abstract;
   otherwise a `ckTypeId EQUALS` field filter restricts the list to the exact type
   (`runtimeEntities(ckId)` returns derived types by default).
-- Column display: `chip` → badge, `date` → ISO date, `mono` → monospace cell, else text.
+- Column display: `chip` → badge, `date` → localized date, `mono` → monospace cell, else text.
+  Cells are formatted by the CK value type of the attribute like the reference display (AB#5547):
+  ENUM → the enum value's name (the API returns the key, e.g. `0`), BOOLEAN → yes / no
+  (`toggleOn` / `toggleOff` messages); a `chip` column maps the keys via `badgeMapping`.
 - Context menu: **Copy ID** (RtId / CkTypeId / RtCkTypeId / RtEntityId), then — only with
   `canWrite && CanDelete` — Delete with a confirmation. Toolbar "New" only with
   `canWrite && CanCreate`.

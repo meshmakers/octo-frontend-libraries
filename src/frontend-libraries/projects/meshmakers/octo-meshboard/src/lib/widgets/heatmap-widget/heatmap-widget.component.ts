@@ -11,6 +11,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 import { getZonedDateParts, toInstant, zonedDateKey } from '../../utils/meshboard-datetime';
+import { injectChartTheme } from '../../utils/chart-theme';
 
 /**
  * A single cell in the heatmap grid
@@ -91,13 +92,14 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
             <kendo-chart-x-axis-item [categories]="xCategories()" [title]="{ text: '' }">
               <kendo-chart-x-axis-item-labels
                 [rotation]="-45"
+                [color]="chartTheme().muted"
                 [content]="xLabelContent">
               </kendo-chart-x-axis-item-labels>
             </kendo-chart-x-axis-item>
           </kendo-chart-x-axis>
 
           <kendo-chart-y-axis>
-            <kendo-chart-y-axis-item [categories]="yCategories()" [title]="{ text: '' }">
+            <kendo-chart-y-axis-item [categories]="yCategories()" [title]="{ text: '' }" [labels]="{ color: chartTheme().muted }">
             </kendo-chart-y-axis-item>
           </kendo-chart-y-axis>
 
@@ -116,7 +118,8 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
 
           <kendo-chart-legend
             [visible]="config.showLegend !== false"
-            [position]="config.legendPosition ?? 'bottom'">
+            [position]="config.legendPosition ?? 'bottom'"
+            [labels]="{ color: chartTheme().text }">
           </kendo-chart-legend>
 
           <kendo-chart-tooltip>
@@ -194,6 +197,9 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
 })
 export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConfig, HeatmapDataItem[]>, OnInit, OnChanges {
   private readonly queryExecutor = inject(QueryExecutorService);
+  /** Text / grid colours of the current theme, re-resolved on a live theme switch (AB#5568). */
+  protected readonly chartTheme = injectChartTheme();
+
 
   private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
     'RtSimpleQueryRow',

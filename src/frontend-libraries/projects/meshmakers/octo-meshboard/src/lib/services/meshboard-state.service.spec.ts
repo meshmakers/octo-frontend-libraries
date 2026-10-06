@@ -1282,6 +1282,23 @@ describe('MeshBoardStateService', () => {
       expect(service.hiddenForViewer().size).toBe(0);
     });
   });
+
+  describe('widget content heights (AB#5558)', () => {
+    it('stores rounded heights, ignores sub-pixel changes and removes on null', () => {
+      service.setWidgetContentHeight('w1', 640.2);
+      const first = service.widgetContentHeights();
+      expect(first.get('w1')).toBe(641);
+      service.setWidgetContentHeight('w1', 640.6);
+      expect(service.widgetContentHeights()).toBe(first);
+      service.setWidgetContentHeight('w1', 700);
+      expect(service.widgetContentHeights().get('w1')).toBe(700);
+      service.setWidgetContentHeight('w1', null);
+      expect(service.widgetContentHeights().has('w1')).toBe(false);
+      const empty = service.widgetContentHeights();
+      service.setWidgetContentHeight('w1', null);
+      expect(service.widgetContentHeights()).toBe(empty);
+    });
+  });
 });
 
 describe('newMeshBoardConfig', () => {

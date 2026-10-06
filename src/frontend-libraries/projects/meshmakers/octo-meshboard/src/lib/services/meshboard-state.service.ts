@@ -62,6 +62,13 @@ export class MeshBoardStateService {
   private readonly _hiddenForViewer = signal<ReadonlySet<string>>(new Set());
   readonly hiddenForViewer = this._hiddenForViewer.asReadonly();
   /**
+   * Natural content height (px) reported by content-sized widgets (AB#5558: the cockpit attention
+   * and recent-items lists). On the phone tier the view grows their tiles to fit instead of
+   * clipping; other tiers ignore it. Transient, cleared on board switch.
+   */
+  private readonly _widgetContentHeights = signal<ReadonlyMap<string, number>>(new Map());
+  readonly widgetContentHeights = this._widgetContentHeights.asReadonly();
+  /**
    * Tenant the loaded board belongs to (from `TENANT_ID_PROVIDER` at load time; `null` when the host
    * provides none). The service is a singleton across tenant switches, so a host comparing
    * well-known names (e.g. the Studio's `cockpit`) must also compare this (AB#5558).
@@ -180,6 +187,7 @@ export class MeshBoardStateService {
 
         this._widgetVariables.set([]);
         this._hiddenForViewer.set(new Set());
+        this._widgetContentHeights.set(new Map());
         this._loadedTenantId.set(tenantId);
         this._meshBoardConfig.set(config);
         this._persistedMeshBoardId.set(result.meshBoard.rtId);
@@ -603,6 +611,30 @@ export class MeshBoardStateService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * A content-sized widget reports the natural height of its content in px (`null` removes it).
+   * Must be measured on content whose height does not depend on the tile height, or a growing
+   * tile would grow again. Changes below 1 px are ignored.
+   */
+  setWidgetContentHeight(widgetId: string, height: number | null): void {
+    const current = this._widgetContentHeights();
+    const previous = current.get(widgetId);
+    if (height === null || !(height > 0)) {
+      if (previous === undefined) {
+        return;
+      }
+      const next = new Map(current);
+      next.delete(widgetId);
+      this._widgetContentHeights.set(next);
+      return;
+    }
+    const rounded = Math.ceil(height);
+    if (previous !== undefined && Math.abs(previous - rounded) < 1) {
+      return;
+    }
+    this._widgetContentHeights.set(new Map(current).set(widgetId, rounded));
   }
 
   /**

@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, NgZone, OnChanges, OnInit, SimpleChanges, computed, effect, inject, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { RecentItemsWidgetConfig } from '../../models/meshboard.models';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { DashboardWidget } from '../../widgets/widget.interface';
 import { COCKPIT_RECENT_ITEMS, CockpitRecentItem, CockpitRecentItemKind } from '../cockpit-host';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
+import { reportCockpitContentHeight } from './content-height';
 
 /** Rows shown when the config sets none (the former Home panel showed eight). */
 export const DEFAULT_RECENT_ITEMS_MAX = 8;
@@ -51,6 +52,7 @@ interface RecentItemView {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="recent-widget">
+      <div class="cw-content" #content>
       @if (!source) {
         <p class="cw-message" role="status" data-state="unavailable">Not available</p>
       } @else if (error()) {
@@ -82,17 +84,17 @@ interface RecentItemView {
       } @else {
         <p class="cw-message" role="status" data-state="loading">Loading…</p>
       }
+      </div>
     </div>
   `,
   styles: [COCKPIT_WIDGET_STYLES, `
     .recent-widget {
-      display: flex;
-      flex-direction: column;
       height: 100%;
       overflow-y: auto;
       padding: 6px;
       box-sizing: border-box;
     }
+    .cw-content { display: flex; flex-direction: column; }
     .recent-list {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -108,20 +110,24 @@ interface RecentItemView {
       gap: 8px;
       align-items: center;
       width: 100%;
-      padding: 6px 8px;
+      min-height: 32px;
+      padding: 4px 8px;
       border-radius: 4px;
       color: var(--_cw-text);
       text-decoration: none;
     }
     .recent-row:hover { background: color-mix(in srgb, var(--_cw-text) 6%, transparent); }
     .recent-glyph { color: var(--_cw-muted); text-align: center; }
-    .recent-text { display: flex; flex-direction: column; min-width: 0; }
+    /* One line per entry (AB#5558): label, then the muted kind; eight rows fit a 2-row tile. */
+    .recent-text { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+    .recent-label { flex: 0 1 auto; min-width: 0; }
+    .recent-kind { flex: 0 10 auto; min-width: 0; }
     .recent-label, .recent-kind { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .recent-kind, .recent-when { color: var(--_cw-muted); font-size: 0.75rem; }
     .recent-when { white-space: nowrap; }
     .palette-hint {
       align-self: flex-end;
-      margin: auto 6px 0 0;
+      margin: 4px 6px 0 0;
       padding: 6px 2px 2px;
       border: 0;
       background: none;
@@ -143,6 +149,9 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
   private readonly boardState = inject(MeshBoardStateService);
 
   @Input() config!: RecentItemsWidgetConfig;
+
+  /** Unconstrained content wrapper; its height lets the phone tier grow the tile (AB#5558). */
+  private readonly content = viewChild<ElementRef<HTMLElement>>('content');
 
   private readonly _items = signal<CockpitRecentItem[] | null>(null);
   private readonly _error = signal(false);
@@ -173,6 +182,7 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
   });
 
   constructor() {
+    reportCockpitContentHeight(this.content, () => this.config?.id);
     // Re-read whenever the host's history changes (e.g. a visit recorded after the board opened).
     effect(() => {
       const revision = this.source?.revision?.();

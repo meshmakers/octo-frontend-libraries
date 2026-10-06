@@ -202,6 +202,13 @@ export interface ResolvedListColumn {
   width?: number;
   display: 'text' | 'chip' | 'date' | 'mono';
   kind: 'attribute' | 'system';
+  /**
+   * CK value type of an attribute column (ENUM, BOOLEAN, DATE_TIME, ...). The list formats the
+   * cells by it like the reference display does: enum key → name, boolean → yes/no (AB#5547).
+   */
+  valueType?: string;
+  /** Options of an ENUM column (the API returns the key, e.g. `0`). */
+  enumOptions?: { key: number; name: string }[];
 }
 
 export interface ResolvedEntityForm {

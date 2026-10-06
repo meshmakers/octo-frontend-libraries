@@ -139,15 +139,15 @@ describe('resolveEntityForm with live fixtures', () => {
     const model = resolveEntityForm(sftpType, [defaultForm, sftpForm]);
     expect(model.listColumns).toEqual([
       { field: 'rtWellKnownName', label: 'Name', kind: 'system', display: 'text' },
-      { field: 'host', label: 'Host', kind: 'attribute', display: 'mono' },
-      { field: 'username', label: 'Username', kind: 'attribute', display: 'text' },
+      { field: 'host', label: 'Host', kind: 'attribute', display: 'mono', valueType: 'STRING' },
+      { field: 'username', label: 'Username', kind: 'attribute', display: 'text', valueType: 'STRING' },
     ]);
   });
 
   it('form-default on SftpConfiguration skips Name/Description silently', () => {
     const model = resolveEntityForm(sftpType, [defaultForm]);
     expect(model.formWellKnownName).toBe('form-default');
-    expect(model.title).toBe('Sftp configuration');
+    expect(model.title).toBe('SFTP configuration');
     expect(model.sections.map((s) => s.key)).toEqual(['general', 'system', GENERATED_SECTION_KEY]);
     expect(model.sections[0].fields.map((f) => f.key)).toEqual(['rtWellKnownName']);
     expect(model.warnings).toEqual([]);
@@ -478,9 +478,19 @@ describe('resolveEntityForm secrets and read set', () => {
 
   it('list columns drop secret and unknown columns; derived fallback when empty', () => {
     const model = resolveEntityForm(type, [form('T/Sec', { listColumns: [{ attributePath: 'C' }, { attributePath: 'Ghost' }, { attributePath: 'A', width: 120, display: 'chip' }] })], { records });
-    expect(model.listColumns).toEqual([{ field: 'a', label: 'A', kind: 'attribute', display: 'chip', width: 120 }]);
+    expect(model.listColumns).toEqual([{ field: 'a', label: 'A', kind: 'attribute', display: 'chip', width: 120, valueType: 'STRING' }]);
     const fallback = resolveEntityForm(ckType('T/F', { attributes: [attr('name'), attr('x', 'INT'), attr('pw', 'STRING', { secret: true }), attr('y'), attr('z'), attr('w')] }), [form('T/F')]);
     expect(fallback.listColumns.map((c) => c.field)).toEqual(['rtWellKnownName', 'name', 'rtChangedDateTime', 'x', 'y', 'z']);
+  });
+
+  it('list columns carry the CK value type and enum options for cell formatting (AB#5547)', () => {
+    const enumOptions = [{ key: 0, name: 'Release' }, { key: 1, name: 'Dev' }];
+    const typed = ckType('T/E', { attributes: [attr('channel', 'ENUM', { enumOptions }), attr('enabled', 'BOOLEAN')] });
+    const model = resolveEntityForm(typed, [form('T/E', { listColumns: [{ attributePath: 'Channel', display: 'chip' }, { attributePath: 'Enabled' }] })]);
+    expect(model.listColumns).toEqual([
+      { field: 'channel', label: 'Channel', kind: 'attribute', display: 'chip', valueType: 'ENUM', enumOptions },
+      { field: 'enabled', label: 'Enabled', kind: 'attribute', display: 'text', valueType: 'BOOLEAN' },
+    ]);
   });
 });
 

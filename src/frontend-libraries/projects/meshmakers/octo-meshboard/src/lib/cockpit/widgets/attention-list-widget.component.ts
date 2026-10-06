@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, computed, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AttentionListWidgetConfig } from '../../models/meshboard.models';
@@ -9,6 +9,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
 import { CockpitExplainTarget } from '../cockpit-host';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
+import { reportCockpitContentHeight } from './content-height';
 
 /** Findings shown before "and N more" when the config sets none. */
 export const DEFAULT_ATTENTION_MAX_ITEMS = 6;
@@ -36,6 +37,7 @@ export interface AttentionFindingView {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="attention-widget">
+      <div class="cw-content" #content>
       @if (error(); as message) {
         <p class="cw-message cw-error-text" role="status">{{ message }}</p>
       } @else if (state(); as current) {
@@ -79,6 +81,7 @@ export interface AttentionFindingView {
       } @else {
         <p class="cw-message" role="status" data-state="loading">Checking…</p>
       }
+      </div>
     </div>
   `,
   styles: [COCKPIT_WIDGET_STYLES, `
@@ -137,6 +140,12 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
 
   @Input() config!: AttentionListWidgetConfig;
 
+  /**
+   * Unconstrained wrapper of the content: its height is reported so the phone tier grows the
+   * tile to fit the stacked cards instead of clipping them (AB#5558).
+   */
+  private readonly content = viewChild<ElementRef<HTMLElement>>('content');
+
   /** Builders see why no check runs; other viewers a neutral text and the widget collapses. */
   protected readonly isBuilder = signal(false);
   protected readonly notAvailableText = 'Not available';
@@ -172,6 +181,10 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
   private readonly maxItems = signal(DEFAULT_ATTENTION_MAX_ITEMS);
   readonly shown = computed(() => this.views().slice(0, this.maxItems()));
   readonly hiddenCount = computed(() => Math.max(0, this.views().length - this.maxItems()));
+
+  constructor() {
+    reportCockpitContentHeight(this.content, () => this.config?.id);
+  }
 
   ngOnInit(): void {
     void this.load();

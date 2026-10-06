@@ -1,4 +1,4 @@
-import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows, scaleColSpan } from './compact-layout';
+import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows, scaleColSpan, rowSpanForContent, MAX_CONTENT_ROWS, TILE_CHROME_HEIGHT } from './compact-layout';
 import { AnyWidgetConfig } from '../models/meshboard.models';
 
 describe('compact-layout', () => {
@@ -90,6 +90,17 @@ describe('compact-layout', () => {
       expect(scaleColSpan(3, 6, 1)).toBe(1);
     });
 
+    it('grows content-sized tiles on the phone tier only (AB#5558)', () => {
+      const widgets = [widget('attention', 1, 1, 6, 2), widget('kpi', 1, 3, 2, 1)];
+      const sizing = { heights: new Map([['attention', 820]]), rowHeight: 200, gap: 16 };
+      const phone = placeWidgetsForTier(widgets, 'phone', 6, sizing);
+      expect(phone.find(p => p.widget.id === 'attention')!.rowSpan).toBe(5);
+      expect(phone.find(p => p.widget.id === 'kpi')!.rowSpan).toBe(1);
+      expect(placeWidgetsForTier(widgets, 'tablet', 6, sizing).find(p => p.widget.id === 'attention')!.rowSpan).toBe(2);
+      expect(placeWidgetsForTier(widgets, 'none', 6, sizing).find(p => p.widget.id === 'attention')!.rowSpan).toBe(2);
+      expect(widgets[0].rowSpan).toBe(2);
+    });
+
     it('does not mutate the input widget configs', () => {
       const original = widget('a', 5, 1, 6, 1);
       placeWidgetsForTier([original], 'phone', 6);
@@ -109,5 +120,20 @@ describe('collapseEmptyRows (AB#5558)', () => {
     expect(result[1]).toEqual({ id: 'pie', row: 2, rowSpan: 2 });
     const tall = { id: 'tall', row: 1, rowSpan: 3 };
     expect(collapseEmptyRows([tall, { id: 'b', row: 3, rowSpan: 1 }])[1].row).toBe(3);
+  });
+});
+
+describe('rowSpanForContent (AB#5558)', () => {
+  it('fits content plus tile chrome into rows of rowHeight and gap', () => {
+    // 2 rows = 416 px: 352 px of content plus chrome fit, one more px needs a third row.
+    expect(rowSpanForContent(416 - TILE_CHROME_HEIGHT, 200, 16, 1)).toBe(2);
+    expect(rowSpanForContent(417 - TILE_CHROME_HEIGHT, 200, 16, 1)).toBe(3);
+  });
+
+  it('never shrinks below the configured rows and caps the growth', () => {
+    expect(rowSpanForContent(50, 200, 16, 2)).toBe(2);
+    expect(rowSpanForContent(100_000, 200, 16, 2)).toBe(MAX_CONTENT_ROWS);
+    expect(rowSpanForContent(0, 200, 16, 2)).toBe(2);
+    expect(rowSpanForContent(500, 0, 16, 2)).toBe(2);
   });
 });

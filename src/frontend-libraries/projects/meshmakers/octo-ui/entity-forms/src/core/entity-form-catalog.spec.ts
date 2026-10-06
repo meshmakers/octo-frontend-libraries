@@ -1,4 +1,4 @@
-import { entityFormCatalog, entityFormKey } from './entity-form-catalog';
+import { ckTypeDisplayName, entityFormCatalog, entityFormKey, entityFormTypeTitles } from './entity-form-catalog';
 import { form } from './testing/factories';
 
 const SFTP = 'System.Communication/SftpConfiguration';
@@ -52,6 +52,26 @@ describe('entityFormCatalog', () => {
       form(SFTP, { rtWellKnownName: 'form-a', category: 'connections', priority: 1 }),
       form(SFTP, { rtWellKnownName: 'form-b', category: 'ai', priority: 5, singleton: true }),
     ]);
-    expect(entries[0]).toEqual(expect.objectContaining({ category: 'ai', title: 'Sftp configuration', singleton: true }));
+    expect(entries[0]).toEqual(expect.objectContaining({ category: 'ai', title: 'SFTP configuration', singleton: true }));
+  });
+});
+
+describe('entityFormTypeTitles / ckTypeDisplayName (AB#5524)', () => {
+  it('takes the name of the effective form per type, also without category', () => {
+    const titles = entityFormTypeTitles([
+      form(SFTP, { rtWellKnownName: 'form-sftp-configuration', name: 'SFTP server', category: 'connections' }),
+      form(SFTP, { rtWellKnownName: null, isTenantForm: true, name: 'Our SFTP', category: null }),
+      form(MAIL, { rtWellKnownName: 'form-email-sender-configuration', name: '  ', category: null }),
+    ]);
+    expect(titles.get(SFTP.toLowerCase())).toBe('Our SFTP');
+    expect(titles.has(MAIL.toLowerCase())).toBe(false);
+  });
+
+  it('prefers the form title, else humanizes the type name', () => {
+    const titles = new Map([[SFTP.toLowerCase(), 'SFTP server']]);
+    expect(ckTypeDisplayName(SFTP, titles)).toBe('SFTP server');
+    expect(ckTypeDisplayName(`${SFTP}-1`, titles)).toBe('SFTP server');
+    expect(ckTypeDisplayName(MAIL, titles)).toBe('E-mail sender configuration');
+    expect(ckTypeDisplayName('Meshmakers.Accounting/FinApiConfiguration')).toBe('finAPI configuration');
   });
 });
