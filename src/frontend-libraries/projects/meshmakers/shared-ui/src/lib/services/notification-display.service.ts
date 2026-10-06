@@ -1,4 +1,4 @@
-import {Injectable, inject, OnDestroy, NgZone} from '@angular/core';
+import {Injectable, inject, InjectionToken, OnDestroy, NgZone} from '@angular/core';
 import {NotificationService, NotificationSettings, NotificationRef} from '@progress/kendo-angular-notification';
 import { MessageDetailsDialogService } from '../message-details-dialog/message-details-dialog.service';
 import { Router, NavigationEnd } from '@angular/router';
@@ -9,6 +9,47 @@ import {
   DEFAULT_NOTIFICATION_DISPLAY_MESSAGES,
 } from './notification-display.messages';
 
+/**
+ * How the {@link NotificationDisplayService} stacks its toasts. Provide it with
+ * {@link NOTIFICATION_DISPLAY_OPTIONS}; without a provider the defaults keep the former behaviour
+ * except for de-duplication, which is always safe.
+ */
+export interface NotificationDisplayOptions {
+  /**
+   * Milliseconds after which an error hides itself when the caller passes no `hideAfter`.
+   * 0 (default) keeps errors until user interaction or navigation. A caller passing
+   * `hideAfter: 0` explicitly always gets a sticky (critical) error.
+   */
+  errorHideAfter?: number;
+  /** Same as {@link errorHideAfter} for warnings. */
+  warningHideAfter?: number;
+  /** Most toasts shown at once; the oldest is hidden when a new one exceeds it. 0 (default) = no limit. */
+  maxVisible?: number;
+  /** A toast with the same type and text as a visible one is not stacked again; the visible one's timer restarts. Default true. */
+  dedupe?: boolean;
+}
+
+export const NOTIFICATION_DISPLAY_OPTIONS = new InjectionToken<NotificationDisplayOptions>('NOTIFICATION_DISPLAY_OPTIONS');
+
+const DEFAULT_OPTIONS: Required<NotificationDisplayOptions> = {
+  errorHideAfter: 0,
+  warningHideAfter: 0,
+  maxVisible: 0,
+  dedupe: true,
+};
+
+type ToastStyle = 'success' | 'info' | 'warning' | 'error';
+
+/** One visible toast. */
+interface ActiveToast {
+  id: string;
+  key: string;
+  style: ToastStyle;
+  ref: NotificationRef;
+  hideAfter: number;
+  timer?: ReturnType<typeof setTimeout>;
+}
+
 @Injectable()
 export class NotificationDisplayService implements OnDestroy {
   private readonly notificationService = inject(NotificationService);
@@ -16,8 +57,15 @@ export class NotificationDisplayService implements OnDestroy {
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
 
+  private readonly options: Required<NotificationDisplayOptions> = {
+    ...DEFAULT_OPTIONS,
+    ...(inject(NOTIFICATION_DISPLAY_OPTIONS, { optional: true }) ?? {}),
+  };
+
   private notificationCounter = 0;
   private activeNotifications = new Map<string, NotificationRef>();
+  /** Every visible toast, oldest first (dedupe, stack cap, auto-hide timers). */
+  private toasts: ActiveToast[] = [];
   private subscriptions: Subscription[] = [];
   private interactionDebounceTime = 300; // ms
   private gracePeriod = 1000; // ms - prevent immediate closure after opening
@@ -137,6 +185,7 @@ export class NotificationDisplayService implements OnDestroy {
     toRemove.forEach(id => {
       this.activeNotifications.delete(id);
       this.notificationOpenTimes.delete(id);
+      this.forget(id);
     });
   }
 
@@ -146,6 +195,8 @@ export class NotificationDisplayService implements OnDestroy {
     }
     this.activeNotifications.clear();
     this.notificationOpenTimes.clear();
+    this.toasts.forEach(toast => clearTimeout(toast.timer));
+    this.toasts = [];
   }
 
   /**
@@ -161,215 +212,152 @@ export class NotificationDisplayService implements OnDestroy {
    * Shows a success notification (auto-closes after 3 seconds)
    */
   showSuccess(title: string, hideAfter?: number): void {
-    console.log('showSuccess called with:', { title, hideAfter });
-
-    const autoHideTime = hideAfter ?? 3000;
-
-    const settings: NotificationSettings = {
-      content: title,
-      type: {
-        style: 'success',
-        icon: true
-      },
-      animation: { type: 'slide', duration: 400 },
-      hideAfter: 0, // Disable Kendo's auto-hide, we'll handle it manually
-      closable: true,
-      position: { horizontal: 'center', vertical: 'top' }
-    };
-
-    console.log('Success notification settings:', settings);
-
-    const notificationRef = this.notificationService.show(settings);
-    console.log('Notification ref created:', notificationRef);
-
-    if (notificationRef) {
-      console.log(`Success notification will auto-hide after ${autoHideTime}ms (manual)`);
-
-      // Manually hide the notification after the specified time
-      setTimeout(() => {
-        console.log('Manually hiding success notification');
-        notificationRef.hide();
-      }, autoHideTime);
-    }
+    this.present('success', title, undefined, hideAfter ?? 3000);
   }
 
   /**
-   * Shows an error notification (persists until user interaction or navigation)
+   * Shows an error notification. It persists until user interaction or navigation, or hides
+   * after `hideAfter` ms (default: `errorHideAfter` of the options; `0` = sticky).
    */
   showError(title: string, details?: string, hideAfter?: number): void {
-    // Generate unique ID for this notification
-    const notificationId = `error-${++this.notificationCounter}-${Date.now()}`;
-
-    // Start with plain text content
-    const settings: NotificationSettings = {
-      ...this.defaultSettings,
-      content: title,
-      type: {
-        style: 'error',
-        icon: true
-      },
-      hideAfter: hideAfter ?? 0, // 0 means no auto-hide for errors
-      closable: true,
-      cssClass: `notification-${notificationId}` // Add unique class for targeting
-    };
-
-    const notificationRef = this.notificationService.show(settings);
-
-    if (notificationRef) {
-      this.activeNotifications.set(notificationId, notificationRef);
-      this.notificationOpenTimes.set(notificationId, Date.now());
-    }
-
-    if (details && notificationRef) {
-      // After notification is shown, find it by the unique class and modify its content
-      setTimeout(() => {
-        const notification = document.querySelector(`.notification-${notificationId}`);
-        if (notification) {
-          const contentEl = notification.querySelector('.k-notification-content');
-          if (contentEl && !contentEl.querySelector('.notification-details-btn')) {
-            // Create wrapper div
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;';
-
-            // Create text span
-            const textSpan = document.createElement('span');
-            textSpan.style.cssText = 'flex: 1; overflow: hidden; text-overflow: ellipsis;';
-            textSpan.textContent = title;
-
-            // Create details button with icon only
-            const detailsBtn = document.createElement('button');
-            detailsBtn.className = 'k-button k-button-sm k-button-flat k-button-flat-base notification-details-btn';
-            detailsBtn.style.cssText = 'flex-shrink: 0; width: 32px; height: 32px; padding: 8px; display: flex; align-items: center; justify-content: center;';
-            detailsBtn.innerHTML = this.createSvgIcon();
-            detailsBtn.title = this.messages.showDetails;
-            detailsBtn.onclick = (event) => {
-              event.stopPropagation();
-              this.messageDetailsDialogService.showDetailsDialog({
-                title,
-                details,
-                level: 'error'
-              });
-            };
-
-            // Assemble the elements
-            wrapper.appendChild(textSpan);
-            wrapper.appendChild(detailsBtn);
-
-            // Replace content
-            contentEl.innerHTML = '';
-            contentEl.appendChild(wrapper);
-          }
-        }
-      }, 50);
-    }
+    this.present('error', title, details, hideAfter ?? this.options.errorHideAfter);
   }
 
-
-
   /**
-   * Shows a warning notification (persists until user interaction or navigation)
+   * Shows a warning notification. It persists until user interaction or navigation, or hides
+   * after `hideAfter` ms (default: `warningHideAfter` of the options; `0` = sticky).
    */
   showWarning(title: string, details?: string, hideAfter?: number): void {
-    // Generate unique ID for this notification
-    const notificationId = `warning-${++this.notificationCounter}-${Date.now()}`;
-
-    // Start with plain text content
-    const settings: NotificationSettings = {
-      ...this.defaultSettings,
-      content: title,
-      type: {
-        style: 'warning',
-        icon: true
-      },
-      hideAfter: hideAfter ?? 0, // 0 means no auto-hide for warnings
-      closable: true,
-      cssClass: `notification-${notificationId}` // Add unique class for targeting
-    };
-
-    const notificationRef = this.notificationService.show(settings);
-
-    if (notificationRef) {
-      this.activeNotifications.set(notificationId, notificationRef);
-      this.notificationOpenTimes.set(notificationId, Date.now());
-    }
-
-    if (details && notificationRef) {
-      // After notification is shown, find it by the unique class and modify its content
-      setTimeout(() => {
-        const notification = document.querySelector(`.notification-${notificationId}`);
-        if (notification) {
-          const contentEl = notification.querySelector('.k-notification-content');
-          if (contentEl && !contentEl.querySelector('.notification-details-btn')) {
-            // Create wrapper div
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;';
-
-            // Create text span
-            const textSpan = document.createElement('span');
-            textSpan.style.cssText = 'flex: 1; overflow: hidden; text-overflow: ellipsis;';
-            textSpan.textContent = title;
-
-            // Create details button with icon only
-            const detailsBtn = document.createElement('button');
-            detailsBtn.className = 'k-button k-button-sm k-button-flat k-button-flat-base notification-details-btn';
-            detailsBtn.style.cssText = 'flex-shrink: 0; width: 32px; height: 32px; padding: 8px; display: flex; align-items: center; justify-content: center;';
-            detailsBtn.innerHTML = this.createSvgIcon();
-            detailsBtn.title = this.messages.showDetails;
-            detailsBtn.onclick = (event) => {
-              event.stopPropagation();
-              this.messageDetailsDialogService.showDetailsDialog({
-                title,
-                details,
-                level: 'warning'
-              });
-            };
-
-            // Assemble the elements
-            wrapper.appendChild(textSpan);
-            wrapper.appendChild(detailsBtn);
-
-            // Replace content
-            contentEl.innerHTML = '';
-            contentEl.appendChild(wrapper);
-          }
-        }
-      }, 50);
-    }
+    this.present('warning', title, details, hideAfter ?? this.options.warningHideAfter);
   }
 
   /**
    * Shows an info notification (auto-closes after 3 seconds)
    */
   showInfo(title: string, hideAfter?: number): void {
-    console.log('showInfo called with:', { title, hideAfter });
+    this.present('info', title, undefined, hideAfter ?? 3000);
+  }
 
-    const autoHideTime = hideAfter ?? 3000;
+  /** The visible toasts as `[style, text]`, oldest first — for tests and diagnostics. */
+  visibleToasts(): [ToastStyle, string][] {
+    return this.toasts.map(toast => [toast.style, toast.key.substring(toast.style.length + 1)]);
+  }
 
+  private present(style: ToastStyle, title: string, details: string | undefined, hideAfter: number): void {
+    const key = `${style}:${title}`;
+    if (this.options.dedupe) {
+      const same = this.toasts.find(toast => toast.key === key);
+      if (same) {
+        // Already on screen: no second copy, the visible one just stays a while longer.
+        this.schedule(same);
+        return;
+      }
+    }
+
+    const sticky = style === 'error' || style === 'warning';
+    const notificationId = `${style}-${++this.notificationCounter}-${Date.now()}`;
     const settings: NotificationSettings = {
+      ...this.defaultSettings,
       content: title,
-      type: {
-        style: 'info',
-        icon: true
-      },
-      animation: { type: 'slide', duration: 400 },
-      hideAfter: 0, // Disable Kendo's auto-hide, we'll handle it manually
+      type: { style, icon: true },
+      // Kendo ignores hideAfter on closable notifications: hiding is done by schedule().
+      hideAfter: 0,
       closable: true,
-      position: { horizontal: 'center', vertical: 'top' }
+      cssClass: `notification-${notificationId}`,
     };
 
-    console.log('Info notification settings:', settings);
-
     const notificationRef = this.notificationService.show(settings);
-    console.log('Notification ref created:', notificationRef);
-
-    if (notificationRef) {
-      console.log(`Info notification will auto-hide after ${autoHideTime}ms (manual)`);
-
-      // Manually hide the notification after the specified time
-      setTimeout(() => {
-        console.log('Manually hiding info notification');
-        notificationRef.hide();
-      }, autoHideTime);
+    if (!notificationRef) {
+      return;
     }
+
+    if (sticky) {
+      this.activeNotifications.set(notificationId, notificationRef);
+      this.notificationOpenTimes.set(notificationId, Date.now());
+    }
+    const toast: ActiveToast = { id: notificationId, key, style, ref: notificationRef, hideAfter };
+    this.toasts.push(toast);
+    notificationRef.afterHide?.subscribe(() => this.forget(notificationId));
+    this.schedule(toast);
+    this.enforceLimit();
+
+    if (details && sticky) {
+      this.addDetailsButton(notificationId, title, details, style);
+    }
+  }
+
+  /** (Re)starts the auto-hide timer of a toast; a toast with `hideAfter` 0 stays. */
+  private schedule(toast: ActiveToast): void {
+    clearTimeout(toast.timer);
+    toast.timer = undefined;
+    if (toast.hideAfter > 0) {
+      toast.timer = setTimeout(() => this.hideToast(toast), toast.hideAfter);
+    }
+  }
+
+  /** Hides the oldest toasts beyond `maxVisible`. */
+  private enforceLimit(): void {
+    const max = this.options.maxVisible;
+    while (max > 0 && this.toasts.length > max) {
+      this.hideToast(this.toasts[0]);
+    }
+  }
+
+  private hideToast(toast: ActiveToast): void {
+    toast.ref.hide();
+    this.activeNotifications.delete(toast.id);
+    this.notificationOpenTimes.delete(toast.id);
+    this.forget(toast.id);
+  }
+
+  private forget(id: string): void {
+    const toast = this.toasts.find(entry => entry.id === id);
+    if (toast) {
+      clearTimeout(toast.timer);
+      this.toasts = this.toasts.filter(entry => entry !== toast);
+    }
+  }
+
+  private addDetailsButton(notificationId: string, title: string, details: string, level: 'error' | 'warning'): void {
+    // After notification is shown, find it by the unique class and modify its content
+    setTimeout(() => {
+      const notification = document.querySelector(`.notification-${notificationId}`);
+      if (notification) {
+        const contentEl = notification.querySelector('.k-notification-content');
+        if (contentEl && !contentEl.querySelector('.notification-details-btn')) {
+          // Create wrapper div
+          const wrapper = document.createElement('div');
+          wrapper.style.cssText = 'display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;';
+
+          // Create text span
+          const textSpan = document.createElement('span');
+          textSpan.style.cssText = 'flex: 1; overflow: hidden; text-overflow: ellipsis;';
+          textSpan.textContent = title;
+
+          // Create details button with icon only
+          const detailsBtn = document.createElement('button');
+          detailsBtn.className = 'k-button k-button-sm k-button-flat k-button-flat-base notification-details-btn';
+          detailsBtn.style.cssText = 'flex-shrink: 0; width: 32px; height: 32px; padding: 8px; display: flex; align-items: center; justify-content: center;';
+          detailsBtn.innerHTML = this.createSvgIcon();
+          detailsBtn.title = this.messages.showDetails;
+          detailsBtn.onclick = (event) => {
+            event.stopPropagation();
+            this.messageDetailsDialogService.showDetailsDialog({
+              title,
+              details,
+              level
+            });
+          };
+
+          // Assemble the elements
+          wrapper.appendChild(textSpan);
+          wrapper.appendChild(detailsBtn);
+
+          // Replace content
+          contentEl.innerHTML = '';
+          contentEl.appendChild(wrapper);
+        }
+      }
+    }, 50);
   }
 }
