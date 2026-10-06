@@ -338,20 +338,7 @@
         }
       </kendo-tilelayout>
     } @else {
-      <div class="empty-state">
-        <div class="empty-state-content">
-          <kendo-svg-icon [icon]="plusIcon" size="xlarge"></kendo-svg-icon>
-          <h3>No Widgets</h3>
-          <p>Get started by adding widgets to your MeshBoard.</p>
-          <button
-            kendoButton
-            [svgIcon]="plusIcon"
-            (click)="openAddWidget()"
-            themeColor="primary">
-            Add Your First Widget
-          </button>
-        </div>
-      </div>
+      <mm-meshboard-empty-state [readonly]="isReadonly()" (addWidget)="openAddWidget()"></mm-meshboard-empty-state>
     }
 
     <!-- Edit Widget Dialog -->
