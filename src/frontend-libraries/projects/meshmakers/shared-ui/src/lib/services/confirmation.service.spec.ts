@@ -43,6 +43,29 @@ describe('ConfirmationService', () => {
     expect(service).toBeTruthy();
   });
 
+  describe('showDestructiveConfirmationDialog', () => {
+    it('labels the buttons with the verbs, marks the dialog as danger and caps its width', async () => {
+      const resultPromise = service.showDestructiveConfirmationDialog('Rotate secret', 'Sure?', 'Rotate');
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({ minWidth: 320, maxWidth: 'min(560px, 92vw)' }));
+      expect(dialogRefMock.content.instance.data).toEqual(expect.objectContaining({
+        dialogType: DialogType.YesNo,
+        buttonLabels: { yes: 'Rotate', no: 'Cancel' },
+        danger: true,
+      }));
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
+      resultSubject.complete();
+      expect(await resultPromise).toBe(true);
+    });
+
+    it('resolves false on cancel', async () => {
+      const resultPromise = service.showDestructiveConfirmationDialog('Rotate secret', 'Sure?', 'Rotate', 'Keep');
+      expect(dialogRefMock.content.instance.data).toEqual(expect.objectContaining({ buttonLabels: { yes: 'Rotate', no: 'Keep' } }));
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.No));
+      resultSubject.complete();
+      expect(await resultPromise).toBe(false);
+    });
+  });
+
   describe('showYesNoConfirmationDialog', () => {
     it('should return true when user clicks Yes', async () => {
       const resultPromise = service.showYesNoConfirmationDialog('Title', 'Message');
