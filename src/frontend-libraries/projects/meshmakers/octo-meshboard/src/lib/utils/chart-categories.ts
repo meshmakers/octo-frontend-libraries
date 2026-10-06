@@ -78,22 +78,58 @@ export function responsiveLegendPosition(configured: LegendPosition | undefined,
 }
 
 /**
- * Calls `onChange` whenever the colour theme may have changed: `data-theme`, `class` or `style`
- * of `<html>` (the Studio ThemeService sets `data-theme`) or the OS colour scheme. Charts resolve
- * theme colours to concrete values, so they re-resolve on this signal. Returns the unsubscribe.
+ * What the charts' resolved colours depend on: the `data-theme` attribute, the OS colour scheme
+ * and the resolved status colours. `class` / `style` of `<html>` are deliberately not part of it —
+ * popups, tooltips and scroll locks mutate them without changing the theme (AB#5568).
+ */
+export function themeSignature(doc: Document | null = typeof document !== 'undefined' ? document : null): string {
+  const dark = typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
+  const colors = (['success', 'warning', 'error', 'info'] as CategoryStatus[]).map(status => statusColor(status, doc)).join(',');
+  return `${doc?.documentElement?.getAttribute('data-theme') ?? ''}|${dark ? 'dark' : 'light'}|${colors}`;
+}
+
+/**
+ * Calls `onChange` when the colour theme really changed: `<html>` `data-theme`, `class` or
+ * `style` mutated (the Studio ThemeService sets `data-theme`) or the OS colour scheme switched,
+ * **and** the theme signature (`themeSignature`) differs from the last one. Hovering a chart
+ * opens tooltips / popups that mutate `<html>`; reacting to every mutation made the pie redraw
+ * endlessly (AB#5568). Returns the unsubscribe.
  */
 export function observeThemeChanges(onChange: () => void, doc: Document | null = typeof document !== 'undefined' ? document : null): () => void {
   const cleanups: (() => void)[] = [];
+  let last = themeSignature(doc);
+  const check = (): void => {
+    const next = themeSignature(doc);
+    if (next !== last) {
+      last = next;
+      onChange();
+    }
+  };
   if (doc?.documentElement && typeof MutationObserver !== 'undefined') {
-    const observer = new MutationObserver(() => onChange());
+    const observer = new MutationObserver(check);
     observer.observe(doc.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
     cleanups.push(() => observer.disconnect());
   }
   const media = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
   if (media?.addEventListener) {
-    const listener = (): void => onChange();
-    media.addEventListener('change', listener);
-    cleanups.push(() => media.removeEventListener('change', listener));
+    media.addEventListener('change', check);
+    cleanups.push(() => media.removeEventListener('change', check));
   }
   return () => cleanups.forEach(c => c());
+}
+
+/** A chart data item as the pie / donut binds it. */
+export interface ChartColorItem {
+  category: string;
+  value: number;
+  color?: string;
+}
+
+/**
+ * Equality of chart data arrays by category, value and colour — used as the `equal` of the data
+ * `computed`, so a re-evaluation with the same values keeps the array reference and Kendo does
+ * not re-animate the series (AB#5568).
+ */
+export function sameChartItems(a: readonly ChartColorItem[], b: readonly ChartColorItem[]): boolean {
+  return a === b || (a.length === b.length && a.every((item, i) => item.category === b[i].category && item.value === b[i].value && item.color === b[i].color));
 }

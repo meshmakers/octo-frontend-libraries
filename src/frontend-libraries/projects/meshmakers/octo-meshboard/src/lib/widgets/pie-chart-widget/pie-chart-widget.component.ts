@@ -11,7 +11,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
-import { categoryStatus, humanizeCategory, observeThemeChanges, responsiveLegendPosition, statusColor } from '../../utils/chart-categories';
+import { categoryStatus, humanizeCategory, observeThemeChanges, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
 
 /**
  * Data item for the pie chart
@@ -22,6 +22,15 @@ interface ChartDataItem {
   /** Status colour of a well-known state category (`RESOLVE_FAILED` → error); default series colour otherwise. */
   color?: string;
 }
+
+/** Plot area options of the pie / donut (stable references, AB#5568). */
+export interface PieChartPlotArea {
+  background: string;
+  margin: { top: number; right: number; bottom: number; left: number };
+}
+
+const PLOT_AREA_WITH_LABELS: PieChartPlotArea = Object.freeze({ background: 'transparent', margin: Object.freeze({ top: 30, right: 30, bottom: 30, left: 30 }) });
+const PLOT_AREA_WITHOUT_LABELS: PieChartPlotArea = Object.freeze({ background: 'transparent', margin: Object.freeze({ top: 4, right: 4, bottom: 4, left: 4 }) });
 
 @Component({
   selector: 'mm-pie-chart-widget',
@@ -44,7 +53,7 @@ interface ChartDataItem {
           <span>{{ error() }}</span>
         </div>
       } @else {
-        <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: plotAreaMargin() }">
+        <kendo-chart class="chart-container" [plotArea]="plotArea()">
           <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
           <kendo-chart-series>
             <kendo-chart-series-item
@@ -166,10 +175,11 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   private readonly _error = signal<string | null>(null);
 
   readonly isLoading = this._isLoading.asReadonly();
+  /** Keeps its reference while categories, values and colours are unchanged (AB#5568). */
   readonly chartData = computed<ChartDataItem[]>(() => {
     this.themeVersion();
     return this._rawData().map(item => this.toItem(item.category, item.value));
-  });
+  }, { equal: sameChartItems });
   readonly error = this._error.asReadonly();
 
   readonly data = computed(() => this.chartData());
@@ -196,12 +206,18 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   }
 
   /**
-   * Extra margin around the plot area so outsideEnd labels are not clipped by the SVG boundary —
-   * only while labels are shown; without labels it would shrink the pie for nothing.
+   * Plot area: extra margin so outsideEnd labels are not clipped by the SVG boundary — only while
+   * labels are shown; without labels it would shrink the pie for nothing. Returns one of two
+   * constant objects: a new object per change detection made Kendo redraw (and re-animate) the
+   * chart on every hover (AB#5568).
    */
-  plotAreaMargin(): { top: number; right: number; bottom: number; left: number } {
-    const m = this.config?.showLabels === true ? 30 : 4;
-    return { top: m, right: m, bottom: m, left: m };
+  plotArea(): PieChartPlotArea {
+    return this.config?.showLabels === true ? PLOT_AREA_WITH_LABELS : PLOT_AREA_WITHOUT_LABELS;
+  }
+
+  /** Margin of the plot area (see `plotArea`). */
+  plotAreaMargin(): PieChartPlotArea['margin'] {
+    return this.plotArea().margin;
   }
 
   /**

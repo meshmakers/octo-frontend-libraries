@@ -1047,6 +1047,23 @@ The original class names remain for backward compatibility:
 
 ---
 
+## Chart redraw stability (AB#5568)
+
+Kendo charts redraw — and re-run their series animation — whenever a bound input gets a new
+reference. The pie / donut looped (tiny → full size) while hovered: tooltips mutate `<html>`,
+which bumped the theme version, and the inline `[plotArea]="{ … margin: plotAreaMargin() }"`
+literal was a new object on every change detection. Rules:
+
+- `observeThemeChanges` fires only when `themeSignature()` changes (`data-theme`, OS scheme,
+  resolved status colours) — never on bare `class` / `style` mutations of `<html>`.
+- Data `computed`s bound to `[data]` use `{ equal: sameChartItems }` so equal values keep the array.
+- Never bind object literals containing method calls to chart inputs; return constant objects
+  (`PieChartWidgetComponent.plotArea()`).
+- Pinned in `utils/chart-categories.spec.ts`. The cockpit KPI sparkline is plain SVG with CSS
+  variables and needs no theme observer.
+
+---
+
 ## Cockpit Widgets (AB#5558)
 
 `src/lib/cockpit/` — the Home cockpit elements of the Refinery Studio (AB#5545) as widget types
