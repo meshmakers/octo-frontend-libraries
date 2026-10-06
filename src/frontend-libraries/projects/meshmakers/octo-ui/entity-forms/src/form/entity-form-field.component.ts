@@ -1,11 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { formatDate } from '@angular/common';
+import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { EntityFormsMessages, formatEntityFormsMessage } from '../entity-forms.messages';
 import { ResolvedField } from '../models/entity-form.models';
 import { firstErrorKey } from './entity-form-controls';
 
-/** Secret state shown next to a secret field: set on the server, not set, or not a secret. */
-export type EntityFormSecretState = 'set' | 'notSet' | null;
+/**
+ * Secret state shown next to a secret field (AB#5542 / AB#5544 item 4): set on the server, not set,
+ * stored but unreadable (`keyMissing`, re-entry needed), clear staged for the next save, or `null`
+ * (not a secret, or create mode — then the plain "Secret" badge is shown).
+ */
+export type EntityFormSecretState = 'set' | 'notSet' | 'keyMissing' | 'clearStaged' | null;
 
 /**
  * Field shell of `mm-entity-form`: label (with required marker and secret badge), the projected
@@ -38,9 +43,11 @@ export type EntityFormSecretState = 'set' | 'notSet' | null;
           class="mm-ef-field__badge"
           [class.mm-ef-field__badge--set]="secretState() === 'set'"
           [class.mm-ef-field__badge--not-set]="secretState() === 'notSet'"
+          [class.mm-ef-field__badge--key-missing]="secretState() === 'keyMissing'"
+          [class.mm-ef-field__badge--clear-staged]="secretState() === 'clearStaged'"
           [attr.data-secret-state]="secretState()"
           [attr.title]="messages().secretHelp"
-        >{{ messages().secretBadge }}</span>
+        >{{ secretBadgeText() }}</span>
       }
     </div>
     <div class="mm-ef-field__editor">
@@ -58,13 +65,36 @@ export class EntityFormFieldComponent {
   readonly control = input<AbstractControl | null>(null);
   readonly messages = input.required<EntityFormsMessages>();
   readonly secretState = input<EntityFormSecretState>(null);
+  /** When the current secret value was set (badge "Set · set at …"); null for legacy values. */
+  readonly secretSetAt = input<Date | null>(null);
   readonly readOnly = input(false);
   /** Whether the field is required in the current mode (secrets: only when not set). */
   readonly required = input(false);
   /** Change counter from the parent form; read so `errorText` recomputes on every form event. */
   readonly revision = input(0);
 
+  private readonly locale = inject(LOCALE_ID);
+
   protected readonly showRequired = computed(() => this.required() && !this.readOnly());
+
+  /** Badge text: visible to read-only users too (Q15). */
+  protected readonly secretBadgeText = computed(() => {
+    const m = this.messages();
+    switch (this.secretState()) {
+      case 'set': {
+        const setAt = this.secretSetAt();
+        return setAt ? formatEntityFormsMessage(m.secretStatusSetAt, { setAt: formatDate(setAt, 'medium', this.locale) }) : m.secretStatusSet;
+      }
+      case 'notSet':
+        return m.secretStatusNotSet;
+      case 'keyMissing':
+        return m.secretStatusKeyMissing;
+      case 'clearStaged':
+        return m.secretStatusClearStaged;
+      default:
+        return m.secretBadge;
+    }
+  });
 
   protected readonly errorText = computed<string | null>(() => {
     this.revision();

@@ -3,7 +3,7 @@ import { of, throwError } from 'rxjs';
 import { toCkTypeInfo } from '../core/ck-metadata';
 import { parseEntityForm } from '../core/entity-form-parser';
 import { resolveEntityForm } from '../core/entity-form-resolver';
-import { ckType, form } from '../core/testing/factories';
+import { attr, ckType, form } from '../core/testing/factories';
 import { LIVE_FORM_DEFAULT_ROW, LIVE_FORM_SFTP_ROW, LIVE_SFTP_CK_TYPE } from '../core/testing/live-fixtures';
 import { EntityFormCreateEntitiesDtoGQL } from '../graphQL/createEntityFormEntities';
 import { EntityFormDeleteEntitiesDtoGQL } from '../graphQL/deleteEntityFormEntities';
@@ -129,6 +129,50 @@ describe('EntityFormDataService', () => {
     update.mutate.mockReturnValue(of({ data: { runtime: { runtimeEntities: { update: [{ rtId: RT_ID }] } } } }));
     await service.update(RT_ID, SFTP, { rtWellKnownName: 'ignored', attributes: [{ attributeName: 'host', value: 'x' }], associations: [], isEmpty: false });
     expect(update.mutate).toHaveBeenCalledWith({ variables: { entities: [{ rtId: RT_ID, item: { ckTypeId: SFTP, attributes: [{ attributeName: 'host', value: 'x' }] } }] }, fetchPolicy: 'no-cache' });
+  });
+
+  describe('SECRET value type (AB#5542)', () => {
+    const MAIL = 'System.Communication/EMailReceiverConfiguration';
+    const mailModel = resolveEntityForm(
+      ckType(MAIL, { attributes: [attr('host'), attr('password', 'SECRET', { isOptional: false }), attr('apiKey', 'SECRET'), attr('legacyToken')] }),
+      [form(MAIL)],
+    );
+
+    it('reads SECRET attributes for their state with the values and probes only fallback secrets', async () => {
+      values.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { totalCount: 1, items: [{
+        ...entity, ckTypeId: MAIL,
+        attributes: { items: [
+          { attributeName: 'host', value: 'imap', secretIsSet: null },
+          { attributeName: 'password', value: null, secretIsSet: true },
+          { attributeName: 'apiKey', value: null, secretIsSet: false },
+        ] },
+      }] } } } }));
+      presence.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { totalCount: 1 } } } }));
+
+      const result = await service.load(mailModel, { rtId: RT_ID });
+
+      const names = sentAttributeNames()[0] as string[];
+      expect(names).toEqual(expect.arrayContaining(['host', 'password', 'apiKey']));
+      expect(names).not.toContain('legacyToken');
+      expect(result?.state.secretStates).toEqual({
+        password: { isSet: true, keyMissing: false, setAt: null },
+        apiKey: { isSet: false, keyMissing: false, setAt: null },
+      });
+      expect(result?.state.secretPresence).toEqual({ password: true, apiKey: false, legacyToken: true });
+      expect(result?.state.values['password']).toBeUndefined();
+      // Only the fallback secret is probed; a SECRET never gets a NOT_EQUALS filter (refused server-side).
+      expect(presence.fetch).toHaveBeenCalledTimes(1);
+      expect(presence.fetch.mock.calls[0][0].variables.fieldFilters[0].attributePath).toBe('legacyToken');
+    });
+
+    it('update sends staged clears as clearSecretAttributes', async () => {
+      update.mutate.mockReturnValue(of({ data: { runtime: { runtimeEntities: { update: [{ rtId: RT_ID }] } } } }));
+      await service.update(RT_ID, MAIL, { attributes: [], associations: [], clearSecretAttributes: ['apiKey'], isEmpty: false });
+      expect(update.mutate).toHaveBeenCalledWith({
+        variables: { entities: [{ rtId: RT_ID, item: { ckTypeId: MAIL, attributes: [] }, clearSecretAttributes: ['apiKey'] }] },
+        fetchPolicy: 'no-cache',
+      });
+    });
   });
 
   it('create sends rtWellKnownName and associations and returns the rtId', async () => {

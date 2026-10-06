@@ -104,6 +104,17 @@
     &--not-set {
       border-style: dashed;
     }
+
+    &--key-missing {
+      border-color: var(--theme-status-warning, currentColor);
+      color: var(--theme-status-warning, inherit);
+    }
+
+    &--clear-staged {
+      border-style: dashed;
+      border-color: var(--theme-status-error, currentColor);
+      color: var(--theme-status-error, inherit);
+    }
   }
 
   .mm-ef-field__help {
@@ -147,5 +158,41 @@
 
   :host ::ng-deep .mm-ef-field--half {
     grid-column: 1 / -1;
+  }
+}
+
+// Write-only secret editor (AB#5542 / AB#5544 item 4).
+:host ::ng-deep .mm-ef-secret {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .mm-ef-secret__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .mm-ef-secret__input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  // Multiline secrets (PEM) stay masked until "Show" (typed value only).
+  .mm-ef-secret__input--masked textarea {
+    -webkit-text-security: disc;
+  }
+
+  .mm-ef-secret__staged {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--theme-text-muted, inherit);
+    font-size: 0.875em;
+  }
+
+  .mm-ef-secret__hint {
+    color: var(--theme-status-warning, inherit);
+    font-size: 0.8em;
   }
 }

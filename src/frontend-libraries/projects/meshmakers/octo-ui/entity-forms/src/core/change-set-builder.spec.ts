@@ -27,6 +27,18 @@ describe('buildChangeSet', () => {
     expect(create.attributes.map((a) => a.attributeName)).toEqual(['host', 'port', 'username']);
   });
 
+  it('a staged SECRET clear goes to clearSecretAttributes; a typed value wins; never on create (AB#5542 Q8)', () => {
+    const model = resolveEntityForm(ckType('T/S', { attributes: [attr('apiKey', 'SECRET'), attr('token', 'SECRET')] }), [form('T/S')]);
+    const cleared = new Set(['apiKey', 'token']);
+    const cs = buildChangeSet({ apiKey: null, token: null }, { token: 'typed' }, model, 'edit', {}, { clearedSecrets: cleared });
+    expect(cs.clearSecretAttributes).toEqual(['apiKey']);
+    expect(cs.attributes).toEqual([{ attributeName: 'token', value: 'typed' }]);
+    expect(cs.isEmpty).toBe(false);
+    const onlyClear = buildChangeSet({ apiKey: null }, {}, model, 'edit', {}, { clearedSecrets: new Set(['apiKey']) });
+    expect(onlyClear).toMatchObject({ attributes: [], clearSecretAttributes: ['apiKey'], isEmpty: false });
+    expect(buildChangeSet({}, {}, model, 'create', {}, { clearedSecrets: cleared }).clearSecretAttributes).toBeUndefined();
+  });
+
   it('afterCreate and read-only fields are never sent on edit; rtWellKnownName only on create', () => {
     const model = resolveEntityForm(ckType('T/X', { attributes: [attr('a'), attr('rtBlueprintSource')] }), [form('T/X', { fields: [{ attributePath: 'a', readOnly: 'afterCreate' }, { attributePath: 'rtWellKnownName' }] })]);
     const edit = buildChangeSet({ a: '1', rtWellKnownName: 'w', rtBlueprintSource: 's' }, { a: '2', rtWellKnownName: 'w2', rtBlueprintSource: 't' }, model, 'edit');

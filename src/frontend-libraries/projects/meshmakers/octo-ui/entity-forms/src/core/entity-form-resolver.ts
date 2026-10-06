@@ -12,7 +12,7 @@ import {
   ResolvedListColumn,
   ResolvedSection,
 } from '../models/entity-form.models';
-import { isSecretAttributeCandidate } from '@meshmakers/octo-services';
+import { isSecretAttributeCandidate, isSecretValueType } from '@meshmakers/octo-services';
 import { canonicalisePath, isForcedReadOnly } from './attribute-path';
 import { BUILT_IN_DEFAULT_FORM } from './built-in-default-form';
 import { parseDefault, isArrayType, isDateType, isNumericType, isRecordType } from './entity-form-value-mapper';
@@ -48,8 +48,10 @@ const SCALAR_LIST_TYPES: readonly string[] = ['STRING', 'INT', 'INTEGER', 'INT_6
  * 3. the credential-name rule for TEXTUAL attributes only (suffixes password, passphrase, secret,
  *    secretKey, privateKey, apiKey, token, connectionString, credential(s), encryptedValue), so
  *    `isSecret: BOOLEAN` or a `credentials` record are never secrets by name.
- * The name rule covers types without the marker (form-default, built-in form) until the SECRET
- * value type (AB#5528) exists.
+ * 0. Before all of these: the SECRET value type (AB#5528) is always secret — a form cannot opt
+ *    it out (`Secret: false` is ignored with a warning).
+ * The marker and the name rule remain the fallback for non-SECRET attributes (models that have not
+ * switched their credentials to SECRET yet).
  */
 function decideSecret(attribute: CkAttributeInfo, formDecision?: boolean | null): boolean {
   const metaSecret = attribute.metaSecret ?? (attribute.secret ? true : undefined);
@@ -136,6 +138,9 @@ export function autoEditorFor(valueType: string | null | undefined): EntityFormE
   switch (valueType) {
     case 'STRING':
       return 'text';
+    case 'SECRET':
+      // SECRET value type (AB#5528): a write-only secret field (badge, show toggle, clear).
+      return 'password';
     case 'INT':
     case 'INTEGER':
     case 'INT_64':
@@ -165,6 +170,10 @@ export function autoEditorFor(valueType: string | null | undefined): EntityFormE
 export function isEditorCompatible(editor: EntityFormEditor, valueType: string | null | undefined): boolean {
   if (editor === 'unsupported') {
     return true;
+  }
+  if (isSecretValueType(valueType)) {
+    // A SECRET is always write-only text: single line (`password`) or multiline (PEM keys, Q10).
+    return editor === 'password' || editor === 'multiline';
   }
   if (TEXT_LIKE_EDITORS.includes(editor)) {
     return valueType === 'STRING';
@@ -250,6 +259,9 @@ function buildAttributeField(
   // A `password` editor always means secret (it cannot be opted out of with Secret: false).
   const formDecision = def?.secret === true || explicitPassword ? true : def?.secret === false ? false : undefined;
   const secret = decideSecret(attribute, formDecision);
+  if (formDecision === false && isSecretValueType(attribute.valueType)) {
+    warnings.push(`Field '${def?.attributePath}': Secret: false is ignored for a SECRET attribute.`);
+  }
   let readOnly = parseReadOnly(def?.readOnly);
   if (isForcedReadOnly(attribute.attributeName) || editor === 'unsupported') {
     readOnly = 'always';
@@ -620,6 +632,12 @@ export function resolveEntityForm(
     ...type.attributes.filter((a) => !attributeFields.some((f) => f.attributeName === a.attributeName) && isSecretAttribute(a)).map((a) => a.attributeName),
   ]);
   const secretFields = attributeFields.filter((f) => f.secret).map((f) => f.attributeName as string);
+  // SECRET-typed attributes (AB#5528) are safe to READ: the server returns value null plus
+  // secretIsSet. A name that is also a heuristic (non-SECRET) secret is never read.
+  const secretValueTypeNames = new Set(type.attributes.filter((a) => isSecretValueType(a.valueType)).map((a) => a.attributeName));
+  const heuristicSecretNames = new Set([...secretNames].filter((n) => !secretValueTypeNames.has(n)));
+  const secretStateFields = secretFields.filter((n) => secretValueTypeNames.has(n) && !heuristicSecretNames.has(n));
+  const readableSecrets = new Set(secretStateFields);
   const read = new Set<string>();
   for (const f of attributeFields) {
     if (f.secret) {
@@ -631,7 +649,7 @@ export function resolveEntityForm(
       collectRecordSubNames(f.record.ckRecordId, opts.records, subs, new Set<string>());
       let collision = false;
       for (const sub of subs) {
-        if (secretNames.has(sub)) {
+        if (secretNames.has(sub) && !readableSecrets.has(sub)) {
           collision = true;
         } else {
           read.add(sub);
@@ -646,6 +664,10 @@ export function resolveEntityForm(
   // A record sub-name must never re-add a secret top-level name.
   for (const s of secretNames) {
     read.delete(s);
+  }
+  // ...except SECRET attributes, which are read for their state only.
+  for (const s of secretStateFields) {
+    read.add(s);
   }
 
   const result: ResolvedEntityForm = {
@@ -667,6 +689,7 @@ export function resolveEntityForm(
     listColumns: resolveListColumns(form, type, secretNames),
     readAttributeNames: [...read],
     secretFields,
+    secretStateFields,
     warnings,
   };
   if (picked) {

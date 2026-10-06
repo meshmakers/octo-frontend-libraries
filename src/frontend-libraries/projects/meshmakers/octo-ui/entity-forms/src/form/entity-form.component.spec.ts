@@ -8,6 +8,8 @@ import {
   ResolvedSection,
 } from '../models/entity-form.models';
 import { EntityFormComponent } from './entity-form.component';
+import { signal } from '@angular/core';
+import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-availability';
 
 /** Protected-member view used by the spec. */
 interface Testable {
@@ -228,7 +230,7 @@ describe('EntityFormComponent', () => {
       expect(shell?.querySelector('.mm-ef-field__badge')?.getAttribute('data-secret-state')).toBe('set');
       const input = shell?.querySelector('input') as HTMLInputElement;
       expect(input.type).toBe('password');
-      expect(input.placeholder).toBe('•••• set — leave empty to keep');
+      expect(input.placeholder).toBe('Leave empty to keep');
       expect(el().textContent).not.toContain('must-not-show');
     });
 
@@ -246,6 +248,138 @@ describe('EntityFormComponent', () => {
       expect(component.getChangeSet().attributes).toEqual([]);
       api.control('password').setValue('new-secret');
       expect(component.getChangeSet().attributes).toContainEqual({ attributeName: 'password', value: 'new-secret' });
+    });
+  });
+
+  describe('SECRET value type (AB#5542 / AB#5544 item 4)', () => {
+    /** Mail-receiver-like form: required SECRET password, optional SECRET API key and PEM key. */
+    function secretModel(): ResolvedEntityForm {
+      const m = model([
+        section('auth', [
+          field({ key: 'userName' }),
+          field({ key: 'password', valueType: 'SECRET', editor: 'password', secret: true, required: true }),
+          field({ key: 'apiKey', valueType: 'SECRET', editor: 'password', secret: true }),
+          field({ key: 'privateKey', valueType: 'SECRET', editor: 'multiline', secret: true }),
+        ]),
+      ]);
+      m.secretFields = ['password', 'apiKey', 'privateKey'];
+      m.secretStateFields = ['password', 'apiKey', 'privateKey'];
+      return m;
+    }
+
+    function secretState(): EntityFormValueState {
+      return {
+        values: { userName: 'mail' },
+        secretPresence: { password: true, apiKey: true, privateKey: true },
+        secretStates: {
+          password: { isSet: true, keyMissing: false, setAt: new Date('2026-10-06T03:00:00Z') },
+          apiKey: { isSet: true, keyMissing: false, setAt: null },
+          privateKey: { isSet: false, keyMissing: true, setAt: null },
+        },
+        associations: {},
+      };
+    }
+
+    const badge = (key: string) => fieldEl(key)?.querySelector('.mm-ef-field__badge') as HTMLElement | null;
+
+    it('shows "Set · set at …", legacy "Set" and "Key missing — re-enter"', async () => {
+      await render(secretModel(), 'edit', secretState());
+      expect(badge('password')?.getAttribute('data-secret-state')).toBe('set');
+      expect(badge('password')?.textContent).toContain('Set · set at');
+      expect(badge('apiKey')?.textContent?.trim()).toBe('Set');
+      expect(badge('privateKey')?.getAttribute('data-secret-state')).toBe('keyMissing');
+      expect(badge('privateKey')?.textContent?.trim()).toBe('Key missing — re-enter');
+      // A key-missing secret counts as present: not required, never prefilled.
+      expect(api.control('privateKey').value).toBeNull();
+    });
+
+    it('read-only users see the badge but no input, show or clear', async () => {
+      await render(secretModel(), 'edit', secretState(), true);
+      expect(badge('password')?.textContent).toContain('Set · set at');
+      expect(fieldEl('password')?.querySelector('input')).toBeNull();
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-clear]')).toBeNull();
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-show]')).toBeNull();
+    });
+
+    it('offers Clear only for optional secrets with a value', async () => {
+      await render(secretModel(), 'edit', secretState());
+      expect(fieldEl('password')?.querySelector('[data-secret-clear]')).toBeNull();
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-clear]')).not.toBeNull();
+      expect(fieldEl('privateKey')?.querySelector('[data-secret-clear]')).not.toBeNull();
+      await render(secretModel(), 'create');
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-clear]')).toBeNull();
+    });
+
+    it('stages Clear and sends it on save as clearSecretAttributes; Undo restores', async () => {
+      await render(secretModel(), 'edit', secretState());
+      expect(component.isDirty()).toBe(false);
+      (fieldEl('apiKey')?.querySelector('[data-secret-clear]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(badge('apiKey')?.getAttribute('data-secret-state')).toBe('clearStaged');
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-clear-staged]')).not.toBeNull();
+      expect(api.control('apiKey').disabled).toBe(true);
+      expect(component.isDirty()).toBe(true);
+      const cs = component.getChangeSet();
+      expect(cs.clearSecretAttributes).toEqual(['apiKey']);
+      expect(cs.attributes).toEqual([]);
+      expect(cs.isEmpty).toBe(false);
+
+      (fieldEl('apiKey')?.querySelector('[data-secret-undo]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(api.control('apiKey').enabled).toBe(true);
+      expect(component.getChangeSet().clearSecretAttributes).toBeUndefined();
+      expect(component.isDirty()).toBe(false);
+    });
+
+    it('Clear and a new value are mutually exclusive', async () => {
+      await render(secretModel(), 'edit', secretState());
+      api.control('apiKey').setValue('new-key');
+      fixture.detectChanges();
+      const clear = fieldEl('apiKey')?.querySelector('[data-secret-clear]') as HTMLButtonElement;
+      expect(clear.disabled).toBe(true);
+      expect(component.getChangeSet().attributes).toEqual([{ attributeName: 'apiKey', value: 'new-key' }]);
+      expect(component.getChangeSet().clearSecretAttributes).toBeUndefined();
+    });
+
+    it('"Show" reveals only the typed value and is disabled while empty', async () => {
+      await render(secretModel(), 'edit', secretState());
+      const show = () => fieldEl('apiKey')?.querySelector('[data-secret-show]') as HTMLButtonElement;
+      const input = () => fieldEl('apiKey')?.querySelector('input') as HTMLInputElement;
+      expect(show().disabled).toBe(true);
+      expect(input().type).toBe('password');
+      api.control('apiKey').setValue('typed');
+      fixture.detectChanges();
+      expect(show().disabled).toBe(false);
+      show().click();
+      fixture.detectChanges();
+      expect(input().type).toBe('text');
+      api.control('apiKey').setValue('');
+      fixture.detectChanges();
+      expect(input().type).toBe('password');
+    });
+
+    it('renders a masked multiline editor for PEM keys (Editor: multiline)', async () => {
+      await render(secretModel(), 'edit', secretState());
+      const area = fieldEl('privateKey')?.querySelector('textarea') as HTMLTextAreaElement;
+      expect(area).not.toBeNull();
+      expect(fieldEl('privateKey')?.querySelector('.mm-ef-secret__input--masked')).not.toBeNull();
+    });
+
+    it('disables secret inputs with a hint when no key ring is configured (Q17)', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        animationsEnabled: false,
+        providers: [{ provide: ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, useValue: signal(false) }],
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      api = component as unknown as Testable;
+      await render(secretModel(), 'edit', secretState());
+      expect(api.control('apiKey').disabled).toBe(true);
+      expect(api.control('userName').enabled).toBe(true);
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-writes-disabled]')).not.toBeNull();
+      expect((fieldEl('apiKey')?.querySelector('[data-secret-clear]') as HTMLButtonElement).disabled).toBe(true);
     });
   });
 
