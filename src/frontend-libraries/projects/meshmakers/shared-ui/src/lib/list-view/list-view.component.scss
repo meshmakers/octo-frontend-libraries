@@ -491,3 +491,10 @@
   border-top: none;
   width: 0;
 }
+
+// Destructive context/overflow menu items (CommandItem.danger, AB#5570). The Kendo context menu
+// renders its popup outside the host, hence the unscoped ::ng-deep.
+::ng-deep .k-menu-group .mm-list-view-menu-item--danger > .k-link,
+::ng-deep .k-menu-group .mm-list-view-menu-item--danger > .k-menu-link {
+  color: var(--theme-status-error, #c0385f);
+}

@@ -53,6 +53,24 @@ describe('MmTableComponent', () => {
     expect(c.rowActionsLabel({ title: 'T' })).toBe('Aktionen für T');
   });
 
+  describe('CommandItem.danger (AB#5570)', () => {
+    const edit = { id: 'edit', type: 'link' as const, text: 'Edit' };
+    const del = { id: 'delete', type: 'link' as const, text: 'Delete', danger: true };
+
+    it('marks danger items of the actions column so the row button renders with themeColor error', () => {
+      component.actionCommandItems = [edit, del];
+      const items = (component as unknown as { _actionMenuItems: { data: { danger?: boolean }; cssClass?: string }[] })._actionMenuItems;
+      expect(items.map((i) => !!i.data.danger)).toEqual([false, true]);
+      expect(items.map((i) => i.cssClass)).toEqual([undefined, 'mm-list-view-menu-item--danger']);
+    });
+
+    it('styles danger items of the context / overflow menu', () => {
+      const c = component as unknown as { buildContextMenuItemsWithDisabledState(items: unknown[], row: unknown): { cssClass?: string }[] };
+      const items = c.buildContextMenuItemsWithDisabledState([edit, { id: 'sep', type: 'separator' }, del], { name: 'x' });
+      expect(items.map((i) => i.cssClass)).toEqual([undefined, undefined, 'mm-list-view-menu-item--danger']);
+    });
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });

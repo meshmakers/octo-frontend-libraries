@@ -40,6 +40,9 @@ import {asyncScheduler, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, observeOn, takeUntil} from 'rxjs/operators';
 import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.service';
 
+/** Context/overflow menu class of `CommandItem.danger` items (AB#5570); styled globally in the list-view SCSS. */
+const DANGER_MENU_ITEM_CLASS = 'mm-list-view-menu-item--danger';
+
 @Component({
   selector: 'mm-list-view',
   imports: [
@@ -1160,6 +1163,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
           data: commandItem,
           items: childMenuItems,
           disabled: CommandBaseService.getIsDisabled(commandItem, dataItem),
+          cssClass: commandItem.danger ? DANGER_MENU_ITEM_CLASS : undefined,
         });
       }
     }
@@ -1207,7 +1211,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
           text: commandItem.text,
           svgIcon: commandItem.svgIcon,
           data: commandItem,
-          items: childMenuItems
+          items: childMenuItems,
+          cssClass: commandItem.danger ? DANGER_MENU_ITEM_CLASS : undefined,
         });
       }
     }

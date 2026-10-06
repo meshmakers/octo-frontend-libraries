@@ -36,6 +36,8 @@ npm run test:shared-ui
 | `TimeRangePickerComponent` | `mm-time-range-picker` | Multiple modes, Date + ISO outputs |
 | `CopyableTextComponent` | `mm-copyable-text` | Clipboard API |
 | `EntitySelectInputComponent` | `mm-entity-select-input` | Autocomplete with dialog fallback |
+| `RowActionsComponent` | `mm-row-actions` | Row actions from `MmAction[]`: icon buttons, max 3 slots + overflow, focusable disabled reasons (AB#5570, `docs/actions.md`) |
+| `ActionButtonComponent` | `mm-action-button` | One `MmAction` as icon / text button (row, toolbar, page context) |
 
 ### Dialog Services Pattern
 
