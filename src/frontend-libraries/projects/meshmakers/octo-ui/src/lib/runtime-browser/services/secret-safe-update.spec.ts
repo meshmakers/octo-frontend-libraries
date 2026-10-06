@@ -15,6 +15,7 @@ describe('planSecretSafeUpdate (AB#5542)', () => {
   const analysis = {
     attributeNames: ['name', 'values', 'path', 'value', 'isSecret', 'credentials', 'userName'],
     secretNames: ['password', 'clientSecret'],
+    secretStateNames: [],
     blockedAttributes: ['credentials'],
   };
   const initial = JSON.stringify({ name: 'a', password: null, values: [{ path: 'x', value: '1', isSecret: true }], credentials: { userName: 'u' } });
@@ -47,7 +48,7 @@ describe('planSecretSafeUpdate (AB#5542)', () => {
   });
 
   it('blocks every non-secret attribute that was not loaded (e.g. the CK lookup failed) but keeps write-only secrets', () => {
-    const empty = { attributeNames: [], secretNames: [], blockedAttributes: [] };
+    const empty = { attributeNames: [], secretNames: [], secretStateNames: [], blockedAttributes: [] };
     const formValue = { name: 'b', password: 'new' };
     const mapped = [{ attributeName: 'name', value: 'b' }, { attributeName: 'password', value: 'new' }];
 

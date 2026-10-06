@@ -15,14 +15,15 @@ export class EntityDetailDataSource {
   /**
    * Fetches detailed entity information including attributes and associations.
    * Attributes are restricted to the type's non-secret attributes (SECRET-safe, AB#5542):
-   * credential-like attributes are never sent to the browser.
+   * credential-like attributes are never sent to the browser. SECRET-typed attributes (AB#5528)
+   * are read for their state only (`value` null, `secretIsSet`) so the property grid shows a badge.
    */
   async fetchEntityDetails(
     rtId: string,
     ckTypeId: string,
   ): Promise<RtEntityDto | null> {
     try {
-      const attributeNames = await this.secretSafeNames.forCkType(ckTypeId);
+      const attributeNames = await this.secretSafeNames.forCkType(ckTypeId, { includeSecretState: true });
       const result = await firstValueFrom(
         this.getRuntimeEntityByIdGQL
           .fetch({

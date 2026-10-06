@@ -473,3 +473,58 @@ describe('resolveEntityForm secrets and read set', () => {
     expect(fallback.listColumns.map((c) => c.field)).toEqual(['rtWellKnownName', 'name', 'rtChangedDateTime', 'x', 'y', 'z']);
   });
 });
+
+describe('resolveEntityForm SECRET value type (AB#5542)', () => {
+  const type = ckType('System.Communication/EMailReceiverConfiguration', { attributes: [
+    attr('host'), attr('userName'), attr('password', 'SECRET', { isOptional: false }), attr('privateKey', 'SECRET'),
+  ] });
+
+  it('regression (visual check 2026-10-06): Editor password on a SECRET is compatible, not "unsupported"', () => {
+    const model = resolveEntityForm(type, [form(type.rtCkTypeId, { fields: [{ attributePath: 'Password', editor: 'password' }] })]);
+    const password = field(model, 'password');
+    expect(password?.editor).toBe('password');
+    expect(password?.readOnly).toBe('never');
+    expect(password?.secret).toBe(true);
+    expect(model.warnings.some((w) => w.includes('not compatible'))).toBe(false);
+  });
+
+  it('maps SECRET automatically to a write-only secret field (no form, no name rule needed)', () => {
+    expect(autoEditorFor('SECRET')).toBe('password');
+    const model = resolveEntityForm(type, [form(type.rtCkTypeId)]);
+    expect(field(model, 'privateKey')).toMatchObject({ editor: 'password', secret: true });
+    expect(model.secretFields).toEqual(expect.arrayContaining(['password', 'privateKey']));
+  });
+
+  it('accepts Editor multiline for PEM keys and refuses text-like editors other than password / multiline', () => {
+    const model = resolveEntityForm(type, [form(type.rtCkTypeId, { fields: [
+      { attributePath: 'PrivateKey', editor: 'multiline' }, { attributePath: 'Password', editor: 'url' },
+    ] })]);
+    expect(field(model, 'privateKey')?.editor).toBe('multiline');
+    expect(field(model, 'password')?.editor).toBe('password');
+    expect(model.warnings.some((w) => w.includes("'Password'") && w.includes('not compatible'))).toBe(true);
+  });
+
+  it('ignores Secret: false on a SECRET attribute (with a warning)', () => {
+    const model = resolveEntityForm(type, [form(type.rtCkTypeId, { fields: [{ attributePath: 'Password', secret: false }] })]);
+    expect(field(model, 'password')?.secret).toBe(true);
+    expect(model.warnings.some((w) => w.includes('Secret: false is ignored'))).toBe(true);
+  });
+
+  it('reads SECRET attributes for their state (secretStateFields) but never fallback secrets', () => {
+    const mixed = ckType('T/Mixed', { attributes: [attr('name'), attr('apiKey', 'SECRET'), attr('legacyToken')] });
+    const model = resolveEntityForm(mixed, [form('T/Mixed')]);
+    expect(model.secretFields).toEqual(expect.arrayContaining(['apiKey', 'legacyToken']));
+    expect(model.secretStateFields).toEqual(['apiKey']);
+    expect(model.readAttributeNames).toContain('apiKey');
+    expect(model.readAttributeNames).not.toContain('legacyToken');
+  });
+
+  it('a record sub-name equal to a SECRET top-level name does not make the record read-only', () => {
+    const recordId = 'T-1.0.0/Ep-1';
+    const t = ckType('T/Rec', { attributes: [attr('token', 'SECRET'), attr('endpoints', 'RECORD_ARRAY', { ckRecordId: recordId })] });
+    const records = { [recordId]: { ckRecordId: recordId, attributes: [attr('key'), attr('token', 'SECRET')] } };
+    const model = resolveEntityForm(t, [form('T/Rec')], { records });
+    expect(field(model, 'endpoints')?.readOnly).toBe('never');
+    expect(model.readAttributeNames).toEqual(expect.arrayContaining(['endpoints', 'key', 'token']));
+  });
+});

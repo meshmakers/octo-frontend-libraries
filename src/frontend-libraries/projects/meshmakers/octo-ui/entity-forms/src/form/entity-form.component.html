@@ -34,10 +34,25 @@
                   [control]="ctrl"
                   [messages]="m"
                   [secretState]="secretState(field)"
+                  [secretSetAt]="secretSetAt(field)"
                   [readOnly]="ro"
                   [required]="isRequired(field)"
                   [revision]="rev"
                 >
+                  @if (field.secret && field.kind === 'attribute' && (field.editor === 'password' || field.editor === 'multiline' || field.editor === 'text')) {
+                    <mm-entity-form-secret-editor
+                      [control]="ctrl"
+                      [messages]="m"
+                      [placeholder]="placeholder(field)"
+                      [multiline]="field.editor === 'multiline'"
+                      [readOnly]="ro"
+                      [canClear]="canClearSecret(field)"
+                      [clearStaged]="isSecretClearStaged(field)"
+                      [writesDisabled]="secretWritesDisabled()"
+                      [revision]="rev"
+                      (clearStagedChange)="setSecretClearStaged(field, $event)"
+                    ></mm-entity-form-secret-editor>
+                  } @else {
                   @switch (field.editor) {
                     @case ('multiline') {
                       <kendo-textarea
@@ -146,6 +161,7 @@
                         [readonly]="ro"
                       ></kendo-textbox>
                     }
+                  }
                   }
                 </mm-entity-form-field>
               }

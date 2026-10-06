@@ -160,4 +160,37 @@ describe('SecretSafeAttributeNamesService (AB#5542)', () => {
 
     expect(await service.forCkType('Test/Type')).toEqual([]);
   });
+
+  describe('SECRET value type (AB#5528)', () => {
+    it('lists SECRET attributes as safe-to-read state names, not as value names', async () => {
+      typeReturns([meta('Name'), meta('Password', 'SECRET'), meta('ApiKey', 'SECRET')]);
+      const analysis = await service.analyse('Test/Type');
+      expect(analysis.attributeNames).toEqual(['name']);
+      expect(analysis.secretStateNames).toEqual(['password', 'apiKey']);
+      expect(analysis.secretNames).toEqual(['password', 'apiKey']);
+      // Top-level SECRET scalars are write-only, never blocked.
+      expect(analysis.blockedAttributes).toEqual([]);
+      expect(await service.forCkType('Test/Type')).toEqual(['name']);
+      expect(await service.forCkType('Test/Type', { includeSecretState: true })).toEqual(['name', 'password', 'apiKey']);
+    });
+
+    it('does not block a record whose only secret member is SECRET-typed (record-key carry-over)', async () => {
+      records['System.Communication/ValueOverride-1'] = [
+        meta('Path'), meta('Value'), meta('IsSecret', 'BOOLEAN'), meta('SecretValue', 'SECRET'),
+      ];
+      typeReturns([meta('Values', 'RECORD_ARRAY', { recordId: 'System.Communication/ValueOverride-1' })]);
+      const analysis = await service.analyse('Test/Type');
+      expect(analysis.attributeNames).toEqual(['values', 'path', 'value', 'isSecret']);
+      expect(analysis.secretStateNames).toEqual(['secretValue']);
+      expect(analysis.blockedAttributes).toEqual([]);
+    });
+
+    it('never reads a SECRET name that is also a heuristic (non-SECRET) secret elsewhere', async () => {
+      records['Legacy-1'] = [meta('Key'), meta('Password')];
+      typeReturns([meta('Password', 'SECRET'), meta('Legacy', 'RECORD', { recordId: 'Legacy-1' })]);
+      const analysis = await service.analyse('Test/Type');
+      expect(analysis.secretStateNames).toEqual([]);
+      expect(analysis.blockedAttributes).toEqual(['legacy']);
+    });
+  });
 });

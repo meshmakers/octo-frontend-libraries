@@ -6,6 +6,18 @@ import { WindowService } from '@progress/kendo-angular-dialog';
 import { chevronRightIcon, chevronDownIcon, downloadIcon, windowIcon } from '@progress/kendo-svg-icons';
 import { AttributeValueTypeDto, PropertyDisplayMode, BinaryDownloadEvent } from '../models/property-grid.models';
 import { RecordDetailDialogComponent } from './record-detail-dialog.component';
+import { formatSecretStatus, SecretStatus, secretStatusOf, toSecretState } from '@meshmakers/octo-services';
+
+/**
+ * A secret record member as projected by the server (AB#5528): the marker `{ isSet }` (optionally
+ * with `keyMissing` / `setAt`), or a normalised `SecretState`. Nothing else has exactly these keys.
+ */
+export function isSecretMarker(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || value instanceof Date) return false;
+  const keys = Object.keys(value);
+  return keys.includes('isSet') && typeof (value as { isSet: unknown }).isSet === 'boolean'
+    && keys.every((k) => k === 'isSet' || k === 'keyMissing' || k === 'setAt' || k === '__typename');
+}
 
 /** Shape of binary linked value from OctoMesh */
 interface BinaryLinkedValue {
@@ -121,6 +133,9 @@ interface BinaryLinkedValue {
             </div>
           }
         </div>
+      } @else if (secretStatus) {
+        <!-- SECRET (AB#5528): set / not set / key missing badge, never a value -->
+        <span class="secret-badge" [ngClass]="'secret-badge--' + secretStatus" [attr.data-secret-state]="secretStatus">{{ formattedValue }}</span>
       } @else if (binaryLinkedWithDownload) {
         <!-- Binary Linked with download capability -->
         <div class="binary-linked-display">
@@ -382,6 +397,25 @@ interface BinaryLinkedValue {
       flex-shrink: 0;
     }
 
+    .secret-badge {
+      display: inline-block;
+      font-size: 0.85em;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: var(--kendo-color-base-subtle);
+      color: var(--kendo-color-subtle);
+    }
+
+    .secret-badge--set {
+      background: var(--kendo-color-success-subtle);
+      color: var(--kendo-color-success-on-subtle);
+    }
+
+    .secret-badge--keyMissing {
+      background: var(--kendo-color-warning-subtle);
+      color: var(--kendo-color-warning-on-subtle);
+    }
+
     .content-type {
       font-size: 0.75em;
       padding: 2px 6px;
@@ -405,6 +439,9 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   isExpanded = false;
 
   private readonly windowService = inject(WindowService);
+
+  /** Non-null when the value is a secret state (SECRET value type or record member marker). */
+  secretStatus: SecretStatus | null = null;
 
   // Pre-computed template properties — recomputed in ngOnInit and ngOnChanges so Kendo Grid row recycling (cell component reuse with new inputs) does not display stale values.
   expandableRecord = false;
@@ -457,6 +494,7 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   }
 
   private recomputeDerivedValues(): void {
+    this.secretStatus = this.computeSecretStatus();
     this.expandableRecord = this.computeIsExpandableRecord();
     this.complexType = this.computeIsComplexType();
     this.binaryLinkedWithDownload = this.computeIsBinaryLinkedWithDownload();
@@ -480,7 +518,19 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
     }
   }
 
+  /** Set / not set / key missing for a SECRET value or a record member marker `{ isSet }` (AB#5528). */
+  private computeSecretStatus(): SecretStatus | null {
+    if (this.type !== AttributeValueTypeDto.SecretDto && !isSecretMarker(this.value)) {
+      return null;
+    }
+    return secretStatusOf(this.value as { isSet?: boolean; keyMissing?: boolean } | null);
+  }
+
   private computeFormattedValue(): string {
+    if (this.secretStatus) {
+      const v = (this.value ?? {}) as { isSet?: boolean; keyMissing?: boolean; setAt?: string | Date | null };
+      return formatSecretStatus(toSecretState({ isSet: v.isSet === true, keyMissing: v.keyMissing, setAt: v.setAt }));
+    }
     if (this.value === null) {
       return '<null>';
     }
@@ -821,6 +871,10 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   getPropertyType(value: unknown): AttributeValueTypeDto {
     if (value === null || value === undefined) {
       return AttributeValueTypeDto.StringDto;
+    }
+
+    if (isSecretMarker(value)) {
+      return AttributeValueTypeDto.SecretDto;
     }
 
     if (typeof value === 'boolean') {

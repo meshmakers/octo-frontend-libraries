@@ -11,7 +11,10 @@ import { isCredentialLikeAttributeName } from '@meshmakers/octo-services';
  *    `attributeNames` argument, binds it to a NULLABLE variable, or lists a credential-like name
  *    (list or single string) — omitting the filter returns every attribute incl. secrets;
  * 2. a typed selection contains a credential-like String field (`password`, `clientSecret`,
- *    `apiKey`, `botToken`, …; Boolean/number fields such as `isSecret` or `maxTokens` are fine).
+ *    `apiKey`, `botToken`, …; Boolean/number fields such as `isSecret` or `maxTokens` are fine) —
+ *    the fallback for models whose credentials are not SECRET yet;
+ * 3. a SECRET-typed field (schema type `OctoSecretState`, AB#5528) is selected without `isSet`
+ *    (the server refuses a scalar selection anyway; the state must be read as `{ isSet … }`).
  *
  * A non-null variable with a default (`$attributeNames: [String!]! = []`) is accepted.
  */
@@ -23,6 +26,8 @@ export interface SecretGuardViolation {
 }
 
 const GENERIC_ATTRIBUTE_CONNECTION = 'RtEntityAttributeDtoConnection';
+/** Schema type of a typed SECRET field (AB#5528). */
+export const SECRET_STATE_TYPE = 'OctoSecretState';
 const NON_TEXT_SCALARS = new Set(['Boolean', 'Int', 'Float', 'Long', 'Decimal', 'DateTime', 'Date', 'TimeSpan']);
 const INLINE_GQL = /gql`([\s\S]*?)`/g;
 const OPERATION_START = /^\s*(#[^\n]*\n\s*)*(query|mutation|subscription|fragment|\{)/;
@@ -63,7 +68,15 @@ export function findSecretUnsafeSelections(schema: GraphQLSchema, doc: DocumentN
         const isGeneric = node.name.value === 'attributes'
           && (named?.name === GENERIC_ATTRIBUTE_CONNECTION || (!named && !!selectsValue));
 
-        if (isGeneric) {
+        if (named?.name === SECRET_STATE_TYPE) {
+          const selectsIsSet = node.selectionSet?.selections.some((s) => s.kind === 'Field' && s.name.value === 'isSet');
+          if (!selectsIsSet) {
+            violations.push({
+              key: `${file}#${fieldPath}`,
+              message: `SECRET field "${node.name.value}" must be selected as { isSet … }`,
+            });
+          }
+        } else if (isGeneric) {
           const arg = node.arguments?.find((a) => a.name.value === 'attributeNames');
           const key = `${file}#${fieldPath}`;
           if (!arg) {
@@ -104,3 +117,4 @@ export function findSecretUnsafeSelections(schema: GraphQLSchema, doc: DocumentN
   }));
   return violations;
 }
+

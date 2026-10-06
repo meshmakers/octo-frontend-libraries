@@ -35,6 +35,28 @@ export interface EntityFormsMessages {
   secretBadge: string;
   /** Help text explaining write-only secrets. */
   secretHelp: string;
+  /** Badge of a set secret without a timestamp (legacy value). */
+  secretStatusSet: string;
+  /** Badge of a set secret; `{setAt}` = formatted timestamp. */
+  secretStatusSetAt: string;
+  /** Badge of a secret without a value. */
+  secretStatusNotSet: string;
+  /** Badge of a stored secret whose key is not in this environment's key ring (re-entry needed). */
+  secretStatusKeyMissing: string;
+  /** Badge of a secret whose clear is staged for the next save. */
+  secretStatusClearStaged: string;
+  /** Button: stage clearing an optional secret. */
+  secretClear: string;
+  /** Button: undo a staged clear. */
+  secretUndoClear: string;
+  /** Note shown while a clear is staged. */
+  secretClearStagedNote: string;
+  /** Button: reveal the typed (unsaved) value. */
+  secretShow: string;
+  /** Button: mask the typed value again. */
+  secretHide: string;
+  /** Hint when secrets cannot be written (no key ring configured, Q17). */
+  secretWritesDisabled: string;
 
   // --- Sections ---
   /** Default title of the section holding fields that the form does not list. */
@@ -141,10 +163,21 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   select: 'Select',
   clear: 'Clear',
 
-  secretSetPlaceholder: '•••• set — leave empty to keep',
+  secretSetPlaceholder: 'Leave empty to keep',
   secretNotSetPlaceholder: 'Not set',
   secretBadge: 'Secret',
   secretHelp: 'Write-only. The stored value is never shown; type a new value to replace it.',
+  secretStatusSet: 'Set',
+  secretStatusSetAt: 'Set · set at {setAt}',
+  secretStatusNotSet: 'Not set',
+  secretStatusKeyMissing: 'Key missing — re-enter',
+  secretStatusClearStaged: 'Will be cleared',
+  secretClear: 'Clear',
+  secretUndoClear: 'Undo',
+  secretClearStagedNote: 'The stored value is removed when you save.',
+  secretShow: 'Show',
+  secretHide: 'Hide',
+  secretWritesDisabled: 'Secrets cannot be changed: no encryption key ring is configured for this environment.',
 
   furtherAttributes: 'Further attributes',
 
