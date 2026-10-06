@@ -26,14 +26,14 @@ interface SeedWidgetRow {
 }
 
 /**
- * The widgets of the `cockpit` board seeded by the System.UI.TenantCockpit blueprint (1.1.1,
+ * The widgets of the `cockpit` board seeded by the System.UI.TenantCockpit blueprint (1.2.0,
  * octo-platform-services `src/SystemUiCkModel/Blueprints/System.UI.TenantCockpit/seed-data/entities.yaml`).
  * Keep in step with the seed: when the sibling repository is checked out next to this one (the
  * worktree-pair layout) and its TenantCockpit blueprint is >= TENANT_COCKPIT_SEED_VERSION, a test
  * compares this fixture with the real seed file; older sibling branches are skipped.
  */
 /** Blueprint version of System.UI.TenantCockpit whose seed the fixture below describes. */
-const TENANT_COCKPIT_SEED_VERSION = '1.1.1';
+const TENANT_COCKPIT_SEED_VERSION = '1.2.0';
 
 const TENANT_COCKPIT_SEED: SeedWidgetRow[] = [
   { name: 'Construction Kit Models', type: 'pieChart', col: 1, row: 4, colSpan: 2, rowSpan: 2, dataSourceType: 'constructionKitQuery',
