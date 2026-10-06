@@ -67,7 +67,7 @@ applies a **presentation-side** remap driven by its own width (ResizeObserver):
 | Container width | Tier | Rendering |
 |---|---|---|
 | ≥ 1100px | `none` | Configured columns, persisted col/row anchors, editing enabled |
-| 700–1099px | `tablet` | `min(columns, 3)` columns, anchors dropped (CSS grid auto-flow `row` in reading order), colSpan scaled proportionally (`scaleColSpan`: span 2 of 6 → 1 of 3, min 1), so a KPI row stays side by side |
+| 700–1099px | `tablet` | `min(columns, 3)` columns, anchors dropped (CSS grid auto-flow `row` in reading order), colSpan scaled proportionally (`scaleColSpan`: span 2 of 6 → 1 of 3, min 1), so a KPI row stays side by side; widgets starting in one row that would no longer fit share the columns by largest remainder (3 + 3 of 6 → 2 + 1 of 3) |
 | < 700px | `phone` | Single column, widgets stacked in reading order (sorted by row, then col) |
 
 The persisted board config is **never modified** — the remap lives in
