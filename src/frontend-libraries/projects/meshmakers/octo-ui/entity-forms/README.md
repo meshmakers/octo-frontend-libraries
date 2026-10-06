@@ -229,6 +229,14 @@ Secret values never reach the browser:
 | records | Table with add / remove / move / edit; rows are edited in a dialog generated from the record's CK attributes. Nested records are read-only. |
 | unsupported (BINARY, GEOSPATIAL_POINT, TIME_SPAN, …) | Read-only display |
 
+**Runtime state is never generated as an editable field.** Generated fields (`form-default`,
+"Further attributes") whose attribute is in `RUNTIME_STATE_ATTRIBUTES` (`core/attribute-path.ts`:
+deployment / communication / configuration state, last errors and their timestamps, status
+message, last synced sequence number, lifecycle state, last activity, on-demand flags) are
+read-only, like the engine-stamped `rtBlueprint*` attributes. It is a documented list because the
+CK `ownership: RuntimeState` marker is not in the schema the library is generated from; a field a
+form defines explicitly keeps its own `ReadOnly`.
+
 ## Form resolution (summary)
 
 1. Forms targeting the exact type win; otherwise the nearest ancestor with forms that set
