@@ -6,7 +6,9 @@ import { CONFIGURATION_SERVICE } from './configuration.service';
 import { JobResponseDto } from '../shared/jobResponseDto';
 import {
   SecretEnvironmentStatusDto,
+  SECRET_DUMP_RESTORE_ERROR_DUMP_KEY_MISSING,
   SecretSweepDumpDeleteResult,
+  SecretSweepDumpRestoreResult,
   SecretSweepMode,
   SecretSweepReportDto,
   SecretSweepRunDto,
@@ -20,11 +22,11 @@ import {
  * configured; HTTP errors (403 missing role, 400 `ConfirmationRequired`) are rethrown as
  * `HttpErrorResponse` for the caller.
  *
- * Roles (handover §6): status — any user with tenant access; sweep runs — `AdminPanelManagement`;
- * starting a sweep and deleting a dump — `SecretManagement`.
+ * Roles (handover §6, §14): status — any user with tenant access; sweep runs — `AdminPanelManagement`;
+ * starting a sweep, deleting a dump and restoring a dump — `SecretManagement`.
  *
- * Tenant (handover §13, 410ade02): the `{tenantId}/v1/secrets/...` routes (status, sweep runs, dump
- * delete) accept only the token's OWN tenant — always pass the current tenant, never a child tenant
+ * Tenant (handover §13, §14): the `{tenantId}/v1/secrets/...` routes (status, sweep runs, dump
+ * delete, dump restore) accept only the token's OWN tenant — always pass the current tenant, never a child tenant
  * (child-tenant links only navigate into that tenant). A restore appears as a run with
  * `trigger: Restore`, mode `Encrypt` and `dump: null`.
  */
@@ -106,4 +108,62 @@ export class BotSecretsService {
       throw error;
     }
   }
+
+  /**
+   * `POST {tenantId}/v1/secrets/sweep-runs/{runId}/restore-dump?confirm=` (handover §14, AB#5559) —
+   * restores the run's pre-sweep dump into the tenant (replaces the tenant database, then a Verify
+   * runs). Role `SecretManagement`, own tenant only; `confirm = true` only after the user confirmed.
+   * 🔴 A dump taken before the first Encrypt holds plaintext secrets: restoring it brings them back.
+   *
+   * Every documented answer (200 / 400 / 403 / 404 / 409) is mapped to a
+   * {@link SecretSweepDumpRestoreResult} and kept away from the global error toast
+   * (`MM_CALLER_HANDLED_STATUSES`); other errors (network, 5xx) are rethrown.
+   */
+  public async restoreSecretSweepDump(tenantId: string, runId: string, confirm = false): Promise<SecretSweepDumpRestoreResult | null> {
+    const baseUrl = this.baseUrl(tenantId);
+    if (!baseUrl) return null;
+    let params = new HttpParams();
+    if (confirm) {
+      params = params.set('confirm', true);
+    }
+    const context = new HttpContext().set(MM_CALLER_HANDLED_STATUSES, [400, 403, 404, 409]);
+    try {
+      const response = await firstValueFrom(this.httpClient.post<JobResponseDto>(
+        `${baseUrl}secrets/sweep-runs/${encodeURIComponent(runId)}/restore-dump`, null, { params, context }));
+      return { status: 'Started', jobId: response?.jobId ?? '' };
+    } catch (error) {
+      if (!(error instanceof HttpErrorResponse)) throw error;
+      const message = errorMessageOf(error);
+      switch (error.status) {
+        case 400:
+          return { status: 'ConfirmationRequired', message };
+        case 403:
+          return { status: 'Forbidden', message };
+        case 404:
+          return { status: 'NotFound', message };
+        case 409:
+          return { status: errorCodeOf(error) === SECRET_DUMP_RESTORE_ERROR_DUMP_KEY_MISSING ? 'DumpKeyMissing' : 'DumpDeleted', message };
+        default:
+          throw error;
+      }
+    }
+  }
+}
+
+/** The code of a bot error body (`statusDescription`, handover §12; `code` / `errorCode` tolerated). */
+function errorCodeOf(error: HttpErrorResponse): string | null {
+  const body = error.error as { code?: unknown; errorCode?: unknown; statusDescription?: unknown } | null;
+  const code = body && typeof body === 'object' ? (body.code ?? body.errorCode ?? body.statusDescription) : null;
+  if (typeof code === 'string') return code;
+  // A body that arrives as text (no JSON content type) still names the code.
+  if (typeof error.error === 'string' && error.error.includes(SECRET_DUMP_RESTORE_ERROR_DUMP_KEY_MISSING)) {
+    return SECRET_DUMP_RESTORE_ERROR_DUMP_KEY_MISSING;
+  }
+  return null;
+}
+
+/** The value-free message of a bot error body, if any. */
+function errorMessageOf(error: HttpErrorResponse): string | null {
+  const body = error.error as { message?: unknown } | null;
+  return body && typeof body === 'object' && typeof body.message === 'string' && body.message ? body.message : null;
 }

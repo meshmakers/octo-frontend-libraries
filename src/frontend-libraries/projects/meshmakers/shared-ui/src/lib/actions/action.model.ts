@@ -15,6 +15,7 @@ import {
   plusIcon,
   stopIcon,
   trashIcon,
+  undoIcon,
   uploadIcon,
   xCircleIcon,
 } from '@progress/kendo-svg-icons';
@@ -117,6 +118,8 @@ export const MM_ACTION_ICONS = {
   download: downloadIcon,
   /** Show a report / log. */
   report: fileReportIcon,
+  /** Restore / roll back to a stored state (e.g. restore a dump); destructive restores are `danger`. */
+  restore: undoIcon,
 } as const satisfies Record<string, SVGIcon>;
 
 export type MmActionIconName = keyof typeof MM_ACTION_ICONS;

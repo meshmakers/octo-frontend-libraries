@@ -63,6 +63,7 @@ describe('action.model', () => {
     expect(MM_ACTION_ICONS.edit.name).toBe('pencil');
     expect(MM_ACTION_ICONS.delete.name).toBe('trash');
     expect(MM_ACTION_ICONS.refresh.name).toBe('arrow-rotate-cw');
+    expect(MM_ACTION_ICONS.restore.name).toBe('undo');
     expect(new Set(Object.values(MM_ACTION_ICONS).map((i) => i.name)).size).toBe(Object.keys(MM_ACTION_ICONS).length);
   });
 });

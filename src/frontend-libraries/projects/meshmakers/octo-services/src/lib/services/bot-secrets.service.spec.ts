@@ -133,6 +133,59 @@ describe('BotSecretsService', () => {
     await expect(forbidden).rejects.toBeInstanceOf(HttpErrorResponse);
   });
 
+  describe('restoreSecretSweepDump (handover §14)', () => {
+    const url = `${baseUrl}meshmakers/v1/secrets/sweep-runs/r%2F1/restore-dump`;
+
+    it('posts confirm=true and returns the enqueued job, away from the global toast', async () => {
+      const promise = service.restoreSecretSweepDump('meshmakers', 'r/1', true);
+      const req = httpMock.expectOne((r) => r.url === url);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('confirm')).toBe('true');
+      expect(req.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([400, 403, 404, 409]);
+      req.flush({ jobId: 'job-9' });
+      expect(await promise).toEqual({ status: 'Started', jobId: 'job-9' });
+    });
+
+    it('does not send confirm unless asked', async () => {
+      const promise = service.restoreSecretSweepDump('meshmakers', 'r/1');
+      const req = httpMock.expectOne((r) => r.url === url);
+      expect(req.request.params.has('confirm')).toBe(false);
+      req.flush({ statusCode: 400, statusDescription: 'ConfirmationRequired', message: 'repeat with confirm=true' }, { status: 400, statusText: 'Bad Request' });
+      expect(await promise).toEqual({ status: 'ConfirmationRequired', message: 'repeat with confirm=true' });
+    });
+
+    it('maps 404, 409 DumpDeleted, 409 DumpKeyMissing and 403', async () => {
+      const cases: [number, string | object | null, string][] = [
+        [404, { message: 'No pre-sweep dump for run' }, 'NotFound'],
+        [409, { statusCode: 400, statusDescription: 'DumpDeleted', message: 'deleted' }, 'DumpDeleted'],
+        [409, { statusCode: 400, statusDescription: 'DumpKeyMissing', message: 'key id k0 not in ring' }, 'DumpKeyMissing'],
+        [409, 'DumpKeyMissing: text body', 'DumpKeyMissing'],
+        [403, null, 'Forbidden'],
+      ];
+      for (const [status, body, expected] of cases) {
+        const promise = service.restoreSecretSweepDump('meshmakers', 'r/1', true);
+        httpMock.expectOne((r) => r.url === url).flush(body, { status, statusText: 'x' });
+        expect((await promise)?.status).toBe(expected);
+      }
+    });
+
+    it('rethrows other errors', async () => {
+      const promise = service.restoreSecretSweepDump('meshmakers', 'r/1', true);
+      httpMock.expectOne((r) => r.url === url).flush(null, { status: 500, statusText: 'Server Error' });
+      await expect(promise).rejects.toBeInstanceOf(HttpErrorResponse);
+    });
+  });
+
+  it('passes requiredKeyIds and the DumpKeyMissing warning of the status through', async () => {
+    const promise = service.getSecretEnvironmentStatus('meshmakers');
+    httpMock.expectOne(`${baseUrl}meshmakers/v1/secrets/status`).flush({
+      keyRingConfigured: true, activeKeyId: 'k2', knownKeyIds: ['k2'], requiredKeyIds: ['k1', 'k2'], warnings: ['DumpKeyMissing'],
+    });
+    const status = await promise;
+    expect(status?.requiredKeyIds).toEqual(['k1', 'k2']);
+    expect(status?.warnings).toEqual(['DumpKeyMissing']);
+  });
+
   it('returns null without a bot service URL', async () => {
     config.config = null;
     expect(await service.getSecretEnvironmentStatus('t')).toBeNull();
@@ -140,5 +193,6 @@ describe('BotSecretsService', () => {
     expect(await service.getSecretSweepRuns('t')).toBeNull();
     expect(await service.getSecretSweepReport('t')).toBeNull();
     expect(await service.deleteSecretSweepDump('t', 'r')).toBeNull();
+    expect(await service.restoreSecretSweepDump('t', 'r', true)).toBeNull();
   });
 });
