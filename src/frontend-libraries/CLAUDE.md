@@ -632,11 +632,19 @@ adding scalar fields never does.
 
 ### SECRET-safe documents (AB#5542) — REQUIRED
 
-The generic runtime `attributes` field (`RtEntity` / `RtAssociation`, type
-`RtEntityAttributeDtoConnection`) returns **every** attribute — passwords, client secrets, API
-keys — when `attributeNames` is omitted or bound to a variable the caller leaves `undefined`.
-The filter compares camelCase names only and also applies to the sub-attributes of records.
-Until the SECRET value type (AB#5528) masks values on the server:
+The backend has the **SECRET value type** (AB#5528; `schema.graphql` refreshed 2026-10-06 from the
+local SECRET backend, contract `octo-construction-kit-engine/docs/secret-frontend-handover.md`
+01fda94e): SECRET values are encrypted at rest and never projected — typed fields are
+`OctoSecretState { isSet }`, generic attributes return `value: null` + `secretIsSet`, record members
+the marker `{ isSet }` (echoing it back means "unchanged"), update inputs (`<Type>InputUpdate`,
+`RtEntityUpdate`) take `clearSecretAttributes`. `keyMissing` / `setAt` (`secretKeyMissing` /
+`secretSetAt`) are contract fields not served by the local backend yet: the octo-services helpers
+(`secret-state.ts`: `SecretState`, `secretStateFromAttribute`, `toSecretState`, `secretStatusOf`,
+`isSecretPresent`, `formatSecretStatus`, `secretInputValue`, `SECRET_VALUE_TYPE`) treat them as
+optional; documents carry `TODO(AB#5542)` to select them after the backend rebuild.
+Credentials of models that have not switched to SECRET still come back in clear text, so the
+generic `attributes` field (`RtEntityAttributeDtoConnection`) can still return passwords, client
+secrets, API keys when `attributeNames` is omitted:
 
 - Every generic `attributes` selection passes `attributeNames` as a literal list or a
   **non-nullable** variable: `$attributeNames: [String!]!` (required — octo-services and
@@ -648,7 +656,8 @@ Until the SECRET value type (AB#5528) masks values on the server:
   attributes" of an arbitrary type use octo-ui `SecretSafeAttributeNamesService.forCkType(rtCkTypeId)`
   (CK attributes + record sub-attributes, minus secret candidates; a CK lookup failure yields `[]`).
 - ONE credential rule, in octo-services `secret-safe-attributes.ts` — `isSecretAttributeCandidate`:
-  explicit decision (`secret: true|false`; entity forms: `Secret: true|false`, editor `password`)
+  the SECRET value type first (always a secret, no opt-out), then the FALLBACK for non-SECRET
+  attributes: explicit decision (`secret: true|false`; entity forms: `Secret: true|false`, editor `password`)
   → CK metadata `secret: true|false` (entity forms carry it as `CkAttributeInfo.metaSecret`) →
   otherwise a TEXTUAL attribute (`STRING`, `STRING_ARRAY`, unknown) whose name ends in password,
   passphrase, secret, secretKey, privateKey, apiKey, token, connectionString, credential(s) or
@@ -663,9 +672,16 @@ Until the SECRET value type (AB#5528) masks values on the server:
   never written back: `analyse().blockedAttributes` + `planSecretSafeUpdate` (records carrying a
   secret or an excluded sub-attribute, name collisions, attributes missing from the loaded list).
   The record graph is analysed as a whole (fixpoint), so cycles cannot hide a secret.
-- Typed queries never select credential String fields; show presence with a count
-  (`fieldFilter: [{ attributePath: "<secret>", operator: IS_NOT_NULL }]` → `totalCount`).
-- Mutations return only `rtId` (and `ckTypeId`) unless the caller really reads more.
+- SECRET attributes are safe to READ for their state: `SecretSafeAttributeNamesService.analyse()`
+  lists them as `secretStateNames` (`forCkType(id, { includeSecretState: true })` appends them;
+  the document must select `secretIsSet`). Records whose only secrets are SECRET members are not
+  blocked (record-key carry-over). Entity forms read SECRET fields with the values
+  (`secretStateFields`); the runtime browser property grid shows a badge (`AttributeValueTypeDto.SecretDto`,
+  record member markers via `isSecretMarker`).
+- Typed queries select a SECRET field as `{ isSet }` (guard rule); fallback credential String fields
+  are never selected — their presence is a count (`fieldFilter: [{ attributePath: "<secret>",
+  operator: IS_NOT_NULL }]` → `totalCount`). Never use any other filter on a SECRET.
+- Mutations return only `rtId` (and `ckTypeId`, at most `{ isSet }`) unless the caller really reads more.
 - The runtime-browser edit form treats secret candidates as write-only (`secretsWriteOnly` on
   `mm-attributes-group`: empty, not required, password input; an empty value is omitted from the
   payload = keep). Blocked attributes are not written by the update editor; a change to one is
@@ -678,8 +694,9 @@ runtime API; unit-tested in `octo-services/src/lib/graphql-secret-guard-rule.spe
 (runs with `npm run test:octo-services`) scans every `.graphql` under `projects/` and inline `gql`
 documents against `schema.graphql`; the Studio guard imports the same functions from
 `@meshmakers/octo-services/testing` (its `tsconfig.spec.json` maps that entry to the sources). It fails on a generic `attributes` without a non-nullable
-`attributeNames`, a credential-like name in it (list or single string), or a typed
-credential-like String field.
+`attributeNames`, a credential-like name in it (list or single string), a typed
+credential-like String field (fallback models), or a SECRET field (`OctoSecretState`) selected
+without `isSet`.
 Justified exceptions go into its `ALLOW_LIST` with a reason; today it holds only entity-forms
 `getEntityForms` (System.UI/EntityForm carries no secret-capable attributes, and a filter would
 cut the record contents the parser reads). A stale entry fails the test.
@@ -701,16 +718,15 @@ EQUALS/LIKE); Studio query builder (`query-editor` filter/sort attribute list,
 (CK model browser listing, metadata only). The fix is the
 backend refusal of SECRET attributes as query columns (`SecretAttributeNotQueryable`, AB#5528 phase 3).
 
-**Schema-dependent (AB#5542, after the backend handover note
-`octo-construction-kit-engine/docs/secret-frontend-handover.md` exists):** codegen with
-`OctoSecretState`/`secretIsSet`, set/unset badge in the property grid and runtime-browser
-attribute mapper/recognition, `clearSecretAttributes` (explicit clear) in the update editor and
-entity forms, SECRET in the CK attribute editor, entity forms mapping SECRET automatically, and
-then dropping the name heuristic and the record write block (server carry-over AB#5532).
-Also AB#5537: `ValueOverride.SecretValue` (valueType Secret) in the Helm/adapter value-override
-records — record members project `{ isSet }`; the override editors (Studio communication pages,
-`getApplicationDetails` / `getSystemCommunicationAdapter` `values { … }`) must select it as
-`{ isSet }`, send it only when typed, and rely on record-key carry-over.
+**SECRET status (AB#5542 / AB#5544 item 4, 2026-10-06):** done — codegen with the SECRET schema,
+SECRET in the shared rule, property grid / runtime browser badge, entity forms (automatic
+write-only field, badge incl. key missing / set at, staged Clear → `clearSecretAttributes`, Show
+for the typed value, multiline PEM editor, `ENTITY_FORM_SECRET_KEY_RING_CONFIGURED` for Q17),
+IdP DTO (`clientSecretIsSet` / `clientSecretKeyMissing` / `clientSecretSetAt`, `clientSecret`
+write-only). Open: select `keyMissing` / `setAt` after the backend rebuild; the runtime-browser
+update editor still has no Clear (use the entity form); SECRET record members are read-only in
+the entity-form record row editor (kept via the marker); the CK attribute editor offering SECRET
+is AB#5544 work.
 
 ### GraphQL Queries
 
