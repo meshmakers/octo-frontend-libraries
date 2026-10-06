@@ -76,6 +76,25 @@ describe('BotSecretsService', () => {
     expect(await promise).toEqual(runs);
   });
 
+  it('passes the before / after counts and the write counters of a run through unchanged', async () => {
+    const counts = { notSet: 0, plaintext: 0, encV1: 0, encV2: 10, encV2ByKeyId: { k1: 10 }, unknownKeyId: 0, failed: 0, total: 10, legacy: 0 };
+    const run: SecretSweepRunDto = {
+      runId: 'r2', mode: 'Encrypt', trigger: 'Manual', outcome: 'CompletedWithFailures', reason: null,
+      startedAt: '2026-10-06T10:00:00Z', completedAt: '2026-10-06T10:00:05Z', triggeredBy: 'admin',
+      totals: { ...counts, plaintext: 8, encV2: 2, encV2ByKeyId: { k1: 2 } }, totalsAfter: counts,
+      valuesRewritten: 8, encryptedCount: 8, skippedConcurrentlyModified: 1, placeholdersNormalized: 0,
+      skippedLegacyV1KeyMissing: 0, unreadableCount: 0, dump: null,
+    };
+    const promise = service.getSecretSweepRuns('meshmakers');
+    httpMock.expectOne((r) => r.url === `${baseUrl}meshmakers/v1/secrets/sweep-runs`).flush([run]);
+    const [received] = (await promise) ?? [];
+    expect(received?.totalsAfter).toEqual(counts);
+    expect(received?.encryptedCount).toBe(8);
+    expect(received?.valuesRewritten).toBe(8);
+    expect(received?.skippedConcurrentlyModified).toBe(1);
+    expect(received?.outcome).toBe('CompletedWithFailures');
+  });
+
   it('maps the dump delete answers 204 / 404 / 409', async () => {
     const url = `${baseUrl}meshmakers/v1/secrets/sweep-runs/r%2F1/dump`;
     const deleted = service.deleteSecretSweepDump('meshmakers', 'r/1');
