@@ -35847,6 +35847,15 @@ type IndustryManufacturingShift_ParentUnionEdge {
   node: IndustryManufacturingShift_ParentUnion
 }
 
+"""Number of ENC_V2 secrets protected with a key id."""
+type KeyIdCount {
+  """Number of secrets."""
+  count: Int!
+
+  """Key id."""
+  keyId: String!
+}
+
 scalar LargeBinary
 
 """Meta information for large binaries"""
@@ -35922,6 +35931,11 @@ type OctoQuery {
   blueprints: BlueprintsQuery
   constructionKit: ConstructionKitQuery
   runtime: RuntimeModelQuery
+
+  """
+  Secrets overview of the tenant: inventory, summary and pipeline usages of secret attributes. Requires the AdminPanelManagement role. Never returns values.
+  """
+  secrets: SecretsQuery
   streamData: StreamDataModelQuery
 }
 
@@ -37454,8 +37468,20 @@ enum OctoSdkDemoOperatingStatus {
 State of a secret attribute. The value of a secret is never returned by the API; set it with a string in a mutation and clear it with 'clearSecretAttributes'.
 """
 type OctoSecretState {
-  """True when the secret holds a value."""
+  """
+  True when the secret holds a readable value. False when it is not set or when the stored value cannot be read (key missing, corrupt).
+  """
   isSet: Boolean!
+
+  """
+  True when a value is stored but its key id is not in this environment's key ring (e.g. after a restore from another environment); the secret has to be entered again.
+  """
+  keyMissing: Boolean!
+
+  """
+  When the current value was set (UTC). Null when not set or for values set before this was recorded (legacy).
+  """
+  setAt: DateTime
 }
 
 type OctoSubscriptions {
@@ -38195,6 +38221,16 @@ type RtEntityAttribute {
   secretIsSet: Boolean
 
   """
+  For a Secret attribute: true when a value is stored but cannot be read because its key id is not in the key ring (re-entry needed). Null for every other attribute.
+  """
+  secretKeyMissing: Boolean
+
+  """
+  For a Secret attribute: when the current value was set (UTC); null when not set, for legacy values and for every other attribute.
+  """
+  secretSetAt: DateTime
+
+  """
   Value of a scalar attribute. Always null for a Secret attribute, see 'secretIsSet'.
   """
   value: SimpleScalar
@@ -38241,6 +38277,12 @@ input RtEntityAttributeInput {
   Accepted and ignored, so a client can send back what it read. Clearing a secret is only possible with 'clearSecretAttributes'.
   """
   secretIsSet: Boolean
+
+  """Accepted and ignored, so a client can send back what it read."""
+  secretKeyMissing: Boolean
+
+  """Accepted and ignored, so a client can send back what it read."""
+  secretSetAt: DateTime
 
   """
   Value of a scalar attribute. For a Secret attribute a non-empty string sets the secret; null, an empty string or an omitted value keep it unchanged.
@@ -46359,6 +46401,182 @@ enum SearchFilterTypes {
 The `Seconds` scalar type represents a period of time represented as the total number of seconds in range [-922337203685, 922337203685].
 """
 scalar Seconds
+
+"""A page of the secrets inventory."""
+type SecretInventoryConnection {
+  """The slots of this page."""
+  items: [SecretInventoryItem!]!
+
+  """Paging information."""
+  pageInfo: PageInfo!
+
+  """Number of slots matching the filters."""
+  totalCount: Int!
+}
+
+"""
+One secret slot of an entity: storage form, key id and set-at, never the value.
+"""
+type SecretInventoryItem {
+  """CK attribute name (PascalCase) of the top-level attribute."""
+  attributeName: String!
+
+  """
+  camelCase path of the slot; record members as 'endpoints[key=prod].token' / 'credentials.token'.
+  """
+  attributePath: String!
+
+  """CK type of the entity."""
+  ckTypeId: String!
+
+  """Display name of the entity (display rule), may be null."""
+  displayName: String
+
+  """Storage form."""
+  form: SecretStorageForm!
+
+  """Key id (ENC_V2 / KEY_MISSING only)."""
+  keyId: String
+
+  """KEY_MISSING or CORRUPT, or NOT_SET and required."""
+  needsReEntry: Boolean!
+
+  """
+  True when the slot's attribute is required (record member: within its record).
+  """
+  required: Boolean!
+
+  """Runtime id of the entity."""
+  rtId: OctoObjectId!
+
+  """Well-known name of the entity."""
+  rtWellKnownName: String
+
+  """When the value was set; null for legacy / not set."""
+  setAt: DateTime
+
+  """
+  RevealSecret@1 nodes that reveal (EXACT) or may reveal (BY_TYPE) this secret.
+  """
+  usedBy: [SecretUsage!]!
+}
+
+"""Counts of all secret slots of the tenant per storage form."""
+type SecretInventorySummary {
+  corrupt: Int!
+  encV1: Int!
+  encV2: Int!
+
+  """ENC_V2 slots per key id."""
+  encV2ByKeyId: [KeyIdCount!]!
+  keyMissing: Int!
+  needsReEntry: Int!
+  notSet: Int!
+  plaintext: Int!
+  total: Int!
+}
+
+"""Storage form of a secret value. Never the value."""
+enum SecretStorageForm {
+  """Stored value cannot be parsed (reads as not set, warning logged)."""
+  CORRUPT
+
+  """Legacy enc:v1 (instance key)."""
+  ENC_V1
+
+  """Protected, key id known."""
+  ENC_V2
+
+  """Protected, key id not in this environment's key ring."""
+  KEY_MISSING
+
+  """Null or missing."""
+  NOT_SET
+
+  """Legacy clear text still stored (before the Encrypt sweep)."""
+  PLAINTEXT
+}
+
+"""A pipeline node (RevealSecret@1) that reveals or may reveal a secret."""
+type SecretUsage {
+  """Name of the data flow."""
+  dataFlowName: String
+
+  """Data flow of the pipeline, if any."""
+  dataFlowRtId: OctoObjectId
+
+  """Exact or by type."""
+  match: SecretUsageMatch!
+
+  """
+  Position of the node in the pipeline definition, e.g. 'transformations[3]'.
+  """
+  nodePath: String!
+
+  """Name of the pipeline."""
+  pipelineName: String
+
+  """The pipeline."""
+  pipelineRtId: OctoObjectId!
+}
+
+"""How a RevealSecret@1 node refers to a secret."""
+enum SecretUsageMatch {
+  """
+  The node resolves the entity at run time (rtIdPath) on the same CK type and attribute.
+  """
+  BY_TYPE
+
+  """The node names the CK type, rtId and attribute of the secret."""
+  EXACT
+}
+
+"""
+Secrets overview of the tenant (requires the AdminPanelManagement role). Never returns values.
+"""
+type SecretsQuery {
+  """
+  Secret slots of the tenant with storage form, key id, set-at and re-entry state.
+  """
+  inventory(
+    """Cursor of the last item of the previous page."""
+    after: String
+
+    """Only entities of this CK type (derived types included)."""
+    ckTypeId: String
+
+    """Page size. Defaults to 50."""
+    first: Int = 50
+
+    """Only slots in one of these storage forms."""
+    forms: [SecretStorageForm!]
+
+    """true: only re-entry tasks; false: only slots without."""
+    needsReEntry: Boolean
+
+    """
+    Matches rtId, rtWellKnownName, display name or attribute path (never values).
+    """
+    search: String
+  ): SecretInventoryConnection!
+
+  """Counts of all secret slots per storage form."""
+  summary: SecretInventorySummary!
+
+  """
+  RevealSecret@1 nodes that reveal (EXACT) or may reveal (BY_TYPE) the secret slot.
+  """
+  usages(
+    """camelCase path of the slot."""
+    attributePath: String!
+
+    """CK type of the entity."""
+    ckTypeId: String!
+
+    """Runtime id of the entity."""
+    rtId: OctoObjectId!
+  ): [SecretUsage!]!
+}
 
 """
 Civil-boundary policy for a series query that spans multiple reference time zones (AB#4190).

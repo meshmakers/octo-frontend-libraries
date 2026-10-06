@@ -21028,6 +21028,15 @@ export type IndustryManufacturingShift_ParentUnionEdgeDto = {
   node?: Maybe<IndustryManufacturingShift_ParentUnionDto>;
 };
 
+/** Number of ENC_V2 secrets protected with a key id. */
+export type KeyIdCountDto = {
+  __typename?: 'KeyIdCount';
+  /** Number of secrets. */
+  count: Scalars['Int']['output'];
+  /** Key id. */
+  keyId: Scalars['String']['output'];
+};
+
 /** Meta information for large binaries */
 export type LargeBinaryInfoDto = {
   __typename?: 'LargeBinaryInfo';
@@ -21085,6 +21094,8 @@ export type OctoQueryDto = {
   blueprints?: Maybe<BlueprintsQueryDto>;
   constructionKit?: Maybe<ConstructionKitQueryDto>;
   runtime?: Maybe<RuntimeModelQueryDto>;
+  /** Secrets overview of the tenant: inventory, summary and pipeline usages of secret attributes. Requires the AdminPanelManagement role. Never returns values. */
+  secrets?: Maybe<SecretsQueryDto>;
   streamData?: Maybe<StreamDataModelQueryDto>;
 };
 
@@ -21986,8 +21997,12 @@ export enum OctoSdkDemoOperatingStatusDto {
 /** State of a secret attribute. The value of a secret is never returned by the API; set it with a string in a mutation and clear it with 'clearSecretAttributes'. */
 export type OctoSecretStateDto = {
   __typename?: 'OctoSecretState';
-  /** True when the secret holds a value. */
+  /** True when the secret holds a readable value. False when it is not set or when the stored value cannot be read (key missing, corrupt). */
   isSet: Scalars['Boolean']['output'];
+  /** True when a value is stored but its key id is not in this environment's key ring (e.g. after a restore from another environment); the secret has to be entered again. */
+  keyMissing: Scalars['Boolean']['output'];
+  /** When the current value was set (UTC). Null when not set or for values set before this was recorded (legacy). */
+  setAt?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type OctoSubscriptionsDto = {
@@ -24013,6 +24028,10 @@ export type RtEntityAttributeDto = {
   attributeName?: Maybe<Scalars['String']['output']>;
   /** For a Secret attribute: true when the secret holds a value (the value itself is never returned). Null for every other attribute. */
   secretIsSet?: Maybe<Scalars['Boolean']['output']>;
+  /** For a Secret attribute: true when a value is stored but cannot be read because its key id is not in the key ring (re-entry needed). Null for every other attribute. */
+  secretKeyMissing?: Maybe<Scalars['Boolean']['output']>;
+  /** For a Secret attribute: when the current value was set (UTC); null when not set, for legacy values and for every other attribute. */
+  secretSetAt?: Maybe<Scalars['DateTime']['output']>;
   /** Value of a scalar attribute. Always null for a Secret attribute, see 'secretIsSet'. */
   value?: Maybe<Scalars['SimpleScalar']['output']>;
 };
@@ -24045,6 +24064,10 @@ export type RtEntityAttributeInputDto = {
   attributeName?: InputMaybe<Scalars['String']['input']>;
   /** Accepted and ignored, so a client can send back what it read. Clearing a secret is only possible with 'clearSecretAttributes'. */
   secretIsSet?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Accepted and ignored, so a client can send back what it read. */
+  secretKeyMissing?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Accepted and ignored, so a client can send back what it read. */
+  secretSetAt?: InputMaybe<Scalars['DateTime']['input']>;
   /** Value of a scalar attribute. For a Secret attribute a non-empty string sets the secret; null, an empty string or an omitted value keep it unchanged. */
   value?: InputMaybe<Scalars['SimpleScalar']['input']>;
 };
@@ -27649,6 +27672,132 @@ export enum SearchFilterTypesDto {
   AttributeFilterDto = 'ATTRIBUTE_FILTER',
   TextSearchDto = 'TEXT_SEARCH'
 }
+
+/** A page of the secrets inventory. */
+export type SecretInventoryConnectionDto = {
+  __typename?: 'SecretInventoryConnection';
+  /** The slots of this page. */
+  items: Array<SecretInventoryItemDto>;
+  /** Paging information. */
+  pageInfo: PageInfoDto;
+  /** Number of slots matching the filters. */
+  totalCount: Scalars['Int']['output'];
+};
+
+/** One secret slot of an entity: storage form, key id and set-at, never the value. */
+export type SecretInventoryItemDto = {
+  __typename?: 'SecretInventoryItem';
+  /** CK attribute name (PascalCase) of the top-level attribute. */
+  attributeName: Scalars['String']['output'];
+  /** camelCase path of the slot; record members as 'endpoints[key=prod].token' / 'credentials.token'. */
+  attributePath: Scalars['String']['output'];
+  /** CK type of the entity. */
+  ckTypeId: Scalars['String']['output'];
+  /** Display name of the entity (display rule), may be null. */
+  displayName?: Maybe<Scalars['String']['output']>;
+  /** Storage form. */
+  form: SecretStorageFormDto;
+  /** Key id (ENC_V2 / KEY_MISSING only). */
+  keyId?: Maybe<Scalars['String']['output']>;
+  /** KEY_MISSING or CORRUPT, or NOT_SET and required. */
+  needsReEntry: Scalars['Boolean']['output'];
+  /** True when the slot's attribute is required (record member: within its record). */
+  required: Scalars['Boolean']['output'];
+  /** Runtime id of the entity. */
+  rtId: Scalars['OctoObjectId']['output'];
+  /** Well-known name of the entity. */
+  rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  /** When the value was set; null for legacy / not set. */
+  setAt?: Maybe<Scalars['DateTime']['output']>;
+  /** RevealSecret@1 nodes that reveal (EXACT) or may reveal (BY_TYPE) this secret. */
+  usedBy: Array<SecretUsageDto>;
+};
+
+/** Counts of all secret slots of the tenant per storage form. */
+export type SecretInventorySummaryDto = {
+  __typename?: 'SecretInventorySummary';
+  corrupt: Scalars['Int']['output'];
+  encV1: Scalars['Int']['output'];
+  encV2: Scalars['Int']['output'];
+  /** ENC_V2 slots per key id. */
+  encV2ByKeyId: Array<KeyIdCountDto>;
+  keyMissing: Scalars['Int']['output'];
+  needsReEntry: Scalars['Int']['output'];
+  notSet: Scalars['Int']['output'];
+  plaintext: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
+/** Storage form of a secret value. Never the value. */
+export enum SecretStorageFormDto {
+  /** Stored value cannot be parsed (reads as not set, warning logged). */
+  CorruptDto = 'CORRUPT',
+  /** Legacy enc:v1 (instance key). */
+  EncV1Dto = 'ENC_V1',
+  /** Protected, key id known. */
+  EncV2Dto = 'ENC_V2',
+  /** Protected, key id not in this environment's key ring. */
+  KeyMissingDto = 'KEY_MISSING',
+  /** Null or missing. */
+  NotSetDto = 'NOT_SET',
+  /** Legacy clear text still stored (before the Encrypt sweep). */
+  PlaintextDto = 'PLAINTEXT'
+}
+
+/** A pipeline node (RevealSecret@1) that reveals or may reveal a secret. */
+export type SecretUsageDto = {
+  __typename?: 'SecretUsage';
+  /** Name of the data flow. */
+  dataFlowName?: Maybe<Scalars['String']['output']>;
+  /** Data flow of the pipeline, if any. */
+  dataFlowRtId?: Maybe<Scalars['OctoObjectId']['output']>;
+  /** Exact or by type. */
+  match: SecretUsageMatchDto;
+  /** Position of the node in the pipeline definition, e.g. 'transformations[3]'. */
+  nodePath: Scalars['String']['output'];
+  /** Name of the pipeline. */
+  pipelineName?: Maybe<Scalars['String']['output']>;
+  /** The pipeline. */
+  pipelineRtId: Scalars['OctoObjectId']['output'];
+};
+
+/** How a RevealSecret@1 node refers to a secret. */
+export enum SecretUsageMatchDto {
+  /** The node resolves the entity at run time (rtIdPath) on the same CK type and attribute. */
+  ByTypeDto = 'BY_TYPE',
+  /** The node names the CK type, rtId and attribute of the secret. */
+  ExactDto = 'EXACT'
+}
+
+/** Secrets overview of the tenant (requires the AdminPanelManagement role). Never returns values. */
+export type SecretsQueryDto = {
+  __typename?: 'SecretsQuery';
+  /** Secret slots of the tenant with storage form, key id, set-at and re-entry state. */
+  inventory: SecretInventoryConnectionDto;
+  /** Counts of all secret slots per storage form. */
+  summary: SecretInventorySummaryDto;
+  /** RevealSecret@1 nodes that reveal (EXACT) or may reveal (BY_TYPE) the secret slot. */
+  usages: Array<SecretUsageDto>;
+};
+
+
+/** Secrets overview of the tenant (requires the AdminPanelManagement role). Never returns values. */
+export type SecretsQueryInventoryArgsDto = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  ckTypeId?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  forms?: InputMaybe<Array<SecretStorageFormDto>>;
+  needsReEntry?: InputMaybe<Scalars['Boolean']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** Secrets overview of the tenant (requires the AdminPanelManagement role). Never returns values. */
+export type SecretsQueryUsagesArgsDto = {
+  attributePath: Scalars['String']['input'];
+  ckTypeId: Scalars['String']['input'];
+  rtId: Scalars['OctoObjectId']['input'];
+};
 
 /** Civil-boundary policy for a series query that spans multiple reference time zones (AB#4190). */
 export enum SeriesComparisonPolicyDto {

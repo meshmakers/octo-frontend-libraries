@@ -11,7 +11,7 @@ export type EntityFormGetValuesQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type EntityFormGetValuesQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null, secretIsSet?: boolean | null } | null> | null } | null } | null> | null } | null } | null };
+export type EntityFormGetValuesQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null, secretIsSet?: boolean | null, secretKeyMissing?: boolean | null, secretSetAt?: any | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const EntityFormGetValuesDocumentDto = gql`
     query entityFormGetValues($ckTypeId: String!, $rtId: OctoObjectId, $fieldFilters: [FieldFilter], $attributeNames: [String]!) {
@@ -35,6 +35,8 @@ export const EntityFormGetValuesDocumentDto = gql`
             attributeName
             value
             secretIsSet
+            secretKeyMissing
+            secretSetAt
           }
         }
       }

@@ -4,7 +4,7 @@
 # all non-credential attributes of a type. Omitting the argument would return EVERY
 # attribute, passwords and client secrets included.
 # SECRET-typed attributes (AB#5528) may be listed: the server returns value null plus
-# secretIsSet (TODO(AB#5542): add secretKeyMissing secretSetAt after the backend rebuild).
+# secretIsSet, secretKeyMissing and secretSetAt (the state, never the value).
 query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!, $attributeNames: [String!]!) {
   runtime {
     runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
@@ -21,6 +21,8 @@ query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!, $attributeN
             attributeName
             value
             secretIsSet
+            secretKeyMissing
+            secretSetAt
           }
         }
         associations {
