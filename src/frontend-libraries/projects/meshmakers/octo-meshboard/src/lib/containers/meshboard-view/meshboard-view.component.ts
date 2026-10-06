@@ -368,6 +368,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // Mark initial load as complete so the effect can handle subsequent board switches
       this.initialLoadComplete = true;
 
+      // `?edit=1` (e.g. "Edit" in a host's board list) opens the board in edit mode;
+      // ignored on read-only routes.
+      if (this.route.snapshot.queryParamMap.get('edit') === '1' && !this.isReadonly() && !this.isEditMode()) {
+        this.editModeService.enterEditMode(this.stateService.getConfig());
+      }
+
       // The constructor effect skipped the URL sync during the initial load
       // (and already consumed the rtId via lastNavigatedRtId), so sync once
       // here, after loading settled — the transient board from

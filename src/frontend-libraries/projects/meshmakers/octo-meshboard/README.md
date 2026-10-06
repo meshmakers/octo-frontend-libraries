@@ -72,6 +72,12 @@ To set a Well-Known Name for a MeshBoard:
 
 The Well-Known Name should be lowercase with hyphens, similar to URL slugs.
 
+### Open in edit mode (`?edit=1`)
+
+A `?edit=1` query parameter opens the board in edit mode once it has loaded (e.g. the "Edit"
+action of a host's board list: `/ui/meshboards/<rtId>?edit=1`). It is ignored on routes with
+`meshBoardReadonly: true`.
+
 ### URL Sync (`meshBoardSyncUrl`)
 
 After the initial load and after every post-init board switch (e.g. via the
