@@ -212,6 +212,42 @@ describe('CommunicationService', () => {
     });
   });
 
+  describe('rotateServiceAccountConfigurationSecret', () => {
+    const configurationRtId = '65d5c447b420da3fb12381cd';
+    const rotateUri =
+      `${mockConfig.communicationServices}${tenantId}/v1/serviceAccount/${configurationRtId}/rotateSecret`;
+
+    it('POSTs the configuration-bound route (AB#5111) and returns the controller result', async () => {
+      const promise = service.rotateServiceAccountConfigurationSecret(tenantId, configurationRtId);
+
+      const req = httpMock.expectOne(rotateUri);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush({
+        clientId: 'pipeline-svc-standalone',
+        configurationWellKnownName: 'ReportingSA',
+        wasCreated: false,
+        requiresPipelineRedeploy: true,
+        message: 'The client secret ... was rotated. Redeploy the pipelines / data flows.'
+      });
+
+      const result = await promise;
+      expect(result.clientId).toBe('pipeline-svc-standalone');
+      expect(result.requiresPipelineRedeploy).toBe(true);
+    });
+
+    it('rejects when the controller refuses the rotation', async () => {
+      const promise = service.rotateServiceAccountConfigurationSecret(tenantId, configurationRtId);
+
+      httpMock.expectOne(rotateUri).flush(
+        { errorMessage: 'Rotating the pipeline service account secret failed: x. The previous secret remains in effect.' },
+        { status: 400, statusText: 'Bad Request' }
+      );
+
+      await expect(promise).rejects.toBeTruthy();
+    });
+  });
+
   describe('rotateAdapterServiceAccountSecret', () => {
     const adapterRtId = '65d5c447b420da3fb12381bc';
     const rotateUri =
