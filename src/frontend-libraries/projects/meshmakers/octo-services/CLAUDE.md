@@ -856,5 +856,6 @@ ng test @meshmakers/octo-services --watch=false --coverage
 - `@angular/common/http` - HTTP client
 - `@apollo/client` - GraphQL client
 - `apollo-angular` - Angular Apollo integration
+- `graphql` - GraphQL reference implementation; a **peer dependency** (`^16.0.0 || ^17.0.0`, the range apollo-angular and @apollo/client declare) because the public API exposes its types (`DocumentNode`). Do not move it to `dependencies` — a second copy of `graphql` breaks `instanceof` checks in Apollo.
 - `@meshmakers/shared-services` - Shared services (MessageService, PagedResultDto)
 - `@meshmakers/shared-ui` - Shared UI (ProgressWindowService)

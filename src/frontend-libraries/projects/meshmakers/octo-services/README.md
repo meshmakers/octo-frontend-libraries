@@ -142,6 +142,7 @@ See [CLAUDE.md](CLAUDE.md) for development guidelines, CK ID types, GraphQL util
 
 - **Angular 21** (core, common/http)
 - **Apollo Angular** / **@apollo/client** (GraphQL client)
+- **graphql** (peer dependency, `^16.0.0 || ^17.0.0` like apollo-angular / @apollo/client: the public API exposes `DocumentNode` and the GraphQL helpers parse documents)
 - **tus-js-client** (resumable uploads)
 - **@meshmakers/shared-auth** (AuthorizeService for TUS uploads)
 - **@meshmakers/shared-services** (MessageService, PagedResultDto)
