@@ -68,13 +68,56 @@ export function placeWidgetsForTier(
   }
 
   const columns = columnsForTier(tier, configuredColumns);
-  return [...widgets]
+  const placements = [...widgets]
     .sort((a, b) => (a.row - b.row) || (a.col - b.col))
     .map(widget => ({
       widget,
       colSpan: scaleColSpan(widget.colSpan, configuredColumns, columns),
       rowSpan: widget.rowSpan
     }));
+  fitRowsToColumns(placements, configuredColumns, columns);
+  return placements;
+}
+
+/**
+ * Keeps widgets that share a row side by side on the reduced grid (AB#5558): two span-3 widgets
+ * of a 6-column board both round to 2 of 3 columns and would wrap onto two half-empty rows. When
+ * the widgets starting in one configured row fit that row but their scaled spans do not fit the
+ * tier, the tier's columns are shared out by largest remainder (each at least 1; ties go to the
+ * wider, then the left widget) — 3 + 3 of 6 becomes 2 + 1 of 3. Mutates `placements`.
+ */
+function fitRowsToColumns(placements: WidgetPlacement[], configuredColumns: number, columns: number): void {
+  if (configuredColumns <= 0 || columns >= configuredColumns) {
+    return;
+  }
+  const rows = new Map<number, WidgetPlacement[]>();
+  for (const placement of placements) {
+    const row = rows.get(placement.widget.row) ?? [];
+    row.push(placement);
+    rows.set(placement.widget.row, row);
+  }
+  for (const row of rows.values()) {
+    const configured = row.reduce((sum, p) => sum + p.widget.colSpan, 0);
+    const scaled = row.reduce((sum, p) => sum + p.colSpan, 0);
+    if (row.length < 2 || row.length > columns || configured > configuredColumns || scaled <= columns) {
+      continue;
+    }
+    const shares = row.map(p => {
+      const exact = p.widget.colSpan * columns / configuredColumns;
+      return { p, span: Math.max(1, Math.floor(exact)), remainder: exact - Math.floor(exact) };
+    });
+    let left = columns - shares.reduce((sum, share) => sum + share.span, 0);
+    const byRemainder = [...shares].sort((a, b) =>
+      (b.remainder - a.remainder) || (b.p.widget.colSpan - a.p.widget.colSpan) || (a.p.widget.col - b.p.widget.col));
+    for (const share of byRemainder) {
+      if (left <= 0) break;
+      share.span++;
+      left--;
+    }
+    for (const share of shares) {
+      share.p.colSpan = share.span;
+    }
+  }
 }
 
 /**

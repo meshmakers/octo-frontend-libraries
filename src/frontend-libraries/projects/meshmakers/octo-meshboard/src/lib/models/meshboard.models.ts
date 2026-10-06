@@ -271,7 +271,8 @@ export type WidgetType =
   | 'alertBanner'
   | 'alertList'
   | 'aiInsights'
-  | CockpitWidgetType;
+  | CockpitWidgetType
+  | 'recentItems';
 
 /**
  * Widget placement zone.
@@ -1148,6 +1149,19 @@ export interface PipelineExecutionsWidgetConfig extends WidgetConfig, CockpitKpi
 /** Any cockpit KPI widget. */
 export type CockpitKpiWidgetConfig = AdapterStatusWidgetConfig | CkModelStateWidgetConfig | PipelineExecutionsWidgetConfig;
 
+/**
+ * "Recent items" (AB#5558) — the viewer's recently opened pages, entities and boards, from the
+ * host's `COCKPIT_RECENT_ITEMS` source (in the Refinery Studio the same history as the empty
+ * Cmd+K palette). Per user, so the board only stores how many rows to show. Registered by
+ * `provideCockpitWidgets()`, but deliberately NOT a {@link CockpitWidgetType}: it is no health
+ * widget, so a board that only shows recents still gets a host's health fallbacks.
+ */
+export interface RecentItemsWidgetConfig extends WidgetConfig {
+  type: 'recentItems';
+  /** Rows shown (default 8, 1–20). */
+  maxItems?: number;
+}
+
 // Process Widget Config is defined in the process-widget module
 // Re-exported here for AnyWidgetConfig union
 import type { ProcessWidgetConfig, DiagramPropertyMapping } from '../widgets/process-widget/process-widget-config.model';
@@ -1177,7 +1191,8 @@ export type AnyWidgetConfig =
   | AttentionListWidgetConfig
   | AdapterStatusWidgetConfig
   | CkModelStateWidgetConfig
-  | PipelineExecutionsWidgetConfig;
+  | PipelineExecutionsWidgetConfig
+  | RecentItemsWidgetConfig;
 
 // ============================================================================
 // MeshBoard Variables

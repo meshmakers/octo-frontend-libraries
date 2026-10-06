@@ -1,6 +1,6 @@
 import { SystemCommunicationDeploymentStateDto } from '@meshmakers/octo-services';
 import { isAdapterExpectedToRun, isAdapterOnline, summarizeAdapterOnline } from '../../utils/adapter-online';
-import { buildHourlyHistogram, countPipelineExecutions, HourlyExecutionBucket, pipelineExecutionInputs, RawHourBucket } from '../../utils/pipeline-executions';
+import { buildHourlyHistogram, countPipelineExecutions, HourlyExecutionBucket, latestStatisticsUpdate, pipelineExecutionInputs, RawHourBucket } from '../../utils/pipeline-executions';
 import { CockpitLinkTarget } from '../cockpit-host';
 import { CockpitAdapterStates } from '../data/cockpit-adapter-states.service';
 
@@ -111,13 +111,15 @@ export function adapterKpi({ states, totalCount }: CockpitAdapterStates): Cockpi
 
 /**
  * "Pipeline executions 24 h", computed exactly like the Studio's Data Flows list
- * (`countPipelineExecutions` per data flow, the hourly histogram per flow seeded with that flow's
- * live 1 h counts), then summed over the flows — so the cockpit and the list agree.
+ * (`countPipelineExecutions` per data flow, the hourly histogram per flow anchored on the newest
+ * statistics update, AB#5583), then summed over the flows — so the cockpit and the list agree.
  */
 export function executionKpi(flows: CockpitDataFlowRow[], totalCount = flows.length): CockpitKpi {
   let ok = 0;
   let failed = 0;
   const slots: HourlyExecutionBucket[][] = [];
+  // One time axis for all flows (the bars are summed per index): the newest statistics update.
+  const anchor = latestStatisticsUpdate(flows.flatMap(flow => pipelineExecutionInputs(flow.children?.items).map(input => input.statistics)));
   for (const flow of flows) {
     const inputs = pipelineExecutionInputs(flow.children?.items);
     if (inputs.length === 0) {
@@ -134,7 +136,7 @@ export function executionKpi(flows: CockpitDataFlowRow[], totalCount = flows.len
         }
       }
     }
-    slots.push(buildHourlyHistogram(buckets, counts.success1h, counts.failure1h));
+    slots.push(buildHourlyHistogram(buckets, { anchor: anchor ?? undefined }));
   }
   const sparkline = slots.length > 0
     ? slots[0].map((_, index) => slots.reduce((sum, flowSlots) => sum + flowSlots[index].ok + flowSlots[index].fail, 0))

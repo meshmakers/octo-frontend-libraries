@@ -4,7 +4,8 @@ import {
   AttentionListWidgetConfig,
   CkModelStateWidgetConfig,
   CockpitKpiWidgetConfig,
-  PipelineExecutionsWidgetConfig
+  PipelineExecutionsWidgetConfig,
+  RecentItemsWidgetConfig
 } from '../models/meshboard.models';
 import { BaseWidgetConfig, PersistedWidgetData, WidgetPersistenceData, WidgetRegistryService } from '../services/widget-registry.service';
 import { AttentionProvider, COCKPIT_ATTENTION_PROVIDERS } from './attention/attention.models';
@@ -16,6 +17,8 @@ import { AttentionListConfigDialogComponent, AttentionListConfigResult } from '.
 import { AttentionListWidgetComponent } from './widgets/attention-list-widget.component';
 import { CockpitKpiConfigDialogComponent, CockpitKpiConfigResult } from './widgets/cockpit-kpi-config-dialog.component';
 import { CockpitKpiWidgetComponent } from './widgets/cockpit-kpi-widget.component';
+import { RecentItemsConfigDialogComponent, RecentItemsConfigResult } from './widgets/recent-items-config-dialog.component';
+import { MAX_RECENT_ITEMS, RecentItemsWidgetComponent } from './widgets/recent-items-widget.component';
 
 /** The library's attention providers, in display order (errors of the platform first). */
 export const BUILT_IN_ATTENTION_PROVIDERS: readonly Type<AttentionProvider>[] = [
@@ -121,8 +124,8 @@ function registerKpiWidget<T extends CockpitKpiWidgetConfig>(
 }
 
 /**
- * Registers the cockpit widgets (AB#5558): "Attention list", "Adapter status", "CK model state"
- * and "Pipeline executions 24 h". Persisted with `dataSourceType: 'static'` and a small JSON
+ * Registers the cockpit widgets (AB#5558): "Attention list", "Adapter status", "CK model state",
+ * "Pipeline executions 24 h" and "Recent items". Persisted with `dataSourceType: 'static'` and a small JSON
  * config (see the README widget catalogue for the exact keys).
  */
 export function registerCockpitWidgets(registry: WidgetRegistryService): void {
@@ -180,6 +183,41 @@ export function registerCockpitWidgets(registry: WidgetRegistryService): void {
   registerKpiWidget<AdapterStatusWidgetConfig>(registry, 'adapterStatus', 'Adapter Status', { colSpan: 2, rowSpan: 1 });
   registerKpiWidget<CkModelStateWidgetConfig>(registry, 'ckModelState', 'CK Model State', { colSpan: 2, rowSpan: 1 });
   registerKpiWidget<PipelineExecutionsWidgetConfig>(registry, 'pipelineExecutions', 'Pipeline Executions 24 h', { colSpan: 2, rowSpan: 1 });
+
+  registry.registerWidget<RecentItemsWidgetConfig, RecentItemsConfigResult>({
+    type: 'recentItems',
+    label: 'Recent Items',
+    component: RecentItemsWidgetComponent,
+    configDialogComponent: RecentItemsConfigDialogComponent,
+    configDialogSize: { width: 480, height: 300, minWidth: 380, minHeight: 260 },
+    configDialogTitle: 'Recent Items Configuration',
+    // Two 200 px rows hold the default eight entries.
+    defaultSize: { colSpan: 3, rowSpan: 2 },
+    supportedDataSources: ['static'],
+    getInitialConfig: (widget) => ({ initialMaxItems: widget.maxItems }),
+    applyConfigResult: (widget, result) => ({ ...widget, maxItems: result.maxItems, dataSource: { type: 'static' } }),
+    createDefaultConfig: (base: BaseWidgetConfig): RecentItemsWidgetConfig => ({
+      ...base,
+      type: 'recentItems',
+      colSpan: 3,
+      rowSpan: 2,
+      dataSource: { type: 'static' }
+    }),
+    toPersistedConfig: (widget: RecentItemsWidgetConfig): WidgetPersistenceData => ({
+      dataSourceType: 'static',
+      config: { maxItems: widget.maxItems }
+    }),
+    fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): RecentItemsWidgetConfig => {
+      const maxItems = positiveInteger(parseConfig(data)['maxItems']);
+      return {
+        ...base,
+        rtId: data.rtId,
+        type: 'recentItems',
+        dataSource: { type: 'static' },
+        maxItems: maxItems === undefined ? undefined : Math.min(MAX_RECENT_ITEMS, maxItems)
+      };
+    }
+  });
 }
 
 /**

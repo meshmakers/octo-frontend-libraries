@@ -71,9 +71,26 @@ describe('cockpit KPI mapping', () => {
     expect(kpi).toMatchObject({ value: '1,284', status: 'error', statusLabel: '3 failed', detail: '1,281 succeeded', link: { kind: 'dataFlows' } });
     expect(kpi.sparkline).toHaveLength(24);
     expect(kpi.sparkline![21]).toBe(16);
-    expect(kpi.sparkline![23]).toBe(4);
+    // AB#5583: the rolling last-hour counts are no longer seeded into the current bar.
+    expect(kpi.sparkline![23]).toBe(0);
     expect(kpi.sparklineLabel).toContain('peak 16');
     expect(kpi.sparklineLabel).toContain('3 failed');
+  });
+
+  it('ends the sparkline with the hour of the newest statistics update (AB#5583)', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-06T11:02:00Z'));
+    try {
+      // Statistics swept at 10:58 (previous clock hour): the bars end with 10:00, not 11:00.
+      const bucket = { hourStartAt: '2026-10-06T10:00:00Z', successCount: 3, failureCount: 0 };
+      const kpi = executionKpi([
+        flow(pipeline({ last24HoursSuccessCount: 3, lastUpdatedAt: '2026-10-06T10:58:00Z', hourlyBuckets: [bucket] })),
+        flow(pipeline({ last24HoursSuccessCount: 0, lastUpdatedAt: '2026-10-06T10:40:00Z', hourlyBuckets: [] }))
+      ]);
+      expect(kpi.sparkline![23]).toBe(3);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('is idle without executions and says "≥" when the flows were capped', () => {

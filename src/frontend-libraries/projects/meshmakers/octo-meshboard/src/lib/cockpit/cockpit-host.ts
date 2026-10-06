@@ -1,4 +1,4 @@
-import { InjectionToken, Provider } from '@angular/core';
+import { InjectionToken, Provider, Signal } from '@angular/core';
 
 /**
  * Host services of the cockpit widgets (AB#5558). The widgets live in this library and know
@@ -81,11 +81,51 @@ export interface CockpitExplainHandler {
 /** Optional: without it the attention list shows no "✦ Explain" buttons. */
 export const COCKPIT_EXPLAIN_HANDLER = new InjectionToken<CockpitExplainHandler>('COCKPIT_EXPLAIN_HANDLER');
 
+/** What a recent item points at (drives the row glyph). */
+export type CockpitRecentItemKind = 'page' | 'entity' | 'board';
+
+/** One row of the "Recent items" widget, already checked by the host for the viewer. */
+export interface CockpitRecentItem {
+  /** Stable key (e.g. the router URL without query). */
+  key: string;
+  kind: CockpitRecentItemKind;
+  /** What the viewer opened, e.g. "Mesh Adapter". */
+  label: string;
+  /** What it is, e.g. "MeshBoard" or "Integration › Adapters". */
+  kindLabel: string;
+  /** Epoch milliseconds of the last visit (shown as relative time). */
+  lastVisitedAt: number;
+  /** Real href of the link, so middle-click, Cmd/Ctrl-click and the context menu work. */
+  href: string;
+}
+
+/**
+ * The viewer's recently opened places — a per-user history the board does not store. The host
+ * owns it (the Refinery Studio: the same history as the empty Cmd+K palette), re-checks every
+ * entry against what the viewer may still open and decides how an entry opens.
+ */
+export interface CockpitRecentItemsSource {
+  /** Changes whenever the history changes; the widget then re-reads {@link items}. */
+  readonly revision?: Signal<unknown>;
+  /** Most recently opened first, at most `limit`, only entries the viewer may still open. */
+  items(limit: number): Promise<CockpitRecentItem[]>;
+  /** Opens an entry on a plain left click (modified clicks are left to the browser). */
+  open(item: CockpitRecentItem): void | Promise<void>;
+  /** Optional: opens the host's command palette, offered as "⌘K shows the same list". */
+  openPalette?(): void;
+  /** Label of the palette shortcut, e.g. "⌘K" or "Ctrl K" (default "Ctrl K"). */
+  readonly paletteShortcut?: string;
+}
+
+/** The host's recent items; without it the "Recent items" widget says "Not available" and collapses. */
+export const COCKPIT_RECENT_ITEMS = new InjectionToken<CockpitRecentItemsSource>('COCKPIT_RECENT_ITEMS');
+
 /** The host services in one call (`providers: [...provideCockpitWidgetHost({...})]`). */
 export interface CockpitWidgetHost {
   access?: () => CockpitViewerAccess;
   links?: () => CockpitLinkResolver;
   explain?: () => CockpitExplainHandler;
+  recents?: () => CockpitRecentItemsSource;
 }
 
 /**
@@ -109,6 +149,9 @@ export function provideCockpitWidgetHost(host: CockpitWidgetHost): Provider[] {
   }
   if (host.explain) {
     providers.push({ provide: COCKPIT_EXPLAIN_HANDLER, useFactory: host.explain });
+  }
+  if (host.recents) {
+    providers.push({ provide: COCKPIT_RECENT_ITEMS, useFactory: host.recents });
   }
   return providers;
 }

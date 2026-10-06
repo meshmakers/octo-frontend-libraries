@@ -69,6 +69,17 @@ describe('compact-layout', () => {
       expect(tiles.map(p => [p.widget.id, p.colSpan])).toEqual([['wide', 3], ['a', 1], ['b', 1], ['c', 1]]);
     });
 
+    it('keeps two halves of a 6-column row side by side on tablets (AB#5558: CK models | Recently opened)', () => {
+      const tiles = placeWidgetsForTier([widget('pie', 1, 4, 3, 2), widget('recents', 4, 4, 3, 2), widget('wide', 1, 1, 6, 2)], 'tablet', 6);
+      expect(tiles.map(t => [t.widget.id, t.colSpan])).toEqual([['wide', 3], ['pie', 2], ['recents', 1]]);
+      // A 5 + 1 row: 3 + 1 would wrap, so it shares as 2 + 1.
+      const uneven = placeWidgetsForTier([widget('big', 1, 1, 5), widget('small', 6, 1, 1)], 'tablet', 6);
+      expect(uneven.map(t => t.colSpan)).toEqual([2, 1]);
+      // Rows that already fit and the phone tier are untouched.
+      expect(placeWidgetsForTier([widget('a', 1, 1, 4), widget('b', 5, 1, 2)], 'tablet', 6).map(t => t.colSpan)).toEqual([2, 1]);
+      expect(placeWidgetsForTier([widget('pie', 1, 4, 3), widget('recents', 4, 4, 3)], 'phone', 6).map(t => t.colSpan)).toEqual([1, 1]);
+    });
+
     it('scales spans proportionally, at least 1 and at most the tier columns', () => {
       expect(scaleColSpan(1, 6, 3)).toBe(1);
       expect(scaleColSpan(3, 6, 3)).toBe(2);

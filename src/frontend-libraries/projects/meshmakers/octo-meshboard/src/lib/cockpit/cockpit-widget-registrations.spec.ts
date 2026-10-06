@@ -5,13 +5,15 @@ import {
   AttentionListWidgetConfig,
   COCKPIT_WIDGET_TYPES,
   isCockpitWidgetType,
-  PipelineExecutionsWidgetConfig
+  PipelineExecutionsWidgetConfig,
+  RecentItemsWidgetConfig
 } from '../models/meshboard.models';
 import { registerDefaultWidgets } from '../registrations/default-widget-registrations';
 import { PersistedWidgetData, WidgetRegistryService } from '../services/widget-registry.service';
 import { registerCockpitWidgets } from './cockpit-widget-registrations';
 import { AttentionListWidgetComponent } from './widgets/attention-list-widget.component';
 import { CockpitKpiWidgetComponent } from './widgets/cockpit-kpi-widget.component';
+import { RecentItemsWidgetComponent } from './widgets/recent-items-widget.component';
 
 /** A `System.UI/DashboardWidget` row of a seeded board (blueprint seed YAML attributes). */
 interface SeedWidgetRow {
@@ -26,22 +28,23 @@ interface SeedWidgetRow {
 }
 
 /**
- * The widgets of the `cockpit` board seeded by the System.UI.TenantCockpit blueprint (1.2.0,
+ * The widgets of the `cockpit` board seeded by the System.UI.TenantCockpit blueprint (1.3.0,
  * octo-platform-services `src/SystemUiCkModel/Blueprints/System.UI.TenantCockpit/seed-data/entities.yaml`).
  * Keep in step with the seed: when the sibling repository is checked out next to this one (the
  * worktree-pair layout) and its TenantCockpit blueprint is >= TENANT_COCKPIT_SEED_VERSION, a test
  * compares this fixture with the real seed file; older sibling branches are skipped.
  */
 /** Blueprint version of System.UI.TenantCockpit whose seed the fixture below describes. */
-const TENANT_COCKPIT_SEED_VERSION = '1.2.0';
+const TENANT_COCKPIT_SEED_VERSION = '1.3.0';
 
 const TENANT_COCKPIT_SEED: SeedWidgetRow[] = [
-  { name: 'Construction Kit Models', type: 'pieChart', col: 1, row: 4, colSpan: 2, rowSpan: 2, dataSourceType: 'constructionKitQuery',
+  { name: 'Construction Kit Models', type: 'pieChart', col: 1, row: 4, colSpan: 3, rowSpan: 2, dataSourceType: 'constructionKitQuery',
     config: '{"chartType":"pie","categoryField":"","valueField":"","showLabels":false,"showLegend":true,"legendPosition":"right","ckQueryTarget":"models","ckGroupBy":"modelState"}' },
   { name: 'Needs attention', type: 'attentionList', col: 1, row: 1, colSpan: 6, rowSpan: 2, dataSourceType: 'static', config: '{"maxItems":6}' },
   { name: 'Adapters online', type: 'adapterStatus', col: 1, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
   { name: 'CK models', type: 'ckModelState', col: 3, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
-  { name: 'Pipeline executions 24 h', type: 'pipelineExecutions', col: 5, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true,"showSparkline":true}' }
+  { name: 'Pipeline executions 24 h', type: 'pipelineExecutions', col: 5, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true,"showSparkline":true}' },
+  { name: 'Recently opened', type: 'recentItems', col: 4, row: 4, colSpan: 3, rowSpan: 2, dataSourceType: 'static', config: '{"maxItems":8}' }
 ];
 
 function persisted(row: SeedWidgetRow, index: number): PersistedWidgetData {
@@ -139,6 +142,24 @@ describe('Cockpit widget registrations (AB#5558)', () => {
     expect(isCockpitWidgetType('kpi')).toBe(false);
   });
 
+  it('registers "Recent items" with a dialog, but not as a health widget type', () => {
+    expect(registry.getWidgetComponent('recentItems')).toBe(RecentItemsWidgetComponent);
+    expect(registry.hasConfigDialog('recentItems')).toBe(true);
+    expect(isCockpitWidgetType('recentItems')).toBe(false);
+    expect(registry.createWidget('recentItems', { id: 'r', title: 'R', col: 1, row: 1, colSpan: 1, rowSpan: 1 }))
+      .toMatchObject({ type: 'recentItems', colSpan: 3, rowSpan: 2, dataSource: { type: 'static' } });
+  });
+
+  it('round-trips the recent items row count and clamps foreign values', () => {
+    const base = registry.createWidget('recentItems', { id: 'r', title: 'Recently opened', col: 4, row: 4, colSpan: 3, rowSpan: 2 }) as RecentItemsWidgetConfig;
+    const applied = registry.applyConfigResult(base, { ckTypeId: '', maxItems: 5 } as never) as RecentItemsWidgetConfig;
+    expect(registry.serializeWidget(applied)).toEqual({ dataSourceType: 'static', config: { maxItems: 5 } });
+    expect(roundTrip(applied)).toMatchObject({ type: 'recentItems', title: 'Recently opened', maxItems: 5 });
+    const seedRow = TENANT_COCKPIT_SEED.find(row => row.type === 'recentItems')!;
+    expect(registry.deserializeWidget({ ...persisted(seedRow, 9), config: '{"maxItems":500}' })).toMatchObject({ maxItems: 20 });
+    expect(registry.deserializeWidget({ ...persisted(seedRow, 9), config: '{"maxItems":"many"}' })).toMatchObject({ maxItems: undefined });
+  });
+
   it('creates defaults with a static data source', () => {
     const widget = registry.createWidget('attentionList', { id: 'a', title: 'A', col: 1, row: 1, colSpan: 1, rowSpan: 1 });
     expect(widget).toMatchObject({ type: 'attentionList', colSpan: 6, rowSpan: 2, dataSource: { type: 'static' } });
@@ -172,12 +193,15 @@ describe('Cockpit widget registrations (AB#5558)', () => {
 
   it('parses the seeded tenant cockpit board as the library persists it', () => {
     const widgets = TENANT_COCKPIT_SEED.map((row, index) => registry.deserializeWidget(persisted(row, index)));
-    expect(widgets.map(w => w.type)).toEqual(['pieChart', 'attentionList', 'adapterStatus', 'ckModelState', 'pipelineExecutions']);
+    expect(widgets.map(w => w.type)).toEqual(['pieChart', 'attentionList', 'adapterStatus', 'ckModelState', 'pipelineExecutions', 'recentItems']);
     expect(widgets[1]).toMatchObject({ title: 'Needs attention', providerIds: undefined, maxItems: 6, col: 1, row: 1, colSpan: 6 });
     expect(widgets[4]).toMatchObject({ showDetail: true, showSparkline: true, colSpan: 2 });
+    // Wireframe Home row "Construction Kit Models | Recently opened": side by side, same rows.
+    expect(widgets[0]).toMatchObject({ col: 1, row: 4, colSpan: 3, rowSpan: 2 });
+    expect(widgets[5]).toMatchObject({ title: 'Recently opened', maxItems: 8, col: 4, row: 4, colSpan: 3, rowSpan: 2 });
     // The seed encodes each cockpit widget exactly as toPersistedConfig would.
     for (const [index, widget] of widgets.entries()) {
-      if (!isCockpitWidgetType(widget.type)) continue;
+      if (!isCockpitWidgetType(widget.type) && widget.type !== 'recentItems') continue;
       const serialized = registry.serializeWidget(widget);
       expect(serialized.dataSourceType).toBe(TENANT_COCKPIT_SEED[index].dataSourceType);
       expect(JSON.parse(JSON.stringify(serialized.config))).toEqual(JSON.parse(TENANT_COCKPIT_SEED[index].config));
