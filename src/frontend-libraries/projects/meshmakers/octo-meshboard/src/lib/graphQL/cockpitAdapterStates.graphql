@@ -1,0 +1,24 @@
+# Cockpit widgets (AB#5558, moved from the Studio's Home cockpit, AB#5545).
+# State of every adapter: feeds the "Adapter status" KPI and the adapters
+# provider of the "Attention list" (one request per tenant, shared for 10 s by
+# CockpitAdapterStatesService). Explicit fields only — never configuration
+# blobs or secrets.
+query cockpitAdapterStates($first: Int) {
+  runtime {
+    systemCommunicationAdapter(
+      first: $first
+      sortOrder: [{ attributePath: "name", sortOrder: ASCENDING }]
+    ) {
+      totalCount
+      items {
+        rtId
+        name
+        communicationState
+        communicationStateTimestamp
+        deploymentState
+        configurationState
+        lifecycleState
+      }
+    }
+  }
+}

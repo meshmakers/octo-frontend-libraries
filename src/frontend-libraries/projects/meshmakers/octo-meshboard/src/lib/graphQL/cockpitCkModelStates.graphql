@@ -1,0 +1,35 @@
+# Cockpit widgets (AB#5558): CK models per state for the "CK model state" KPI
+# and the ResolveFailed provider of the "Attention list". The filter values are
+# the C# enum member names (Available / Importing / ResolveFailed): the backend
+# resolves an enum filter value by lowercased substring of the member names, so
+# the GraphQL spelling RESOLVE_FAILED would never match.
+query cockpitCkModelStates($first: Int) {
+  constructionKit {
+    all: models(first: 1) {
+      totalCount
+    }
+    available: models(
+      first: 1
+      fieldFilter: [{ attributePath: "modelState", operator: EQUALS, comparisonValue: "Available" }]
+    ) {
+      totalCount
+    }
+    importing: models(
+      first: 1
+      fieldFilter: [{ attributePath: "modelState", operator: EQUALS, comparisonValue: "Importing" }]
+    ) {
+      totalCount
+    }
+    resolveFailed: models(
+      first: $first
+      fieldFilter: [{ attributePath: "modelState", operator: EQUALS, comparisonValue: "ResolveFailed" }]
+    ) {
+      totalCount
+      items {
+        id {
+          fullName
+        }
+      }
+    }
+  }
+}

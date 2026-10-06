@@ -370,6 +370,7 @@ interface AggregationQuery {
 | `summaryCard` | Compact data tiles | runtimeEntity, aggregation, persistentQuery (per tile; runtime + stream-data) |
 | `process` | Process diagram (HMI) | runtimeEntity, persistentQuery (runtime + stream-data) |
 | `markdown` | Static markdown content with themed styling | static |
+| `attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions` | Cockpit widgets (AB#5558) — see *Cockpit Widgets* | none (static) |
 | `heatmap` | Day × time-slot density grid (count/sum/avg per slot) | persistentQuery (runtime + stream-data) |
 
 > **Heatmap color modes.** `HeatmapWidgetConfig.colorMode` selects how cells are
@@ -1043,6 +1044,40 @@ The original class names remain for backward compatibility:
 - `@meshmakers/octo-services` - Backend services, DTOs
 - `@meshmakers/octo-ui` - UI components, CK type selector
 - `@meshmakers/shared-ui` - Shared UI utilities
+
+---
+
+## Cockpit Widgets (AB#5558)
+
+`src/lib/cockpit/` — the Home cockpit elements of the Refinery Studio (AB#5545) as widget types
+(`attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions`); catalogue and host
+setup in the README ("Cockpit Widgets").
+
+```
+cockpit/
+├── cockpit-host.ts                  # COCKPIT_VIEWER_ACCESS / COCKPIT_LINK_RESOLVER / COCKPIT_EXPLAIN_HANDLER, provideCockpitWidgetHost
+├── cockpit-context.service.ts       # tenant, allows(roles, models) (fails closed), resolveLink, explain
+├── cockpit-widget-registrations.ts  # registerCockpitWidgets / provideCockpitWidgets (+ built-in providers)
+├── attention/                       # AttentionProvider contract, CockpitAttentionService, providers/
+├── data/                            # adapter states + CK model counts (10 s per-tenant share)
+├── kpi/                             # pure KPI mapping (adapterKpi, executionKpi, ckModelKpi, sparklineGeometry) + CockpitKpiService
+└── widgets/                         # AttentionListWidget, CockpitKpiWidget (one component for 3 types), config dialogs, shared styles
+```
+
+- **Shared rules live here now.** `utils/adapter-online.ts` (THE adapter online rule) and
+  `utils/pipeline-executions.ts` (24 h histogram + execution counting) moved from the Studio, which
+  re-exports them; change them here only.
+- **Gating.** Every provider / KPI checks the roles + CK models needed to open what it links to,
+  before any request. Missing `COCKPIT_VIEWER_ACCESS` = no role = hidden.
+- **Persistence** is `dataSourceType: 'static'` + small JSON (`providerIds` omitted for "all",
+  never an empty array; unknown provider ids are ignored at run time). The parser tolerates
+  foreign values (wrong types → defaults).
+- **Seed contract.** `cockpit-widget-registrations.spec.ts` holds the TenantCockpit seed rows as
+  a fixture, checks they deserialize/serialize identically and do not overlap, and compares the
+  fixture with the real seed when `../../../octo-platform-services` exists (worktree pair).
+- Tests: `attention.spec.ts`, `providers/attention-providers.spec.ts`, `kpi/cockpit-kpi.spec.ts`,
+  `data/cockpit-data.spec.ts`, `widgets/cockpit-widgets.spec.ts`, `cockpit-widget-registrations.spec.ts`,
+  `utils/adapter-online.spec.ts`, `utils/pipeline-executions.spec.ts`.
 
 ---
 

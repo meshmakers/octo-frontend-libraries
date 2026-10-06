@@ -333,6 +333,53 @@ interface EntityWithAssociationsWidgetConfig {
 }
 ```
 
+### Cockpit Widgets (AB#5558)
+
+Platform health widgets that used to be hard-wired on the Refinery Studio's Home cockpit. They
+have **no configurable data source** (persisted as `dataSourceType: 'static'`); they read fixed
+platform data and run every check only for viewers with the roles / CK models it needs.
+Registered separately — not by `provideMeshBoard()` — because they need host services:
+
+```typescript
+providers: [
+  provideMeshBoard(),
+  provideCockpitWidgets(),                       // registers the 4 types + built-in checks
+  provideCockpitWidgetHost({
+    access: () => { const auth = inject(AuthorizeService); return { isInRole: r => auth.isInRole(r) }; },
+    links: () => myLinkResolver,                 // CockpitLinkTarget -> app URL (or null)
+    explain: () => myAssistantBridge             // optional "✦ Explain"
+  }),
+  // optional host checks
+  { provide: COCKPIT_ATTENTION_PROVIDERS, useClass: MyCheck, multi: true }
+]
+```
+
+| Type | Label | Shows | Gate (per check / KPI) | Persisted `config` |
+|------|-------|-------|------------------------|--------------------|
+| `attentionList` | Attention List | Findings, errors first: CK models in ResolveFailed, adapters in error / offline > 10 min, pools not registered, features enabled but not installed, plus host checks (Refinery Studio: secrets needing re-entry) | each provider: AdminPanelManagement / CommunicationManagement + `System.Communication` / TenantManagement | `{ "providerIds"?: string[], "maxItems"?: number, "showExplain"?: boolean }` — no `providerIds` = all checks, including ones added later |
+| `adapterStatus` | Adapter Status | Adapters online / expected to run (shared rule `utils/adapter-online.ts`) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean }` |
+| `ckModelState` | CK Model State | CK models available / all; ResolveFailed = error, importing = warning | AdminPanelManagement | `{ "showDetail"?: boolean }` |
+| `pipelineExecutions` | Pipeline Executions 24 h | Executions of all data flows, failed count, hourly sparkline (same counting as the Studio's Data Flows list) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean, "showSparkline"?: boolean }` |
+
+- **Role abstraction.** The library never imports the host's auth: `COCKPIT_VIEWER_ACCESS`
+  (`isInRole(role)`) answers role checks, `CkModelService.isModelAvailable` the CK models.
+  Without the token every gated check fails closed (hidden). A KPI the viewer may not see shows
+  *why* (e.g. "Needs the CommunicationManagement role…") and sends no request; an attention list
+  without any visible check says "No health checks are available for your role" — never "All clear".
+- **Links.** Findings and KPI tiles carry semantic `CockpitLinkTarget`s (`adapter`, `adapters`,
+  `pool`, `pools`, `dataFlows`, `ckModels`, `tenantSettings`, `secretsReEntry`); the host's
+  `COCKPIT_LINK_RESOLVER` maps them to URLs, `null` drops the chip.
+- **Adding a check.** Implement `AttentionProvider` (`id` — persisted, never rename — `label`,
+  `description`, `isVisible` via `CockpitContextService.allows(roles, models)`, `load` = exactly one
+  query emitting findings once) and register it on `COCKPIT_ATTENTION_PROVIDERS`.
+- **Data.** Lean documents with explicit fields in `graphQL/cockpit*.graphql`; the adapter states
+  and CK model counts are shared per tenant for 10 s between the KPI and the attention list.
+- **Seeded board.** octo-platform-services' `System.UI.TenantCockpit` blueprint (≥ 1.1.0) seeds the
+  four widgets on every tenant's `cockpit` board; `cockpit-widget-registrations.spec.ts` pins the
+  seed's encoding against `toPersistedConfig`.
+- **Theming.** Neutral defaults via `--mm-cockpit-*` custom properties (text, text-muted, surface,
+  border, border-strong, success, warning, error, info, neutral, accent, ai) falling back to Kendo colours.
+
 ### Process Widget
 Provides HMI-style (Human-Machine Interface) process visualization with tanks, pipes, valves, pumps, and other process elements. Includes a visual drag-and-drop designer.
 
