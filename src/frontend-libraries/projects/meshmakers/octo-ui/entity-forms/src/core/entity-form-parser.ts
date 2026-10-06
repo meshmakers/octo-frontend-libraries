@@ -75,6 +75,18 @@ const bool = (v: unknown): boolean | null => {
 };
 const boolOrUndef = (d: Dict, k: string): boolean | null | undefined => (k in d ? bool(d[k]) : undefined);
 
+/** A StringArray value; a comma-separated string is accepted defensively. Absent key = `undefined`. */
+const strListOrUndef = (d: Dict, k: string): string[] | null | undefined => {
+  if (!(k in d)) {
+    return undefined;
+  }
+  const v = d[k];
+  if (v === null || v === undefined) {
+    return null;
+  }
+  return Array.isArray(v) ? v.map((c) => String(c)) : String(v).split(',').map((c) => c.trim()).filter(Boolean);
+};
+
 function records(value: unknown): Dict[] {
   if (!Array.isArray(value)) {
     return [];
@@ -111,7 +123,6 @@ function parseField(d: Dict): EntityFormFieldDef | null {
   if (!attributePath) {
     return null;
   }
-  const rc = d['recordcolumns'];
   return stripUndefined({
     attributePath,
     sectionKey: strOrUndef(d, 'sectionkey'),
@@ -131,10 +142,10 @@ function parseField(d: Dict): EntityFormFieldDef | null {
     visibleWhen: strOrUndef(d, 'visiblewhen'),
     referenceCkTypeId: strOrUndef(d, 'referencecktypeid'),
     associationRoleId: strOrUndef(d, 'associationroleid'),
-    recordColumns: 'recordcolumns' in d
-      ? (Array.isArray(rc) ? rc.map((c) => String(c)) : rc === null || rc === undefined ? null : String(rc).split(',').map((c) => c.trim()).filter(Boolean))
-      : undefined,
+    recordColumns: strListOrUndef(d, 'recordcolumns'),
     hidden: boolOrUndef(d, 'hidden'),
+    // System.UI 2.8.0 (AB#5547); absent on older models, so the field simply stays unset.
+    referenceDisplayAttributes: strListOrUndef(d, 'referencedisplayattributes'),
   });
 }
 

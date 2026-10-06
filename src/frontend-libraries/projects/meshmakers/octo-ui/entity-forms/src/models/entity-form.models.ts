@@ -97,9 +97,10 @@ export interface EntityFormFieldDef {
   recordColumns?: string[] | null;
   hidden?: boolean | null;
   /**
-   * Host forms only (not part of the CK model yet): non-secret attributes of the reference
-   * target shown next to its name in the picker, e.g. `['repositoryUrl', 'channel']`. Read with an
-   * explicit `attributeNames` list of exactly these names (AB#5547).
+   * `EntityFormField.ReferenceDisplayAttributes` (System.UI 2.8.0; host fallback forms may set it
+   * too): non-secret attributes of the reference target shown next to its name in the picker, e.g.
+   * `['repositoryUrl', 'channel']`. Read with an explicit `attributeNames` list of exactly these
+   * names (AB#5547).
    */
   referenceDisplayAttributes?: string[] | null;
 }
