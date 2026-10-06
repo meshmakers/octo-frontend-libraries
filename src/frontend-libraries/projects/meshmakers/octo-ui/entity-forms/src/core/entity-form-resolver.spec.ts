@@ -510,6 +510,23 @@ describe('resolveEntityForm SECRET value type (AB#5542)', () => {
     expect(model.warnings.some((w) => w.includes('Secret: false is ignored'))).toBe(true);
   });
 
+  it('never lists a SECRET name that a NON-SECRET record member shares (the filter applies inside records)', () => {
+    const rec = 'T-1.0.0/Endpoint-1';
+    const t = ckType('T/Rec', { attributes: [attr('password', 'SECRET'), attr('endpoints', 'RECORD_ARRAY', { ckRecordId: rec })] });
+    const plainMember = { [rec]: { ckRecordId: rec, attributes: [attr('key'), attr('password')] } };
+    const model = resolveEntityForm(t, [form('T/Rec')], { records: plainMember });
+    expect(model.readAttributeNames).not.toContain('password');
+    expect(model.secretStateFields).toEqual([]);
+    expect(model.secretFields).toContain('password'); // falls back to the presence probe
+    expect(field(model, 'endpoints')?.readOnly).toBe('always');
+
+    const secretMember = { [rec]: { ckRecordId: rec, attributes: [attr('key'), attr('password', 'SECRET')] } };
+    const safe = resolveEntityForm(t, [form('T/Rec')], { records: secretMember });
+    expect(safe.readAttributeNames).toContain('password');
+    expect(safe.secretStateFields).toEqual(['password']);
+    expect(field(safe, 'endpoints')?.readOnly).not.toBe('always');
+  });
+
   it('reads SECRET attributes for their state (secretStateFields) but never fallback secrets', () => {
     const mixed = ckType('T/Mixed', { attributes: [attr('name'), attr('apiKey', 'SECRET'), attr('legacyToken')] });
     const model = resolveEntityForm(mixed, [form('T/Mixed')]);

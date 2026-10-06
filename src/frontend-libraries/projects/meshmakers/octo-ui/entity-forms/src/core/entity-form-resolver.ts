@@ -439,14 +439,17 @@ function sortByOrder<T>(items: readonly T[], order: (item: T) => number | null |
 
 // ─── Read set ────────────────────────────────────────────────────────────────────────
 
-function collectRecordSubNames(ckRecordId: string, records: Record<string, CkRecordInfo> | undefined, into: Set<string>, seen: Set<string>): void {
+/** Record sub-attribute names (nested records included) with every value type each name has. */
+function collectRecordSubNames(ckRecordId: string, records: Record<string, CkRecordInfo> | undefined, into: Map<string, Set<string>>, seen: Set<string>): void {
   if (seen.has(ckRecordId)) {
     return;
   }
   seen.add(ckRecordId);
   const record = records?.[ckRecordId];
   for (const sub of record?.attributes ?? []) {
-    into.add(sub.attributeName);
+    const types = into.get(sub.attributeName) ?? new Set<string>();
+    types.add(sub.valueType ?? '');
+    into.set(sub.attributeName, types);
     if (isRecordType(sub.valueType) && sub.ckRecordId) {
       collectRecordSubNames(sub.ckRecordId, records, into, seen);
     }
@@ -636,8 +639,14 @@ export function resolveEntityForm(
   // secretIsSet. A name that is also a heuristic (non-SECRET) secret is never read.
   const secretValueTypeNames = new Set(type.attributes.filter((a) => isSecretValueType(a.valueType)).map((a) => a.attributeName));
   const heuristicSecretNames = new Set([...secretNames].filter((n) => !secretValueTypeNames.has(n)));
-  const secretStateFields = secretFields.filter((n) => secretValueTypeNames.has(n) && !heuristicSecretNames.has(n));
+  let secretStateFields = secretFields.filter((n) => secretValueTypeNames.has(n) && !heuristicSecretNames.has(n));
   const readableSecrets = new Set(secretStateFields);
+  /**
+   * SECRET names that must not be listed after all: the `attributeNames` filter also applies inside
+   * records, so listing a top-level SECRET name would return a NON-SECRET record member of the same
+   * name in clear text. Such a SECRET falls back to the presence probe (no `setAt` / key missing).
+   */
+  const unlistableSecrets = new Set<string>();
   const read = new Set<string>();
   for (const f of attributeFields) {
     if (f.secret) {
@@ -645,12 +654,18 @@ export function resolveEntityForm(
     }
     read.add(f.attributeName as string);
     if (f.record) {
-      const subs = new Set<string>();
+      const subs = new Map<string, Set<string>>();
       collectRecordSubNames(f.record.ckRecordId, opts.records, subs, new Set<string>());
       let collision = false;
-      for (const sub of subs) {
-        if (secretNames.has(sub) && !readableSecrets.has(sub)) {
+      for (const [sub, subTypes] of subs) {
+        // Safe only when the top-level name is a readable SECRET AND every member of that name is a
+        // SECRET too (the server redacts both); otherwise keep the protective rule: not read, read-only.
+        const onlySecretMembers = [...subTypes].every((t) => isSecretValueType(t));
+        if (secretNames.has(sub) && !(readableSecrets.has(sub) && onlySecretMembers)) {
           collision = true;
+          if (readableSecrets.has(sub)) {
+            unlistableSecrets.add(sub);
+          }
         } else {
           read.add(sub);
         }
@@ -665,6 +680,7 @@ export function resolveEntityForm(
   for (const s of secretNames) {
     read.delete(s);
   }
+  secretStateFields = secretStateFields.filter((n) => !unlistableSecrets.has(n));
   // ...except SECRET attributes, which are read for their state only.
   for (const s of secretStateFields) {
     read.add(s);
