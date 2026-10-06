@@ -6,6 +6,7 @@ import {
   autoEditorFor,
   DEFAULT_GENERATED_SECTION_TITLE,
   GENERATED_SECTION_KEY,
+  isSecretAttribute,
   pickEntityForm,
   resolveEntityForm,
 } from './entity-form-resolver';
@@ -169,6 +170,17 @@ describe('resolveEntityForm with live fixtures', () => {
     expect(field(model, 'password')?.secret).toBe(false);
     expect(model.readAttributeNames).toContain('password');
     expect(model.secretFields).toEqual(['privateKey', 'privateKeyPassphrase']);
+  });
+
+  it('uses the shared octo-services credential rule: text types only, full suffix list (AB#5542)', () => {
+    expect(isSecretAttribute(attr('connectionString'))).toBe(true);
+    expect(isSecretAttribute(attr('secretKey'))).toBe(true);
+    expect(isSecretAttribute(attr('isSecret', 'BOOLEAN'))).toBe(false);
+    expect(isSecretAttribute(attr('credentials', 'RECORD'))).toBe(false);
+    const type = ckType('Test/Cfg', { attributes: [attr('name'), attr('isSecret', 'BOOLEAN'), attr('connectionString')] });
+    const model = resolveEntityForm(type, []);
+    expect(model.secretFields).toEqual(['connectionString']);
+    expect(model.readAttributeNames).toContain('isSecret');
   });
 
   it('with no forms, the built-in default resolves exactly like the parsed seed form-default', () => {
