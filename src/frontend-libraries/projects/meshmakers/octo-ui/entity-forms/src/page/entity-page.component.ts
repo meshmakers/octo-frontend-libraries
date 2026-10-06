@@ -181,14 +181,28 @@ export class EntityPageComponent implements HasUnsavedChanges {
   });
 
   protected readonly isSingleton = computed(() => !!this.baseModel()?.singleton);
+  /** Host heading override (`entityListTitle` route data), else the resolved form title. */
+  protected readonly listTitle = computed(() => {
+    this.routeData();
+    return asString(this.inheritedData('entityListTitle')) ?? this.baseModel()?.title ?? '';
+  });
+  /** `entityListTypeColumn` route data: show the row's CK type in the list. */
+  protected readonly showTypeColumn = computed(() => {
+    this.routeData();
+    return this.inheritedData('entityListTypeColumn') === true;
+  });
   protected readonly readOnly = computed(() => this.mode() === 'view');
   protected readonly canDeleteEntity = computed(() =>
     this.mode() === 'edit' && !this.isSingleton() && this.effectiveCanWrite() && !!this.formModel()?.capabilities.canDelete,
   );
   protected readonly title = computed(() => {
     const m = this.msgs();
-    if (this.mode() === 'create') {
-      return this.isSingleton() ? (this.formModel()?.title ?? m.createTitle) : m.createTitle;
+    if (this.mode() === 'create' && !this.isSingleton()) {
+      return m.createTitle;
+    }
+    // A singleton is "the" setting (e.g. Tenant mode): its form name, not "Edit <entity name>".
+    if (this.isSingleton()) {
+      return asString(this.inheritedData('entityListTitle')) ?? this.formModel()?.title ?? this.baseModel()?.title ?? m.viewTitle;
     }
     const name = this.entityName() ?? '';
     return this.mode() === 'edit' ? formatEntityFormsMessage(m.editTitle, { name }) : name || m.viewTitle;
@@ -383,7 +397,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
         return;
       }
       this.baseModel.set(model);
-      void this.breadCrumbService?.updateBreadcrumbLabels({ entityFormTitle: model.title });
+      void this.breadCrumbService?.updateBreadcrumbLabels({ entityFormTitle: asString(this.inheritedData('entityListTitle')) ?? model.title });
 
       if (!ctx.rtId) {
         if (model.singleton) {

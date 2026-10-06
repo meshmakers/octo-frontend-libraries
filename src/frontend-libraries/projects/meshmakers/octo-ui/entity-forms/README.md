@@ -67,6 +67,12 @@ The host must provide what the library services expect:
 | `:rtId` | Edit form; read-only view when `canWrite` is false or the form has `CanEdit: false`. |
 | `:rtId?type=<rtCkTypeId>` | Edit form for an entity of a derived type (set when the list opens such a row). Without it the page detects the type after loading and re-resolves. |
 
+Optional `entityFormRoutes` options for the page heading and list: `title` (route data
+`entityListTitle`) replaces the resolved form title as the list heading and breadcrumb label
+(e.g. "All configurations" over `System/Configuration`); `showTypeColumn` (route data
+`entityListTypeColumn`) adds a "Type" column with the short CK type name of each row. A
+**singleton** form is titled with its form name (e.g. "Tenant mode"), never "Edit <entity name>".
+
 Page inputs (bound by `withComponentInputBinding()` from route params / data, otherwise read from
 `ActivatedRoute` — params, route data of the route and its ancestors, query params):
 

@@ -17,7 +17,7 @@
       @if (baseModel(); as model) {
         <header class="mm-entity-page__header">
           <div class="mm-entity-page__titles">
-            <h2 class="mm-entity-page__title">{{ model.title }}</h2>
+            <h2 class="mm-entity-page__title">{{ listTitle() }}</h2>
             @if (model.description) {
               <p class="mm-entity-page__description">{{ model.description }}</p>
             }
@@ -29,6 +29,7 @@
           [model]="model"
           [canWrite]="effectiveCanWrite()"
           [messages]="msgs()"
+          [showTypeColumn]="showTypeColumn()"
           (createRequested)="onCreateRequested($event)"
           (openRequested)="onOpenRequested($event)"
         />

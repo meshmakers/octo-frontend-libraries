@@ -112,6 +112,8 @@ export interface EntityFormsMessages {
   copyRtEntityId: string;
   copied: string;
   searchPlaceholder: string;
+  /** Header of the optional Type column of the list. */
+  typeColumn: string;
   selectSubtypeTitle: string;
   createTitle: string;
   /** `{name}` = display name of the entity. */
@@ -207,6 +209,7 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   copyRtEntityId: 'RtEntityId',
   copied: 'Copied to clipboard.',
   searchPlaceholder: 'Search…',
+  typeColumn: 'Type',
   selectSubtypeTitle: 'Select the type to create',
   createTitle: 'New entry',
   editTitle: 'Edit {name}',
