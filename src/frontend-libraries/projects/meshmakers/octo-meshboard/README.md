@@ -116,6 +116,32 @@ There is deliberately no per-board setting: a board stored with "no header" woul
 name in the designer, where the name is the only orientation. Exported helpers:
 `MeshBoardHeaderMode`, `MESHBOARD_HEADER_MODE_ROUTE_DATA`, `resolveMeshBoardHeaderMode`.
 
+### Chrome (`chrome` / `meshBoardChrome`)
+
+Whether the view draws its own **outer frame** is also decided by the host page:
+
+| Chrome | Draws |
+|--------|-------|
+| `framed` (default) | The view background, the header bar (background and bottom border) and the padding around the widget grid — for a page that is only the board |
+| `plain` | None of these: the widgets sit directly on the host surface and line up with the host page's gutter. For hosts that already provide the surface and the gutter (e.g. a Home tab), so there is no frame inside the page and no double gutter |
+
+The widget frames (tile border, background, shadow, header) and the gap between the widgets are
+the same in both. Like the header mode, bind the input or set the route data key (the bound
+input wins; unknown values fall back to `framed`). Plain usually goes together with a compact
+header:
+
+```html
+<mm-meshboard-view headerMode="compact" chrome="plain"></mm-meshboard-view>
+```
+
+```typescript
+data: { meshBoardReadonly: true, meshBoardHeaderMode: 'compact', meshBoardChrome: 'plain' }
+```
+
+With `plain` the host is responsible for the gutter: a route that loads the view directly into
+an unpadded outlet should wrap it in a padded page instead. Exported helpers: `MeshBoardChrome`,
+`MESHBOARD_CHROME_ROUTE_DATA`, `resolveMeshBoardChrome`.
+
 ### URL Sync (`meshBoardSyncUrl`)
 
 After the initial load and after every post-init board switch (e.g. via the

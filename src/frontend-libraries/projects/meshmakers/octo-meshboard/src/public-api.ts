@@ -50,6 +50,9 @@ export { MESHBOARD_EDIT_QUERY_PARAM } from './lib/utils/edit-mode-url';
 // Header mode of an embedded board (input `headerMode` / route data `meshBoardHeaderMode`)
 export type { MeshBoardHeaderMode } from './lib/utils/meshboard-header';
 export { MESHBOARD_HEADER_MODE_ROUTE_DATA, isMeshBoardHeaderMode, resolveMeshBoardHeaderMode } from './lib/utils/meshboard-header';
+// Outer frame of an embedded board (input `chrome` / route data `meshBoardChrome`)
+export type { MeshBoardChrome } from './lib/utils/meshboard-chrome';
+export { MESHBOARD_CHROME_ROUTE_DATA, isMeshBoardChrome, resolveMeshBoardChrome } from './lib/utils/meshboard-chrome';
 
 // Query family classification (runtime vs stream-data persistent queries)
 export type { QueryFamily, QueryKind, QueryClassification } from './lib/utils/query-family';
