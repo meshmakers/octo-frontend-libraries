@@ -17,6 +17,7 @@ const deleteDump: MmAction<'delete-dump'> = {
   disabledReason: busy ? 'A sweep is running' : null, // non-empty = disabled, announced
   visible: canManage,                // false = not rendered
   overflow: false,                   // true = always in the "More actions" menu
+  link: undefined,                   // {commands, queryParams}: navigating action (see below)
 };
 ```
 
@@ -68,6 +69,13 @@ One action as a button, for toolbars, section headers and page headers.
 | `context` | `'row' \| 'toolbar' \| 'page'` | `'row'` | `row` = small/16 px, otherwise medium; icon-only toolbar icons are 20 px. |
 | `display` | `'icon' \| 'text' \| 'icon-text'` | `'icon'` | `icon` falls back to text when the action has no icon. |
 | `primary` | `boolean` | `false` | Solid primary — one per header/toolbar. Ignored for danger actions. |
+
+## Navigating actions
+
+An action with `link: {commands, queryParams?}` renders inline as a real router link
+(`<a routerLink>` with the Kendo button classes — open in new tab and copy link keep working).
+From the overflow menu it navigates with `Router.navigate`. A disabled navigating action renders
+as a disabled button (no `href`). `triggered` fires in every case.
 
 ## Confirming destructive actions
 

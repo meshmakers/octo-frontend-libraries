@@ -49,6 +49,17 @@ export interface MmAction<TId extends string = string> {
   visible?: boolean;
   /** Always place the action in the overflow menu, even when there is room inline. */
   overflow?: boolean;
+  /**
+   * Navigation target. Inline the action renders as a real link (`routerLink`, open in new tab
+   * works); in the overflow menu it navigates with the Router. `triggered` still fires.
+   */
+  link?: MmActionLink;
+}
+
+/** Router target of a navigating action (`Router.navigate(commands, {queryParams})`). */
+export interface MmActionLink {
+  commands: readonly unknown[] | string;
+  queryParams?: Record<string, string>;
 }
 
 /** Emitted when an enabled action is triggered. */

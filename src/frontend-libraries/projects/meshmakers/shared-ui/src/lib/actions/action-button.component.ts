@@ -1,5 +1,7 @@
 import {ChangeDetectionStrategy, booleanAttribute, Component, ViewEncapsulation, computed, input, output} from '@angular/core';
+import {RouterLink} from '@angular/router';
 import {ButtonModule} from '@progress/kendo-angular-buttons';
+import {SVGIconModule} from '@progress/kendo-angular-icons';
 import {
   MmAction,
   MmActionEvent,
@@ -27,6 +29,8 @@ let nextReasonId = 0;
  *   linked via `aria-describedby` and shown in the tooltip; clicks are swallowed.
  * - `danger`: Kendo `themeColor="error"`. The consumer confirms before acting.
  * - `primary` (page/toolbar context only): solid primary button for the one main action.
+ * - `link`: rendered as a real router link (`<a kendoButton [routerLink]>`, so open-in-new-tab
+ *   works); a disabled link action renders as a disabled button.
  *
  * ```html
  * <mm-action-button [action]="refresh" context="toolbar" (triggered)="reload()" />
@@ -36,14 +40,30 @@ let nextReasonId = 0;
 @Component({
   selector: 'mm-action-button',
   standalone: true,
-  imports: [ButtonModule],
+  imports: [ButtonModule, RouterLink, SVGIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
   host: {class: 'mm-action-button-host'},
   template: `
-    <button
-      kendoButton
-      type="button"
+    @if (action().link && !disabled()) {
+      <!-- kendoButton only matches <button>: the link carries the same Kendo button classes itself. -->
+      <a
+        class="mm-action-button"
+        [class]="linkClasses()"
+        [class.mm-action-button--danger]="!!action().danger"
+        [class.mm-action-button--icon-only]="iconOnly()"
+        [class.mm-action-button--toolbar]="context() !== 'row'"
+        [attr.title]="tooltip()"
+        [attr.aria-label]="ariaLabel()"
+        [attr.data-action]="action().id"
+        [routerLink]="$any(action().link!.commands)"
+        [queryParams]="action().link!.queryParams ?? null"
+        (click)="onClick($event)"
+      >@if (showIcon()) {<kendo-svgicon class="k-button-icon" [icon]="action().icon!" />}@if (!iconOnly()) {<span class="k-button-text">{{ action().label }}</span>}</a>
+    } @else {
+      <button
+        kendoButton
+        type="button"
       class="mm-action-button"
       [class.mm-action-button--disabled]="disabled()"
       [class.mm-action-button--danger]="!!action().danger"
@@ -55,11 +75,12 @@ let nextReasonId = 0;
       [themeColor]="action().danger ? 'error' : primary() ? 'primary' : 'base'"
       [attr.title]="tooltip()"
       [attr.aria-label]="ariaLabel()"
-      [attr.aria-disabled]="disabled() ? 'true' : null"
-      [attr.aria-describedby]="disabled() ? reasonId : null"
       [attr.data-action]="action().id"
-      (click)="onClick($event)"
-    >@if (!iconOnly()) { {{ action().label }} }</button>
+        [attr.aria-disabled]="disabled() ? 'true' : null"
+        [attr.aria-describedby]="disabled() ? reasonId : null"
+        (click)="onClick($event)"
+      >@if (!iconOnly()) { {{ action().label }} }</button>
+    }
     @if (disabled()) {
       <span class="mm-action-button__reason" [id]="reasonId">{{ action().disabledReason }}</span>
     }
@@ -96,6 +117,15 @@ export class ActionButtonComponent<TId extends string = string> {
     this.iconOnly() || this.disabled() ? actionTooltip(this.action()) : null);
   protected readonly ariaLabel = computed(() =>
     this.iconOnly() || this.targetLabel() ? actionAccessibleName(this.action(), this.targetLabel()) : null);
+
+  /** Kendo button classes for the link variant (same look as `button[kendoButton]`). */
+  protected readonly linkClasses = computed(() => {
+    const size = this.context() === 'row' ? 'sm' : 'md';
+    const fill = this.primary() && !this.action().danger ? 'solid' : 'flat';
+    const theme = this.action().danger ? 'error' : this.primary() ? 'primary' : 'base';
+    return ['k-button', `k-button-${size}`, `k-button-${fill}`, `k-button-${theme}`, 'k-rounded-md',
+      this.iconOnly() ? 'k-icon-button' : ''].filter(Boolean).join(' ');
+  });
 
   protected onClick(event: Event): void {
     if (this.disabled()) {

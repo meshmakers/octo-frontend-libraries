@@ -1,5 +1,6 @@
 import {Component, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {Router, provideRouter} from '@angular/router';
 import {RowActionsComponent} from './row-actions.component';
 import {MM_ACTION_ICONS, MmAction, MmActionEvent} from './action.model';
 
@@ -22,7 +23,7 @@ describe('RowActionsComponent', () => {
   const component = (): RowActionsComponent => fixture.debugElement.children[0].componentInstance;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({imports: [HostComponent]}).compileComponents();
+    await TestBed.configureTestingModule({imports: [HostComponent], providers: [provideRouter([])]}).compileComponents();
     fixture = TestBed.createComponent(HostComponent);
     host = fixture.componentInstance;
   });
@@ -77,5 +78,14 @@ describe('RowActionsComponent', () => {
     set([{id: 'edit', label: 'Edit', icon: MM_ACTION_ICONS.edit, visible: false}]);
     expect(inlineButtons()).toEqual([]);
     expect(moreButton()).toBeNull();
+  });
+
+  it('navigates menu items that carry a link', () => {
+    const open: MmAction = {id: 'open', label: 'Open', icon: MM_ACTION_ICONS.open, overflow: true, link: {commands: ['/a', 'b'], queryParams: {q: '1'}}};
+    set([open]);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    (component() as unknown as {onMenuItem(i: unknown): void}).onMenuItem({text: 'Open', disabled: false, action: open});
+    expect(navigate).toHaveBeenCalledWith(['/a', 'b'], {queryParams: {q: '1'}});
+    expect(host.events.map((e) => e.id)).toEqual(['open']);
   });
 });

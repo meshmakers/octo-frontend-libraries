@@ -1,5 +1,6 @@
 import {Component, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {provideRouter} from '@angular/router';
 import {ActionButtonComponent, MmActionContext, MmActionDisplay} from './action-button.component';
 import {MM_ACTION_ICONS, MmAction, MmActionEvent} from './action.model';
 
@@ -24,7 +25,7 @@ describe('ActionButtonComponent', () => {
   const button = (): HTMLButtonElement => fixture.nativeElement.querySelector('button');
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({imports: [HostComponent]}).compileComponents();
+    await TestBed.configureTestingModule({imports: [HostComponent], providers: [provideRouter([])]}).compileComponents();
     fixture = TestBed.createComponent(HostComponent);
     host = fixture.componentInstance;
     fixture.detectChanges();
@@ -91,5 +92,25 @@ describe('ActionButtonComponent', () => {
     expect(b.classList).toContain('k-button-primary');
     expect(b.classList).toContain('k-button-md');
     expect(b.textContent?.trim()).toBe('New adapter');
+  });
+
+  it('renders a navigating action as a real link', () => {
+    host.action.set({id: 'edit', label: 'Edit', icon: MM_ACTION_ICONS.edit, link: {commands: ['/t', 'settings', 'x'], queryParams: {tab: 'secrets'}}});
+    fixture.detectChanges();
+    const a: HTMLAnchorElement = fixture.nativeElement.querySelector('a');
+    expect(a.getAttribute('href')).toBe('/t/settings/x?tab=secrets');
+    expect(a.getAttribute('aria-label')).toBe('Edit Encrypt run 17:09');
+    expect(a.classList).toContain('mm-action-button');
+    expect(a.classList).toContain('k-button');
+    expect(a.classList).toContain('k-icon-button');
+    expect(a.querySelector('svg')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+  });
+
+  it('renders a disabled navigating action as a disabled button, not a link', () => {
+    host.action.set({id: 'edit', label: 'Edit', icon: MM_ACTION_ICONS.edit, link: {commands: ['/x']}, disabledReason: 'No key ring'});
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a')).toBeNull();
+    expect(button().getAttribute('aria-disabled')).toBe('true');
   });
 });

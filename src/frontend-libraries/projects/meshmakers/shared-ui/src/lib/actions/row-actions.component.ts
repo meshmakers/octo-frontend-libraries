@@ -1,4 +1,5 @@
-import {ChangeDetectionStrategy, Component, ViewEncapsulation, computed, input, numberAttribute, output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ViewEncapsulation, computed, inject, input, numberAttribute, output} from '@angular/core';
+import {Router} from '@angular/router';
 import {DropDownButtonModule} from '@progress/kendo-angular-buttons';
 import {SVGIconModule} from '@progress/kendo-angular-icons';
 import {moreVerticalIcon} from '@progress/kendo-svg-icons';
@@ -94,6 +95,7 @@ export class RowActionsComponent<TId extends string = string> {
   /** Fires for enabled actions only, inline or from the menu. */
   readonly triggered = output<MmActionEvent<TId>>();
 
+  private readonly router = inject(Router, {optional: true});
   protected readonly moreIcon = moreVerticalIcon;
   protected readonly split = computed(() => splitRowActions(this.actions(), this.maxInline()));
   protected readonly menuItems = computed<RowActionMenuItem<TId>[]>(() =>
@@ -110,6 +112,11 @@ export class RowActionsComponent<TId extends string = string> {
   protected onMenuItem(item: RowActionMenuItem<TId>): void {
     if (!item || item.disabled) {
       return;
+    }
+    const link = item.action.link;
+    if (link && this.router) {
+      const commands = typeof link.commands === 'string' ? [link.commands] : [...link.commands];
+      void this.router.navigate(commands, {queryParams: link.queryParams});
     }
     this.triggered.emit({id: item.action.id, action: item.action});
   }
