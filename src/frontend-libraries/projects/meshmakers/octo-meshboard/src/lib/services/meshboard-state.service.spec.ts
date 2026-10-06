@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { MeshBoardStateService, newMeshBoardConfig } from './meshboard-state.service';
 import { MeshBoardPersistenceService, PersistedMeshBoard, PersistedWidget } from './meshboard-persistence.service';
 import { MeshBoardGridService } from './meshboard-grid.service';
-import { CkModelService } from '@meshmakers/octo-services';
+import { CkModelService, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import { AnyWidgetConfig, MeshBoardConfig, MeshBoardVariable } from '../models/meshboard.models';
 
 /**
@@ -643,6 +643,32 @@ describe('MeshBoardStateService', () => {
 
       expect(service.getVariable('published')).toBeUndefined();
     });
+
+    it('records the tenant of the loaded board and clears widgets hidden for the viewer (AB#5558)', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          MeshBoardStateService,
+          { provide: MeshBoardPersistenceService, useValue: mockPersistenceService },
+          { provide: MeshBoardGridService, useValue: mockGridService },
+          { provide: CkModelService, useValue: mockCkModelService },
+          { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve('acme') }
+        ]
+      });
+      const tenantService = TestBed.inject(MeshBoardStateService);
+      tenantService.setWidgetHiddenForViewer('w1', true);
+      mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+        meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
+        widgets: []
+      });
+      mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
+      expect(tenantService.loadedTenantId()).toBeNull();
+
+      await tenantService.switchToMeshBoard('board1');
+
+      expect(tenantService.loadedTenantId()).toBe('acme');
+      expect(tenantService.hiddenForViewer().size).toBe(0);
+    });
   });
 
   describe('Time Filter Management', () => {
@@ -1242,6 +1268,18 @@ describe('MeshBoardStateService', () => {
       });
 
       expect(service.getEntitySelectors()).toEqual(selectors);
+    });
+  });
+
+  describe('widgets hidden for the viewer (AB#5558)', () => {
+    it('tracks widgets that report nothing for the viewer, without needless updates', () => {
+      service.setWidgetHiddenForViewer('w1', true);
+      const first = service.hiddenForViewer();
+      expect(first.has('w1')).toBe(true);
+      service.setWidgetHiddenForViewer('w1', true);
+      expect(service.hiddenForViewer()).toBe(first);
+      service.setWidgetHiddenForViewer('w1', false);
+      expect(service.hiddenForViewer().size).toBe(0);
     });
   });
 });

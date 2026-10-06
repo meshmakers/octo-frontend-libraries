@@ -76,3 +76,28 @@ export function placeWidgetsForTier(
       rowSpan: widget.rowSpan
     }));
 }
+
+/**
+ * Removes rows that no widget occupies any more (AB#5558: widgets collapsed for the viewer, e.g.
+ * cockpit tiles an end user may not use), moving the widgets below up. Presentation only — the
+ * persisted rows are untouched; widgets whose row does not change keep their object reference.
+ */
+export function collapseEmptyRows<T extends { row: number; rowSpan: number }>(widgets: readonly T[]): T[] {
+  const occupied = new Set<number>();
+  for (const widget of widgets) {
+    for (let row = widget.row; row < widget.row + Math.max(1, widget.rowSpan); row++) {
+      occupied.add(row);
+    }
+  }
+  const emptyBefore = (row: number): number => {
+    let count = 0;
+    for (let r = 1; r < row; r++) {
+      if (!occupied.has(r)) count++;
+    }
+    return count;
+  };
+  return widgets.map(widget => {
+    const shift = emptyBefore(widget.row);
+    return shift > 0 ? { ...widget, row: widget.row - shift } : widget;
+  });
+}

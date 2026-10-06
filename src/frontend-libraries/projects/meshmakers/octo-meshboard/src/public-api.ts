@@ -184,3 +184,33 @@ export { AddWidgetDialogComponent } from './lib/dialogs/add-widget-dialog/add-wi
 export { MeshBoardManagerDialogComponent } from './lib/dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
 export { EditWidgetDialogComponent } from './lib/dialogs/edit-widget-dialog/edit-widget-dialog.component';
 export type { WidgetPositionUpdate } from './lib/dialogs/edit-widget-dialog/edit-widget-dialog.component';
+
+// Cockpit widgets (AB#5558): attention list + platform KPIs, host services and shared rules
+export * from './lib/cockpit/cockpit-host';
+export { CockpitContextService } from './lib/cockpit/cockpit-context.service';
+export * from './lib/cockpit/attention/attention.models';
+export { CockpitAttentionService, selectProviders } from './lib/cockpit/attention/attention.service';
+export type { AttentionProviderInfo, AttentionState } from './lib/cockpit/attention/attention.service';
+export { CkModelsResolveFailedAttentionProvider } from './lib/cockpit/attention/providers/ck-models-resolve-failed.provider';
+export { AdaptersAttentionProvider } from './lib/cockpit/attention/providers/adapters.provider';
+export { UnregisteredPoolsAttentionProvider } from './lib/cockpit/attention/providers/unregistered-pools.provider';
+export { FeaturesNotInstalledAttentionProvider, enabledButNotInstalled, isServiceConfigured } from './lib/cockpit/attention/providers/features-not-installed.provider';
+export {
+  CockpitAdapterStatesService, COCKPIT_ADAPTER_LIMIT, ADAPTER_OFFLINE_GRACE_MS, adaptersInError, adaptersOffline
+} from './lib/cockpit/data/cockpit-adapter-states.service';
+export type { CockpitAdapterState, CockpitAdapterStates } from './lib/cockpit/data/cockpit-adapter-states.service';
+export { CockpitCkModelStatesService } from './lib/cockpit/data/cockpit-ck-model-states.service';
+export * from './lib/cockpit/kpi/cockpit-kpi';
+export { CockpitKpiService, COCKPIT_KPI_GATES, COCKPIT_DATA_FLOW_LIMIT, KPI_ERROR_TEXT } from './lib/cockpit/kpi/cockpit-kpi.service';
+export type { CockpitKpiKind, CockpitKpiResult } from './lib/cockpit/kpi/cockpit-kpi.service';
+export { AttentionListWidgetComponent, DEFAULT_ATTENTION_MAX_ITEMS } from './lib/cockpit/widgets/attention-list-widget.component';
+export { AttentionListConfigDialogComponent } from './lib/cockpit/widgets/attention-list-config-dialog.component';
+export type { AttentionListConfigResult } from './lib/cockpit/widgets/attention-list-config-dialog.component';
+export { CockpitKpiWidgetComponent, kpiKindOf, NOT_AVAILABLE_TEXT } from './lib/cockpit/widgets/cockpit-kpi-widget.component';
+export { CockpitKpiConfigDialogComponent } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
+export type { CockpitKpiConfigResult } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
+export { provideCockpitWidgets, registerCockpitWidgets, BUILT_IN_ATTENTION_PROVIDERS } from './lib/cockpit/cockpit-widget-registrations';
+
+// Shared rules, also used by the Refinery Studio (one implementation)
+export * from './lib/utils/adapter-online';
+export * from './lib/utils/pipeline-executions';

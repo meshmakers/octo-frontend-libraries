@@ -1,0 +1,17 @@
+# Cockpit widgets (AB#5558): pools no Communication Operator has registered
+# for. Adapters and applications of such a pool are never rolled out.
+query cockpitUnregisteredPools($first: Int) {
+  runtime {
+    systemCommunicationPool(
+      first: $first
+      fieldFilter: [{ attributePath: "communicationState", operator: EQUALS, comparisonValue: "UNREGISTERED" }]
+      sortOrder: [{ attributePath: "name", sortOrder: ASCENDING }]
+    ) {
+      totalCount
+      items {
+        rtId
+        name
+      }
+    }
+  }
+}

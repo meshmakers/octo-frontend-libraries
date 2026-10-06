@@ -270,7 +270,8 @@ export type WidgetType =
   | 'summaryCard'
   | 'alertBanner'
   | 'alertList'
-  | 'aiInsights';
+  | 'aiInsights'
+  | CockpitWidgetType;
 
 /**
  * Widget placement zone.
@@ -1086,6 +1087,67 @@ export interface AiInsightsWidgetConfig extends WidgetConfig {
   domainContext?: string;
 }
 
+// ============================================================================
+// Cockpit Widgets (AB#5558)
+// ============================================================================
+
+/**
+ * Platform health widgets, formerly hard-wired on the Refinery Studio's Home cockpit (AB#5545).
+ * They read fixed platform data (adapters, pools, CK models, data flows, tenant features) instead
+ * of a configurable data source, gate every check on the viewer's roles and the tenant's CK models
+ * (`COCKPIT_VIEWER_ACCESS`) and are registered with `provideCockpitWidgets()`.
+ */
+export type CockpitWidgetType = 'attentionList' | 'adapterStatus' | 'ckModelState' | 'pipelineExecutions';
+
+/** The cockpit widget types (e.g. to tell whether a board already shows them). */
+export const COCKPIT_WIDGET_TYPES: readonly CockpitWidgetType[] = ['attentionList', 'adapterStatus', 'ckModelState', 'pipelineExecutions'];
+
+/** True for the cockpit widget types. */
+export function isCockpitWidgetType(type: string | null | undefined): type is CockpitWidgetType {
+  return (COCKPIT_WIDGET_TYPES as readonly string[]).includes(type ?? '');
+}
+
+/**
+ * "Attention list" — rule-based health findings (ResolveFailed CK models, unregistered pools,
+ * features enabled but not installed, adapters in error / offline, host-provided checks such as
+ * secrets needing re-entry). Each provider runs only when the viewer may open what it links to.
+ */
+export interface AttentionListWidgetConfig extends WidgetConfig {
+  type: 'attentionList';
+  /** Provider ids to run (`AttentionProvider.id`); empty / undefined = every registered provider. */
+  providerIds?: string[];
+  /** Findings shown before "and N more" (default 6). */
+  maxItems?: number;
+  /** Show "✦ Explain" on findings when the host's assistant is enabled (default true). */
+  showExplain?: boolean;
+}
+
+/** Display options shared by the cockpit KPI widgets. */
+export interface CockpitKpiWidgetOptions {
+  /** Show the secondary line under the value (default true). */
+  showDetail?: boolean;
+}
+
+/** "Adapter status" — adapters online of those expected to run (the shared adapter online rule). */
+export interface AdapterStatusWidgetConfig extends WidgetConfig, CockpitKpiWidgetOptions {
+  type: 'adapterStatus';
+}
+
+/** "CK model state" — CK models available of all, ResolveFailed as error, importing as progress. */
+export interface CkModelStateWidgetConfig extends WidgetConfig, CockpitKpiWidgetOptions {
+  type: 'ckModelState';
+}
+
+/** "Pipeline executions 24 h" — executions of all data flows with failed count and hourly sparkline. */
+export interface PipelineExecutionsWidgetConfig extends WidgetConfig, CockpitKpiWidgetOptions {
+  type: 'pipelineExecutions';
+  /** Show the hourly sparkline (default true). */
+  showSparkline?: boolean;
+}
+
+/** Any cockpit KPI widget. */
+export type CockpitKpiWidgetConfig = AdapterStatusWidgetConfig | CkModelStateWidgetConfig | PipelineExecutionsWidgetConfig;
+
 // Process Widget Config is defined in the process-widget module
 // Re-exported here for AnyWidgetConfig union
 import type { ProcessWidgetConfig, DiagramPropertyMapping } from '../widgets/process-widget/process-widget-config.model';
@@ -1111,7 +1173,11 @@ export type AnyWidgetConfig =
   | SummaryCardWidgetConfig
   | AlertBannerWidgetConfig
   | AlertListWidgetConfig
-  | AiInsightsWidgetConfig;
+  | AiInsightsWidgetConfig
+  | AttentionListWidgetConfig
+  | AdapterStatusWidgetConfig
+  | CkModelStateWidgetConfig
+  | PipelineExecutionsWidgetConfig;
 
 // ============================================================================
 // MeshBoard Variables

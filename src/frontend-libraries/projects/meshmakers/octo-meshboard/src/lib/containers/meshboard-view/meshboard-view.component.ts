@@ -33,7 +33,7 @@ import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
-import { compactTierForWidth, columnsForTier, placeWidgetsForTier } from '../../utils/compact-layout';
+import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows } from '../../utils/compact-layout';
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
@@ -169,8 +169,14 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Computed
   protected readonly hasWidgets = computed(() => this.config().widgets.length > 0);
-  protected readonly bannerWidgets = computed(() => this.config().widgets.filter(w => w.zone === 'banner'));
-  protected readonly gridWidgets = computed(() => this.config().widgets.filter(w => w.zone !== 'banner'));
+  /** Widgets shown: outside edit mode those that reported "nothing for this viewer" are collapsed (AB#5558). */
+  private readonly visibleWidgets = computed(() => {
+    const widgets = this.config().widgets;
+    const hidden = this.stateService.hiddenForViewer();
+    return this.isEditMode() || hidden.size === 0 ? widgets : collapseEmptyRows(widgets.filter(w => !hidden.has(w.id)));
+  });
+  protected readonly bannerWidgets = computed(() => this.visibleWidgets().filter(w => w.zone === 'banner'));
+  protected readonly gridWidgets = computed(() => this.visibleWidgets().filter(w => w.zone !== 'banner'));
   protected readonly hasGridWidgets = computed(() => this.gridWidgets().length > 0);
   protected readonly canSave = computed(() => this.isEditMode() && !this.isSaving());
 
