@@ -23,9 +23,15 @@ export interface NotificationDisplayOptions {
   errorHideAfter?: number;
   /** Same as {@link errorHideAfter} for warnings. */
   warningHideAfter?: number;
-  /** Most toasts shown at once; the oldest is hidden when a new one exceeds it. 0 (default) = no limit. */
+  /**
+   * Errors and warnings that come with details (the "show details" button) stay until closed,
+   * whatever {@link errorHideAfter} / {@link warningHideAfter} say. Default false.
+   */
+  stickyWithDetails?: boolean;
+  /** Most toasts shown at once; beyond it the oldest toast of the LOWEST severity is hidden
+   * (an error or warning is never dropped in favour of a success or info). 0 (default) = no limit. */
   maxVisible?: number;
-  /** A toast with the same type and text as a visible one is not stacked again; the visible one's timer restarts. Default true. */
+  /** A toast with the same type, text and details as a visible one is not stacked again; the visible one's timer restarts. Default true. */
   dedupe?: boolean;
 }
 
@@ -36,7 +42,11 @@ const DEFAULT_OPTIONS: Required<NotificationDisplayOptions> = {
   warningHideAfter: 0,
   maxVisible: 0,
   dedupe: true,
+  stickyWithDetails: false,
 };
+
+/** Eviction order of the stack cap: lower goes first. */
+const SEVERITY: Record<'success' | 'info' | 'warning' | 'error', number> = { success: 0, info: 0, warning: 1, error: 2 };
 
 type ToastStyle = 'success' | 'info' | 'warning' | 'error';
 
@@ -45,9 +55,13 @@ interface ActiveToast {
   id: string;
   key: string;
   style: ToastStyle;
+  title: string;
   ref: NotificationRef;
   hideAfter: number;
   timer?: ReturnType<typeof setTimeout>;
+  /** Hover / keyboard focus on the toast: the auto-hide timer waits until both are gone. */
+  hovered: boolean;
+  focused: boolean;
 }
 
 @Injectable()
@@ -240,11 +254,11 @@ export class NotificationDisplayService implements OnDestroy {
 
   /** The visible toasts as `[style, text]`, oldest first — for tests and diagnostics. */
   visibleToasts(): [ToastStyle, string][] {
-    return this.toasts.map(toast => [toast.style, toast.key.substring(toast.style.length + 1)]);
+    return this.toasts.map(toast => [toast.style, toast.title]);
   }
 
   private present(style: ToastStyle, title: string, details: string | undefined, hideAfter: number): void {
-    const key = `${style}:${title}`;
+    const key = `${style}\u0000${title}\u0000${details ?? ''}`;
     if (this.options.dedupe) {
       const same = this.toasts.find(toast => toast.key === key);
       if (same) {
@@ -255,6 +269,8 @@ export class NotificationDisplayService implements OnDestroy {
     }
 
     const sticky = style === 'error' || style === 'warning';
+    // An error or warning with details is read in the details dialog: it waits for the user.
+    const duration = sticky && details && this.options.stickyWithDetails ? 0 : hideAfter;
     const notificationId = `${style}-${++this.notificationCounter}-${Date.now()}`;
     const settings: NotificationSettings = {
       ...this.defaultSettings,
@@ -275,31 +291,62 @@ export class NotificationDisplayService implements OnDestroy {
       this.activeNotifications.set(notificationId, notificationRef);
       this.notificationOpenTimes.set(notificationId, Date.now());
     }
-    const toast: ActiveToast = { id: notificationId, key, style, ref: notificationRef, hideAfter };
+    const toast: ActiveToast = { id: notificationId, key, style, title, ref: notificationRef, hideAfter: duration, hovered: false, focused: false };
     this.toasts.push(toast);
     notificationRef.afterHide?.subscribe(() => this.forget(notificationId));
     this.schedule(toast);
     this.enforceLimit();
 
-    if (details && sticky) {
-      this.addDetailsButton(notificationId, title, details, style);
-    }
+    // The toast element exists once Kendo has rendered it.
+    setTimeout(() => {
+      this.watchPointerAndFocus(toast);
+      if (details && sticky) {
+        this.addDetailsButton(notificationId, title, details, style);
+      }
+    }, 50);
   }
 
-  /** (Re)starts the auto-hide timer of a toast; a toast with `hideAfter` 0 stays. */
+  /** (Re)starts the auto-hide timer of a toast; a toast with `hideAfter` 0 stays, a hovered or focused one waits. */
   private schedule(toast: ActiveToast): void {
     clearTimeout(toast.timer);
     toast.timer = undefined;
-    if (toast.hideAfter > 0) {
+    if (toast.hideAfter > 0 && !toast.hovered && !toast.focused) {
       toast.timer = setTimeout(() => this.hideToast(toast), toast.hideAfter);
     }
   }
 
-  /** Hides the oldest toasts beyond `maxVisible`. */
+  /** Pauses the auto-hide while the pointer is over the toast or focus is inside it; restarts it afterwards. */
+  private watchPointerAndFocus(toast: ActiveToast): void {
+    const element = document.querySelector<HTMLElement>(`.notification-${toast.id}`);
+    if (!element || !this.toasts.includes(toast)) {
+      return;
+    }
+    const update = (change: Partial<Pick<ActiveToast, 'hovered' | 'focused'>>) => {
+      Object.assign(toast, change);
+      if (this.toasts.includes(toast)) {
+        this.schedule(toast);
+      }
+    };
+    element.addEventListener('mouseenter', () => update({ hovered: true }));
+    element.addEventListener('mouseleave', () => update({ hovered: false }));
+    element.addEventListener('focusin', () => update({ focused: true }));
+    element.addEventListener('focusout', (event: FocusEvent) => {
+      if (!(event.relatedTarget instanceof Node && element.contains(event.relatedTarget))) {
+        update({ focused: false });
+      }
+    });
+  }
+
+  /** Beyond `maxVisible`, hides the oldest toast of the lowest severity (success/info before warning before error). */
   private enforceLimit(): void {
     const max = this.options.maxVisible;
     while (max > 0 && this.toasts.length > max) {
-      this.hideToast(this.toasts[0]);
+      const lowest = Math.min(...this.toasts.map(toast => SEVERITY[toast.style]));
+      const victim = this.toasts.find(toast => SEVERITY[toast.style] === lowest);
+      if (!victim) {
+        return;
+      }
+      this.hideToast(victim);
     }
   }
 
@@ -319,8 +366,8 @@ export class NotificationDisplayService implements OnDestroy {
   }
 
   private addDetailsButton(notificationId: string, title: string, details: string, level: 'error' | 'warning'): void {
-    // After notification is shown, find it by the unique class and modify its content
-    setTimeout(() => {
+    // Called once the notification is rendered: find it by the unique class and modify its content
+    {
       const notification = document.querySelector(`.notification-${notificationId}`);
       if (notification) {
         const contentEl = notification.querySelector('.k-notification-content');
@@ -358,6 +405,6 @@ export class NotificationDisplayService implements OnDestroy {
           contentEl.appendChild(wrapper);
         }
       }
-    }, 50);
+    }
   }
 }
