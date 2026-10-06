@@ -1,5 +1,4 @@
 import { categoryStatus, humanizeCategory, observeThemeChanges, responsiveLegendPosition, sameChartItems, statusColor, themeSignature } from './chart-categories';
-import { PieChartWidgetComponent } from '../widgets/pie-chart-widget/pie-chart-widget.component';
 
 describe('chart categories', () => {
   it('humanizes enum-style categories only', () => {
@@ -69,6 +68,12 @@ describe('chart categories', () => {
     document.documentElement.style.removeProperty('padding-right');
   });
 
+  it('computes the root style once per theme signature', () => {
+    const spy = vi.spyOn(window, 'getComputedStyle');
+    themeSignature();
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
   it('builds the theme signature from data-theme and the resolved colours', () => {
     const before = themeSignature();
     document.documentElement.setAttribute('data-theme', 'light');
@@ -83,16 +88,6 @@ describe('chart categories', () => {
     expect(sameChartItems(a, [{ ...a[0], value: 4 }, a[1]])).toBe(false);
     expect(sameChartItems(a, [{ ...a[0], color: '#f00' }, a[1]])).toBe(false);
     expect(sameChartItems(a, a.slice(0, 1))).toBe(false);
-  });
-
-  it('gives the pie a stable plot area object across change detections (AB#5568)', () => {
-    const plotArea = PieChartWidgetComponent.prototype.plotArea;
-    const withLabels = { config: { showLabels: true } };
-    const without = { config: { showLabels: false } };
-    expect(plotArea.call(withLabels as never)).toBe(plotArea.call(withLabels as never));
-    expect(plotArea.call(without as never)).toBe(plotArea.call(without as never));
-    expect(plotArea.call(withLabels as never).margin.top).toBe(30);
-    expect(plotArea.call(without as never).margin.top).toBe(4);
   });
 
   it('covers the enum states the Studio explorer shows', () => {

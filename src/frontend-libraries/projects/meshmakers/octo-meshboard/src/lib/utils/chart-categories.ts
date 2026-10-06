@@ -54,13 +54,18 @@ const FALLBACK_COLORS: Record<CategoryStatus, string> = {
  * the document; a fixed colour is the last resort (and the value in environments without CSS).
  */
 export function statusColor(status: CategoryStatus, doc: Document | null = typeof document !== 'undefined' ? document : null): string {
-  if (doc?.documentElement && typeof getComputedStyle === 'function') {
-    const style = getComputedStyle(doc.documentElement);
-    for (const name of [`--theme-status-${status}`, `--kendo-color-${status}`]) {
-      const value = style.getPropertyValue(name).trim();
-      if (value) {
-        return value;
-      }
+  return statusColorFrom(status, computedRootStyle(doc));
+}
+
+function computedRootStyle(doc: Document | null): CSSStyleDeclaration | null {
+  return doc?.documentElement && typeof getComputedStyle === 'function' ? getComputedStyle(doc.documentElement) : null;
+}
+
+function statusColorFrom(status: CategoryStatus, style: CSSStyleDeclaration | null): string {
+  for (const name of [`--theme-status-${status}`, `--kendo-color-${status}`]) {
+    const value = style?.getPropertyValue(name).trim();
+    if (value) {
+      return value;
     }
   }
   return FALLBACK_COLORS[status];
@@ -84,7 +89,9 @@ export function responsiveLegendPosition(configured: LegendPosition | undefined,
  */
 export function themeSignature(doc: Document | null = typeof document !== 'undefined' ? document : null): string {
   const dark = typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
-  const colors = (['success', 'warning', 'error', 'info'] as CategoryStatus[]).map(status => statusColor(status, doc)).join(',');
+  // One style computation per signature (it runs on every <html> mutation).
+  const style = computedRootStyle(doc);
+  const colors = (['success', 'warning', 'error', 'info'] as CategoryStatus[]).map(status => statusColorFrom(status, style)).join(',');
   return `${doc?.documentElement?.getAttribute('data-theme') ?? ''}|${dark ? 'dark' : 'light'}|${colors}`;
 }
 
