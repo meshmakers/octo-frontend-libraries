@@ -29,8 +29,12 @@ interface SeedWidgetRow {
  * The widgets of the `cockpit` board seeded by the System.UI.TenantCockpit blueprint (1.1.0,
  * octo-platform-services `src/SystemUiCkModel/Blueprints/System.UI.TenantCockpit/seed-data/entities.yaml`).
  * Keep in step with the seed: when the sibling repository is checked out next to this one (the
- * worktree-pair layout) the last test compares this fixture with the real seed file.
+ * worktree-pair layout) and its TenantCockpit blueprint is >= TENANT_COCKPIT_SEED_VERSION, a test
+ * compares this fixture with the real seed file; older sibling branches are skipped.
  */
+/** Blueprint version of System.UI.TenantCockpit whose seed the fixture below describes. */
+const TENANT_COCKPIT_SEED_VERSION = '1.1.0';
+
 const TENANT_COCKPIT_SEED: SeedWidgetRow[] = [
   { name: 'Construction Kit Models', type: 'pieChart', col: 1, row: 3, colSpan: 2, rowSpan: 2, dataSourceType: 'constructionKitQuery',
     config: '{"chartType":"pie","categoryField":"","valueField":"","showLabels":false,"showLegend":true,"legendPosition":"right","ckQueryTarget":"models","ckGroupBy":"modelState"}' },
@@ -80,6 +84,23 @@ function parseSeedWidgets(yaml: string): SeedWidgetRow[] {
       config: value('System.UI/DashboardWidget.Config-1')
     };
   });
+}
+
+/** `1.1.0` from `blueprintId: System.UI.TenantCockpit-1.1.0`, or null. */
+function blueprintVersionOf(yaml: string): string | null {
+  return yaml.match(/^blueprintId:\s*\S+?-(\d+\.\d+\.\d+)\s*$/m)?.[1] ?? null;
+}
+
+/** Numeric comparison of `major.minor.patch`. */
+function compareVersions(a: string, b: string): number {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((pa[i] ?? 0) !== (pb[i] ?? 0)) {
+      return (pa[i] ?? 0) - (pb[i] ?? 0);
+    }
+  }
+  return 0;
 }
 
 interface NodeFs {
@@ -174,14 +195,29 @@ describe('Cockpit widget registrations (AB#5558)', () => {
     }
   });
 
-  it('matches the real seed file when octo-platform-services is checked out next to this repository', async () => {
+  it('matches the real seed file when a sibling octo-platform-services carries this seed version', async (context) => {
     const moduleName = 'node:fs';
     const fs = (await import(/* @vite-ignore */ moduleName)) as NodeFs;
-    const path = `${process.cwd()}/../../../octo-platform-services/src/SystemUiCkModel/Blueprints/System.UI.TenantCockpit/seed-data/entities.yaml`;
-    if (!fs.existsSync(path)) {
+    const blueprintDir = `${process.cwd()}/../../../octo-platform-services/src/SystemUiCkModel/Blueprints/System.UI.TenantCockpit`;
+    if (!fs.existsSync(`${blueprintDir}/blueprint.yaml`)) {
       // CI checks out this repository alone; the fixture above is then the contract.
+      context.skip('octo-platform-services is not checked out next to this repository');
       return;
     }
-    expect(parseSeedWidgets(fs.readFileSync(path, 'utf8'))).toEqual(TENANT_COCKPIT_SEED);
+    const siblingVersion = blueprintVersionOf(fs.readFileSync(`${blueprintDir}/blueprint.yaml`, 'utf8'));
+    if (!siblingVersion || compareVersions(siblingVersion, TENANT_COCKPIT_SEED_VERSION) < 0) {
+      // An older sibling branch (e.g. TenantCockpit 1.0.0 without the widgets) is not a contract breach.
+      context.skip(`sibling TenantCockpit is ${siblingVersion ?? 'unknown'}, the fixture targets ${TENANT_COCKPIT_SEED_VERSION}`);
+      return;
+    }
+    expect(parseSeedWidgets(fs.readFileSync(`${blueprintDir}/seed-data/entities.yaml`, 'utf8'))).toEqual(TENANT_COCKPIT_SEED);
+  });
+
+  it('reads and compares blueprint versions for the sibling check', () => {
+    expect(blueprintVersionOf('blueprintId: System.UI.TenantCockpit-1.1.0\n')).toBe('1.1.0');
+    expect(blueprintVersionOf('description: x')).toBeNull();
+    expect(compareVersions('1.0.0', '1.1.0')).toBeLessThan(0);
+    expect(compareVersions('1.10.0', '1.9.3')).toBeGreaterThan(0);
+    expect(compareVersions('1.1.0', '1.1.0')).toBe(0);
   });
 });
