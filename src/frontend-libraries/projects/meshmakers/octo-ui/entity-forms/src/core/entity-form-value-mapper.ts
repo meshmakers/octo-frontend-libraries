@@ -1,3 +1,4 @@
+import { isSecretStateObject, isSecretValueType, secretStateFromAttribute, toSecretState } from '@meshmakers/octo-services';
 import { CkAttributeInfo, CkRecordInfo } from '../models/entity-form.models';
 
 /*
@@ -85,14 +86,20 @@ export function recordToFormDict(value: unknown, record?: CkRecordInfo, records?
   if (!isPlainObject(value)) {
     return dict;
   }
+  // A SECRET member (AB#5528) arrives as `{ attributeName, value: null, secretIsSet, … }` in the
+  // generic projection (or as the `{ isSet }` marker): it becomes its SecretState, never a value.
   const entries: [string, unknown][] = Array.isArray(value['attributes'])
-    ? (value['attributes'] as { attributeName?: string; value?: unknown }[])
+    ? (value['attributes'] as { attributeName?: string; value?: unknown; secretIsSet?: boolean | null }[])
       .filter((a) => !!a?.attributeName)
-      .map((a) => [a.attributeName as string, a.value])
+      .map((a) => [a.attributeName as string, secretStateFromAttribute(a) ?? a.value])
     : Object.entries(value).filter(([k]) => k !== 'ckRecordId' && k !== '__typename');
   for (const [name, raw] of entries) {
     const sub = record?.attributes.find((a) => a.attributeName.toLowerCase() === name.toLowerCase());
     const key = sub?.attributeName ?? name;
+    if ((sub && isSecretValueType(sub.valueType)) || isSecretStateObject(raw)) {
+      dict[key] = toSecretState(isSecretStateObject(raw) ? raw : null);
+      continue;
+    }
     dict[key] = sub ? toFormValue(raw, sub, records) : raw;
   }
   return dict;
@@ -167,6 +174,14 @@ function recordDictToWire(value: unknown, record?: CkRecordInfo, records?: Recor
       continue;
     }
     const sub = record?.attributes.find((a) => a.attributeName === key);
+    // SECRET member (handover §2): only a typed, non-empty string is sent; otherwise the member is
+    // omitted and the server carries the stored value over from the element with the same record key.
+    if ((sub && isSecretValueType(sub.valueType)) || isSecretStateObject(subValue)) {
+      if (typeof subValue === 'string' && subValue.length > 0) {
+        result[key] = subValue;
+      }
+      continue;
+    }
     if (!sub) {
       // Pass-through without metadata (keeps explicit nulls), as AttributeMapperService does.
       result[key] = subValue;

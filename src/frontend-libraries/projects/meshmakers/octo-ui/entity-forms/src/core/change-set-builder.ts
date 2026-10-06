@@ -17,6 +17,12 @@ export interface EntityFormReferenceValue {
 export interface BuildChangeSetOptions {
   /** Record metadata keyed by versioned ckRecordId, for type conversion of record sub-values. */
   records?: Record<string, CkRecordInfo>;
+  /**
+   * attributeNames of secrets whose clear the user staged (Q8, edit mode). Sent as
+   * `clearSecretAttributes` unless a new value was typed for the same field (mutually exclusive —
+   * the typed value wins, the server would reject both).
+   */
+  clearedSecrets?: ReadonlySet<string>;
 }
 
 /**
@@ -53,7 +59,8 @@ function isEditable(field: ResolvedField, mode: EntityFormMode): boolean {
  * - Create mode sends every non-empty editable value (defaults included) plus `rtWellKnownName`.
  * - Edit mode sends only attributes whose value differs from `initial`; read-only, `afterCreate`
  *   and unsupported fields and `rtWellKnownName` are never sent.
- * - Secrets: an empty secret is left out (= unchanged); a typed secret is always sent.
+ * - Secrets: an empty secret is left out (= unchanged); a typed secret is always sent. A staged
+ *   clear (edit mode, `options.clearedSecrets`) goes to `clearSecretAttributes` instead.
  * - Associations: diff of the selected targets by rtId; a single-valued replace produces DELETE old
  *   plus CREATE new.
  * - View mode produces an empty change set.
@@ -144,6 +151,18 @@ export function buildChangeSet(
     }
   }
 
-  changeSet.isEmpty = changeSet.attributes.length === 0 && changeSet.associations.length === 0 && !changeSet.rtWellKnownName;
+  if (mode === 'edit' && options.clearedSecrets?.size) {
+    const sent = new Set(changeSet.attributes.map((a) => a.attributeName));
+    const clears = model.sections.flatMap((s) => s.fields)
+      .filter((f) => f.secret && f.attributeName && options.clearedSecrets?.has(f.attributeName) && !sent.has(f.attributeName)
+        && isEditable(f, mode))
+      .map((f) => f.attributeName as string);
+    if (clears.length) {
+      changeSet.clearSecretAttributes = [...new Set(clears)];
+    }
+  }
+
+  changeSet.isEmpty = changeSet.attributes.length === 0 && changeSet.associations.length === 0 && !changeSet.rtWellKnownName
+    && !changeSet.clearSecretAttributes?.length;
   return changeSet;
 }

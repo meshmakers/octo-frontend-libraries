@@ -33,6 +33,20 @@ describe('secret-safe attributes (AB#5542)', () => {
   });
 
   describe('isSecretAttributeCandidate', () => {
+    it('always flags the SECRET value type, whatever the name, metadata or explicit decision', () => {
+      expect(isSecretAttributeCandidate({ attributeName: 'value', attributeValueType: 'SECRET' })).toBe(true);
+      expect(isSecretAttributeCandidate({ attributeName: 'secretValue', attributeValueType: 'secret' })).toBe(true);
+      expect(isSecretAttributeCandidate({
+        attributeName: 'password', attributeValueType: 'SECRET', secret: false,
+        metaData: [{ key: 'secret', value: 'false' }],
+      })).toBe(true);
+    });
+
+    it('flags a SECRET query column by its value type', () => {
+      expect(isSecretQueryColumn('values.secretValue', 'SECRET')).toBe(true);
+      expect(isSecretQueryColumn('description', 'SECRET')).toBe(true);
+    });
+
     it('flags textual credential-like attributes', () => {
       expect(isSecretAttributeCandidate({ attributeName: 'Password', attributeValueType: 'STRING' })).toBe(true);
       expect(isSecretAttributeCandidate({ attributeName: 'clientSecret' })).toBe(true);

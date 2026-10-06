@@ -8,7 +8,9 @@ describe('findSecretUnsafeSelections (AB#5542)', () => {
     type RtEntity { rtId: ID attributes(attributeNames: [String]): RtEntityAttributeDtoConnection }
     type RtEntityAttributeDtoConnection { items: [Attr] }
     type Attr { attributeName: String value: String }
-    type Sap { user: String password: String isSecret: Boolean maxTokens: Int }
+    type Sap { user: String password: String isSecret: Boolean maxTokens: Int apiKey: OctoSecretState values: [Override] }
+    type Override { path: String value: String secretValue: OctoSecretState }
+    type OctoSecretState { isSet: Boolean! keyMissing: Boolean setAt: String }
   `);
   const check = (text: string) => findSecretUnsafeSelections(schema, parse(text), 'x.graphql').map((v) => v.message);
 
@@ -34,6 +36,19 @@ describe('findSecretUnsafeSelections (AB#5542)', () => {
   it('flags typed credential String fields but not Boolean/Int look-alikes', () => {
     expect(check('{ runtime { sap { user password isSecret maxTokens } } }')).toEqual([
       'typed selection of credential-like field "password" (String)',
+    ]);
+  });
+
+  it('accepts a SECRET field selected as { isSet } (typed and inside records)', () => {
+    expect(check('{ runtime { sap { apiKey { isSet keyMissing setAt } values { path secretValue { isSet } } } } }')).toEqual([]);
+  });
+
+  it('flags a SECRET field selected without isSet', () => {
+    expect(check('{ runtime { sap { apiKey { setAt } } } }')).toEqual([
+      'SECRET field "apiKey" must be selected as { isSet … }',
+    ]);
+    expect(check('{ runtime { sap { values { secretValue } } } }')).toEqual([
+      'SECRET field "secretValue" must be selected as { isSet … }',
     ]);
   });
 

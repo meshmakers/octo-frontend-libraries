@@ -107,6 +107,12 @@ export interface DebugPointDataDto {
   messages: DebugMessage[];
   input: unknown | null;
   output: unknown | null;
+  /**
+   * JSONPaths (rooted at the snapshot object, e.g. `$.output.smtp.password`) of the values the
+   * adapter masked as `"***"` because they were revealed by `RevealSecret@1` (AB#5544, decision
+   * Q12). The Studio marks exactly these paths; absent on older adapters.
+   */
+  redactedPaths?: string[] | null;
 }
 
 /**

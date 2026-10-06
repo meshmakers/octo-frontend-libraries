@@ -6,6 +6,8 @@
  * form definition matched against the CK metadata of one concrete type, ready to render.
  */
 
+import type { SecretState } from '@meshmakers/octo-services';
+
 /** Editor kinds a resolved field can use. */
 export type EntityFormEditor = 'text' | 'multiline' | 'password' | 'number' | 'toggle' | 'enum' | 'datetime'
   | 'url' | 'email' | 'json' | 'yaml' | 'cron' | 'chips' | 'reference' | 'records' | 'unsupported';
@@ -214,16 +216,35 @@ export interface ResolvedEntityForm {
   singleton?: { wellKnownName?: string };
   sections: ResolvedSection[];
   listColumns: ResolvedListColumn[];
-  /** Attribute names to read (non-secret fields plus record sub-attribute names). */
+  /**
+   * Attribute names to read (non-secret fields plus record sub-attribute names, plus the SECRET
+   * fields of {@link secretStateFields}, whose value the server never returns).
+   */
   readAttributeNames: string[];
-  /** attributeNames of secret fields that need a presence check. */
+  /** attributeNames of all secret fields (never prefilled, never listed). */
   secretFields: string[];
+  /**
+   * The secret fields of value type SECRET (AB#5528): their state is read with the values
+   * (`secretIsSet`, later `secretKeyMissing` / `secretSetAt`) and they can be cleared explicitly
+   * (`clearSecretAttributes`). The other secret fields (credential-name / metadata fallback) are
+   * probed for presence with a field filter and cannot be cleared.
+   */
+  secretStateFields?: string[];
   warnings: string[];
 }
 
+/**
+ * State of one secret field (AB#5528): the shared octo-services {@link SecretState}
+ * (`keyMissing` implies `isSet: false`). Kept as an alias for existing imports.
+ */
+export type EntityFormSecretFieldState = SecretState;
+
 export interface EntityFormValueState {
   values: Record<string, unknown>;
+  /** Per secret attributeName: set, or stored but unreadable (counts as present for "required"). */
   secretPresence: Record<string, boolean>;
+  /** Per SECRET attributeName: the full state (badge "Set · set at …" / "Key missing — re-enter"). */
+  secretStates?: Record<string, EntityFormSecretFieldState>;
   associations: Record<string, { rtId: string; ckTypeId: string; displayName: string }[]>;
   rtWellKnownName?: string | null;
 }
@@ -231,6 +252,8 @@ export interface EntityFormValueState {
 export interface EntityFormChangeSet {
   rtWellKnownName?: string;
   attributes: { attributeName: string; value: unknown }[];
+  /** camelCase names of optional SECRET attributes to clear on save (edit mode only, Q8). */
+  clearSecretAttributes?: string[];
   associations: {
     roleName: string;
     targets: { modOption: 'CREATE' | 'DELETE'; target: { ckTypeId: string; rtId: string } }[];

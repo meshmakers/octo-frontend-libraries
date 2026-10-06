@@ -6,6 +6,9 @@ import {
   FieldFilterOperatorsDto,
   GraphDirectionDto,
   RtEntityInputDto,
+  RtEntityUpdateDto,
+  isSecretPresent,
+  secretStateFromAttribute,
 } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 import { toFormValue } from '../core/entity-form-value-mapper';
@@ -21,6 +24,7 @@ import { EntityFormUpdateEntitiesDtoGQL } from '../graphQL/updateEntityFormEntit
 import {
   CkRecordInfo,
   EntityFormChangeSet,
+  EntityFormSecretFieldState,
   EntityFormValueState,
   ResolvedEntityForm,
   ResolvedField,
@@ -72,8 +76,11 @@ interface DisplayAttributeRows { items?: ({ attributeName?: string | null; value
  * Reads and writes entity values for the entity form (plan §2.3, rules D5/D6).
  *
  * SECURITY: values are read with an explicit `attributeNames` list (`model.readAttributeNames`
- * minus every secret, never omitted — omission returns every attribute). Secrets are only probed
- * for presence (`IS_NOT_NULL` + `totalCount`). Mutations never select attributes.
+ * minus every secret, never omitted — omission returns every attribute). SECRET attributes
+ * (AB#5528, `model.secretStateFields`) are listed too: the server returns `value: null` and
+ * `secretIsSet`. Fallback secrets (credential name / metadata on non-SECRET attributes) are only
+ * probed for presence (`IS_NOT_NULL` + `totalCount`). Mutations never select attributes; an
+ * explicit clear goes through `clearSecretAttributes`.
  */
 @Injectable({ providedIn: 'root' })
 export class EntityFormDataService {
@@ -89,14 +96,17 @@ export class EntityFormDataService {
   private readonly formService = inject(EntityFormService);
 
   /**
-   * The attribute names to read for a model: `readAttributeNames` with every secret removed.
-   * Always an array (an omitted list would return secrets).
+   * The attribute names to read for a model: `readAttributeNames` with every secret removed except
+   * the SECRET fields (`secretStateFields`, read for their state only). Always an array (an omitted
+   * list would return secrets).
    */
   static readAttributeNamesFor(model: ResolvedEntityForm): string[] {
+    const stateFields = new Set((model.secretStateFields ?? []).map((s) => s.toLowerCase()));
     const secrets = new Set(model.secretFields.map((s) => s.toLowerCase()));
     model.sections.flatMap((s) => s.fields).filter((f) => f.secret && f.attributeName)
       .forEach((f) => secrets.add((f.attributeName as string).toLowerCase()));
-    return [...new Set(model.readAttributeNames ?? [])].filter((n) => !secrets.has(n.toLowerCase()));
+    return [...new Set(model.readAttributeNames ?? [])]
+      .filter((n) => !secrets.has(n.toLowerCase()) || stateFields.has(n.toLowerCase()));
   }
 
   /**
@@ -148,17 +158,33 @@ export class EntityFormDataService {
     const entityCkTypeId = entity.ckTypeId as string;
 
     const raw = new Map<string, unknown>();
+    const stateFields = model.secretStateFields ?? [];
+    const secretStates: Record<string, EntityFormSecretFieldState> = {};
     for (const item of entity.attributes?.items ?? []) {
       if (item?.attributeName) {
         raw.set(item.attributeName.toLowerCase(), item.value);
+        const stateField = stateFields.find((n) => n.toLowerCase() === item.attributeName?.toLowerCase());
+        const state = stateField ? secretStateFromAttribute(item) : null;
+        if (stateField && state) {
+          secretStates[stateField] = state;
+        }
       }
     }
+    // A SECRET field the server did not report counts as not set.
+    for (const name of stateFields) {
+      secretStates[name] ??= { isSet: false, keyMissing: false, setAt: null };
+    }
+    const probed = model.secretFields.filter((n) => !stateFields.includes(n));
 
-    const [records, secretPresence, associations] = await Promise.all([
+    const [records, probedPresence, associations] = await Promise.all([
       recordsPromise,
-      this.loadSecretPresence(model.secretFields, entityCkTypeId, rtId, fields),
+      this.loadSecretPresence(probed, entityCkTypeId, rtId, fields),
       this.loadAssociations(fields, entityCkTypeId, rtId),
     ]);
+    const secretPresence: Record<string, boolean> = { ...probedPresence };
+    for (const [name, state] of Object.entries(secretStates)) {
+      secretPresence[name] = isSecretPresent(state);
+    }
 
     const values: Record<string, unknown> = {};
     const attributeReferences: { field: ResolvedField; rtId: string }[] = [];
@@ -198,7 +224,7 @@ export class EntityFormDataService {
       rtId,
       ckTypeId: entityCkTypeId,
       rtDisplayName: entity.rtDisplayName,
-      state: { values, secretPresence, associations, rtWellKnownName: entity.rtWellKnownName ?? null },
+      state: { values, secretPresence, secretStates, associations, rtWellKnownName: entity.rtWellKnownName ?? null },
     };
   }
 
@@ -225,14 +251,18 @@ export class EntityFormDataService {
   /**
    * Updates an entity with exactly the change set (partial update: attributes that are not sent
    * keep their value — verified live, including the presence of secrets). `rtWellKnownName` is
-   * never changed on update.
+   * never changed on update. Staged secret clears are sent as `clearSecretAttributes` (Q8).
    */
   async update(rtId: string, ckTypeId: string, changeSet: EntityFormChangeSet): Promise<void> {
     const item: RtEntityInputDto = { ckTypeId, attributes: changeSet.attributes };
     if (changeSet.associations.length) {
       item.associations = this.associationInputs(changeSet);
     }
-    await firstValueFrom(this.updateGql.mutate({ variables: { entities: [{ rtId, item }] }, fetchPolicy: 'no-cache' }));
+    const entity: RtEntityUpdateDto = { rtId, item };
+    if (changeSet.clearSecretAttributes?.length) {
+      entity.clearSecretAttributes = changeSet.clearSecretAttributes;
+    }
+    await firstValueFrom(this.updateGql.mutate({ variables: { entities: [entity] }, fetchPolicy: 'no-cache' }));
   }
 
   /** Deletes entities (default strategy ARCHIVE). */

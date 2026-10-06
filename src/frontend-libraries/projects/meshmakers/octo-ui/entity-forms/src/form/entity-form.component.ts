@@ -22,11 +22,13 @@ import {
   KENDO_TEXTBOX,
 } from '@progress/kendo-angular-inputs';
 import { chevronDownIcon, chevronRightIcon } from '@progress/kendo-svg-icons';
+import { isSecretValueType } from '@meshmakers/octo-services';
 import { Subscription } from 'rxjs';
+import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-availability';
 import { buildChangeSet } from '../core/change-set-builder';
 import { formValuesEqual } from '../core/entity-form-value-mapper';
 import { isVisible } from '../core/visible-when';
-import { EntityFormsMessages, mergeEntityFormsMessages } from '../entity-forms.messages';
+import { EntityFormsMessages, formatEntityFormsMessage, mergeEntityFormsMessages } from '../entity-forms.messages';
 import {
   CkRecordInfo,
   EntityFormChangeSet,
@@ -39,6 +41,7 @@ import {
 import { EntityFormRecordsFieldComponent } from './records/entity-form-records-field.component';
 import { EntityFormReferenceFieldComponent } from './reference/entity-form-reference-field.component';
 import { EntityFormChipsEditorComponent } from './editors/entity-form-chips-editor.component';
+import { EntityFormSecretEditorComponent } from './editors/entity-form-secret-editor.component';
 import {
   allFields,
   buildFormGroup,
@@ -59,7 +62,14 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
  * Rules applied here (see the plan, §2.4):
  * - A field hidden by `VisibleWhen` has its control disabled, so it neither validates nor appears
  *   in the change set. `Path=*` on a secret source counts the server-side presence as a value.
- * - Secrets are never prefilled; the placeholder says whether a value is set. Empty = unchanged.
+ * - Secrets are never prefilled; the badge says whether a value is set (also for read-only users).
+ *   Empty = unchanged. An optional SECRET can be cleared: the clear is staged and sent on Save as
+ *   `clearSecretAttributes` (mutually exclusive with a new value). Without a key ring
+ *   (`ENTITY_FORM_SECRET_KEY_RING_CONFIGURED` = false) secret inputs are disabled with a hint; the
+ *   signal may change at any time (status loaded asynchronously) and the controls follow it. In
+ *   create mode a required secret that cannot be entered blocks the form: `isValid()` is false and
+ *   `saveBlockedReason()` names the fields, so hosts disable Create with that reason (Q17: no late
+ *   `SecretEncryptionNotConfigured` / "required secret missing" error on save).
  * - `afterCreate` fields are read-only outside create mode; `readOnly`, `view` mode or
  *   `capabilities.canEdit === false` (edit mode) make every field read-only.
  * - The change set holds only dirty controls (D6), built by `buildChangeSet`.
@@ -79,6 +89,7 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
     CronBuilderComponent,
     EntityFormFieldComponent,
     EntityFormChipsEditorComponent,
+    EntityFormSecretEditorComponent,
     EntityFormReferenceFieldComponent,
     EntityFormRecordsFieldComponent,
   ],
@@ -88,6 +99,7 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
 })
 export class EntityFormComponent {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly keyRingConfigured = inject(ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, { optional: true });
 
   // --- Inputs ---
   readonly model = input.required<ResolvedEntityForm>();
@@ -117,6 +129,8 @@ export class EntityFormComponent {
   /** Raw values (disabled controls included) for VisibleWhen evaluation. */
   private readonly rawValues = signal<Record<string, unknown>>({});
   private readonly collapsed = signal<ReadonlySet<string>>(new Set<string>());
+  /** attributeNames of secrets whose clear is staged for the next save (Q8). */
+  private readonly clearedSecrets = signal<ReadonlySet<string>>(new Set<string>());
   /** Value snapshot taken when the form was built (D6 baseline). */
   private initialValues: Record<string, unknown> = {};
   private formSub?: Subscription;
@@ -125,6 +139,10 @@ export class EntityFormComponent {
 
   protected readonly secretPresence = computed<Record<string, boolean>>(() => this.state()?.secretPresence ?? {});
   protected readonly formReadOnly = computed(() => isFormReadOnly(this.model(), this.mode(), this.readOnly()));
+  /** No key ring in this environment (Q17): secret inputs are disabled with a hint. */
+  protected readonly secretWritesDisabled = computed(() => this.keyRingConfigured?.() === false);
+  /** The `secretWritesDisabled` value the controls were last enabled / disabled for. */
+  private appliedSecretWritesDisabled?: boolean;
 
   /** Visibility per field key, from VisibleWhen and the current raw values. */
   protected readonly visibility = computed<Record<string, boolean>>(() => {
@@ -140,6 +158,29 @@ export class EntityFormComponent {
     return result;
   });
 
+  /**
+   * Why the form cannot be saved although every enabled control is valid, or `null`: in create
+   * mode without a key ring (Q17), a visible, writable, required secret cannot be entered — the
+   * server would reject the create (required secret missing). Hosts disable Create and show this.
+   * In edit mode a missing required secret does not block saving other fields (the server only
+   * enforces required secrets on create).
+   */
+  readonly saveBlockedReason = computed<string | null>(() => {
+    if (!this.secretWritesDisabled() || this.mode() !== 'create' || this.formReadOnly()) {
+      return null;
+    }
+    const vis = this.visibility();
+    const presence = this.secretPresence();
+    // Only SECRET-typed fields need the key ring; name-rule / metadata secrets are stored as plain values.
+    const labels = allFields(this.model())
+      .filter((f) => f.secret && isSecretValueType(f.valueType) && vis[f.key] !== false
+        && !isFieldReadOnly(f, 'create', false) && isSecretRequired(f, 'create', presence))
+      .map((f) => f.label);
+    return labels.length
+      ? formatEntityFormsMessage(this.resolvedMessages().secretRequiredWritesDisabled, { fields: labels.join(', ') })
+      : null;
+  });
+
   /** Default item of optional enum dropdowns. */
   protected readonly enumDefaultItem = computed(() => ({ key: null, name: this.resolvedMessages().enumPlaceholder }));
 
@@ -150,6 +191,19 @@ export class EntityFormComponent {
       const state = this.state();
       const readOnly = this.readOnly();
       untracked(() => this.rebuild(model, mode, state ?? null, readOnly));
+    });
+    // The key ring status arrives asynchronously (and may change): re-apply the enabled state of
+    // the secret controls whenever it flips after the form was built.
+    effect(() => {
+      const disabled = this.secretWritesDisabled();
+      untracked(() => {
+        if (this.appliedSecretWritesDisabled === undefined || this.appliedSecretWritesDisabled === disabled) {
+          return;
+        }
+        this.applyVisibility();
+        this.bump();
+        this.emitState();
+      });
     });
     this.destroyRef.onDestroy(() => this.formSub?.unsubscribe());
   }
@@ -165,7 +219,7 @@ export class EntityFormComponent {
       this.model(),
       mode,
       this.secretPresence(),
-      { records: this.records() },
+      { records: this.records(), clearedSecrets: this.clearedSecrets() },
     );
     // A host-prefilled well-known name (singleton create) is carried even when its field is
     // read-only or not part of the form.
@@ -179,14 +233,17 @@ export class EntityFormComponent {
 
   /** True when any editable, visible control differs from the value it was built with. */
   isDirty(): boolean {
+    if (this.clearedSecrets().size > 0) {
+      return true;
+    }
     const current = this.enabledValues();
     return Object.keys(current).some((k) => !formValuesEqual(this.initialValues[k], current[k]));
   }
 
-  /** True when every enabled control is valid. */
+  /** True when every enabled control is valid and nothing blocks saving ({@link saveBlockedReason}). */
   isValid(): boolean {
     const form = this.form();
-    return form.valid || form.disabled;
+    return (form.valid || form.disabled) && this.saveBlockedReason() === null;
   }
 
   /** Marks every control as touched so validation errors become visible. */
@@ -241,18 +298,71 @@ export class EntityFormComponent {
     if (!field.secret || this.mode() === 'create') {
       return null;
     }
-    return this.secretPresence()[field.attributeName ?? field.key] ? 'set' : 'notSet';
+    const name = field.attributeName ?? field.key;
+    if (this.clearedSecrets().has(name)) {
+      return 'clearStaged';
+    }
+    const state = this.state()?.secretStates?.[name];
+    if (state?.keyMissing) {
+      return 'keyMissing';
+    }
+    return (state ? state.isSet : this.secretPresence()[name]) ? 'set' : 'notSet';
+  }
+
+  protected secretSetAt(field: ResolvedField): Date | null {
+    return this.state()?.secretStates?.[field.attributeName ?? field.key]?.setAt ?? null;
+  }
+
+  /**
+   * "Clear" is offered for an optional SECRET (only SECRET attributes accept
+   * `clearSecretAttributes`) that holds a value (set or key missing), in edit mode, when the field
+   * is writable. Required secrets cannot be cleared (Q8).
+   */
+  protected canClearSecret(field: ResolvedField): boolean {
+    if (!field.secret || field.required || this.mode() !== 'edit' || !isSecretValueType(field.valueType)) {
+      return false;
+    }
+    if (isFieldReadOnly(field, this.mode(), this.formReadOnly())) {
+      return false;
+    }
+    const state = this.secretState(field);
+    return state === 'set' || state === 'keyMissing' || state === 'clearStaged';
+  }
+
+  protected isSecretClearStaged(field: ResolvedField): boolean {
+    return this.clearedSecrets().has(field.attributeName ?? field.key);
+  }
+
+  /** Stages or undoes clearing a secret; a staged clear empties and disables the input. */
+  protected setSecretClearStaged(field: ResolvedField, staged: boolean): void {
+    const name = field.attributeName ?? field.key;
+    const next = new Set(this.clearedSecrets());
+    if (staged) {
+      next.add(name);
+      this.control(field.key)?.setValue(null, { emitEvent: false });
+    } else {
+      next.delete(name);
+    }
+    this.clearedSecrets.set(next);
+    this.applyVisibility();
+    this.bump();
+    this.emitState();
   }
 
   protected placeholder(field: ResolvedField): string {
     const state = this.secretState(field);
-    if (state === 'set') {
+    if (state === 'set' || state === 'keyMissing') {
       return this.resolvedMessages().secretSetPlaceholder;
     }
     if (state === 'notSet') {
       return field.placeholder ?? this.resolvedMessages().secretNotSetPlaceholder;
     }
     return field.placeholder ?? '';
+  }
+
+  /** Q17 applies to SECRET-typed fields only (the encryption key ring is not needed for fallback secrets). */
+  protected isSecretWriteBlocked(field: ResolvedField): boolean {
+    return this.secretWritesDisabled() && isSecretValueType(field.valueType);
   }
 
   protected isIntegerField(field: ResolvedField): boolean {
@@ -282,6 +392,7 @@ export class EntityFormComponent {
 
   private rebuild(model: ResolvedEntityForm, mode: EntityFormMode, state: EntityFormValueState | null, readOnly: boolean): void {
     this.formSub?.unsubscribe();
+    this.clearedSecrets.set(new Set<string>());
     const form = buildFormGroup(model, mode, { state, readOnly });
     this.normaliseAttributeReferences(model, form);
     this.form.set(form);
@@ -332,12 +443,17 @@ export class EntityFormComponent {
     const vis = this.visibility();
     const mode = this.mode();
     const formReadOnly = this.formReadOnly();
+    const writesDisabled = this.secretWritesDisabled();
+    this.appliedSecretWritesDisabled = writesDisabled;
     for (const field of allFields(this.model())) {
       const control = form.controls[field.key];
       if (!control) {
         continue;
       }
-      const shouldEnable = vis[field.key] !== false && !isFieldReadOnly(field, mode, formReadOnly);
+      // The key ring only gates SECRET-typed fields (fallback secrets are plain values server-side).
+      const secretBlocked = field.secret
+        && ((writesDisabled && isSecretValueType(field.valueType)) || this.clearedSecrets().has(field.attributeName ?? field.key));
+      const shouldEnable = vis[field.key] !== false && !isFieldReadOnly(field, mode, formReadOnly) && !secretBlocked;
       if (shouldEnable && control.disabled) {
         control.enable({ emitEvent: false });
       } else if (!shouldEnable && control.enabled) {

@@ -29,7 +29,17 @@ export class JobManagementService {
   }
 
 
-  public async waitForJob(jobId: string, title: string, operation: string): Promise<boolean> {
+  /**
+   * Polls a job until it ends and shows its error on failure.
+   * @param formatErrorDetails optional formatter for the failure text, e.g. to append an explanation
+   *   of known message codes (the Studio explains the SECRET compiler messages of a CK import, AB#5544).
+   */
+  public async waitForJob(
+    jobId: string,
+    title: string,
+    operation: string,
+    formatErrorDetails?: (details: string) => string
+  ): Promise<boolean> {
     let cancelled = false;
     const progressSubject = new Subject<ProgressValue>();
     const progressDialog = this.progressWindowService.showIndeterminateProgress(
@@ -60,7 +70,8 @@ export class JobManagementService {
           return true;
         } else {
           const errorDetails = jobDto.errorMessage || jobDto.reason || 'Unknown error';
-          this.messageService.showErrorWithDetails(errorDetails, operation);
+          this.messageService.showErrorWithDetails(
+            formatErrorDetails ? formatErrorDetails(errorDetails) : errorDetails, operation);
         }
         break;
       }

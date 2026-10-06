@@ -1,10 +1,11 @@
+import { SecretState, SecretStatusLabels, formatSecretStatus, isSecretStateObject, isSecretValueType, toSecretState } from '@meshmakers/octo-services';
 import type { CkAttributeInfo } from '../../models/entity-form.models';
 
 /**
  * Editor kinds of a record sub-field. A subset of `EntityFormEditor`, derived with the auto rules
  * of the resolver (record sub-fields carry no form definition of their own).
  */
-export type RecordFieldEditor = 'text' | 'number' | 'toggle' | 'enum' | 'datetime' | 'chips' | 'nested' | 'unsupported';
+export type RecordFieldEditor = 'text' | 'number' | 'toggle' | 'enum' | 'datetime' | 'chips' | 'nested' | 'secret' | 'unsupported';
 
 /** One editable (or read-only displayed) sub-field of a record row. */
 export interface RecordFieldModel {
@@ -29,6 +30,10 @@ const RECORDS = new Set(['RECORD', 'RECORD_ARRAY']);
 /** Auto editor for a record sub-attribute (same table as the resolver's `auto` rule). */
 export function recordFieldEditor(valueType: string): RecordFieldEditor {
   const t = (valueType ?? '').toUpperCase();
+  if (isSecretValueType(t)) {
+    // SECRET member (AB#5528): badge + write-only input; empty keeps the stored value (record key).
+    return 'secret';
+  }
   if (t === 'STRING') {
     return 'text';
   }
@@ -89,6 +94,11 @@ function isEmpty(value: unknown): boolean {
 
 /** Converts a stored row value into the control value of its editor. */
 export function toControlValue(field: RecordFieldModel, value: unknown): unknown {
+  if (field.editor === 'secret') {
+    // Never prefilled: a stored secret is a state object; a value typed earlier in this session
+    // (not saved yet) is shown again so the row can still be corrected.
+    return typeof value === 'string' ? value : null;
+  }
   if (value === undefined || value === null) {
     return field.editor === 'chips' ? [] : null;
   }
@@ -158,6 +168,16 @@ export function buildRow(
     if (field.readOnly) {
       continue;
     }
+    if (field.editor === 'secret') {
+      // A typed value replaces the member; empty keeps the stored state (carried over on save).
+      const typed = formValue[field.attributeName];
+      if (typeof typed === 'string' && typed.length > 0) {
+        row[field.attributeName] = typed;
+      } else if (typeof row[field.attributeName] === 'string') {
+        delete row[field.attributeName];
+      }
+      continue;
+    }
     const value = fromControlValue(field, formValue[field.attributeName]);
     if (value === undefined) {
       delete row[field.attributeName];
@@ -166,6 +186,28 @@ export function buildRow(
     }
   }
   return row;
+}
+
+/** The stored state of a SECRET member value (`null` for a typed, unsaved string). */
+export function recordSecretState(value: unknown): SecretState | null {
+  if (typeof value === 'string' && value.length > 0) {
+    return null;
+  }
+  return toSecretState(isSecretStateObject(value) ? value : null);
+}
+
+/**
+ * Cell / badge text of a SECRET member: the shared status wording for a stored value, `newValue`
+ * for a typed, unsaved value — never the value itself.
+ */
+export function formatRecordSecretCell(
+  value: unknown,
+  labels: SecretStatusLabels,
+  newValue: string,
+  formatDate?: (date: Date) => string,
+): string {
+  const state = recordSecretState(value);
+  return state ? formatSecretStatus(state, formatDate, labels) : newValue;
 }
 
 /** Short, single-line text of a cell value for the records grid and read-only displays. */

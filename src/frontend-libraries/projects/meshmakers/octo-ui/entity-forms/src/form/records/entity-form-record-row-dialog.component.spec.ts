@@ -82,4 +82,52 @@ describe('EntityFormRecordRowDialogComponent', () => {
     expect(Object.values(component.form().controls).every(c => c.disabled)).toBe(true);
     expect((fixture.nativeElement as HTMLElement).querySelector('button[type="submit"]')).toBeNull();
   });
+
+  describe('SECRET members (AB#5528)', () => {
+    const SECRET_RECORD: CkRecordInfo = { ckRecordId: 'Test/Endpoint-1', attributes: [attr('key', 'STRING'), attr('token', 'SECRET')] };
+    const stored = { isSet: true, keyMissing: false, setAt: null };
+
+    beforeEach(() => fixture.componentRef.setInput('record', SECRET_RECORD));
+
+    it('shows the badge instead of "unsupported" and an empty write-only input', () => {
+      fixture.componentRef.setInput('row', { key: 'a', token: stored });
+      fixture.detectChanges();
+      const host = fixture.nativeElement as HTMLElement;
+      const field = host.querySelector('[data-attribute="token"]') as HTMLElement;
+      expect(field.querySelector('.mm-efr-secret-badge')?.textContent?.trim()).toBe('Set');
+      expect(field.textContent).not.toContain('This value cannot be edited here.');
+      const input = field.querySelector('input') as HTMLInputElement;
+      expect(input.type).toBe('password');
+      expect(input.value).toBe('');
+      expect(component.form().controls['token'].value).toBeNull();
+    });
+
+    it('keeps the stored secret when left empty and sends a typed value', () => {
+      fixture.componentRef.setInput('row', { key: 'a', token: stored });
+      fixture.detectChanges();
+      expect(component.result()).toEqual({ key: 'a', token: stored });
+      component.form().controls['token'].setValue('new-token');
+      expect(component.result()).toEqual({ key: 'a', token: 'new-token' });
+    });
+
+    it('read-only users see the badge only', () => {
+      fixture.componentRef.setInput('row', { key: 'a', token: { isSet: false } });
+      fixture.componentRef.setInput('readOnly', true);
+      fixture.detectChanges();
+      const field = (fixture.nativeElement as HTMLElement).querySelector('[data-attribute="token"]') as HTMLElement;
+      expect(field.querySelector('.mm-efr-secret-badge')?.textContent?.trim()).toBe('Not set');
+      expect(field.querySelector('input')).toBeNull();
+    });
+
+    it('without a key ring the SECRET member input is disabled with a hint and the stored value is kept', () => {
+      fixture.componentRef.setInput('row', { key: 'a', token: stored });
+      fixture.componentRef.setInput('secretWritesDisabled', true);
+      fixture.detectChanges();
+      const field = (fixture.nativeElement as HTMLElement).querySelector('[data-attribute="token"]') as HTMLElement;
+      expect(field.querySelector('[data-secret-writes-disabled]')?.textContent).toContain('key ring');
+      expect(component.form().controls['token'].disabled).toBe(true);
+      expect(component.form().controls['key'].enabled).toBe(true);
+      expect(component.result()).toEqual({ key: 'a', token: stored });
+    });
+  });
 });

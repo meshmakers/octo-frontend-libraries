@@ -20,7 +20,7 @@ and other packages, and hosts that do not use it keep the primary bundle unchang
 | `<mm-entity-list>` (`EntityListComponent`) | `mm-list-view` of a resolved form (columns, Copy ID, delete, "New" incl. subtype picker) |
 | `<mm-entity-form>` (`EntityFormComponent`) | The form itself (sections, editors, validation, change set) |
 | `EntityFormService` | Loads forms + CK metadata (cached per tenant) and resolves the form for a type or form key |
-| `EntityFormDataService` | Reads values / secret presence / associations; create, update, delete |
+| `EntityFormDataService` | Reads values / secret state / associations; create, update (incl. `clearSecretAttributes`), delete |
 | `parseEntityForms`, `pickEntityForm`, `resolveEntityForm`, … | Pure functions behind the service, e.g. for a forms editor |
 | `entityFormCatalog(forms)`, `entityFormKey(form)` | Settings overview: one entry per target type whose effective form has a `Category`, with the URL key |
 | `EntityFormsMessages`, `DEFAULT_ENTITY_FORMS_MESSAGES` | All UI strings (English defaults; pass `Partial<…>` via `messages`) |
@@ -204,22 +204,81 @@ throwing hook) cancels. The Refinery Studio maps it to its production-mode confi
 
 ## Secrets (write-only)
 
-Secret values never reach the browser:
+Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, decisions 2026-10-06).
 
-- A field is secret when the form says `Secret: true`, **or its editor is `password` (a
-  password editor is always write-only, even without `Secret: true`)**, or the CK attribute
-  carries the metadata `secret=true`.
+**Which fields are secret**
+
+- The **SECRET value type** (AB#5528) is always secret and maps automatically to a write-only
+  field — no form definition needed; `Secret: false` is ignored with a warning. Compatible
+  editors: `password` (default) and `multiline` (PEM keys, `EntityFormField.Editor: multiline`);
+  any other editor falls back to `password` with a warning.
+- Fallback for attributes that are not SECRET yet (older models): the form says `Secret: true`,
+  **or its editor is `password`** (always write-only), or the CK attribute carries the metadata
+  `secret=true`, or a textual attribute has a credential-like name (shared rule
+  `isSecretAttributeCandidate` of `@meshmakers/octo-services`).
+
+**Reading**
+
 - Value reads, the list and the reference picker use documents whose `$attributeNames` is
-  declared `[String]!` and always pass the explicit non-secret names. Never add a document that
-  selects `attributes` without that argument — **omitting it makes the server return every
-  attribute, secrets included.**
-- Whether a secret is set is read with an `IS_NOT_NULL` field filter — plus `NOT_EQUALS ""` for
-  STRING secrets, an empty string counts as not set (AB#5524) — and `totalCount`, not by
-  reading the value. The field shows "•••• set — leave empty to keep" or "Not set" and is never
-  prefilled.
+  declared `[String]!` and always pass explicit names. Never add a document that selects
+  `attributes` without that argument — **omitting it makes the server return every attribute,
+  secrets included.**
+- SECRET fields (`ResolvedEntityForm.secretStateFields`) are part of that list: the server
+  returns `value: null` plus `secretIsSet`, giving `EntityFormValueState.secretStates`
+  (`isSet`, `keyMissing`, `setAt`). `keyMissing` / `setAt` are contract fields
+  (`secretKeyMissing` / `secretSetAt`) not served by the backend yet — add them to
+  `getEntityFormValues.graphql` and re-run codegen once it does (TODO in the document).
+- Fallback secrets are never listed; whether they are set is read with an `IS_NOT_NULL` field
+  filter — plus `NOT_EQUALS ""` for STRING secrets — and `totalCount`. (Never use that probe on a
+  SECRET: the server refuses every filter but `IS_NULL` / `IS_NOT_NULL` there.)
+
+**UI** (field shell badge + `mm-entity-form-secret-editor`)
+
+- Badge next to the label, visible to read-only users too (Q15): **Set · set at …** (or **Set**
+  for legacy values without a timestamp), **Not set**, **Key missing — re-enter** (a value is
+  stored but its key is not in this environment's key ring; it reads as not set for consumers but
+  counts as present for "required"), **Will be cleared** (staged clear). Create mode shows
+  "Secret".
+- The input is never prefilled; placeholder "Leave empty to keep" when a value is stored.
+  Read-only users get no input, no "Show" and no "Clear".
+- **Show** reveals only the value typed in this session, never a stored one; it is disabled while
+  the input is empty (Q10).
+- **Multiline** (PEM keys): the text area renders its text transparent until **Show** (caret,
+  selection and placeholder stay visible) and a status line reports only the number of lines
+  entered. This works in every browser — Firefox has no reliable `-webkit-text-security`, and a
+  password input would drop the PEM line breaks.
+- **Clear** (optional SECRET fields with a stored value, edit mode, write access) is staged and
+  sent on Save as `clearSecretAttributes` (Q8). Clear and a new value are mutually exclusive:
+  Clear is disabled while a value is typed; a staged clear replaces the input by a note with
+  **Undo**. Required secrets cannot be cleared; fallback secrets cannot be cleared either (the
+  server accepts `clearSecretAttributes` only for SECRET attributes).
+- **No key ring** (Q17): when the host provides `ENTITY_FORM_SECRET_KEY_RING_CONFIGURED`
+  (a `Signal<boolean | null | undefined>`) and it is `false`, secret inputs are disabled with a
+  hint. Only **SECRET-typed** fields (and SECRET record members) are gated — fallback secrets
+  (name rule / metadata) are plain values server-side and stay writable. Without a provider (or
+  while the signal is `null` / `undefined`) secrets are writable.
+  The signal may change after the form was built (status loaded asynchronously): the controls
+  follow it. In **create** mode a visible, required secret that cannot be entered blocks the form:
+  the field stays required (marker + hint), `isValid()` is `false` and the public signal
+  `saveBlockedReason()` names the fields — `mm-entity-page` disables Save with that text as
+  tooltip and the form shows it as a notice; other hosts should do the same. Edit mode is not
+  blocked (the server enforces required secrets only on create). The Studio provides the token
+  app-wide from the bot status endpoint `GET {tenantId}/v1/secrets/status`
+  (`SecretEnvironmentStatusService`, fail-open).
+
+**Writing**
+
 - An empty secret is left out of the change set (unchanged). A required secret is required
-  only on create or while it is not set.
+  only on create or while it is not present (set or key missing).
 - Secret list columns are dropped. The update mutation selects no attributes (no echo).
+- Record members of value type SECRET: the generic read returns `value: null` + `secretIsSet` per
+  member; the form keeps that state (never a value). The records grid and the row editor show the
+  shared status badge (**Set** / **Not set** / **Key missing — re-enter**); the row editor offers
+  an empty password input (read-only users: badge only). A typed value replaces the member
+  (grid: "New value (unsaved)"); an empty input keeps it — on save the member is **omitted** and
+  the server carries the stored value over from the element with the same record key (handover
+  §2). Changing an element's record key therefore drops its stored secret. A state object is
+  never sent back. Without a key ring the member input is disabled with the hint (badge stays).
 - The CK description of `EntityFormField.Secret` says "masked … revealed on demand"; the concept
   (§5.8, write-only) wins.
 
@@ -261,9 +320,12 @@ form defines explicitly keeps its own `ReadOnly`.
   `ASSET1004`.
 - **The `attributeNames` filter is applied inside records too.** Reading a record attribute
   returns its rows with empty `attributes` unless the record's sub-attribute names are listed as
-  well, so `readAttributeNames` contains them. When a sub-attribute name equals a secret
-  top-level attribute name it is dropped and the record field becomes read-only (warning), so a
-  save cannot erase that sub-value.
+  well, so `readAttributeNames` contains them. When a sub-attribute name equals a fallback
+  (non-SECRET) secret top-level attribute name it is dropped and the record field becomes
+  read-only (warning), so a save cannot erase that sub-value. A top-level SECRET name does not block
+  only when every record member of that name is a SECRET too (the server redacts both). If a
+  NON-SECRET member shares the name, listing it would return that member in clear text: the name is
+  not listed, the record field becomes read-only and the SECRET falls back to the presence probe.
 - The edit flow relies on a partial `RtEntityUpdate` keeping the attributes that are not sent
   (unchanged values, secrets). That is what makes the write-only secret handling safe.
 

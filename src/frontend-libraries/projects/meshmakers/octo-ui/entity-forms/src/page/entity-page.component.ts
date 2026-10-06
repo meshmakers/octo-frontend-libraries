@@ -140,6 +140,8 @@ export class EntityPageComponent implements HasUnsavedChanges {
 
   // Queried by template reference so specs can swap in stubs with the same selector.
   private readonly form = viewChild<EntityFormComponent>('entityForm');
+  /** Why Save / Create is disabled (e.g. a required secret without key ring, Q17), or `null`. */
+  protected readonly saveBlockedReason = computed(() => this.form()?.saveBlockedReason() ?? null);
   private readonly list = viewChild<EntityListComponent>('entityList');
 
   private readonly paramMap = toSignal(this.route.paramMap);

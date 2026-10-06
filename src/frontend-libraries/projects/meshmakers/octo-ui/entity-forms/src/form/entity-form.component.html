@@ -1,6 +1,9 @@
 @let m = resolvedMessages();
 @let rev = revision();
 <form class="mm-entity-form" [formGroup]="form()" (submit)="$event.preventDefault()" novalidate>
+  @if (saveBlockedReason(); as reason) {
+    <p class="mm-ef-blocked" role="status" data-save-blocked>{{ reason }}</p>
+  }
   @for (section of model().sections; track section.key) {
     @if (visibleFieldCount(section) > 0) {
       <section
@@ -34,10 +37,25 @@
                   [control]="ctrl"
                   [messages]="m"
                   [secretState]="secretState(field)"
+                  [secretSetAt]="secretSetAt(field)"
                   [readOnly]="ro"
                   [required]="isRequired(field)"
                   [revision]="rev"
                 >
+                  @if (field.secret && field.kind === 'attribute' && (field.editor === 'password' || field.editor === 'multiline' || field.editor === 'text')) {
+                    <mm-entity-form-secret-editor
+                      [control]="ctrl"
+                      [messages]="m"
+                      [placeholder]="placeholder(field)"
+                      [multiline]="field.editor === 'multiline'"
+                      [readOnly]="ro"
+                      [canClear]="canClearSecret(field)"
+                      [clearStaged]="isSecretClearStaged(field)"
+                      [writesDisabled]="isSecretWriteBlocked(field)"
+                      [revision]="rev"
+                      (clearStagedChange)="setSecretClearStaged(field, $event)"
+                    ></mm-entity-form-secret-editor>
+                  } @else {
                   @switch (field.editor) {
                     @case ('multiline') {
                       <kendo-textarea
@@ -129,6 +147,7 @@
                         [columns]="field.record?.columns ?? []"
                         [single]="field.record?.single ?? false"
                         [readOnly]="ro"
+                        [secretWritesDisabled]="secretWritesDisabled()"
                       ></mm-entity-form-records-field>
                     }
                     @case ('unsupported') {
@@ -146,6 +165,7 @@
                         [readonly]="ro"
                       ></kendo-textbox>
                     }
+                  }
                   }
                 </mm-entity-form-field>
               }

@@ -61,7 +61,8 @@
               </button>
             }
             @if (mode() !== 'view') {
-              <button kendoButton themeColor="primary" [svgIcon]="saveIcon" [disabled]="saving()" (click)="onSave()">
+              <button kendoButton themeColor="primary" [svgIcon]="saveIcon" [disabled]="saving() || !!saveBlockedReason()"
+                      [attr.title]="saveBlockedReason()" data-entity-page-save (click)="onSave()">
                 {{ msgs().save }}
               </button>
             }
