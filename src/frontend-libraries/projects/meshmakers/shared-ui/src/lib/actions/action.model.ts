@@ -31,10 +31,16 @@ export interface MmAction<TId extends string = string> {
   id: TId;
   /**
    * Verb phrase in sentence case ("Edit", "Delete dump", "Set value"). Used as tooltip,
-   * menu text and — together with the row label — as the accessible name. Add "…" only to
-   * text buttons/menu items that open a dialog; icon tooltips stay without it.
+   * menu/button text (unless `menuLabel` is set) and — together with the row label — as the
+   * accessible name. Never ends with "…"; put that into `menuLabel`.
    */
   label: string;
+  /**
+   * Visible text in menus and text buttons when it differs from `label` — typically the "…" of
+   * actions that open a dialog ("Delete dump…"). Tooltips and accessible names keep `label`.
+   * Falls back to `label`.
+   */
+  menuLabel?: string;
   /** Kendo SVG icon; take it from {@link MM_ACTION_ICONS} where a canonical icon exists. */
   icon?: SVGIcon;
   /** Destructive action: danger styling; the handler must confirm (danger dialog, named target). */

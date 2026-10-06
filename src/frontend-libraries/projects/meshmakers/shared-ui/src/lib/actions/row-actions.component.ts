@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, ViewEncapsulation, computed, inject, input, numberAttribute, output} from '@angular/core';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {DropDownButtonModule} from '@progress/kendo-angular-buttons';
 import {SVGIconModule} from '@progress/kendo-angular-icons';
 import {moreVerticalIcon} from '@progress/kendo-svg-icons';
@@ -17,7 +17,6 @@ interface RowActionMenuItem<TId extends string> {
   text: string;
   svgIcon?: MmAction<TId>['icon'];
   disabled: boolean;
-  cssClass?: string;
   action: MmAction<TId>;
 }
 
@@ -42,7 +41,11 @@ interface RowActionMenuItem<TId extends string> {
   imports: [DropDownButtonModule, SVGIconModule, ActionButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  host: {class: 'mm-row-actions', role: 'group', '[attr.aria-label]': 'groupLabel()'},
+  host: {
+    class: 'mm-row-actions',
+    '[attr.role]': 'hasActions() ? "group" : null',
+    '[attr.aria-label]': 'hasActions() ? groupLabel() : null',
+  },
   template: `
     @for (action of split().inline; track action.id) {
       <mm-action-button [action]="action" [targetLabel]="rowLabel()" context="row" display="icon"
@@ -82,6 +85,10 @@ interface RowActionMenuItem<TId extends string> {
     .mm-row-actions__item-text { display: inline-flex; flex-direction: column; }
     .mm-row-actions__item-reason { font-size: 0.85em; color: var(--theme-text-muted, #75829a); white-space: normal; max-width: 280px; }
     .mm-row-actions__item--danger { color: var(--theme-status-error, #c0385f); }
+    .mm-row-actions__more .k-button:focus-visible {
+      outline: none;
+      box-shadow: var(--theme-focus-ring, 0 0 0 2px #ffffff, 0 0 0 4px #2e8473);
+    }
   `],
 })
 export class RowActionsComponent<TId extends string = string> {
@@ -96,16 +103,19 @@ export class RowActionsComponent<TId extends string = string> {
   readonly triggered = output<MmActionEvent<TId>>();
 
   private readonly router = inject(Router, {optional: true});
+  /** Menu links resolve like the inline `routerLink`: relative to the hosting route. */
+  private readonly route = inject(ActivatedRoute, {optional: true});
   protected readonly moreIcon = moreVerticalIcon;
   protected readonly split = computed(() => splitRowActions(this.actions(), this.maxInline()));
   protected readonly menuItems = computed<RowActionMenuItem<TId>[]>(() =>
     this.split().menu.map((action) => ({
-      text: action.label,
+      text: action.menuLabel || action.label,
       svgIcon: action.icon,
       disabled: isActionDisabled(action),
-      cssClass: action.danger ? 'mm-row-actions__menu-item--danger' : undefined,
       action,
     })));
+  /** No group semantics for an empty cell (all actions hidden). */
+  protected readonly hasActions = computed(() => this.split().inline.length > 0 || this.split().menu.length > 0);
   protected readonly moreLabel = computed(() => `More actions for ${this.rowLabel()}`);
   protected readonly groupLabel = computed(() => `Actions for ${this.rowLabel()}`);
 
@@ -116,7 +126,7 @@ export class RowActionsComponent<TId extends string = string> {
     const link = item.action.link;
     if (link && this.router) {
       const commands = typeof link.commands === 'string' ? [link.commands] : [...link.commands];
-      void this.router.navigate(commands, {queryParams: link.queryParams});
+      void this.router.navigate(commands, {queryParams: link.queryParams, relativeTo: this.route ?? undefined});
     }
     this.triggered.emit({id: item.action.id, action: item.action});
   }

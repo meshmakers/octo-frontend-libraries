@@ -48,8 +48,10 @@ export interface CommandItem {
   tooltip?: string;
 
   /*
-   * Destructive action (AB#5570): the list-view row action and toolbar control render
-   * with danger styling (`themeColor="error"`). The `onClick` handler must still confirm
+   * Destructive action (AB#5570): in the list view the row action button renders with
+   * danger styling (`themeColor="error"`) and the context / overflow menu item in the
+   * error colour. Toolbar controls are not styled (page-level destructive actions belong in
+   * the page header as danger text buttons). The `onClick` handler must still confirm
    * (danger dialog naming the target). See the Studio action guideline.
    */
   danger?: boolean;

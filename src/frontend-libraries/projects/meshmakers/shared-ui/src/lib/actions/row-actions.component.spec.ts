@@ -1,6 +1,6 @@
 import {Component, signal} from '@angular/core';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {Router, provideRouter} from '@angular/router';
+import {ActivatedRoute, Router, provideRouter} from '@angular/router';
 import {RowActionsComponent} from './row-actions.component';
 import {MM_ACTION_ICONS, MmAction, MmActionEvent} from './action.model';
 
@@ -85,7 +85,29 @@ describe('RowActionsComponent', () => {
     set([open]);
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     (component() as unknown as {onMenuItem(i: unknown): void}).onMenuItem({text: 'Open', disabled: false, action: open});
-    expect(navigate).toHaveBeenCalledWith(['/a', 'b'], {queryParams: {q: '1'}});
+    expect(navigate).toHaveBeenCalledWith(['/a', 'b'], expect.objectContaining({queryParams: {q: '1'}}));
     expect(host.events.map((e) => e.id)).toEqual(['open']);
+  });
+
+  it('resolves relative menu links against the hosting route, like the inline routerLink', () => {
+    const relative: MmAction = {id: 'open', label: 'Open', overflow: true, link: {commands: ['details', '42']}};
+    set([relative]);
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    (component() as unknown as {onMenuItem(i: unknown): void}).onMenuItem({text: 'Open', disabled: false, action: relative});
+    const route = fixture.debugElement.children[0].injector.get(ActivatedRoute);
+    expect(navigate).toHaveBeenCalledWith(['details', '42'], {queryParams: undefined, relativeTo: route});
+  });
+
+  it('shows the menuLabel ("…") in the overflow menu but keeps the label for names', () => {
+    set([{id: 'delete', label: 'Delete dump', menuLabel: 'Delete dump…', overflow: true}]);
+    const items = (component() as unknown as {menuItems(): {text: string}[]}).menuItems();
+    expect(items.map((i) => i.text)).toEqual(['Delete dump…']);
+  });
+
+  it('drops the group role and name when no action is rendered', () => {
+    set([{id: 'edit', label: 'Edit', visible: false}]);
+    const hostEl: HTMLElement = fixture.nativeElement.querySelector('mm-row-actions');
+    expect(hostEl.getAttribute('role')).toBeNull();
+    expect(hostEl.getAttribute('aria-label')).toBeNull();
   });
 });

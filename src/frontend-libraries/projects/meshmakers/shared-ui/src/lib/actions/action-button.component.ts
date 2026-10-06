@@ -43,7 +43,7 @@ let nextReasonId = 0;
   imports: [ButtonModule, RouterLink, SVGIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
-  host: {class: 'mm-action-button-host'},
+  host: {class: 'mm-action-button-host', '[class.mm-action-button-host--disabled]': 'disabled()'},
   template: `
     @if (action().link && !disabled()) {
       <!-- kendoButton only matches <button>: the link carries the same Kendo button classes itself. -->
@@ -59,7 +59,7 @@ let nextReasonId = 0;
         [routerLink]="$any(action().link!.commands)"
         [queryParams]="action().link!.queryParams ?? null"
         (click)="onClick($event)"
-      >@if (showIcon()) {<kendo-svgicon class="k-button-icon" [icon]="action().icon!" />}@if (!iconOnly()) {<span class="k-button-text">{{ action().label }}</span>}</a>
+      >@if (showIcon()) {<kendo-svgicon class="k-button-icon" [icon]="action().icon!" />}@if (!iconOnly()) {<span class="k-button-text">{{ visibleLabel() }}</span>}</a>
     } @else {
       <button
         kendoButton
@@ -79,19 +79,38 @@ let nextReasonId = 0;
         [attr.aria-disabled]="disabled() ? 'true' : null"
         [attr.aria-describedby]="disabled() ? reasonId : null"
         (click)="onClick($event)"
-      >@if (!iconOnly()) { {{ action().label }} }</button>
+      >@if (!iconOnly()) { {{ visibleLabel() }} }</button>
     }
     @if (disabled()) {
       <span class="mm-action-button__reason" [id]="reasonId">{{ action().disabledReason }}</span>
     }
   `,
   styles: [`
-    .mm-action-button-host { display: inline-flex; }
+    .mm-action-button-host { display: inline-flex; position: relative; }
     .mm-action-button--toolbar.mm-action-button--icon-only .k-svg-icon { width: 20px; height: 20px; }
     .mm-action-button--disabled { opacity: 0.45; cursor: not-allowed; }
+    /* Keyboard focus ring from the theme (guideline §2.6), above Kendo's own focus shadow. */
+    .mm-action-button-host .mm-action-button:focus-visible {
+      outline: none;
+      box-shadow: var(--theme-focus-ring, 0 0 0 2px #ffffff, 0 0 0 4px #2e8473);
+    }
+    /* Disabled reason: announced via aria-describedby, visually hidden ... */
     .mm-action-button__reason {
       position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
       overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+    /* ... and shown as a hint bubble while the disabled action has keyboard focus (guideline §2.5). */
+    .mm-action-button-host--disabled:has(.mm-action-button:focus-visible) .mm-action-button__reason {
+      top: calc(100% + 4px); left: 0; z-index: 20;
+      width: max-content; max-width: 280px; height: auto; margin: 0; overflow: visible; clip: auto;
+      padding: var(--theme-space-1, 4px) var(--theme-space-2, 8px);
+      white-space: normal; font-size: 0.75rem; line-height: 1.4;
+      color: var(--theme-text-primary, #0f1c2e);
+      background: var(--theme-bg-overlay, #ffffff);
+      border: 1px solid var(--theme-border-default, rgba(7, 23, 43, 0.12));
+      border-radius: var(--theme-radius-sm, 4px);
+      box-shadow: var(--theme-shadow-popup, 0 8px 24px rgba(7, 23, 43, 0.14));
+      pointer-events: none;
     }
   `],
 })
@@ -112,6 +131,8 @@ export class ActionButtonComponent<TId extends string = string> {
   protected readonly disabled = computed(() => isActionDisabled(this.action()));
   /** Icon-only needs an icon; without one the button falls back to its text. */
   protected readonly iconOnly = computed(() => this.display() === 'icon' && !!this.action().icon);
+  /** Visible text: `menuLabel` ("Delete dump…") when set, else the label. */
+  protected readonly visibleLabel = computed(() => this.action().menuLabel || this.action().label);
   protected readonly showIcon = computed(() => this.display() !== 'text' && !!this.action().icon);
   protected readonly tooltip = computed(() =>
     this.iconOnly() || this.disabled() ? actionTooltip(this.action()) : null);

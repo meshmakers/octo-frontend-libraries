@@ -113,4 +113,21 @@ describe('ActionButtonComponent', () => {
     expect(fixture.nativeElement.querySelector('a')).toBeNull();
     expect(button().getAttribute('aria-disabled')).toBe('true');
   });
+
+  it('shows menuLabel as visible text but names the button with the label', () => {
+    host.display.set('text');
+    host.action.set({id: 'delete', label: 'Delete dump', menuLabel: 'Delete dump…', danger: true});
+    fixture.detectChanges();
+    expect(button().textContent?.trim()).toBe('Delete dump…');
+    expect(button().getAttribute('aria-label')).toBe('Delete dump Encrypt run 17:09');
+  });
+
+  it('marks the host of a disabled action so the reason can be shown on keyboard focus', () => {
+    const hostEl = (): HTMLElement => fixture.nativeElement.querySelector('mm-action-button');
+    expect(hostEl().classList).not.toContain('mm-action-button-host--disabled');
+    host.action.set({id: 'delete', label: 'Delete dump', icon: MM_ACTION_ICONS.delete, disabledReason: 'Busy'});
+    fixture.detectChanges();
+    expect(hostEl().classList).toContain('mm-action-button-host--disabled');
+    expect(hostEl().querySelector('.mm-action-button__reason')?.textContent).toBe('Busy');
+  });
 });

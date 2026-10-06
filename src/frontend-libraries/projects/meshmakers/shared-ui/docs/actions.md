@@ -11,7 +11,8 @@ import {MM_ACTION_ICONS, MmAction} from '@meshmakers/shared-ui';
 
 const deleteDump: MmAction<'delete-dump'> = {
   id: 'delete-dump',                 // emitted, rendered as data-action
-  label: 'Delete dump',              // tooltip, menu text, accessible name (+ row label)
+  label: 'Delete dump',              // tooltip, accessible name (+ row label); never ends with "…"
+  menuLabel: 'Delete dump…',         // optional visible text in menus / text buttons (falls back to label)
   icon: MM_ACTION_ICONS.delete,      // canonical icon per verb
   danger: true,                      // danger styling; the handler confirms
   disabledReason: busy ? 'A sweep is running' : null, // non-empty = disabled, announced
@@ -46,9 +47,11 @@ const deleteDump: MmAction<'delete-dump'> = {
 Behaviour: icon buttons, size small (16 px icon), flat, neutral; danger actions use
 `themeColor="error"`. More than `maxInline` visible actions: the first `maxInline - 1` stay
 inline and the rest go into a "More actions for {row}" dropdown (vertical ellipsis). Disabled
-actions keep focus (`aria-disabled="true"`), link their reason via `aria-describedby` and show it
-in the tooltip; in the menu the reason is shown under the item text and the item cannot be
-chosen. The host gets `role="group"` and `aria-label="Actions for {row}"`.
+actions keep focus (`aria-disabled="true"`), link their reason via `aria-describedby`, show it in
+the tooltip on hover and as a hint bubble below the button while it has keyboard focus
+(`:focus-visible`); in the menu the reason is shown under the item text and the item cannot be
+chosen. Focused buttons use `--theme-focus-ring`. The host gets `role="group"` and
+`aria-label="Actions for {row}"` — only while at least one action is rendered.
 
 ## `mm-action-button`
 
@@ -74,7 +77,8 @@ One action as a button, for toolbars, section headers and page headers.
 
 An action with `link: {commands, queryParams?}` renders inline as a real router link
 (`<a routerLink>` with the Kendo button classes — open in new tab and copy link keep working).
-From the overflow menu it navigates with `Router.navigate`. A disabled navigating action renders
+From the overflow menu it navigates with `Router.navigate(commands, {queryParams, relativeTo})`
+relative to the hosting route — the same resolution as the inline `routerLink`. A disabled navigating action renders
 as a disabled button (no `href`). `triggered` fires in every case.
 
 ## Confirming destructive actions
@@ -86,6 +90,7 @@ The components only emit. Destructive handlers confirm first, naming the target,
 ## List view
 
 `mm-list-view` renders its own row actions from `CommandItem`s (icon buttons with
-`aria-label` = text + row label, context menu as overflow). `CommandItem.danger` gives a row
-action danger styling there too. Converging the list view onto `mm-row-actions` (max-3 rule,
+`aria-label` = text + row label, context menu as overflow). `CommandItem.danger` renders the row
+action button with `themeColor="error"` and the context / overflow menu item in the error colour;
+toolbar controls are not styled (destructive page actions go into the page header). Converging the list view onto `mm-row-actions` (max-3 rule,
 disabled reasons) is a follow-up.
