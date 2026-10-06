@@ -79,8 +79,6 @@ import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-service
     .alert-severity-badge {
       font-size: 0.65rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       padding: 2px 8px;
       border-radius: 3px;
       background: var(--alert-color, #6b7280);

@@ -621,7 +621,6 @@ export interface ProcessConfigResult extends WidgetConfigResult {
       font-weight: 600;
       font-size: 0.7rem;
       color: var(--kendo-color-subtle, #6c757d);
-      text-transform: uppercase;
     }
 
     .mapping-row {
@@ -649,12 +648,11 @@ export interface ProcessConfigResult extends WidgetConfigResult {
       background: var(--kendo-color-surface-alt, #f8f9fa);
       border-radius: 10px;
       text-align: center;
-      text-transform: uppercase;
       color: var(--kendo-color-subtle, #6c757d);
     }
 
     .col-expression kendo-textbox {
-      font-family: 'Consolas', 'Monaco', monospace;
+      font-family: var(--theme-font-mono);
       font-size: 0.8rem;
     }
 
