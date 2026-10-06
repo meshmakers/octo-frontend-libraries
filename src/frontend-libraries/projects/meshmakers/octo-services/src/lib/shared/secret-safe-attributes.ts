@@ -15,9 +15,13 @@
  * - {@link toUniqueCamelCaseNames}: camelCase + de-duplication for type-aware callers.
  * The server compares camelCase names only, and one list also filters the sub-attributes of records.
  *
- * The heuristic is an interim mitigation. Once the models declare `valueType: Secret`, the server
- * projects `{ isSet }` instead of the value and the heuristic can be dropped.
+ * SECRET value type (AB#5528): an attribute whose value type is `SECRET` is ALWAYS a secret — no
+ * explicit decision or metadata can opt it out. The server never projects its value (`value` is
+ * null, `secretIsSet` / `{ isSet }` report the state, see `secret-state.ts`). The metadata marker
+ * and the name heuristic remain only as the FALLBACK for non-SECRET attributes (models that have
+ * not switched their credentials to SECRET yet, handover note §1 phase 2 before phase 3).
  */
+import { isSecretValueType } from './secret-state';
 
 /**
  * Credential-like name suffixes (lower case). Matched against the END of the attribute name so
@@ -57,7 +61,7 @@ export function isCredentialLikeAttributeName(name: string | null | undefined): 
 /** Minimal CK attribute description used by {@link isSecretAttributeCandidate}. */
 export interface SecretCandidateAttribute {
   attributeName?: string | null;
-  /** CK value type (`STRING`, `INT`, `BOOLEAN`, `RECORD`, …). Unknown = treated as textual (conservative). */
+  /** CK value type (`STRING`, `INT`, `BOOLEAN`, `RECORD`, `SECRET`, …). Unknown = treated as textual (conservative). */
   attributeValueType?: string | null;
   /** CK attribute metadata; `secret: true` marks a secret, `secret: false` opts out of the name rule. */
   metaData?: readonly ({ key?: string | null; value?: string | null } | null)[] | null;
@@ -76,6 +80,7 @@ export function isTextualValueType(valueType: string | null | undefined): boolea
 /**
  * THE credential rule of the frontend (AB#5542; entity forms, runtime browser, meshboard, Data
  * Explorer all use it). An attribute is a secret candidate when
+ * 0. its value type is `SECRET` (always; cannot be opted out), else
  * 1. the caller decided explicitly (`secret: true|false`, e.g. form `Secret: false` opts out), else
  * 2. its CK metadata says `secret: true|false`, else
  * 3. it is TEXTUAL (`STRING`, `STRING_ARRAY`, unknown) and its name is credential-like
@@ -83,6 +88,7 @@ export function isTextualValueType(valueType: string | null | undefined): boolea
  *    `maxTokens: INT`, a `credentials` RECORD) are never secrets by name.
  */
 export function isSecretAttributeCandidate(attribute: SecretCandidateAttribute): boolean {
+  if (isSecretValueType(attribute.attributeValueType)) return true;
   if (attribute.secret === true || attribute.secret === false) return attribute.secret;
   const marker = (attribute.metaData ?? []).find((m) => !!m && m.key?.toLowerCase() === 'secret');
   if (marker) {
