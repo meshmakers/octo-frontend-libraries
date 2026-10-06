@@ -139,8 +139,7 @@ octo-process-diagrams/
 │       │   └── expression-evaluator.service.ts    # Expression evaluation for bindings
 │       ├── graphQL/                               # Auto-generated GraphQL services
 │       ├── styles/
-│       │   ├── _dockview-theme.scss              # Optional Deep Sea dockview theme mixin
-│       │   └── _dockview-lcars-theme.scss         # Deprecated alias (lcars-theme)
+│       │   └── _dockview-theme.scss              # Optional Deep Sea dockview theme mixin
 │       └── docs/
 │           └── SVG-IMPORT.md                      # SVG import documentation
 ```
@@ -220,8 +219,7 @@ An optional token-driven theme mixin is available (Deep Sea, AB#5526):
 @include dockview.dockview-theme();
 ```
 
-`styles/dockview-lcars-theme` with `lcars-theme()` / `lcars-css-variables()`
-remains as a deprecated alias for one release.
+The former `styles/dockview-lcars-theme` alias (`lcars-theme()`) was removed in AB#5526.
 
 ## Dependencies
 

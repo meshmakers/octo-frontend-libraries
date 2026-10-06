@@ -1,8 +1,8 @@
 @use "sass:color";
 @use "variables" as *;
-@use "lcars-flat-btn" as *;
-@use "lcars-input" as *;
-@use "lcars-button" as *;
+@use "flat-button" as *;
+@use "field-input" as *;
+@use "button" as *;
 
 @mixin styles {
   // Direct dockview element overrides - needed because ViewEncapsulation blocks global styles
@@ -173,14 +173,14 @@
       }
       input[type="text"],
       input[type="number"] {
-        @include lcars-input;
+        @include field-input;
       }
       input[type="color"] {
         border-color: var(--theme-border-default, var(--octo-mint-30)) !important;
       }
     }
     .line-type-select {
-      @include lcars-input;
+      @include field-input;
     }
 
     .line-preview {
@@ -208,7 +208,7 @@
     background: var(--surface-elevated) !important;
 
     .palette-search input {
-      @include lcars-input;
+      @include field-input;
       &::placeholder {
         color: var(--ash-blue) !important;
       }
@@ -323,7 +323,7 @@
     .property-row select,
     .style-class-select,
     .line-type-select {
-      @include lcars-input;
+      @include field-input;
     }
 
     .property-row select option,
@@ -673,7 +673,7 @@
 
         &:focus {
           border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-          box-shadow: var(--lcars-input-focus) !important;
+          box-shadow: var(--theme-focus-ring) !important;
           outline: none !important;
         }
 
@@ -769,7 +769,7 @@
 
         &:focus {
           border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-          box-shadow: var(--lcars-input-focus) !important;
+          box-shadow: var(--theme-focus-ring) !important;
         }
       }
     }
@@ -814,7 +814,7 @@
 
       &:focus {
         border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-        box-shadow: var(--lcars-input-focus) !important;
+        box-shadow: var(--theme-focus-ring) !important;
       }
     }
 
@@ -861,7 +861,7 @@
 
         &:focus {
           border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-          box-shadow: var(--lcars-input-focus) !important;
+          box-shadow: var(--theme-focus-ring) !important;
         }
       }
 
@@ -929,7 +929,7 @@
 
         &:focus {
           border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-          box-shadow: var(--lcars-input-focus) !important;
+          box-shadow: var(--theme-focus-ring) !important;
         }
       }
     }
@@ -1090,7 +1090,7 @@
 
         &:focus {
           border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-          box-shadow: var(--lcars-input-focus) !important;
+          box-shadow: var(--theme-focus-ring) !important;
           outline: none !important;
         }
 
@@ -1208,7 +1208,7 @@
       &:focus,
       &.k-focus {
         border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-        box-shadow: var(--lcars-input-focus) !important;
+        box-shadow: var(--theme-focus-ring) !important;
       }
     }
 
@@ -1237,7 +1237,7 @@
       &:focus,
       &.k-focus {
         border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-        box-shadow: var(--lcars-input-focus) !important;
+        box-shadow: var(--theme-focus-ring) !important;
       }
     }
 
@@ -1364,7 +1364,7 @@
 
         &:focus {
           border-color: var(--theme-text-accent, var(--octo-mint)) !important;
-          box-shadow: var(--lcars-input-focus) !important;
+          box-shadow: var(--theme-focus-ring) !important;
         }
       }
     }
@@ -1558,43 +1558,13 @@
   body {
     background-color: var(--kendo-color-app-surface, var(--deep-sea, #1a2230));
     color: var(--kendo-color-on-app-surface, var(--octo-text-color, #ffffff));
-    font-family: var(--theme-font-ui, var(--lcars-font-primary));
+    font-family: var(--theme-font-ui);
   }
 
   h1,
   h2,
   h3 {
-    font-family: var(--theme-font-display, var(--lcars-font-primary));
-  }
-
-  // --------------------------------------------------------------------------
-  // Retiring (AB#5526 phase 2): kept neutral for the Studio areas not yet
-  // migrated to <mm-page> and for the Meshmakers App. Deep Sea look only —
-  // no gradient rules, accent bars or asymmetric corners.
-  // --------------------------------------------------------------------------
-
-  .lcars-panel {
-    background: var(--theme-bg-surface, var(--lcars-panel-bg));
-    border: 1px solid var(--theme-border-default, var(--octo-mint-20));
-    border-radius: var(--theme-radius-md, 6px);
-    padding: 16px;
-    position: relative;
-  }
-
-  .lcars-header-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--theme-border-subtle, var(--octo-mint-20));
-    margin-bottom: 16px;
-  }
-
-  .lcars-panel-asymmetric {
-    background: var(--theme-bg-surface, var(--lcars-panel-bg));
-    border: 1px solid var(--theme-border-default, var(--octo-mint-20));
-    border-radius: var(--theme-radius-md, 6px);
-    padding: 16px;
+    font-family: var(--theme-font-display);
   }
 
   // Kendo overrides
@@ -1821,7 +1791,7 @@
       background: var(--theme-bg-surface, var(--deep-sea-80));
 
       tr {
-        transition: background var(--lcars-transition-fast);
+        transition: background var(--theme-motion-fast) var(--theme-motion-easing);
 
         &:hover {
           background: var(--theme-bg-hover, var(--octo-mint-08)) !important;
@@ -1852,7 +1822,7 @@
     .k-treeview-item {
       .k-treeview-leaf {
         border-radius: var(--theme-radius-sm, 4px);
-        transition: background-color var(--lcars-transition-fast);
+        transition: background-color var(--theme-motion-fast) var(--theme-motion-easing);
 
         &:hover {
           background: var(--theme-bg-hover, var(--octo-mint-10));
@@ -1873,7 +1843,7 @@
     background: var(--theme-bg-input, var(--deep-sea-80));
     border: 1px solid var(--theme-border-default, var(--ash-blue-30));
     border-radius: var(--theme-radius-sm, 4px);
-    transition: border-color var(--lcars-transition-fast);
+    transition: border-color var(--theme-motion-fast) var(--theme-motion-easing);
 
     &:hover {
       border-color: var(--theme-border-strong, var(--octo-mint-50));
@@ -1882,7 +1852,7 @@
     &:focus,
     &.k-focus {
       border-color: var(--theme-accent, var(--octo-mint));
-      box-shadow: var(--lcars-input-focus);
+      box-shadow: var(--theme-focus-ring);
     }
   }
 
@@ -2173,7 +2143,7 @@
       font-size: 0.8125rem !important; // 13px - compact to match app styling
       line-height: 1.4 !important;
       min-height: auto !important;
-      transition: background var(--lcars-transition-fast);
+      transition: background var(--theme-motion-fast) var(--theme-motion-easing);
 
       &:hover {
         background: var(--theme-bg-hover, var(--octo-mint-15));
@@ -2236,12 +2206,12 @@
       flex-shrink: 0;
 
       .k-button {
-        @include lcars-button;
+        @include octo-button;
 
         // Flat/outline buttons in action rows get the same outline look
         &.k-button-flat,
         &.k-button-outline {
-          @include lcars-flat-btn;
+          @include flat-button;
         }
       }
     }
@@ -2253,11 +2223,11 @@
     border-top: 1px solid var(--theme-border-subtle, var(--octo-mint-20));
 
     .k-button {
-      @include lcars-button;
+      @include octo-button;
 
       &.k-button-flat,
       &.k-button-outline {
-        @include lcars-flat-btn;
+        @include flat-button;
       }
     }
   }
@@ -2272,10 +2242,10 @@
     .dialog-actions .k-button,
     .toolbar .k-button,
     .dialog-button.k-button {
-      @include lcars-button;
+      @include octo-button;
 
       &.k-button-flat {
-        @include lcars-flat-btn;
+        @include flat-button;
       }
     }
   }
@@ -2327,7 +2297,7 @@
       margin: 2px 4px;
       padding: 10px 12px;
       min-height: 44px;
-      transition: all var(--lcars-transition-fast);
+      transition: all var(--theme-motion-fast) var(--theme-motion-easing);
       display: flex;
       align-items: center;
       justify-content: flex-start;
@@ -2556,7 +2526,7 @@
         text-transform: none;
         letter-spacing: normal;
         border-radius: var(--theme-radius-sm, 4px) var(--theme-radius-sm, 4px) 0 0;
-        transition: background-color var(--lcars-transition-fast), color var(--lcars-transition-fast);
+        transition: background-color var(--theme-motion-fast) var(--theme-motion-easing), color var(--theme-motion-fast) var(--theme-motion-easing);
 
         &:hover {
           background: var(--theme-bg-hover, var(--octo-mint-10));
@@ -2573,7 +2543,7 @@
 
   // Cards
   .k-card {
-    background: var(--theme-bg-surface, var(--lcars-panel-bg));
+    background: var(--theme-bg-surface);
     border: 1px solid var(--theme-border-default, var(--octo-mint-20));
     border-radius: var(--theme-radius-md, 6px);
     overflow: hidden;
@@ -2616,48 +2586,6 @@
       background: var(--theme-accent, var(--octo-mint));
       color: var(--theme-text-on-accent, var(--deep-sea));
     }
-  }
-
-  // --------------------------------------------------------------------------
-  // Retiring (AB#5526 phase 2): LCARS colour/background helpers kept as
-  // neutral token aliases; no current users in the Studio or the Meshmakers
-  // App. The glow, scanline, pulse, corner-accent and border-glow utilities
-  // were removed (concept §6.1 rule 2: no glows, no pulses, no scanlines).
-  // --------------------------------------------------------------------------
-  .lcars-text-mint {
-    color: var(--theme-text-accent, var(--octo-mint));
-  }
-  .lcars-text-cyan {
-    color: var(--theme-accent-2, var(--neo-cyan));
-  }
-  .lcars-text-violet {
-    color: var(--theme-ai, var(--royal-violet));
-  }
-  .lcars-text-pink {
-    color: var(--theme-status-error, var(--bubblegum));
-  }
-  .lcars-text-toffee {
-    color: var(--theme-status-warning, var(--toffee));
-  }
-
-  .lcars-bg-panel {
-    background: var(--theme-bg-surface, var(--lcars-panel-bg));
-  }
-  .lcars-bg-deep {
-    background: var(--theme-bg-app, var(--deep-sea));
-  }
-  .lcars-bg-navy {
-    background: var(--theme-bg-elevated, var(--iron-navy));
-  }
-
-  .lcars-border-mint {
-    border-color: var(--theme-border-default, var(--octo-mint));
-  }
-
-  .lcars-divider {
-    height: 1px;
-    background: var(--theme-border-subtle, var(--octo-mint-20));
-    margin: 16px 0;
   }
 
   // Layout
@@ -2778,7 +2706,7 @@
     --mm-login-btn-primary-start: var(--theme-accent, #{$octo-mint});
     --mm-login-btn-primary-end: var(--theme-accent, #{$octo-mint});
     --mm-login-btn-primary-text: var(--theme-text-on-accent, var(--deep-sea));
-    --mm-login-font: var(--theme-font-ui, var(--lcars-font-primary));
+    --mm-login-font: var(--theme-font-ui);
   }
 
   // Style the popup container itself
@@ -2800,7 +2728,7 @@
       --mm-login-btn-primary-start: var(--theme-accent, #{$octo-mint});
       --mm-login-btn-primary-end: var(--theme-accent, #{$octo-mint});
       --mm-login-btn-primary-text: var(--theme-text-on-accent, var(--deep-sea));
-      --mm-login-font: var(--theme-font-ui, var(--lcars-font-primary));
+      --mm-login-font: var(--theme-font-ui);
 
       background: var(--theme-bg-overlay, var(--iron-navy)) !important;
 
@@ -2874,8 +2802,8 @@
         text-transform: none;
         letter-spacing: normal;
         transition:
-          background-color var(--lcars-transition-fast),
-          color var(--lcars-transition-fast);
+          background-color var(--theme-motion-fast) var(--theme-motion-easing),
+          color var(--theme-motion-fast) var(--theme-motion-easing);
         display: flex;
         align-items: center;
         gap: 12px;
@@ -3007,14 +2935,14 @@
     padding: 12px 16px;
 
     .k-button {
-      @include lcars-button;
+      @include octo-button;
     }
   }
 
   // Kendo grid toolbar (rendered by mm-list-view / kendo-grid internally)
   .k-grid-toolbar {
     .k-button {
-      @include lcars-button;
+      @include octo-button;
     }
   }
 
@@ -3036,7 +2964,7 @@
     }
 
     .k-button {
-      @include lcars-button;
+      @include octo-button;
     }
 
     // Responsive
@@ -3053,13 +2981,11 @@
   }
 
   // --------------------------------------------------------------------------
-  // Retiring (AB#5526 phase 2): LCARS page pattern, kept neutral for the
-  // Studio areas not yet migrated to <mm-page> (communication, home/cockpit,
-  // settings, general configurations, AI configuration) and for the
-  // Meshmakers App pages. New pages use <mm-page> from @meshmakers/octo-ui.
-  // Deep Sea look: no accent bar or header rule, sentence-case display title,
-  // a plain surface card for the content panel, and no "READY" footer
-  // (concept §3.4: removed without replacement).
+  // Legacy LCARS page pattern — kept ONLY for the Meshmakers App until it
+  // migrates to <mm-page> (AB#5526). The Refinery Studio no longer uses these
+  // classes; new pages use <mm-page> from @meshmakers/octo-ui. Deep Sea look:
+  // no accent bar or header rule, sentence-case display title, a plain
+  // surface card for the content panel, and no "READY" footer (concept §3.4).
   // --------------------------------------------------------------------------
   .lcars-page-header {
     display: flex;
@@ -3091,7 +3017,7 @@
     flex-wrap: wrap;
     gap: 4px 10px;
     margin: 0;
-    font-family: var(--theme-font-display, var(--lcars-font-primary));
+    font-family: var(--theme-font-display);
 
     .title-prefix {
       font-family: var(--theme-font-ui, inherit);
@@ -3109,33 +3035,6 @@
       letter-spacing: normal;
       color: var(--theme-text-primary, var(--octo-text-color));
       text-transform: none;
-    }
-  }
-
-  .header-stats {
-    display: flex;
-    gap: 8px;
-  }
-
-  .stat-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 8px;
-    background: var(--theme-bg-elevated, transparent);
-    border: 1px solid var(--theme-border-default, var(--octo-mint-30));
-    border-radius: var(--theme-radius-xs, 2px);
-
-    .badge-icon {
-      display: none;
-    }
-
-    .badge-label {
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: var(--theme-text-secondary, var(--ash-blue));
-      text-transform: none;
-      letter-spacing: normal;
     }
   }
 
@@ -3177,10 +3076,6 @@
   }
 
   @media (max-width: 768px) {
-    .header-stats {
-      display: none;
-    }
-
     .page-title .title-main {
       font-size: 1.1rem;
     }
@@ -3220,7 +3115,7 @@
       border-bottom-color: var(--theme-border-subtle, var(--octo-mint-20));
 
       .mm-form-title {
-        font-family: var(--theme-font-display, var(--lcars-font-primary));
+        font-family: var(--theme-font-display);
         text-transform: none;
         letter-spacing: normal;
         color: var(--theme-text-primary, var(--octo-text-color));
@@ -3233,7 +3128,7 @@
       border-top-color: var(--theme-border-subtle, var(--octo-mint-20));
 
       .k-button {
-        @include lcars-button;
+        @include octo-button;
       }
     }
   }
@@ -3262,7 +3157,7 @@
     --mm-prose-hr-start: #{$octo-mint};
     --mm-prose-hr-end: #{$neo-cyan};
     --mm-prose-img-border: rgba(#{$octo-mint}, 0.2);
-    --mm-prose-font: var(--theme-font-ui, var(--lcars-font-primary));
+    --mm-prose-font: var(--theme-font-ui);
   }
 
   mm-markdown-config-dialog {
@@ -3287,7 +3182,7 @@
     .loading-container {
       .k-loading-text {
         color: var(--theme-text-accent, var(--octo-mint));
-        font-family: var(--theme-font-ui, var(--lcars-font-primary));
+        font-family: var(--theme-font-ui);
       }
     }
 
@@ -3310,7 +3205,7 @@
 
         h2 {
           color: var(--octo-text-color);
-          font-family: var(--theme-font-display, var(--lcars-font-primary));
+          font-family: var(--theme-font-display);
         }
 
         p {
@@ -3345,7 +3240,7 @@
     .toolbar-left {
       .meshboard-title {
         color: var(--octo-text-color) !important;
-        font-family: var(--theme-font-display, var(--lcars-font-primary));
+        font-family: var(--theme-font-display);
       }
 
       .meshboard-description {
@@ -3356,7 +3251,7 @@
     .toolbar-right,
     .mm-toolbar-actions {
       .k-button {
-        @include lcars-button;
+        @include octo-button;
       }
     }
   }
@@ -3377,7 +3272,7 @@
 
       h3 {
         color: var(--octo-text-color) !important;
-        font-family: var(--theme-font-display, var(--lcars-font-primary));
+        font-family: var(--theme-font-display);
       }
 
       p {
@@ -3385,7 +3280,7 @@
       }
 
       .k-button {
-        @include lcars-button;
+        @include octo-button;
       }
     }
   }
@@ -3401,8 +3296,8 @@
       box-shadow: var(--theme-shadow-panel, none);
       overflow: hidden;
       transition:
-        border-color var(--lcars-transition-normal),
-        box-shadow var(--lcars-transition-normal);
+        border-color var(--theme-motion-base) var(--theme-motion-easing),
+        box-shadow var(--theme-motion-base) var(--theme-motion-easing);
 
       &:hover {
         border-color: var(--theme-border-strong, var(--octo-mint-40)) !important;
@@ -3417,7 +3312,7 @@
         .widget-header {
           .widget-title {
             color: var(--theme-text-primary, var(--octo-mint)) !important;
-            font-family: var(--theme-font-display, var(--lcars-font-primary));
+            font-family: var(--theme-font-display);
             font-weight: 600;
             font-size: 0.85rem;
           }
@@ -3472,7 +3367,7 @@
   // Widget Error State
   .widget-error {
     color: var(--bubblegum) !important;
-    font-family: var(--theme-font-ui, var(--lcars-font-primary));
+    font-family: var(--theme-font-ui);
   }
 
   // MeshBoard widgets
@@ -3481,7 +3376,7 @@
   .kpi-widget {
     .kpi-value {
       color: var(--theme-text-primary, var(--octo-mint)) !important;
-      font-family: var(--theme-font-display, var(--lcars-font-primary));
+      font-family: var(--theme-font-display);
       font-variant-numeric: tabular-nums;
     }
 
@@ -3492,7 +3387,7 @@
 
     .kpi-label {
       color: var(--ash-blue) !important;
-      font-family: var(--theme-font-ui, var(--lcars-font-primary));
+      font-family: var(--theme-font-ui);
     }
 
     .kpi-trend {
@@ -3520,7 +3415,7 @@
   }
 
   .widget-group-item-title {
-    font-family: var(--theme-font-display, var(--lcars-font-primary));
+    font-family: var(--theme-font-display);
   }
 
   // Entity Associations Widget - background styling
@@ -3584,12 +3479,12 @@
     }
 
     .stat-value {
-      font-family: var(--theme-font-display, var(--lcars-font-primary));
+      font-family: var(--theme-font-display);
     }
 
     .stat-label {
       color: var(--ash-blue) !important;
-      font-family: var(--theme-font-ui, var(--lcars-font-primary));
+      font-family: var(--theme-font-ui);
     }
 
     .stats-error {
@@ -3640,11 +3535,11 @@
 
     .service-name {
       color: var(--octo-text-color) !important;
-      font-family: var(--theme-font-display, var(--lcars-font-primary));
+      font-family: var(--theme-font-display);
     }
 
     .health-status {
-      font-family: var(--theme-font-ui, var(--lcars-font-primary));
+      font-family: var(--theme-font-ui);
     }
 
     .last-checked {
@@ -3667,7 +3562,7 @@
 
       .entity-name {
         color: var(--octo-text-color) !important;
-        font-family: var(--theme-font-display, var(--lcars-font-primary));
+        font-family: var(--theme-font-display);
       }
     }
 
@@ -3697,7 +3592,7 @@
 
       .entity-id {
         color: var(--ash-blue) !important;
-        font-family: var(--lcars-font-mono);
+        font-family: var(--theme-font-mono);
       }
     }
   }
@@ -3705,7 +3600,7 @@
   // Status Indicator Widget
   .status-indicator {
     .status-badge {
-      font-family: var(--theme-font-ui, var(--lcars-font-primary));
+      font-family: var(--theme-font-ui);
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
     }
 
@@ -3735,7 +3630,7 @@
           background: var(--theme-bg-elevated) !important;
           border-bottom-color: var(--theme-border-default, var(--octo-mint-20)) !important;
           color: var(--theme-text-accent, var(--octo-mint)) !important;
-          font-family: var(--theme-font-ui, var(--lcars-font-primary));
+          font-family: var(--theme-font-ui);
         }
 
         .widget-type-item {
@@ -3790,7 +3685,7 @@
       }
 
       .header-actions .k-button {
-        @include lcars-button;
+        @include octo-button;
       }
     }
 
@@ -3800,11 +3695,11 @@
 
       .form-title {
         color: var(--theme-text-accent, var(--octo-mint)) !important;
-        font-family: var(--theme-font-display, var(--lcars-font-primary));
+        font-family: var(--theme-font-display);
       }
 
       .form-actions .k-button {
-        @include lcars-button;
+        @include octo-button;
       }
     }
 
@@ -3879,7 +3774,7 @@
 
         .item-edit {
           .edit-actions .k-button {
-            @include lcars-button;
+            @include octo-button;
           }
         }
       }
@@ -3904,7 +3799,7 @@
       .form-group {
         label {
           color: var(--ash-blue) !important;
-          font-family: var(--theme-font-ui, var(--lcars-font-primary));
+          font-family: var(--theme-font-ui);
           font-size: 0.8rem;
         }
       }
@@ -3912,13 +3807,13 @@
       .section-title {
         color: var(--theme-text-accent, var(--octo-mint)) !important;
         border-bottom-color: var(--theme-border-default, var(--octo-mint-20)) !important;
-        font-family: var(--theme-font-display, var(--lcars-font-primary));
+        font-family: var(--theme-font-display);
       }
 
       kendo-formfield {
         kendo-label {
           color: var(--ash-blue) !important;
-          font-family: var(--theme-font-ui, var(--lcars-font-primary));
+          font-family: var(--theme-font-ui);
           font-size: 0.8rem;
         }
 
@@ -3979,7 +3874,7 @@
 
       .section-title {
         color: var(--theme-text-accent, var(--octo-mint)) !important;
-        font-family: var(--theme-font-display, var(--lcars-font-primary)) !important;
+        font-family: var(--theme-font-display) !important;
       }
     }
 
@@ -4032,7 +3927,7 @@
       code {
         background: var(--octo-mint-15) !important;
         color: var(--theme-text-accent, var(--octo-mint)) !important;
-        font-family: var(--lcars-font-mono) !important;
+        font-family: var(--theme-font-mono) !important;
       }
     }
   }
@@ -4041,7 +3936,7 @@
   mm-time-range-picker {
     .time-range-picker {
       .k-button {
-        @include lcars-button;
+        @include octo-button;
 
         &.active {
           background: var(--octo-mint-25) !important;
@@ -4052,7 +3947,7 @@
 
       .date-range-display {
         color: var(--ash-blue);
-        font-family: var(--lcars-font-mono);
+        font-family: var(--theme-font-mono);
         font-size: 0.85rem;
       }
     }
@@ -4077,8 +3972,8 @@
     --mm-cron-code-text: #{$octo-mint};
     --mm-cron-shadow:
       0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px #{var(--octo-mint-08)};
-    --mm-cron-font-family: var(--theme-font-ui, var(--lcars-font-primary));
-    --mm-cron-font-mono: var(--lcars-font-mono);
+    --mm-cron-font-family: var(--theme-font-ui);
+    --mm-cron-font-mono: var(--theme-font-mono);
 
     // Additional styling
     .cron-builder {
@@ -4111,7 +4006,7 @@
 
     // Preset buttons
     .preset-button {
-      @include lcars-button;
+      @include octo-button;
 
       &:hover:not(:disabled) {
         border-color: var(--theme-text-accent, var(--octo-mint));
@@ -4122,7 +4017,7 @@
 
     // Day toggle buttons
     .day-button {
-      @include lcars-button;
+      @include octo-button;
 
       &.k-selected,
       &[ng-reflect-selected="true"] {
@@ -4135,7 +4030,7 @@
 
     // Mode buttons (daily mode, monthly mode)
     .mode-buttons button {
-      @include lcars-button;
+      @include octo-button;
 
       &.k-selected,
       &[ng-reflect-selected="true"] {
@@ -4156,7 +4051,7 @@
       .k-tabstrip-items .k-item {
         background: transparent;
         color: var(--ash-blue);
-        font-family: var(--theme-font-ui, var(--lcars-font-primary));
+        font-family: var(--theme-font-ui);
         font-weight: 500;
         font-size: 0.75rem;
         border: none;
@@ -4192,7 +4087,7 @@
 
       &.k-focus {
         border-color: var(--theme-text-accent, var(--octo-mint));
-        box-shadow: var(--lcars-input-focus);
+        box-shadow: var(--theme-focus-ring);
       }
     }
 
@@ -4201,7 +4096,7 @@
       background: var(--deep-sea);
       border: 1px solid var(--theme-border-default, var(--octo-mint-20));
       color: var(--theme-text-accent, var(--octo-mint));
-      font-family: var(--lcars-font-mono);
+      font-family: var(--theme-font-mono);
 
       &:hover {
         border-color: var(--octo-mint-40);
@@ -4210,7 +4105,7 @@
       &:focus,
       &.k-focus {
         border-color: var(--theme-text-accent, var(--octo-mint));
-        box-shadow: var(--lcars-input-focus);
+        box-shadow: var(--theme-focus-ring);
       }
     }
 

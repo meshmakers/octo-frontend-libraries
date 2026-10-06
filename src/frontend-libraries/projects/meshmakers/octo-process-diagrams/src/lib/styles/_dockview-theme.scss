@@ -11,8 +11,8 @@
 // without theme tokens still get a sensible default. Flat: no gradients, no
 // glows, sentence-case tabs and labels in the UI face.
 //
-// `_dockview-lcars-theme.scss` (mixins `lcars-theme` / `lcars-css-variables`)
-// remains as a deprecated alias for one release.
+// The former `_dockview-lcars-theme.scss` alias (`lcars-theme` /
+// `lcars-css-variables`) was removed in AB#5526.
 // ============================================================================
 
 // Mixin to apply the Deep Sea theme to dockview, driven by host --theme-* tokens

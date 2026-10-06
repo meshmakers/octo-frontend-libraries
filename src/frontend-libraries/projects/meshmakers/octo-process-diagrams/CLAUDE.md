@@ -88,9 +88,8 @@ theme-agnostic: it emits `--dv-*` variables and element overrides that reference
 `--theme-*` host tokens (surfaces, neutral hairlines, accent for the active tab,
 sash and drop target) with neutral fallbacks — flat, no glows, sentence case.
 Hosts that define `--theme-*` get a fully themed dockview; hosts that don't get a
-sensible neutral default. `styles/_dockview-lcars-theme.scss` is a deprecated
-alias (`lcars-theme()` / `lcars-css-variables()` include the new mixins) kept
-for one release.
+sensible neutral default. The former `_dockview-lcars-theme.scss` alias was
+removed in AB#5526.
 
 ### Keyboard Shortcuts
 

@@ -33,7 +33,7 @@
 // ----------------------------------------------------------------------------
 @mixin foundation-tokens {
   // Typography (new). Display = titles and KPI numbers, UI = everything else,
-  // mono = ids, versions, YAML/JSON, cron, URLs. `--lcars-font-*` alias these.
+  // mono = ids, versions, YAML/JSON, cron, URLs. `--lcars-font-*` alias these (kept for the Meshmakers App).
   --theme-font-display: "Montserrat", "Roboto", "Helvetica Neue", sans-serif;
   --theme-font-ui: "Roboto", "Helvetica Neue", Arial, sans-serif;
   --theme-font-mono: "Roboto Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -48,7 +48,7 @@
   --theme-space-7: 28px;
   --theme-space-8: 32px;
 
-  // Radius — symmetric edges, no pills (new). `--lcars-radius-sm/md/lg` alias these.
+  // Radius — symmetric edges, no pills (new).
   --theme-radius-xs: 2px; // chips
   --theme-radius-sm: 4px; // buttons, inputs, tabs
   --theme-radius-md: 6px; // cards, panels
@@ -236,13 +236,13 @@
 // ----------------------------------------------------------------------------
 // Light-theme buttons (AB#5526).
 //
-// Buttons are flat and token-driven in both themes now (_lcars-button.scss and
+// Buttons are flat and token-driven in both themes now (_button.scss and
 // the `.k-button` block in _styles.scss: primary = --theme-accent with
 // --theme-text-on-accent, base = --theme-bg-elevated with a neutral border),
 // so the light theme needs no separate treatment. The mixins stay — they are
 // forwarded by the styles entry point — and emit the same flat token rules,
 // which also keeps dialog action rows (specificity (0,4,0) from the
-// lcars-button mixin) and page buttons identical.
+// octo-button mixin) and page buttons identical.
 // ----------------------------------------------------------------------------
 @mixin light-theme-button-primary {
   background: var(--theme-accent);
@@ -441,8 +441,8 @@
 // ----------------------------------------------------------------------------
 // Public entry point: emits the light-theme button overrides.
 //
-// Include this in a host's GLOBAL stylesheet, AFTER `styles()` — the lcars
-// button mixin styles dialog action buttons at specificity (0,4,0), so these
+// Include this in a host's GLOBAL stylesheet, AFTER `styles()` — the octo-button
+// mixin styles dialog action buttons at specificity (0,4,0), so these
 // rules must both outrank it and come later in source order. Deliberately not
 // part of `styles()`: that mixin is also included from component stylesheets,
 // where :root-scoped rules do not belong and would inflate every component's

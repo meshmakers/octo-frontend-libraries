@@ -3,7 +3,7 @@
 // Deep Sea button (AB#5526): flat base/outline style with a flat primary
 // variant. No gradients, no glows, sentence case. The mixin keeps its LCARS
 // name because toolbars, dialogs and widget configs in _styles.scss include it.
-@mixin lcars-button {
+@mixin octo-button {
   background: transparent;
   border: 1px solid var(--theme-border-default, var(--octo-mint-30));
   color: var(--theme-text-primary, var(--octo-text-color));

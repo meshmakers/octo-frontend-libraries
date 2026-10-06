@@ -229,8 +229,8 @@ and the header is a plain `<div>`. See
 `@include octo.theme()` emits the "Deep Sea" token set on `:root` (dark
 default, light via `prefers-color-scheme` or `data-theme="light"`); source:
 `src/lib/runtime-browser/styles/_theme.scss`. Hosts may override any of these
-custom properties after the include. Every LCARS-era name is kept; tokens
-marked *new* were added in AB#5519.
+custom properties after the include. All `--theme-*` names of the former
+theme are kept; tokens marked *new* were added in AB#5519.
 
 | Group | Tokens |
 |---|---|
@@ -247,14 +247,12 @@ marked *new* were added in AB#5519.
 | Radius (*new*) | `--theme-radius-xs` 2 px (chips), `-sm` 4 px (buttons, inputs), `-md` 6 px (cards, panels), `-lg` 8 px (dialogs, popovers) |
 | Motion (*new*) | `--theme-motion-fast` 120 ms, `--theme-motion-base` 200 ms, `--theme-motion-easing`; both durations become `0ms` under `prefers-reduced-motion: reduce` |
 
-Aliases kept for one release: `--lcars-font-primary` → `--theme-font-display`,
-`--lcars-font-mono` → `--theme-font-mono`, `--lcars-radius-sm/md/lg` →
-`--theme-radius-sm/md/lg`, `--lcars-input-focus` → `--theme-focus-ring`,
-`--lcars-transition-fast/-normal` → `--theme-motion-fast/-base` + easing (so
-reduced motion reaches them). Since AB#5526 `--lcars-glow-*` resolve to `none`,
-`--lcars-btn-base` to `transparent` and `--lcars-btn-base-hover` to
-`--theme-bg-hover`; nothing in the library uses them any more and they are
-deleted in AB#5526 phase 2.
+Legacy aliases (AB#5526 phase 2): only `--lcars-font-primary` →
+`--theme-font-display`, `--lcars-font-mono` → `--theme-font-mono` and
+`--lcars-transition-fast` → `--theme-motion-fast` + easing remain, kept for the
+Meshmakers App until it migrates. All other `--lcars-*` variables (glows,
+button bases, input focus, radii, panel tokens, `--lcars-transition-normal`)
+were deleted — use the `--theme-*` tokens.
 
 Body text: `octo.styles()` sets `body { font-family: var(--theme-font-ui) }`
 (Roboto) since AB#5526; `h1`–`h3`, page and dialog titles, `mm-page` titles and
@@ -278,17 +276,19 @@ KPI numbers use `--theme-font-display` (Montserrat 600).
   and app-bar treatments are gone — both themes agree now). It also emits a
   sentence-case rule (`html:root .k-label, kendo-label, .section-title`) that
   outranks host component styles in both themes.
-- **Retiring LCARS classes** (deleted in AB#5526 phase 2, kept *neutral* until
-  then for the Studio areas not yet on `mm-page` and for the Meshmakers App):
-  `.lcars-page-header`, `.page-title` / `.title-prefix` / `.title-main`,
-  `.header-content`, `.header-stats`, `.stat-badge`, `.lcars-content-panel`
-  (surface card), `.lcars-panel`, `.lcars-panel-asymmetric` (now symmetric),
-  `.lcars-header-bar`, `.lcars-divider`, `.lcars-text-*`, `.lcars-bg-*`,
-  `.lcars-border-mint`; `.lcars-header-accent`, `.lcars-header-line`,
+- **Legacy LCARS page classes — kept only for the Meshmakers App** (AB#5526
+  phase 2; the Refinery Studio no longer uses them): `.lcars-page-header`,
+  `.page-title` / `.title-prefix` / `.title-main`, `.header-content` and
+  `.lcars-content-panel` (surface card, with its `.k-grid` rule) keep a neutral
+  Deep Sea definition; `.lcars-header-accent`, `.lcars-header-line`,
   `.panel-accent-top/-bottom`, `.lcars-footer` and `.footer-*` render nothing
-  (`display: none` — the "READY" footer has no successor). `.lcars-glow-*`,
-  `.lcars-scanline`, `.lcars-pulse`, `.lcars-corner-accent` and
-  `.lcars-border-glow` were removed. New pages use `<mm-page>`.
+  (`display: none`). Everything else was deleted: `.header-stats`,
+  `.stat-badge`, `.lcars-panel`, `.lcars-panel-asymmetric`, `.lcars-header-bar`,
+  `.lcars-divider`, `.lcars-text-*`, `.lcars-bg-*`, `.lcars-border-mint`, the
+  glow/scanline/pulse utilities, and the `_lcars-button.scss`,
+  `_lcars-flat-btn.scss` and `_lcars-input.scss` mixin files (now the internal
+  `_button.scss` / `octo-button`, `_flat-button.scss` / `flat-button` and
+  `_field-input.scss` / `field-input`). New pages use `<mm-page>`.
 
 Deviations from concept §6.2 (contrast-driven): light `--theme-text-accent` /
 `--theme-accent` `#2c7d6d` (concept `#2e8473`, 4.16:1 on the light canvas →

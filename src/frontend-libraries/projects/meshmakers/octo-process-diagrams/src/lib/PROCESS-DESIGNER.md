@@ -965,7 +965,6 @@ The library also exports an optional SCSS theme mixin for host apps that want a 
 ```scss
 @use '@meshmakers/octo-process-diagrams/styles/dockview-theme' as dockview;
 @include dockview.dockview-theme();
-// deprecated alias: styles/dockview-lcars-theme + dockview.lcars-theme()
 ```
 
 ### Programmatic Panel Control

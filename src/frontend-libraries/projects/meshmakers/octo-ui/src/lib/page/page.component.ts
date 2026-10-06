@@ -46,8 +46,8 @@ function hasProjectedContent(element: HTMLElement | undefined): boolean {
 
 /**
  * Page layout: an optional header (title, subtitle, actions) above a content
- * area. Replaces the LCARS `lcars-page-header` / `lcars-content-panel` /
- * `lcars-footer` triple; there is no footer.
+ * area. Replaces the retired LCARS page triple (header, content panel and
+ * READY footer); there is no footer.
  *
  * The header renders only when there is something to show — a `pageTitle` /
  * `pageSubtitle` input or projected `[mmPageTitle]`, `[mmPageSubtitle]` or
