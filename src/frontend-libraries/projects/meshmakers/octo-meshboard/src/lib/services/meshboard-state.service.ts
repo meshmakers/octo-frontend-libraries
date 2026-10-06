@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { CkModelService } from '@meshmakers/octo-services';
+import { CkModelService, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import { TimeRange, TimeRangeSelection as SharedTimeRangeSelection, TimeRangeUtils } from '@meshmakers/shared-ui';
 import { MeshBoardPersistenceService, PersistedMeshBoard } from './meshboard-persistence.service';
 import { MeshBoardGridService } from './meshboard-grid.service';
@@ -31,6 +31,7 @@ export class MeshBoardStateService {
   private readonly ckModelService = inject(CkModelService);
   private readonly persistenceService = inject(MeshBoardPersistenceService);
   private readonly gridService = inject(MeshBoardGridService);
+  private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
 
   // Reactive state signals
   private readonly _meshBoardConfig = signal<MeshBoardConfig>(this.createDefaultConfig());
@@ -60,6 +61,13 @@ export class MeshBoardStateService {
    */
   private readonly _hiddenForViewer = signal<ReadonlySet<string>>(new Set());
   readonly hiddenForViewer = this._hiddenForViewer.asReadonly();
+  /**
+   * Tenant the loaded board belongs to (from `TENANT_ID_PROVIDER` at load time; `null` when the host
+   * provides none). The service is a singleton across tenant switches, so a host comparing
+   * well-known names (e.g. the Studio's `cockpit`) must also compare this (AB#5558).
+   */
+  private readonly _loadedTenantId = signal<string | null>(null);
+  readonly loadedTenantId = this._loadedTenantId.asReadonly();
 
   // Public computed signals
   readonly meshBoardConfig = computed(() => this._meshBoardConfig());
@@ -162,6 +170,7 @@ export class MeshBoardStateService {
 
       if (result) {
         const config = this.persistenceService.toMeshBoardConfig(result.meshBoard, result.widgets);
+        const tenantId = await this.currentTenantId();
 
         // Fix any overlapping widgets from backend data
         const movedWidgets = this.gridService.resolveOverlaps(config.widgets, config.columns);
@@ -171,6 +180,7 @@ export class MeshBoardStateService {
 
         this._widgetVariables.set([]);
         this._hiddenForViewer.set(new Set());
+        this._loadedTenantId.set(tenantId);
         this._meshBoardConfig.set(config);
         this._persistedMeshBoardId.set(result.meshBoard.rtId);
         this._existingWidgetRtIds.set(result.widgets.map(w => w.rtId));
@@ -585,6 +595,14 @@ export class MeshBoardStateService {
       widgetId
     };
     this._widgetVariables.set([...current.filter(v => v.widgetId !== widgetId), variable]);
+  }
+
+  private async currentTenantId(): Promise<string | null> {
+    try {
+      return (await this.tenantIdProvider?.()) ?? null;
+    } catch {
+      return null;
+    }
   }
 
   /**
