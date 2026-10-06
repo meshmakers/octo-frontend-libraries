@@ -144,7 +144,7 @@ function parseField(d: Dict): EntityFormFieldDef | null {
     associationRoleId: strOrUndef(d, 'associationroleid'),
     recordColumns: strListOrUndef(d, 'recordcolumns'),
     hidden: boolOrUndef(d, 'hidden'),
-    // System.UI 2.8.0 (AB#5547); absent on older models, so the field simply stays unset.
+    // System.UI 2.9.0 (AB#5547); absent on older models, so the field simply stays unset.
     referenceDisplayAttributes: strListOrUndef(d, 'referencedisplayattributes'),
   });
 }

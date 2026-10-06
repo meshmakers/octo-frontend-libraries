@@ -4,7 +4,7 @@ Form-driven list, create and edit pages for OctoMesh runtime entities (AB#5522).
 
 The layout of a page — sections, field order, labels, help texts, editors, visibility rules,
 list columns, capabilities — comes from the tenant's `System.UI/EntityForm` entities
-(System.UI ≥ 2.7.0, seeded by the `System.UI.EntityForms` blueprint). Types without a form, and
+(System.UI ≥ 2.8.0, seeded by the `System.UI.EntityForms` blueprint). Types without a form, and
 tenants without System.UI, fall back to a built-in copy of the seeded `form-default`, so every
 CK type gets a usable page.
 
@@ -167,7 +167,7 @@ providers: [{ provide: ENTITY_FORM_FALLBACK_FORMS, useValue: MY_FALLBACK_FORMS }
   (`selectFallbackForms`). Fallbacks for types the tenant does not have (no CK metadata) are
   dropped. The first fallback per type wins. The result feeds `resolve`, `resolveByFormKey` and
   `entityFormCatalog` unchanged.
-- Fallbacks are also used when the forms cannot be loaded (no System.UI 2.7.0, query error).
+- Fallbacks are also used when the forms cannot be loaded (no System.UI ≥ 2.8.0, query error).
 - `registerFallbackForms(forms)` (behind `provideEntityFormFallbacks`) is idempotent per array and
   drops the cached forms and resolutions once.
 - They count as delivered forms (`isTenantForm` is forced to `false`, `source: 'seeded'`). Use the
@@ -289,7 +289,7 @@ Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, deci
 | chips | Array editor for `STRING_ARRAY` / `INT_ARRAY` |
 | cron | shared-ui `mm-cron-builder` |
 | **json / yaml** | Monospace `kendo-textarea` (no Monaco / YAML library in the workspace). `json` validates with `JSON.parse`, `yaml` is not validated. Both are stored as STRING. The Studio can swap in Monaco later via `CustomComponent`. |
-| **reference** | shared-ui `mm-entity-select-input` (typeahead plus its **grid dialog**, multi-select for `N` roles) on a secret-safe data source that selects only the target's non-secret `name` attribute (literal `attributeNames: ["name"]`). Labels (picker and current value): a real `rtDisplayName` > `name` > `rtWellKnownName` > the synthetic `<type>@<rtId>` (so a pool shows "Default Cloud", not its well-known name `CommunicationPool`). Deviates from concept §5.4, which names `mm-entity-selector-dialog` — that one is a perspective tree picker without type filter or multi-select, and configuration types are not in a tree. A form field's `referenceDisplayAttributes` (CK `EntityFormField.ReferenceDisplayAttributes`, System.UI ≥ 2.8.0, read through the generic EntityForm query — no typed schema field, so older models simply lack it; host fallback forms may set it too; e.g. `['repositoryUrl', 'channel']`): the picker then reads exactly those non-secret target attributes with `entityFormGetReferenceOptionsWithAttributes` (explicit `[String]!` `attributeNames`) and shows `name · value · value` — in the picker rows and for the current value (looked up by rtId; the field value keeps its plain name). Values are formatted by the target's CK value type (`EntityFormService.resolve` attaches `reference.displayAttributeInfo`): ENUM key → enum name (e.g. channel `0` → "Release"), BOOLEAN → the `toggleOn`/`toggleOff` labels, DATE_TIME → localized date and time, arrays comma-separated, records skipped (AB#5547; never list a secret attribute — attributes marked secret on the target are dropped, and a SECRET value is never returned anyway). |
+| **reference** | shared-ui `mm-entity-select-input` (typeahead plus its **grid dialog**, multi-select for `N` roles) on a secret-safe data source that selects only the target's non-secret `name` attribute (literal `attributeNames: ["name"]`). Labels (picker and current value): a real `rtDisplayName` > `name` > `rtWellKnownName` > the synthetic `<type>@<rtId>` (so a pool shows "Default Cloud", not its well-known name `CommunicationPool`). Deviates from concept §5.4, which names `mm-entity-selector-dialog` — that one is a perspective tree picker without type filter or multi-select, and configuration types are not in a tree. A form field's `referenceDisplayAttributes` (CK `EntityFormField.ReferenceDisplayAttributes`, System.UI ≥ 2.9.0, read through the generic EntityForm query — no typed schema field, so older models simply lack it; host fallback forms may set it too; e.g. `['repositoryUrl', 'channel']`): the picker then reads exactly those non-secret target attributes with `entityFormGetReferenceOptionsWithAttributes` (explicit `[String]!` `attributeNames`) and shows `name · value · value` — in the picker rows and for the current value (looked up by rtId; the field value keeps its plain name). Values are formatted by the target's CK value type (`EntityFormService.resolve` attaches `reference.displayAttributeInfo`): ENUM key → enum name (e.g. channel `0` → "Release"), BOOLEAN → the `toggleOn`/`toggleOff` labels, DATE_TIME → localized date and time, arrays comma-separated, records skipped (AB#5547; never list a secret attribute — attributes marked secret on the target are dropped, and a SECRET value is never returned anyway). |
 | records | Table with add / remove / move / edit; rows are edited in a dialog generated from the record's CK attributes. Nested records are read-only. |
 | unsupported (BINARY, GEOSPATIAL_POINT, TIME_SPAN, …) | Read-only display |
 

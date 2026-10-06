@@ -57,7 +57,7 @@ describe('parseEntityForm', () => {
     expect(def.fields).toEqual([{ attributePath: 'Rows', recordColumns: ['a', 'b'] }, { attributePath: 'Other', recordColumns: ['c'] }]);
   });
 
-  it('reads referenceDisplayAttributes (System.UI 2.8.0) from field records', () => {
+  it('reads referenceDisplayAttributes (System.UI 2.9.0) from field records', () => {
     const def = parseEntityForm({ rtId: 'x', attributes: { items: [
       { attributeName: 'targetCkTypeId', value: 'T/X' },
       { attributeName: 'fields', value: [

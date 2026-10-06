@@ -523,7 +523,7 @@ to every tenant by `octo-admin-panel`.
 
 Secondary entry point `@meshmakers/octo-ui/entity-forms` (`entity-forms/`, usage and route
 contract in `entity-forms/README.md`): form-driven list / create / edit pages driven by
-`System.UI/EntityForm` (System.UI ≥ 2.7.0) with a built-in copy of the seeded `form-default` as
+`System.UI/EntityForm` (System.UI ≥ 2.8.0; 2.7.0 is the plain System 2.5 repin, AB#5528) with a built-in copy of the seeded `form-default` as
 fallback. Public surface: `<mm-entity-page>`, `entityFormRoutes()`, `<mm-entity-list>`,
 `<mm-entity-form>`, `EntityFormService`, `EntityFormDataService`, the pure parser / resolver.
 
