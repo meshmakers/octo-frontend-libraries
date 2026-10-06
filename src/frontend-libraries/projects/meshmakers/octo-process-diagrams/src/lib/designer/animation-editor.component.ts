@@ -612,7 +612,6 @@ interface PresetGroup {
 
     .group-name {
       font-size: 10px;
-      text-transform: uppercase;
       color: #666;
       margin-bottom: 0.25rem;
     }

@@ -52,8 +52,6 @@
   .expression-label {
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     color: var(--cron-text-secondary);
     margin-bottom: 8px;
   }
@@ -73,7 +71,6 @@
     background: var(--cron-code-bg);
     color: var(--cron-code-text);
     border-radius: 4px;
-    letter-spacing: 1px;
 
     &.invalid {
       color: var(--cron-error);
@@ -128,8 +125,6 @@
   .presets-label {
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     color: var(--cron-text-secondary);
     margin-bottom: 8px;
   }
@@ -319,7 +314,6 @@
     .reference-title {
       font-size: 0.75rem;
       font-weight: 600;
-      text-transform: uppercase;
       color: var(--cron-text-secondary);
       margin-bottom: 8px;
     }
@@ -352,8 +346,6 @@
   .next-executions-label {
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     color: var(--cron-text-secondary);
     margin-bottom: 8px;
   }

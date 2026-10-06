@@ -14,30 +14,31 @@
 
   .dv-tabs-container,
   .dv-tabs-and-actions-container {
-    background-color: var(--iron-navy) !important;
-    border-bottom: 1px solid var(--theme-border-default, var(--octo-mint-20)) !important;
+    background-color: var(--theme-bg-elevated, var(--iron-navy));
+    border-bottom: 1px solid var(--theme-border-subtle, var(--octo-mint-20));
   }
 
+  // Dockview tabs: sentence case in the UI face, accent underline when active.
+  // Dockview sets its own tab colours inline via --dv-* variables, so the
+  // background/colour declarations still need !important to win.
   .dv-tab {
-    background-color: var(--iron-navy) !important;
-    color: var(--ash-blue) !important;
-    font-family: "Montserrat", "Roboto", sans-serif !important;
-    font-weight: 500 !important;
-    text-transform: uppercase !important;
-    font-size: 11px !important;
-    letter-spacing: 0.5px !important;
-    transition: all 0.15s ease !important;
-    border: none !important;
+    background-color: transparent !important;
+    color: var(--theme-text-secondary, var(--ash-blue)) !important;
+    font-family: var(--theme-font-ui, "Roboto", sans-serif);
+    font-weight: 500;
+    font-size: 0.75rem;
+    transition: background-color var(--theme-motion-fast, 120ms) var(--theme-motion-easing, ease), color var(--theme-motion-fast, 120ms) var(--theme-motion-easing, ease);
+    border: none;
 
     &.dv-active-tab {
-      background-color: var(--surface-elevated) !important;
-      color: var(--theme-text-accent, var(--octo-mint)) !important;
-      border-bottom: 2px solid var(--octo-mint) !important;
+      background-color: var(--theme-bg-surface, var(--surface-elevated)) !important;
+      color: var(--theme-text-primary, var(--octo-text-color)) !important;
+      box-shadow: inset 0 -2px 0 var(--theme-accent, var(--octo-mint));
     }
 
     &:hover:not(.dv-active-tab) {
-      background-color: var(--octo-mint-15) !important;
-      color: var(--octo-text-color) !important;
+      background-color: var(--theme-bg-hover, var(--octo-mint-15)) !important;
+      color: var(--theme-text-primary, var(--octo-text-color)) !important;
     }
   }
 
@@ -225,10 +226,8 @@
       .category-header {
         background: var(--iron-navy-50) !important;
         color: var(--ash-blue) !important;
-        font-family: "Montserrat", "Roboto", sans-serif !important;
+        font-family: var(--theme-font-ui, "Roboto", sans-serif) !important;
         font-size: 11px !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
         padding: 8px 12px !important;
         cursor: pointer;
         transition: all 0.15s ease;
@@ -281,7 +280,6 @@
       .element-label {
         color: var(--ash-blue) !important;
         font-size: 10px !important;
-        text-transform: uppercase !important;
       }
     }
   }
@@ -298,7 +296,7 @@
     .no-selection,
     .multi-selection {
       color: var(--ash-blue) !important;
-      font-family: "Montserrat", "Roboto", sans-serif !important;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif) !important;
 
       .hint {
         color: var(--ash-blue-70) !important;
@@ -307,9 +305,9 @@
 
     // Section headers
     .section-header {
-      color: var(--theme-text-accent, var(--octo-mint)) !important;
+      color: var(--theme-text-primary, var(--octo-text-color)) !important;
       border-bottom-color: var(--theme-border-default, var(--octo-mint-20)) !important;
-      font-family: "Montserrat", "Roboto", sans-serif !important;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif) !important;
     }
 
     // Labels
@@ -370,20 +368,16 @@
 
     // Opacity slider
     .opacity-slider {
-      background: linear-gradient(
-        to right,
-        transparent,
-        var(--octo-mint)
-      ) !important;
+      background: var(--theme-border-default, var(--octo-mint-20)) !important;
 
       &::-webkit-slider-thumb {
-        background: var(--octo-mint) !important;
-        border-color: var(--surface-elevated) !important;
+        background: var(--theme-accent, var(--octo-mint)) !important;
+        border-color: var(--theme-bg-surface, var(--surface-elevated)) !important;
       }
 
       &::-moz-range-thumb {
-        background: var(--octo-mint) !important;
-        border-color: var(--surface-elevated) !important;
+        background: var(--theme-accent, var(--octo-mint)) !important;
+        border-color: var(--theme-bg-surface, var(--surface-elevated)) !important;
       }
     }
 
@@ -743,21 +737,17 @@
     // Number control (slider + input)
     .number-control {
       .value-slider {
-        background: linear-gradient(
-          to right,
-          var(--octo-mint-20),
-          var(--octo-mint)
-        ) !important;
+        background: var(--theme-border-default, var(--octo-mint-20)) !important;
 
         &::-webkit-slider-thumb {
-          background: var(--octo-mint) !important;
-          border-color: var(--deep-sea) !important;
+          background: var(--theme-accent, var(--octo-mint)) !important;
+          border-color: var(--theme-bg-app, var(--deep-sea)) !important;
           box-shadow: none !important;
         }
 
         &::-moz-range-thumb {
-          background: var(--octo-mint) !important;
-          border-color: var(--deep-sea) !important;
+          background: var(--theme-accent, var(--octo-mint)) !important;
+          border-color: var(--theme-bg-app, var(--deep-sea)) !important;
           box-shadow: none !important;
         }
       }
@@ -3601,11 +3591,7 @@
   .status-indicator {
     .status-badge {
       font-family: var(--theme-font-ui);
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .status-text {
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      box-shadow: var(--theme-shadow-panel, none);
     }
 
     .status-error {
@@ -3970,8 +3956,7 @@
     --mm-cron-success: var(--theme-status-success, #37b400);
     --mm-cron-code-bg: var(--deep-sea);
     --mm-cron-code-text: #{$octo-mint};
-    --mm-cron-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px #{var(--octo-mint-08)};
+    --mm-cron-shadow: var(--theme-shadow-panel, 0 1px 2px rgba(0, 0, 0, 0.35));
     --mm-cron-font-family: var(--theme-font-ui);
     --mm-cron-font-mono: var(--theme-font-mono);
 
@@ -3983,18 +3968,14 @@
         box-shadow 0.2s ease;
 
       &:hover:not(.disabled) {
-        border-color: var(--octo-mint-40);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        border-color: var(--theme-border-strong, var(--octo-mint-40));
       }
     }
 
     // Expression display
     .expression-value {
       border: 1px solid var(--theme-border-default, var(--octo-mint-30));
-      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
 
-      &:not(.invalid) {
-      }
     }
 
     // Human readable preview

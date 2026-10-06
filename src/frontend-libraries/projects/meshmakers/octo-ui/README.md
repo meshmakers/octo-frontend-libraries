@@ -267,8 +267,10 @@ KPI numbers use `--theme-font-display` (Montserrat 600).
   `--theme-status-error`. Sentence case, `--theme-font-ui`, `--theme-radius-sm`,
   keyboard focus `--theme-focus-ring`. Both themes use the same rules, so the
   former light-only button overrides are no-ops.
-- **No decoration**: no gradients, glows, pulses, scanlines or text-shadows;
-  grid headers, tabs, dialog titles and context menus are sentence case; popups,
+- **No decoration**: no gradients (sliders included), glows, pulses, scanlines
+  or text-shadows; grid headers, tabs (Kendo and dockview), process designer
+  palette/inspector headers, dialog titles and context menus are sentence case
+  in `--theme-font-ui` (the only uppercase left is the avatar initials); popups,
   dialogs and menus use `--theme-bg-overlay` + `--theme-border-default` +
   `--theme-shadow-popup`; the drawer is flat `--theme-bg-elevated`.
 - **`theme-overrides()`**: `light-theme-surface-overrides` was reduced to what

@@ -28,8 +28,6 @@
     flex: 0 0 96px;
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
   }
 
@@ -179,8 +177,6 @@
   gap: 10px;
   font-size: 0.78rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   color: var(--kendo-color-subtle, #6c757d);
 
   .toolbar-spacer {
@@ -189,7 +185,6 @@
 
   .detail-summary {
     text-transform: none;
-    letter-spacing: 0;
     font-weight: 500;
     color: var(--kendo-color-on-app-surface, inherit);
     font-size: 0.78rem;
@@ -232,8 +227,6 @@
 
 .mapping-badge {
   font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   padding: 1px 6px;
   border-radius: 8px;
   border: 1px solid var(--kendo-color-border, #dee2e6);
@@ -299,8 +292,6 @@
   color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
   font-size: 0.85rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -396,8 +387,6 @@
     font-size: 0.7rem;
     padding: 1px 8px;
     border-radius: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     font-weight: 600;
   }
 

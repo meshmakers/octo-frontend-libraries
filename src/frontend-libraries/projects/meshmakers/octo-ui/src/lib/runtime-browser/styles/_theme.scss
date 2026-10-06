@@ -305,9 +305,10 @@
 
 // ----------------------------------------------------------------------------
 // Sentence case in both themes (concept §6.3: no uppercase + letter-spacing
-// labels). Component stylesheets of host apps still set it on labels and
-// section titles; `html:root` (0,2,1) outranks their (0,2,0) attribute-scoped
-// selectors. Removed once the hosts are migrated (AB#5526 phase 2).
+// labels). The Refinery Studio sets no uppercase any more (AB#5526); the
+// Meshmakers App's component stylesheets still do on labels and section
+// titles, and `html:root` (0,2,1) outranks their (0,2,0) attribute-scoped
+// selectors. Remove this block once the Meshmakers App is migrated.
 // ----------------------------------------------------------------------------
 @mixin sentence-case-overrides {
   .k-label,

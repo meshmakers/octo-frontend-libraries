@@ -1,7 +1,8 @@
 @use "variables" as *;
 
 // Deep Sea outline button for dialog/window action rows (AB#5526): flat,
-// neutral hairline border, no gradient. Name kept for the includes in _styles.scss.
+// neutral hairline border, no gradient. Internal to octo.styles() (formerly
+// `lcars-flat-btn`, renamed in AB#5526).
 @mixin flat-button {
   background: transparent !important;
   border: 1px solid var(--theme-border-default, var(--octo-mint-30)) !important;

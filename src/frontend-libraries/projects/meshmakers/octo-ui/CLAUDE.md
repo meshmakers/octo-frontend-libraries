@@ -84,7 +84,10 @@ primary/base/outline from the tokens; `_field-input.scss` / `field-input` uses
 `--theme-bg-input` + neutral border (the `_lcars-*.scss` files were renamed in
 phase 2; the mixins are internal, not forwarded). No gradients, glows, pulses,
 scanlines, text-shadows or uppercase letter-spaced labels anywhere in
-`styles()`; mint survives only as accent (`--theme-accent`,
+`styles()` — including the dockview tabs and the process designer palette,
+inspector and sliders (the only uppercase left is the avatar initials) — and
+none in the octo-ui, shared-ui, shared-auth, octo-ai-console and
+octo-process-diagrams component styles; mint survives only as accent (`--theme-accent`,
 `--theme-text-accent`). `light-theme-surface-overrides` is reduced to what
 tokens cannot express; `light-theme-button-overrides` is a no-op (both themes
 share the flat button rules); `theme-overrides()` additionally emits

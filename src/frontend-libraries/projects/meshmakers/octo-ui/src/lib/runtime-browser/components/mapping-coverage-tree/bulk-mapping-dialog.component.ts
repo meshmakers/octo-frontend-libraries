@@ -210,8 +210,6 @@ export type BulkMappingDialogResult =
       label {
         font-size: 0.72rem;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
         color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
       }
 
@@ -314,7 +312,6 @@ export type BulkMappingDialogResult =
         var(--kendo-color-info, #0dcaf0) 18%, transparent);
       color: var(--kendo-color-info, #0dcaf0);
       text-transform: none;
-      letter-spacing: 0;
       font-style: italic;
     }
 

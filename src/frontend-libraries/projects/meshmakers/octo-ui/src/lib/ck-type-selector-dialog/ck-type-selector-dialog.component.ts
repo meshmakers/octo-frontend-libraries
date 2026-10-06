@@ -228,7 +228,6 @@ export interface CkTypeSelectorDialogResult {
       padding: 1px 6px;
       border-radius: 10px;
       margin-left: 8px;
-      text-transform: uppercase;
     }
 
     .type-badge.abstract {
