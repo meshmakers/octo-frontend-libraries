@@ -18,6 +18,8 @@ import { EntityFormsMessages, formatEntityFormsMessage } from '../../entity-form
  *   status line says how many lines were entered. This works in every browser — unlike
  *   `-webkit-text-security`, which Firefox does not reliably support and which cannot keep line
  *   breaks visible; an `<input type="password">` would drop the PEM line breaks.
+ * - The placeholder is also the input's tooltip, so it stays readable when a narrow panel (Data
+ *   Explorer peek) truncates it.
  * - Read-only users get no editor at all (the badge is enough); without a key ring the input is
  *   disabled and a hint explains why (`writesDisabled`, the parent disables the control).
  */
@@ -47,6 +49,7 @@ import { EntityFormsMessages, formatEntityFormsMessage } from '../../entity-form
               resizable="vertical"
               [placeholder]="placeholder()"
               [inputAttributes]="{ autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'false', 'data-secret-input': 'multiline' }"
+              [attr.title]="placeholder() || null"
             ></kendo-textarea>
           } @else {
             <kendo-textbox
@@ -55,6 +58,7 @@ import { EntityFormsMessages, formatEntityFormsMessage } from '../../entity-form
               [type]="revealed() ? 'text' : 'password'"
               [placeholder]="placeholder()"
               [inputAttributes]="{ autocomplete: 'new-password', spellcheck: 'false', 'data-secret-input': 'single' }"
+              [attr.title]="placeholder() || null"
             ></kendo-textbox>
           }
           <button

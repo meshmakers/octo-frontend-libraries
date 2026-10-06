@@ -1,8 +1,8 @@
 import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { HttpRequest, HttpHandler, HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpContext, HttpRequest, HttpHandler, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { MmHttpErrorInterceptor, ON_CONNECTION_LOST } from './mm-http-error-interceptor.service';
+import { MM_CALLER_HANDLED_STATUSES, MmHttpErrorInterceptor, ON_CONNECTION_LOST } from './mm-http-error-interceptor.service';
 import { MessageService } from '../services/message.service';
 import { ApiErrorDto } from '../models/apiErrorDto';
 
@@ -347,6 +347,20 @@ describe('MmHttpErrorInterceptor', () => {
         interceptor.intercept(req, httpHandlerMock).subscribe({
           error: () => {
             expect(messageServiceMock.showError).toHaveBeenCalledWith('Access denied. You do not have permission to access this tenant or resource.');
+            done();
+          }
+        });
+      }));
+
+      it('stays silent for a status the caller handles itself (MM_CALLER_HANDLED_STATUSES) and still rethrows', () => new Promise<void>((done) => {
+        const req = new HttpRequest('GET', '/t1/v1/secrets/sweep-runs', { context: new HttpContext().set(MM_CALLER_HANDLED_STATUSES, [403]) });
+        const error = new HttpErrorResponse({ status: 403, statusText: 'Forbidden' });
+        httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: (e) => {
+            expect(e).toBe(error);
+            expect(messageServiceMock.showError).not.toHaveBeenCalled();
             done();
           }
         });

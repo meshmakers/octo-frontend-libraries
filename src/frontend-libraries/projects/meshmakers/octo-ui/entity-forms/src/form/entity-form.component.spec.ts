@@ -347,6 +347,8 @@ describe('EntityFormComponent', () => {
       const input = () => fieldEl('apiKey')?.querySelector('input') as HTMLInputElement;
       expect(show().disabled).toBe(true);
       expect(input().type).toBe('password');
+      // The placeholder doubles as tooltip (truncated in the narrow Explorer peek).
+      expect(fieldEl('apiKey')?.querySelector('kendo-textbox')?.getAttribute('title')).toBe('Leave empty to keep');
       api.control('apiKey').setValue('typed');
       fixture.detectChanges();
       expect(show().disabled).toBe(false);
@@ -481,6 +483,26 @@ describe('EntityFormComponent', () => {
       fixture.detectChanges();
       expect(fieldEl('privateKey')?.querySelector('.mm-ef-secret__input--masked')).toBeNull();
       expect(fieldEl('privateKey')?.querySelector('[data-secret-masked-status]')).toBeNull();
+    });
+  });
+
+  describe('needs re-entry wording (visual check 2026-10-06)', () => {
+    it('a required SECRET without a value reads "Needs re-entry", an optional one "Not set"', async () => {
+      const m = model([section('auth', [
+        field({ key: 'password', valueType: 'SECRET', editor: 'password', secret: true, required: true }),
+        field({ key: 'apiKey', valueType: 'SECRET', editor: 'password', secret: true }),
+      ])]);
+      m.secretFields = ['password', 'apiKey'];
+      m.secretStateFields = ['password', 'apiKey'];
+      await render(m, 'edit', {
+        values: {}, associations: {},
+        secretPresence: { password: false, apiKey: false },
+        secretStates: { password: { isSet: false, keyMissing: false, setAt: null }, apiKey: { isSet: false, keyMissing: false, setAt: null } },
+      });
+      const badge = (key: string) => fieldEl(key)?.querySelector('.mm-ef-field__badge');
+      expect(badge('password')?.textContent?.trim()).toBe('Needs re-entry');
+      expect(badge('password')?.getAttribute('data-secret-state')).toBe('needsReEntry');
+      expect(badge('apiKey')?.textContent?.trim()).toBe('Not set');
     });
   });
 

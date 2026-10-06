@@ -306,7 +306,11 @@ export class EntityFormComponent {
     if (state?.keyMissing) {
       return 'keyMissing';
     }
-    return (state ? state.isSet : this.secretPresence()[name]) ? 'set' : 'notSet';
+    if (state ? state.isSet : this.secretPresence()[name]) {
+      return 'set';
+    }
+    // Same rule as the secrets inventory (`needsReEntry`: NOT_SET and required, handover §7).
+    return field.required && isSecretValueType(field.valueType) ? 'needsReEntry' : 'notSet';
   }
 
   protected secretSetAt(field: ResolvedField): Date | null {
@@ -354,7 +358,7 @@ export class EntityFormComponent {
     if (state === 'set' || state === 'keyMissing') {
       return this.resolvedMessages().secretSetPlaceholder;
     }
-    if (state === 'notSet') {
+    if (state === 'notSet' || state === 'needsReEntry') {
       return field.placeholder ?? this.resolvedMessages().secretNotSetPlaceholder;
     }
     return field.placeholder ?? '';

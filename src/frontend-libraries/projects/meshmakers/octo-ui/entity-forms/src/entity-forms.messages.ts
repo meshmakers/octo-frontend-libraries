@@ -45,6 +45,8 @@ export interface EntityFormsMessages {
   secretStatusNotSet: string;
   /** Badge of a stored secret whose key is not in this environment's key ring (re-entry needed). */
   secretStatusKeyMissing: string;
+  /** Badge of a required SECRET without a value (same wording as the secrets inventory). */
+  secretStatusNeedsReEntry: string;
   /** Badge of a secret whose clear is staged for the next save. */
   secretStatusClearStaged: string;
   /** Button: stage clearing an optional secret. */
@@ -187,6 +189,7 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   secretStatusSetAt: DEFAULT_SECRET_STATUS_LABELS.setAt,
   secretStatusNotSet: DEFAULT_SECRET_STATUS_LABELS.notSet,
   secretStatusKeyMissing: DEFAULT_SECRET_STATUS_LABELS.keyMissing,
+  secretStatusNeedsReEntry: 'Needs re-entry',
   secretStatusClearStaged: 'Will be cleared',
   secretClear: 'Clear',
   secretUndoClear: 'Undo',
