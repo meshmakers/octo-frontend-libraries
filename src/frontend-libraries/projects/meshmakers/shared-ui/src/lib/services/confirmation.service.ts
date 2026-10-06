@@ -60,6 +60,17 @@ export class ConfirmationService {
     }
   }
 
+  /**
+   * Confirmation of a destructive action: explicit verb labels instead of Yes / No (e.g.
+   * "Rotate" / "Cancel") and the confirming button styled as danger. Resolves `true` only when
+   * the confirming button was clicked.
+   */
+  public async showDestructiveConfirmationDialog(title: string, message: string, confirmLabel: string, cancelLabel = 'Cancel'): Promise<boolean> {
+    const dialogRef = this.openDialog(title, message, DialogType.YesNo, undefined, { yes: confirmLabel, no: cancelLabel }, undefined, true);
+    const result = await firstValueFrom(dialogRef.result);
+    return result instanceof ConfirmationWindowResult && result.result === ButtonTypes.Yes;
+  }
+
   public async showOkDialog(title: string, message: string, messages?: Partial<ConfirmationWindowMessages>): Promise<boolean> {
     const dialogRef = this.openDialog(title, message, DialogType.Ok, undefined, undefined, messages);
 
@@ -71,11 +82,16 @@ export class ConfirmationService {
     }
   }
 
-  private openDialog(title: string, message: string, dialogType: DialogType, cssClass?: string, buttonLabels?: ConfirmationButtonLabels, messages?: Partial<ConfirmationWindowMessages>) {
+  private openDialog(title: string, message: string, dialogType: DialogType, cssClass?: string, buttonLabels?: ConfirmationButtonLabels, messages?: Partial<ConfirmationWindowMessages>, danger = false) {
+    // A confirmation is a short text: cap its width so a long message wraps instead of
+    // stretching the dialog over the whole viewport.
     const dialogRef: DialogRef = this.dialogService.open({
       title,
       content: ConfirmationWindowComponent,
-      cssClass
+      cssClass,
+      // Both bounds leave a 16 px gutter on each side, so a phone (< 352 px) never overflows.
+      minWidth: 'min(320px, calc(100vw - 32px))',
+      maxWidth: 'min(560px, calc(100vw - 32px))'
     });
 
     const component = dialogRef.content.instance as ConfirmationWindowComponent;
@@ -85,6 +101,7 @@ export class ConfirmationService {
       dialogType,
       buttonLabels,
       messages: messages ?? this.defaultMessages,
+      ...(danger ? { danger: true } : {}),
     };
     return dialogRef;
   }

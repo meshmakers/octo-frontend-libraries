@@ -13,7 +13,7 @@ export type EntityFormGetReferenceOptionsQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type EntityFormGetReferenceOptionsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean }, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, rtDisplayDescription?: string | null } | null> | null } | null } | null };
+export type EntityFormGetReferenceOptionsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean }, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, rtDisplayDescription?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const EntityFormGetReferenceOptionsDocumentDto = gql`
     query entityFormGetReferenceOptions($ckTypeId: String!, $first: Int, $after: String, $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {
@@ -36,6 +36,12 @@ export const EntityFormGetReferenceOptionsDocumentDto = gql`
         ckTypeId
         rtWellKnownName
         rtDisplayName
+        attributes(attributeNames: ["name"]) {
+          items {
+            attributeName
+            value
+          }
+        }
         rtDisplayDescription
       }
     }

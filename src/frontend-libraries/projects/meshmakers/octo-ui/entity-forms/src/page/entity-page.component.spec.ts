@@ -58,6 +58,9 @@ const STATE: EntityFormValueState = {
 
 /** Protected-member view used by the spec. */
 interface Testable {
+  title: () => string;
+  listTitle: () => string;
+  showTypeColumn: () => boolean;
   view: () => string;
   mode: () => string;
   state: () => EntityFormValueState | undefined;
@@ -221,6 +224,21 @@ describe('EntityPageComponent', () => {
     expect(api.view()).toBe('form');
     expect(api.mode()).toBe('edit');
     expect(api.entityRtId()).toBe('s1');
+  });
+
+  it('titles a singleton with its form name, not "Edit <entity>" (Tenant mode)', async () => {
+    formService.resolveByFormKey.mockResolvedValue(makeModel({ title: 'Tenant mode', singleton: { wellKnownName: 'TenantMode' } }));
+    dataService.load.mockResolvedValue({ rtId: 's1', ckTypeId: 'System/TenantMode', state: STATE });
+    await create({ formKey: 'tenant-mode' });
+    expect(api.title()).toBe('Tenant mode');
+  });
+
+  it('uses the host title override and type column flag of the route', async () => {
+    formService.resolve.mockResolvedValue(makeModel({ title: 'Configuration' }));
+    await create({ ckTypeId: 'System/Configuration', entityListTitle: 'All configurations', entityListTypeColumn: true });
+    expect(api.listTitle()).toBe('All configurations');
+    expect(api.showTypeColumn()).toBe(true);
+    expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenCalledWith({ entityFormTitle: 'All configurations' });
   });
 
   it('opens create with the well-known name when the singleton does not exist yet', async () => {

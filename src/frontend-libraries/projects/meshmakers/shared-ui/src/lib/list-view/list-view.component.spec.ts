@@ -42,6 +42,17 @@ describe('MmTableComponent', () => {
     fixture.detectChanges();
   });
 
+  it('names the row menu button after the row (accessible name and tooltip)', () => {
+    const c = component as unknown as { rowActionsLabel(r: unknown): string; rowLabel(r: unknown): string };
+    expect(c.rowActionsLabel({ name: 'grafana', rtId: 'x1' })).toBe('Actions for grafana');
+    expect(c.rowActionsLabel({ rtWellKnownName: 'wk' })).toBe('Actions for wk');
+    expect(c.rowActionsLabel({})).toBe('Row actions');
+    component.rowLabelField = 'title';
+    expect(c.rowLabel({ title: 'T', name: 'N' })).toBe('T');
+    component.messages = { rowActionsFor: 'Aktionen für {name}' };
+    expect(c.rowActionsLabel({ title: 'T' })).toBe('Aktionen für T');
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });

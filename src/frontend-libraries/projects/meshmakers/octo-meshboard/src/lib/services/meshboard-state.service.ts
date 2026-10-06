@@ -437,17 +437,7 @@ export class MeshBoardStateService {
    * Creates a new MeshBoard and switches to it.
    */
   async createNewMeshBoard(name: string, description: string): Promise<string> {
-    const config: MeshBoardConfig = {
-      id: '',
-      name,
-      description,
-      columns: 6,
-      rowHeight: 200,
-      gap: 16,
-      widgets: []
-    };
-
-    const rtId = await this.persistenceService.createMeshBoard(config);
+    const rtId = await this.persistenceService.createMeshBoard(newMeshBoardConfig(name, description));
     await this.refreshMeshBoardList();
     await this.switchToMeshBoard(rtId);
 
@@ -911,4 +901,12 @@ export class MeshBoardStateService {
     );
     this.updateVariables(currentVars);
   }
+}
+
+/**
+ * Layout defaults of a new, empty MeshBoard (6 columns, 200 px rows, 16 px gap). Shared by
+ * `createNewMeshBoard` and hosts that create boards themselves (e.g. a board list page).
+ */
+export function newMeshBoardConfig(name: string, description = ''): MeshBoardConfig {
+  return { id: '', name, description, columns: 6, rowHeight: 200, gap: 16, widgets: [] };
 }

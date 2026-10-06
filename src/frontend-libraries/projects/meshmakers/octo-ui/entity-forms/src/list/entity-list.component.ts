@@ -97,6 +97,8 @@ export class EntityListComponent {
   readonly messages = input<Partial<EntityFormsMessages>>({});
   /** `mm-list-view` state persistence key; defaults to the route path. */
   readonly listStateKey = input<string | undefined>(undefined);
+  /** Appends a "Type" column with the short CK type name of each row (lists over a base type). */
+  readonly showTypeColumn = input<boolean>(false);
 
   /** "New" was confirmed; carries the concrete type (after the subtype picker for abstract types). */
   readonly createRequested = output<EntityListCreateRequest>();
@@ -114,7 +116,22 @@ export class EntityListComponent {
     noRecords: this.msgs().emptyList,
   }));
 
-  protected readonly columns = computed<TableColumn[]>(() => this.model().listColumns.map(toEntityListColumn));
+  protected readonly columns = computed<TableColumn[]>(() => {
+    const columns = this.model().listColumns.map(toEntityListColumn);
+    if (this.showTypeColumn() && !columns.some((c) => c.field === 'ckTypeId')) {
+      const changed = columns.findIndex((c) => c.field === 'rtChangedDateTime');
+      const typeColumn: TableColumn = {
+        field: 'ckTypeId',
+        displayName: this.msgs().typeColumn,
+        dataType: 'text',
+        sortable: false,
+        filterable: false,
+        formatter: (value) => shortTypeName(String(value ?? '')),
+      };
+      columns.splice(changed >= 0 ? changed : columns.length, 0, typeColumn);
+    }
+    return columns;
+  });
 
   protected readonly canCreate = computed(() => this.canWrite() && this.model().capabilities.canCreate);
   protected readonly canDelete = computed(() => this.canWrite() && this.model().capabilities.canDelete);
@@ -298,4 +315,11 @@ function rowName(row: EntityListRow): string {
     return name;
   }
   return row.rtWellKnownName || row.rtDisplayName || row.rtId;
+}
+
+/** `System.Communication/SftpConfiguration` → `Sftp configuration`. */
+export function shortTypeName(ckTypeId: string): string {
+  const name = ckTypeId.split('/').pop()?.replace(/-\d+$/, '') ?? '';
+  const words = name.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').toLowerCase();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : ckTypeId;
 }

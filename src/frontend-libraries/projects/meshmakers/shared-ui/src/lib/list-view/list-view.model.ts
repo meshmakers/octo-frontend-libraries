@@ -209,6 +209,10 @@ export interface ListViewMessages {
   commands: string;
   /** Title for the actions command column. Default: "Actions" */
   actionsColumnTitle: string;
+  /** Accessible name of a row's menu button; `{name}` = the row's name. Default: "Actions for {name}" */
+  rowActionsFor: string;
+  /** Accessible name of a row's menu button when the row has no name. Default: "Row actions" */
+  rowActions: string;
   /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
   pdfPageTemplate: string;
 
@@ -256,6 +260,8 @@ export const DEFAULT_LIST_VIEW_MESSAGES: ListViewMessages = {
   resetFilters: 'Reset Filters',
   commands: 'Commands',
   actionsColumnTitle: 'Actions',
+  rowActionsFor: 'Actions for {name}',
+  rowActions: 'Row actions',
   pdfPageTemplate: 'Page {pageNum} of {totalPages}',
   pagerItemsPerPage: 'items per page',
   pagerOf: 'of',

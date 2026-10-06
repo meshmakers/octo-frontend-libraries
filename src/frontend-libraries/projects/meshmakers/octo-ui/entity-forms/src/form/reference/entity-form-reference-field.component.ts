@@ -28,7 +28,7 @@ function toValue(item: EntityReferenceItem | EntityFormReferenceValue): EntityFo
  *   `{ maxItems: { max: 1, actual } }`. With `multiple = true` picks are appended, de-duplicated by
  *   `rtId`.
  * - **Picker:** shared-ui `mm-entity-select-input` (typeahead plus grid dialog) over the
- *   secret-safe {@link EntityReferenceDataSource}, which selects no attributes of the targets.
+ *   secret-safe {@link EntityReferenceDataSource}, which selects only the non-secret `name` attribute of the targets.
  */
 @Component({
   selector: 'mm-entity-form-reference-field',

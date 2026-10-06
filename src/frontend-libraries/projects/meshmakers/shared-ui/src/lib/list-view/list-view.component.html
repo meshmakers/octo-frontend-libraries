@@ -79,6 +79,7 @@
         <button kendoButton themeColor="primary" fillMode="flat"
           [svgIcon]="menuItem.svgIcon!"
           [title]="menuItem.text ?? ''"
+          [attr.aria-label]="(menuItem.text ?? '') + (rowLabel(dataItem) ? ' ' + rowLabel(dataItem) : '')"
           [disabled]="getMenuItemDisabled(menuItem, dataItem) || isLoading()"
           (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
         </button>
@@ -87,7 +88,9 @@
   }
 
   @if (_contextMenuItems.length > 0 && contextMenuType == 'actionMenu') {
-    <button kendoButton themeColor="primary" fillMode="flat" [svgIcon]="moreVerticalIcon" [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
+    <button kendoButton themeColor="primary" fillMode="flat" [svgIcon]="moreVerticalIcon"
+      [title]="rowActionsLabel(dataItem)" [attr.aria-label]="rowActionsLabel(dataItem)" aria-haspopup="menu"
+      [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
   }
 </ng-template>
 

@@ -26,6 +26,7 @@ import {
   ResolvedField,
 } from '../models/entity-form.models';
 import { EntityFormService } from './entity-form.service';
+import { nameAttributeOf, referenceDisplayName } from '../form/reference/entity-reference-data-source';
 
 /** How to find the entity to load. `ckTypeId` defaults to the form's type (derived types match). */
 export type EntityFormLoadKey =
@@ -54,12 +55,18 @@ export interface EntityFormTargetRef {
  */
 const NO_COLLECTION_ROOT_TYPES: readonly string[] = ['System/Entity'];
 
-const SYNTHETIC_DISPLAY_NAME = /^[^@\s]+\/[^@\s]+@[0-9a-f]{24}$/i;
-
-function displayNameOf(item: { rtId: string; rtDisplayName?: string | null; rtWellKnownName?: string | null }): string {
-  const name = item.rtDisplayName && !SYNTHETIC_DISPLAY_NAME.test(item.rtDisplayName) ? item.rtDisplayName : null;
-  return name ?? item.rtWellKnownName ?? item.rtDisplayName ?? item.rtId;
+/** Label of a target row: the shared reference rule (real display name > `name` > well-known name). */
+function displayNameOf(item: { rtId: string; ckTypeId?: string | null; rtDisplayName?: string | null; rtWellKnownName?: string | null; attributes?: DisplayAttributeRows | null }): string {
+  return referenceDisplayName({
+    rtId: item.rtId,
+    ckTypeId: item.ckTypeId ?? '',
+    rtDisplayName: item.rtDisplayName,
+    rtWellKnownName: item.rtWellKnownName,
+    name: nameAttributeOf(item),
+  });
 }
+
+interface DisplayAttributeRows { items?: ({ attributeName?: string | null; value?: unknown } | null)[] | null }
 
 /**
  * Reads and writes entity values for the entity form (plan §2.3, rules D5/D6).
@@ -320,7 +327,7 @@ export class EntityFormDataService {
         return items.filter((i): i is NonNullable<typeof i> => !!i).map((i) => ({
           rtId: i.rtId as string,
           ckTypeId: i.ckTypeId as string,
-          displayName: displayNameOf(i as { rtId: string; rtDisplayName?: string | null; rtWellKnownName?: string | null }),
+          displayName: displayNameOf(i as Parameters<typeof displayNameOf>[0]),
         }));
       } catch {
         // Fall through to the definitions-based read.
@@ -338,7 +345,7 @@ export class EntityFormDataService {
     return refs.map((r) => named.get(r.rtId) ?? { ...r, displayName: r.rtId });
   }
 
-  /** Display names for ids, grouped by type; selects no attributes (secret-safe). */
+  /** Display names for ids, grouped by type; selects only the `name` attribute (secret-safe). */
   private async lookupDisplayNames(refs: { rtId: string; ckTypeId: string }[]): Promise<Map<string, EntityFormTargetRef>> {
     const byType = new Map<string, string[]>();
     for (const r of refs) {
@@ -356,7 +363,7 @@ export class EntityFormDataService {
         }));
         for (const i of result.data?.runtime?.runtimeEntities?.items ?? []) {
           if (i) {
-            named.set(i.rtId as string, { rtId: i.rtId as string, ckTypeId: i.ckTypeId as string, displayName: displayNameOf(i as { rtId: string; rtDisplayName?: string | null; rtWellKnownName?: string | null }) });
+            named.set(i.rtId as string, { rtId: i.rtId as string, ckTypeId: i.ckTypeId as string, displayName: displayNameOf(i as Parameters<typeof displayNameOf>[0]) });
           }
         }
       } catch {

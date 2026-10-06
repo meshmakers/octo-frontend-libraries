@@ -67,6 +67,12 @@ The host must provide what the library services expect:
 | `:rtId` | Edit form; read-only view when `canWrite` is false or the form has `CanEdit: false`. |
 | `:rtId?type=<rtCkTypeId>` | Edit form for an entity of a derived type (set when the list opens such a row). Without it the page detects the type after loading and re-resolves. |
 
+Optional `entityFormRoutes` options for the page heading and list: `title` (route data
+`entityListTitle`) replaces the resolved form title as the list heading and breadcrumb label
+(e.g. "All configurations" over `System/Configuration`); `showTypeColumn` (route data
+`entityListTypeColumn`) adds a "Type" column with the short CK type name of each row. A
+**singleton** form is titled with its form name (e.g. "Tenant mode"), never "Edit <entity name>".
+
 Page inputs (bound by `withComponentInputBinding()` from route params / data, otherwise read from
 `ActivatedRoute` — params, route data of the route and its ancestors, query params):
 
@@ -225,9 +231,17 @@ Secret values never reach the browser:
 | chips | Array editor for `STRING_ARRAY` / `INT_ARRAY` |
 | cron | shared-ui `mm-cron-builder` |
 | **json / yaml** | Monospace `kendo-textarea` (no Monaco / YAML library in the workspace). `json` validates with `JSON.parse`, `yaml` is not validated. Both are stored as STRING. The Studio can swap in Monaco later via `CustomComponent`. |
-| **reference** | shared-ui `mm-entity-select-input` (typeahead plus its **grid dialog**, multi-select for `N` roles) on a secret-safe data source that selects no attributes. Deviates from concept §5.4, which names `mm-entity-selector-dialog` — that one is a perspective tree picker without type filter or multi-select, and configuration types are not in a tree. Host forms may set `referenceDisplayAttributes` (e.g. `['repositoryUrl', 'channel']`): the picker then reads exactly those non-secret target attributes with `entityFormGetReferenceOptionsWithAttributes` (explicit `[String]!` `attributeNames`) and shows `name · value · value` (AB#5547; host forms only, never list a secret attribute). |
+| **reference** | shared-ui `mm-entity-select-input` (typeahead plus its **grid dialog**, multi-select for `N` roles) on a secret-safe data source that selects only the target's non-secret `name` attribute (literal `attributeNames: ["name"]`). Labels (picker and current value): a real `rtDisplayName` > `name` > `rtWellKnownName` > the synthetic `<type>@<rtId>` (so a pool shows "Default Cloud", not its well-known name `CommunicationPool`). Deviates from concept §5.4, which names `mm-entity-selector-dialog` — that one is a perspective tree picker without type filter or multi-select, and configuration types are not in a tree. Host forms may set `referenceDisplayAttributes` (e.g. `['repositoryUrl', 'channel']`): the picker then reads exactly those non-secret target attributes with `entityFormGetReferenceOptionsWithAttributes` (explicit `[String]!` `attributeNames`) and shows `name · value · value` (AB#5547; host forms only, never list a secret attribute). |
 | records | Table with add / remove / move / edit; rows are edited in a dialog generated from the record's CK attributes. Nested records are read-only. |
 | unsupported (BINARY, GEOSPATIAL_POINT, TIME_SPAN, …) | Read-only display |
+
+**Runtime state is never generated as an editable field.** Generated fields (`form-default`,
+"Further attributes") whose attribute is in `RUNTIME_STATE_ATTRIBUTES` (`core/attribute-path.ts`:
+deployment / communication / configuration state, last errors and their timestamps, status
+message, last synced sequence number, lifecycle state, last activity, on-demand flags) are
+read-only, like the engine-stamped `rtBlueprint*` attributes. It is a documented list because the
+CK `ownership: RuntimeState` marker is not in the schema the library is generated from; a field a
+form defines explicitly keeps its own `ReadOnly`.
 
 ## Form resolution (summary)
 

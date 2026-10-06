@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
+import { urlWithoutEditParam, wantsEditModeFromUrl } from '../../utils/edit-mode-url';
 import { TileLayoutModule, TileLayoutComponent, TileLayoutReorderEvent, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DialogService, DialogModule, WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
@@ -367,6 +368,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
       // Mark initial load as complete so the effect can handle subsequent board switches
       this.initialLoadComplete = true;
+
+      // `?edit=1` (e.g. "Edit" in a host's board list) opens the board in edit mode;
+      // ignored on read-only routes.
+      if (wantsEditModeFromUrl(this.route.snapshot.queryParamMap, this.isReadonly(), this.isEditMode())) {
+        this.editModeService.enterEditMode(this.stateService.getConfig());
+        // Consume the request: a reload or a copied link must not re-enter edit mode.
+        const cleaned = urlWithoutEditParam(this.router.url);
+        if (cleaned !== null) {
+          void this.router.navigateByUrl(cleaned, { replaceUrl: true });
+        }
+      }
 
       // The constructor effect skipped the URL sync during the initial load
       // (and already consumed the rtId via lastNavigatedRtId), so sync once

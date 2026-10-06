@@ -38,6 +38,17 @@ export interface EntityFormRoutesOptions {
   breadcrumbUrl?: string;
   /** Label of the list breadcrumb. Default `{{entityFormTitle}}` (the resolved form title). */
   breadcrumbLabel?: string;
+  /**
+   * Heading of the list (and of the singleton form) instead of the resolved form's title — e.g.
+   * "All configurations" for a generic list over a base type whose `form-default` title would be
+   * the type name. Route data key `entityListTitle`.
+   */
+  title?: string;
+  /**
+   * Adds a "Type" column (short CK type name of each row) to the list — for lists over a base type
+   * with derived types. Route data key `entityListTypeColumn`.
+   */
+  showTypeColumn?: boolean;
   /** Label of the create breadcrumb. Default `New`. */
   newBreadcrumbLabel?: string;
   /** Label of the edit breadcrumb. Default `{{entityName}}`. */
@@ -68,6 +79,8 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     newBreadcrumbLabel = 'New',
     entityBreadcrumbLabel = '{{entityName}}',
     svgIcon,
+    title,
+    showTypeColumn,
     data = {},
   } = opts;
 
@@ -77,6 +90,8 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     ...(ckTypeId !== undefined && { ckTypeId }),
     ...(canWrite !== undefined && { canWrite }),
     ...(messages !== undefined && { messages }),
+    ...(title !== undefined && { entityListTitle: title }),
+    ...(showTypeColumn !== undefined && { entityListTypeColumn: showTypeColumn }),
   };
 
   const listCrumb = breadcrumbUrl !== undefined
