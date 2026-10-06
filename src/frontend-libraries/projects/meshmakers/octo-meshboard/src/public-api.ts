@@ -201,12 +201,12 @@ export {
 export type { CockpitAdapterState, CockpitAdapterStates } from './lib/cockpit/data/cockpit-adapter-states.service';
 export { CockpitCkModelStatesService } from './lib/cockpit/data/cockpit-ck-model-states.service';
 export * from './lib/cockpit/kpi/cockpit-kpi';
-export { CockpitKpiService, COCKPIT_KPI_GATES, COCKPIT_DATA_FLOW_LIMIT } from './lib/cockpit/kpi/cockpit-kpi.service';
+export { CockpitKpiService, COCKPIT_KPI_GATES, COCKPIT_DATA_FLOW_LIMIT, KPI_ERROR_TEXT } from './lib/cockpit/kpi/cockpit-kpi.service';
 export type { CockpitKpiKind, CockpitKpiResult } from './lib/cockpit/kpi/cockpit-kpi.service';
 export { AttentionListWidgetComponent, DEFAULT_ATTENTION_MAX_ITEMS } from './lib/cockpit/widgets/attention-list-widget.component';
 export { AttentionListConfigDialogComponent } from './lib/cockpit/widgets/attention-list-config-dialog.component';
 export type { AttentionListConfigResult } from './lib/cockpit/widgets/attention-list-config-dialog.component';
-export { CockpitKpiWidgetComponent, kpiKindOf } from './lib/cockpit/widgets/cockpit-kpi-widget.component';
+export { CockpitKpiWidgetComponent, kpiKindOf, NOT_AVAILABLE_TEXT } from './lib/cockpit/widgets/cockpit-kpi-widget.component';
 export { CockpitKpiConfigDialogComponent } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
 export type { CockpitKpiConfigResult } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
 export { provideCockpitWidgets, registerCockpitWidgets, BUILT_IN_ATTENTION_PROVIDERS } from './lib/cockpit/cockpit-widget-registrations';

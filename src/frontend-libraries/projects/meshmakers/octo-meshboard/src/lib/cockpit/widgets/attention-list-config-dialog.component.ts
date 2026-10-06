@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
+import { LabelModule } from '@progress/kendo-angular-label';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { AttentionProviderInfo, CockpitAttentionService } from '../attention/attention.service';
 import { DEFAULT_ATTENTION_MAX_ITEMS } from './attention-list-widget.component';
@@ -23,7 +24,7 @@ export interface AttentionListConfigResult extends WidgetConfigResult {
 @Component({
   selector: 'mm-attention-list-config-dialog',
   standalone: true,
-  imports: [FormsModule, ButtonsModule, InputsModule],
+  imports: [FormsModule, ButtonsModule, InputsModule, LabelModule],
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div class="config-container">
@@ -60,8 +61,9 @@ export interface AttentionListConfigResult extends WidgetConfigResult {
         </fieldset>
 
         <div class="form-group">
-          <label for="attentionMaxItems">Findings shown</label>
-          <kendo-numerictextbox id="attentionMaxItems" [(ngModel)]="maxItems" [min]="1" [max]="50" [format]="'n0'" [decimals]="0"></kendo-numerictextbox>
+          <!-- kendo-label [for] targets the numeric textbox's focusable input. -->
+          <kendo-label text="Findings shown" [for]="maxItemsBox"></kendo-label>
+          <kendo-numerictextbox #maxItemsBox [(ngModel)]="maxItems" [min]="1" [max]="50" [format]="'n0'" [decimals]="0"></kendo-numerictextbox>
           <small class="hint">Further findings are summarised as "and N more".</small>
         </div>
 

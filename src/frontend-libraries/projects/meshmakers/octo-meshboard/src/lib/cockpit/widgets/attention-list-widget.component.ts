@@ -5,6 +5,7 @@ import { AttentionListWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../../widgets/widget.interface';
 import { AttentionFinding, AttentionSeverity } from '../attention/attention.models';
 import { AttentionState, CockpitAttentionService } from '../attention/attention.service';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
 import { CockpitExplainTarget } from '../cockpit-host';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
@@ -34,20 +35,20 @@ export interface AttentionFindingView {
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="attention-widget" aria-live="polite">
+    <div class="attention-widget">
       @if (error(); as message) {
-        <p class="cw-message cw-error-text">{{ message }}</p>
+        <p class="cw-message cw-error-text" role="status">{{ message }}</p>
       } @else if (state(); as current) {
         @if (current.visibleProviders === 0) {
-          <p class="cw-message" data-state="unavailable">No health checks are available for your role.</p>
+          <p class="cw-message" role="status" data-state="unavailable">{{ isBuilder() ? 'No health checks are available for your role.' : notAvailableText }}</p>
         } @else if (views().length === 0) {
           @if (current.loading) {
-            <p class="cw-message" data-state="loading">Checking…</p>
+            <p class="cw-message" role="status" data-state="loading">Checking…</p>
           } @else {
-            <p class="cw-message all-clear" data-state="clear"><span class="cw-status-chip cw-status-success">All clear</span> Nothing needs attention.</p>
+            <p class="cw-message all-clear" role="status" data-state="clear"><span class="cw-status-chip cw-status-success">All clear</span> Nothing needs attention.</p>
           }
         } @else {
-          <ul class="finding-list" aria-label="Needs attention">
+          <ul class="finding-list" role="list" aria-label="Needs attention">
             @for (view of shown(); track view.finding.id) {
               <li class="finding" [class]="'finding severity-' + view.finding.severity" [attr.data-finding]="view.finding.id">
                 <span class="severity-bar" aria-hidden="true"></span>
@@ -76,7 +77,7 @@ export interface AttentionFindingView {
           }
         }
       } @else {
-        <p class="cw-message" data-state="loading">Checking…</p>
+        <p class="cw-message" role="status" data-state="loading">Checking…</p>
       }
     </div>
   `,
@@ -132,8 +133,13 @@ export interface AttentionFindingView {
 export class AttentionListWidgetComponent implements DashboardWidget<AttentionListWidgetConfig, AttentionFinding[]>, OnInit, OnChanges, OnDestroy {
   private readonly attention = inject(CockpitAttentionService);
   private readonly context = inject(CockpitContextService);
+  private readonly boardState = inject(MeshBoardStateService);
 
   @Input() config!: AttentionListWidgetConfig;
+
+  /** Builders see why no check runs; other viewers a neutral text and the widget collapses. */
+  protected readonly isBuilder = signal(false);
+  protected readonly notAvailableText = 'Not available';
 
   private readonly _state = signal<AttentionState | null>(null);
   private readonly _error = signal<string | null>(null);
@@ -195,7 +201,8 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     this.subscription = null;
     this._error.set(null);
     this.maxItems.set(Math.max(1, this.config?.maxItems ?? DEFAULT_ATTENTION_MAX_ITEMS));
-    const tenantId = await this.context.tenantId();
+    const [tenantId, builder] = await Promise.all([this.context.tenantId(), this.context.isBuilder()]);
+    this.isBuilder.set(builder);
     if (token !== this.loadToken) {
       return;
     }
@@ -210,6 +217,9 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
       next: state => {
         if (!(state.loading && state.findings.length === 0 && this._state() && !this._state()?.loading)) {
           this._state.set(state);
+        }
+        if (this.config?.id) {
+          this.boardState.setWidgetHiddenForViewer(this.config.id, !builder && !state.loading && state.visibleProviders === 0);
         }
       },
       error: () => this._error.set('The health checks could not be loaded.')

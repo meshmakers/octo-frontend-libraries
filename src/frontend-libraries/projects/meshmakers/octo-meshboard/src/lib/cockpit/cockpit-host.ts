@@ -19,6 +19,12 @@ export const COCKPIT_ROLES = {
 export interface CockpitViewerAccess {
   /** True when the signed-in user has the role (e.g. `CommunicationManagement`). */
   isInRole(role: string): boolean | Promise<boolean>;
+  /**
+   * True when the viewer works with the platform (the host's "builder" roles). Viewers who are not
+   * get a quiet "Not available" instead of role requirements, and the board collapses cockpit
+   * widgets that have nothing for them. Omitted = not a builder.
+   */
+  isBuilder?(): boolean | Promise<boolean>;
 }
 
 /**

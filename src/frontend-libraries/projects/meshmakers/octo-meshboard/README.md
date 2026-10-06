@@ -363,9 +363,13 @@ providers: [
 
 - **Role abstraction.** The library never imports the host's auth: `COCKPIT_VIEWER_ACCESS`
   (`isInRole(role)`) answers role checks, `CkModelService.isModelAvailable` the CK models.
-  Without the token every gated check fails closed (hidden). A KPI the viewer may not see shows
-  *why* (e.g. "Needs the CommunicationManagement role…") and sends no request; an attention list
-  without any visible check says "No health checks are available for your role" — never "All clear".
+  Without the token every gated check fails closed (hidden). A KPI the viewer may not see sends no
+  request. **Builders** (`CockpitViewerAccess.isBuilder()`, host-defined) see *why* ("Needs the
+  CommunicationManagement role…" / "No health checks are available for your role"); **other
+  viewers** see a neutral "Not available" without role details, and the widget reports
+  `setWidgetHiddenForViewer(id, true)` so the board collapses it outside edit mode (empty rows
+  close up, `collapseEmptyRows`). An attention list never claims "All clear" without visible checks.
+- **Errors** never show raw messages: tiles say "The figure could not be loaded." (details in the console).
 - **Links.** Findings and KPI tiles carry semantic `CockpitLinkTarget`s (`adapter`, `adapters`,
   `pool`, `pools`, `dataFlows`, `ckModels`, `tenantSettings`, `secretsReEntry`); the host's
   `COCKPIT_LINK_RESOLVER` maps them to URLs, `null` drops the chip.

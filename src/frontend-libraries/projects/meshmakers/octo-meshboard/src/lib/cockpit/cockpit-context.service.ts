@@ -43,6 +43,15 @@ export class CockpitContextService {
     }
   }
 
+  /** Whether the viewer is a builder (`CockpitViewerAccess.isBuilder`); fails closed. */
+  async isBuilder(): Promise<boolean> {
+    try {
+      return !!(await this.access?.isBuilder?.());
+    } catch {
+      return false;
+    }
+  }
+
   /** Router URL of a link target, or `null` (no resolver, or the host has no such page). */
   resolveLink(target: CockpitLinkTarget, tenantId: string): string | null {
     try {

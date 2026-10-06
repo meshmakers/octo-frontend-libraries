@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CockpitKpiWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../../widgets/widget.interface';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
 import { CockpitKpi, sparklineGeometry } from '../kpi/cockpit-kpi';
 import { CockpitKpiKind, CockpitKpiResult, CockpitKpiService } from '../kpi/cockpit-kpi.service';
@@ -23,6 +24,8 @@ import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-template #tileBody let-k>
+      <!-- The metric name is the widget title in the board chrome; repeat it for the link's accessible name. -->
+      <span class="cw-visually-hidden">{{ k.label }}: </span>
       <span class="kpi-value">{{ k.value }}</span>
       <span class="kpi-meta">
         <span class="cw-status-chip" [class]="'cw-status-chip cw-status-' + k.status">{{ k.statusLabel }}</span>
@@ -53,13 +56,13 @@ import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
         }
       }
       @case ('unavailable') {
-        <p class="cw-message" data-state="unavailable">{{ reason() }}</p>
+        <p class="cw-message" role="status" data-state="unavailable">{{ reason() }}</p>
       }
       @case ('error') {
-        <p class="cw-message cw-error-text" data-state="error">{{ reason() }}</p>
+        <p class="cw-message cw-error-text" role="status" data-state="error">{{ reason() }}</p>
       }
       @default {
-        <p class="cw-message" data-state="loading">Loading…</p>
+        <p class="cw-message" role="status" data-state="loading">Loading…</p>
       }
     }
   `,
@@ -102,6 +105,7 @@ import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
 export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidgetConfig, CockpitKpi>, OnInit, OnChanges, OnDestroy {
   private readonly kpiService = inject(CockpitKpiService);
   private readonly context = inject(CockpitContextService);
+  private readonly boardState = inject(MeshBoardStateService);
 
   @Input() config!: CockpitKpiWidgetConfig;
 
@@ -123,9 +127,13 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
 
   protected readonly kpi = this.data;
   protected readonly showDetail = computed(() => this.options().showDetail);
+  /** Role requirements only for builders; other viewers get a neutral "Not available" (AB#5558 review). */
   protected readonly reason = computed(() => {
     const result = this._result();
-    return result.state === 'unavailable' ? result.reason : result.state === 'error' ? result.message : '';
+    if (result.state === 'unavailable') {
+      return result.forBuilder ? result.reason : NOT_AVAILABLE_TEXT;
+    }
+    return result.state === 'error' ? result.message : '';
   });
   protected readonly spark = computed(() => {
     const kpi = this.data();
@@ -170,9 +178,16 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
         return;
       }
       this._result.set(result);
+      // A tile a non-builder cannot use is collapsed on the board (outside edit mode).
+      if (config?.id) {
+        this.boardState.setWidgetHiddenForViewer(config.id, result.state === 'unavailable' && !result.forBuilder);
+      }
     });
   }
 }
+
+/** What viewers without builder roles see instead of role requirements. */
+export const NOT_AVAILABLE_TEXT = 'Not available';
 
 /** The KPI a cockpit KPI widget shows. */
 export function kpiKindOf(config: CockpitKpiWidgetConfig | undefined): CockpitKpiKind {

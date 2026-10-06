@@ -50,6 +50,18 @@ export const COCKPIT_WIDGET_STYLES = `
   .cw-status-info { --_cw-chip: var(--_cw-info); }
   .cw-status-neutral { --_cw-chip: var(--_cw-neutral); }
 
+  .cw-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .cw-message {
     margin: 0;
     padding: 12px;

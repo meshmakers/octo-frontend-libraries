@@ -11,14 +11,20 @@ import { adapterKpi, ckModelKpi, CockpitDataFlowRow, CockpitKpi, executionKpi } 
 /** Upper bound of data flows read for the executions KPI; beyond it the tile says "≥". */
 export const COCKPIT_DATA_FLOW_LIMIT = 500;
 
+/** What a tile shows when its query failed (details are logged, never shown). */
+export const KPI_ERROR_TEXT = 'The figure could not be loaded.';
+
 /** The cockpit KPIs. */
 export type CockpitKpiKind = 'adapterStatus' | 'ckModelState' | 'pipelineExecutions';
 
 /** State of one KPI widget. */
 export type CockpitKpiResult =
   | { state: 'loading' }
-  /** The viewer lacks a role or the tenant a CK model; `reason` says which. */
-  | { state: 'unavailable'; reason: string }
+  /**
+   * The viewer lacks a role or the tenant a CK model. `reason` says which — meant for builders
+   * only; `forBuilder: false` means the viewer is no builder and must see a neutral state.
+   */
+  | { state: 'unavailable'; reason: string; forBuilder: boolean }
   | { state: 'error'; message: string }
   | { state: 'ready'; kpi: CockpitKpi };
 
@@ -55,27 +61,33 @@ export class CockpitKpiService {
   kpi(kind: CockpitKpiKind): Observable<CockpitKpiResult> {
     const gate = COCKPIT_KPI_GATES[kind];
     return defer(() => from(this.resolve(gate))).pipe(
-      switchMap(tenantId => {
-        if (tenantId === null) {
-          return of<CockpitKpiResult>({ state: 'unavailable', reason: gate.reason });
+      switchMap(access => {
+        if (access.kind === 'noTenant') {
+          return of<CockpitKpiResult>({ state: 'unavailable', reason: 'No tenant selected.', forBuilder: true });
         }
-        return this.load(kind, tenantId).pipe(take(1), map((kpi): CockpitKpiResult => ({ state: 'ready', kpi })));
+        if (access.kind === 'denied') {
+          return of<CockpitKpiResult>({ state: 'unavailable', reason: gate.reason, forBuilder: access.builder });
+        }
+        return this.load(kind, access.tenantId).pipe(take(1), map((kpi): CockpitKpiResult => ({ state: 'ready', kpi })));
       }),
       catchError(error => {
+        // Details go to the console only; the tile shows a generic text.
         console.warn(`Cockpit: KPI '${kind}' failed`, error);
-        return of<CockpitKpiResult>({ state: 'error', message: error instanceof Error ? error.message : 'The figure could not be loaded.' });
+        return of<CockpitKpiResult>({ state: 'error', message: KPI_ERROR_TEXT });
       }),
       startWith<CockpitKpiResult>({ state: 'loading' })
     );
   }
 
-  /** The tenant when the viewer passes the gate, else `null`. */
-  private async resolve(gate: KpiGate): Promise<string | null> {
+  private async resolve(gate: KpiGate): Promise<{ kind: 'ok'; tenantId: string } | { kind: 'noTenant' } | { kind: 'denied'; builder: boolean }> {
     const tenantId = await this.context.tenantId();
-    if (!tenantId || !(await this.context.allows(gate.roles, gate.models))) {
-      return null;
+    if (!tenantId) {
+      return { kind: 'noTenant' };
     }
-    return tenantId;
+    if (!(await this.context.allows(gate.roles, gate.models))) {
+      return { kind: 'denied', builder: await this.context.isBuilder() };
+    }
+    return { kind: 'ok', tenantId };
   }
 
   private load(kind: CockpitKpiKind, tenantId: string): Observable<CockpitKpi> {

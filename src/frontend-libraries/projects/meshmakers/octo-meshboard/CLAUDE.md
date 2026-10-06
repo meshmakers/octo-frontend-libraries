@@ -1086,6 +1086,10 @@ cockpit/
   re-exports them; change them here only.
 - **Gating.** Every provider / KPI checks the roles + CK models needed to open what it links to,
   before any request. Missing `COCKPIT_VIEWER_ACCESS` = no role = hidden.
+- **Viewer-dependent collapse.** Non-builders get "Not available" (never role text) and the widget
+  calls `MeshBoardStateService.setWidgetHiddenForViewer`; `MeshBoardViewComponent.visibleWidgets`
+  drops such widgets outside edit mode and closes empty rows (`utils/compact-layout.ts`
+  `collapseEmptyRows`, presentation only). The flag set is cleared on board switch.
 - **Persistence** is `dataSourceType: 'static'` + small JSON (`providerIds` omitted for "all",
   never an empty array; unknown provider ids are ignored at run time). The parser tolerates
   foreign values (wrong types → defaults).

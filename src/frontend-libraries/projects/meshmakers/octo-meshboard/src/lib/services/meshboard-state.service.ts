@@ -54,6 +54,12 @@ export class MeshBoardStateService {
    * no dirty state. Cleared on every board switch.
    */
   private readonly _widgetVariables = signal<MeshBoardVariable[]>([]);
+  /**
+   * Widgets that reported "nothing for this viewer" (AB#5558, e.g. a cockpit KPI an end user may not
+   * use). Transient, per board load; the view leaves them out outside edit mode.
+   */
+  private readonly _hiddenForViewer = signal<ReadonlySet<string>>(new Set());
+  readonly hiddenForViewer = this._hiddenForViewer.asReadonly();
 
   // Public computed signals
   readonly meshBoardConfig = computed(() => this._meshBoardConfig());
@@ -164,6 +170,7 @@ export class MeshBoardStateService {
         }
 
         this._widgetVariables.set([]);
+        this._hiddenForViewer.set(new Set());
         this._meshBoardConfig.set(config);
         this._persistedMeshBoardId.set(result.meshBoard.rtId);
         this._existingWidgetRtIds.set(result.widgets.map(w => w.rtId));
@@ -578,6 +585,24 @@ export class MeshBoardStateService {
       widgetId
     };
     this._widgetVariables.set([...current.filter(v => v.widgetId !== widgetId), variable]);
+  }
+
+  /**
+   * A widget reports that it has nothing for the current viewer (`hidden: true`) or has again.
+   * The view collapses such widgets outside edit mode; the flag is cleared on board switch.
+   */
+  setWidgetHiddenForViewer(widgetId: string, hidden: boolean): void {
+    const current = this._hiddenForViewer();
+    if (current.has(widgetId) === hidden) {
+      return;
+    }
+    const next = new Set(current);
+    if (hidden) {
+      next.add(widgetId);
+    } else {
+      next.delete(widgetId);
+    }
+    this._hiddenForViewer.set(next);
   }
 
   /**

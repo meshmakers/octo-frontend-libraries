@@ -1244,6 +1244,18 @@ describe('MeshBoardStateService', () => {
       expect(service.getEntitySelectors()).toEqual(selectors);
     });
   });
+
+  describe('widgets hidden for the viewer (AB#5558)', () => {
+    it('tracks widgets that report nothing for the viewer, without needless updates', () => {
+      service.setWidgetHiddenForViewer('w1', true);
+      const first = service.hiddenForViewer();
+      expect(first.has('w1')).toBe(true);
+      service.setWidgetHiddenForViewer('w1', true);
+      expect(service.hiddenForViewer()).toBe(first);
+      service.setWidgetHiddenForViewer('w1', false);
+      expect(service.hiddenForViewer().size).toBe(0);
+    });
+  });
 });
 
 describe('newMeshBoardConfig', () => {

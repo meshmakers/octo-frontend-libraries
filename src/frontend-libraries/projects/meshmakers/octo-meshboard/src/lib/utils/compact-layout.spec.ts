@@ -1,4 +1,4 @@
-import { compactTierForWidth, columnsForTier, placeWidgetsForTier } from './compact-layout';
+import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows } from './compact-layout';
 import { AnyWidgetConfig } from '../models/meshboard.models';
 
 describe('compact-layout', () => {
@@ -70,5 +70,18 @@ describe('compact-layout', () => {
       expect(original.col).toBe(5);
       expect(original.colSpan).toBe(6);
     });
+  });
+});
+
+describe('collapseEmptyRows (AB#5558)', () => {
+  it('moves widgets up over rows nobody occupies and keeps unchanged widgets', () => {
+    const pie = { id: 'pie', row: 3, rowSpan: 2 };
+    const top = { id: 'top', row: 1, rowSpan: 1 };
+    expect(collapseEmptyRows([pie])).toEqual([{ id: 'pie', row: 1, rowSpan: 2 }]);
+    const result = collapseEmptyRows([top, pie]);
+    expect(result[0]).toBe(top);
+    expect(result[1]).toEqual({ id: 'pie', row: 2, rowSpan: 2 });
+    const tall = { id: 'tall', row: 1, rowSpan: 3 };
+    expect(collapseEmptyRows([tall, { id: 'b', row: 3, rowSpan: 1 }])[1].row).toBe(3);
   });
 });

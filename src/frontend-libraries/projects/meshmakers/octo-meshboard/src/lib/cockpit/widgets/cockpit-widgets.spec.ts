@@ -5,6 +5,7 @@ import { WindowRef } from '@progress/kendo-angular-dialog';
 import { AttentionListWidgetConfig, CockpitKpiWidgetConfig } from '../../models/meshboard.models';
 import { AttentionFinding } from '../attention/attention.models';
 import { AttentionState, CockpitAttentionService } from '../attention/attention.service';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
 import { CockpitKpiResult, CockpitKpiService } from '../kpi/cockpit-kpi.service';
 import { AttentionListConfigDialogComponent } from './attention-list-config-dialog.component';
@@ -28,12 +29,15 @@ describe('cockpit widgets', () => {
     resolveLink: vi.fn((target: { kind: string; rtId?: string }, tenantId: string) =>
       target.kind === 'secretsReEntry' ? null : `/${tenantId}/${target.kind}${target.rtId ? '/' + target.rtId : ''}`),
     explainEnabled: true,
-    explain: vi.fn()
+    explain: vi.fn(),
+    isBuilder: vi.fn().mockResolvedValue(true)
   };
+  const boardState = { setWidgetHiddenForViewer: vi.fn() };
 
   beforeEach(() => {
     vi.clearAllMocks();
     context.explainEnabled = true;
+    context.isBuilder.mockResolvedValue(true);
     state$.next({ findings: [], loading: true, visibleProviders: 1 });
     kpi$.next({ state: 'loading' });
     TestBed.configureTestingModule({
@@ -41,7 +45,8 @@ describe('cockpit widgets', () => {
         provideRouter([]),
         { provide: CockpitAttentionService, useValue: attention },
         { provide: CockpitKpiService, useValue: kpiService },
-        { provide: CockpitContextService, useValue: context }
+        { provide: CockpitContextService, useValue: context },
+        { provide: MeshBoardStateService, useValue: boardState }
       ]
     });
   });
@@ -69,10 +74,21 @@ describe('cockpit widgets', () => {
       expect(fixture.nativeElement.querySelector('[data-state="clear"]').textContent).toContain('Nothing needs attention');
     });
 
-    it('never claims "all clear" when no check is available for the viewer', async () => {
+    it('never claims "all clear" when no check is available; builders see why and the widget stays', async () => {
       state$.next({ findings: [], loading: false, visibleProviders: 0 });
       const fixture = await renderAttention();
       expect(fixture.nativeElement.querySelector('[data-state="unavailable"]').textContent).toContain('No health checks are available for your role');
+      expect(boardState.setWidgetHiddenForViewer).toHaveBeenLastCalledWith('w1', false);
+    });
+
+    it('shows end users a neutral "Not available" without role details and collapses the widget', async () => {
+      context.isBuilder.mockResolvedValue(false);
+      state$.next({ findings: [], loading: false, visibleProviders: 0 });
+      const fixture = await renderAttention();
+      const message = fixture.nativeElement.querySelector('[data-state="unavailable"]');
+      expect(message.textContent.trim()).toBe('Not available');
+      expect(message.getAttribute('role')).toBe('status');
+      expect(boardState.setWidgetHiddenForViewer).toHaveBeenLastCalledWith('w1', true);
     });
 
     it('renders findings with resolved links, drops unresolvable ones and offers Explain', async () => {
@@ -83,6 +99,8 @@ describe('cockpit widgets', () => {
         })
       ] });
       const fixture = await renderAttention();
+      expect(fixture.nativeElement.querySelector('ul.finding-list').getAttribute('role')).toBe('list');
+      expect(fixture.nativeElement.querySelector('[aria-live]')).toBeNull();
       const item = fixture.nativeElement.querySelector('[data-finding="adapters:error"]');
       expect(item.textContent).toContain('Error');
       expect(item.textContent).toContain('adapters:error title');
@@ -139,6 +157,9 @@ describe('cockpit widgets', () => {
       expect(tile.textContent).toContain('3 / 4');
       expect(tile.querySelector('.cw-status-warning')?.textContent).toContain('1 offline');
       expect(tile.textContent).toContain('1 hibernated');
+      // The link's accessible name starts with the metric.
+      expect(tile.querySelector('.cw-visually-hidden')?.textContent).toContain('Adapters online:');
+      expect(boardState.setWidgetHiddenForViewer).toHaveBeenLastCalledWith('w1', false);
     });
 
     it('renders the sparkline with its accessible label unless switched off', async () => {
@@ -149,10 +170,20 @@ describe('cockpit widgets', () => {
       expect(fixture.nativeElement.querySelector('svg.kpi-spark')).toBeNull();
     });
 
-    it('explains why a viewer without the role sees no figure', async () => {
-      kpi$.next({ state: 'unavailable', reason: 'Needs the CommunicationManagement role and the System.Communication model.' });
+    it('explains to a builder without the role why there is no figure', async () => {
+      kpi$.next({ state: 'unavailable', reason: 'Needs the CommunicationManagement role and the System.Communication model.', forBuilder: true });
       const fixture = await renderKpi({ type: 'adapterStatus' });
       expect(fixture.nativeElement.querySelector('[data-state="unavailable"]').textContent).toContain('CommunicationManagement');
+      expect(boardState.setWidgetHiddenForViewer).toHaveBeenLastCalledWith('w1', false);
+    });
+
+    it('shows end users "Not available" without role details and collapses the tile', async () => {
+      kpi$.next({ state: 'unavailable', reason: 'Needs the CommunicationManagement role.', forBuilder: false });
+      const fixture = await renderKpi({ type: 'adapterStatus' });
+      const message = fixture.nativeElement.querySelector('[data-state="unavailable"]');
+      expect(message.textContent.trim()).toBe('Not available');
+      expect(message.textContent).not.toContain('CommunicationManagement');
+      expect(boardState.setWidgetHiddenForViewer).toHaveBeenLastCalledWith('w1', true);
     });
   });
 

@@ -102,6 +102,7 @@ describe('cockpit KPI mapping', () => {
 
 describe('CockpitKpiService', () => {
   const isInRole = vi.fn();
+  const isBuilder = vi.fn();
   const isModelAvailable = vi.fn();
   const adapterStates = { states: vi.fn() };
   const ckModelStates = { counts: vi.fn() };
@@ -110,6 +111,7 @@ describe('CockpitKpiService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     isInRole.mockReturnValue(true);
+    isBuilder.mockReturnValue(true);
     isModelAvailable.mockResolvedValue(true);
     adapterStates.states.mockReturnValue(of(all([adapter({})])));
     ckModelStates.counts.mockReturnValue(of({ total: 2, available: 2, importing: 0, resolveFailed: 0, resolveFailedNames: [] }));
@@ -117,7 +119,7 @@ describe('CockpitKpiService', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve('t1') },
-        { provide: COCKPIT_VIEWER_ACCESS, useValue: { isInRole } },
+        { provide: COCKPIT_VIEWER_ACCESS, useValue: { isInRole, isBuilder } },
         { provide: CkModelService, useValue: { isModelAvailable } },
         { provide: CockpitAdapterStatesService, useValue: adapterStates },
         { provide: CockpitCkModelStatesService, useValue: ckModelStates },
@@ -143,9 +145,20 @@ describe('CockpitKpiService', () => {
   it('tells viewers without the role why and runs no query', async () => {
     isInRole.mockImplementation((role: string) => role === COCKPIT_ROLES.AdminPanelManagement);
     const result = await firstValueFrom(TestBed.inject(CockpitKpiService).kpi('adapterStatus').pipe(last()));
-    expect(result).toEqual({ state: 'unavailable', reason: expect.stringContaining('CommunicationManagement') });
+    expect(result).toEqual({ state: 'unavailable', reason: expect.stringContaining('CommunicationManagement'), forBuilder: true });
     expect(adapterStates.states).not.toHaveBeenCalled();
     expect((await run('ckModelState'))[1].state).toBe('ready');
+  });
+
+  it('marks the denial as not for builders when the viewer is no builder', async () => {
+    isInRole.mockReturnValue(false);
+    isBuilder.mockReturnValue(false);
+    expect((await run('adapterStatus'))[1]).toMatchObject({ state: 'unavailable', forBuilder: false });
+  });
+
+  it('says "No tenant selected." without a tenant', async () => {
+    TestBed.overrideProvider(TENANT_ID_PROVIDER, { useValue: () => Promise.resolve(null) });
+    expect((await run('adapterStatus'))[1]).toEqual({ state: 'unavailable', reason: 'No tenant selected.', forBuilder: true });
   });
 
   it('is unavailable without the System.Communication model', async () => {
@@ -157,6 +170,7 @@ describe('CockpitKpiService', () => {
   it('reports a failing query as error', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     dataFlows.fetch.mockReturnValue(throwError(() => new Error('boom')));
-    expect((await run('pipelineExecutions'))[1]).toEqual({ state: 'error', message: 'boom' });
+    // The raw error never reaches the tile.
+    expect((await run('pipelineExecutions'))[1]).toEqual({ state: 'error', message: 'The figure could not be loaded.' });
   });
 });
