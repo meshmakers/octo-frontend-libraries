@@ -382,6 +382,16 @@ function displayAttributesOf(def: EntityFormFieldDef | undefined | null): { disp
   return names.length ? { displayAttributes: names } : {};
 }
 
+/**
+ * Form control key of an association field: `assoc:<rtRoleId>` with `.` replaced by `_` —
+ * Angular FormGroup keys must not contain `.` ("FormGroup keys cannot include '.'" for role ids
+ * such as `System.Communication/Manages`, visual check 2026-10-06). The key is only an id; the
+ * role itself travels on `ResolvedField.association`.
+ */
+export function associationFieldKey(rtRoleId: string): string {
+  return `assoc:${rtRoleId.replace(/\./g, '_')}`;
+}
+
 function findRole(type: CkTypeInfo, roleId: string): CkAssociationRoleInfo | undefined {
   const matches = type.associations.filter((r) => sameId(r.rtRoleId, roleId));
   return matches.find((r) => r.direction === 'out') ?? matches[0];
@@ -389,7 +399,7 @@ function findRole(type: CkTypeInfo, roleId: string): CkAssociationRoleInfo | und
 
 function buildAssociationField(role: CkAssociationRoleInfo, def: EntityFormFieldDef, type: CkTypeInfo, warnings: string[]): ResolvedField {
   const field: ResolvedField = {
-    key: `assoc:${role.rtRoleId}`,
+    key: associationFieldKey(role.rtRoleId),
     kind: 'association',
     label: def.label || humanize(role.navigationPropertyName),
     editor: 'reference',
@@ -565,7 +575,7 @@ export function resolveEntityForm(
         warnings.push(`Field '${def.attributePath}': association role '${def.associationRoleId}' not found on '${type.rtCkTypeId}'; skipped.`);
         continue;
       }
-      const key = `assoc:${role.rtRoleId}`;
+      const key = associationFieldKey(role.rtRoleId);
       if (mentioned.has(key)) {
         warnings.push(`Field '${def.attributePath}': duplicate definition; the first one wins.`);
         continue;

@@ -35,6 +35,7 @@ export {
   pickEntityForm,
   resolveEntityForm,
   autoEditorFor,
+  associationFieldKey,
   isEditorCompatible,
   DEFAULT_SECTION_KEY,
   GENERATED_SECTION_KEY,
