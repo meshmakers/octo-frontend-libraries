@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, effect, forwardRef, inject, input, signal } from '@angular/core';
+import { formatDate } from '@angular/common';
+import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, effect, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { GridModule } from '@progress/kendo-angular-grid';
@@ -6,9 +7,9 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { DialogCloseResult, DialogService } from '@progress/kendo-angular-dialog';
 import { arrowDownIcon, arrowUpIcon, pencilIcon, plusIcon, trashIcon, eyeIcon } from '@progress/kendo-svg-icons';
 import type { CkRecordInfo } from '../../models/entity-form.models';
-import { EntityFormsMessages, mergeEntityFormsMessages } from '../../entity-forms.messages';
+import { EntityFormsMessages, mergeEntityFormsMessages, secretStatusLabelsOf } from '../../entity-forms.messages';
 import { EntityFormService } from '../../services/entity-form.service';
-import { buildRecordFieldModels, formatRecordCell, humanizeAttributeName } from './entity-form-record-row';
+import { buildRecordFieldModels, formatRecordCell, formatRecordSecretCell, humanizeAttributeName } from './entity-form-record-row';
 import { EntityFormRecordRowDialogComponent } from './entity-form-record-row-dialog.component';
 
 /** Grid column of the records editor. */
@@ -100,6 +101,7 @@ interface GridRow {
 export class EntityFormRecordsFieldComponent implements ControlValueAccessor {
   private readonly entityFormService = inject(EntityFormService);
   private readonly dialogService = inject(DialogService);
+  private readonly locale = inject(LOCALE_ID);
 
   readonly ckRecordId = input.required<string>();
   readonly columns = input<EntityFormRecordColumn[] | null | undefined>([]);
@@ -139,6 +141,10 @@ export class EntityFormRecordsFieldComponent implements ControlValueAccessor {
     }
     return result;
   });
+
+  /** Lower-cased names of SECRET members: their cells show the badge text, never a value. */
+  private readonly secretAttributes = computed(() => new Set(
+    buildRecordFieldModels(this.record()?.attributes ?? []).filter(f => f.editor === 'secret').map(f => f.attributeName.toLowerCase())));
 
   private onChange: (value: Record<string, unknown>[]) => void = () => undefined;
   private onTouched: () => void = () => undefined;
@@ -181,6 +187,11 @@ export class EntityFormRecordsFieldComponent implements ControlValueAccessor {
 
   protected cellText(row: Record<string, unknown>, path: string): string {
     const key = Object.keys(row).find(k => k.toLowerCase() === path.toLowerCase()) ?? path;
+    if (this.secretAttributes().has(path.toLowerCase())) {
+      const m = this.msg();
+      return formatRecordSecretCell(row[key], secretStatusLabelsOf(m), m.secretRecordMemberNewValue,
+        (date) => formatDate(date, 'medium', this.locale));
+    }
     return formatRecordCell(row[key], this.enumOptionsByAttribute().get(path.toLowerCase()));
   }
 

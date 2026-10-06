@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { formatDate } from '@angular/common';
+import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, input } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DialogRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -6,12 +7,14 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import type { CkRecordInfo } from '../../models/entity-form.models';
-import { EntityFormsMessages, mergeEntityFormsMessages } from '../../entity-forms.messages';
+import { EntityFormsMessages, mergeEntityFormsMessages, secretStatusLabelsOf } from '../../entity-forms.messages';
 import {
   buildRecordFieldModels,
   buildRow,
   formatRecordCell,
+  formatRecordSecretCell,
   RecordFieldModel,
+  recordSecretState,
   toControlValue
 } from './entity-form-record-row';
 
@@ -20,6 +23,11 @@ import {
  * attributes with the auto-editor rules; every sub-field is optional (see
  * `buildRecordFieldModels`). Nested RECORD / RECORD_ARRAY sub-fields and unsupported value types
  * are shown read-only and their values are passed through unchanged.
+ *
+ * SECRET members (AB#5528, handover §2) show the set / not-set badge and a write-only input: a
+ * typed value replaces the member, an empty input keeps the stored value — the server carries it
+ * over from the stored element with the same record key (changing the key therefore drops it).
+ * Read-only users see the badge only.
  *
  * Closes its `DialogRef` with the resulting flat camelCase row, or with `undefined` on cancel.
  */
@@ -56,6 +64,16 @@ import {
               <kendo-multiselect [id]="'efr-' + field.attributeName" [formControlName]="field.attributeName"
                                  [data]="[]" [allowCustom]="true" [placeholder]="msg().chipsPlaceholder"></kendo-multiselect>
             }
+            @case ('secret') {
+              <div class="mm-efr-secret">
+                <span class="mm-efr-secret-badge" [attr.data-secret-state]="secretStateKey(field)">{{ secretBadge(field) }}</span>
+                @if (!readOnly()) {
+                  <kendo-textbox [id]="'efr-' + field.attributeName" [formControlName]="field.attributeName" type="password"
+                                 [placeholder]="secretPlaceholder(field)"
+                                 [inputAttributes]="{ autocomplete: 'new-password', spellcheck: 'false' }"></kendo-textbox>
+                }
+              </div>
+            }
             @default {
               <div class="mm-efr-readonly" [id]="'efr-' + field.attributeName">
                 <span class="mm-efr-readonly-value">{{ display(field) }}</span>
@@ -84,11 +102,15 @@ import {
     .mm-efr-help, .mm-efr-hint { color: var(--theme-text-secondary, inherit); font-size: 0.85em; }
     .mm-efr-readonly { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }
     .mm-efr-readonly-value { font-family: monospace; word-break: break-all; }
+    .mm-efr-secret { display: flex; flex-direction: column; gap: 4px; }
+    .mm-efr-secret-badge { align-self: flex-start; font-size: 0.8em; padding: 0 8px; border-radius: 8px;
+      background: var(--theme-bg-subtle, rgba(127, 127, 127, 0.15)); color: var(--theme-text-secondary, inherit); }
     .mm-efr-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
   `]
 })
 export class EntityFormRecordRowDialogComponent {
   private readonly dialogRef = inject(DialogRef, { optional: true });
+  private readonly locale = inject(LOCALE_ID);
 
   /** CK metadata of the record; set by the opener (`ComponentRef.setInput`). */
   readonly record = input<CkRecordInfo | null>(null);
@@ -107,6 +129,23 @@ export class EntityFormRecordRowDialogComponent {
   /** The row resulting from the current form state (original keys preserved). */
   result(): Record<string, unknown> {
     return buildRow(this.fields(), this.row(), this.form().getRawValue());
+  }
+
+  /** Badge of a SECRET member: the shared status wording, or "new value" for a typed one. */
+  protected secretBadge(field: RecordFieldModel): string {
+    const m = this.msg();
+    return formatRecordSecretCell(this.row()?.[field.attributeName], secretStatusLabelsOf(m), m.secretRecordMemberNewValue,
+      (date) => formatDate(date, 'medium', this.locale));
+  }
+
+  protected secretStateKey(field: RecordFieldModel): string {
+    const state = recordSecretState(this.row()?.[field.attributeName]);
+    return !state ? 'new' : state.keyMissing ? 'keyMissing' : state.isSet ? 'set' : 'notSet';
+  }
+
+  protected secretPlaceholder(field: RecordFieldModel): string {
+    const state = recordSecretState(this.row()?.[field.attributeName]);
+    return state && (state.isSet || state.keyMissing) ? this.msg().secretRecordMemberKeep : this.msg().secretNotSetPlaceholder;
   }
 
   protected display(field: RecordFieldModel): string {

@@ -3,6 +3,7 @@ import {
   buildRecordFieldModels,
   buildRow,
   formatRecordCell,
+  formatRecordSecretCell,
   fromControlValue,
   humanizeAttributeName,
   recordFieldEditor,
@@ -101,5 +102,32 @@ describe('entity-form-record-row helpers', () => {
     expect(formatRecordCell({ a: 1 })).toBe('{…}');
     expect(formatRecordCell(1, [{ key: 1, name: 'One' }])).toBe('One');
     expect(formatRecordCell(true)).toBe('true');
+  });
+
+  describe('SECRET members', () => {
+    const labels = { set: 'Set', setAt: 'Set · set at {setAt}', notSet: 'Not set', keyMissing: 'Key missing — re-enter' };
+    const secret = buildRecordFieldModels([attr('key', 'STRING'), attr('token', 'SECRET')])[1];
+
+    it('use the write-only secret editor (editable, never prefilled)', () => {
+      expect(recordFieldEditor('SECRET')).toBe('secret');
+      expect(secret.readOnly).toBe(false);
+      expect(toControlValue(secret, { isSet: true, keyMissing: false, setAt: null })).toBeNull();
+      expect(toControlValue(secret, 'typed earlier')).toBe('typed earlier');
+    });
+
+    it('buildRow keeps the stored state when empty and takes a typed value', () => {
+      const state = { isSet: true, keyMissing: false, setAt: null };
+      const fields = buildRecordFieldModels([attr('key', 'STRING'), attr('token', 'SECRET')]);
+      expect(buildRow(fields, { key: 'a', token: state }, { key: 'a', token: '' })).toEqual({ key: 'a', token: state });
+      expect(buildRow(fields, { key: 'a', token: state }, { key: 'a', token: 'new' })).toEqual({ key: 'a', token: 'new' });
+      expect(buildRow(fields, { key: 'a', token: 'typed' }, { key: 'a', token: null })).toEqual({ key: 'a' });
+    });
+
+    it('cells show the shared status wording, a typed value only as "new value"', () => {
+      expect(formatRecordSecretCell({ isSet: true }, labels, 'New')).toBe('Set');
+      expect(formatRecordSecretCell(undefined, labels, 'New')).toBe('Not set');
+      expect(formatRecordSecretCell({ isSet: false, keyMissing: true }, labels, 'New')).toBe('Key missing — re-enter');
+      expect(formatRecordSecretCell('s3cr3t', labels, 'New')).toBe('New');
+    });
   });
 });

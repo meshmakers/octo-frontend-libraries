@@ -118,3 +118,35 @@ describe('formValuesEqual', () => {
     expect(formValuesEqual(1, '1')).toBe(false);
   });
 });
+
+describe('SECRET record members (AB#5528, handover §2)', () => {
+  const SREC = 'Test-1.0.0/Endpoint-1';
+  const srecords = { [SREC]: { ckRecordId: SREC, attributes: [attr('key'), attr('token', 'SECRET')] } };
+  const endpoints = attr('endpoints', 'RECORD_ARRAY', { ckRecordId: SREC });
+
+  it('reads a secret member as its state (value null + secretIsSet), never as a value', () => {
+    const raw = [
+      { attributes: [{ attributeName: 'key', value: 'a' }, { attributeName: 'token', value: null, secretIsSet: true }] },
+      { attributes: [{ attributeName: 'key', value: 'b' }, { attributeName: 'token', value: null, secretIsSet: false }] },
+      { attributes: [{ attributeName: 'key', value: 'c' }] },
+    ];
+    expect(toFormValue(raw, endpoints, srecords)).toEqual([
+      { key: 'a', token: { isSet: true, keyMissing: false, setAt: null } },
+      { key: 'b', token: { isSet: false, keyMissing: false, setAt: null } },
+      { key: 'c' },
+    ]);
+  });
+
+  it('omits a kept secret member on write (record key carry-over) and sends only a typed value', () => {
+    const value = [
+      { key: 'a', token: { isSet: true, keyMissing: false, setAt: null } },
+      { key: 'b', token: 'typed-value' },
+      { key: 'c', token: '' },
+    ];
+    expect(toWireValue(value, endpoints, srecords)).toEqual({ include: true, value: [{ key: 'a' }, { key: 'b', token: 'typed-value' }, { key: 'c' }] });
+  });
+
+  it('never echoes a state object, even without record metadata', () => {
+    expect(toWireValue([{ key: 'a', token: { isSet: true } }], attr('endpoints', 'RECORD_ARRAY'), {})).toEqual({ include: true, value: [{ key: 'a' }] });
+  });
+});
