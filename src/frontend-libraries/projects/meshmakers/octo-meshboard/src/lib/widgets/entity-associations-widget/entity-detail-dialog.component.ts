@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, inject, signal, ChangeD
 import { CommonModule } from '@angular/common';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { PropertyGridComponent, PropertyGridItem, PropertyGridConfig, AttributeValueTypeDto } from '@meshmakers/octo-ui';
+import { PropertyGridComponent, PropertyGridItem, PropertyGridConfig, AttributeValueTypeDto, SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { GetDashboardEntityDtoGQL } from '../../graphQL/getDashboardEntity';
 import { firstValueFrom } from 'rxjs';
 
@@ -133,6 +133,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class EntityDetailDialogComponent implements OnInit {
   private readonly getDashboardEntityGQL = inject(GetDashboardEntityDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   @Input() rtId!: string;
   @Input() ckTypeId!: string;
@@ -175,11 +176,14 @@ export class EntityDetailDialogComponent implements OnInit {
     this.error.set(null);
 
     try {
+      // All non-secret attributes of the type (SECRET-safe, AB#5542).
+      const attributeNames = await this.secretSafeNames.forCkType(this.ckTypeId);
       const result = await firstValueFrom(
         this.getDashboardEntityGQL.fetch({
           variables: {
             rtId: this.rtId,
-            ckTypeId: this.ckTypeId
+            ckTypeId: this.ckTypeId,
+            attributeNames
           }
         })
       );

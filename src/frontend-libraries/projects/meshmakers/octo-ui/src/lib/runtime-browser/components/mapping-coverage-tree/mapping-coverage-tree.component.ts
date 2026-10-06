@@ -1544,6 +1544,8 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
           .fetch({
             variables: {
               ckTypeId: this.activeRootCkTypeId(),
+              // Only rt* fields are read (SECRET-safe, AB#5542).
+              attributeNames: [],
               first: 200,
               after: GraphQL.offsetToCursor(0),
             },

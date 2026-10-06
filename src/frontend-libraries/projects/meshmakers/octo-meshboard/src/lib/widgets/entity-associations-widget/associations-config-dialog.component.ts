@@ -450,7 +450,9 @@ export class AssociationsConfigDialogComponent implements OnInit {
         this.getEntitiesByCkTypeGQL.fetch({
           variables: {
             ckTypeId: this.initialCkTypeId,
-            rtId: this.initialRtId
+            rtId: this.initialRtId,
+            // Only rt* fields are read (SECRET-safe, AB#5542).
+            attributeNames: []
           }
         })
       );

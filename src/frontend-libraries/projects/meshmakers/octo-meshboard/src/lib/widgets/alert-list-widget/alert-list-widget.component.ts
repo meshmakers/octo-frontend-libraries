@@ -180,6 +180,8 @@ export class AlertListWidgetComponent implements DashboardWidget<AlertListWidget
         this.getEntitiesByCkTypeGQL.fetch({
           variables: {
             ckTypeId,
+            // The alert fields this widget reads (SECRET-safe explicit list, AB#5542).
+            attributeNames: ['message', 'level', 'state', 'source'],
             first: this.config?.maxAlerts ?? 50,
             fieldFilters: [
               { attributePath: 'state', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: '0' }

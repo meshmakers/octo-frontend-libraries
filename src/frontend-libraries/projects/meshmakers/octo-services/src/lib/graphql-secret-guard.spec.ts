@@ -28,19 +28,14 @@ import { isCredentialLikeAttributeName } from './shared/secret-safe-attributes';
  */
 
 /**
- * `<path relative to the workspace>#<field path>` → reason. Only for documents owned by another
- * work stream that could not be changed together with AB#5542; remove the entry with the fix
- * (the stale-entry test below fails once a listed violation is gone).
+ * `<path relative to the workspace>#<field path>` → reason. Only for documents whose type provably
+ * carries no secrets; remove the entry with the fix (the stale-entry test below fails once a
+ * listed violation is gone).
  */
 const ALLOW_LIST: Readonly<Record<string, string>> = {
-  'projects/meshmakers/octo-meshboard/src/lib/graphQL/getAssociationTargets.graphql#runtime.runtimeEntities.items.associations.targets.items.attributes':
-    'AB#5545 (meshboard stream): make $attributeNames [String!]!; meshboard-data.service already sends [] when unset.',
-  'projects/meshmakers/octo-meshboard/src/lib/graphQL/getDashboardEntity.graphql#runtime.runtimeEntities.items.attributes':
-    'AB#5545 (meshboard stream): select the dashboard attributes explicitly (System.UI dashboard, no secrets today).',
-  'projects/meshmakers/octo-meshboard/src/lib/graphQL/getEntitiesByCkType.graphql#runtime.runtimeEntities.items.attributes':
-    'AB#5545 (meshboard stream): arbitrary user-selected types — add $attributeNames [String!]! and pass widget field lists.',
   'projects/meshmakers/octo-ui/entity-forms/src/graphQL/getEntityForms.graphql#runtime.runtimeEntities.items.attributes':
-    'AB#5524 (entity-forms stream): System.UI/EntityForm definitions (no secrets) — list the definition attributes explicitly.',
+    'System.UI/EntityForm (fixed ckId) has no secret-capable attributes — only form metadata; an attributeNames filter '
+    + 'would also cut the record contents (sections, fields, listColumns) the parser reads.',
 };
 
 interface NodeFs {

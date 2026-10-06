@@ -38,6 +38,8 @@ export class RuntimeEntitySelectDataSource implements EntitySelectDataSource<Run
       this.getEntitiesByCkTypeGQL.fetch({
         variables: {
           ckTypeId: this.ckTypeId,
+          // Only rt* fields are displayed — no attributes (SECRET-safe, AB#5542).
+          attributeNames: [],
           first: take ?? 10,
           fieldFilters: [
             // Search by the engine-computed display name (AB#4813); rtId matching required exact
@@ -107,6 +109,7 @@ export class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSour
       this.getEntitiesByCkTypeGQL.fetch({
         variables: {
           ckTypeId: this.ckTypeId,
+          attributeNames: [],
           first: options.take,
           after: options.skip > 0 ? btoa(`arrayconnection:${options.skip - 1}`) : undefined,
           fieldFilters: fieldFilters.length > 0 ? fieldFilters : undefined

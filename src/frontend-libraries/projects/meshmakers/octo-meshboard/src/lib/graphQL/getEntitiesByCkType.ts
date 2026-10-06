@@ -5,6 +5,7 @@ import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
 export type GetEntitiesByCkTypeQueryVariablesDto = Types.Exact<{
   ckTypeId: Types.Scalars['String']['input'];
+  attributeNames: Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input'];
   rtId?: Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>;
   after?: Types.InputMaybe<Types.Scalars['String']['input']>;
   first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
@@ -17,7 +18,7 @@ export type GetEntitiesByCkTypeQueryVariablesDto = Types.Exact<{
 export type GetEntitiesByCkTypeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, rtDisplayDescription?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetEntitiesByCkTypeDocumentDto = gql`
-    query getEntitiesByCkType($ckTypeId: String!, $rtId: OctoObjectId, $after: String, $first: Int, $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {
+    query getEntitiesByCkType($ckTypeId: String!, $attributeNames: [String!]!, $rtId: OctoObjectId, $after: String, $first: Int, $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {
   runtime {
     runtimeEntities(
       ckId: $ckTypeId
@@ -37,7 +38,7 @@ export const GetEntitiesByCkTypeDocumentDto = gql`
         rtDisplayDescription
         rtCreationDateTime
         rtChangedDateTime
-        attributes(resolveEnumValuesToNames: true) {
+        attributes(attributeNames: $attributeNames, resolveEnumValuesToNames: true) {
           items {
             attributeName
             value

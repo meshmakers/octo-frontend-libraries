@@ -639,9 +639,10 @@ The filter compares camelCase names only and also applies to the sub-attributes 
 Until the SECRET value type (AB#5528) masks values on the server:
 
 - Every generic `attributes` selection passes `attributeNames` as a literal list or a
-  **non-nullable** variable: `$attributeNames: [String!]!`. A default (`[String!]! = []`) is
-  allowed where some callers need no attributes (an omitted value then means "none"), e.g.
-  octo-services `getEntitiesByCkType`.
+  **non-nullable** variable: `$attributeNames: [String!]!` (required — octo-services and
+  octo-meshboard `getEntitiesByCkType`, meshboard `getDashboardEntity` / `getAssociationTargets`,
+  octo-ui `getRuntimeEntityById`). Callers that read only rt* fields pass `[]`. The guard
+  accepts a default (`= []`) but prefer required so a forgotten list fails loudly.
 - Callers pass explicit camelCase lists. Fixed lists live next to the reader
   (`DATA_POINT_ATTRIBUTE_NAMES`, `DATA_POINT_MAPPING_ATTRIBUTE_NAMES`); screens that show "all
   attributes" of an arbitrary type use octo-ui `SecretSafeAttributeNamesService.forCkType(rtCkTypeId)`
@@ -662,9 +663,12 @@ Until the SECRET value type (AB#5528) masks values on the server:
 `npm run test:octo-services`) scans every `.graphql` under `projects/` and inline `gql` documents
 against `schema.graphql` and fails on a generic `attributes` without a non-nullable
 `attributeNames`, a credential-like literal in it, or a typed credential-like String field.
-Justified exceptions go into its `ALLOW_LIST` with a reason; today it only lists documents owned
-by other streams (octo-meshboard AB#5545: `getAssociationTargets`, `getDashboardEntity`,
-`getEntitiesByCkType`; entity-forms AB#5524: `getEntityForms`). A stale entry fails the test.
+Justified exceptions go into its `ALLOW_LIST` with a reason; today it holds only entity-forms
+`getEntityForms` (System.UI/EntityForm carries no secret-capable attributes, and a filter would
+cut the record contents the parser reads). A stale entry fails the test.
+- Meshboard widgets that show arbitrary attributes (entity card/detail, table, repeater,
+  summary card) use `SecretSafeAttributeNamesService.forCkType`; widgets with configured fields
+  (status list, alerts, series labels/groups) send only those names.
 
 **Schema-dependent (AB#5542, after the backend handover note
 `octo-construction-kit-engine/docs/secret-frontend-handover.md` exists):** codegen with

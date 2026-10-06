@@ -1,7 +1,7 @@
 import { Directive, forwardRef, inject, Input, signal, Signal, Output, EventEmitter } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { OctoGraphQlDataSource } from '@meshmakers/octo-ui';
+import { Observable, from, of } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';
+import { OctoGraphQlDataSource, SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { DataSourceBase, FetchDataOptions, FetchResultTyped, ListViewComponent } from '@meshmakers/shared-ui';
 import { GraphQL, FieldFilterDto } from '@meshmakers/octo-services';
 import { TableWidgetConfig, TableColumn, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
@@ -36,6 +36,7 @@ export interface QueryColumn {
 })
 export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record<string, unknown>> {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
@@ -111,17 +112,22 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
       allFilters = [...allFilters, ...gridFieldFilters];
     }
 
-    return this.getEntitiesByCkTypeGQL.fetch({
-      variables: {
-        ckTypeId: dataSource.ckTypeId,
-        first: queryOptions.state.take ?? this._config.pageSize ?? 10,
-        after: GraphQL.offsetToCursor(queryOptions.state.skip ?? 0),
-        sort: sort,
-        fieldFilters: allFilters.length > 0 ? allFilters : undefined,
-        searchFilter: searchFilterDto
-      },
-      fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first'
-    }).pipe(
+    // All non-secret attributes of the type, incl. record sub-attributes (SECRET-safe, AB#5542).
+    const ckTypeId = dataSource.ckTypeId;
+    const first = queryOptions.state.take ?? this._config.pageSize ?? 10;
+    return from(this.secretSafeNames.forCkType(ckTypeId)).pipe(
+      switchMap(attributeNames => this.getEntitiesByCkTypeGQL.fetch({
+        variables: {
+          ckTypeId,
+          attributeNames,
+          first,
+          after: GraphQL.offsetToCursor(queryOptions.state.skip ?? 0),
+          sort: sort,
+          fieldFilters: allFilters.length > 0 ? allFilters : undefined,
+          searchFilter: searchFilterDto
+        },
+        fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first'
+      })),
       map(result => {
         const items = result.data?.runtime?.runtimeEntities?.items ?? [];
         const totalCount = result.data?.runtime?.runtimeEntities?.totalCount ?? 0;

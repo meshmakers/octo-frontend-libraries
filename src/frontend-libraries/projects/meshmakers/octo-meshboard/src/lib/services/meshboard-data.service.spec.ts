@@ -1,6 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import { MeshBoardDataService } from './meshboard-data.service';
 import { MeshBoardStateService } from './meshboard-state.service';
 import { MeshBoardVariableService } from './meshboard-variable.service';
@@ -81,6 +82,8 @@ describe('MeshBoardDataService', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        // SECRET-safe attribute lists (AB#5542): the type's non-secret attributes.
+        { provide: SecretSafeAttributeNamesService, useValue: { forCkType: vi.fn().mockResolvedValue(['name', 'value', 'groupKey']) } },
         MeshBoardDataService,
         { provide: GetDashboardEntityDtoGQL, useValue: getDashboardEntityGQLSpy },
         { provide: GetCkModelsWithStateDtoGQL, useValue: getCkModelsWithStateGQLSpy },
@@ -366,6 +369,18 @@ describe('MeshBoardDataService', () => {
   // ========================================================================
 
   describe('fetchEntityWithAssociations', () => {
+    it('requests only the secret-safe attribute names of the type (AB#5542)', async () => {
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
+        data: { runtime: { runtimeEntities: { items: [] } } }, loading: false, networkStatus: 7
+      }));
+
+      await firstValueFrom(service.fetchEntityWithAssociations('entity-1', 'EntityType'));
+
+      expect(getDashboardEntityGQLSpy.fetch).toHaveBeenCalledWith({
+        variables: { rtId: 'entity-1', ckTypeId: 'EntityType', attributeNames: ['name', 'value', 'groupKey'] }
+      });
+    });
+
     it('should fetch entity by rtId and ckTypeId', () => new Promise<void>((done) => {
       getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
