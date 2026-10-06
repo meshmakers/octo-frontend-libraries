@@ -4,9 +4,11 @@
   "peerDependencies": {
     "@angular/common": "^22.0.0",
     "@angular/core": "^22.0.0",
+    "@apollo/client": "^4.2.3",
     "@meshmakers/shared-auth": "*",
     "@meshmakers/shared-services": "*",
     "apollo-angular": "^14.0.0",
+    "graphql": "^16.0.0 || ^17.0.0",
     "tus-js-client": "^4.3.1"
   },
   "dependencies": {
