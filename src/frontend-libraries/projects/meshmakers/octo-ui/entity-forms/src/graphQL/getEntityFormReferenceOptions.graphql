@@ -1,4 +1,4 @@
-# Candidate targets for a reference field. Selects NO attributes at all (secret-safe picker).
+# Candidate targets for a reference field. Selects only the non-secret `name` attribute (secret-safe picker).
 query entityFormGetReferenceOptions(
   $ckTypeId: String!
   $first: Int
@@ -26,6 +26,15 @@ query entityFormGetReferenceOptions(
         ckTypeId
         rtWellKnownName
         rtDisplayName
+        # The target's name as its label (AB#5547 visual check #9: a pool showed its
+        # well-known name "CommunicationPool" instead of "Default Cloud"). Explicit list
+        # with the one non-secret attribute; never omit attributeNames.
+        attributes(attributeNames: ["name"]) {
+          items {
+            attributeName
+            value
+          }
+        }
         rtDisplayDescription
       }
     }

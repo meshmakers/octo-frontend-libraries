@@ -13,7 +13,7 @@ export type EntityFormGetAssociationTargetsQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type EntityFormGetAssociationTargetsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, associations?: { __typename?: 'RtEntityGenericAssociation', targets?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string } | null> | null } | null } | null } | null> | null } | null } | null };
+export type EntityFormGetAssociationTargetsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, associations?: { __typename?: 'RtEntityGenericAssociation', targets?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const EntityFormGetAssociationTargetsDocumentDto = gql`
     query entityFormGetAssociationTargets($ckTypeId: String!, $rtId: OctoObjectId!, $roleId: String!, $targetCkTypeId: String!, $direction: GraphDirection!, $first: Int) {
@@ -34,6 +34,12 @@ export const EntityFormGetAssociationTargetsDocumentDto = gql`
               ckTypeId
               rtWellKnownName
               rtDisplayName
+              attributes(attributeNames: ["name"]) {
+                items {
+                  attributeName
+                  value
+                }
+              }
             }
           }
         }

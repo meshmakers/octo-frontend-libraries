@@ -164,6 +164,7 @@ describe('EntityFormDataService', () => {
       values.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [{ rtId: 'src', ckTypeId: 'T/S', rtWellKnownName: null, rtDisplayName: 'Src', attributes: { items: [] } }] } } } }));
       targets.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [{ rtId: 'src', associations: { targets: { items: [
         { rtId: 'p1', ckTypeId: 'T/P', rtWellKnownName: 'alice', rtDisplayName: 'T/P@0123456789abcdef01234567' },
+        { rtId: 'p2', ckTypeId: 'T/P', rtWellKnownName: 'CommunicationPool', rtDisplayName: 'T/P@0123456789abcdef01234568', attributes: { items: [{ attributeName: 'name', value: 'Default Cloud' }] } },
       ] } } }] } } } }));
       definitions.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [{ rtId: 'src', associations: { definitions: { items: [
         { originRtId: 'src', originCkTypeId: 'T/S', targetRtId: 'x1', targetCkTypeId: 'T/X', ckAssociationRoleId: 'System/Related' },
@@ -178,7 +179,7 @@ describe('EntityFormDataService', () => {
       expect(definitions.fetch).toHaveBeenCalledWith(expect.objectContaining({ variables: expect.objectContaining({ roleId: 'System/Related', direction: 'OUTBOUND' }) }));
       expect(options.fetch).toHaveBeenCalledWith(expect.objectContaining({ variables: expect.objectContaining({ ckTypeId: 'T/X', fieldFilters: [{ attributePath: 'rtId', operator: 'IN', comparisonValue: ['x1'] }] }) }));
       expect(result?.state.associations).toEqual({
-        'assoc:T/Owner': [{ rtId: 'p1', ckTypeId: 'T/P', displayName: 'alice' }],
+        'assoc:T/Owner': [{ rtId: 'p1', ckTypeId: 'T/P', displayName: 'alice' }, { rtId: 'p2', ckTypeId: 'T/P', displayName: 'Default Cloud' }],
         'assoc:System/Related': [{ rtId: 'x1', ckTypeId: 'T/X', displayName: 'Xavier' }],
       });
       expect(result?.state.values['assoc:T/Owner']).toEqual(result?.state.associations['assoc:T/Owner']);
