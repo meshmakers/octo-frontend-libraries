@@ -440,6 +440,30 @@ describe('EntityFormComponent', () => {
       expect(validEvents.at(-1)).toBe(false);
     });
 
+    it('the key ring only gates SECRET-typed fields, not name-rule / metadata secrets', async () => {
+      const m = model([section('auth', [
+        field({ key: 'password', valueType: 'SECRET', editor: 'password', secret: true, required: true }),
+        field({ key: 'legacyToken', valueType: 'STRING', editor: 'password', secret: true, required: true }),
+      ])]);
+      m.secretFields = ['password', 'legacyToken'];
+      m.secretStateFields = ['password'];
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        animationsEnabled: false,
+        providers: [{ provide: ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, useValue: signal(false) }],
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      api = component as unknown as Testable;
+      await render(m, 'create');
+      expect(api.control('password').disabled).toBe(true);
+      expect(api.control('legacyToken').enabled).toBe(true);
+      expect(fieldEl('legacyToken')?.querySelector('[data-secret-writes-disabled]')).toBeNull();
+      expect(component.saveBlockedReason()).toContain('password');
+      expect(component.saveBlockedReason()).not.toContain('legacyToken');
+    });
+
     it('does not block saving an existing entity without key ring (required secret only enforced on create)', async () => {
       await renderWithKeyRing(signal<boolean | null>(false), 'edit', secretState());
       expect(component.saveBlockedReason()).toBeNull();

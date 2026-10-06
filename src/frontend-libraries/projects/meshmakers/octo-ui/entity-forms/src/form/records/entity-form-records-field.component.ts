@@ -108,6 +108,8 @@ export class EntityFormRecordsFieldComponent implements ControlValueAccessor {
   readonly single = input(false);
   readonly readOnly = input(false);
   readonly messages = input<Partial<EntityFormsMessages>>({});
+  /** No key ring (Q17): SECRET members cannot get a new value in the row editor (badge + hint only). */
+  readonly secretWritesDisabled = input(false);
 
   protected readonly icons = { plus: plusIcon, edit: pencilIcon, up: arrowUpIcon, down: arrowDownIcon, remove: trashIcon, view: eyeIcon };
   protected readonly msg = computed(() => mergeEntityFormsMessages(this.messages()));
@@ -254,6 +256,7 @@ export class EntityFormRecordsFieldComponent implements ControlValueAccessor {
       content.setInput('record', record ?? { ckRecordId: this.ckRecordId(), attributes: [] });
       content.setInput('row', row);
       content.setInput('readOnly', this.isDisabled());
+      content.setInput('secretWritesDisabled', this.secretWritesDisabled());
       content.setInput('messages', this.messages());
     }
     const result = await firstValueFrom(dialogRef.result);

@@ -51,7 +51,7 @@
                       [readOnly]="ro"
                       [canClear]="canClearSecret(field)"
                       [clearStaged]="isSecretClearStaged(field)"
-                      [writesDisabled]="secretWritesDisabled()"
+                      [writesDisabled]="isSecretWriteBlocked(field)"
                       [revision]="rev"
                       (clearStagedChange)="setSecretClearStaged(field, $event)"
                     ></mm-entity-form-secret-editor>
@@ -147,6 +147,7 @@
                         [columns]="field.record?.columns ?? []"
                         [single]="field.record?.single ?? false"
                         [readOnly]="ro"
+                        [secretWritesDisabled]="secretWritesDisabled()"
                       ></mm-entity-form-records-field>
                     }
                     @case ('unsupported') {

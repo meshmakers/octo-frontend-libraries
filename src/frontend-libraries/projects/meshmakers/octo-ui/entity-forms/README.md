@@ -248,7 +248,9 @@ Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, deci
   server accepts `clearSecretAttributes` only for SECRET attributes).
 - **No key ring** (Q17): when the host provides `ENTITY_FORM_SECRET_KEY_RING_CONFIGURED`
   (a `Signal<boolean | null | undefined>`) and it is `false`, secret inputs are disabled with a
-  hint. Without a provider (or while the signal is `null` / `undefined`) secrets are writable.
+  hint. Only **SECRET-typed** fields (and SECRET record members) are gated — fallback secrets
+  (name rule / metadata) are plain values server-side and stay writable. Without a provider (or
+  while the signal is `null` / `undefined`) secrets are writable.
   The signal may change after the form was built (status loaded asynchronously): the controls
   follow it. In **create** mode a visible, required secret that cannot be entered blocks the form:
   the field stays required (marker + hint), `isValid()` is `false` and the public signal
@@ -270,7 +272,7 @@ Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, deci
   (grid: "New value (unsaved)"); an empty input keeps it — on save the member is **omitted** and
   the server carries the stored value over from the element with the same record key (handover
   §2). Changing an element's record key therefore drops its stored secret. A state object is
-  never sent back.
+  never sent back. Without a key ring the member input is disabled with the hint (badge stays).
 - The CK description of `EntityFormField.Secret` says "masked … revealed on demand"; the concept
   (§5.8, write-only) wins.
 
@@ -306,8 +308,10 @@ Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, deci
   returns its rows with empty `attributes` unless the record's sub-attribute names are listed as
   well, so `readAttributeNames` contains them. When a sub-attribute name equals a fallback
   (non-SECRET) secret top-level attribute name it is dropped and the record field becomes
-  read-only (warning), so a save cannot erase that sub-value. A SECRET name does not block (it is
-  read anyway, the server never returns its value).
+  read-only (warning), so a save cannot erase that sub-value. A top-level SECRET name does not block
+  only when every record member of that name is a SECRET too (the server redacts both). If a
+  NON-SECRET member shares the name, listing it would return that member in clear text: the name is
+  not listed, the record field becomes read-only and the SECRET falls back to the presence probe.
 - The edit flow relies on a partial `RtEntityUpdate` keeping the attributes that are not sent
   (unchanged values, secrets). That is what makes the write-only secret handling safe.
 

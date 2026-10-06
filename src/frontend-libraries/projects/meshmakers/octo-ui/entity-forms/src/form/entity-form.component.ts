@@ -171,8 +171,10 @@ export class EntityFormComponent {
     }
     const vis = this.visibility();
     const presence = this.secretPresence();
+    // Only SECRET-typed fields need the key ring; name-rule / metadata secrets are stored as plain values.
     const labels = allFields(this.model())
-      .filter((f) => f.secret && vis[f.key] !== false && !isFieldReadOnly(f, 'create', false) && isSecretRequired(f, 'create', presence))
+      .filter((f) => f.secret && isSecretValueType(f.valueType) && vis[f.key] !== false
+        && !isFieldReadOnly(f, 'create', false) && isSecretRequired(f, 'create', presence))
       .map((f) => f.label);
     return labels.length
       ? formatEntityFormsMessage(this.resolvedMessages().secretRequiredWritesDisabled, { fields: labels.join(', ') })
@@ -358,6 +360,11 @@ export class EntityFormComponent {
     return field.placeholder ?? '';
   }
 
+  /** Q17 applies to SECRET-typed fields only (the encryption key ring is not needed for fallback secrets). */
+  protected isSecretWriteBlocked(field: ResolvedField): boolean {
+    return this.secretWritesDisabled() && isSecretValueType(field.valueType);
+  }
+
   protected isIntegerField(field: ResolvedField): boolean {
     return INTEGER_TYPES.includes(field.valueType ?? '');
   }
@@ -443,8 +450,9 @@ export class EntityFormComponent {
       if (!control) {
         continue;
       }
+      // The key ring only gates SECRET-typed fields (fallback secrets are plain values server-side).
       const secretBlocked = field.secret
-        && (writesDisabled || this.clearedSecrets().has(field.attributeName ?? field.key));
+        && ((writesDisabled && isSecretValueType(field.valueType)) || this.clearedSecrets().has(field.attributeName ?? field.key));
       const shouldEnable = vis[field.key] !== false && !isFieldReadOnly(field, mode, formReadOnly) && !secretBlocked;
       if (shouldEnable && control.disabled) {
         control.enable({ emitEvent: false });

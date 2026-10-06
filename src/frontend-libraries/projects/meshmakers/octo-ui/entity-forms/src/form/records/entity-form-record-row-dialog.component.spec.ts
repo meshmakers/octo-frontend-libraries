@@ -118,5 +118,16 @@ describe('EntityFormRecordRowDialogComponent', () => {
       expect(field.querySelector('.mm-efr-secret-badge')?.textContent?.trim()).toBe('Not set');
       expect(field.querySelector('input')).toBeNull();
     });
+
+    it('without a key ring the SECRET member input is disabled with a hint and the stored value is kept', () => {
+      fixture.componentRef.setInput('row', { key: 'a', token: stored });
+      fixture.componentRef.setInput('secretWritesDisabled', true);
+      fixture.detectChanges();
+      const field = (fixture.nativeElement as HTMLElement).querySelector('[data-attribute="token"]') as HTMLElement;
+      expect(field.querySelector('[data-secret-writes-disabled]')?.textContent).toContain('key ring');
+      expect(component.form().controls['token'].disabled).toBe(true);
+      expect(component.form().controls['key'].enabled).toBe(true);
+      expect(component.result()).toEqual({ key: 'a', token: stored });
+    });
   });
 });
