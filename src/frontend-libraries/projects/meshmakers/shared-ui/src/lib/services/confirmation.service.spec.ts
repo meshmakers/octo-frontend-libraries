@@ -46,7 +46,7 @@ describe('ConfirmationService', () => {
   describe('showDestructiveConfirmationDialog', () => {
     it('labels the buttons with the verbs, marks the dialog as danger and caps its width', async () => {
       const resultPromise = service.showDestructiveConfirmationDialog('Rotate secret', 'Sure?', 'Rotate');
-      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({ minWidth: 320, maxWidth: 'min(560px, 92vw)' }));
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({ minWidth: 'min(320px, calc(100vw - 32px))', maxWidth: 'min(560px, calc(100vw - 32px))' }));
       expect(dialogRefMock.content.instance.data).toEqual(expect.objectContaining({
         dialogType: DialogType.YesNo,
         buttonLabels: { yes: 'Rotate', no: 'Cancel' },

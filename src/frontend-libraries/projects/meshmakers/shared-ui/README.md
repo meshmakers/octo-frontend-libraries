@@ -200,7 +200,7 @@ All complex dialogs are opened via injected services:
 | | `showOkDialog()` | Ok-only information dialog |
 | | `showDestructiveConfirmationDialog(title, message, confirmLabel, cancelLabel = 'Cancel')` | Destructive action: verb labels (e.g. Rotate / Cancel), confirming button styled as danger |
 
-All confirmation dialogs are 320 px to `min(560px, 92vw)` wide, so a long message wraps instead of stretching the dialog across the viewport.
+All confirmation dialogs are `min(320px, 100vw − 32px)` to `min(560px, 100vw − 32px)` wide, so a long message wraps instead of stretching the dialog across the viewport.
 | `InputService` | — | Text input dialog |
 | `FileUploadService` | — | File upload dialog |
 | `ProgressWindowService` | `showDeterminateProgress()` | Progress bar with percentage |

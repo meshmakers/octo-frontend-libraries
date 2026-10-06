@@ -89,8 +89,9 @@ export class ConfirmationService {
       title,
       content: ConfirmationWindowComponent,
       cssClass,
-      minWidth: 320,
-      maxWidth: 'min(560px, 92vw)'
+      // Both bounds leave a 16 px gutter on each side, so a phone (< 352 px) never overflows.
+      minWidth: 'min(320px, calc(100vw - 32px))',
+      maxWidth: 'min(560px, calc(100vw - 32px))'
     });
 
     const component = dialogRef.content.instance as ConfirmationWindowComponent;
