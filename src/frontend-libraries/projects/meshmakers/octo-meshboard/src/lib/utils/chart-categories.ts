@@ -83,15 +83,54 @@ export function responsiveLegendPosition(configured: LegendPosition | undefined,
 }
 
 /**
- * What the charts' resolved colours depend on: the `data-theme` attribute, the OS colour scheme
- * and the resolved status colours. `class` / `style` of `<html>` are deliberately not part of it —
+ * Text and line colours of a Kendo chart (AB#5568). Kendo reads its chart theme from the DOM once
+ * per page load, so legend, axis and data labels keep the colours of the theme the page was loaded
+ * with; the widgets therefore pass these resolved tokens explicitly.
+ */
+export interface ChartThemeColors {
+  /** Legend and data labels. */
+  text: string;
+  /** Axis labels and axis titles. */
+  muted: string;
+  /** Major grid lines. */
+  grid: string;
+}
+
+const CHART_TEXT_TOKENS: Record<keyof ChartThemeColors, { names: string[]; fallback: string }> = {
+  text: { names: ['--theme-text-secondary', '--kendo-color-on-app-surface', '--kendo-color-on-surface'], fallback: '#6b7280' },
+  muted: { names: ['--theme-text-muted', '--kendo-color-subtle'], fallback: '#8a94a0' },
+  grid: { names: ['--theme-border-subtle', '--kendo-color-border'], fallback: 'rgba(127, 127, 127, 0.15)' },
+};
+
+function chartThemeColorsFrom(style: CSSStyleDeclaration | null): ChartThemeColors {
+  const resolve = (key: keyof ChartThemeColors): string => {
+    for (const name of CHART_TEXT_TOKENS[key].names) {
+      const value = style?.getPropertyValue(name).trim();
+      if (value) {
+        return value;
+      }
+    }
+    return CHART_TEXT_TOKENS[key].fallback;
+  };
+  return { text: resolve('text'), muted: resolve('muted'), grid: resolve('grid') };
+}
+
+/** The current chart text / line colours from the host theme tokens (see {@link ChartThemeColors}). */
+export function chartThemeColors(doc: Document | null = typeof document !== 'undefined' ? document : null): ChartThemeColors {
+  return chartThemeColorsFrom(computedRootStyle(doc));
+}
+
+/**
+ * What the charts' resolved colours depend on: the `data-theme` attribute, the OS colour scheme,
+ * the resolved status colours and the chart text / line colours. `class` / `style` of `<html>` are deliberately not part of it —
  * popups, tooltips and scroll locks mutate them without changing the theme (AB#5568).
  */
 export function themeSignature(doc: Document | null = typeof document !== 'undefined' ? document : null): string {
   const dark = typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches;
   // One style computation per signature (it runs on every <html> mutation).
   const style = computedRootStyle(doc);
-  const colors = (['success', 'warning', 'error', 'info'] as CategoryStatus[]).map(status => statusColorFrom(status, style)).join(',');
+  const text = chartThemeColorsFrom(style);
+  const colors = [...(['success', 'warning', 'error', 'info'] as CategoryStatus[]).map(status => statusColorFrom(status, style)), text.text, text.muted, text.grid].join(',');
   return `${doc?.documentElement?.getAttribute('data-theme') ?? ''}|${dark ? 'dark' : 'light'}|${colors}`;
 }
 

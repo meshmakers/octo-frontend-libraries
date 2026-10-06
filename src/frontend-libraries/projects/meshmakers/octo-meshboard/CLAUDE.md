@@ -1058,10 +1058,19 @@ literal was a new object on every change detection. Rules:
 - `observeThemeChanges` fires only when `themeSignature()` changes (`data-theme`, OS scheme,
   resolved status colours) — never on bare `class` / `style` mutations of `<html>`.
 - Data `computed`s bound to `[data]` use `{ equal: sameChartItems }` so equal values keep the array.
-- Never bind object literals containing method calls to chart inputs; return constant objects
-  (`PieChartWidgetComponent.plotArea()`).
-- Pinned in `utils/chart-categories.spec.ts`. The cockpit KPI sparkline is plain SVG with CSS
-  variables and needs no theme observer.
+- Never bind object literals containing method calls that return new objects to chart inputs;
+  return constant objects (`PieChartWidgetComponent.plotArea()`). A template literal over
+  primitive signal values (`{ color: chartTheme().text }`) is fine: Angular memoizes it on the
+  values, so it only changes when a colour changes.
+- **Live theme switch:** Kendo reads its chart theme from the DOM once per page load, so legend,
+  axis and data labels kept the load-time (e.g. dark) colours after Dark → Light until reload.
+  Every chart widget takes `chartTheme = injectChartTheme()` (`utils/chart-theme.ts`: a signal of
+  `chartThemeColors()` — `text` / `muted` / `grid` from `--theme-text-secondary`,
+  `--theme-text-muted`, `--theme-border-subtle` with Kendo-token and neutral fallbacks) and binds
+  the colours into legend labels, axis labels / titles, grid lines and series labels. The signal
+  emits a new object only when `themeSignature()` (which includes these colours) changes.
+- Pinned in `utils/chart-categories.spec.ts`, `utils/chart-theme.spec.ts` and the pie spec. The
+  cockpit KPI sparkline is plain SVG with CSS variables and needs no theme observer.
 
 ---
 

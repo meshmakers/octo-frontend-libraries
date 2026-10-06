@@ -11,7 +11,8 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
-import { categoryStatus, humanizeCategory, observeThemeChanges, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
+import { categoryStatus, humanizeCategory, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
+import { injectChartTheme } from '../../utils/chart-theme';
 
 /**
  * Data item for the pie chart
@@ -68,7 +69,7 @@ const PLOT_AREA_WITHOUT_LABELS: PieChartPlotArea = Object.freeze({ background: '
           <kendo-chart-legend
             [visible]="config.showLegend !== false"
             [position]="legendPosition()"
-            [labels]="{ font: '12px sans-serif' }">
+            [labels]="{ font: '12px sans-serif', color: chartTheme().text }">
           </kendo-chart-legend>
           <kendo-chart-tooltip>
             <ng-template kendoChartSeriesTooltipTemplate let-value="value" let-category="category">
@@ -169,15 +170,17 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   private readonly _isLoading = signal(false);
   /** Raw categories and values as loaded; labels and status colours are derived in `chartData`. */
   private readonly _rawData = signal<{ category: string; value: number }[]>([]);
-  /** Bumped on every theme switch so the status colours are resolved again. */
-  private readonly themeVersion = signal(0);
-  private stopThemeObserver?: () => void;
+  /**
+   * Text colours of the current theme; changes only on a real theme switch, so status colours,
+   * legend and labels are resolved again then (Kendo keeps the load-time theme otherwise).
+   */
+  protected readonly chartTheme = injectChartTheme();
   private readonly _error = signal<string | null>(null);
 
   readonly isLoading = this._isLoading.asReadonly();
   /** Keeps its reference while categories, values and colours are unchanged (AB#5568). */
   readonly chartData = computed<ChartDataItem[]>(() => {
-    this.themeVersion();
+    this.chartTheme();
     return this._rawData().map(item => this.toItem(item.category, item.value));
   }, { equal: sameChartItems });
   readonly error = this._error.asReadonly();
@@ -229,8 +232,6 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   }
 
   ngAfterViewInit(): void {
-    // Status colours are concrete values read from the theme: re-resolve them after a theme switch.
-    this.stopThemeObserver = observeThemeChanges(() => this.ngZone.run(() => this.themeVersion.update(v => v + 1)));
     const host = this.elementRef.nativeElement as HTMLElement;
     this.width.set(host.clientWidth ?? 0);
     if (typeof ResizeObserver === 'undefined') return;
@@ -245,7 +246,6 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
-    this.stopThemeObserver?.();
   }
 
   /** Human label and status colour for a raw category value (exposed for tests). */
@@ -258,7 +258,8 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     visible: false,
     content: (e) => e.category
   });
-  readonly labelSettings = this._labelSettings.asReadonly();
+  /** Series label options incl. the theme text colour (new object only when either changes). */
+  readonly labelSettings = computed(() => ({ ...this._labelSettings(), color: this.chartTheme().text }));
 
   private updateLabelSettings(): void {
     this._labelSettings.set({

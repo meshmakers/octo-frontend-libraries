@@ -1,4 +1,4 @@
-import { categoryStatus, humanizeCategory, observeThemeChanges, responsiveLegendPosition, sameChartItems, statusColor, themeSignature } from './chart-categories';
+import { categoryStatus, chartThemeColors, humanizeCategory, observeThemeChanges, responsiveLegendPosition, sameChartItems, statusColor, themeSignature } from './chart-categories';
 
 describe('chart categories', () => {
   it('humanizes enum-style categories only', () => {
@@ -80,6 +80,27 @@ describe('chart categories', () => {
     expect(themeSignature()).not.toBe(before);
     document.documentElement.removeAttribute('data-theme');
     expect(themeSignature()).toBe(before);
+  });
+
+  it('resolves chart text / grid colours from the theme tokens and puts them in the signature (AB#5568)', () => {
+    const root = document.documentElement;
+    const before = themeSignature();
+    root.style.setProperty('--theme-text-secondary', 'rgb(1, 2, 3)');
+    root.style.setProperty('--theme-text-muted', 'rgb(4, 5, 6)');
+    root.style.setProperty('--theme-border-subtle', 'rgb(7, 8, 9)');
+    expect(chartThemeColors()).toEqual({ text: 'rgb(1, 2, 3)', muted: 'rgb(4, 5, 6)', grid: 'rgb(7, 8, 9)' });
+    expect(themeSignature()).not.toBe(before);
+    root.style.removeProperty('--theme-text-secondary');
+    root.style.removeProperty('--theme-text-muted');
+    root.style.removeProperty('--theme-border-subtle');
+    expect(themeSignature()).toBe(before);
+  });
+
+  it('falls back to neutral chart colours without theme tokens', () => {
+    const colors = chartThemeColors(null);
+    expect(colors.text).toBeTruthy();
+    expect(colors.muted).toBeTruthy();
+    expect(colors.grid).toBeTruthy();
   });
 
   it('compares chart data by category, value and colour, so equal data keeps its array (AB#5568)', () => {
