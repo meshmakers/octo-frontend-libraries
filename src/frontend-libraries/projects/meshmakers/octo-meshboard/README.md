@@ -224,6 +224,12 @@ interface PieChartWidgetConfig {
 }
 ```
 
+Display rules (`utils/chart-categories.ts`): enum-style categories read as words (`RESOLVE_FAILED` →
+"Resolve failed"); well-known state categories get the theme status colours (`--theme-status-*`,
+then `--kendo-color-*`; e.g. Resolve failed / Error → error, Available / Online → success,
+Pending → warning); a `left` / `right` legend moves below the chart while the widget is narrower
+than 420 px; the 30 px plot margin is only reserved while labels are shown; legend text is 12 px.
+
 ### Bar Chart Widget
 Displays data as column, bar, or stacked charts.
 

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, OnDestroy, AfterViewInit, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PieChartWidgetConfig, PersistentQueryDataSource, ConstructionKitQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -11,6 +11,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
+import { categoryStatus, humanizeCategory, responsiveLegendPosition, statusColor } from '../../utils/chart-categories';
 
 /**
  * Data item for the pie chart
@@ -18,6 +19,8 @@ import { findCellForField, matchesAttributePath } from '../../utils/widget-data-
 interface ChartDataItem {
   category: string;
   value: number;
+  /** Status colour of a well-known state category (`RESOLVE_FAILED` → error); default series colour otherwise. */
+  color?: string;
 }
 
 @Component({
@@ -41,7 +44,7 @@ interface ChartDataItem {
           <span>{{ error() }}</span>
         </div>
       } @else {
-        <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: plotAreaMargin }">
+        <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: plotAreaMargin() }">
           <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
           <kendo-chart-series>
             <kendo-chart-series-item
@@ -49,12 +52,14 @@ interface ChartDataItem {
               [data]="chartData()"
               field="value"
               categoryField="category"
+              colorField="color"
               [labels]="labelSettings()">
             </kendo-chart-series-item>
           </kendo-chart-series>
           <kendo-chart-legend
             [visible]="config.showLegend !== false"
-            [position]="config.legendPosition ?? 'right'">
+            [position]="legendPosition()"
+            [labels]="{ font: '12px sans-serif' }">
           </kendo-chart-legend>
           <kendo-chart-tooltip>
             <ng-template kendoChartSeriesTooltipTemplate let-value="value" let-category="category">
@@ -131,8 +136,13 @@ interface ChartDataItem {
     }
   `]
 })
-export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetConfig, ChartDataItem[]>, OnInit, OnChanges {
+export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetConfig, ChartDataItem[]>, OnInit, OnChanges, AfterViewInit, OnDestroy {
   private readonly queryExecutor = inject(QueryExecutorService);
+  private readonly elementRef = inject(ElementRef);
+  private readonly ngZone = inject(NgZone);
+  private resizeObserver?: ResizeObserver;
+  /** Measured widget width (0 until measured). */
+  private readonly width = signal(0);
 
   private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
     'RtSimpleQueryRow',
@@ -178,8 +188,45 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     return true; // Unknown data source type
   }
 
-  /** Extra margin around the plot area so outsideEnd labels are not clipped by the SVG boundary. */
-  readonly plotAreaMargin = { top: 30, right: 30, bottom: 30, left: 30 };
+  /**
+   * Extra margin around the plot area so outsideEnd labels are not clipped by the SVG boundary —
+   * only while labels are shown; without labels it would shrink the pie for nothing.
+   */
+  plotAreaMargin(): { top: number; right: number; bottom: number; left: number } {
+    const m = this.config?.showLabels === true ? 30 : 4;
+    return { top: m, right: m, bottom: m, left: m };
+  }
+
+  /**
+   * A legend beside a narrow widget (cockpit tiles are ~300 px wide) leaves the pie a dot; it moves
+   * below the chart there. Method, not computed: `config` is a plain @Input.
+   */
+  legendPosition(): 'top' | 'bottom' | 'left' | 'right' {
+    return responsiveLegendPosition(this.config?.legendPosition, this.width());
+  }
+
+  ngAfterViewInit(): void {
+    const host = this.elementRef.nativeElement as HTMLElement;
+    this.width.set(host.clientWidth ?? 0);
+    if (typeof ResizeObserver === 'undefined') return;
+    this.resizeObserver = new ResizeObserver(entries => {
+      const width = Math.round(entries[0]?.contentRect.width ?? 0);
+      if (width !== this.width()) {
+        this.ngZone.run(() => this.width.set(width));
+      }
+    });
+    this.resizeObserver.observe(host);
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
+
+  /** Human label and status colour for a raw category value. */
+  private toItem(rawCategory: string, value: number): ChartDataItem {
+    const status = categoryStatus(rawCategory);
+    return { category: humanizeCategory(rawCategory), value, ...(status ? { color: statusColor(status) } : {}) };
+  }
 
   private readonly _labelSettings = signal<{ visible: boolean; content: (e: { category: string; value: number }) => string }>({
     visible: false,
@@ -272,10 +319,7 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   private async loadCkQueryData(dataSource: ConstructionKitQueryDataSource): Promise<void> {
     const result = await this.dataService.fetchCkQueryData(dataSource);
 
-    const chartData: ChartDataItem[] = result.items.map(item => ({
-      category: item.category,
-      value: item.value
-    }));
+    const chartData: ChartDataItem[] = result.items.map(item => this.toItem(item.category, item.value));
 
     this._chartData.set(chartData);
     this._isLoading.set(false);
@@ -336,7 +380,8 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
         return { category, value };
       })
-      .filter(item => item.category !== ''); // Filter out empty categories
+      .filter(item => item.category !== '') // Filter out empty categories
+      .map(item => this.toItem(item.category, item.value));
 
     this._chartData.set(chartData);
     this._isLoading.set(false);
