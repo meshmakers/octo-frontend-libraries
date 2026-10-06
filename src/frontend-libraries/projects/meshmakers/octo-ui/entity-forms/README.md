@@ -225,7 +225,7 @@ Secret values never reach the browser:
 | chips | Array editor for `STRING_ARRAY` / `INT_ARRAY` |
 | cron | shared-ui `mm-cron-builder` |
 | **json / yaml** | Monospace `kendo-textarea` (no Monaco / YAML library in the workspace). `json` validates with `JSON.parse`, `yaml` is not validated. Both are stored as STRING. The Studio can swap in Monaco later via `CustomComponent`. |
-| **reference** | shared-ui `mm-entity-select-input` (typeahead plus its **grid dialog**, multi-select for `N` roles) on a secret-safe data source that selects no attributes. Deviates from concept §5.4, which names `mm-entity-selector-dialog` — that one is a perspective tree picker without type filter or multi-select, and configuration types are not in a tree. |
+| **reference** | shared-ui `mm-entity-select-input` (typeahead plus its **grid dialog**, multi-select for `N` roles) on a secret-safe data source that selects no attributes. Deviates from concept §5.4, which names `mm-entity-selector-dialog` — that one is a perspective tree picker without type filter or multi-select, and configuration types are not in a tree. Host forms may set `referenceDisplayAttributes` (e.g. `['repositoryUrl', 'channel']`): the picker then reads exactly those non-secret target attributes with `entityFormGetReferenceOptionsWithAttributes` (explicit `[String]!` `attributeNames`) and shows `name · value · value` (AB#5547; host forms only, never list a secret attribute). |
 | records | Table with add / remove / move / edit; rows are edited in a dialog generated from the record's CK attributes. Nested records are read-only. |
 | unsupported (BINARY, GEOSPATIAL_POINT, TIME_SPAN, …) | Read-only display |
 

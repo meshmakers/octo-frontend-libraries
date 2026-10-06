@@ -117,6 +117,7 @@
                         [formControl]="ctrl"
                         [targetCkTypeId]="field.reference?.targetCkTypeId ?? ''"
                         [multiple]="field.reference?.multiple ?? false"
+                        [displayAttributes]="field.reference?.displayAttributes ?? noDisplayAttributes"
                         [placeholder]="field.placeholder ?? m.referencePlaceholder"
                         [readOnly]="ro"
                       ></mm-entity-form-reference-field>

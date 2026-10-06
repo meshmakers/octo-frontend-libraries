@@ -3,6 +3,7 @@ import { AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
 import { EntityFormGetReferenceOptionsDtoGQL } from '../../graphQL/getEntityFormReferenceOptions';
+import { EntityFormGetReferenceOptionsWithAttributesDtoGQL } from '../../graphQL/getEntityFormReferenceOptionsWithAttributes';
 import { EntityFormsMessages, formatEntityFormsMessage, mergeEntityFormsMessages } from '../../entity-forms.messages';
 import { EntityReferenceDataSource, EntityReferenceItem } from './entity-reference-data-source';
 
@@ -88,9 +89,12 @@ function toValue(item: EntityReferenceItem | EntityFormReferenceValue): EntityFo
 })
 export class EntityFormReferenceFieldComponent implements ControlValueAccessor, Validator {
   private readonly gql = inject(EntityFormGetReferenceOptionsDtoGQL);
+  private readonly attributesGql = inject(EntityFormGetReferenceOptionsWithAttributesDtoGQL);
 
   readonly targetCkTypeId = input.required<string>();
   readonly multiple = input(false);
+  /** Non-secret target attributes shown next to the name (AB#5547). */
+  readonly displayAttributes = input<readonly string[]>([]);
   readonly placeholder = input<string | null | undefined>(undefined);
   readonly readOnly = input(false);
   readonly messages = input<Partial<EntityFormsMessages>>({});
@@ -112,7 +116,7 @@ export class EntityFormReferenceFieldComponent implements ControlValueAccessor, 
       wellKnownName: m.columnWellKnownName,
       type: m.columnType,
       rtId: m.copyRtId
-    });
+    }, this.displayAttributes(), this.attributesGql);
   });
 
   private readonly selectInput = viewChild(EntitySelectInputComponent);
