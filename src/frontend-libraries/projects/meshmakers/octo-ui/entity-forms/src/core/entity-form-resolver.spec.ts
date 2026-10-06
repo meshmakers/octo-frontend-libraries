@@ -8,8 +8,7 @@ import {
   GENERATED_SECTION_KEY,
   isSecretAttribute,
   pickEntityForm,
-  resolveEntityForm,
-} from './entity-form-resolver';
+  resolveEntityForm, associationFieldKey } from './entity-form-resolver';
 import { attr, ckType, form } from './testing/factories';
 import {
   LIVE_ENTITY_FORM_CK_TYPE,
@@ -556,3 +555,11 @@ describe('resolveEntityForm SECRET value type (AB#5542)', () => {
     expect(model.readAttributeNames).toEqual(expect.arrayContaining(['endpoints', 'key', 'token']));
   });
 });
+
+describe('associationFieldKey (FormGroup keys cannot include ".")', () => {
+  it('replaces dots of the role id', () => {
+    expect(associationFieldKey('System.Communication/Manages')).toBe('assoc:System_Communication/Manages');
+    expect(associationFieldKey('T/Owner')).toBe('assoc:T/Owner');
+  });
+});
+

@@ -147,7 +147,7 @@ export interface VisibleWhenRule {
 }
 
 export interface ResolvedField {
-  /** Form control name: attributeName | 'rtWellKnownName' | 'assoc:<rtRoleId>'. */
+  /** Form control name: attributeName | 'rtWellKnownName' | 'assoc:<rtRoleId with . → _>' (`associationFieldKey`). */
   key: string;
   kind: 'attribute' | 'system' | 'association';
   attributeName?: string;
