@@ -8,6 +8,7 @@ import {
   RtEntityInputDto,
   RtEntityUpdateDto,
   isSecretPresent,
+  OCTO_SILENT_ERRORS,
   secretStateFromAttribute,
 } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
@@ -17,6 +18,7 @@ import { EntityFormDeleteEntitiesDtoGQL } from '../graphQL/deleteEntityFormEntit
 import { EntityFormGetAttributePresenceDtoGQL } from '../graphQL/getEntityAttributePresence';
 import { EntityFormGetAssociationDefinitionsDtoGQL } from '../graphQL/getEntityFormAssociationDefinitions';
 import { EntityFormGetAssociationTargetsDtoGQL } from '../graphQL/getEntityFormAssociationTargets';
+import { EntityFormGetCountDtoGQL } from '../graphQL/getEntityFormCount';
 import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
 import { EntityFormGetReferenceOptionsDtoGQL } from '../graphQL/getEntityFormReferenceOptions';
 import { EntityFormGetValuesDtoGQL } from '../graphQL/getEntityFormValues';
@@ -93,6 +95,7 @@ export class EntityFormDataService {
   private readonly updateGql = inject(EntityFormUpdateEntitiesDtoGQL);
   private readonly deleteGql = inject(EntityFormDeleteEntitiesDtoGQL);
   private readonly listGql = inject(EntityFormGetListDtoGQL);
+  private readonly countGql = inject(EntityFormGetCountDtoGQL);
   private readonly formService = inject(EntityFormService);
 
   /**
@@ -112,21 +115,23 @@ export class EntityFormDataService {
   /**
    * Number of entities of a type (e.g. for a settings overview). Without `includeDerivedTypes`
    * only entities of exactly that type are counted (`runtimeEntities(ckId)` includes derived
-   * types by default). Reads no attributes (`attributeNames: []`, never omitted).
+   * types by default). Selects only `totalCount` — no items, so no attributes are resolved
+   * (with `attributes(attributeNames: [])` per item the count failed with CK_CACHE whenever one
+   * item's type could not be resolved, AB#5523). Errors reject the promise without a toast.
    */
   async count(ckTypeId: string, includeDerivedTypes = false): Promise<number> {
     const fieldFilters: FieldFilterDto[] = includeDerivedTypes
       ? []
       : [{ attributePath: 'ckTypeId', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: ckTypeId }];
     const result = await firstValueFrom(
-      this.listGql.fetch({
+      this.countGql.fetch({
         variables: {
           ckTypeId,
-          first: 1,
           fieldFilters: fieldFilters.length > 0 ? fieldFilters : null,
-          attributeNames: [],
         },
         fetchPolicy: 'network-only',
+        // Callers show "status unavailable" for a failed count; one failure must not toast.
+        context: { [OCTO_SILENT_ERRORS]: true },
       }),
     );
     return result.data?.runtime?.runtimeEntities?.totalCount ?? 0;

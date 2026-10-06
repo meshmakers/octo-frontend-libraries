@@ -13,6 +13,8 @@ import {
   LIVE_SFTP_CK_TYPE,
 } from '../core/testing/live-fixtures';
 import { EntityFormService } from './entity-form.service';
+import { attr, ckType as makeCkType } from '../core/testing/factories';
+import { ResolvedEntityForm, ResolvedField } from '../models/entity-form.models';
 
 describe('EntityFormService', () => {
   let service: EntityFormService;
@@ -117,5 +119,25 @@ describe('EntityFormService', () => {
     expect((await service.resolveByFormKey('form-sftp-configuration'))?.rtCkTypeId).toBe('System.Communication/SftpConfiguration');
     expect((await service.resolveByFormKey('sftp-configuration'))?.rtCkTypeId).toBe('System.Communication/SftpConfiguration');
     expect(await service.resolveByFormKey('nothing-here')).toBeNull();
+  });
+
+  it('attaches the target metadata of reference display attributes and drops secret ones (AB#5547)', async () => {
+    const target = makeCkType('System.Communication/HelmRepositoryConfiguration', {
+      attributes: [
+        attr('repositoryUrl'),
+        attr('channel', 'ENUM', { enumOptions: [{ key: 0, name: 'Release' }, { key: 1, name: 'Preview' }] }),
+        attr('password', 'STRING', { secret: true }),
+      ],
+    });
+    vi.spyOn(service, 'getCkType').mockResolvedValue(target);
+    const field = {
+      key: 'helmRepository', label: 'Helm repository', kind: 'association', editor: 'reference',
+      reference: { targetCkTypeId: target.rtCkTypeId, multiple: false, displayAttributes: ['repositoryUrl', 'Channel', 'password'] },
+    } as unknown as ResolvedField;
+    const resolved = { sections: [{ fields: [field] }], warnings: [] as string[] } as unknown as ResolvedEntityForm;
+    await (service as unknown as { attachDisplayAttributeInfo(r: ResolvedEntityForm): Promise<void> }).attachDisplayAttributeInfo(resolved);
+    expect(field.reference?.displayAttributes).toEqual(['repositoryUrl', 'Channel']);
+    expect(field.reference?.displayAttributeInfo?.map((a) => a.attributeName)).toEqual(['repositoryUrl', 'channel']);
+    expect(resolved.warnings.length).toBe(1);
   });
 });

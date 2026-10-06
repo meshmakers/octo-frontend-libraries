@@ -1,7 +1,8 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ApolloLink } from '@apollo/client/core';
-import { OctoErrorLink } from './octo-error-link';
+import { throwError } from 'rxjs';
+import { OCTO_SILENT_ERRORS, OctoErrorLink } from './octo-error-link';
 import { MessageService } from '@meshmakers/shared-services';
 
 describe('OctoErrorLink', () => {
@@ -54,6 +55,31 @@ describe('OctoErrorLink', () => {
   //
   // For comprehensive testing, consider integration tests that simulate actual
   // GraphQL operations with errors using Apollo's MockedProvider.
+
+  describe('silent operations (AB#5523)', () => {
+    const op = (context: Record<string, unknown>) => ({ operationName: 'q', getContext: () => context }) as unknown as ApolloLink.Operation;
+
+    it('recognises the silent context flag', () => {
+      expect(OctoErrorLink.isSilent(op({ [OCTO_SILENT_ERRORS]: true }))).toBe(true);
+      expect(OctoErrorLink.isSilent(op({}))).toBe(false);
+      expect(OctoErrorLink.isSilent(undefined)).toBe(false);
+      expect(OctoErrorLink.isSilent({ operationName: 'x' } as unknown as ApolloLink.Operation)).toBe(false);
+    });
+
+    function run(context: Record<string, unknown>): void {
+      const forward = (() => throwError(() => new Error('boom'))) as unknown as ApolloLink.ForwardFunction;
+      octoErrorLink.request(op(context), forward).subscribe({ error: () => undefined });
+    }
+
+    it('shows no toast for a silent operation, but does for others', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      run({ [OCTO_SILENT_ERRORS]: true });
+      expect(messageServiceMock.showError).not.toHaveBeenCalled();
+      run({});
+      expect(messageServiceMock.showError).toHaveBeenCalledWith('boom');
+    });
+  });
 
   describe('showError deduplication (AB#4772)', () => {
     // showError is private; invoked directly with a minimal errors carrier because wiring a

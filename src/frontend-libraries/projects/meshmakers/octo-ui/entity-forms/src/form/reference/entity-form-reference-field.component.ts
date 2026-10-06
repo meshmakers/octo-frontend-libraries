@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, inject, input, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, forwardRef, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from '@angular/forms';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
@@ -6,6 +6,7 @@ import { EntityFormGetReferenceOptionsDtoGQL } from '../../graphQL/getEntityForm
 import { EntityFormGetReferenceOptionsWithAttributesDtoGQL } from '../../graphQL/getEntityFormReferenceOptionsWithAttributes';
 import { EntityFormsMessages, formatEntityFormsMessage, mergeEntityFormsMessages } from '../../entity-forms.messages';
 import { EntityReferenceDataSource, EntityReferenceItem } from './entity-reference-data-source';
+import type { CkAttributeInfo } from '../../models/entity-form.models';
 
 /** One selected reference target. The field value is always an array of these. */
 export interface EntityFormReferenceValue {
@@ -29,6 +30,10 @@ function toValue(item: EntityReferenceItem | EntityFormReferenceValue): EntityFo
  *   `rtId`.
  * - **Picker:** shared-ui `mm-entity-select-input` (typeahead plus grid dialog) over the
  *   secret-safe {@link EntityReferenceDataSource}, which selects only the non-secret `name` attribute of the targets.
+ * - **Display attributes:** with `displayAttributes` the picker rows and the current value read
+ *   `name · value1 · value2`, each value formatted by its CK value type (`displayAttributeInfo`):
+ *   enum names, yes/no, dates. The current value's label is looked up once per rtId; it only
+ *   changes what is shown, never the field value.
  */
 @Component({
   selector: 'mm-entity-form-reference-field',
@@ -45,10 +50,10 @@ function toValue(item: EntityReferenceItem | EntityFormReferenceValue): EntityFo
         <ul class="mm-efref-list">
           @for (item of value(); track item.rtId) {
             <li class="mm-efref-item" [attr.data-rtid]="item.rtId">
-              <span class="mm-efref-name" [title]="item.ckTypeId + ' · ' + item.rtId">{{ item.displayName }}</span>
+              <span class="mm-efref-name" [title]="labelOf(item) + ' (' + item.ckTypeId + ' · ' + item.rtId + ')'">{{ labelOf(item) }}</span>
               @if (!isDisabled()) {
                 <button kendoButton type="button" fillMode="flat" size="small" class="mm-efref-remove"
-                        [attr.aria-label]="msg().remove + ' ' + item.displayName" [title]="msg().remove"
+                        [attr.aria-label]="msg().remove + ' ' + labelOf(item)" [title]="msg().remove"
                         (click)="remove(item.rtId)">×</button>
               }
             </li>
@@ -95,6 +100,8 @@ export class EntityFormReferenceFieldComponent implements ControlValueAccessor, 
   readonly multiple = input(false);
   /** Non-secret target attributes shown next to the name (AB#5547). */
   readonly displayAttributes = input<readonly string[]>([]);
+  /** CK metadata of the display attributes on the target type; formats their values (AB#5547). */
+  readonly displayAttributeInfo = input<readonly CkAttributeInfo[]>([]);
   readonly placeholder = input<string | null | undefined>(undefined);
   readonly readOnly = input(false);
   readonly messages = input<Partial<EntityFormsMessages>>({});
@@ -103,6 +110,9 @@ export class EntityFormReferenceFieldComponent implements ControlValueAccessor, 
   protected readonly value = signal<EntityFormReferenceValue[]>([]);
   private readonly disabledByForm = signal(false);
   protected readonly isDisabled = computed(() => this.readOnly() || this.disabledByForm());
+  /** Labels with display attributes, by rtId (from picks and from lookups of the current value). */
+  private readonly labels = signal<ReadonlyMap<string, string>>(new Map());
+  private readonly requested = new Set<string>();
 
   /** One data source per target type. */
   readonly dataSource = computed(() => {
@@ -116,8 +126,29 @@ export class EntityFormReferenceFieldComponent implements ControlValueAccessor, 
       wellKnownName: m.columnWellKnownName,
       type: m.columnType,
       rtId: m.copyRtId
-    }, this.displayAttributes(), this.attributesGql);
+    }, this.displayAttributes(), this.attributesGql, {
+      attributes: this.displayAttributeInfo(),
+      yes: m.toggleOn,
+      no: m.toggleOff
+    });
   });
+
+  constructor() {
+    // The current value comes with the plain name only; read the display attributes of its targets.
+    effect(() => {
+      const ds = this.dataSource();
+      const ids = this.value().map(v => v.rtId);
+      if (!ds || !ds.displayAttributes.length) {
+        return;
+      }
+      untracked(() => this.lookupLabels(ds, ids));
+    });
+  }
+
+  /** Label shown for a selected target: with display attributes when known, else its display name. */
+  labelOf(item: EntityFormReferenceValue): string {
+    return this.labels().get(item.rtId) ?? item.displayName;
+  }
 
   private readonly selectInput = viewChild(EntitySelectInputComponent);
   private onChange: (value: EntityFormReferenceValue[]) => void = () => undefined;
@@ -163,6 +194,10 @@ export class EntityFormReferenceFieldComponent implements ControlValueAccessor, 
     if (this.isDisabled() || picked.length === 0) {
       return;
     }
+    if (this.displayAttributes().length) {
+      // Picker rows already carry the display attributes in their label.
+      this.labels.update(current => new Map([...current, ...picked.map(p => [p.rtId, p.displayName] as const)]));
+    }
     let next: EntityFormReferenceValue[];
     if (this.multiple()) {
       const seen = new Set(this.value().map(v => v.rtId));
@@ -187,6 +222,21 @@ export class EntityFormReferenceFieldComponent implements ControlValueAccessor, 
       return;
     }
     this.commit(this.value().filter(v => v.rtId !== rtId));
+  }
+
+  private lookupLabels(ds: EntityReferenceDataSource, ids: string[]): void {
+    const missing = ids.filter(id => !this.labels().has(id) && !this.requested.has(id));
+    if (!missing.length) {
+      return;
+    }
+    missing.forEach(id => this.requested.add(id));
+    ds.lookup(missing).then(found => {
+      if (found.size) {
+        this.labels.update(current => new Map([...current, ...[...found.values()].map(i => [i.rtId, i.displayName] as const)]));
+      }
+    }).catch(() => {
+      // Labels are cosmetic; the plain display name stays.
+    });
   }
 
   private commit(next: EntityFormReferenceValue[]): void {

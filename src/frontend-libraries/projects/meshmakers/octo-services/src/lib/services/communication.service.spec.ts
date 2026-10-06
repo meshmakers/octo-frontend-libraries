@@ -581,6 +581,24 @@ describe('CommunicationService', () => {
       expect(result).toEqual([]);
     });
 
+    it('getAdapterMetricsResult reports a 404 as notFound so pollers can back off (AB#5546)', async () => {
+      const promise = service.getAdapterMetricsResult(tenantId, adapterRtId, adapterCkTypeId);
+      httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`)
+        .flush({ errorMessage: 'Adapter not loaded' }, { status: 404, statusText: 'Not Found' });
+      expect(await promise).toEqual({ samples: [], notFound: true });
+
+      const ok = service.getAdapterMetricsResult(tenantId, adapterRtId, adapterCkTypeId);
+      httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`).flush([]);
+      expect(await ok).toEqual({ samples: [], notFound: false });
+    });
+
+    it('getAdapterMetricsResult rethrows other errors', async () => {
+      const promise = service.getAdapterMetricsResult(tenantId, adapterRtId, adapterCkTypeId);
+      httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`)
+        .flush('boom', { status: 500, statusText: 'Server Error' });
+      await expect(promise).rejects.toBeTruthy();
+    });
+
     it('returns empty array when the communication services URL is not configured', async () => {
       const emptyConfig = { ...mockConfig, communicationServices: '' };
       const emptyConfigService = {

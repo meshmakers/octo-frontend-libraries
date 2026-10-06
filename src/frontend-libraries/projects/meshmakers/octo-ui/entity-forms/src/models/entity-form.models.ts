@@ -171,7 +171,18 @@ export interface ResolvedField {
   enumOptions?: { key: number; name: string }[];
   record?: { ckRecordId: string; single: boolean; columns: { path: string; label: string }[] };
   /** `role` absent means the attribute itself holds the target rtId. */
-  reference?: { targetCkTypeId: string; role?: CkAssociationRoleInfo; multiple: boolean; displayAttributes?: string[] };
+  reference?: {
+    targetCkTypeId: string;
+    role?: CkAssociationRoleInfo;
+    multiple: boolean;
+    displayAttributes?: string[];
+    /**
+     * CK metadata of the display attributes on the target type (set by `EntityFormService.resolve`),
+     * used to format their values (enum names, yes/no, dates). Missing when the target type could not
+     * be read; the raw values are shown then.
+     */
+    displayAttributeInfo?: CkAttributeInfo[];
+  };
   generated: boolean;
 }
 

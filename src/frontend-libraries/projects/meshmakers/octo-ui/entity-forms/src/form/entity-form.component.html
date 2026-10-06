@@ -136,6 +136,8 @@
                         [targetCkTypeId]="field.reference?.targetCkTypeId ?? ''"
                         [multiple]="field.reference?.multiple ?? false"
                         [displayAttributes]="field.reference?.displayAttributes ?? noDisplayAttributes"
+                        [displayAttributeInfo]="field.reference?.displayAttributeInfo ?? noDisplayAttributeInfo"
+                        [messages]="messages()"
                         [placeholder]="field.placeholder ?? m.referencePlaceholder"
                         [readOnly]="ro"
                       ></mm-entity-form-reference-field>
