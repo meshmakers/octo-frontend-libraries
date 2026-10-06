@@ -440,6 +440,32 @@ export class CommunicationService {
   }
 
   /**
+   * Rotates the client secret of a `ServiceAccountConfiguration` (`POST
+   * /serviceAccount/{configurationRtId}/rotateSecret`, OctoMesh AB#5111) — the
+   * configuration-bound variant of {@link rotateAdapterServiceAccountSecret} with the same core
+   * logic and result: an adapter-owned configuration is rotated through its adapter server-side,
+   * a standalone (declared) one directly. Roles are never touched.
+   *
+   * Same contract as the adapter-bound call: the result carries **no secret**, the old secret is
+   * invalid once this resolves, and the pipelines / data flows using the account keep presenting
+   * it until they are redeployed (`requiresPipelineRedeploy`, `message`). Throws when the
+   * communication services URL is missing or the controller refuses (the error text says that
+   * the previous secret remains in effect).
+   */
+  async rotateServiceAccountConfigurationSecret(
+    tenantId: string,
+    configurationRtId: string
+  ): Promise<RotateServiceAccountSecretResultDto> {
+    if (!this.communicationServicesUrl) {
+      throw new Error('Communication services URL is not configured');
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/serviceAccount/${configurationRtId}/rotateSecret`;
+    return await firstValueFrom(
+      this.httpClient.post<RotateServiceAccountSecretResultDto>(uri, null)
+    );
+  }
+
+  /**
    * Enables or disables debug capture for a pipeline via the dedicated debug
    * endpoint (`PATCH /pipeline/{id}/debug`). This is the ONLY way debug capture
    * is toggled (AB#4364): deploying a pipeline pushes the persisted flag as-is
