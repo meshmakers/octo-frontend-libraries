@@ -731,7 +731,9 @@ Firefox), `ENTITY_FORM_SECRET_KEY_RING_CONFIGURED` for Q17 — reactive to late 
 blocked with `saveBlockedReason()` when a required secret cannot be entered — and SECRET record
 members with badge + write-only input in the record row editor, omitted on save when kept), IdP
 DTO (`clientSecretIsSet` / `clientSecretKeyMissing` / `clientSecretSetAt`, `clientSecret`
-write-only), bot `BotSecretsService` (status, sweeps, runs, dumps) and the `SecretManagement` role.
+write-only), bot `BotSecretsService` (status incl. `warnings` — `SECRET_STATUS_WARNING_NO_KEY_RING`,
+`SECRET_STATUS_WARNING_NO_LEGACY_V1_KEY`; legacy pseudo key id `SECRET_LEGACY_V1_KEY_ID` — sweeps, runs,
+dumps) and the `SecretManagement` role.
 `keyMissing` / `setAt` are selected (round-2 schema). Open: the runtime-browser update editor
 still has no Clear (use the entity form).
 

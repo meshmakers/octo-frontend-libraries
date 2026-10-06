@@ -33,7 +33,20 @@ export interface SecretEnvironmentStatusDto {
   recurringVerifyCron: string | null;
   /** This tenant's last Verify run (ISO-8601), `null` if none. */
   lastVerifyAt: string | null;
+  /**
+   * Warning codes (AB#5534, handover §9): `NoKeyRing` when `keyRingConfigured` is false,
+   * `NoLegacyV1Key` when the tenant's last completed sweep found enc:v1 values but no legacy key is
+   * configured. Unknown codes are shown as a generic warning. Absent on older bots.
+   */
+  warnings?: string[];
 }
+
+/** `SecretEnvironmentStatusDto.warnings` codes (handover §9). */
+export const SECRET_STATUS_WARNING_NO_KEY_RING = 'NoKeyRing';
+export const SECRET_STATUS_WARNING_NO_LEGACY_V1_KEY = 'NoLegacyV1Key';
+
+/** The pseudo key id of a legacy enc:v1 value (handover §10); shown as "legacy key (enc:v1)". */
+export const SECRET_LEGACY_V1_KEY_ID = 'enc:v1';
 
 /** Counts per storage form of a sweep run (`SecretFormCountsReportDto`). */
 export interface SecretFormCountsDto {
