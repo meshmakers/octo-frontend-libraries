@@ -3225,7 +3225,9 @@
   .meshboard-toolbar {
     background: var(--theme-bg-elevated) !important;
     border-bottom: 1px solid var(--theme-border-default, var(--octo-mint-30)) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    // No drop shadow: the border separates the header (Deep Sea §6.1 — flat surfaces; the shadow
+    // read as a heavy band in the light theme, visual check #18).
+    box-shadow: none;
 
     .toolbar-left {
       .meshboard-title {

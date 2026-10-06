@@ -1,7 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { computed } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { MeshBoardStateService } from './meshboard-state.service';
+import { MeshBoardStateService, newMeshBoardConfig } from './meshboard-state.service';
 import { MeshBoardPersistenceService, PersistedMeshBoard, PersistedWidget } from './meshboard-persistence.service';
 import { MeshBoardGridService } from './meshboard-grid.service';
 import { CkModelService } from '@meshmakers/octo-services';
@@ -1243,5 +1243,11 @@ describe('MeshBoardStateService', () => {
 
       expect(service.getEntitySelectors()).toEqual(selectors);
     });
+  });
+});
+
+describe('newMeshBoardConfig', () => {
+  it('holds the layout defaults of a new, empty board', () => {
+    expect(newMeshBoardConfig('Production')).toEqual({ id: '', name: 'Production', description: '', columns: 6, rowHeight: 200, gap: 16, widgets: [] });
   });
 });

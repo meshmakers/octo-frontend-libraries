@@ -1,4 +1,4 @@
-# Current targets of one association role of an entity. Selects NO attributes of the targets
+# Current targets of one association role of an entity. Selects only the `name` attribute of the targets
 # (secret-safe); the outer rtId is selected for Apollo cache normalization only.
 query entityFormGetAssociationTargets(
   $ckTypeId: String!
@@ -20,6 +20,15 @@ query entityFormGetAssociationTargets(
               ckTypeId
               rtWellKnownName
               rtDisplayName
+              # The target's name as its label (AB#5547 visual check #9: a pool showed its
+              # well-known name "CommunicationPool" instead of "Default Cloud"). Explicit list
+              # with the one non-secret attribute; never omit attributeNames.
+              attributes(attributeNames: ["name"]) {
+                items {
+                  attributeName
+                  value
+                }
+              }
             }
           }
         }

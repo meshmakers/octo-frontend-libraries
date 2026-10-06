@@ -13,7 +13,7 @@ import {
   ResolvedSection,
 } from '../models/entity-form.models';
 import { isSecretAttributeCandidate, isSecretValueType } from '@meshmakers/octo-services';
-import { canonicalisePath, isForcedReadOnly } from './attribute-path';
+import { canonicalisePath, isForcedReadOnly, isRuntimeStateAttribute } from './attribute-path';
 import { BUILT_IN_DEFAULT_FORM } from './built-in-default-form';
 import { parseDefault, isArrayType, isDateType, isNumericType, isRecordType } from './entity-form-value-mapper';
 import { parseVisibleWhen } from './visible-when';
@@ -264,6 +264,10 @@ function buildAttributeField(
   }
   let readOnly = parseReadOnly(def?.readOnly);
   if (isForcedReadOnly(attribute.attributeName) || editor === 'unsupported') {
+    readOnly = 'always';
+  }
+  // Generated fields never edit runtime state (form-default in the Data Explorer peek).
+  if (generated && isRuntimeStateAttribute(attribute.attributeName)) {
     readOnly = 'always';
   }
   const numeric = isNumericType(attribute.valueType);

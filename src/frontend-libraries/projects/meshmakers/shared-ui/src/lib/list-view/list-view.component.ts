@@ -1093,6 +1093,30 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     await this.navigateAsync(commandItem, dataItem);
   }
 
+  /**
+   * Row field naming a row for assistive technology (row menu "Actions for <name>", action
+   * buttons "<action> <name>"). Falls back to `rtWellKnownName`, then `rtId`.
+   */
+  @Input() public rowLabelField = 'name';
+
+  /** Human name of a row (`rowLabelField`, `rtWellKnownName`, `rtId`), or '' when unknown. */
+  protected rowLabel(dataItem: unknown): string {
+    const row = (dataItem ?? {}) as Record<string, unknown>;
+    for (const key of [this.rowLabelField, 'rtWellKnownName', 'rtId']) {
+      const value = row[key];
+      if (value !== null && value !== undefined && String(value).trim() !== '') {
+        return String(value);
+      }
+    }
+    return '';
+  }
+
+  /** Accessible name and tooltip of the row menu button. */
+  protected rowActionsLabel(dataItem: unknown): string {
+    const name = this.rowLabel(dataItem);
+    return name ? this.messages.rowActionsFor.replace('{name}', name) : this.messages.rowActions;
+  }
+
   protected getMenuItemVisible(menuItem: MenuItem, dataItem: unknown): boolean {
     const commandItem = menuItem.data as CommandItem;
     if (commandItem) {

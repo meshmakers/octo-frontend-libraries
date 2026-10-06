@@ -45,22 +45,36 @@ const DEFAULT_COLUMN_LABELS: EntityReferenceColumnLabels = {
 
 type ReferenceRow = NonNullable<NonNullable<NonNullable<NonNullable<EntityFormGetReferenceOptionsQueryDto['runtime']>['runtimeEntities']>['items']>[number]>;
 
+/** Shape of the backend's synthetic display name (`System.Communication/Pool@<24 hex>`). */
+const SYNTHETIC_DISPLAY_NAME = /^[^@\s]+\/[^@\s]+@[0-9a-f]{24}$/i;
+
 /**
  * `rtDisplayName` is resolved by the backend to a synthetic `"<ckTypeId>@<rtId>"` when the engine
  * computed none (see the octo-ui CLAUDE.md, "Runtime Browser node labels"). That form is treated as
- * absent: `rtWellKnownName` wins over it, the synthetic form is the last resort.
+ * absent. Precedence: a real `rtDisplayName` > the target's `name` attribute (read by the
+ * reference documents with `attributeNames: ["name"]`) > `rtWellKnownName` > the synthetic form >
+ * the rtId. Without the `name` step a pool showed its well-known name `CommunicationPool` instead
+ * of "Default Cloud" (AB#5547).
  */
-export function referenceDisplayName(row: { rtId: string; ckTypeId: string; rtWellKnownName?: string | null; rtDisplayName?: string | null }): string {
+export function referenceDisplayName(row: { rtId: string; ckTypeId: string; rtWellKnownName?: string | null; rtDisplayName?: string | null; name?: string | null }): string {
   const display = row.rtDisplayName ?? '';
-  const synthetic = !display || display === `${row.ckTypeId}@${row.rtId}` || display.endsWith(`@${row.rtId}`);
+  const synthetic = !display || display === `${row.ckTypeId}@${row.rtId}` || display.endsWith(`@${row.rtId}`)
+    || SYNTHETIC_DISPLAY_NAME.test(display);
   if (!synthetic) {
     return display;
   }
-  return row.rtWellKnownName || display || row.rtId;
+  return row.name?.trim() || row.rtWellKnownName || display || row.rtId;
+}
+
+/** The `name` attribute of a row that selected `attributes(attributeNames: ["name"])`, else null. */
+export function nameAttributeOf(row: DisplayAttributeSource): string | null {
+  const item = (row.attributes?.items ?? []).find((i) => i?.attributeName?.toLowerCase() === 'name');
+  const value = item?.value;
+  return value === null || value === undefined || String(value).trim() === '' ? null : String(value);
 }
 
 /** A row of either options document; `attributes` only with display attributes. */
-interface DisplayAttributeSource {
+export interface DisplayAttributeSource {
   attributes?: { items?: ({ attributeName?: string | null; value?: unknown } | null)[] | null } | null;
 }
 type AnyReferenceRow = ReferenceRow & DisplayAttributeSource;
@@ -86,7 +100,7 @@ export function referenceLabel(base: string, row: DisplayAttributeSource, displa
 function toItem(row: AnyReferenceRow, displayAttributes: readonly string[]): EntityReferenceItem {
   const rtId = String(row.rtId);
   const ckTypeId = String(row.ckTypeId);
-  const base = referenceDisplayName({ rtId, ckTypeId, rtWellKnownName: row.rtWellKnownName, rtDisplayName: row.rtDisplayName });
+  const base = referenceDisplayName({ rtId, ckTypeId, rtWellKnownName: row.rtWellKnownName, rtDisplayName: row.rtDisplayName, name: nameAttributeOf(row) });
   return {
     rtId,
     ckTypeId,

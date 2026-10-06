@@ -33,6 +33,20 @@ export {
 } from './lib/utils/meshboard-description-codec';
 export type { EncodedDescription } from './lib/utils/meshboard-description-codec';
 
+// Status table of well-known state names, labels and theme colours shared by charts and hosts
+// (e.g. the Refinery Studio Data Explorer enum chips)
+export {
+  STATE_STATUS_BY_KEY,
+  categoryStatus,
+  humanizeCategory,
+  statusColor,
+  observeThemeChanges
+} from './lib/utils/chart-categories';
+export type { CategoryStatus } from './lib/utils/chart-categories';
+
+// `?edit=1` opens a board in edit mode
+export { MESHBOARD_EDIT_QUERY_PARAM } from './lib/utils/edit-mode-url';
+
 // Query family classification (runtime vs stream-data persistent queries)
 export type { QueryFamily, QueryKind, QueryClassification } from './lib/utils/query-family';
 export { classifyQuery, queryFamily } from './lib/utils/query-family';

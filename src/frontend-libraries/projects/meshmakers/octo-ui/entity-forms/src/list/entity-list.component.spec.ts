@@ -110,6 +110,16 @@ describe('EntityListComponent', () => {
 
   const ids = (items: CommandItem[]) => items.map((i) => i.id);
 
+  it('appends a Type column with the short type name when asked', () => {
+    setInputs(makeModel());
+    const cols = () => (component as unknown as { columns: () => { field: string; displayName?: string; formatter?: (v: unknown, i: unknown) => string }[] }).columns();
+    expect(cols().some((c) => c.field === 'ckTypeId')).toBe(false);
+    fixture.componentRef.setInput('showTypeColumn', true);
+    const type = cols().find((c) => c.field === 'ckTypeId')!;
+    expect(type.displayName).toBe('Type');
+    expect(type.formatter!('System.Communication/SftpConfiguration', {})).toBe('Sftp configuration');
+  });
+
   it('offers the Copy ID submenu with RtId, CkTypeId, RtCkTypeId and RtEntityId', () => {
     setInputs(makeModel());
     const copy = component.contextMenuItems()[0];

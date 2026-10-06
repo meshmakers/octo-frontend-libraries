@@ -263,6 +263,17 @@ describe('resolveEntityForm field rules', () => {
     expect(gen.fields.map((f) => f.key)).toEqual(['name', 'count', 'kind', 'when', 'tags', 'rtBlueprintSource']);
   });
 
+  it('generated runtime-state fields are read-only; an explicit field keeps the form setting', () => {
+    const stateful = ckType('T/Stateful', {
+      attributes: [attr('name'), attr('configurationState', 'ENUM', { enumOptions: [{ key: 3, name: 'Error' }] }), attr('lastSyncedSequenceNumber', 'INT'), attr('statusMessage')],
+    });
+    const generated = resolveEntityForm(stateful, [form('T/Stateful', { fields: [{ attributePath: 'StatusMessage' }] })]);
+    expect(field(generated, 'configurationState')?.readOnly).toBe('always');
+    expect(field(generated, 'lastSyncedSequenceNumber')?.readOnly).toBe('always');
+    expect(field(generated, 'name')?.readOnly).not.toBe('always');
+    expect(field(generated, 'statusMessage')?.readOnly).not.toBe('always');
+  });
+
   it('generateRemainingFields false generates nothing; implicit default section has no title', () => {
     const model = resolveEntityForm(base, [form('T/Thing', { generateRemainingFields: false, fields: [{ attributePath: 'name' }] })]);
     expect(model.sections).toHaveLength(1);

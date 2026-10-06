@@ -1,4 +1,4 @@
-import { canonicalisePath, isForcedReadOnly, toKebabTypeKey } from './attribute-path';
+import { canonicalisePath, isForcedReadOnly, isRuntimeStateAttribute, toKebabTypeKey } from './attribute-path';
 import { attr } from './testing/factories';
 
 describe('canonicalisePath', () => {
@@ -20,6 +20,12 @@ describe('canonicalisePath', () => {
 });
 
 describe('helpers', () => {
+  it('isRuntimeStateAttribute', () => {
+    expect(isRuntimeStateAttribute('configurationState')).toBe(true);
+    expect(isRuntimeStateAttribute('lastSyncedSequenceNumber')).toBe(true);
+    expect(isRuntimeStateAttribute('name')).toBe(false);
+  });
+
   it('isForcedReadOnly', () => {
     expect(isForcedReadOnly('rtBlueprintLocked')).toBe(true);
     expect(isForcedReadOnly('rtCreationDateTime')).toBe(true);

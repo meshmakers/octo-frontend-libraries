@@ -5,7 +5,7 @@ import {
   EntityFormGetReferenceOptionsDocumentDto,
   EntityFormGetReferenceOptionsDtoGQL
 } from '../../graphQL/getEntityFormReferenceOptions';
-import { EntityReferenceDataSource, referenceDisplayName } from './entity-reference-data-source';
+import { EntityReferenceDataSource, nameAttributeOf, referenceDisplayName } from './entity-reference-data-source';
 
 function response(items: unknown[], totalCount = items.length): unknown {
   return { data: { runtime: { runtimeEntities: { totalCount, pageInfo: { endCursor: null, hasNextPage: false }, items } } } };
@@ -41,16 +41,26 @@ function itemFieldNames(): string[] {
 
 describe('EntityReferenceDataSource (secret-safe reference picker)', () => {
   describe('request shape', () => {
-    it('the document selects no attributes field anywhere', () => {
+    it('the only attributes selection is the literal, non-secret ["name"] list', () => {
       const names = selectedFieldNames();
       expect(names).toContain('runtimeEntities');
-      expect(names).not.toContain('attributes');
+      expect(names.filter(n => n === 'attributes')).toHaveLength(1);
       expect(names).not.toContain('associations');
+      const lists: string[][] = [];
+      visit(EntityFormGetReferenceOptionsDocumentDto, {
+        Field(node: FieldNode) {
+          if (node.name.value === 'attributes') {
+            const arg = node.arguments?.find(a => a.name.value === 'attributeNames');
+            lists.push(arg?.value.kind === Kind.LIST ? arg.value.values.map(v => (v.kind === Kind.STRING ? v.value : '?')) : []);
+          }
+        }
+      });
+      expect(lists).toEqual([['name']]);
     });
 
-    it('selects exactly the system properties of the targets, rtId included', () => {
+    it('selects exactly the system properties of the targets plus the name attribute, rtId included', () => {
       expect(itemFieldNames().sort()).toEqual(
-        ['ckTypeId', 'rtDisplayDescription', 'rtDisplayName', 'rtId', 'rtWellKnownName'].sort());
+        ['attributes', 'ckTypeId', 'rtDisplayDescription', 'rtDisplayName', 'rtId', 'rtWellKnownName'].sort());
     });
 
     it('the document declares no attributeNames variable', () => {
@@ -137,6 +147,15 @@ describe('EntityReferenceDataSource (secret-safe reference picker)', () => {
 
     it('treats the synthetic "<ckTypeId>@<rtId>" form as absent and prefers rtWellKnownName', () => {
       expect(referenceDisplayName({ rtId: '1', ckTypeId: 'A/B', rtWellKnownName: 'wk', rtDisplayName: 'A/B@1' })).toBe('wk');
+    });
+
+    it('prefers the name attribute over rtWellKnownName (pool "Default Cloud", not "CommunicationPool")', () => {
+      const pool = { rtId: '670000000000000000000001', ckTypeId: 'System.Communication/Pool', rtWellKnownName: 'CommunicationPool' };
+      const name = nameAttributeOf({ attributes: { items: [{ attributeName: 'name', value: 'Default Cloud' }] } });
+      expect(referenceDisplayName({ ...pool, rtDisplayName: 'System.Communication/Pool@670000000000000000000001', name })).toBe('Default Cloud');
+      expect(referenceDisplayName({ ...pool, rtDisplayName: 'Computed', name })).toBe('Computed');
+      expect(nameAttributeOf({ attributes: { items: [{ attributeName: 'name', value: '  ' }] } })).toBeNull();
+      expect(nameAttributeOf({})).toBeNull();
     });
 
     it('falls back to the synthetic form, then to the rtId', () => {

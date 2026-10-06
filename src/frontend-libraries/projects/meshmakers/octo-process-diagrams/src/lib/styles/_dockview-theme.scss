@@ -17,9 +17,14 @@
 
 // Mixin to apply the Deep Sea theme to dockview, driven by host --theme-* tokens
 @mixin dockview-theme() {
-  // Override CSS variables for dockview - target the actual dockview elements
+  // Override CSS variables for dockview - target the actual dockview elements.
+  // `mm-dockview` covers hosts that embed the bare wrapper (the Studio's data-flow
+  // editor): without it dockview's own theme variables (#f5f5f5 tab strip) showed
+  // through in dark mode (AB#5526 visual check). Variables only — element overrides
+  // below stay with the designer hosts, embedding pages style their own tabs.
   mm-process-designer,
-  mm-symbol-editor {
+  mm-symbol-editor,
+  mm-dockview {
     // Panel backgrounds
     --dv-background-color: var(--theme-bg-app, #07172b);
     --dv-pane-background-color: var(--theme-bg-elevated, #1f2e40);
@@ -60,7 +65,9 @@
   mm-process-designer .dv-dockview,
   mm-process-designer .dv-grid-view,
   mm-symbol-editor .dv-dockview,
-  mm-symbol-editor .dv-grid-view {
+  mm-symbol-editor .dv-grid-view,
+  mm-dockview .dv-dockview,
+  mm-dockview .dv-grid-view {
     background-color: var(--theme-bg-app, #07172b) !important;
     --dv-background-color: var(--theme-bg-app, #07172b);
     --dv-pane-background-color: var(--theme-bg-elevated, #1f2e40);
