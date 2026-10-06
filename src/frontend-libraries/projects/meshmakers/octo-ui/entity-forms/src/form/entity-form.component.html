@@ -1,6 +1,9 @@
 @let m = resolvedMessages();
 @let rev = revision();
 <form class="mm-entity-form" [formGroup]="form()" (submit)="$event.preventDefault()" novalidate>
+  @if (saveBlockedReason(); as reason) {
+    <p class="mm-ef-blocked" role="status" data-save-blocked>{{ reason }}</p>
+  }
   @for (section of model().sections; track section.key) {
     @if (visibleFieldCount(section) > 0) {
       <section

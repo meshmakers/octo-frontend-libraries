@@ -28,7 +28,7 @@ import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-ava
 import { buildChangeSet } from '../core/change-set-builder';
 import { formValuesEqual } from '../core/entity-form-value-mapper';
 import { isVisible } from '../core/visible-when';
-import { EntityFormsMessages, mergeEntityFormsMessages } from '../entity-forms.messages';
+import { EntityFormsMessages, formatEntityFormsMessage, mergeEntityFormsMessages } from '../entity-forms.messages';
 import {
   CkRecordInfo,
   EntityFormChangeSet,
@@ -65,7 +65,11 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
  * - Secrets are never prefilled; the badge says whether a value is set (also for read-only users).
  *   Empty = unchanged. An optional SECRET can be cleared: the clear is staged and sent on Save as
  *   `clearSecretAttributes` (mutually exclusive with a new value). Without a key ring
- *   (`ENTITY_FORM_SECRET_KEY_RING_CONFIGURED` = false) secret inputs are disabled with a hint.
+ *   (`ENTITY_FORM_SECRET_KEY_RING_CONFIGURED` = false) secret inputs are disabled with a hint; the
+ *   signal may change at any time (status loaded asynchronously) and the controls follow it. In
+ *   create mode a required secret that cannot be entered blocks the form: `isValid()` is false and
+ *   `saveBlockedReason()` names the fields, so hosts disable Create with that reason (Q17: no late
+ *   `SecretEncryptionNotConfigured` / "required secret missing" error on save).
  * - `afterCreate` fields are read-only outside create mode; `readOnly`, `view` mode or
  *   `capabilities.canEdit === false` (edit mode) make every field read-only.
  * - The change set holds only dirty controls (D6), built by `buildChangeSet`.
@@ -137,6 +141,8 @@ export class EntityFormComponent {
   protected readonly formReadOnly = computed(() => isFormReadOnly(this.model(), this.mode(), this.readOnly()));
   /** No key ring in this environment (Q17): secret inputs are disabled with a hint. */
   protected readonly secretWritesDisabled = computed(() => this.keyRingConfigured?.() === false);
+  /** The `secretWritesDisabled` value the controls were last enabled / disabled for. */
+  private appliedSecretWritesDisabled?: boolean;
 
   /** Visibility per field key, from VisibleWhen and the current raw values. */
   protected readonly visibility = computed<Record<string, boolean>>(() => {
@@ -152,6 +158,27 @@ export class EntityFormComponent {
     return result;
   });
 
+  /**
+   * Why the form cannot be saved although every enabled control is valid, or `null`: in create
+   * mode without a key ring (Q17), a visible, writable, required secret cannot be entered — the
+   * server would reject the create (required secret missing). Hosts disable Create and show this.
+   * In edit mode a missing required secret does not block saving other fields (the server only
+   * enforces required secrets on create).
+   */
+  readonly saveBlockedReason = computed<string | null>(() => {
+    if (!this.secretWritesDisabled() || this.mode() !== 'create' || this.formReadOnly()) {
+      return null;
+    }
+    const vis = this.visibility();
+    const presence = this.secretPresence();
+    const labels = allFields(this.model())
+      .filter((f) => f.secret && vis[f.key] !== false && !isFieldReadOnly(f, 'create', false) && isSecretRequired(f, 'create', presence))
+      .map((f) => f.label);
+    return labels.length
+      ? formatEntityFormsMessage(this.resolvedMessages().secretRequiredWritesDisabled, { fields: labels.join(', ') })
+      : null;
+  });
+
   /** Default item of optional enum dropdowns. */
   protected readonly enumDefaultItem = computed(() => ({ key: null, name: this.resolvedMessages().enumPlaceholder }));
 
@@ -162,6 +189,19 @@ export class EntityFormComponent {
       const state = this.state();
       const readOnly = this.readOnly();
       untracked(() => this.rebuild(model, mode, state ?? null, readOnly));
+    });
+    // The key ring status arrives asynchronously (and may change): re-apply the enabled state of
+    // the secret controls whenever it flips after the form was built.
+    effect(() => {
+      const disabled = this.secretWritesDisabled();
+      untracked(() => {
+        if (this.appliedSecretWritesDisabled === undefined || this.appliedSecretWritesDisabled === disabled) {
+          return;
+        }
+        this.applyVisibility();
+        this.bump();
+        this.emitState();
+      });
     });
     this.destroyRef.onDestroy(() => this.formSub?.unsubscribe());
   }
@@ -198,10 +238,10 @@ export class EntityFormComponent {
     return Object.keys(current).some((k) => !formValuesEqual(this.initialValues[k], current[k]));
   }
 
-  /** True when every enabled control is valid. */
+  /** True when every enabled control is valid and nothing blocks saving ({@link saveBlockedReason}). */
   isValid(): boolean {
     const form = this.form();
-    return form.valid || form.disabled;
+    return (form.valid || form.disabled) && this.saveBlockedReason() === null;
   }
 
   /** Marks every control as touched so validation errors become visible. */
@@ -396,13 +436,15 @@ export class EntityFormComponent {
     const vis = this.visibility();
     const mode = this.mode();
     const formReadOnly = this.formReadOnly();
+    const writesDisabled = this.secretWritesDisabled();
+    this.appliedSecretWritesDisabled = writesDisabled;
     for (const field of allFields(this.model())) {
       const control = form.controls[field.key];
       if (!control) {
         continue;
       }
       const secretBlocked = field.secret
-        && (this.secretWritesDisabled() || this.clearedSecrets().has(field.attributeName ?? field.key));
+        && (writesDisabled || this.clearedSecrets().has(field.attributeName ?? field.key));
       const shouldEnable = vis[field.key] !== false && !isFieldReadOnly(field, mode, formReadOnly) && !secretBlocked;
       if (shouldEnable && control.disabled) {
         control.enable({ emitEvent: false });

@@ -1,5 +1,5 @@
 import type { MockedObject } from 'vitest';
-import { Component, NO_ERRORS_SCHEMA, input } from '@angular/core';
+import { Component, NO_ERRORS_SCHEMA, input, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { BreadCrumbService } from '@meshmakers/shared-services';
@@ -22,6 +22,7 @@ class StubEntityFormComponent {
   readonly records = input<unknown>();
   dirty = false;
   valid = true;
+  readonly saveBlockedReason = signal<string | null>(null);
   changeSet: EntityFormChangeSet = { attributes: [{ attributeName: 'host', value: 'h' }], associations: [], isEmpty: false };
   isDirty(): boolean { return this.dirty; }
   isValid(): boolean { return this.valid; }
@@ -268,6 +269,17 @@ describe('EntityPageComponent', () => {
     stubForm().valid = false;
     expect(await component.saveChanges()).toBe(false);
     expect(dataService.create).not.toHaveBeenCalled();
+  });
+
+  it('disables Save with the reason while the form blocks saving (required secret without key ring, Q17)', async () => {
+    formService.resolve.mockResolvedValue(makeModel());
+    await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new' });
+    const save = () => fixture.nativeElement.querySelector('[data-entity-page-save]') as HTMLButtonElement;
+    expect(save().disabled).toBe(false);
+    stubForm().saveBlockedReason.set('Cannot create: Password must be set');
+    fixture.detectChanges();
+    expect(save().disabled).toBe(true);
+    expect(save().getAttribute('title')).toContain('Password');
   });
 
   it('updates only through the change set and reloads the values', async () => {

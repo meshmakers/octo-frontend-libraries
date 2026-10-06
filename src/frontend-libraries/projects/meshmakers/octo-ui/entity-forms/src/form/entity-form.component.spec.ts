@@ -381,6 +381,83 @@ describe('EntityFormComponent', () => {
       expect(fieldEl('apiKey')?.querySelector('[data-secret-writes-disabled]')).not.toBeNull();
       expect((fieldEl('apiKey')?.querySelector('[data-secret-clear]') as HTMLButtonElement).disabled).toBe(true);
     });
+
+    async function renderWithKeyRing(keyRing: ReturnType<typeof signal<boolean | null>>, mode: EntityFormMode, state?: EntityFormValueState): Promise<void> {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        animationsEnabled: false,
+        providers: [{ provide: ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, useValue: keyRing }],
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      api = component as unknown as Testable;
+      await render(secretModel(), mode, state);
+    }
+
+    it('follows a key ring status that arrives after the form was built (Q17)', async () => {
+      const keyRing = signal<boolean | null>(null);
+      await renderWithKeyRing(keyRing, 'edit', secretState());
+      expect(api.control('apiKey').enabled).toBe(true);
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-writes-disabled]')).toBeNull();
+
+      keyRing.set(false);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(api.control('apiKey').disabled).toBe(true);
+      expect(api.control('password').disabled).toBe(true);
+      expect(api.control('userName').enabled).toBe(true);
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-writes-disabled]')).not.toBeNull();
+
+      keyRing.set(true);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(api.control('apiKey').enabled).toBe(true);
+      expect(fieldEl('apiKey')?.querySelector('[data-secret-writes-disabled]')).toBeNull();
+    });
+
+    it('blocks Create while a required secret cannot be entered (no key ring) and names the reason', async () => {
+      const keyRing = signal<boolean | null>(true);
+      await renderWithKeyRing(keyRing, 'create');
+      const validEvents: boolean[] = [];
+      component.validChange.subscribe((v) => validEvents.push(v));
+      api.control('password').setValue('pw');
+      expect(component.isValid()).toBe(true);
+      expect(component.saveBlockedReason()).toBeNull();
+
+      keyRing.set(false);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      // The field stays required (marker + hint), the control is disabled, the form is blocked.
+      expect(fieldEl('password')?.querySelector('.mm-ef-field__required')).not.toBeNull();
+      expect(api.control('password').disabled).toBe(true);
+      expect(component.isValid()).toBe(false);
+      expect(component.saveBlockedReason()).toContain('password');
+      expect(el().querySelector('[data-save-blocked]')?.textContent).toContain('encryption key ring');
+      expect(validEvents.at(-1)).toBe(false);
+    });
+
+    it('does not block saving an existing entity without key ring (required secret only enforced on create)', async () => {
+      await renderWithKeyRing(signal<boolean | null>(false), 'edit', secretState());
+      expect(component.saveBlockedReason()).toBeNull();
+      expect(component.isValid()).toBe(true);
+    });
+
+    it('masks a typed multiline value in every browser and reports only the line count', async () => {
+      await render(secretModel(), 'edit', secretState());
+      api.control('privateKey').setValue('-----BEGIN KEY-----\nabc\n-----END KEY-----');
+      fixture.detectChanges();
+      const status = fieldEl('privateKey')?.querySelector('[data-secret-masked-status]');
+      expect(status?.textContent).toContain('3 line(s)');
+      expect(status?.textContent).not.toContain('abc');
+      (fieldEl('privateKey')?.querySelector('[data-secret-show]') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(fieldEl('privateKey')?.querySelector('.mm-ef-secret__input--masked')).toBeNull();
+      expect(fieldEl('privateKey')?.querySelector('[data-secret-masked-status]')).toBeNull();
+    });
   });
 
   describe('read-only', () => {

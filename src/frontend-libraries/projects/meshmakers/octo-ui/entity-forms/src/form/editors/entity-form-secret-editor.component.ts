@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output, si
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { KENDO_BUTTON } from '@progress/kendo-angular-buttons';
 import { KENDO_TEXTAREA, KENDO_TEXTBOX } from '@progress/kendo-angular-inputs';
-import { EntityFormsMessages } from '../../entity-forms.messages';
+import { EntityFormsMessages, formatEntityFormsMessage } from '../../entity-forms.messages';
 
 /**
  * Editor of a write-only secret field (AB#5542, AB#5544 item 4, decisions 2026-10-06 Q8/Q10/Q15/Q17).
@@ -13,7 +13,11 @@ import { EntityFormsMessages } from '../../entity-forms.messages';
  * - "Clear" stages removing an optional secret; the parent sends it on Save as
  *   `clearSecretAttributes`. Clear and a new value are mutually exclusive: Clear is disabled while a
  *   value is typed, and the input is replaced by a note with "Undo" while a clear is staged.
- * - `multiline` renders a masked monospace text area (PEM keys, `EntityFormField.Editor: multiline`).
+ * - `multiline` renders a monospace text area (PEM keys, `EntityFormField.Editor: multiline`). It is
+ *   masked by rendering the text transparent (caret, selection and placeholder stay visible) and a
+ *   status line says how many lines were entered. This works in every browser — unlike
+ *   `-webkit-text-security`, which Firefox does not reliably support and which cannot keep line
+ *   breaks visible; an `<input type="password">` would drop the PEM line breaks.
  * - Read-only users get no editor at all (the badge is enough); without a key ring the input is
  *   disabled and a hint explains why (`writesDisabled`, the parent disables the control).
  */
@@ -42,7 +46,7 @@ import { EntityFormsMessages } from '../../entity-forms.messages';
               [rows]="6"
               resizable="vertical"
               [placeholder]="placeholder()"
-              [inputAttributes]="{ autocomplete: 'off', spellcheck: 'false', 'data-secret-input': 'multiline' }"
+              [inputAttributes]="{ autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'false', 'data-secret-input': 'multiline' }"
             ></kendo-textarea>
           } @else {
             <kendo-textbox
@@ -75,6 +79,9 @@ import { EntityFormsMessages } from '../../entity-forms.messages';
             >{{ messages().secretClear }}</button>
           }
         </div>
+      }
+      @if (multiline() && !clearStaged() && hasTypedValue() && !revealed()) {
+        <div class="mm-ef-secret__masked" data-secret-masked-status>{{ maskedStatus() }}</div>
       }
       @if (writesDisabled()) {
         <div class="mm-ef-secret__hint" data-secret-writes-disabled>{{ messages().secretWritesDisabled }}</div>
@@ -109,6 +116,14 @@ export class EntityFormSecretEditorComponent {
 
   /** Only a typed value can be revealed; emptying the input masks it again. */
   protected readonly revealed = computed(() => this.shown() && this.hasTypedValue());
+
+  /** Status line of a masked multiline value: the number of lines, never the content. */
+  protected readonly maskedStatus = computed(() => {
+    this.revision();
+    const v = this.control().value;
+    const lines = typeof v === 'string' && v.length > 0 ? v.split(/\r\n|\r|\n/).length : 0;
+    return formatEntityFormsMessage(this.messages().secretMultilineMasked, { lines });
+  });
 
   constructor() {
     effect(() => {
