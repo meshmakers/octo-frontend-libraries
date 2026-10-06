@@ -41,7 +41,7 @@ describe('UpdateEditorComponent — secret-safe save', () => {
         {
           provide: SecretSafeAttributeNamesService,
           useValue: {
-            analyse: () => Promise.resolve({ attributeNames: ['name', 'providers', 'key'], secretNames: ['apiKey'], blockedAttributes: ['providers'] }),
+            analyse: () => Promise.resolve({ attributeNames: ['name', 'providers', 'key'], secretNames: ['apiKey'], secretStateNames: [], blockedAttributes: ['providers'] }),
           },
         },
         {

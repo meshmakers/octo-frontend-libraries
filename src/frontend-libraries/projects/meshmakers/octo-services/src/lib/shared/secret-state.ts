@@ -86,7 +86,7 @@ export function secretStateFromAttribute(attribute: RtEntityAttributeSecretState
 }
 
 /** Display status: key missing wins (it implies `isSet: false`), then set / not set. */
-export function secretStatusOf(state: Pick<SecretState, 'isSet' | 'keyMissing'> | null | undefined): SecretStatus {
+export function secretStatusOf(state: { isSet?: boolean | null; keyMissing?: boolean | null } | null | undefined): SecretStatus {
   if (state?.keyMissing) return 'keyMissing';
   return state?.isSet ? 'set' : 'notSet';
 }
@@ -95,7 +95,7 @@ export function secretStatusOf(state: Pick<SecretState, 'isSet' | 'keyMissing'> 
  * Whether a secret counts as present for "required" checks: set, or stored but unreadable (the
  * server treats a key-missing secret as present, handover §2).
  */
-export function isSecretPresent(state: Pick<SecretState, 'isSet' | 'keyMissing'> | null | undefined): boolean {
+export function isSecretPresent(state: { isSet?: boolean | null; keyMissing?: boolean | null } | null | undefined): boolean {
   return state?.isSet === true || state?.keyMissing === true;
 }
 

@@ -94,7 +94,7 @@ describe('EntityDetailDataSource', () => {
     it('requests only the secret-safe attribute names of the type (AB#5542)', async () => {
       await service.fetchEntityDetails('entity-123', 'Custom/Type');
 
-      expect(mockSecretSafeNames.forCkType).toHaveBeenCalledWith('Custom/Type');
+      expect(mockSecretSafeNames.forCkType).toHaveBeenCalledWith('Custom/Type', { includeSecretState: true });
       const callArgs = vi.mocked(mockGetRuntimeEntityByIdGQL.fetch).mock.lastCall![0];
       expect(callArgs.variables.attributeNames).toEqual(['name', 'description']);
     });

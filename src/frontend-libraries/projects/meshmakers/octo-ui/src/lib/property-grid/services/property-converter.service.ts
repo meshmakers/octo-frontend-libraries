@@ -2,12 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, of, forkJoin } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { PropertyGridItem, DefaultPropertyCategory, AttributeValueTypeDto } from '../models/property-grid.models';
-import { CkTypeAttributeService, CkTypeAttributeInfo } from '@meshmakers/octo-services';
+import { CkTypeAttributeService, CkTypeAttributeInfo, secretStateFromAttribute, isSecretValueType, toSecretState } from '@meshmakers/octo-services';
 
 /** Represents an attribute from an RtEntity */
 interface RtAttribute {
   attributeName?: string | null;
   value?: unknown;
+  /** SECRET value type (AB#5528): null for non-secret attributes. */
+  secretIsSet?: boolean | null;
+  secretKeyMissing?: boolean | null;
+  secretSetAt?: string | Date | null;
 }
 
 /** Represents an RtRecord with a ckRecordId and attributes */
@@ -273,6 +277,24 @@ export class PropertyConverterService {
     index: number,
     ckAttributeMap: Map<string, string>
   ): PropertyGridItem {
+    // SECRET (AB#5528): never a value — the set / not-set state is shown as a read-only badge.
+    const ckType = attr?.attributeName ? ckAttributeMap.get(attr.attributeName) : undefined;
+    const marker = attr?.value && typeof attr.value === 'object' && 'isSet' in (attr.value as object)
+      ? toSecretState(attr.value as { isSet: boolean; keyMissing?: boolean | null; setAt?: string | Date | null })
+      : null;
+    const secretState = secretStateFromAttribute(attr) ?? (isSecretValueType(ckType) ? marker : null);
+    if (secretState || isSecretValueType(ckType)) {
+      return {
+        id: `attr_${index}_${attr?.attributeName || 'unknown'}`,
+        name: attr?.attributeName || `attribute_${index}`,
+        displayName: attr?.attributeName || `attribute_${index}`,
+        value: secretState ?? { isSet: false, keyMissing: false, setAt: null },
+        type: AttributeValueTypeDto.SecretDto,
+        category: DefaultPropertyCategory.Attributes,
+        readOnly: true,
+        description: `Attribute: ${attr?.attributeName} (secret, write-only)`
+      };
+    }
     const value = this.convertRtEntityAttributeValueSync(attr?.value);
 
     return {
@@ -328,6 +350,7 @@ export class PropertyConverterService {
       'RECORD_ARRAY': AttributeValueTypeDto.RecordArrayDto,
       'STRING': AttributeValueTypeDto.StringDto,
       'STRING_ARRAY': AttributeValueTypeDto.StringArrayDto,
+      'SECRET': AttributeValueTypeDto.SecretDto,
       'TIME_SPAN': AttributeValueTypeDto.TimeSpanDto
     };
 

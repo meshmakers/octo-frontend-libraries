@@ -1,7 +1,7 @@
 import type { Mock } from 'vitest';
 import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PropertyValueDisplayComponent } from './property-value-display.component';
+import { isSecretMarker, PropertyValueDisplayComponent } from './property-value-display.component';
 import { AttributeValueTypeDto, PropertyDisplayMode } from '../models/property-grid.models';
 import { chevronRightIcon, chevronDownIcon, downloadIcon } from '@progress/kendo-svg-icons';
 
@@ -757,6 +757,34 @@ describe('PropertyValueDisplayComponent', () => {
       component.ngOnChanges({ displayMode: new SimpleChange(previous, PropertyDisplayMode.Json, false) });
 
       expect(component.isExpanded).toBe(true);
+    });
+  });
+
+  describe('SECRET value type (AB#5528)', () => {
+    it('renders the set badge with the set-at time', () => {
+      initComponent({ isSet: true, keyMissing: false, setAt: new Date('2026-10-06T03:00:00Z') }, AttributeValueTypeDto.SecretDto);
+      const badge = fixture.nativeElement.querySelector('.secret-badge') as HTMLElement;
+      expect(badge.getAttribute('data-secret-state')).toBe('set');
+      expect(badge.textContent).toContain('Set · set at');
+    });
+
+    it('renders not set and key missing', () => {
+      initComponent({ isSet: false, keyMissing: false, setAt: null }, AttributeValueTypeDto.SecretDto);
+      expect(component.formattedValue).toBe('Not set');
+      component.value = { isSet: false, keyMissing: true };
+      component.ngOnChanges({ value: new SimpleChange(null, component.value, false) });
+      expect(component.secretStatus).toBe('keyMissing');
+      expect(component.formattedValue).toBe('Key missing — re-enter');
+    });
+
+    it('recognises a record member marker { isSet } as a secret', () => {
+      expect(isSecretMarker({ isSet: true })).toBe(true);
+      expect(isSecretMarker({ isSet: false, keyMissing: true, setAt: null })).toBe(true);
+      expect(isSecretMarker({ isSet: true, name: 'x' })).toBe(false);
+      expect(isSecretMarker({ isSet: 'yes' })).toBe(false);
+      expect(component.getPropertyType({ isSet: true })).toBe(AttributeValueTypeDto.SecretDto);
+      initComponent({ isSet: true }, AttributeValueTypeDto.StringDto);
+      expect(component.formattedValue).toBe('Set');
     });
   });
 });

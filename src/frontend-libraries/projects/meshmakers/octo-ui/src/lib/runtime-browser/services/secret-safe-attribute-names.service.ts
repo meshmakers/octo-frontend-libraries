@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { catchError, firstValueFrom, map, of } from 'rxjs';
-import { isSecretAttributeCandidate, toCamelCaseAttributeName, toUniqueCamelCaseNames } from '@meshmakers/octo-services';
+import { isSecretAttributeCandidate, isSecretValueType, toCamelCaseAttributeName, toUniqueCamelCaseNames } from '@meshmakers/octo-services';
 import { CkAttributeMetadata } from '../models/attribute-metadata';
 import { GetSecretSafeTypeAttributesDtoGQL } from '../../graphQL/getSecretSafeTypeAttributes';
 import { AttributeMetadataResolverService } from './attribute-metadata-resolver.service';
@@ -23,6 +23,13 @@ export interface SecretSafeAttributeAnalysis {
   readonly attributeNames: string[];
   /** camelCase names of the secret candidates found (top level and inside records). */
   readonly secretNames: string[];
+  /**
+   * camelCase names of SECRET-typed attributes (AB#5528) that are safe to READ: the server returns
+   * `value: null` plus `secretIsSet` for them (records: the marker `{ isSet }`). Callers that show a
+   * set / not-set badge append them to `attributeNames` and select `secretIsSet`. A name that is
+   * also a non-SECRET (heuristic) secret somewhere is never listed.
+   */
+  readonly secretStateNames: string[];
   /**
    * Top-level attributes (camelCase) that must NOT be written back by an editor because their
    * stored value is not (completely) loaded: records whose type contains a secret or a
@@ -79,9 +86,14 @@ export class SecretSafeAttributeNamesService {
   /**
    * camelCase names of all non-secret attributes (incl. record sub-attributes) of a runtime type.
    * @param rtCkTypeId the type in RtCkTypeId format (`Basic/TreeNode`, as in `RtEntity.ckTypeId`).
+   * @param options.includeSecretState also list the SECRET-typed attributes (safe to read, see
+   *   {@link SecretSafeAttributeAnalysis.secretStateNames}) — the document must select `secretIsSet`.
    */
-  async forCkType(rtCkTypeId: string | null | undefined): Promise<string[]> {
-    return (await this.analyse(rtCkTypeId)).attributeNames;
+  async forCkType(rtCkTypeId: string | null | undefined, options: { includeSecretState?: boolean } = {}): Promise<string[]> {
+    const analysis = await this.analyse(rtCkTypeId);
+    return options.includeSecretState
+      ? toUniqueCamelCaseNames([...analysis.attributeNames, ...analysis.secretStateNames])
+      : analysis.attributeNames;
   }
 
   /**
@@ -98,7 +110,7 @@ export class SecretSafeAttributeNamesService {
 
   /** Full analysis: safe names, secret names and the attributes an editor must not write back. */
   async analyse(rtCkTypeId: string | null | undefined): Promise<SecretSafeAttributeAnalysis> {
-    if (!rtCkTypeId) return { attributeNames: [], secretNames: [], blockedAttributes: [] };
+    if (!rtCkTypeId) return { attributeNames: [], secretNames: [], secretStateNames: [], blockedAttributes: [] };
 
     const topLevel = await this.loadType(rtCkTypeId);
     const records = await this.loadRecordGraph(topLevel);
@@ -106,16 +118,24 @@ export class SecretSafeAttributeNamesService {
     // 1. Names and secrets over the type and every reachable record.
     const names: string[] = [];
     const secrets = new Set<string>();
+    const secretValueTypeNames = new Set<string>();
+    const heuristicSecrets = new Set<string>();
     for (const meta of [...topLevel, ...[...records.values()].flat()]) {
       if (!meta.attributeName) continue;
+      const camel = toCamelCaseAttributeName(meta.attributeName);
       if (isSecret(meta)) {
-        secrets.add(toCamelCaseAttributeName(meta.attributeName));
+        secrets.add(camel);
+        (isSecretValueType(meta.attributeValueType) ? secretValueTypeNames : heuristicSecrets).add(camel);
       } else {
         names.push(meta.attributeName);
       }
     }
     const attributeNames = toUniqueCamelCaseNames(names).filter((n) => !secrets.has(n));
-    const loaded = new Set(attributeNames);
+    const secretStateNames = [...secretValueTypeNames].filter((n) => !heuristicSecrets.has(n));
+    // SECRET-typed sub-attributes count as loaded: the server carries an omitted record member over
+    // from the stored element with the same record key (records with secrets always declare one),
+    // and an echoed `{ isSet }` marker means "unchanged". Only heuristic secrets block a record.
+    const loaded = new Set([...attributeNames, ...secretStateNames]);
 
     // 2. Per record type: is every (transitive) sub-attribute loaded? Fixpoint over the graph —
     //    start optimistic, mark incomplete records, propagate until stable (cycle-safe).
@@ -154,6 +174,7 @@ export class SecretSafeAttributeNamesService {
     return {
       attributeNames,
       secretNames: [...secrets],
+      secretStateNames,
       blockedAttributes: toUniqueCamelCaseNames(blocked),
     };
   }

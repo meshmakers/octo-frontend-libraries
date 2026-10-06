@@ -17,6 +17,8 @@ export enum AttributeValueTypeDto {
   IntArrayDto = 'INT_ARRAY',
   RecordDto = 'RECORD',
   RecordArrayDto = 'RECORD_ARRAY',
+  /** SECRET value type (AB#5528): the value is never read; `value` holds a `SecretState`. */
+  SecretDto = 'SECRET',
   StringDto = 'STRING',
   StringArrayDto = 'STRING_ARRAY',
   TimeSpanDto = 'TIME_SPAN'

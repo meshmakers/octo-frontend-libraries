@@ -3,6 +3,8 @@
 # caller reads known attributes, or `SecretSafeAttributeNamesService.forCkType()` to show
 # all non-credential attributes of a type. Omitting the argument would return EVERY
 # attribute, passwords and client secrets included.
+# SECRET-typed attributes (AB#5528) may be listed: the server returns value null plus
+# secretIsSet (TODO(AB#5542): add secretKeyMissing secretSetAt after the backend rebuild).
 query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!, $attributeNames: [String!]!) {
   runtime {
     runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
@@ -18,6 +20,7 @@ query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!, $attributeN
           items {
             attributeName
             value
+            secretIsSet
           }
         }
         associations {
