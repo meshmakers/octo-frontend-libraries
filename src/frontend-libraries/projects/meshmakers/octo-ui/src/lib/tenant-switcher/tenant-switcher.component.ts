@@ -23,7 +23,7 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
   ],
   template: `
     @if (currentTenantId) {
-      <div #badgeEl class="tenant-badge" [class.denied]="isDenied" (click)="onToggle()">
+      <div #badgeEl class="tenant-badge" [class.denied]="isDenied" [title]="currentTenantId" (click)="onToggle()">
         <span class="tenant-icon">{{ isDenied ? '\u26A0' : '\u25C6' }}</span>
         <span class="tenant-name">{{ currentTenantId }}</span>
         @if (isDenied) {
@@ -61,16 +61,20 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
+    /* May shrink inside a flex row (narrow top bars): the name then ends in an ellipsis. */
     :host {
       display: inline-flex;
       align-items: center;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .tenant-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
+      min-width: 0;
+      padding: var(--mm-tenant-switcher-padding, 6px 14px);
       background: var(--mm-tenant-switcher-bg, var(--kendo-color-surface, transparent));
       border: 1px solid var(--mm-tenant-switcher-border, var(--kendo-color-border, #dee2e6));
       border-radius: var(--mm-tenant-switcher-radius, 4px 16px 16px 4px);
@@ -85,12 +89,17 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
     }
 
     .tenant-icon {
+      flex: none;
       font-size: 0.7rem;
       color: var(--mm-tenant-switcher-accent, var(--kendo-color-primary, #ff6358));
       animation: var(--mm-tenant-switcher-icon-animation, none);
     }
 
     .tenant-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       font-family: var(--mm-tenant-switcher-font, inherit);
       font-size: 0.85rem;
       font-weight: 600;
