@@ -1,4 +1,4 @@
-import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows } from './compact-layout';
+import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows, scaleColSpan } from './compact-layout';
 import { AnyWidgetConfig } from '../models/meshboard.models';
 
 describe('compact-layout', () => {
@@ -55,13 +55,28 @@ describe('compact-layout', () => {
       expect(placements.every(p => p.col === undefined && p.row === undefined)).toBe(true);
     });
 
-    it('clamps colSpan to the tier column count and preserves rowSpan', () => {
+    it('scales colSpan to the tier column count and preserves rowSpan', () => {
       const phone = placeWidgetsForTier([widget('a', 1, 1, 4, 2)], 'phone', 6);
       expect(phone[0].colSpan).toBe(1);
       expect(phone[0].rowSpan).toBe(2);
 
       const tablet = placeWidgetsForTier([widget('a', 1, 1, 4, 2)], 'tablet', 6);
-      expect(tablet[0].colSpan).toBe(3);
+      expect(tablet[0].colSpan).toBe(2);
+    });
+
+    it('keeps three span-2 KPI tiles of a 6-column board side by side on tablets (AB#5558)', () => {
+      const tiles = placeWidgetsForTier([widget('a', 1, 2, 2), widget('b', 3, 2, 2), widget('c', 5, 2, 2), widget('wide', 1, 1, 6)], 'tablet', 6);
+      expect(tiles.map(p => [p.widget.id, p.colSpan])).toEqual([['wide', 3], ['a', 1], ['b', 1], ['c', 1]]);
+    });
+
+    it('scales spans proportionally, at least 1 and at most the tier columns', () => {
+      expect(scaleColSpan(1, 6, 3)).toBe(1);
+      expect(scaleColSpan(3, 6, 3)).toBe(2);
+      expect(scaleColSpan(5, 6, 3)).toBe(3);
+      expect(scaleColSpan(6, 6, 3)).toBe(3);
+      expect(scaleColSpan(4, 4, 3)).toBe(3);
+      expect(scaleColSpan(2, 2, 2)).toBe(2);
+      expect(scaleColSpan(3, 6, 1)).toBe(1);
     });
 
     it('does not mutate the input widget configs', () => {
