@@ -133,7 +133,7 @@ export function registerCockpitWidgets(registry: WidgetRegistryService): void {
     configDialogComponent: AttentionListConfigDialogComponent,
     configDialogSize: { width: 620, height: 560, minWidth: 460, minHeight: 400 },
     configDialogTitle: 'Attention List Configuration',
-    defaultSize: { colSpan: 6, rowSpan: 1 },
+    defaultSize: { colSpan: 6, rowSpan: 2 },
     supportedDataSources: ['static'],
     getInitialConfig: (widget) => ({
       initialProviderIds: widget.providerIds,
@@ -150,8 +150,9 @@ export function registerCockpitWidgets(registry: WidgetRegistryService): void {
     createDefaultConfig: (base: BaseWidgetConfig): AttentionListWidgetConfig => ({
       ...base,
       type: 'attentionList',
+      // Two rows: one 200 px row cuts the finding cards' action links off (AB#5558).
       colSpan: 6,
-      rowSpan: 1,
+      rowSpan: 2,
       dataSource: { type: 'static' }
     }),
     toPersistedConfig: (widget: AttentionListWidgetConfig): WidgetPersistenceData => ({

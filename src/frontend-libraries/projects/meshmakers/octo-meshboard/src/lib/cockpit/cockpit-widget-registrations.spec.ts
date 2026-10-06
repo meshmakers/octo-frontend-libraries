@@ -26,22 +26,22 @@ interface SeedWidgetRow {
 }
 
 /**
- * The widgets of the `cockpit` board seeded by the System.UI.TenantCockpit blueprint (1.1.0,
+ * The widgets of the `cockpit` board seeded by the System.UI.TenantCockpit blueprint (1.2.0,
  * octo-platform-services `src/SystemUiCkModel/Blueprints/System.UI.TenantCockpit/seed-data/entities.yaml`).
  * Keep in step with the seed: when the sibling repository is checked out next to this one (the
  * worktree-pair layout) and its TenantCockpit blueprint is >= TENANT_COCKPIT_SEED_VERSION, a test
  * compares this fixture with the real seed file; older sibling branches are skipped.
  */
 /** Blueprint version of System.UI.TenantCockpit whose seed the fixture below describes. */
-const TENANT_COCKPIT_SEED_VERSION = '1.1.0';
+const TENANT_COCKPIT_SEED_VERSION = '1.2.0';
 
 const TENANT_COCKPIT_SEED: SeedWidgetRow[] = [
-  { name: 'Construction Kit Models', type: 'pieChart', col: 1, row: 3, colSpan: 2, rowSpan: 2, dataSourceType: 'constructionKitQuery',
+  { name: 'Construction Kit Models', type: 'pieChart', col: 1, row: 4, colSpan: 2, rowSpan: 2, dataSourceType: 'constructionKitQuery',
     config: '{"chartType":"pie","categoryField":"","valueField":"","showLabels":false,"showLegend":true,"legendPosition":"right","ckQueryTarget":"models","ckGroupBy":"modelState"}' },
-  { name: 'Needs attention', type: 'attentionList', col: 1, row: 1, colSpan: 6, rowSpan: 1, dataSourceType: 'static', config: '{"maxItems":6}' },
-  { name: 'Adapters online', type: 'adapterStatus', col: 1, row: 2, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
-  { name: 'CK models', type: 'ckModelState', col: 3, row: 2, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
-  { name: 'Pipeline executions 24 h', type: 'pipelineExecutions', col: 5, row: 2, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true,"showSparkline":true}' }
+  { name: 'Needs attention', type: 'attentionList', col: 1, row: 1, colSpan: 6, rowSpan: 2, dataSourceType: 'static', config: '{"maxItems":6}' },
+  { name: 'Adapters online', type: 'adapterStatus', col: 1, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
+  { name: 'CK models', type: 'ckModelState', col: 3, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
+  { name: 'Pipeline executions 24 h', type: 'pipelineExecutions', col: 5, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true,"showSparkline":true}' }
 ];
 
 function persisted(row: SeedWidgetRow, index: number): PersistedWidgetData {
@@ -141,7 +141,7 @@ describe('Cockpit widget registrations (AB#5558)', () => {
 
   it('creates defaults with a static data source', () => {
     const widget = registry.createWidget('attentionList', { id: 'a', title: 'A', col: 1, row: 1, colSpan: 1, rowSpan: 1 });
-    expect(widget).toMatchObject({ type: 'attentionList', colSpan: 6, rowSpan: 1, dataSource: { type: 'static' } });
+    expect(widget).toMatchObject({ type: 'attentionList', colSpan: 6, rowSpan: 2, dataSource: { type: 'static' } });
     expect(registry.createWidget('adapterStatus', { id: 'b', title: 'B', col: 1, row: 1, colSpan: 1, rowSpan: 1 })).toMatchObject({ colSpan: 2, rowSpan: 1 });
   });
 

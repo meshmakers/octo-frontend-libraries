@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy, ElementRef, NgZone, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
 import { urlWithoutEditParam, wantsEditModeFromUrl } from '../../utils/edit-mode-url';
+import { MESHBOARD_HEADER_MODE_ROUTE_DATA, MeshBoardHeaderMode, resolveMeshBoardHeaderMode } from '../../utils/meshboard-header';
 import { TileLayoutModule, TileLayoutComponent, TileLayoutReorderEvent, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DialogService, DialogModule, WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
@@ -157,6 +158,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   private readonly _hideEntitySelectors = signal(false);
   protected readonly hideEntitySelectors = this._hideEntitySelectors.asReadonly();
   protected readonly timeRangeLabels = signal<TimeRangePickerLabels>({});
+
+  /**
+   * How much of the header the host shows: `full` (default) with name and description,
+   * `compact` (controls only, aligned right) or `none` (no header row). A host page that
+   * already names the board (e.g. a tab under a greeting) embeds it compact. Overrides the
+   * route data `meshBoardHeaderMode`, which routes loading the view directly use.
+   */
+  readonly headerMode = input<MeshBoardHeaderMode | undefined>(undefined);
+  private readonly routeHeaderMode = signal<unknown>(undefined);
+  protected readonly effectiveHeaderMode = computed(() =>
+    resolveMeshBoardHeaderMode(this.headerMode(), this.routeHeaderMode()));
 
   // Computed link to MeshBoard page with tenant
   protected readonly meshBoardPageLink = computed(() => {
@@ -344,6 +356,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       this._isReadonly.set(readonly === true);
       const hideEntitySelectors = this.route.snapshot.data['meshBoardHideEntitySelectors'] as boolean | undefined;
       this._hideEntitySelectors.set(hideEntitySelectors === true);
+      this.routeHeaderMode.set(this.route.snapshot.data[MESHBOARD_HEADER_MODE_ROUTE_DATA]);
       const labels = this.route.snapshot.data['timeRangeLabels'] as TimeRangePickerLabels | undefined;
       if (labels) this.timeRangeLabels.set(labels);
 

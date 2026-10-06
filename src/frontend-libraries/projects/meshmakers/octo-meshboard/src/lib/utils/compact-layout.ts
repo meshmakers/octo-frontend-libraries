@@ -72,9 +72,21 @@ export function placeWidgetsForTier(
     .sort((a, b) => (a.row - b.row) || (a.col - b.col))
     .map(widget => ({
       widget,
-      colSpan: Math.max(1, Math.min(widget.colSpan, columns)),
+      colSpan: scaleColSpan(widget.colSpan, configuredColumns, columns),
       rowSpan: widget.rowSpan
     }));
+}
+
+/**
+ * The span on a reduced grid, scaled proportionally (AB#5558): three span-2 tiles of a 6-column
+ * board stay side by side on the 3-column tablet tier (2/6 → 1/3) instead of each filling a row
+ * as a plain cap would. Rounded, at least 1, at most the tier's columns.
+ */
+export function scaleColSpan(colSpan: number, configuredColumns: number, columns: number): number {
+  if (configuredColumns <= 0 || columns >= configuredColumns) {
+    return Math.max(1, Math.min(colSpan, columns));
+  }
+  return Math.max(1, Math.min(columns, Math.round(colSpan * columns / configuredColumns)));
 }
 
 /**

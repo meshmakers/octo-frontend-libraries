@@ -32,130 +32,134 @@
       </div>
     </div>
   } @else if (isInitialized()) {
-    <!-- Toolbar -->
-    <div class="meshboard-toolbar">
-      <div class="toolbar-left">
-        <h2 class="meshboard-title">{{ config().name }}</h2>
-        @if (config().description) {
-          <span class="meshboard-description">{{ config().description }}</span>
+    <!-- Toolbar (headerMode: full = name + description + controls, compact = controls only, none = no row) -->
+    @if (effectiveHeaderMode() !== 'none') {
+      <div class="meshboard-toolbar" [class.compact]="effectiveHeaderMode() === 'compact'">
+        @if (effectiveHeaderMode() === 'full') {
+          <div class="toolbar-left">
+            <h2 class="meshboard-title">{{ config().name }}</h2>
+            @if (config().description) {
+              <span class="meshboard-description">{{ config().description }}</span>
+            }
+          </div>
         }
-      </div>
 
-      <!-- Time Filter (center) -->
-      @if (isTimeFilterEnabled()) {
-        <div class="toolbar-center">
-          <mm-time-range-picker
-            [config]="timeFilterConfig()?.pickerConfig ?? {}"
-            [labels]="timeRangeLabels()"
-            [initialSelection]="initialTimeSelection()"
-            (rangeChange)="onTimeRangeChange($event)"
-            (selectionChange)="onTimeSelectionChange($event)">
-          </mm-time-range-picker>
-          @if (canResetTimeFilter()) {
-            <button
-              kendoButton
-              [svgIcon]="undoIcon"
-              (click)="resetTimeFilterToDefault()"
-              title="Reset to default time filter"
-              fillMode="flat"
-              size="small">
-            </button>
-          }
-        </div>
-      }
-
-      <!-- Entity Selectors -->
-      @if (hasEntitySelectors()) {
+        <!-- Time Filter (center) -->
         @if (isTimeFilterEnabled()) {
+          <div class="toolbar-center">
+            <mm-time-range-picker
+              [config]="timeFilterConfig()?.pickerConfig ?? {}"
+              [labels]="timeRangeLabels()"
+              [initialSelection]="initialTimeSelection()"
+              (rangeChange)="onTimeRangeChange($event)"
+              (selectionChange)="onTimeSelectionChange($event)">
+            </mm-time-range-picker>
+            @if (canResetTimeFilter()) {
+              <button
+                kendoButton
+                [svgIcon]="undoIcon"
+                (click)="resetTimeFilterToDefault()"
+                title="Reset to default time filter"
+                fillMode="flat"
+                size="small">
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Entity Selectors -->
+        @if (hasEntitySelectors()) {
+          @if (isTimeFilterEnabled()) {
+            <div class="toolbar-separator"></div>
+          }
+          <div class="toolbar-entity-selectors">
+            <mm-entity-selector-toolbar
+              [entitySelectors]="entitySelectorsConfig()"
+              (entitySelected)="onEntitySelectorSelected($event)"
+              (entityCleared)="onEntitySelectorCleared($event)">
+            </mm-entity-selector-toolbar>
+          </div>
+        }
+
+        @if (isTimeFilterEnabled() || hasEntitySelectors()) {
           <div class="toolbar-separator"></div>
         }
-        <div class="toolbar-entity-selectors">
-          <mm-entity-selector-toolbar
-            [entitySelectors]="entitySelectorsConfig()"
-            (entitySelected)="onEntitySelectorSelected($event)"
-            (entityCleared)="onEntitySelectorCleared($event)">
-          </mm-entity-selector-toolbar>
-        </div>
-      }
-
-      @if (isTimeFilterEnabled() || hasEntitySelectors()) {
-        <div class="toolbar-separator"></div>
-      }
-      <div class="toolbar-right mm-toolbar-actions">
-        @if (!isReadonly()) {
-          <!-- Manager Button (icon only) -->
-          <button
-            kendoButton
-            [svgIcon]="gridLayoutIcon"
-            (click)="openManager()"
-            title="Manage MeshBoards"
-            fillMode="flat">
-          </button>
-
-          <!-- Settings Button (icon only) -->
-          <button
-            kendoButton
-            [svgIcon]="gearIcon"
-            (click)="openSettings()"
-            title="MeshBoard Settings"
-            fillMode="flat">
-          </button>
-        }
-
-        <!-- Refresh Button (icon only) -->
-        <button
-          kendoButton
-          [svgIcon]="arrowRotateCwIcon"
-          (click)="refresh()"
-          title="Refresh All Widgets"
-          fillMode="flat">
-        </button>
-
-        @if (!isReadonly()) {
-          <!-- Edit Mode Toggle (icon only) -->
-          @if (!isEditMode()) {
+        <div class="toolbar-right mm-toolbar-actions">
+          @if (!isReadonly()) {
+            <!-- Manager Button (icon only) -->
             <button
               kendoButton
-              [svgIcon]="pencilIcon"
-              (click)="toggleEditMode()"
-              title="Enter Edit Mode"
+              [svgIcon]="gridLayoutIcon"
+              (click)="openManager()"
+              title="Manage MeshBoards"
               fillMode="flat">
             </button>
-          } @else {
+
+            <!-- Settings Button (icon only) -->
             <button
               kendoButton
-              [svgIcon]="xIcon"
-              (click)="cancelEdit()"
-              title="Cancel Edit Mode"
+              [svgIcon]="gearIcon"
+              (click)="openSettings()"
+              title="MeshBoard Settings"
               fillMode="flat">
             </button>
           }
 
-          <!-- Add Widget Button (with text) -->
+          <!-- Refresh Button (icon only) -->
           <button
             kendoButton
-            [svgIcon]="plusIcon"
-            (click)="openAddWidget()"
-            title="Add Widget"
-            themeColor="primary">
-            Add Widget
+            [svgIcon]="arrowRotateCwIcon"
+            (click)="refresh()"
+            title="Refresh All Widgets"
+            fillMode="flat">
           </button>
 
-          <!-- Save Button (with text) -->
-          @if (canSave()) {
+          @if (!isReadonly()) {
+            <!-- Edit Mode Toggle (icon only) -->
+            @if (!isEditMode()) {
+              <button
+                kendoButton
+                [svgIcon]="pencilIcon"
+                (click)="toggleEditMode()"
+                title="Enter Edit Mode"
+                fillMode="flat">
+              </button>
+            } @else {
+              <button
+                kendoButton
+                [svgIcon]="xIcon"
+                (click)="cancelEdit()"
+                title="Cancel Edit Mode"
+                fillMode="flat">
+              </button>
+            }
+
+            <!-- Add Widget Button (with text) -->
             <button
               kendoButton
-              [svgIcon]="saveIcon"
-              (click)="save()"
-              [disabled]="isSaving()"
-              title="Save MeshBoard"
+              [svgIcon]="plusIcon"
+              (click)="openAddWidget()"
+              title="Add Widget"
               themeColor="primary">
-              {{ isSaving() ? 'Saving...' : 'Save' }}
+              Add Widget
             </button>
+
+            <!-- Save Button (with text) -->
+            @if (canSave()) {
+              <button
+                kendoButton
+                [svgIcon]="saveIcon"
+                (click)="save()"
+                [disabled]="isSaving()"
+                title="Save MeshBoard"
+                themeColor="primary">
+                {{ isSaving() ? 'Saving...' : 'Save' }}
+              </button>
+            }
           }
-        }
+        </div>
       </div>
-    </div>
+    }
 
     <!-- Entity Selector Hint -->
     @if (unselectedToolbarSelectors().length > 0) {

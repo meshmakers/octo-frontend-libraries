@@ -204,6 +204,16 @@
   }
 }
 
+// Compact header (headerMode 'compact', AB#5558): no name/description, the controls in a slim
+// row aligned right that blends into the host page instead of forming a second header bar.
+.meshboard-toolbar.compact {
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.25rem 1.5rem 0;
+  background-color: transparent;
+  border-bottom: none;
+}
+
 // Empty state
 // Widget grid
 kendo-tilelayout {
@@ -311,6 +321,11 @@ kendo-tilelayout {
     .toolbar-right {
       flex-wrap: wrap;
       justify-content: flex-end;
+    }
+
+    &.compact {
+      align-items: flex-end;
+      padding: 0.25rem 1rem 0;
     }
   }
 
