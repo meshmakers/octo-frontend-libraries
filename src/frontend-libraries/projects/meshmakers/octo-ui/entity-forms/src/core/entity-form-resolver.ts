@@ -15,6 +15,7 @@ import {
 import { isSecretAttributeCandidate, isSecretValueType } from '@meshmakers/octo-services';
 import { canonicalisePath, isForcedReadOnly, isRuntimeStateAttribute } from './attribute-path';
 import { BUILT_IN_DEFAULT_FORM } from './built-in-default-form';
+import { humanizeCkTypeName } from './ck-type-name';
 import { parseDefault, isArrayType, isDateType, isNumericType, isRecordType } from './entity-form-value-mapper';
 import { parseVisibleWhen } from './visible-when';
 
@@ -81,9 +82,6 @@ export function humanize(name: string): string {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-function typeShortName(rtCkTypeId: string): string {
-  return rtCkTypeId.includes('/') ? rtCkTypeId.substring(rtCkTypeId.lastIndexOf('/') + 1) : rtCkTypeId;
-}
 
 // ─── Picking ────────────────────────────────────────────────────────────────────────
 
@@ -714,7 +712,7 @@ export function resolveEntityForm(
     formTargetCkTypeId: form.targetCkTypeId,
     isAbstract: type.isAbstract,
     includeDerivedTypes: form.includeDerivedTypes,
-    title: (exact && form.name) || humanize(typeShortName(type.rtCkTypeId)),
+    title: (exact && form.name) || humanizeCkTypeName(type.rtCkTypeId),
     capabilities: {
       canCreate: form.canCreate !== false,
       canEdit: form.canEdit !== false,

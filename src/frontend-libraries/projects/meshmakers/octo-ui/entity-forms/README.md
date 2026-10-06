@@ -70,7 +70,11 @@ The host must provide what the library services expect:
 Optional `entityFormRoutes` options for the page heading and list: `title` (route data
 `entityListTitle`) replaces the resolved form title as the list heading and breadcrumb label
 (e.g. "All configurations" over `System/Configuration`); `showTypeColumn` (route data
-`entityListTypeColumn`) adds a "Type" column with the short CK type name of each row. A
+`entityListTypeColumn`) adds a "Type" column with the display name of each row's CK type: the
+`Name` of the type's entity form (`entityFormTypeTitles` / `ckTypeDisplayName`), else
+`humanizeCkTypeName` — sentence case with known acronyms and brands (`EMailReceiverConfiguration`
+→ "E-mail receiver configuration", `FinApiConfiguration` → "finAPI configuration",
+`SftpConfiguration` → "SFTP configuration"; AB#5524). A
 **singleton** form is titled with its form name (e.g. "Tenant mode"), never "Edit <entity name>".
 
 Page inputs (bound by `withComponentInputBinding()` from route params / data, otherwise read from

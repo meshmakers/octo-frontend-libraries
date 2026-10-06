@@ -42,7 +42,8 @@ export {
   DEFAULT_GENERATED_SECTION_TITLE,
 } from './core/entity-form-resolver';
 export type { EntityFormSource, ResolveEntityFormOptions } from './core/entity-form-resolver';
-export { entityFormCatalog, entityFormKey } from './core/entity-form-catalog';
+export { entityFormCatalog, entityFormKey, entityFormTypeTitles, ckTypeDisplayName } from './core/entity-form-catalog';
+export { humanizeCkTypeName, ckTypeShortName } from './core/ck-type-name';
 export type { EntityFormCatalogEntry } from './core/entity-form-catalog';
 export { BUILT_IN_DEFAULT_FORM } from './core/built-in-default-form';
 export { ENTITY_FORM_FALLBACK_FORMS, withFallbackForms, selectFallbackForms, isChainEndForm } from './core/fallback-forms';

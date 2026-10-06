@@ -4,8 +4,11 @@ import {
   computed,
   effect,
   inject,
+  Injector,
   input,
   output,
+  signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { CkTypeSelectorDialogService } from '@meshmakers/octo-ui';
@@ -26,6 +29,9 @@ import {
 import { CkAttributeInfo, ResolvedEntityForm, ResolvedListColumn } from '../models/entity-form.models';
 import { formatReferenceDisplayValue } from '../form/reference/reference-display-format';
 import { EntityFormDataService } from '../services/entity-form-data.service';
+import { EntityFormService } from '../services/entity-form.service';
+import { ckTypeDisplayName, entityFormTypeTitles } from '../core/entity-form-catalog';
+import { humanizeCkTypeName } from '../core/ck-type-name';
 import { EntityListDataSourceDirective, EntityListRow } from './entity-list-data-source.directive';
 import { EntityListMonoCellComponent } from './entity-list-mono-cell.component';
 import { confirmEntityFormAction, ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
@@ -135,6 +141,11 @@ export class EntityListComponent {
   private readonly notificationService = inject(NotificationDisplayService);
   private readonly dataService = inject(EntityFormDataService);
   private readonly ckTypeSelectorDialog = inject(CkTypeSelectorDialogService, { optional: true });
+  /** Resolves `EntityFormService` lazily: only the Type column needs the form titles. */
+  private readonly injector = inject(Injector);
+  /** Form titles per CK type (lower-case id) for the Type column (AB#5524). */
+  private readonly typeTitles = signal<ReadonlyMap<string, string>>(new Map());
+  private typeTitlesRequested = false;
 
   /** The resolved form (`EntityFormService.resolve` / `resolveByFormKey`). */
   readonly model = input.required<ResolvedEntityForm>();
@@ -144,7 +155,10 @@ export class EntityListComponent {
   readonly messages = input<Partial<EntityFormsMessages>>({});
   /** `mm-list-view` state persistence key; defaults to the route path. */
   readonly listStateKey = input<string | undefined>(undefined);
-  /** Appends a "Type" column with the short CK type name of each row (lists over a base type). */
+  /**
+   * Appends a "Type" column with the display name of each row's CK type (lists over a base type):
+   * the title of the type's entity form, else the humanized type name (AB#5524).
+   */
   readonly showTypeColumn = input<boolean>(false);
 
   /** "New" was confirmed; carries the concrete type (after the subtype picker for abstract types). */
@@ -168,6 +182,7 @@ export class EntityListComponent {
     const labels: EntityListCellLabels = { yes: m.toggleOn, no: m.toggleOff };
     const columns = this.model().listColumns.map((c) => toEntityListColumn(c, labels));
     if (this.showTypeColumn() && !columns.some((c) => c.field === 'ckTypeId')) {
+      const titles = this.typeTitles();
       const changed = columns.findIndex((c) => c.field === 'rtChangedDateTime');
       const typeColumn: TableColumn = {
         field: 'ckTypeId',
@@ -175,7 +190,7 @@ export class EntityListComponent {
         dataType: 'text',
         sortable: false,
         filterable: false,
-        formatter: (value) => shortTypeName(String(value ?? '')),
+        formatter: (value) => ckTypeDisplayName(String(value ?? ''), titles),
       };
       columns.splice(changed >= 0 ? changed : columns.length, 0, typeColumn);
     }
@@ -245,6 +260,25 @@ export class EntityListComponent {
       const model = this.model();
       ds?.setModel(model);
     });
+    effect(() => {
+      if (this.showTypeColumn()) {
+        untracked(() => void this.loadTypeTitles());
+      }
+    });
+  }
+
+  /** Loads the form titles of the Type column once; without them the type names are humanized. */
+  private async loadTypeTitles(): Promise<void> {
+    if (this.typeTitlesRequested) {
+      return;
+    }
+    this.typeTitlesRequested = true;
+    try {
+      const forms = await this.injector.get(EntityFormService).getForms();
+      this.typeTitles.set(entityFormTypeTitles(forms));
+    } catch (error) {
+      console.warn('mm-entity-list: form titles for the Type column could not be loaded', error);
+    }
   }
 
   /** Reloads the list. */
@@ -366,9 +400,10 @@ function rowName(row: EntityListRow): string {
   return row.rtWellKnownName || row.rtDisplayName || row.rtId;
 }
 
-/** `System.Communication/SftpConfiguration` → `Sftp configuration`. */
+/**
+ * `System.Communication/SftpConfiguration` → `SFTP configuration`.
+ * @deprecated Use `humanizeCkTypeName` (or `ckTypeDisplayName` with form titles).
+ */
 export function shortTypeName(ckTypeId: string): string {
-  const name = ckTypeId.split('/').pop()?.replace(/-\d+$/, '') ?? '';
-  const words = name.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').toLowerCase();
-  return words ? words.charAt(0).toUpperCase() + words.slice(1) : ckTypeId;
+  return humanizeCkTypeName(ckTypeId) || ckTypeId;
 }

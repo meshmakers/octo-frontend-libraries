@@ -147,7 +147,7 @@ describe('resolveEntityForm with live fixtures', () => {
   it('form-default on SftpConfiguration skips Name/Description silently', () => {
     const model = resolveEntityForm(sftpType, [defaultForm]);
     expect(model.formWellKnownName).toBe('form-default');
-    expect(model.title).toBe('Sftp configuration');
+    expect(model.title).toBe('SFTP configuration');
     expect(model.sections.map((s) => s.key)).toEqual(['general', 'system', GENERATED_SECTION_KEY]);
     expect(model.sections[0].fields.map((f) => f.key)).toEqual(['rtWellKnownName']);
     expect(model.warnings).toEqual([]);

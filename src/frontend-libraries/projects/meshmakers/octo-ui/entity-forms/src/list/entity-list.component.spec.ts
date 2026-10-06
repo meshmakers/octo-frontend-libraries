@@ -14,6 +14,8 @@ import { of } from 'rxjs';
 import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
 import { ResolvedEntityForm } from '../models/entity-form.models';
 import { EntityFormDataService } from '../services/entity-form-data.service';
+import { EntityFormService } from '../services/entity-form.service';
+import { form } from '../core/testing/factories';
 import {
   EntityListDataSourceDirective,
   entityListAttributeNames,
@@ -65,6 +67,7 @@ describe('EntityListComponent', () => {
   let dataService: MockedObject<EntityFormDataService>;
   let ckTypeDialog: MockedObject<CkTypeSelectorDialogService>;
   let actionHook: Mock<(r: unknown) => Promise<boolean>>;
+  let formService: { getForms: Mock<() => Promise<unknown[]>> };
 
   beforeEach(async () => {
     confirmation = {
@@ -78,6 +81,7 @@ describe('EntityListComponent', () => {
       delete: vi.fn().mockResolvedValue(true),
     } as unknown as MockedObject<EntityFormDataService>;
     actionHook = vi.fn<(r: unknown) => Promise<boolean>>().mockResolvedValue(true);
+    formService = { getForms: vi.fn<() => Promise<unknown[]>>().mockResolvedValue([]) };
     ckTypeDialog = {
       openCkTypeSelector: vi.fn(),
     } as unknown as MockedObject<CkTypeSelectorDialogService>;
@@ -88,6 +92,7 @@ describe('EntityListComponent', () => {
         { provide: ConfirmationService, useValue: confirmation },
         { provide: NotificationDisplayService, useValue: notifications },
         { provide: EntityFormDataService, useValue: dataService },
+        { provide: EntityFormService, useValue: formService },
         { provide: CkTypeSelectorDialogService, useValue: ckTypeDialog },
         { provide: ENTITY_FORM_ACTION_CONFIRMATION, useValue: (r: unknown) => actionHook(r) },
       ],
@@ -117,7 +122,22 @@ describe('EntityListComponent', () => {
     fixture.componentRef.setInput('showTypeColumn', true);
     const type = cols().find((c) => c.field === 'ckTypeId')!;
     expect(type.displayName).toBe('Type');
-    expect(type.formatter!('System.Communication/SftpConfiguration', {})).toBe('Sftp configuration');
+    expect(type.formatter!('System.Communication/SftpConfiguration', {})).toBe('SFTP configuration');
+  });
+
+  it('labels the Type column with form titles, else a humanized type name (AB#5524)', async () => {
+    formService.getForms.mockResolvedValue([
+      form('System.Communication/HelmRepository', { name: 'Helm repository' }),
+    ]);
+    setInputs(makeModel());
+    fixture.componentRef.setInput('showTypeColumn', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const type = (component as unknown as { columns: () => { field: string; formatter?: (v: unknown, i: unknown) => string }[] })
+      .columns().find((c) => c.field === 'ckTypeId')!;
+    expect(type.formatter!('System.Communication/HelmRepository', {})).toBe('Helm repository');
+    expect(type.formatter!('System.Communication/EMailReceiverConfiguration', {})).toBe('E-mail receiver configuration');
+    expect(formService.getForms).toHaveBeenCalledTimes(1);
   });
 
   it('offers the Copy ID submenu with RtId, CkTypeId, RtCkTypeId and RtEntityId', () => {

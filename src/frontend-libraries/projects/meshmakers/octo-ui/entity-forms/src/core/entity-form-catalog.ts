@@ -1,6 +1,6 @@
 import { EntityFormDefinition } from '../models/entity-form.models';
 import { toKebabTypeKey } from './attribute-path';
-import { humanize } from './entity-form-resolver';
+import { humanizeCkTypeName } from './ck-type-name';
 
 /** Prefix of the well-known names of delivered forms (`form-sftp-configuration`). */
 const FORM_WELL_KNOWN_NAME_PREFIX = 'form-';
@@ -76,11 +76,10 @@ export function entityFormCatalog(forms: readonly EntityFormDefinition[]): Entit
       continue;
     }
     const keySource = sorted.find((f) => (f.rtWellKnownName ?? '').toLowerCase().startsWith(FORM_WELL_KNOWN_NAME_PREFIX)) ?? winner;
-    const shortName = winner.targetCkTypeId.substring(winner.targetCkTypeId.lastIndexOf('/') + 1);
     entries.push({
       key: entityFormKey(keySource),
       category,
-      title: winner.name?.trim() || humanize(shortName),
+      title: winner.name?.trim() || humanizeCkTypeName(winner.targetCkTypeId),
       ...(winner.description?.trim() && { description: winner.description.trim() }),
       ...(winner.icon?.trim() && { icon: winner.icon.trim() }),
       targetCkTypeId: winner.targetCkTypeId,
@@ -90,4 +89,30 @@ export function entityFormCatalog(forms: readonly EntityFormDefinition[]): Entit
     });
   }
   return entries.sort((a, b) => a.title.localeCompare(b.title));
+}
+
+/**
+ * Display names of CK types from the forms (AB#5524): per target type (lower-case key) the
+ * `Name` of its effective form (tenant form first, then priority), for every form with a name —
+ * also forms without `Category`. CK types carry no display name of their own.
+ */
+export function entityFormTypeTitles(forms: readonly EntityFormDefinition[]): Map<string, string> {
+  const titles = new Map<string, string>();
+  for (const form of [...forms].sort(compareForms)) {
+    const target = (form.targetCkTypeId ?? '').trim().toLowerCase();
+    const name = form.name?.trim();
+    if (target && name && !titles.has(target)) {
+      titles.set(target, name);
+    }
+  }
+  return titles;
+}
+
+/**
+ * Display name of a CK type: the form title of {@link entityFormTypeTitles} when there is one,
+ * else {@link humanizeCkTypeName} (`FinApiConfiguration` → `finAPI configuration`).
+ */
+export function ckTypeDisplayName(ckTypeId: string, titles?: ReadonlyMap<string, string>): string {
+  const id = (ckTypeId ?? '').trim();
+  return titles?.get(id.toLowerCase()) ?? titles?.get(id.replace(/-\d+(\.\d+)*$/, '').toLowerCase()) ?? humanizeCkTypeName(id);
 }
