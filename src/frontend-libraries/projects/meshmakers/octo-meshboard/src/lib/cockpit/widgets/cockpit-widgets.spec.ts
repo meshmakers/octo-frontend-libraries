@@ -32,7 +32,7 @@ describe('cockpit widgets', () => {
     explain: vi.fn(),
     isBuilder: vi.fn().mockResolvedValue(true)
   };
-  const boardState = { setWidgetHiddenForViewer: vi.fn() };
+  const boardState = { setWidgetHiddenForViewer: vi.fn(), setWidgetContentHeight: vi.fn() };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -118,6 +118,32 @@ describe('cockpit widgets', () => {
       context.explainEnabled = false;
       fixture = await renderAttention();
       expect(fixture.nativeElement.querySelector('button.ai')).toBeNull();
+    });
+
+    it('reports the natural content height so the phone tier can grow the tile (AB#5558)', async () => {
+      const callbacks: (() => void)[] = [];
+      const original = globalThis.ResizeObserver;
+      globalThis.ResizeObserver = class {
+        constructor(callback: () => void) { callbacks.push(callback); }
+        observe(): void { /* stub */ }
+        disconnect(): void { /* stub */ }
+        unobserve(): void { /* stub */ }
+      } as unknown as typeof ResizeObserver;
+      try {
+        state$.next({ loading: false, visibleProviders: 1, findings: [finding('a', 'error'), finding('b', 'warning')] });
+        const fixture = await renderAttention();
+        const content = fixture.nativeElement.querySelector('.attention-widget > .cw-content') as HTMLElement;
+        expect(content.querySelectorAll('[data-finding]').length).toBe(2);
+        vi.spyOn(content, 'getBoundingClientRect').mockReturnValue({ height: 640 } as DOMRect);
+        callbacks.forEach(callback => callback());
+        const [id, height] = boardState.setWidgetContentHeight.mock.calls.at(-1)!;
+        expect(id).toBe('w1');
+        expect(height).toBeGreaterThanOrEqual(640);
+        fixture.destroy();
+        expect(boardState.setWidgetContentHeight).toHaveBeenLastCalledWith('w1', null);
+      } finally {
+        globalThis.ResizeObserver = original;
+      }
     });
 
     it('caps the list at maxItems and says how many more', async () => {

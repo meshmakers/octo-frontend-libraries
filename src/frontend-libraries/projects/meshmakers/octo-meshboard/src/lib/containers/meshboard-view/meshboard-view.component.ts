@@ -217,8 +217,15 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly displayColumns = computed(() => columnsForTier(this.compactTier(), this.config().columns));
   protected readonly displayAutoFlow = computed(() => this.compactTier() === 'none' ? 'column' as const : 'row' as const);
   protected readonly canEditLayout = computed(() => this.isEditMode() && this.compactTier() === 'none');
-  protected readonly displayGridWidgets = computed(() =>
-    placeWidgetsForTier(this.gridWidgets(), this.compactTier(), this.config().columns));
+  protected readonly displayGridWidgets = computed(() => {
+    const tier = this.compactTier();
+    const config = this.config();
+    // Phone tier only (AB#5558): content-sized widgets grow their tile to fit.
+    const contentSizing = tier === 'phone'
+      ? { heights: this.stateService.widgetContentHeights(), rowHeight: config.rowHeight, gap: config.gap }
+      : undefined;
+    return placeWidgetsForTier(this.gridWidgets(), tier, config.columns, contentSizing);
+  });
 
   // Time Filter computed signals
   protected readonly isTimeFilterEnabled = computed(() => this.stateService.isTimeFilterEnabled());

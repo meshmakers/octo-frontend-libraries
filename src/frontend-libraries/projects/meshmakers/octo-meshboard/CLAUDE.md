@@ -68,7 +68,17 @@ applies a **presentation-side** remap driven by its own width (ResizeObserver):
 |---|---|---|
 | ≥ 1100px | `none` | Configured columns, persisted col/row anchors, editing enabled |
 | 700–1099px | `tablet` | `min(columns, 3)` columns, anchors dropped (CSS grid auto-flow `row` in reading order), colSpan scaled proportionally (`scaleColSpan`: span 2 of 6 → 1 of 3, min 1), so a KPI row stays side by side; widgets starting in one row that would no longer fit share the columns by largest remainder (3 + 3 of 6 → 2 + 1 of 3) |
-| < 700px | `phone` | Single column, widgets stacked in reading order (sorted by row, then col) |
+| < 700px | `phone` | Single column, widgets stacked in reading order (sorted by row, then col); content-sized widgets grow their tile (below) |
+
+**Content-sized tiles on the phone tier (AB#5558).** Rows have a fixed height, so a list whose
+items stack on a phone (the cockpit "Needs attention" cards) was clipped. Content-sized widgets
+(`attentionList`, `recentItems`, via `cockpit/widgets/content-height.ts`
+`reportCockpitContentHeight`) report the natural height of an unconstrained content wrapper
+(`MeshBoardStateService.setWidgetContentHeight`, cleared on board switch); on the phone tier
+`placeWidgetsForTier(…, contentSizing)` raises their `rowSpan` to
+`rowSpanForContent(height, rowHeight, gap, rowSpan)` (content + `TILE_CHROME_HEIGHT` 64 px, at most
+`MAX_CONTENT_ROWS` 8 — beyond that the widget scrolls). Other tiers keep the configured spans.
+Measure only content whose height does not depend on the tile height, or the tile grows forever.
 
 The persisted board config is **never modified** — the remap lives in
 `utils/compact-layout.ts` (`compactTierForWidth` / `columnsForTier` / `placeWidgetsForTier`,
@@ -1107,7 +1117,8 @@ cockpit/
   drops such widgets outside edit mode and closes empty rows (`utils/compact-layout.ts`
   `collapseEmptyRows`, presentation only). The flag set is cleared on board switch.
 - **Recent items** (`recentItems`) is per user: the board stores only `maxItems` (default 8,
-  clamped 1–20); rows come from the host's `COCKPIT_RECENT_ITEMS` source (`items(limit)`, `open`,
+  clamped 1–20); one compact line per entry (label, muted kind, relative time), so eight rows fit
+  a 2-row tile (AB#5558); rows come from the host's `COCKPIT_RECENT_ITEMS` source (`items(limit)`, `open`,
   optional `revision` signal / `openPalette`). The library never imports host code; the host
   re-checks visibility and owns navigation (real `href` + `open` on a plain left click). No
   source = "Not available" + collapsed. It is **not** in `COCKPIT_WIDGET_TYPES` (those are the
