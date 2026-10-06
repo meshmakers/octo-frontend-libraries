@@ -4,12 +4,11 @@
  * Contract: `octo-construction-kit-engine/docs/secret-frontend-handover.md` §2 (asset repository
  * GraphQL) and §4/§8 (identity providers REST). Field names are binding.
  *
- * The generated `globalTypes.ts` carries the live WP5 schema (`OctoSecretStateDto { isSet }`,
- * `secretIsSet`, `clearSecretAttributes`). `keyMissing` / `setAt` (`secretKeyMissing` /
- * `secretSetAt`) are contract fields of 01fda94e that the local backend does not serve yet: the
- * shapes below declare them OPTIONAL so the UI shows them as soon as documents select them.
- * TODO(AB#5542): after the backend rebuild, add `keyMissing setAt` / `secretKeyMissing secretSetAt`
- * to the documents, re-run codegen and type the helpers with the generated DTOs.
+ * The generated `globalTypes.ts` carries the SECRET round-2 schema (`OctoSecretStateDto { isSet
+ * keyMissing setAt }`, `secretIsSet` / `secretKeyMissing` / `secretSetAt`, `clearSecretAttributes`,
+ * `Query.secrets`). The shapes below accept the generated DTOs structurally; `keyMissing` / `setAt`
+ * stay optional so documents (or older backends) without them still map, and `setAt` accepts the
+ * ISO string Apollo actually delivers as well as a `Date`.
  *
  * Rules (decisions 2026-10-06):
  * - A secret is never read. Typed fields select `{ isSet keyMissing setAt }`, generic attribute

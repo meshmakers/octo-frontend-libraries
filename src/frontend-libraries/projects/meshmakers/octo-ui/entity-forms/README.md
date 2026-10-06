@@ -225,9 +225,8 @@ Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, deci
   secrets included.**
 - SECRET fields (`ResolvedEntityForm.secretStateFields`) are part of that list: the server
   returns `value: null` plus `secretIsSet`, giving `EntityFormValueState.secretStates`
-  (`isSet`, `keyMissing`, `setAt`). `keyMissing` / `setAt` are contract fields
-  (`secretKeyMissing` / `secretSetAt`) not served by the backend yet — add them to
-  `getEntityFormValues.graphql` and re-run codegen once it does (TODO in the document).
+  (`isSet`, `keyMissing`, `setAt`) from `secretIsSet` / `secretKeyMissing` / `secretSetAt`
+  (selected since the SECRET round-2 schema).
 - Fallback secrets are never listed; whether they are set is read with an `IS_NOT_NULL` field
   filter — plus `NOT_EQUALS ""` for STRING secrets — and `totalCount`. (Never use that probe on a
   SECRET: the server refuses every filter but `IS_NULL` / `IS_NOT_NULL` there.)

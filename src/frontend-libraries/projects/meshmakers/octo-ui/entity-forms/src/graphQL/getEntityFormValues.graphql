@@ -3,7 +3,7 @@
 # server return EVERY attribute, secrets included. The list must hold camelCase names and, for
 # record attributes, the record's sub-attribute names as well (the filter is applied to records).
 # SECRET attributes (AB#5528) may be listed: value is always null, secretIsSet reports the state.
-# TODO(AB#5542): add secretKeyMissing secretSetAt once the backend serves them (contract 01fda94e).
+# secretKeyMissing / secretSetAt give the "Key missing — re-enter" and "Set · set at …" badges.
 query entityFormGetValues(
   $ckTypeId: String!
   $rtId: OctoObjectId
@@ -25,6 +25,8 @@ query entityFormGetValues(
             attributeName
             value
             secretIsSet
+            secretKeyMissing
+            secretSetAt
           }
         }
       }

@@ -639,13 +639,14 @@ local SECRET backend, contract `octo-construction-kit-engine/docs/secret-fronten
 members inside a generic record value; typed record members are `{ isSet }` — echoing a marker back
 means "unchanged", omitting the member carries it over by the record key), update inputs (`<Type>InputUpdate`,
 `RtEntityUpdate`) take `clearSecretAttributes`. `keyMissing` / `setAt` (`secretKeyMissing` /
-`secretSetAt`) are contract fields not served by the local backend yet: the octo-services helpers
+`secretSetAt`) are served since the SECRET round-2 schema (2026-10-06) and selected by every secret
+document; the octo-services helpers
 (`secret-state.ts`: `SecretState`, `secretStateFromAttribute`, `toSecretState`, `secretStatusOf`,
 `isSecretPresent`, `isSecretStateObject`, `formatSecretStatus` + `DEFAULT_SECRET_STATUS_LABELS`,
 `secretInputValue`, `SECRET_VALUE_TYPE`, `isSecretValueType`) treat them as optional. These are the
 ONLY definitions of the secret state, the SECRET type check and the status wording — hosts (Studio)
 and the entity forms (`EntityFormSecretFieldState` is an alias of `SecretState`, badge labels via
-`secretStatusLabelsOf(messages)`) must not redefine them; documents carry `TODO(AB#5542)` to select them after the backend rebuild.
+`secretStatusLabelsOf(messages)`) must not redefine them.
 Credentials of models that have not switched to SECRET still come back in clear text, so the
 generic `attributes` field (`RtEntityAttributeDtoConnection`) can still return passwords, client
 secrets, API keys when `attributeNames` is omitted:
@@ -731,8 +732,7 @@ blocked with `saveBlockedReason()` when a required secret cannot be entered — 
 members with badge + write-only input in the record row editor, omitted on save when kept), IdP
 DTO (`clientSecretIsSet` / `clientSecretKeyMissing` / `clientSecretSetAt`, `clientSecret`
 write-only), bot `BotSecretsService` (status, sweeps, runs, dumps) and the `SecretManagement` role.
-Open: select `keyMissing` / `setAt` after the backend rebuild (`TODO(AB#5542)` in
-`getEntityFormValues.graphql`, `getRuntimeEntityById.graphql`); the runtime-browser update editor
+`keyMissing` / `setAt` are selected (round-2 schema). Open: the runtime-browser update editor
 still has no Clear (use the entity form).
 
 ### GraphQL Queries
