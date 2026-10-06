@@ -89,8 +89,31 @@ export interface SecretSweepRunDto {
   startedAt: string;
   completedAt: string | null;
   triggeredBy: string | null;
+  /**
+   * Why the run was skipped or failed, or a remark (e.g. "Interrupted (service restart)"); never a
+   * value. `null` / absent while running or when there is nothing to say.
+   */
+  reason?: string | null;
+  /** Counts per storage form BEFORE the run (as found by its own scan); = `totalsAfter` for Verify. */
   totals: SecretFormCountsDto;
+  /**
+   * Counts per storage form AFTER the run (follow-up Verify of a writing run, the own scan of a
+   * Verify). `null` while running and when the run was skipped / failed before that scan; absent on
+   * older bots — show `totalsAfter ?? totals`.
+   */
+  totalsAfter?: SecretFormCountsDto | null;
+  /** Values written by this run (encrypted, re-protected, placeholders normalised, cleared). Absent on older bots. */
+  valuesRewritten?: number;
+  /** Values converted from plaintext / enc:v1 to enc:v2 by this run (part of `valuesRewritten`). Absent on older bots. */
+  encryptedCount?: number;
+  /**
+   * Values left as stored because they changed while the run worked on them; > 0 makes a writing
+   * run `CompletedWithFailures` ("run the sweep again"). Absent on older bots.
+   */
+  skippedConcurrentlyModified?: number;
   placeholdersNormalized: number;
+  /** CleanupUnreadable only: enc:v1 values kept because only the legacy key is missing. Absent on older bots. */
+  skippedLegacyV1KeyMissing?: number;
   unreadableCount: number;
   /** `null` for Verify (no dump). */
   dump: SecretSweepDumpDto | null;
@@ -141,8 +164,12 @@ export interface SecretSweepStepReportDto {
   entitiesScanned: number;
   entitiesRewritten: number;
   valuesRewritten: number;
+  /** Values converted from plaintext / enc:v1 to enc:v2 by this step (part of `valuesRewritten`). Absent on older bots. */
+  encryptedCount?: number;
   placeholdersNormalized: number;
   skippedConcurrentlyModified: number;
+  /** CleanupUnreadable only: enc:v1 values kept because only the legacy key is missing. Absent on older bots. */
+  skippedLegacyV1KeyMissing?: number;
   success: boolean;
   totals: SecretFormCountsDto;
   slots: SecretSlotCountsDto[];
@@ -169,6 +196,8 @@ export interface SecretSweepReportDto {
   steps: SecretSweepStepReportDto[];
   secretsToReEnter: SecretValueReferenceDto[];
   placeholdersNormalized: number;
+  /** CleanupUnreadable only: enc:v1 values kept because only the legacy key is missing. Absent on older bots. */
+  skippedLegacyV1KeyMissing?: number;
   /** Re-entry list of the run (decision 2026-10-06). */
   unreadable: SecretUnreadableValueDto[];
 }
