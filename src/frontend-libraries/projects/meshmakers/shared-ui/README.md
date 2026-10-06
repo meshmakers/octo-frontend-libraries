@@ -208,6 +208,18 @@ All complex dialogs are opened via injected services:
 | `ImportStrategyDialogService` | — | Import strategy selection |
 | `MessageDetailsDialogService` | — | Detailed message/error display |
 
+Toast stacking is configurable with `NOTIFICATION_DISPLAY_OPTIONS`: identical visible toasts (same
+type, text and details) are never stacked twice (`dedupe`, default on); `errorHideAfter` /
+`warningHideAfter` (ms, default 0 = until interaction or navigation) auto-hide non-critical errors
+and warnings — a caller passing `hideAfter: 0` still gets a sticky one, and `stickyWithDetails`
+keeps every error/warning that has details; a timed toast pauses while hovered or focused;
+`maxVisible` (default 0 = unlimited) hides the oldest toast of the lowest severity, so an error or
+warning is never dropped for a success or info.
+
+```typescript
+{ provide: NOTIFICATION_DISPLAY_OPTIONS, useValue: { errorHideAfter: 10000, warningHideAfter: 8000, stickyWithDetails: true, maxVisible: 3 } }
+```
+
 See [Progress Window Usage](src/lib/progress-window/USAGE.md) for progress dialog examples.
 
 ## Data Sources
