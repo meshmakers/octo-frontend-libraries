@@ -854,7 +854,7 @@ ng test @meshmakers/octo-services --watch=false --coverage
 ## Dependencies
 
 - `@angular/common/http` - HTTP client
-- `@apollo/client` - GraphQL client; a **peer dependency** (`^4.2.3`, the range apollo-angular 14 expects) because it is imported at runtime (`InMemoryCache`, `ApolloLink`, `onError`, `CombinedGraphQLErrors`)
+- `@apollo/client` - GraphQL client; a **peer dependency** (`^4.1.0` — every API used here exists since 4.1; hosts on apollo-angular 14.1 / @apollo/client 4.1, e.g. voest-app, keep installing) because it is imported at runtime (`InMemoryCache`, `ApolloLink`, `onError`, `CombinedGraphQLErrors`)
 - `apollo-angular` - Angular Apollo integration
 - `graphql` - GraphQL reference implementation; a **peer dependency** (`^16.0.0 || ^17.0.0`, the range apollo-angular and @apollo/client declare) because the public API exposes its `DocumentNode` type (only that type is imported; the specs use `parse` / `buildSchema`). Do not move it to `dependencies` — a second copy of `graphql` breaks `instanceof` checks in Apollo.
 - `@meshmakers/shared-services` - Shared services (MessageService, PagedResultDto)
