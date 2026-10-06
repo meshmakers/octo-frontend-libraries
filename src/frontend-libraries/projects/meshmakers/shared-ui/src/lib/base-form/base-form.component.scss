@@ -124,8 +124,6 @@
     padding: 0.25rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     color: var(--mm-form-status-modified);
     background: rgba(218, 145, 98, 0.15);
     border: 1px solid rgba(218, 145, 98, 0.4);
@@ -176,9 +174,7 @@
     .mm-status-text {
       font-size: 0.7rem;
       font-weight: 600;
-      letter-spacing: 1px;
       color: var(--mm-form-status-ready);
-      text-transform: uppercase;
     }
 
     &.modified {

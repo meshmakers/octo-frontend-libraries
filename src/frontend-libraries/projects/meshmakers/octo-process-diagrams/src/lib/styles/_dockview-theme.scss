@@ -1,20 +1,22 @@
 // ============================================================================
-// DOCKVIEW THEME (formerly LCARS-specific — now neutral with host fallbacks)
+// DOCKVIEW THEME — Deep Sea (AB#5526)
 //
 // Usage in host application (styles.scss):
-//   @use '@meshmakers/octo-process-diagrams/styles/dockview-lcars-theme' as dockview;
-//   @include dockview.lcars-theme();
+//   @use '@meshmakers/octo-process-diagrams/styles/dockview-theme' as dockview;
+//   @include dockview.dockview-theme();
 //
-// The mixin emits --dv-* variables that reference --theme-* host tokens with
-// neutral fallbacks. Hosts that define --theme-* tokens (e.g., octo-mesh-refinery-studio's
-// dark/light theme system) get a fully themed dockview; hosts that don't get a
-// sensible neutral default. The mixin name `lcars-theme` is preserved for
-// backward compatibility; existing `@include dockview.lcars-theme();` calls
-// continue to work.
+// The mixin emits --dv-* variables and element overrides that reference the
+// host's --theme-* tokens (surfaces, neutral hairline borders, accent for the
+// active tab, focus and drop targets) with neutral dark fallbacks, so hosts
+// without theme tokens still get a sensible default. Flat: no gradients, no
+// glows, sentence-case tabs and labels in the UI face.
+//
+// The former `_dockview-lcars-theme.scss` alias (`lcars-theme` /
+// `lcars-css-variables`) was removed in AB#5526.
 // ============================================================================
 
-// Mixin to apply LCARS-style theme to dockview, driven by host --theme-* tokens
-@mixin lcars-theme() {
+// Mixin to apply the Deep Sea theme to dockview, driven by host --theme-* tokens
+@mixin dockview-theme() {
   // Override CSS variables for dockview - target the actual dockview elements
   mm-process-designer,
   mm-symbol-editor {
@@ -24,8 +26,8 @@
     --dv-group-view-background-color: var(--theme-bg-elevated, #1f2e40);
     --dv-tabs-and-actions-container-background-color: var(--theme-bg-surface, #394555);
     --dv-tabs-overflow-dropdown-background-color: var(--theme-bg-surface, #394555);
-    --dv-icon-hover-background-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 20%, transparent);
-    --dv-tab-divider-color: var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
+    --dv-icon-hover-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+    --dv-tab-divider-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
 
     // Tab colors - active group
     --dv-activegroup-visiblepanel-tab-background-color: var(--theme-bg-elevated, #1f2e40);
@@ -40,18 +42,18 @@
     --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
 
     // Borders and separators
-    --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
+    --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
 
     // Tab active indicator
     --dv-tab-active-border-bottom: 2px solid var(--theme-text-accent, #64ceb9);
 
     // Drag overlay
-    --dv-drag-over-background-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent);
-    --dv-drag-over-border-color: var(--octo-mint, #64ceb9);
+    --dv-drag-over-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+    --dv-drag-over-border-color: var(--theme-accent, #64ceb9);
 
     // Sash (resizer)
-    --dv-sash-color: var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
-    --dv-sash-hover-color: var(--octo-mint, #64ceb9);
+    --dv-sash-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    --dv-sash-hover-color: var(--theme-accent, #64ceb9);
   }
 
   // Direct style overrides for dockview elements (higher specificity)
@@ -65,8 +67,8 @@
     --dv-group-view-background-color: var(--theme-bg-elevated, #1f2e40);
     --dv-tabs-and-actions-container-background-color: var(--theme-bg-surface, #394555);
     --dv-tabs-overflow-dropdown-background-color: var(--theme-bg-surface, #394555);
-    --dv-icon-hover-background-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 20%, transparent);
-    --dv-tab-divider-color: var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
+    --dv-icon-hover-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+    --dv-tab-divider-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
     --dv-activegroup-visiblepanel-tab-background-color: var(--theme-bg-elevated, #1f2e40);
     --dv-activegroup-hiddenpanel-tab-background-color: var(--theme-bg-surface, #394555);
     --dv-activegroup-visiblepanel-tab-color: var(--theme-text-accent, #64ceb9);
@@ -75,11 +77,11 @@
     --dv-inactivegroup-hiddenpanel-tab-background-color: color-mix(in srgb, var(--theme-bg-surface, #394555) 70%, transparent);
     --dv-inactivegroup-visiblepanel-tab-color: var(--theme-text-secondary, #9292a6);
     --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
-    --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
-    --dv-sash-color: var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
-    --dv-sash-hover-color: var(--octo-mint, #64ceb9);
-    --dv-drag-over-background-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent);
-    --dv-drag-over-border-color: var(--octo-mint, #64ceb9);
+    --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    --dv-sash-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+    --dv-sash-hover-color: var(--theme-accent, #64ceb9);
+    --dv-drag-over-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+    --dv-drag-over-border-color: var(--theme-accent, #64ceb9);
   }
 
   // Direct element overrides for tabs and containers
@@ -91,17 +93,15 @@
 
     .dv-tabs-and-actions-container {
       background-color: var(--theme-bg-surface, #394555) !important;
-      border-bottom: 1px solid var(--theme-border-subtle, rgba(100, 206, 185, 0.20)) !important;
+      border-bottom: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08)) !important;
     }
 
     .dv-tab {
       background-color: var(--theme-bg-surface, #394555) !important;
       color: var(--theme-text-secondary, #9292a6) !important;
-      font-family: "Montserrat", "Roboto", sans-serif;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
       font-weight: 500;
-      text-transform: uppercase;
       font-size: 11px;
-      letter-spacing: 0.5px;
       transition: all 0.15s ease;
 
       &.dv-active-tab {
@@ -111,7 +111,7 @@
       }
 
       &:hover:not(.dv-active-tab) {
-        background-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent) !important;
+        background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06)) !important;
         color: var(--theme-text-primary, #ffffff) !important;
       }
     }
@@ -133,47 +133,42 @@
     }
 
     .dv-sash {
-      background-color: var(--theme-border-subtle, rgba(100, 206, 185, 0.20)) !important;
+      background-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08)) !important;
 
       &:hover,
       &.dv-active {
-        background-color: var(--octo-mint, #64ceb9) !important;
-        box-shadow: 0 0 8px color-mix(in srgb, var(--octo-mint, #64ceb9) 50%, transparent);
+        background-color: var(--theme-accent, #64ceb9) !important;
       }
     }
 
     .dv-drop-target-dropzone {
-      background-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent) !important;
-      border: 2px dashed var(--octo-mint, #64ceb9) !important;
+      background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06)) !important;
+      border: 1px dashed var(--theme-accent, #64ceb9) !important;
     }
 
     // Floating overflow dropdown
     .dv-tabs-overflow-container {
       background-color: var(--theme-bg-surface, #394555) !important;
-      border: 1px solid color-mix(in srgb, var(--octo-mint, #64ceb9) 30%, transparent) !important;
-      box-shadow:
-        var(--theme-shadow-popup, 0 4px 20px rgba(0, 0, 0, 0.4)),
-        0 0 15px color-mix(in srgb, var(--octo-mint, #64ceb9) 10%, transparent) !important;
+      border: 1px solid var(--theme-border-default, rgba(200, 214, 229, 0.14)) !important;
+      box-shadow: var(--theme-shadow-popup, 0 4px 20px rgba(0, 0, 0, 0.4)) !important;
     }
   }
 
-  // Additional LCARS styling for dockview elements
+  // Additional styling for dockview elements
   mm-process-designer,
   mm-symbol-editor {
     // View menu dropdown styling
     .view-menu-dropdown {
       background: var(--theme-bg-elevated, #1f2e40);
-      border: 1px solid color-mix(in srgb, var(--octo-mint, #64ceb9) 30%, transparent);
-      box-shadow:
-        var(--theme-shadow-popup, 0 4px 20px rgba(0, 0, 0, 0.4)),
-        0 0 15px color-mix(in srgb, var(--octo-mint, #64ceb9) 10%, transparent);
+      border: 1px solid var(--theme-border-default, rgba(200, 214, 229, 0.14));
+      box-shadow: var(--theme-shadow-popup, 0 4px 20px rgba(0, 0, 0, 0.4));
     }
 
     .view-menu-item {
       color: var(--theme-text-primary, #ffffff);
 
       &:hover {
-        background: color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent);
+        background: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
       }
     }
 
@@ -186,7 +181,7 @@
     }
 
     .view-menu-divider {
-      background: var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
+      background: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
     }
   }
 
@@ -221,7 +216,7 @@
 
     .no-selection {
       color: var(--theme-text-secondary, #9292a6);
-      font-family: "Montserrat", "Roboto", sans-serif;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
 
       .hint {
         color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
@@ -232,12 +227,10 @@
     .section-header,
     .panel-section-header {
       color: var(--theme-text-accent, #64ceb9);
-      font-family: "Montserrat", "Roboto", sans-serif;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
       font-weight: 600;
-      text-transform: uppercase;
       font-size: 11px;
-      letter-spacing: 0.5px;
-      border-bottom: 1px solid var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
+      border-bottom: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
     }
 
     // Form inputs
@@ -245,50 +238,36 @@
     select,
     textarea {
       background: var(--theme-bg-input, #07172b);
-      border: 1px solid color-mix(in srgb, var(--octo-mint, #64ceb9) 30%, transparent);
+      border: 1px solid var(--theme-border-default, rgba(200, 214, 229, 0.14));
       color: var(--theme-text-primary, #ffffff);
       border-radius: 4px;
 
       &:focus {
-        border-color: var(--octo-mint, #64ceb9);
-        box-shadow: 0 0 8px color-mix(in srgb, var(--octo-mint, #64ceb9) 30%, transparent);
+        border-color: var(--theme-accent, #64ceb9);
         outline: none;
       }
     }
 
     label {
       color: var(--theme-text-secondary, #9292a6);
-      font-family: "Montserrat", "Roboto", sans-serif;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
       font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     // Buttons in panels
     button {
-      background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent),
-        color-mix(in srgb, var(--octo-mint, #64ceb9) 5%, transparent)
-      );
-      border: 1px solid color-mix(in srgb, var(--octo-mint, #64ceb9) 30%, transparent);
+      background: transparent;
+      border: 1px solid var(--theme-border-default, rgba(200, 214, 229, 0.14));
       color: var(--theme-text-accent, #64ceb9);
       border-radius: 4px;
-      font-family: "Montserrat", "Roboto", sans-serif;
+      font-family: var(--theme-font-ui, "Roboto", sans-serif);
       font-weight: 500;
-      text-transform: uppercase;
       font-size: 11px;
-      letter-spacing: 0.5px;
       transition: all 0.15s ease;
 
       &:hover:not(:disabled) {
-        background: linear-gradient(
-          180deg,
-          color-mix(in srgb, var(--octo-mint, #64ceb9) 25%, transparent),
-          color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent)
-        );
-        border-color: var(--octo-mint, #64ceb9);
-        box-shadow: 0 0 10px color-mix(in srgb, var(--octo-mint, #64ceb9) 30%, transparent);
+        background: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+        border-color: var(--theme-accent, #64ceb9);
       }
 
       &:disabled {
@@ -302,16 +281,15 @@
   mm-symbols-panel {
     .palette-category {
       background: transparent;
-      border-bottom: 1px solid color-mix(in srgb, var(--octo-mint, #64ceb9) 10%, transparent);
+      border-bottom: 1px solid var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
 
       .category-header {
         color: var(--theme-text-secondary, #9292a6);
-        font-family: "Montserrat", "Roboto", sans-serif;
+        font-family: var(--theme-font-ui, "Roboto", sans-serif);
         font-size: 11px;
-        text-transform: uppercase;
 
         &:hover {
-          background: color-mix(in srgb, var(--octo-mint, #64ceb9) 10%, transparent);
+          background: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
         }
       }
 
@@ -322,14 +300,14 @@
 
     .palette-item {
       background: color-mix(in srgb, var(--theme-bg-surface, #394555) 50%, transparent);
-      border: 1px solid color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent);
+      border: 1px solid var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
       border-radius: 4px;
       color: var(--theme-text-primary, #ffffff);
       transition: all 0.15s ease;
 
       &:hover {
-        background: color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent);
-        border-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 40%, transparent);
+        background: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+        border-color: var(--theme-border-default, rgba(200, 214, 229, 0.14));
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
 
@@ -339,7 +317,7 @@
       }
 
       svg {
-        stroke: var(--octo-mint, #64ceb9);
+        stroke: var(--theme-accent, #64ceb9);
         fill: none;
       }
     }
@@ -350,14 +328,14 @@
 // Add these CSS variables to your :root or component host. These reference
 // --theme-* host tokens with neutral dark fallbacks, so the result adapts to
 // the host's active theme (or stays dark if no host theme is defined).
-@mixin lcars-css-variables() {
+@mixin dockview-css-variables() {
   --dv-background-color: var(--theme-bg-app, #07172b);
   --dv-pane-background-color: var(--theme-bg-elevated, #1f2e40);
   --dv-group-view-background-color: var(--theme-bg-elevated, #1f2e40);
   --dv-tabs-and-actions-container-background-color: var(--theme-bg-surface, #394555);
   --dv-tabs-overflow-dropdown-background-color: var(--theme-bg-surface, #394555);
-  --dv-icon-hover-background-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 20%, transparent);
-  --dv-tab-divider-color: var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
+  --dv-icon-hover-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+  --dv-tab-divider-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
   --dv-activegroup-visiblepanel-tab-background-color: var(--theme-bg-elevated, #1f2e40);
   --dv-activegroup-hiddenpanel-tab-background-color: var(--theme-bg-surface, #394555);
   --dv-activegroup-visiblepanel-tab-color: var(--theme-text-accent, #64ceb9);
@@ -366,10 +344,10 @@
   --dv-inactivegroup-hiddenpanel-tab-background-color: color-mix(in srgb, var(--theme-bg-surface, #394555) 70%, transparent);
   --dv-inactivegroup-visiblepanel-tab-color: var(--theme-text-secondary, #9292a6);
   --dv-inactivegroup-hiddenpanel-tab-color: color-mix(in srgb, var(--theme-text-secondary, #9292a6) 70%, transparent);
-  --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
+  --dv-separator-border: 1px solid var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
   --dv-tab-active-border-bottom: 2px solid var(--theme-text-accent, #64ceb9);
-  --dv-drag-over-background-color: color-mix(in srgb, var(--octo-mint, #64ceb9) 15%, transparent);
-  --dv-drag-over-border-color: var(--octo-mint, #64ceb9);
-  --dv-sash-color: var(--theme-border-subtle, rgba(100, 206, 185, 0.20));
-  --dv-sash-hover-color: var(--octo-mint, #64ceb9);
+  --dv-drag-over-background-color: var(--theme-bg-hover, rgba(200, 214, 229, 0.06));
+  --dv-drag-over-border-color: var(--theme-accent, #64ceb9);
+  --dv-sash-color: var(--theme-border-subtle, rgba(200, 214, 229, 0.08));
+  --dv-sash-hover-color: var(--theme-accent, #64ceb9);
 }

@@ -94,9 +94,7 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
       font-family: var(--mm-tenant-switcher-font, inherit);
       font-size: 0.85rem;
       font-weight: 600;
-      letter-spacing: 1px;
       color: var(--mm-tenant-switcher-accent, var(--kendo-color-primary, #ff6358));
-      text-transform: uppercase;
       text-shadow: var(--mm-tenant-switcher-text-shadow, none);
     }
 
@@ -116,7 +114,6 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
       font-family: var(--mm-tenant-switcher-font, inherit);
       font-size: 0.55rem;
       font-weight: 700;
-      letter-spacing: 1px;
       color: var(--mm-tenant-switcher-denied-accent, var(--kendo-color-error, #d9534f));
       background: var(--mm-tenant-switcher-denied-label-bg, color-mix(in srgb, var(--kendo-color-error, #d9534f) 15%, transparent));
       padding: 2px 6px;
@@ -138,8 +135,6 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
       padding: 8px 16px;
       font-size: 0.75rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       color: var(--kendo-color-subtle, #666);
       border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
       margin-bottom: 4px;

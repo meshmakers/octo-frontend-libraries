@@ -41,17 +41,11 @@
 
   .basic-info-card {
     padding: 20px 24px;
-    background: linear-gradient(
-      180deg,
-      var(--iron-navy),
-      var(--surface-elevated)
-    );
-    border: 1px solid var(--octo-mint-30);
-    border-radius: 4px 16px 4px 16px;
+    background: var(--theme-bg-elevated);
+    border: 1px solid var(--theme-border-default);
+    border-radius: var(--theme-radius-md, 6px);
     position: relative;
-    box-shadow:
-      0 4px 20px rgba(0, 0, 0, 0.4),
-      0 0 15px var(--octo-mint-08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 
     // LCARS accent line
     &::before {
@@ -61,13 +55,8 @@
       left: 0;
       width: 4px;
       height: 100%;
-      background: linear-gradient(
-        180deg,
-        var(--octo-mint),
-        var(--neo-cyan),
-        var(--royal-violet)
-      );
-      box-shadow: 0 0 10px var(--octo-mint-50);
+      background: transparent;
+      box-shadow: none;
       border-radius: 4px 0 0 4px;
     }
 
@@ -82,11 +71,9 @@
         gap: 8px;
 
         label {
-          font-family: "Montserrat", sans-serif;
+          font-family: var(--theme-font-display, "Montserrat", sans-serif);
           font-weight: 600;
           font-size: 0.75rem;
-          letter-spacing: 0.5px;
-          text-transform: uppercase;
           color: var(--octo-mint-80);
         }
 
@@ -124,13 +111,9 @@
   .entity-tabs {
     flex: 1;
     min-height: 400px;
-    background: linear-gradient(
-      180deg,
-      var(--iron-navy),
-      var(--surface-elevated)
-    );
-    border: 1px solid var(--octo-mint-30);
-    border-radius: 4px 16px 4px 16px;
+    background: var(--theme-bg-elevated);
+    border: 1px solid var(--theme-border-default);
+    border-radius: var(--theme-radius-md, 6px);
     overflow: hidden;
     position: relative;
 
@@ -142,13 +125,8 @@
       left: 0;
       width: 4px;
       height: 100%;
-      background: linear-gradient(
-        180deg,
-        var(--octo-mint),
-        var(--neo-cyan),
-        var(--royal-violet)
-      );
-      box-shadow: 0 0 10px var(--octo-mint-50);
+      background: transparent;
+      box-shadow: none;
       z-index: 1;
     }
 
@@ -158,7 +136,7 @@
         background: transparent;
 
         .k-tabstrip-items-wrapper {
-          background: linear-gradient(90deg, var(--octo-mint-10), transparent);
+          background: var(--theme-bg-elevated);
           border-bottom: 1px solid var(--octo-mint-20);
           padding-left: 20px;
 
@@ -167,11 +145,9 @@
               background: transparent;
               border: none;
               color: rgba(#{var(--octo-text-color)}, 0.7);
-              font-family: "Montserrat", sans-serif;
+              font-family: var(--theme-font-display, "Montserrat", sans-serif);
               font-weight: 600;
               font-size: 0.8rem;
-              letter-spacing: 0.5px;
-              text-transform: uppercase;
               padding: 12px 20px;
               margin-right: 4px;
               border-radius: 4px 4px 0 0;
@@ -179,18 +155,14 @@
 
               &:hover {
                 background: var(--octo-mint-10);
-                color: var(--octo-mint);
+                color: var(--theme-text-accent, var(--octo-mint));
               }
 
               &.k-active {
-                background: linear-gradient(
-                  180deg,
-                  var(--octo-mint-20),
-                  transparent
-                );
-                color: var(--octo-mint);
+                background: var(--theme-bg-elevated);
+                color: var(--theme-text-accent, var(--octo-mint));
                 border-bottom: 2px solid var(--octo-mint);
-                box-shadow: 0 0 10px var(--octo-mint-30);
+                box-shadow: none;
               }
             }
           }
@@ -221,15 +193,13 @@
           font-size: 64px;
           margin-bottom: 20px;
           color: var(--octo-mint-40);
-          text-shadow: 0 0 20px var(--octo-mint-30);
         }
 
         p {
           margin: 0;
-          font-family: "Montserrat", sans-serif;
+          font-family: var(--theme-font-display, "Montserrat", sans-serif);
           font-size: 0.9rem;
           color: rgba(#{var(--octo-text-color)}, 0.5);
-          letter-spacing: 0.5px;
         }
       }
 
@@ -257,7 +227,7 @@
           align-items: center;
           gap: 16px;
           padding: 16px 20px;
-          background: linear-gradient(90deg, var(--octo-mint-05), transparent);
+          background: var(--theme-bg-elevated);
           border-bottom: 1px solid var(--octo-mint-20);
 
           .filter-group {
@@ -266,11 +236,9 @@
             gap: 10px;
 
             label {
-              font-family: "Montserrat", sans-serif;
+              font-family: var(--theme-font-display, "Montserrat", sans-serif);
               font-weight: 600;
               font-size: 0.75rem;
-              letter-spacing: 0.5px;
-              text-transform: uppercase;
               color: var(--octo-mint-80);
               white-space: nowrap;
             }
@@ -330,8 +298,6 @@
             padding: 8px 14px;
             font-size: 0.75rem;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
             color: var(--kendo-color-on-primary, #ffffff);
             background: var(--kendo-color-primary, #ff6358);
           }
@@ -352,8 +318,6 @@
           label {
             font-size: 0.75rem;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             color: var(--kendo-color-subtle, #6c757d);
           }
         }

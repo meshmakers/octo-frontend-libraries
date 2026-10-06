@@ -388,7 +388,6 @@ export interface TransformPropertyChangeEvent {
       border-radius: 4px;
       font-size: 10px;
       color: #1976d2;
-      text-transform: uppercase;
     }
 
     .property-unit {

@@ -692,7 +692,6 @@ import { SymbolEditorComponent } from './symbol-editor.component';
       font-size: 12px;
       font-weight: 600;
       color: #666;
-      text-transform: uppercase;
     }
 
     .editor-container {

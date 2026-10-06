@@ -70,7 +70,7 @@ interface StatusListItem {
       justify-content: space-between;
       padding: 10px 14px;
       border-radius: 6px;
-      background: var(--mm-status-list-item-bg, rgba(255, 255, 255, 0.04));
+      background: var(--mm-status-list-item-bg, var(--theme-bg-hover));
       border: 1px solid var(--mm-status-list-item-border, rgba(255, 255, 255, 0.06));
     }
 
@@ -83,8 +83,6 @@ interface StatusListItem {
     .item-badge {
       font-size: 0.7rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       padding: 4px 10px;
       border-radius: 4px;
       color: #fff;

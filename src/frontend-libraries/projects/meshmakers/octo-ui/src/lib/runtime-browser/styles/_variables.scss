@@ -1,10 +1,11 @@
 // ============================================================================
 // RUNTIME BROWSER - Design Tokens (Kendo-independent)
-// LCARS-inspired theme variables. Use with Kendo when host imports Kendo theme.
+// Brand constants and the remaining legacy --lcars-* font/motion aliases of the Deep Sea tokens
+// (_theme.scss). Use with Kendo when host imports Kendo theme.
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// LCARS DESIGN TOKENS - Brand color palette (from Brand Manual)
+// BRAND COLOR PALETTE (from Brand Manual) — logo, charts, marketing blocks
 // ----------------------------------------------------------------------------
 $octo-mint: #64ceb9;        // Primary highlight
 $neo-cyan: #00a8dc;        // Secondary highlight
@@ -12,29 +13,29 @@ $indigogo: #546fbd;        // Panel accents
 $toffee: #da9162;           // Warm accent
 $bubblegum: #ec658f;       // Alert/warning accent
 $lilac-glow: #c861d6;      // Hover states, glow effects
-$royal-violet: #6c4da8;    // LCARS-typical accent
+$royal-violet: #6c4da8;    // AI hue (brightened as --theme-ai)
 $ash-blue: #9292a6;        // Inactive elements, secondary text
 $iron-navy: #394555;       // Surface, panels
 $deep-sea: #07172b;        // Background (NEVER use black!)
 $surface-elevated: #1f2e40; // Elevated surfaces
 $octo-text-color: #ffffff;
-$lcars-border-color: #64ceb9;
 $pink: #ec658f;
 
 // Additional theme colors (used when Kendo theme is applied)
 $kendo-inverse: #3d3d3d;
 $kendo-success: #37b400;
 
-/// Applies CSS custom properties for the LCARS theme.
+/// Applies the brand CSS custom properties and the legacy --lcars-* font/motion aliases.
 /// Include this on :host or a container (e.g. .kendo-theme-provider).
 /// When Kendo is imported by the host, these variables override Kendo's defaults.
 @mixin variables {
   // Typography — aliases of the Deep Sea font tokens (_theme.scss
   // foundation-tokens); the literal stacks are the fallback for hosts that
-  // include variables() without theme(). Kept for one release (AB#5519).
+  // include variables() without theme(). Kept ONLY for the Meshmakers App,
+  // which still references them, until it migrates (AB#5526). Do not use in
+  // new code — use --theme-font-display / --theme-font-mono.
   --lcars-font-primary: var(--theme-font-display, "Montserrat", "Roboto", "Helvetica Neue", sans-serif);
   --lcars-font-mono: var(--theme-font-mono, "Roboto Mono", "Consolas", monospace);
-  --lcars-border-color: #{$lcars-border-color};
 
   --pink: #{$pink};
 
@@ -71,8 +72,8 @@ $kendo-success: #37b400;
   --kendo-color-app-surface: var(--theme-bg-app, var(--deep-sea));
   --kendo-color-on-app-surface: var(--octo-text-color);
   // Body text uses the UI face (Roboto); Montserrat is the display face for
-  // titles, reached through --lcars-font-primary / --theme-font-display.
-  font-family: var(--theme-font-ui, var(--lcars-font-primary));
+  // titles (--theme-font-display). The literal stack serves hosts without theme().
+  font-family: var(--theme-font-ui, "Roboto", "Helvetica Neue", sans-serif);
 
   // Derived colors for gradients/overlays (theme-aware)
   --octo-mint-05: color-mix(in srgb, var(--octo-mint) 5%, transparent);
@@ -166,44 +167,14 @@ $kendo-success: #37b400;
     transparent
   );
 
-  // LCARS-specific design tokens.
-  // --lcars-glow-* and --lcars-btn-base* still carry the LCARS glow/gradient
-  // look; they are consumed by the LCARS classes in _styles.scss and are
-  // deleted together with them in AB#5526 — do not use them in new code.
-  --lcars-glow-primary: 0 0 10px var(--octo-mint-40);
-  --lcars-btn-base: linear-gradient(180deg, var(--octo-mint-15), var(--octo-mint-05));
-  --lcars-btn-base-hover: linear-gradient(180deg, var(--octo-mint-25), var(--octo-mint-15));
-  // Input focus = the Deep Sea keyboard focus ring (no mint glow); the glow
-  // is only the fallback for hosts that include variables() without theme().
-  --lcars-input-focus: var(--theme-focus-ring, 0 0 8px var(--octo-mint-30));
-  --lcars-glow-cyan: 0 0 10px var(--neo-cyan-40);
-  --lcars-glow-violet: 0 0 10px var(--royal-violet-40);
-  --lcars-glow-pink: 0 0 10px var(--bubblegum-40);
-
-  // LCARS Border Radius — sm/md/lg alias the Deep Sea radius scale
-  // (_theme.scss foundation-tokens: 4/6/8 px); the literals are the LCARS
-  // fallback for hosts without theme(). xl and pill have no Deep Sea
-  // counterpart and are retired together with the LCARS classes (AB#5526).
-  --lcars-radius-sm: var(--theme-radius-sm, 4px);
-  --lcars-radius-md: var(--theme-radius-md, 8px);
-  --lcars-radius-lg: var(--theme-radius-lg, 16px);
-  --lcars-radius-xl: 24px;
-  --lcars-radius-pill: 50px;
-
-  // Panel styling
-  --lcars-panel-border: 1px solid var(--octo-mint-20);
-  --lcars-panel-bg: var(--surface-elevated-60);
-
-  // Transitions — aliases of the Deep Sea motion tokens, so
-  // prefers-reduced-motion (which zeroes --theme-motion-*) reaches every
-  // LCARS transition too. Literals are the fallback without theme().
+  // Transition alias of the Deep Sea motion tokens — kept ONLY for the
+  // Meshmakers App until it migrates (AB#5526); use --theme-motion-* instead.
   --lcars-transition-fast: var(--theme-motion-fast, 150ms) var(--theme-motion-easing, ease);
-  --lcars-transition-normal: var(--theme-motion-base, 250ms) var(--theme-motion-easing, ease);
 
-  // Designer/Symbol Editor Panel Variables (theme-aware with LCARS fallbacks)
+  // Designer/Symbol Editor Panel Variables (theme-aware with brand fallbacks)
   --designer-panel-bg: var(--theme-bg-elevated, var(--surface-elevated));
   --designer-panel-bg-elevated: var(--theme-bg-surface, var(--iron-navy));
-  --designer-panel-border: var(--octo-mint-20);
+  --designer-panel-border: var(--theme-border-default, var(--octo-mint-20));
   --designer-panel-text: var(--octo-text-color);
   --designer-panel-text-secondary: var(--theme-text-secondary, var(--ash-blue));
   --designer-panel-text-muted: color-mix(
@@ -211,15 +182,15 @@ $kendo-success: #37b400;
     var(--theme-text-secondary, var(--ash-blue)) 70%,
     transparent
   );
-  --designer-panel-accent: var(--octo-mint);
-  --designer-panel-accent-hover-bg: var(--octo-mint-15);
+  --designer-panel-accent: var(--theme-text-accent, var(--octo-mint));
+  --designer-panel-accent-hover-bg: var(--theme-bg-hover, var(--octo-mint-15));
   --designer-panel-input-bg: var(--theme-bg-input, var(--deep-sea));
   --designer-panel-delete-hover-bg: var(--bubblegum-20);
   --designer-panel-delete-color: var(--bubblegum);
 
-  // Cron Expression Cell Variables (LCARS theme for list view)
-  --mm-cron-code-bg: var(--deep-sea-80);
-  --mm-cron-code-text: var(--octo-mint);
+  // Cron Expression Cell Variables (list view)
+  --mm-cron-code-bg: var(--theme-bg-sunken, var(--deep-sea-80));
+  --mm-cron-code-text: var(--theme-text-code, var(--octo-mint));
   --mm-cron-text-secondary: var(--ash-blue);
   --mm-cron-success: var(--kendo-success);
 }

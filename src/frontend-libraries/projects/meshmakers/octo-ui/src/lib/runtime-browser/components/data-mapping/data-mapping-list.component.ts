@@ -185,8 +185,6 @@ export interface DataPointMappingItem {
       padding: 6px 12px;
       font-size: 0.75rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       color: var(--kendo-color-on-primary, #ffffff);
       background: var(--kendo-color-primary, #ff6358);
 
@@ -210,8 +208,6 @@ export interface DataPointMappingItem {
       label {
         font-size: 0.7rem;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
         color: var(--kendo-color-subtle, #6c757d);
       }
     }

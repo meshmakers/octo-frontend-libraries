@@ -963,8 +963,8 @@ mm-symbol-editor {
 The library also exports an optional SCSS theme mixin for host apps that want a pre-built dark theme:
 
 ```scss
-@use '@meshmakers/octo-process-diagrams/styles/dockview-lcars-theme' as dockview;
-@include dockview.lcars-theme();
+@use '@meshmakers/octo-process-diagrams/styles/dockview-theme' as dockview;
+@include dockview.dockview-theme();
 ```
 
 ### Programmatic Panel Control
@@ -1029,7 +1029,7 @@ readonly panelComponents: Record<string, unknown> = {
 
 5. **Update Theme:**
    - [ ] Ensure new panel uses CSS custom properties with neutral defaults
-   - [ ] Add selector to `_dockview-lcars-theme.scss` if needed (for host app theme mixin)
+   - [ ] Add selector to `_dockview-theme.scss` if needed (for host app theme mixin)
 
 6. **Documentation:**
    - [ ] Update panel table in this file

@@ -74,7 +74,7 @@ interface TileValue {
       text-align: center;
       padding: 12px 8px;
       border-radius: 6px;
-      background: var(--mm-summary-tile-bg, rgba(255, 255, 255, 0.03));
+      background: var(--mm-summary-tile-bg, var(--theme-bg-hover));
     }
 
     .tile-value {
@@ -85,8 +85,6 @@ interface TileValue {
 
     .tile-label {
       font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       margin-top: 4px;
       opacity: 0.6;
     }

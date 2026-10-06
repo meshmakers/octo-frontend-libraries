@@ -70,16 +70,35 @@ gradient tokens flat. New tokens: `--theme-bg-sunken/-selected/-hover`,
 `foundation-tokens` mixin: `--theme-font-display/-ui/-mono`,
 `--theme-space-1..8`, `--theme-radius-xs/sm/md/lg`,
 `--theme-motion-fast/-base/-easing` (durations `0ms` under
-`prefers-reduced-motion`). `--lcars-font-*` and `--lcars-radius-sm/md/lg` in
-`_variables.scss` are aliases of the new tokens, as are `--lcars-input-focus`
-(→ focus ring) and `--lcars-transition-*` (→ motion tokens). The `:root`
-`font-family` is `--theme-font-ui`, but `styles()` still sets
-`body { font-family: var(--lcars-font-primary) }` (→ display face), so body
-text stays Montserrat until AB#5526; Kendo components use Roboto. Light accent
-and both muted text values deviate from concept §6.2 for contrast (see README).
-`light-theme-surface-overrides` is deliberately left as is (only its accent
-tints follow `--theme-accent`) and is reworked in AB#5526. The full
-list is in the README ("Theme tokens"). Deleting LCARS decoration is AB#5526.
+`prefers-reduced-motion`). Only `--lcars-font-primary`, `--lcars-font-mono`
+and `--lcars-transition-fast` remain in `_variables.scss` (aliases kept for the
+Meshmakers App, AB#5526 phase 2). Light accent and
+both muted text values deviate from concept §6.2 for contrast (see README). The
+full list is in the README ("Theme tokens").
+
+**LCARS removed (AB#5526).** `styles()` sets
+`body { font-family: var(--theme-font-ui) }` (Roboto); headings, dialog/page
+titles and KPI numbers use `--theme-font-display`. Buttons (`_button.scss` /
+`octo-button`, `_flat-button.scss` / `flat-button`, `.k-button` block) are flat
+primary/base/outline from the tokens; `_field-input.scss` / `field-input` uses
+`--theme-bg-input` + neutral border (the `_lcars-*.scss` files were renamed in
+phase 2; the mixins are internal, not forwarded). No gradients, glows, pulses,
+scanlines, text-shadows or uppercase letter-spaced labels anywhere in
+`styles()` — including the dockview tabs and the process designer palette,
+inspector and sliders (the only uppercase left is the avatar initials) — and
+none in the octo-ui, shared-ui, shared-auth, octo-ai-console and
+octo-process-diagrams component styles; mint survives only as accent (`--theme-accent`,
+`--theme-text-accent`). `light-theme-surface-overrides` is reduced to what
+tokens cannot express; `light-theme-button-overrides` is a no-op (both themes
+share the flat button rules); `theme-overrides()` additionally emits
+`sentence-case-overrides` under `html:root`. The only LCARS classes left are the
+page pattern used by the **Meshmakers App** (`.lcars-page-header`,
+`.page-title`, `.header-content`, `.lcars-content-panel`, plus
+`display: none` for `.lcars-header-accent/-line`, `.panel-accent-*`,
+`.lcars-footer`, `.footer-*`) — kept neutral until that app migrates to
+`<mm-page>`; do not use them in new code.
+`mm-runtime-browser` uses `<mm-page>` (its `titlePrefix` / `badgeLabel` /
+`ready` messages are deprecated and no longer rendered).
 
 **Kendo colour bridge.** `theme()` also declares the `--kendo-color-*` tokens
 (surface, surface-alt, subtle, border, base-on-subtle, primary/-hover/-active,
@@ -983,7 +1002,7 @@ export class AppComponent {
 
 **Visual behavior:** Badge button showing tenant name + icon. Click opens a Kendo popup listing allowed tenants. Current tenant is highlighted. Clicking a different tenant emits event and closes popup. Escape/outside-click closes popup. The popup header includes a refresh button (spinning arrow icon) that emits `refreshRequested` — host applications use this to refresh the access token and update `allowed_tenants`.
 
-**LCARS theming:** The component uses Kendo CSS variables for theme-neutral styling. Refinery Studio applies LCARS overrides via `::ng-deep mm-tenant-switcher { ... }` in `app.component.scss`.
+**Theming:** The component uses Kendo CSS variables for theme-neutral styling. Host apps can override it via `::ng-deep mm-tenant-switcher { ... }` and the `--mm-tenant-switcher-*` custom properties.
 
 ---
 

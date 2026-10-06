@@ -1,0 +1,56 @@
+@use "variables" as *;
+
+// Deep Sea button (AB#5526): flat base/outline style with a flat primary
+// variant. No gradients, no glows, sentence case. Internal to octo.styles():
+// toolbars, dialogs and widget configs in _styles.scss include it (renamed
+// from the former `lcars-button` in AB#5526; not forwarded to hosts).
+@mixin octo-button {
+  background: transparent;
+  border: 1px solid var(--theme-border-default, var(--octo-mint-30));
+  color: var(--theme-text-primary, var(--octo-text-color));
+  font-family: var(--theme-font-ui, inherit);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: normal;
+  text-transform: none;
+  border-radius: var(--theme-radius-sm, 4px);
+  box-shadow: none;
+  transition:
+    background-color var(--theme-motion-fast, 120ms) var(--theme-motion-easing, ease),
+    border-color var(--theme-motion-fast, 120ms) var(--theme-motion-easing, ease),
+    color var(--theme-motion-fast, 120ms) var(--theme-motion-easing, ease);
+
+  &:hover:not(:disabled) {
+    background: var(--theme-bg-hover, var(--octo-mint-10));
+    border-color: var(--theme-border-strong, var(--octo-mint-50));
+    box-shadow: none;
+  }
+
+  &:active:not(:disabled) {
+    background: var(--theme-bg-selected, var(--octo-mint-20));
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring, 0 0 0 2px var(--octo-mint));
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.k-button-solid-primary,
+  &.k-button-primary,
+  &[themecolor="primary"] {
+    background: var(--theme-accent, var(--octo-mint));
+    border-color: var(--theme-accent, var(--octo-mint));
+    color: var(--theme-text-on-accent, var(--deep-sea));
+
+    &:hover:not(:disabled) {
+      background: var(--theme-accent-hover, var(--octo-mint));
+      border-color: var(--theme-accent-hover, var(--octo-mint));
+      box-shadow: none;
+    }
+  }
+}
