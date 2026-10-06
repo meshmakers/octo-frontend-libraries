@@ -26,25 +26,41 @@ export const HISTOGRAM_HOURS = 24;
 export const HOUR_MS = 60 * 60 * 1000;
 export const DAY_MS = 24 * HOUR_MS;
 
+/** Options of {@link buildHourlyHistogram}. */
+export interface HourlyHistogramOptions {
+  /**
+   * The statistics' `lastUpdatedAt` (for several pipelines the newest, see
+   * {@link latestStatisticsUpdate}). The backend's windows are the clock hours ending with the
+   * hour of its last sweep (AB#5583); when the browser clock is already in the next hour (or,
+   * with clock skew, still in the previous one) the bars follow the statistics, so the 24 bars
+   * sum to `last24Hours*`. Ignored when missing, invalid or more than an hour away from now
+   * (stale statistics: the browser clock keeps the time axis honest).
+   */
+  anchor?: string | Date | number | null;
+  /** "Now" in epoch ms (tests). */
+  now?: number;
+}
+
 /**
  * Builds 24 contiguous hourly slots ending at the current clock hour from a flat
  * list of raw server buckets. Sparse backend buckets (only hours with executions
  * are stored) are gap-filled with zeros so the sparkline renders a continuous
  * time axis. Buckets outside the visible 24h window are ignored.
  *
- * The current hour is seeded from the live 1h counts when its bucket is still
- * empty — i.e. those executions haven't been folded server-side yet (fold
- * threshold ~1h) — so a just-ran pipeline shows a recent bar instead of an
- * empty state, without double-counting once the fold catches up.
+ * Since AB#5583 the buckets hold every counted execution (folded and still
+ * retained), so nothing is added to the current bar any more: seeding it with the
+ * rolling last-hour counts double-counted the previous hour's tail. The legacy
+ * numeric seed arguments are accepted for compatibility and ignored.
  */
 export function buildHourlyHistogram(
   rawBuckets: (RawHourBucket | null)[] | null | undefined,
-  seedCurrentHourOk = 0,
-  seedCurrentHourFail = 0
+  options: HourlyHistogramOptions | number = {},
+  _legacySeedFail?: number
 ): HourlyExecutionBucket[] {
-  // Floor "now" to the start of the current clock hour (UTC epoch aligns with
-  // the backend's UTC hourStartAt boundaries).
-  const currentHourStart = Math.floor(Date.now() / HOUR_MS) * HOUR_MS;
+  const opts: HourlyHistogramOptions = typeof options === 'number' ? {} : options;
+  const now = opts.now ?? Date.now();
+  // Floor to the start of the clock hour (UTC epoch aligns with the backend's UTC hourStartAt).
+  const currentHourStart = histogramEndHour(now, opts.anchor);
   const oldestHourStart = currentHourStart - (HISTOGRAM_HOURS - 1) * HOUR_MS;
 
   const slots: HourlyExecutionBucket[] = [];
@@ -64,19 +80,35 @@ export function buildHourlyHistogram(
     slots[idx].fail += bucket.failureCount ?? 0;
   }
 
-  const current = slots[slots.length - 1];
-  if (current && current.ok === 0 && current.fail === 0) {
-    current.ok = seedCurrentHourOk;
-    current.fail = seedCurrentHourFail;
-  }
-
   return slots;
+}
+
+/** Start of the histogram's last hour: the anchor's hour when it is less than an hour from now, else now's. */
+function histogramEndHour(now: number, anchor: HourlyHistogramOptions['anchor']): number {
+  const anchorMs = anchor === null || anchor === undefined ? NaN : new Date(anchor).getTime();
+  const base = Number.isFinite(anchorMs) && Math.abs(now - anchorMs) < HOUR_MS ? anchorMs : now;
+  return Math.floor(base / HOUR_MS) * HOUR_MS;
+}
+
+/** The newest `lastUpdatedAt` of several statistics (the anchor of a summed histogram), or null. */
+export function latestStatisticsUpdate(statistics: ({ lastUpdatedAt?: string | Date | null } | null | undefined)[]): Date | null {
+  let latest: Date | null = null;
+  for (const stat of statistics) {
+    if (!stat?.lastUpdatedAt) continue;
+    const date = new Date(stat.lastUpdatedAt);
+    if (Number.isFinite(date.getTime()) && (!latest || date > latest)) {
+      latest = date;
+    }
+  }
+  return latest;
 }
 
 
 /** Folded `PipelineStatistics` of one pipeline (AB#4370), as selected by the queries. */
 export interface PipelineStatisticsInput {
   lastExecutionAt?: string | Date | null;
+  /** When the backend last recomputed the statistics (its windows end with this hour, AB#5583). */
+  lastUpdatedAt?: string | Date | null;
   lastHourSuccessCount?: number | null;
   lastHourFailureCount?: number | null;
   last24HoursSuccessCount?: number | null;
@@ -126,9 +158,11 @@ export function pipelineExecutionInputs(children: (unknown | null)[] | null | un
 
 /**
  * The Data Flows list's execution counting, shared with the cockpit (AB#5545 / AB#5558) so both
- * show the same numbers: the folded statistics are the baseline, and a latest
- * execution newer than the statistics' `lastExecutionAt` is counted in for
- * immediate feedback (COMPLETED → success, FAILED → failure).
+ * show the same numbers: the statistics are the baseline, and a latest execution the statistics
+ * cannot contain yet is counted in for immediate feedback (COMPLETED → success, FAILED → failure).
+ * "Cannot contain yet" = started after the statistics' `lastUpdatedAt` (the backend's totals
+ * include every execution it saw at that sweep, AB#5583) and after `lastExecutionAt`; without
+ * `lastUpdatedAt` (older backends / queries) only `lastExecutionAt` is compared, as before.
  */
 export function countPipelineExecutions(pipelines: PipelineExecutionInput[], now = Date.now()): PipelineExecutionCounts {
   const counts: PipelineExecutionCounts = { success24h: 0, failure24h: 0, success1h: 0, failure1h: 0, latestExecution: null, hasData: false };
@@ -142,11 +176,11 @@ export function countPipelineExecutions(pipelines: PipelineExecutionInput[], now
     }
     if (latestExec?.startedAt) {
       const execDate = new Date(latestExec.startedAt);
-      const statsLastExecAt = stat?.lastExecutionAt ? new Date(stat.lastExecutionAt) : null;
+      const coveredUntil = statisticsCoverage(stat);
       if (!counts.latestExecution || execDate > counts.latestExecution) {
         counts.latestExecution = execDate;
       }
-      if (!statsLastExecAt || execDate > statsLastExecAt) {
+      if (!coveredUntil || execDate > coveredUntil) {
         counts.hasData = true;
         const withinLastHour = execDate.getTime() > now - HOUR_MS;
         if (latestExec.status === 'COMPLETED') {
@@ -160,4 +194,17 @@ export function countPipelineExecutions(pipelines: PipelineExecutionInput[], now
     }
   }
   return counts;
+}
+
+/** Until when the statistics already count executions: the later of `lastUpdatedAt` and `lastExecutionAt`. */
+function statisticsCoverage(stat: PipelineStatisticsInput | null | undefined): Date | null {
+  let covered: Date | null = null;
+  for (const value of [stat?.lastExecutionAt, stat?.lastUpdatedAt]) {
+    if (!value) continue;
+    const date = new Date(value);
+    if (Number.isFinite(date.getTime()) && (!covered || date > covered)) {
+      covered = date;
+    }
+  }
+  return covered;
 }

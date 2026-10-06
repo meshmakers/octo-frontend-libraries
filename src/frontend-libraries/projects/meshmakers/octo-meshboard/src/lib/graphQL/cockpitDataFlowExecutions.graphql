@@ -1,7 +1,8 @@
 # Cockpit widgets (AB#5558): pipeline executions of the last 24 h, reached the
 # same way as the Refinery Studio's Data Flows list: data flow -> child
 # pipelines -> folded statistics (AB#4370) plus the latest execution, which is
-# counted in when it is newer than the statistics (countPipelineExecutions).
+# counted in when it is newer than the statistics (countPipelineExecutions);
+# lastUpdatedAt anchors the hourly bars and the latest-execution check (AB#5583).
 query cockpitDataFlowExecutions($first: Int) {
   runtime {
     systemCommunicationDataFlow(first: $first) {
@@ -19,6 +20,7 @@ query cockpitDataFlowExecutions($first: Int) {
                 items {
                   ... on SystemCommunicationPipelineStatistics {
                     lastExecutionAt
+                    lastUpdatedAt
                     lastHourSuccessCount
                     lastHourFailureCount
                     last24HoursSuccessCount

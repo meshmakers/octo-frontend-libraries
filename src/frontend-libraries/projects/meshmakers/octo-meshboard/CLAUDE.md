@@ -1084,7 +1084,13 @@ cockpit/
 
 - **Shared rules live here now.** `utils/adapter-online.ts` (THE adapter online rule) and
   `utils/pipeline-executions.ts` (24 h histogram + execution counting) moved from the Studio, which
-  re-exports them; change them here only.
+  re-exports them; change them here only. Since AB#5583 the backend's `hourlyBuckets` hold every
+  counted execution and `last24Hours*` = the sum of the 24 clock-hour buckets ending with the hour
+  of `lastUpdatedAt`: `buildHourlyHistogram` adds nothing to the current bar (the old numeric
+  seed arguments are ignored) and ends the bars with the hour of `options.anchor`
+  (`lastUpdatedAt`, newest over pipelines via `latestStatisticsUpdate`) when that is less than an
+  hour from now; `countPipelineExecutions` adds a latest execution only when it started after
+  both `lastUpdatedAt` and `lastExecutionAt` (only `lastExecutionAt` when the field is missing).
 - **Gating.** Every provider / KPI checks the roles + CK models needed to open what it links to,
   before any request. Missing `COCKPIT_VIEWER_ACCESS` = no role = hidden.
 - **Viewer-dependent collapse.** Non-builders get "Not available" (never role text) and the widget
