@@ -11,7 +11,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
-import { categoryStatus, humanizeCategory, responsiveLegendPosition, statusColor } from '../../utils/chart-categories';
+import { categoryStatus, humanizeCategory, observeThemeChanges, responsiveLegendPosition, statusColor } from '../../utils/chart-categories';
 
 /**
  * Data item for the pie chart
@@ -158,14 +158,21 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
   // Widget state signals
   private readonly _isLoading = signal(false);
-  private readonly _chartData = signal<ChartDataItem[]>([]);
+  /** Raw categories and values as loaded; labels and status colours are derived in `chartData`. */
+  private readonly _rawData = signal<{ category: string; value: number }[]>([]);
+  /** Bumped on every theme switch so the status colours are resolved again. */
+  private readonly themeVersion = signal(0);
+  private stopThemeObserver?: () => void;
   private readonly _error = signal<string | null>(null);
 
   readonly isLoading = this._isLoading.asReadonly();
-  readonly chartData = this._chartData.asReadonly();
+  readonly chartData = computed<ChartDataItem[]>(() => {
+    this.themeVersion();
+    return this._rawData().map(item => this.toItem(item.category, item.value));
+  });
   readonly error = this._error.asReadonly();
 
-  readonly data = computed(() => this._chartData());
+  readonly data = computed(() => this.chartData());
 
   /**
    * Check if widget is not configured (needs data source setup).
@@ -206,6 +213,8 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   }
 
   ngAfterViewInit(): void {
+    // Status colours are concrete values read from the theme: re-resolve them after a theme switch.
+    this.stopThemeObserver = observeThemeChanges(() => this.ngZone.run(() => this.themeVersion.update(v => v + 1)));
     const host = this.elementRef.nativeElement as HTMLElement;
     this.width.set(host.clientWidth ?? 0);
     if (typeof ResizeObserver === 'undefined') return;
@@ -220,10 +229,11 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
+    this.stopThemeObserver?.();
   }
 
-  /** Human label and status colour for a raw category value. */
-  private toItem(rawCategory: string, value: number): ChartDataItem {
+  /** Human label and status colour for a raw category value (exposed for tests). */
+  toItem(rawCategory: string, value: number): ChartDataItem {
     const status = categoryStatus(rawCategory);
     return { category: humanizeCategory(rawCategory), value, ...(status ? { color: statusColor(status) } : {}) };
   }
@@ -319,9 +329,9 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   private async loadCkQueryData(dataSource: ConstructionKitQueryDataSource): Promise<void> {
     const result = await this.dataService.fetchCkQueryData(dataSource);
 
-    const chartData: ChartDataItem[] = result.items.map(item => this.toItem(item.category, item.value));
+    const chartData = result.items.map(item => ({ category: item.category, value: item.value }));
 
-    this._chartData.set(chartData);
+    this._rawData.set(chartData);
     this._isLoading.set(false);
   }
 
@@ -362,7 +372,7 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
       return;
     }
 
-    const chartData: ChartDataItem[] = result.rows
+    const chartData = result.rows
       .filter(row => PieChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? ''))
       .map(row => {
         // Resolve each field to its best cell (exact match wins over the loose
@@ -380,10 +390,9 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
         return { category, value };
       })
-      .filter(item => item.category !== '') // Filter out empty categories
-      .map(item => this.toItem(item.category, item.value));
+      .filter(item => item.category !== ''); // Filter out empty categories
 
-    this._chartData.set(chartData);
+    this._rawData.set(chartData);
     this._isLoading.set(false);
   }
 

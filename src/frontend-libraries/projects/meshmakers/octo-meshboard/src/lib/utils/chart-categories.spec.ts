@@ -1,4 +1,4 @@
-import { categoryStatus, humanizeCategory, responsiveLegendPosition, statusColor } from './chart-categories';
+import { categoryStatus, humanizeCategory, observeThemeChanges, responsiveLegendPosition, statusColor } from './chart-categories';
 
 describe('chart categories', () => {
   it('humanizes enum-style categories only', () => {
@@ -30,5 +30,25 @@ describe('chart categories', () => {
     expect(responsiveLegendPosition('right', 800)).toBe('right');
     expect(responsiveLegendPosition('top', 300)).toBe('top');
     expect(responsiveLegendPosition('right', 0)).toBe('right');
+  });
+
+  it('signals a theme switch on <html data-theme> and stops after unsubscribe', async () => {
+    const onChange = vi.fn();
+    const stop = observeThemeChanges(onChange);
+    document.documentElement.setAttribute('data-theme', 'light');
+    await new Promise(r => setTimeout(r));
+    expect(onChange).toHaveBeenCalled();
+    stop();
+    onChange.mockClear();
+    document.documentElement.setAttribute('data-theme', 'dark');
+    await new Promise(r => setTimeout(r));
+    expect(onChange).not.toHaveBeenCalled();
+    document.documentElement.removeAttribute('data-theme');
+  });
+
+  it('covers the enum states the Studio explorer shows', () => {
+    expect(categoryStatus('Enabled')).toBe('success');
+    expect(categoryStatus('Hibernated')).toBe('info');
+    expect(categoryStatus('Waking')).toBe('warning');
   });
 });

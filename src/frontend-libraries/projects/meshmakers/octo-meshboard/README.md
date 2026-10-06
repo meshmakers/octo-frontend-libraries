@@ -75,8 +75,11 @@ The Well-Known Name should be lowercase with hyphens, similar to URL slugs.
 ### Open in edit mode (`?edit=1`)
 
 A `?edit=1` query parameter opens the board in edit mode once it has loaded (e.g. the "Edit"
-action of a host's board list: `/ui/meshboards/<rtId>?edit=1`). It is ignored on routes with
-`meshBoardReadonly: true`.
+action of a host's board list: `/ui/meshboards/<rtId>?edit=1`, constant
+`MESHBOARD_EDIT_QUERY_PARAM`). It is ignored on routes with `meshBoardReadonly: true`. After
+entering edit mode the view removes the parameter from the URL (`replaceUrl`), so a reload or a
+copied link does not re-enter edit mode. Hosts creating boards use `newMeshBoardConfig(name)`
+for the layout defaults (the same `MeshBoardStateService.createNewMeshBoard` uses).
 
 ### URL Sync (`meshBoardSyncUrl`)
 
@@ -235,6 +238,9 @@ Display rules (`utils/chart-categories.ts`): enum-style categories read as words
 then `--kendo-color-*`; e.g. Resolve failed / Error → error, Available / Online → success,
 Pending → warning); a `left` / `right` legend moves below the chart while the widget is narrower
 than 420 px; the 30 px plot margin is only reserved while labels are shown; legend text is 12 px.
+The status table (`STATE_STATUS_BY_KEY`, `categoryStatus`, `humanizeCategory`, `statusColor`) is
+exported for hosts so enum chips elsewhere read the same; the colours are resolved again on every
+theme switch (`observeThemeChanges`: `<html data-theme|class|style>`, OS colour scheme).
 
 ### Bar Chart Widget
 Displays data as column, bar, or stacked charts.
