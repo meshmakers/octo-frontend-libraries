@@ -85,6 +85,18 @@ export function secretStateFromAttribute(attribute: RtEntityAttributeSecretState
   };
 }
 
+/**
+ * Whether a value is a secret state object (`{ isSet }` marker or a {@link SecretState}) rather than
+ * a plain value — e.g. a SECRET record member read through the generic API. Only objects whose keys
+ * are a subset of `isSet` / `keyMissing` / `setAt` with a boolean `isSet` qualify.
+ */
+export function isSecretStateObject(value: unknown): value is SecretStateFieldsDto {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || value instanceof Date) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record['isSet'] === 'boolean'
+    && Object.keys(record).every((k) => k === 'isSet' || k === 'keyMissing' || k === 'setAt' || k === '__typename');
+}
+
 /** Display status: key missing wins (it implies `isSet: false`), then set / not set. */
 export function secretStatusOf(state: { isSet?: boolean | null; keyMissing?: boolean | null } | null | undefined): SecretStatus {
   if (state?.keyMissing) return 'keyMissing';

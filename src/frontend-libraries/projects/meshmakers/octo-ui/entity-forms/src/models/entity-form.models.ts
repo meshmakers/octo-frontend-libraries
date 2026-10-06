@@ -6,6 +6,8 @@
  * form definition matched against the CK metadata of one concrete type, ready to render.
  */
 
+import type { SecretState } from '@meshmakers/octo-services';
+
 /** Editor kinds a resolved field can use. */
 export type EntityFormEditor = 'text' | 'multiline' | 'password' | 'number' | 'toggle' | 'enum' | 'datetime'
   | 'url' | 'email' | 'json' | 'yaml' | 'cron' | 'chips' | 'reference' | 'records' | 'unsupported';
@@ -231,12 +233,11 @@ export interface ResolvedEntityForm {
   warnings: string[];
 }
 
-/** State of one secret field (AB#5528). `keyMissing` implies `isSet: false`. */
-export interface EntityFormSecretFieldState {
-  isSet: boolean;
-  keyMissing: boolean;
-  setAt: Date | null;
-}
+/**
+ * State of one secret field (AB#5528): the shared octo-services {@link SecretState}
+ * (`keyMissing` implies `isSet: false`). Kept as an alias for existing imports.
+ */
+export type EntityFormSecretFieldState = SecretState;
 
 export interface EntityFormValueState {
   values: Record<string, unknown>;

@@ -1,7 +1,8 @@
 import { formatDate } from '@angular/common';
 import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
-import { EntityFormsMessages, formatEntityFormsMessage } from '../entity-forms.messages';
+import { formatSecretStatus } from '@meshmakers/octo-services';
+import { EntityFormsMessages, formatEntityFormsMessage, secretStatusLabelsOf } from '../entity-forms.messages';
 import { ResolvedField } from '../models/entity-form.models';
 import { firstErrorKey } from './entity-form-controls';
 
@@ -77,18 +78,22 @@ export class EntityFormFieldComponent {
 
   protected readonly showRequired = computed(() => this.required() && !this.readOnly());
 
-  /** Badge text: visible to read-only users too (Q15). */
+  /**
+   * Badge text: visible to read-only users too (Q15). Set / not set / key missing use the shared
+   * octo-services `formatSecretStatus` (one wording everywhere; labels from the messages).
+   */
   protected readonly secretBadgeText = computed(() => {
     const m = this.messages();
-    switch (this.secretState()) {
-      case 'set': {
-        const setAt = this.secretSetAt();
-        return setAt ? formatEntityFormsMessage(m.secretStatusSetAt, { setAt: formatDate(setAt, 'medium', this.locale) }) : m.secretStatusSet;
-      }
+    const state = this.secretState();
+    switch (state) {
+      case 'set':
       case 'notSet':
-        return m.secretStatusNotSet;
       case 'keyMissing':
-        return m.secretStatusKeyMissing;
+        return formatSecretStatus(
+          { isSet: state === 'set', keyMissing: state === 'keyMissing', setAt: state === 'set' ? this.secretSetAt() : null },
+          (date) => formatDate(date, 'medium', this.locale),
+          secretStatusLabelsOf(m),
+        );
       case 'clearStaged':
         return m.secretStatusClearStaged;
       default:

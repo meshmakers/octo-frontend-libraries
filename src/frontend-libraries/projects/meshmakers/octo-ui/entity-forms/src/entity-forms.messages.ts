@@ -1,3 +1,5 @@
+import { DEFAULT_SECRET_STATUS_LABELS, SecretStatusLabels } from '@meshmakers/octo-services';
+
 /**
  * UI strings of the entity form components (`mm-entity-form`, `mm-entity-list`,
  * `mm-entity-page` and their field editors).
@@ -57,6 +59,17 @@ export interface EntityFormsMessages {
   secretHide: string;
   /** Hint when secrets cannot be written (no key ring configured, Q17). */
   secretWritesDisabled: string;
+  /**
+   * Why Create is blocked: a required secret cannot be entered without a key ring (Q17).
+   * `{fields}` = the field labels.
+   */
+  secretRequiredWritesDisabled: string;
+  /** Status line of a masked multiline secret (PEM); `{lines}` = number of typed lines. */
+  secretMultilineMasked: string;
+  /** Placeholder of a SECRET record member whose stored value is kept when left empty. */
+  secretRecordMemberKeep: string;
+  /** Grid cell of a SECRET record member with a typed, unsaved value (never the value itself). */
+  secretRecordMemberNewValue: string;
 
   // --- Sections ---
   /** Default title of the section holding fields that the form does not list. */
@@ -167,10 +180,11 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   secretNotSetPlaceholder: 'Not set',
   secretBadge: 'Secret',
   secretHelp: 'Write-only. The stored value is never shown; type a new value to replace it.',
-  secretStatusSet: 'Set',
-  secretStatusSetAt: 'Set · set at {setAt}',
-  secretStatusNotSet: 'Not set',
-  secretStatusKeyMissing: 'Key missing — re-enter',
+  // One set of status labels for every secret display (octo-services `formatSecretStatus`).
+  secretStatusSet: DEFAULT_SECRET_STATUS_LABELS.set,
+  secretStatusSetAt: DEFAULT_SECRET_STATUS_LABELS.setAt,
+  secretStatusNotSet: DEFAULT_SECRET_STATUS_LABELS.notSet,
+  secretStatusKeyMissing: DEFAULT_SECRET_STATUS_LABELS.keyMissing,
   secretStatusClearStaged: 'Will be cleared',
   secretClear: 'Clear',
   secretUndoClear: 'Undo',
@@ -178,6 +192,10 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   secretShow: 'Show',
   secretHide: 'Hide',
   secretWritesDisabled: 'Secrets cannot be changed: no encryption key ring is configured for this environment.',
+  secretRequiredWritesDisabled: 'Cannot create: {fields} must be set, but secrets cannot be written without an encryption key ring.',
+  secretMultilineMasked: 'Masked · {lines} line(s) entered. Use Show to check the value.',
+  secretRecordMemberKeep: 'Leave empty to keep the stored value',
+  secretRecordMemberNewValue: 'New value (unsaved)',
 
   furtherAttributes: 'Further attributes',
 
@@ -257,4 +275,14 @@ export function formatEntityFormsMessage(message: string, values: Record<string,
 /** Merges host overrides over the English defaults. */
 export function mergeEntityFormsMessages(overrides?: Partial<EntityFormsMessages> | null): EntityFormsMessages {
   return { ...DEFAULT_ENTITY_FORMS_MESSAGES, ...(overrides ?? {}) };
+}
+
+/** The secret status labels of a message set, for octo-services `formatSecretStatus`. */
+export function secretStatusLabelsOf(messages: EntityFormsMessages): SecretStatusLabels {
+  return {
+    set: messages.secretStatusSet,
+    setAt: messages.secretStatusSetAt,
+    notSet: messages.secretStatusNotSet,
+    keyMissing: messages.secretStatusKeyMissing,
+  };
 }

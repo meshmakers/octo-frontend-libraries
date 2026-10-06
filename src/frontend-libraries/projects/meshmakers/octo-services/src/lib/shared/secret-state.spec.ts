@@ -2,6 +2,7 @@ import {
   DEFAULT_SECRET_STATUS_LABELS,
   formatSecretStatus,
   isSecretPresent,
+  isSecretStateObject,
   isSecretValueType,
   secretInputValue,
   secretStateFromAttribute,
@@ -64,5 +65,15 @@ describe('secret state (AB#5542, SECRET value type)', () => {
     expect(formatSecretStatus({ isSet: true, keyMissing: false, setAt: null }, fmt)).toBe(DEFAULT_SECRET_STATUS_LABELS.set);
     expect(formatSecretStatus({ isSet: false, keyMissing: false, setAt: null }, fmt)).toBe('Not set');
     expect(formatSecretStatus({ isSet: false, keyMissing: true, setAt: null }, fmt)).toBe('Key missing — re-enter');
+  });
+
+  it('recognises secret state objects (marker / normalised) but not plain records', () => {
+    expect(isSecretStateObject({ isSet: true })).toBe(true);
+    expect(isSecretStateObject({ isSet: false, keyMissing: true, setAt: null })).toBe(true);
+    expect(isSecretStateObject({ isSet: true, key: 'a' })).toBe(false);
+    expect(isSecretStateObject({ isSet: 'yes' })).toBe(false);
+    expect(isSecretStateObject('s3cret')).toBe(false);
+    expect(isSecretStateObject(null)).toBe(false);
+    expect(isSecretStateObject([{ isSet: true }])).toBe(false);
   });
 });

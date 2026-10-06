@@ -1,22 +1,19 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, LOCALE_ID, inject } from '@angular/core';
+import { CommonModule, formatDate } from '@angular/common';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { WindowService } from '@progress/kendo-angular-dialog';
 import { chevronRightIcon, chevronDownIcon, downloadIcon, windowIcon } from '@progress/kendo-svg-icons';
 import { AttributeValueTypeDto, PropertyDisplayMode, BinaryDownloadEvent } from '../models/property-grid.models';
 import { RecordDetailDialogComponent } from './record-detail-dialog.component';
-import { formatSecretStatus, SecretStatus, secretStatusOf, toSecretState } from '@meshmakers/octo-services';
+import { formatSecretStatus, isSecretStateObject, SecretStatus, secretStatusOf, toSecretState } from '@meshmakers/octo-services';
 
 /**
  * A secret record member as projected by the server (AB#5528): the marker `{ isSet }` (optionally
  * with `keyMissing` / `setAt`), or a normalised `SecretState`. Nothing else has exactly these keys.
  */
 export function isSecretMarker(value: unknown): boolean {
-  if (!value || typeof value !== 'object' || Array.isArray(value) || value instanceof Date) return false;
-  const keys = Object.keys(value);
-  return keys.includes('isSet') && typeof (value as { isSet: unknown }).isSet === 'boolean'
-    && keys.every((k) => k === 'isSet' || k === 'keyMissing' || k === 'setAt' || k === '__typename');
+  return isSecretStateObject(value);
 }
 
 /** Shape of binary linked value from OctoMesh */
@@ -439,6 +436,7 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   isExpanded = false;
 
   private readonly windowService = inject(WindowService);
+  private readonly locale = inject(LOCALE_ID);
 
   /** Non-null when the value is a secret state (SECRET value type or record member marker). */
   secretStatus: SecretStatus | null = null;
@@ -529,7 +527,8 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   private computeFormattedValue(): string {
     if (this.secretStatus) {
       const v = (this.value ?? {}) as { isSet?: boolean; keyMissing?: boolean; setAt?: string | Date | null };
-      return formatSecretStatus(toSecretState({ isSet: v.isSet === true, keyMissing: v.keyMissing, setAt: v.setAt }));
+      return formatSecretStatus(toSecretState({ isSet: v.isSet === true, keyMissing: v.keyMissing, setAt: v.setAt }),
+        (date) => formatDate(date, 'medium', this.locale));
     }
     if (this.value === null) {
       return '<null>';
