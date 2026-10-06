@@ -76,7 +76,7 @@
   @if (_actionMenuItems.length > 0) {
     @for (menuItem of _actionMenuItems; track menuItem.text) {
       @if (!menuItem.separator && getMenuItemVisible(menuItem, dataItem)) {
-        <button kendoButton themeColor="primary" fillMode="flat"
+        <button kendoButton [themeColor]="menuItem.data?.danger ? 'error' : 'primary'" fillMode="flat"
           [svgIcon]="menuItem.svgIcon!"
           [title]="menuItem.text ?? ''"
           [attr.aria-label]="(menuItem.text ?? '') + (rowLabel(dataItem) ? ' ' + rowLabel(dataItem) : '')"

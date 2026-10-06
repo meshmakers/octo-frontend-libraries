@@ -46,6 +46,13 @@ export interface CommandItem {
    * `text`. Set it on icon-only items (empty `text`) so they stay explained.
    */
   tooltip?: string;
+
+  /*
+   * Destructive action (AB#5570): the list-view row action and toolbar control render
+   * with danger styling (`themeColor="error"`). The `onClick` handler must still confirm
+   * (danger dialog naming the target). See the Studio action guideline.
+   */
+  danger?: boolean;
 }
 
 

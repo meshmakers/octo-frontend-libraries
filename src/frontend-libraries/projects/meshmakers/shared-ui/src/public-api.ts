@@ -62,6 +62,7 @@ export * from './lib/copyable-text/copyable-text.component';
 export * from './lib/import-strategy-dialog/import-strategy-dialog.component';
 export * from './lib/import-strategy-dialog/import-strategy-dialog.service';
 export * from './lib/services/window-state.service';
+export * from './lib/actions';
 
 import { EntitySelectDialogService } from './lib/entity-select-dialog/entity-select-dialog.service';
 import { SaveAsDialogService } from './lib/save-as-dialog';

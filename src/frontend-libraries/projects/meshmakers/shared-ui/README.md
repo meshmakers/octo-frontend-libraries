@@ -184,6 +184,18 @@ Hierarchical tree view with Kendo TreeView, drag-drop support, and expandable no
 
 Display text with a one-click copy-to-clipboard button.
 
+### Actions (`mm-row-actions`, `mm-action-button`)
+
+Row, toolbar and page actions from one shared `MmAction` definition (id, label, icon, danger,
+disabled reason, visible): icon buttons with tooltip and a row-specific accessible name, max. 3
+inline slots with a "More actions" menu, focusable disabled actions that announce their reason,
+and a canonical verb→icon map (`MM_ACTION_ICONS`). See [Actions](docs/actions.md).
+
+```html
+<mm-row-actions [actions]="actionsFor(row)" [rowLabel]="row.name" (triggered)="onAction($event, row)" />
+<mm-action-button [action]="refresh" context="toolbar" (triggered)="reload()" />
+```
+
 ### EntitySelectInputComponent (`mm-entity-select-input`)
 
 Autocomplete input for entity selection with dialog fallback.
@@ -283,6 +295,7 @@ Data binding directive for `ListViewComponent`, managing data source and paginat
 
 ## Detailed Documentation
 
+- [Actions](docs/actions.md) — `mm-row-actions`, `mm-action-button`, `MmAction`, canonical icons
 - [Time Range Picker](docs/time-range-picker.md) — Full API reference, configuration, examples
 - [Unsaved Changes Guard](docs/unsaved-changes-guard.md) — Implementation guide with checklists
 - [Progress Window Usage](src/lib/progress-window/USAGE.md) — Progress dialog examples, migration from Angular Material
