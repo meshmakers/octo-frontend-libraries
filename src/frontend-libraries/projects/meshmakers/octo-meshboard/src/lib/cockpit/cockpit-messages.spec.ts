@@ -81,6 +81,17 @@ describe('CockpitContextService link targets (AB#5622)', () => {
     expect(context.resolveLinkTarget({ kind: 'route', path: ['/', 'x'] }, 'acme')).toEqual({ path: ['/', 'x'] });
   });
 
+  it('drops route targets that would leave the app (scheme or protocol-relative path)', () => {
+    const context = setup();
+    for (const path of ['//evil.example/x', '/\\evil.example', 'https://evil.example', ' javascript:alert(1)', ['/', '/evil.example', 'x'], ['https://evil.example']]) {
+      expect(context.resolveLinkTarget({ kind: 'route', path }, 'acme')).toBeNull();
+      expect(context.resolveLink({ kind: 'route', path }, 'acme')).toBeNull();
+    }
+    // A colon further into an in-app path is fine.
+    expect(context.resolveLinkTarget({ kind: 'route', path: '/acme/x:y' }, 'acme')).toEqual({ path: '/acme/x:y' });
+    expect(context.resolveLinkTarget({ kind: 'route', path: 'documents' }, 'acme')).toEqual({ path: 'documents' });
+  });
+
   it('survives a throwing resolver', () => {
     const context = setup({ resolve: () => { throw new Error('boom'); } });
     expect(context.resolveLinkTarget({ kind: 'adapters' }, 'acme')).toBeNull();

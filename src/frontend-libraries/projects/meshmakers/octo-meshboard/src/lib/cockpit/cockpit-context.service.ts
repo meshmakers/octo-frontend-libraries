@@ -91,6 +91,10 @@ export class CockpitContextService {
     if (target.kind !== 'route') {
       return url ? { path: url } : null;
     }
+    if (url === null && !isInAppPath(target.path)) {
+      // Route targets stay in the app: no scheme, no protocol-relative "//host" (open redirect).
+      return null;
+    }
     const path = url ?? (typeof target.path === 'string' ? target.path : [...target.path]);
     if (path.length === 0) {
       return null;
@@ -106,6 +110,15 @@ export class CockpitContextService {
   explain(target: CockpitExplainTarget): void {
     this.explainHandler?.explain(target);
   }
+}
+
+/**
+ * Whether a route target's own path stays in the app: no URL scheme (`https:`, `javascript:`) and
+ * no protocol-relative start (`//host`, `/\\host`) once commands are joined.
+ */
+function isInAppPath(path: string | readonly string[]): boolean {
+  const joined = (typeof path === 'string' ? path : joinCommands(path)).trim().replace(/\\/g, '/');
+  return !/^[a-z][a-z0-9+.-]*:/i.test(joined) && !joined.startsWith('//');
 }
 
 /** `['/', 'acme', 'documents']` → `/acme/documents`; relative commands stay relative. */

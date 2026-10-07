@@ -441,7 +441,8 @@ providers: [
   path or router commands (`['/', tenantId, 'documents']`), navigated with `routerLink` +
   `queryParams`; relative paths resolve against the route that renders the board. The resolver
   sees route targets too and may return a rewritten path (e.g. with the tenant/language prefix);
-  `null` keeps `path`. `CockpitContextService.resolveLinkTarget()` returns `{ path, queryParams }`
+  `null` keeps `path`. Route targets stay in the app: a `path` with a URL scheme or a
+  protocol-relative start (`//host`) is dropped. `CockpitContextService.resolveLinkTarget()` returns `{ path, queryParams }`
   for custom renderings; `resolveLink()` a URL string with the query appended.
 - **Counts.** `AttentionFinding.count?: number` (AB#5622) renders a badge next to the title
   (formatted in `numberLocale`); without it nothing changes. The built-in checks set none — their

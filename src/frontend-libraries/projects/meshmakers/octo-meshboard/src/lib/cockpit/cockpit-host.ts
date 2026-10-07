@@ -42,7 +42,8 @@ export type CockpitLinkQueryParams = Readonly<Record<string, string | number | b
  * their own pages, e.g. a pre-filtered list: `{ kind: 'route', path: 'documents', queryParams: {
  * checkTier: '2' } }`. Navigates through the Angular Router (`routerLink` + `queryParams`).
  *
- * `path` is a URL path or router commands (`['/', tenantId, 'documents']`). Absolute paths are
+ * `path` is an in-app URL path or router commands (`['/', tenantId, 'documents']`); a scheme
+ * (`https:`) or a protocol-relative start (`//host`) drops the link. Absolute paths are
  * used as they are; relative ones resolve against the route that renders the board. The host's
  * `CockpitLinkResolver` sees route targets too and may return a rewritten path (e.g. prefixed
  * with the tenant root); `null` there keeps `path` — the query parameters always come from the
