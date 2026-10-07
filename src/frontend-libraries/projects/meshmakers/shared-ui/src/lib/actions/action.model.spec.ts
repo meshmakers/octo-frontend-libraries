@@ -64,6 +64,12 @@ describe('action.model', () => {
     expect(MM_ACTION_ICONS.delete.name).toBe('trash');
     expect(MM_ACTION_ICONS.refresh.name).toBe('arrow-rotate-cw');
     expect(MM_ACTION_ICONS.restore.name).toBe('undo');
+    expect(MM_ACTION_ICONS.pin.name).toBe('pin');
+    expect(MM_ACTION_ICONS.unpin.name).toBe('unpin');
+    expect(MM_ACTION_ICONS.merge.name).toBe('cells-merge');
+    expect(MM_ACTION_ICONS.resetPassword.name).toBe('password');
+    expect(MM_ACTION_ICONS.backfill.name).toBe('clock-arrow-rotate');
+    expect(MM_ACTION_ICONS.recompute.name).toBe('calculator');
     expect(new Set(Object.values(MM_ACTION_ICONS).map((i) => i.name)).size).toBe(Object.keys(MM_ACTION_ICONS).length);
   });
 });

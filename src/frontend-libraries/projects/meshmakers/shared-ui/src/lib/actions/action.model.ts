@@ -1,6 +1,9 @@
 import {SVGIcon} from '@progress/kendo-svg-icons';
 import {
   arrowRotateCwIcon,
+  calculatorIcon,
+  cellsMergeIcon,
+  clockArrowRotateIcon,
   copyIcon,
   downloadIcon,
   eraserIcon,
@@ -10,12 +13,15 @@ import {
   fileReportIcon,
   hyperlinkOpenIcon,
   importIcon,
+  passwordIcon,
   pencilIcon,
+  pinIcon,
   playIcon,
   plusIcon,
   stopIcon,
   trashIcon,
   undoIcon,
+  unpinIcon,
   uploadIcon,
   xCircleIcon,
 } from '@progress/kendo-svg-icons';
@@ -120,6 +126,18 @@ export const MM_ACTION_ICONS = {
   report: fileReportIcon,
   /** Restore / roll back to a stored state (e.g. restore a dump); destructive restores are `danger`. */
   restore: undoIcon,
+  /** Pin to a start page / favourites ("Pin to Home"). */
+  pin: pinIcon,
+  /** Remove a pin ("Unpin from Home"). */
+  unpin: unpinIcon,
+  /** Merge one item into another (e.g. merge users); usually `danger`. */
+  merge: cellsMergeIcon,
+  /** Reset / set a password. */
+  resetPassword: passwordIcon,
+  /** Fill a past time range from the source data (e.g. rollup backfill). */
+  backfill: clockArrowRotateIcon,
+  /** Recalculate derived values for a range (e.g. rollup recompute); not the same as `refresh`. */
+  recompute: calculatorIcon,
 } as const satisfies Record<string, SVGIcon>;
 
 export type MmActionIconName = keyof typeof MM_ACTION_ICONS;
