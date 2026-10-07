@@ -1,0 +1,295 @@
+// Command palette (AB#5520). Deep Sea tokens from ui-concept §6; the new ones
+// (radius, motion, focus ring, mono font, accent, AI hue) carry fallbacks
+// until AB#5519 lands them in octo-ui.
+
+:host {
+  display: contents;
+  // No scrim token in the theme yet: derive one from the canvas colour so it
+  // follows dark/light mode.
+  --cp-scrim: var(--theme-scrim, color-mix(in srgb, var(--theme-bg-app) 70%, transparent));
+}
+
+.cp-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 12000; // above Kendo dialogs/windows
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 72px 16px 16px;
+  background: var(--cp-scrim);
+  animation: cp-fade var(--theme-motion-fast, 120ms) cubic-bezier(0.2, 0, 0, 1);
+}
+
+.cp-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, 100%);
+  max-height: min(560px, calc(100vh - 96px));
+  overflow: hidden;
+  background: var(--theme-bg-overlay);
+  color: var(--theme-text-primary);
+  border-radius: var(--theme-radius-lg, 8px);
+  box-shadow: var(--theme-shadow-popup);
+  font-family: var(--theme-font-ui, inherit);
+}
+
+.cp-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--theme-border-subtle);
+
+  &:focus-within {
+    box-shadow: inset 0 -2px 0 var(--theme-accent, var(--octo-mint, #64ceb9));
+  }
+}
+
+.cp-search-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--theme-text-muted);
+  stroke-width: 1.5;
+}
+
+.cp-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  color: var(--theme-text-primary);
+  font: inherit;
+  font-size: 15px;
+
+  &::placeholder {
+    color: var(--theme-text-muted);
+  }
+}
+
+.cp-list {
+  overflow: auto;
+  padding: 6px;
+  overscroll-behavior: contain;
+}
+
+.cp-section-ai {
+  margin-top: 4px;
+  border-top: 1px solid var(--theme-border-subtle);
+  padding-top: 4px;
+
+  .cp-group-header {
+    display: none;
+  }
+}
+
+.cp-group-header {
+  padding: 8px 10px 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--theme-text-muted);
+}
+
+// Columns: icon · label · meta · Tab key. The meta column takes its natural width up to
+// 45 % (it used to collapse to "S…" because an `auto` track yields to the `1fr` label);
+// the label keeps at least 6rem, so on a phone it never shrinks to nothing.
+.cp-option {
+  display: grid;
+  grid-template-columns: 22px minmax(6rem, 1fr) fit-content(45%) 28px;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: var(--theme-radius-sm, 4px);
+  cursor: pointer;
+
+  &[aria-selected='true'] {
+    background: var(--theme-accent-subtle, rgba(100, 206, 185, 0.12));
+
+    .cp-icon {
+      color: var(--theme-accent, var(--octo-mint, #64ceb9));
+    }
+  }
+
+  &.cp-ai .cp-icon,
+  &.cp-ai .cp-label {
+    color: var(--theme-ai, #8b6fd0);
+  }
+}
+
+.cp-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--theme-text-muted);
+  font: 500 13px var(--theme-font-mono, 'Roboto Mono', monospace);
+}
+
+.cp-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  mark {
+    background: none;
+    color: var(--theme-accent, var(--octo-mint, #64ceb9));
+    font-weight: 500;
+  }
+}
+
+.cp-side {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+  white-space: nowrap;
+}
+
+.cp-description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cp-tab-col {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cp-hint {
+  overflow: hidden;
+  max-width: 200px;
+  text-overflow: ellipsis;
+  font-family: var(--theme-font-mono, 'Roboto Mono', monospace);
+  font-size: 11.5px;
+  color: var(--theme-text-muted);
+}
+
+kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 4px;
+  border: 1px solid var(--theme-border-strong);
+  border-radius: var(--theme-radius-xs, 2px);
+  font: 11px var(--theme-font-mono, 'Roboto Mono', monospace);
+  line-height: 16px;
+  text-align: center;
+  color: var(--theme-text-secondary);
+}
+
+.cp-esc {
+  flex: none;
+}
+
+.cp-close {
+  display: none;
+  flex: none;
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  color: var(--theme-text-accent);
+  font: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.cp-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--theme-text-muted);
+}
+
+.cp-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--theme-border-subtle);
+  font-size: 11px;
+  color: var(--theme-text-muted);
+
+  // Each hint stays together; when the dialog is narrow whole hints move to the next line
+  // instead of a key being separated from its label (visual check 2026-10-06).
+  > span {
+    white-space: nowrap;
+  }
+
+  kbd {
+    margin-right: 2px;
+  }
+}
+
+.cp-prefixes {
+  margin-left: auto;
+  white-space: normal;
+
+  // The prefix legend wraps between its pairs only.
+  .cp-prefix {
+    white-space: nowrap;
+  }
+}
+
+.cp-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes cp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-scrim {
+    animation: none;
+  }
+}
+
+// Phone (ui-concept §7.5): the palette is a full-screen search.
+@media (max-width: 640px) {
+  .cp-scrim {
+    padding: 0;
+  }
+
+  .cp-dialog {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .cp-list {
+    flex: 1 1 auto;
+  }
+
+  .cp-option {
+    grid-template-columns: 22px minmax(6rem, 1fr) fit-content(40%) 28px;
+  }
+
+  .cp-hint,
+  .cp-prefixes,
+  .cp-esc {
+    display: none;
+  }
+
+  .cp-close {
+    display: inline-flex;
+  }
+}
