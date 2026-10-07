@@ -42,10 +42,14 @@
  * - `ASSISTANT_MESSAGES` — translations (`Partial<AssistantMessages>`; component `messages` inputs win).
  *
  * Requires the `marked` package (markdown of assistant turns).
+ *
+ * The startup-needed, `marked`-free part (service, hotkey, tokens, transports, models, messages,
+ * Explain directives) lives in `@meshmakers/shared-ui/assistant-core` and is re-exported here with
+ * the same identity. Import from `assistant-core` in eagerly loaded code and load the panel lazily.
  * {@link FakeAssistantTransport} is a scriptable transport for host specs.
  */
 
-// --- Contract and tokens ---
+// Startup part — re-exported from assistant-core so tokens and classes keep a single identity.
 export {
   ASSISTANT_ENABLED,
   ASSISTANT_TRANSPORT,
@@ -53,7 +57,21 @@ export {
   ASSISTANT_TOOL_CALL_COMPONENT,
   ASSISTANT_SLASH_COMMANDS,
   DEFAULT_ASSISTANT_SLASH_COMMANDS,
-} from './assistant.models';
+  DEFAULT_ASSISTANT_MESSAGES,
+  ASSISTANT_MESSAGES,
+  resolveAssistantMessages,
+  formatAssistantMessage,
+  proposalDecisionLabel,
+  AssistantService,
+  assistantHotkey,
+  NotConnectedAssistantTransport,
+  ASSISTANT_NOT_CONNECTED_MESSAGE,
+  FakeAssistantTransport,
+  deriveAssistantContext,
+  AssistantToolCallRowComponent,
+  IfAssistantDirective,
+  AssistantExplainDirective,
+} from '@meshmakers/shared-ui/assistant-core';
 export type {
   AssistantTransportStatus,
   AssistantContextKind,
@@ -70,32 +88,15 @@ export type {
   AssistantStreamEvent,
   AssistantTransport,
   AssistantSlashCommand,
-} from './assistant.models';
+  AssistantMessages,
+  AssistantContextSource,
+} from '@meshmakers/shared-ui/assistant-core';
 
-// --- Messages / i18n ---
-export {
-  DEFAULT_ASSISTANT_MESSAGES,
-  ASSISTANT_MESSAGES,
-  resolveAssistantMessages,
-  formatAssistantMessage,
-  proposalDecisionLabel,
-} from './assistant.messages';
-export type { AssistantMessages } from './assistant.messages';
-
-// --- Services / transports ---
-export { AssistantService, assistantHotkey } from './assistant.service';
-export { NotConnectedAssistantTransport, ASSISTANT_NOT_CONNECTED_MESSAGE } from './not-connected.transport';
-export { FakeAssistantTransport } from './testing/fake-assistant-transport';
-
-// --- Pure functions ---
-export { deriveAssistantContext } from './assistant-context';
-export type { AssistantContextSource } from './assistant-context';
+// --- Markdown (needs `marked`) ---
 export { renderAssistantMarkdown, classifyAssistantHref, AssistantMarkdownPipe } from './assistant-markdown';
 
-// --- Components / directives ---
+// --- Panel components ---
 export { AssistantPanelComponent } from './panel/assistant-panel.component';
 export { AssistantComposerComponent } from './composer/assistant-composer.component';
 export { AssistantThreadComponent } from './thread/assistant-thread.component';
-export { AssistantToolCallRowComponent } from './thread/assistant-tool-call-row.component';
 export { AssistantProposalCardComponent } from './proposal-card/assistant-proposal-card.component';
-export { IfAssistantDirective, AssistantExplainDirective } from './assistant-explain.directive';

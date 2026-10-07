@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, model, output, signal, viewChild } from '@angular/core';
-import { ASSISTANT_SLASH_COMMANDS, AssistantSlashCommand } from '../assistant.models';
-import { AssistantMessages, assistantMessages } from '../assistant.messages';
+import { ASSISTANT_SLASH_COMMANDS, AssistantSlashCommand, AssistantMessages, assistantMessages } from '@meshmakers/shared-ui/assistant-core';
 
 let nextComposerId = 0;
 

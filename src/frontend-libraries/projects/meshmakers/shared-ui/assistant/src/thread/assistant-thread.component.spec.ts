@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ASSISTANT_TOOL_CALL_COMPONENT, AssistantProposalDecision, AssistantThreadItem } from '../assistant.models';
+import { ASSISTANT_TOOL_CALL_COMPONENT, AssistantProposalDecision, AssistantThreadItem } from '@meshmakers/shared-ui/assistant-core';
 import { StubAiToolCallComponent } from '../testing/stub-tool-call.component';
 import { AssistantThreadComponent } from './assistant-thread.component';
 

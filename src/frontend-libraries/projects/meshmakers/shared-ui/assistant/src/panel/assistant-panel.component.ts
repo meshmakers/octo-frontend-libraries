@@ -1,9 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, afterNextRender, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
-import { AssistantService } from '../assistant.service';
+import { AssistantService, AssistantProposalDecision, AssistantMessages, assistantMessages, formatAssistantMessage } from '@meshmakers/shared-ui/assistant-core';
 import { AssistantComposerComponent } from '../composer/assistant-composer.component';
 import { AssistantThreadComponent } from '../thread/assistant-thread.component';
-import { AssistantProposalDecision } from '../assistant.models';
-import { AssistantMessages, assistantMessages, formatAssistantMessage } from '../assistant.messages';
 
 /**
  * Right-side assistant panel (ui-concept §5.3, wireframe screen 6): header,

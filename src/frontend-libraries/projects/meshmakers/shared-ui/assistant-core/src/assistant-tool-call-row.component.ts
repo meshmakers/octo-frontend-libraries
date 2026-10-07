@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import type { AssistantToolCall } from '../assistant.models';
+import type { AssistantToolCall } from './assistant.models';
 
 /**
  * Default renderer of a tool call in the thread: tool name in mono plus its status.

@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, injec
 import { NgComponentOutlet } from '@angular/common';
 import { AssistantMarkdownPipe } from '../assistant-markdown';
 import { AssistantProposalCardComponent } from '../proposal-card/assistant-proposal-card.component';
-import { ASSISTANT_TOOL_CALL_COMPONENT, AssistantProposalDecision, AssistantThreadItem } from '../assistant.models';
-import { AssistantMessages, assistantMessages } from '../assistant.messages';
+import { ASSISTANT_TOOL_CALL_COMPONENT, AssistantProposalDecision, AssistantThreadItem, AssistantMessages, assistantMessages } from '@meshmakers/shared-ui/assistant-core';
 
 /**
  * The conversation (wireframe screen 6): user turns, assistant turns (markdown

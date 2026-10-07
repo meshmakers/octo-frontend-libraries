@@ -1,11 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot } from '@angular/router';
-import { ASSISTANT_MESSAGES, DEFAULT_ASSISTANT_MESSAGES, resolveAssistantMessages } from './assistant.messages';
-import { deriveAssistantContext } from './assistant-context';
-import { NotConnectedAssistantTransport } from './not-connected.transport';
+import { ASSISTANT_MESSAGES, DEFAULT_ASSISTANT_MESSAGES, resolveAssistantMessages, deriveAssistantContext, NotConnectedAssistantTransport, ASSISTANT_SLASH_COMMANDS } from '@meshmakers/shared-ui/assistant-core';
 import { AssistantProposalCardComponent } from './proposal-card/assistant-proposal-card.component';
 import { AssistantComposerComponent } from './composer/assistant-composer.component';
-import { ASSISTANT_SLASH_COMMANDS } from './assistant.models';
 
 describe('assistant messages', () => {
   it('defaults to English and ignores null members', () => {

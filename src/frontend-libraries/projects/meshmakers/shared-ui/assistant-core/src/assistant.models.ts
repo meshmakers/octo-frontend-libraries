@@ -1,7 +1,7 @@
 import { InjectionToken, Signal, Type, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { NotConnectedAssistantTransport } from './not-connected.transport';
-import { AssistantToolCallRowComponent } from './thread/assistant-tool-call-row.component';
+import { AssistantToolCallRowComponent } from './assistant-tool-call-row.component';
 
 /**
  * The single feature flag of the assistant (ui-concept §5.3, AB#5549).

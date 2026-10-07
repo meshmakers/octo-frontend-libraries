@@ -3,9 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { BreadCrumbService } from '@meshmakers/shared-services';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { ASSISTANT_ENABLED, ASSISTANT_PAGE_CONTEXT, ASSISTANT_TRANSPORT, AssistantProposalDecision } from '../assistant.models';
-import { AssistantService } from '../assistant.service';
-import { FakeAssistantTransport } from '../testing/fake-assistant-transport';
+import { ASSISTANT_ENABLED, ASSISTANT_PAGE_CONTEXT, ASSISTANT_TRANSPORT, AssistantProposalDecision, AssistantService, FakeAssistantTransport } from '@meshmakers/shared-ui/assistant-core';
 import { AssistantPanelComponent } from './assistant-panel.component';
 
 describe('AssistantPanelComponent', () => {

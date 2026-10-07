@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AssistantProposal } from '../assistant.models';
+import { AssistantProposal } from '@meshmakers/shared-ui/assistant-core';
 import { AssistantProposalCardComponent } from './assistant-proposal-card.component';
 
 const PROPOSAL: AssistantProposal = {

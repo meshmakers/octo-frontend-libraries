@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { AssistantProposal, AssistantProposalDecisionKind } from '../assistant.models';
-import { AssistantMessages, assistantMessages, formatAssistantMessage, proposalDecisionLabel } from '../assistant.messages';
+import { AssistantProposal, AssistantProposalDecisionKind, AssistantMessages, assistantMessages, formatAssistantMessage, proposalDecisionLabel } from '@meshmakers/shared-ui/assistant-core';
 
 /**
  * A write the assistant proposes (ui-concept §5.3/§5.6, wireframe screen 6):
