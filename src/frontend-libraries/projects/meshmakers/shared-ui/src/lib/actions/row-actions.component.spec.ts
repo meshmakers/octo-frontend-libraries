@@ -3,6 +3,7 @@ import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {ActivatedRoute, Router, provideRouter} from '@angular/router';
 import {RowActionsComponent} from './row-actions.component';
 import {MM_ACTION_ICONS, MmAction, MmActionEvent} from './action.model';
+import {expectIconButtonsAccessible} from '../../../testing/src/public-api';
 
 @Component({
   standalone: true,
@@ -43,6 +44,16 @@ describe('RowActionsComponent', () => {
     expect(moreButton()).toBeNull();
     expect(fixture.nativeElement.querySelector('mm-row-actions').getAttribute('role')).toBe('group');
     expect(fixture.nativeElement.querySelector('mm-row-actions').getAttribute('aria-label')).toBe('Actions for Mesh Adapter');
+  });
+
+  it('passes the icon-button accessibility guard inline and with the overflow button (AB#5581)', () => {
+    set([
+      {id: 'edit', label: 'Edit', icon: MM_ACTION_ICONS.edit},
+      {id: 'copy', label: 'Copy id', icon: MM_ACTION_ICONS.copy, disabledReason: 'No id'},
+      {id: 'view', label: 'View', icon: MM_ACTION_ICONS.view},
+      {id: 'delete', label: 'Delete', icon: MM_ACTION_ICONS.delete, danger: true},
+    ]);
+    expectIconButtonsAccessible(fixture);
   });
 
   it('moves the rest into a "More actions" menu when more than three are visible', () => {
