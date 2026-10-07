@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ShellDensityOption, ShellThemePreference, ShellUser, ShellUserMenuComponent } from './user-menu.component';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ShellDensityOption, ShellThemePreference, ShellUser, ShellUserMenuComponent, ShellUserMenuItem } from './user-menu.component';
 import { SHELL_MESSAGES } from '../shell.messages';
 
 const DENSITY_OPTIONS: ShellDensityOption[] = [
@@ -223,6 +224,118 @@ describe('ShellUserMenuComponent', () => {
     fixture.detectChanges();
     expect(element.querySelector('.avatar.placeholder')).not.toBeNull();
     expect(element.querySelector('.avatar-button')).toBeNull();
+  });
+});
+
+describe('ShellUserMenuComponent host entries (AB#5621)', () => {
+  const ITEMS: ShellUserMenuItem[] = [
+    { id: 'my-identities', text: 'My identities' },
+    { id: 'developer-info', text: 'Developer info' },
+    { id: 'docs', text: 'Documentation', href: 'https://docs.example' }
+  ];
+  let fixture: ComponentFixture<ShellUserMenuComponent>;
+  let element: HTMLElement;
+  let chosen: string[];
+
+  const openMenu = (): void => {
+    element.querySelector<HTMLButtonElement>('.avatar-button')!.click();
+    fixture.detectChanges();
+  };
+  const entry = (id: string): HTMLElement => element.querySelector<HTMLElement>(`[data-user-item="${id}"]`)!;
+
+  beforeEach(() => {
+    chosen = [];
+    fixture = TestBed.createComponent(ShellUserMenuComponent);
+    fixture.componentRef.setInput('user', USER);
+    fixture.componentInstance.itemSelected.subscribe(item => chosen.push(item.id));
+    element = fixture.nativeElement as HTMLElement;
+  });
+
+  it('lists no entry block without items', () => {
+    fixture.detectChanges();
+    openMenu();
+    expect(element.querySelector('.user-items')).toBeNull();
+  });
+
+  it('lists the entries as buttons (links for href) above profile and sign-out', () => {
+    fixture.componentRef.setInput('items', ITEMS);
+    fixture.detectChanges();
+    openMenu();
+
+    const entries = Array.from(element.querySelectorAll<HTMLElement>('.user-items .user-item'));
+    expect(entries.map(e => e.textContent!.trim())).toEqual(['My identities', 'Developer info', 'Documentation↗(opens in a new tab)']);
+    expect(entries[0].tagName).toBe('BUTTON');
+    expect((entries[0] as HTMLButtonElement).type).toBe('button');
+    const link = entries[2] as HTMLAnchorElement;
+    expect(link.tagName).toBe('A');
+    expect(link.href).toBe('https://docs.example/');
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toBe('noopener');
+    const actions = element.querySelector('.user-actions')!;
+    expect(element.querySelector('.user-items')!.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('emits the chosen entry, closes the panel and returns focus to the avatar', () => {
+    fixture.componentRef.setInput('items', ITEMS);
+    fixture.detectChanges();
+    openMenu();
+
+    entry('developer-info').click();
+    fixture.detectChanges();
+
+    expect(chosen).toEqual(['developer-info']);
+    expect(element.querySelector('.user-panel')).toBeNull();
+    expect(document.activeElement).toBe(element.querySelector('.avatar-button'));
+  });
+
+  it('opens an href entry without emitting and closes the panel', () => {
+    fixture.componentRef.setInput('items', ITEMS);
+    fixture.detectChanges();
+    openMenu();
+
+    const link = entry('docs');
+    link.addEventListener('click', event => event.preventDefault());
+    link.click();
+    fixture.detectChanges();
+
+    expect(chosen).toEqual([]);
+    expect(element.querySelector('.user-panel')).toBeNull();
+  });
+});
+
+@Component({
+  imports: [ShellUserMenuComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <mm-shell-user-menu [user]="user">
+      <div shellUserMenuItems class="custom"><button type="button" class="custom-entry" (click)="clicks = clicks + 1">Custom</button><span class="custom-text">Note</span></div>
+    </mm-shell-user-menu>`
+})
+class ProjectingMenuHostComponent {
+  readonly user = USER;
+  clicks = 0;
+}
+
+describe('ShellUserMenuComponent projected entries (AB#5621)', () => {
+  it('shows projected content in the panel and closes on a click on its button, not on plain text', () => {
+    const fixture = TestBed.createComponent(ProjectingMenuHostComponent);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const open = (): void => {
+      element.querySelector<HTMLButtonElement>('.avatar-button')!.click();
+      fixture.detectChanges();
+    };
+    expect(element.querySelector('.custom-entry')).toBeNull();
+
+    open();
+    element.querySelector<HTMLElement>('.user-items-slot .custom-text')!.click();
+    fixture.detectChanges();
+    expect(element.querySelector('.user-panel')).not.toBeNull();
+
+    element.querySelector<HTMLButtonElement>('.user-items-slot .custom-entry')!.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.clicks).toBe(1);
+    expect(element.querySelector('.user-panel')).toBeNull();
   });
 });
 

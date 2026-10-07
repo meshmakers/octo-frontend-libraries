@@ -86,6 +86,34 @@
         </div>
       }
 
+      @if (items().length > 0) {
+        <ul class="user-items" role="list">
+          @for (item of items(); track item.id) {
+            <li>
+              @if (item.href) {
+                <a class="user-item" [attr.data-user-item]="item.id" [href]="item.href" target="_blank" rel="noopener" (click)="followItemLink()">
+                  @if (item.svgIcon) {
+                    <kendo-svgicon class="user-item-icon" [icon]="item.svgIcon"></kendo-svgicon>
+                  }
+                  <span class="user-item-text">{{ item.text }}</span>
+                  <span aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span>
+                </a>
+              } @else {
+                <button type="button" class="user-item" [attr.data-user-item]="item.id" (click)="selectItem(item)">
+                  @if (item.svgIcon) {
+                    <kendo-svgicon class="user-item-icon" [icon]="item.svgIcon"></kendo-svgicon>
+                  }
+                  <span class="user-item-text">{{ item.text }}</span>
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      }
+      <div class="user-items-slot" (click)="onProjectedClick($event)">
+        <ng-content select="[shellUserMenuItems]"></ng-content>
+      </div>
+
       <div class="user-actions">
         @if (profileUri(); as uri) {
           <a class="action-link" [href]="uri" target="_blank" rel="noopener">{{ m().manageProfile }} <span aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span></a>

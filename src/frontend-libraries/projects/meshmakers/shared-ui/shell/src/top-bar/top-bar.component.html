@@ -57,12 +57,17 @@
       [languages]="languages()"
       [language]="language()"
       [version]="version()"
+      [items]="userMenuItems()"
       [messages]="messages()"
       (signIn)="signIn.emit()"
       (signOut)="signOut.emit()"
       (themeChange)="themeChange.emit($event)"
       (densityChange)="densityChange.emit($event)"
-      (languageChange)="languageChange.emit($event)">
+      (languageChange)="languageChange.emit($event)"
+      (itemSelected)="userMenuItemSelected.emit($event)">
+      <ng-container ngProjectAs="[shellUserMenuItems]">
+        <ng-content select="[shellUserMenuItems]"></ng-content>
+      </ng-container>
     </mm-shell-user-menu>
   </div>
 </header>

@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
+import { SVGIconComponent } from '@progress/kendo-angular-icons';
+import { SVGIcon } from '@progress/kendo-svg-icons';
 import { formatShellMessage, ShellMessages, shellMessages } from '../shell.messages';
 
 /** One density choice of the user menu (the host owns the density modes and applies them). */
@@ -33,6 +35,19 @@ export interface ShellUser {
   profileUri?: string | null;
 }
 
+/**
+ * A host entry of the user menu (AB#5621), e.g. "My identities" or "Developer info". Listed
+ * above "Manage profile" and "Sign out".
+ */
+export interface ShellUserMenuItem {
+  id: string;
+  /** Visible label (already translated by the host). */
+  text: string;
+  svgIcon?: SVGIcon;
+  /** External link, opened in a new tab; without one choosing the entry emits `itemSelected`. */
+  href?: string;
+}
+
 interface ThemeOption {
   value: ShellThemePreference;
   label: string;
@@ -56,6 +71,11 @@ interface ThemeOption {
  *   switching the translations is the host's job; it feeds the current code back
  *   through `language`.
  * - **Version** shows `version` when set.
+ * - **Host entries** (AB#5621): `items` lists the host's own entries above "Manage profile" and
+ *   "Sign out"; choosing one closes the panel and emits `itemSelected` (entries with `href`
+ *   open in a new tab instead). For richer content the host may project elements with the
+ *   `shellUserMenuItems` attribute into the same place; a click on a button or link there
+ *   closes the panel as well.
  *
  * Opening moves focus into the panel, Escape or the avatar button close it
  * and return focus to the avatar. Theme, density and language are native radio groups
@@ -65,6 +85,7 @@ interface ThemeOption {
   selector: 'mm-shell-user-menu',
   templateUrl: './user-menu.component.html',
   styleUrl: './user-menu.component.scss',
+  imports: [SVGIconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ShellUserMenuComponent {
@@ -87,6 +108,8 @@ export class ShellUserMenuComponent {
   readonly language = input<string | null>(null);
   /** App version shown at the bottom of the panel; null leaves the line out. */
   readonly version = input<string | null>(null);
+  /** Host entries above "Manage profile" / "Sign out"; empty leaves the list out. */
+  readonly items = input<readonly ShellUserMenuItem[]>([]);
   /** Translations; members left out fall back to {@link SHELL_MESSAGES}, then English. */
   readonly messages = input<Partial<ShellMessages> | null>(null);
 
@@ -98,6 +121,8 @@ export class ShellUserMenuComponent {
   readonly densityChange = output<string>();
   /** The person picked a language (its code). */
   readonly languageChange = output<string>();
+  /** The person chose a host entry without `href`. */
+  readonly itemSelected = output<ShellUserMenuItem>();
 
   protected readonly m = shellMessages(this.messages);
   protected readonly open = signal(false);
@@ -161,6 +186,25 @@ export class ShellUserMenuComponent {
   protected setLanguage(code: string): void {
     if (code !== this.currentLanguage()) {
       this.languageChange.emit(code);
+    }
+  }
+
+  /** A host entry: close the panel (focus back on the avatar), then let the host act. */
+  protected selectItem(item: ShellUserMenuItem): void {
+    this.close(true);
+    this.itemSelected.emit(item);
+  }
+
+  /** An external host entry opens in a new tab; the panel closes without moving focus. */
+  protected followItemLink(): void {
+    this.close(false);
+  }
+
+  /** A click on a button or link of the projected `shellUserMenuItems` content closes the panel. */
+  protected onProjectedClick(event: Event): void {
+    const target = event.target;
+    if (target instanceof Element && target.closest('button, a[href]')) {
+      this.close(true);
     }
   }
 
