@@ -203,12 +203,18 @@ export type { AttentionProviderInfo, AttentionState } from './lib/cockpit/attent
 export { CkModelsResolveFailedAttentionProvider } from './lib/cockpit/attention/providers/ck-models-resolve-failed.provider';
 export { AdaptersAttentionProvider } from './lib/cockpit/attention/providers/adapters.provider';
 export { UnregisteredPoolsAttentionProvider } from './lib/cockpit/attention/providers/unregistered-pools.provider';
+export {
+  FailedExecutionsAttentionProvider, COCKPIT_FAILED_EXECUTIONS_OPTIONS, DEFAULT_FAILED_EXECUTIONS_OPTIONS, failedExecutionsSeverity
+} from './lib/cockpit/attention/providers/failed-executions.provider';
+export type { FailedExecutionsAttentionOptions } from './lib/cockpit/attention/providers/failed-executions.provider';
 export { FeaturesNotInstalledAttentionProvider, enabledButNotInstalled, isServiceConfigured } from './lib/cockpit/attention/providers/features-not-installed.provider';
 export {
   CockpitAdapterStatesService, COCKPIT_ADAPTER_LIMIT, ADAPTER_OFFLINE_GRACE_MS, adaptersInError, adaptersOffline
 } from './lib/cockpit/data/cockpit-adapter-states.service';
 export type { CockpitAdapterState, CockpitAdapterStates } from './lib/cockpit/data/cockpit-adapter-states.service';
 export { CockpitCkModelStatesService } from './lib/cockpit/data/cockpit-ck-model-states.service';
+export { CockpitDataFlowExecutionsService, countFlowExecutions } from './lib/cockpit/data/cockpit-data-flow-executions.service';
+export type { CockpitDataFlowExecutions, CockpitExecutionCounts } from './lib/cockpit/data/cockpit-data-flow-executions.service';
 export * from './lib/cockpit/kpi/cockpit-kpi';
 export { CockpitKpiService, COCKPIT_KPI_GATES, COCKPIT_DATA_FLOW_LIMIT, KPI_ERROR_TEXT } from './lib/cockpit/kpi/cockpit-kpi.service';
 export type { CockpitKpiKind, CockpitKpiResult } from './lib/cockpit/kpi/cockpit-kpi.service';

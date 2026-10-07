@@ -1,16 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { defer, from, Observable, of } from 'rxjs';
 import { catchError, map, startWith, switchMap, take } from 'rxjs/operators';
-import { CockpitDataFlowExecutionsDtoGQL } from '../../graphQL/cockpitDataFlowExecutions';
 import { CockpitContextService } from '../cockpit-context.service';
 import { COCKPIT_ROLES } from '../cockpit-host';
 import { COCKPIT_WIDGET_MESSAGES, CockpitWidgetMessages, readCockpitMessagesSource, resolveCockpitWidgetMessages } from '../cockpit-messages';
 import { CockpitAdapterStatesService } from '../data/cockpit-adapter-states.service';
 import { CockpitCkModelStatesService } from '../data/cockpit-ck-model-states.service';
-import { adapterKpi, ckModelKpi, CockpitDataFlowRow, CockpitKpi, executionKpi } from './cockpit-kpi';
+import { CockpitDataFlowExecutionsService } from '../data/cockpit-data-flow-executions.service';
+import { adapterKpi, ckModelKpi, CockpitKpi, executionKpi } from './cockpit-kpi';
 
-/** Upper bound of data flows read for the executions KPI; beyond it the tile says "≥". */
-export const COCKPIT_DATA_FLOW_LIMIT = 500;
+export { COCKPIT_DATA_FLOW_LIMIT } from '../data/cockpit-data-flow-executions.service';
 
 /** What a tile shows when its query failed (details are logged, never shown). */
 export const KPI_ERROR_TEXT = 'The figure could not be loaded.';
@@ -61,7 +60,7 @@ export class CockpitKpiService {
   private readonly context = inject(CockpitContextService);
   private readonly adapterStates = inject(CockpitAdapterStatesService);
   private readonly ckModelStates = inject(CockpitCkModelStatesService);
-  private readonly dataFlowsGql = inject(CockpitDataFlowExecutionsDtoGQL);
+  private readonly dataFlowExecutions = inject(CockpitDataFlowExecutionsService);
   private readonly messagesSource = inject(COCKPIT_WIDGET_MESSAGES, { optional: true });
 
   /**
@@ -111,13 +110,7 @@ export class CockpitKpiService {
       case 'ckModelState':
         return this.ckModelStates.counts(tenantId).pipe(map(counts => ckModelKpi(counts, texts)));
       case 'pipelineExecutions':
-        return this.dataFlowsGql.fetch({ variables: { first: COCKPIT_DATA_FLOW_LIMIT }, fetchPolicy: 'network-only' }).pipe(
-          map(result => {
-            const connection = result.data?.runtime?.systemCommunicationDataFlow;
-            const flows = (connection?.items ?? []).filter((row): row is NonNullable<typeof row> => !!row) as CockpitDataFlowRow[];
-            return executionKpi(flows, Math.max(connection?.totalCount ?? flows.length, flows.length), texts);
-          })
-        );
+        return this.dataFlowExecutions.executions(tenantId).pipe(map(({ flows, totalCount }) => executionKpi(flows, totalCount, texts)));
     }
   }
 }

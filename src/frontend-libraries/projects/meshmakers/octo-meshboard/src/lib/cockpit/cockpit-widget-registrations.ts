@@ -11,6 +11,7 @@ import { BaseWidgetConfig, PersistedWidgetData, WidgetPersistenceData, WidgetReg
 import { AttentionProvider, COCKPIT_ATTENTION_PROVIDERS } from './attention/attention.models';
 import { AdaptersAttentionProvider } from './attention/providers/adapters.provider';
 import { CkModelsResolveFailedAttentionProvider } from './attention/providers/ck-models-resolve-failed.provider';
+import { FailedExecutionsAttentionProvider } from './attention/providers/failed-executions.provider';
 import { FeaturesNotInstalledAttentionProvider } from './attention/providers/features-not-installed.provider';
 import { UnregisteredPoolsAttentionProvider } from './attention/providers/unregistered-pools.provider';
 import { AttentionListConfigDialogComponent, AttentionListConfigResult } from './widgets/attention-list-config-dialog.component';
@@ -24,6 +25,7 @@ import { MAX_RECENT_ITEMS, RecentItemsWidgetComponent } from './widgets/recent-i
 export const BUILT_IN_ATTENTION_PROVIDERS: readonly Type<AttentionProvider>[] = [
   CkModelsResolveFailedAttentionProvider,
   AdaptersAttentionProvider,
+  FailedExecutionsAttentionProvider,
   UnregisteredPoolsAttentionProvider,
   FeaturesNotInstalledAttentionProvider
 ];

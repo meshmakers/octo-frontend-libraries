@@ -419,7 +419,7 @@ providers: [
 
 | Type | Label | Shows | Gate (per check / KPI) | Persisted `config` |
 |------|-------|-------|------------------------|--------------------|
-| `attentionList` | Attention List | Findings, errors first: CK models in ResolveFailed, adapters in error / offline > 10 min, pools not registered, features enabled but not installed, plus host checks (Refinery Studio: secrets needing re-entry) | each provider: AdminPanelManagement / CommunicationManagement + `System.Communication` / TenantManagement | `{ "providerIds"?: string[], "maxItems"?: number, "showExplain"?: boolean }` — no `providerIds` = all checks, including ones added later |
+| `attentionList` | Attention List | Findings, errors first: CK models in ResolveFailed, adapters in error / offline > 10 min, failed pipeline executions in 24 h above a threshold, pools not registered, features enabled but not installed, plus host checks (Refinery Studio: secrets needing re-entry) | each provider: AdminPanelManagement / CommunicationManagement + `System.Communication` / TenantManagement | `{ "providerIds"?: string[], "maxItems"?: number, "showExplain"?: boolean }` — no `providerIds` = all checks, including ones added later |
 | `adapterStatus` | Adapter Status | Adapters online / expected to run (shared rule `utils/adapter-online.ts`) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean }` |
 | `ckModelState` | CK Model State | CK models available / all; ResolveFailed = error, importing = warning | AdminPanelManagement | `{ "showDetail"?: boolean }` |
 | `recentItems` | Recent Items | The viewer's recently opened pages, entities and boards (most recent first, glyph, kind, relative time as `<time>`), real links; optional "⌘K shows the same list" | none — per user, from the host's `COCKPIT_RECENT_ITEMS`; without it "Not available" + collapsed | `{ "maxItems"?: number }` (default 8, 1–20) |
@@ -445,8 +445,8 @@ providers: [
   protocol-relative start (`//host`) is dropped. `CockpitContextService.resolveLinkTarget()` returns `{ path, queryParams }`
   for custom renderings; `resolveLink()` a URL string with the query appended.
 - **Counts.** `AttentionFinding.count?: number` (AB#5622) renders a badge next to the title
-  (formatted in `numberLocale`); without it nothing changes. The built-in checks set none — their
-  titles already name the count.
+  (formatted in `numberLocale`); without it nothing changes. Of the built-in checks only "Failed
+  pipeline executions" sets it — the others name the count in their titles.
 - **Texts (i18n, AB#5622).** Every widget text (severity chips, empty / loading / unavailable
   states, KPI labels, statuses and details, recent-items wording and relative times) comes from
   `CockpitWidgetMessages` with English defaults (`DEFAULT_COCKPIT_WIDGET_MESSAGES`). Provide a
@@ -455,13 +455,20 @@ providers: [
   own also takes a `messages` input. `{count}`-style placeholders; missing members keep English;
   `numberLocale` (default `en-US`) formats the figures. `CockpitKpiService.kpi(kind, messages?)`
   builds KPI texts the same way. Not covered: the config dialogs and the findings of the built-in
-  OctoMesh checks (a host's own providers bring their own translated titles and texts). Nothing of
+  OctoMesh checks except "Failed pipeline executions" (`attentionFailedExecutions*`, optional
+  members); a host's own providers bring their own translated titles and texts. Nothing of
   this is persisted — the board JSON is unchanged.
 - **Adding a check.** Implement `AttentionProvider` (`id` — persisted, never rename — `label`,
   `description`, `isVisible` via `CockpitContextService.allows(roles, models)`, `load` = exactly one
   query emitting findings once) and register it on `COCKPIT_ATTENTION_PROVIDERS`.
+- **Failed pipeline executions** (`pipeline-executions-failed`, AB#5622). Same request and
+  counting as the "Pipeline executions 24 h" KPI. Warning from `minFailed` failures (default 10),
+  error from `errorFailed` failures (default 1,000) or a failure share of `errorRatio` (default
+  0.2); `null` disables an error rule. Override with `{ provide: COCKPIT_FAILED_EXECUTIONS_OPTIONS,
+  useValue: { minFailed: 50 } }`. Links to `dataFlows` (the list has no "failed only" filter).
 - **Data.** Lean documents with explicit fields in `graphQL/cockpit*.graphql`; the adapter states
-  and CK model counts are shared per tenant for 10 s between the KPI and the attention list.
+  and the data flow executions are shared per tenant for 10 s between the KPI and the attention
+  list (`CockpitAdapterStatesService`, `CockpitDataFlowExecutionsService`).
 - **Recent items source.** `CockpitRecentItemsSource` = `items(limit)` (most recent first, only
   entries the viewer may still open, each with a real `href`), `open(item)` for plain left clicks
   (modified clicks stay with the browser), optional `revision` signal (re-read on change),
