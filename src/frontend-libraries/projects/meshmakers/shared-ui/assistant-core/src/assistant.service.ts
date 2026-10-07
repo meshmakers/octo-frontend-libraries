@@ -28,8 +28,9 @@ import {
 const NO_SESSIONS = signal<readonly AssistantSessionSummary[]>([]).asReadonly();
 const NO_ACTIVE_SESSION = signal<string | null>(null).asReadonly();
 
-function settle<T>(result: AssistantAsyncResult<T>): Promise<T> {
-  return isObservable(result) ? lastValueFrom(result) : result;
+/** Awaits a promise or the last value of an observable; an observable that completes empty (e.g. `EMPTY` for a void result) yields `undefined` instead of rejecting. */
+function settle<T>(result: AssistantAsyncResult<T>): Promise<T | undefined> {
+  return isObservable(result) ? lastValueFrom(result, { defaultValue: undefined }) : result;
 }
 
 /**
@@ -75,6 +76,8 @@ export class AssistantService {
   private readonly _draftFiles = signal<readonly File[]>([]);
   private readonly _starterQuestions = signal<readonly string[]>([]);
   private starterRequest = 0;
+  /** Bumped by every thread switch (open session, new chat, loadThread); stale session loads are dropped. */
+  private threadGeneration = 0;
   private readonly _routeTick = signal(0);
   private readonly _breadcrumbs = signal<string[]>([]);
   private readonly decisions = new Subject<AssistantProposalDecision>();
@@ -270,12 +273,19 @@ export class AssistantService {
       return false;
     }
     this.stop();
+    const generation = ++this.threadGeneration;
     try {
       const items = await settle(this.transport.loadSession!(id));
+      if (generation !== this.threadGeneration) {
+        // Another session was opened (or a new chat started) meanwhile: that one wins.
+        return false;
+      }
       this.loadThread(items ?? []);
       return true;
     } catch {
-      this.append({ kind: 'error', id: this.nextId('error'), text: resolveAssistantMessages(this.messages).sessionLoadFailed });
+      if (generation === this.threadGeneration) {
+        this.append({ kind: 'error', id: this.nextId('error'), text: resolveAssistantMessages(this.messages).sessionLoadFailed });
+      }
       return false;
     }
   }
@@ -289,14 +299,17 @@ export class AssistantService {
       return false;
     }
     const wasActive = this.activeSessionId() === id;
+    const generation = this.threadGeneration;
     try {
       await settle(this.transport.deleteSession!(id));
     } catch {
       this.append({ kind: 'error', id: this.nextId('error'), text: resolveAssistantMessages(this.messages).sessionDeleteFailed });
       return false;
     }
-    if (wasActive) {
+    // Only clear when the thread still shows the deleted session (no switch while deleting).
+    if (wasActive && generation === this.threadGeneration) {
       this.stop();
+      this.threadGeneration += 1;
       this._thread.set([]);
     }
     return true;
@@ -311,6 +324,7 @@ export class AssistantService {
       return;
     }
     this.stop();
+    this.threadGeneration += 1;
     this._thread.set([]);
     this._draftFiles.set([]);
     this.transport.newSession?.();
@@ -323,6 +337,7 @@ export class AssistantService {
       return;
     }
     this.stop();
+    this.threadGeneration += 1;
     this._thread.set([...items]);
   }
 

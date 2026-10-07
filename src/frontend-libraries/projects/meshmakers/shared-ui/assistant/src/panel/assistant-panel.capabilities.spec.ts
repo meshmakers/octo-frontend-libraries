@@ -46,7 +46,9 @@ class SessionTransport extends FakeAssistantTransport {
 
 class StarterTransport extends FakeAssistantTransport {
   readonly attachments = { accept: 'application/pdf', maxFiles: 1 };
+  starterCalls = 0;
   starterQuestions(): string[] {
+    this.starterCalls += 1;
     return ['What is open?', 'Show the VAT summary'];
   }
 }
@@ -208,6 +210,24 @@ describe('AssistantPanelComponent optional capabilities (AB#5621)', () => {
       fixture.detectChanges();
       expect(transport.requests.map(r => r.text)).toEqual(['Show the VAT summary']);
       expect(element.querySelector('.starters')).toBeNull();
+    });
+
+    it('asks the transport once per opening, not again when an entry point re-focuses the open panel', async () => {
+      const transport = new StarterTransport();
+      await setup(transport);
+      expect(transport.starterCalls).toBe(1);
+      assistant.open({ prompt: 'again' });
+      await settle();
+      expect(transport.starterCalls).toBe(1);
+      // The host renders the panel only while open: closing and reopening creates it anew.
+      fixture.destroy();
+      assistant.close();
+      assistant.open();
+      const reopened = TestBed.createComponent(AssistantPanelComponent);
+      reopened.detectChanges();
+      await reopened.whenStable();
+      expect(transport.starterCalls).toBe(2);
+      reopened.destroy();
     });
 
     it('disables them while the transport is not ready', async () => {

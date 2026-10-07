@@ -2,7 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { BreadCrumbService } from '@meshmakers/shared-services';
-import { BehaviorSubject, Subject, of, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, Subject, of, throwError } from 'rxjs';
 import { ASSISTANT_ENABLED, ASSISTANT_TRANSPORT, AssistantAttachmentOptions, AssistantSessionSummary, AssistantThreadItem } from './assistant.models';
 import { AssistantService } from './assistant.service';
 import { FakeAssistantTransport } from './testing/fake-assistant-transport';
@@ -161,6 +161,61 @@ describe('AssistantService optional transport capabilities (AB#5621)', () => {
       expect(assistant.thread()).toEqual([]);
       expect(assistant.draftFiles()).toEqual([]);
       expect(assistant.activeSessionId()).toBeNull();
+    });
+
+    it('a slower earlier session load does not overwrite a later one', async () => {
+      const transport = new CapableTransport();
+      const slow = new Subject<AssistantThreadItem[]>();
+      const original = transport.loadSession.bind(transport);
+      transport.loadSession = (id: string) => (id === 's1' ? slow.asObservable() : original(id));
+      const assistant = setup(transport);
+      const first = assistant.openSession('s1');
+      expect(await assistant.openSession('s2')).toBe(true);
+      slow.next([{ kind: 'user', id: 'stale', text: 'old' }]);
+      slow.complete();
+      expect(await first).toBe(false);
+      expect(assistant.thread().map(i => i.id)).toEqual(['s2:0', 's2:1']);
+    });
+
+    it('a stale failing session load adds no error row', async () => {
+      const transport = new CapableTransport();
+      const slow = new Subject<AssistantThreadItem[]>();
+      const original = transport.loadSession.bind(transport);
+      transport.loadSession = (id: string) => (id === 's1' ? slow.asObservable() : original(id));
+      const assistant = setup(transport);
+      const first = assistant.openSession('s1');
+      assistant.newThread();
+      slow.error(new Error('late'));
+      expect(await first).toBe(false);
+      expect(assistant.thread()).toEqual([]);
+    });
+
+    it('deleting the active session keeps a thread that was switched to meanwhile', async () => {
+      const transport = new CapableTransport();
+      let finishDelete: () => void = () => undefined;
+      transport.deleteSession = (id: string) => new Promise<void>(resolve => {
+        finishDelete = () => {
+          transport.deleted.push(id);
+          resolve();
+        };
+      });
+      const assistant = setup(transport);
+      await assistant.openSession('s1');
+      const deletion = assistant.deleteSession('s1');
+      await assistant.openSession('s2');
+      finishDelete();
+      expect(await deletion).toBe(true);
+      expect(assistant.thread().map(i => i.id)).toEqual(['s2:0', 's2:1']);
+    });
+
+    it('treats an observable that completes without a value (EMPTY) as success for void results', async () => {
+      const transport = new CapableTransport();
+      transport.refreshSessions = () => EMPTY as never;
+      transport.deleteSession = () => EMPTY as never;
+      const assistant = setup(transport);
+      expect(await assistant.refreshSessions()).toBe(true);
+      expect(await assistant.deleteSession('s1')).toBe(true);
+      expect(assistant.thread()).toEqual([]);
     });
 
     it('loadThread replaces the thread', () => {
