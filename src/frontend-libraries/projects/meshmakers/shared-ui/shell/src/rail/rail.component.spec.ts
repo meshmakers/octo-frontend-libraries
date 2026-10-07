@@ -433,6 +433,57 @@ describe('ShellRailComponent closes on navigation (AB#5621)', () => {
     expect(entry('area-settings').classList).toContain('pinned');
   });
 
+  it('a navigating mouse click: closed after NavigationEnd although the icon keeps focus, and stays closed', () => {
+    const icon = button('area-home');
+    icon.focus();
+    pointerClick(icon);
+    expect(isOpen('area-home')).toBe(true);
+
+    navigationEnd();
+
+    expect(document.activeElement).toBe(icon);
+    expect(isOpen('area-home')).toBe(false);
+    expect(icon.getAttribute('aria-expanded')).toBe('false');
+    // Focus staying on the icon (and the icon re-rendering after the navigation) never re-opens it.
+    icon.dispatchEvent(new FocusEvent('focus'));
+    fixture.componentRef.setInput('areas', [{ ...HOME }, { ...DATA }]);
+    fixture.detectChanges();
+    vi.advanceTimersByTime(RAIL_FLYOUT_CLOSE_DELAY * 10);
+    fixture.detectChanges();
+    expect(isOpen('area-home')).toBe(false);
+  });
+
+  it('after closing on navigation, leaving and re-entering with the pointer opens it again (hover intent)', () => {
+    pointerClick(button('area-home'));
+    navigationEnd();
+
+    entry('area-home').dispatchEvent(new MouseEvent('mouseleave'));
+    vi.advanceTimersByTime(RAIL_FLYOUT_CLOSE_DELAY);
+    fixture.detectChanges();
+    expect(isOpen('area-home')).toBe(false);
+
+    entry('area-home').dispatchEvent(new MouseEvent('mouseenter'));
+    fixture.detectChanges();
+    expect(isOpen('area-home')).toBe(false);
+    vi.advanceTimersByTime(RAIL_FLYOUT_OPEN_DELAY);
+    fixture.detectChanges();
+    expect(isOpen('area-home')).toBe(true);
+    expect(entry('area-home').classList).not.toContain('pinned');
+  });
+
+  it('after closing on navigation, the keyboard still opens it (Arrow Right on the focused icon)', () => {
+    const icon = button('area-home');
+    icon.focus();
+    pointerClick(icon);
+    navigationEnd();
+
+    icon.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    fixture.detectChanges();
+
+    expect(isOpen('area-home')).toBe(true);
+    expect(document.activeElement).toBe(entry('area-home').querySelector('.flyout-item'));
+  });
+
   it('does not take focus from the page the navigation opened', () => {
     const pageInput = document.createElement('input');
     document.body.appendChild(pageInput);
