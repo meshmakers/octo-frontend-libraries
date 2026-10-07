@@ -119,6 +119,7 @@ export interface SimulationValueChange {
                           size="small"
                           [svgIcon]="resetIcon"
                           title="Reset to default"
+                          [attr.aria-label]="'Reset ' + property.name + ' to default'"
                           (click)="resetProperty(property)">
                   </button>
                 </div>

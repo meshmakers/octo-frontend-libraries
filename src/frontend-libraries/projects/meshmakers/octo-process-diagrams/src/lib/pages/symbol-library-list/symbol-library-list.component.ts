@@ -1,7 +1,6 @@
 import { Component, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { trashIcon, pencilIcon, plusIcon, eyeIcon } from '@progress/kendo-svg-icons';
-import { ConfirmationService, InputService, ListViewComponent } from '@meshmakers/shared-ui';
+import { ConfirmationService, InputService, ListViewComponent, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import { CommandItemExecuteEventArgs } from '@meshmakers/shared-services';
 import { SymbolLibraryService, SymbolLibrarySummary } from '../../services/symbol-library.service';
@@ -37,10 +36,10 @@ export class SymbolLibraryListComponent {
   private readonly inputService = inject(InputService);
   private readonly symbolLibraryService = inject(SymbolLibraryService);
 
-  protected readonly plusIcon = plusIcon;
-  protected readonly editIcon = pencilIcon;
-  protected readonly deleteIcon = trashIcon;
-  protected readonly viewIcon = eyeIcon;
+  protected readonly plusIcon = MM_ACTION_ICONS.add;
+  protected readonly editIcon = MM_ACTION_ICONS.edit;
+  protected readonly deleteIcon = MM_ACTION_ICONS.delete;
+  protected readonly viewIcon = MM_ACTION_ICONS.view;
 
   @ViewChild('dir', { static: false }) dataSource!: SymbolLibraryDataSourceDirective;
 
@@ -125,14 +124,20 @@ export class SymbolLibraryListComponent {
       return;
     }
 
-    const message = itemsToDelete.length === 1
-      ? `Are you sure you want to delete library "${itemsToDelete[0].name}"?`
-      : `Are you sure you want to delete ${itemsToDelete.length} libraries?`;
+    const single = itemsToDelete.length === 1;
+    const targetName = single
+      ? (itemsToDelete[0].name || itemsToDelete[0].rtId)
+      : `${itemsToDelete.length} symbol libraries`;
 
-    const confirmed = await this.confirmationService.showYesNoConfirmationDialog(
-      'Delete Symbol Library',
-      message
-    );
+    // AB#5580: danger confirmation naming the target (Studio action guideline §2.4).
+    const confirmed = await this.confirmationService.showDangerConfirm({
+      title: single ? `Delete symbol library ${targetName}?` : `Delete ${targetName}?`,
+      targetName,
+      consequence: single
+        ? 'The library and all its symbols are deleted. Diagrams using them lose these symbols. This cannot be undone.'
+        : 'The libraries and all their symbols are deleted. Diagrams using them lose these symbols. This cannot be undone.',
+      confirmText: single ? 'Delete symbol library' : 'Delete symbol libraries',
+    });
 
     if (confirmed) {
       try {

@@ -109,7 +109,8 @@
               [svgIcon]="trashIcon"
               fillMode="flat"
               themeColor="error"
-              title="Remove variable">
+              title="Remove variable"
+              [attr.aria-label]="'Remove variable ' + (variable.name || (i + 1))">
             </button>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SymbolLibrary, SymbolDefinition } from '../../primitives/models/symbol.model';
 import { PrimitiveBase } from '../../primitives';
 import { By } from '@angular/platform-browser';
+import { expectIconButtonsAccessible } from '@meshmakers/shared-ui/testing';
 
 /**
  * Test helper interface to access protected members of SymbolLibraryDetailComponent
@@ -61,7 +62,8 @@ describe('SymbolLibraryDetailComponent', () => {
       updateBreadcrumbLabels: vi.fn().mockName('BreadCrumbService.updateBreadcrumbLabels')
     } as unknown as MockedObject<BreadCrumbService>;
     mockConfirmationService = {
-      showYesNoConfirmationDialog: vi.fn().mockName('ConfirmationService.showYesNoConfirmationDialog')
+      showYesNoConfirmationDialog: vi.fn().mockName('ConfirmationService.showYesNoConfirmationDialog'),
+      showDangerConfirm: vi.fn().mockName('ConfirmationService.showDangerConfirm')
     } as unknown as MockedObject<ConfirmationService>;
     mockNotificationService = {
       show: vi.fn().mockName('NotificationService.show')
@@ -394,6 +396,35 @@ describe('SymbolLibraryDetailComponent', () => {
       const points = [{ x: 10 }, { y: 20 }, {}];
       const result = (component as unknown as SymbolLibraryDetailTestAccess).getPointsString(points);
       expect(result).toBe('10,0 0,20 0,0');
+    });
+  });
+
+  describe('Symbol actions (AB#5580)', () => {
+    beforeEach(fakeAsync(() => {
+      mockSymbolLibraryService.loadLibrary.mockResolvedValue(createMockLibrary([createMockSymbol()]));
+      fixture.detectChanges();
+      tick();
+      fixture.detectChanges();
+    }));
+
+    it('names every icon-only action (AB#5581 guard)', () => {
+      expectIconButtonsAccessible(fixture);
+      const del = fixture.nativeElement.querySelector('.symbol-actions [data-action="delete"]') as HTMLElement;
+      expect(del.getAttribute('aria-label')).toBe('Delete symbol Test Symbol');
+    });
+
+    it('confirms the delete with a danger dialog naming the symbol', async () => {
+      mockConfirmationService.showDangerConfirm.mockResolvedValue(false);
+      const del = fixture.nativeElement.querySelector('.symbol-actions [data-action="delete"]') as HTMLElement;
+      del.click();
+      await fixture.whenStable();
+      expect(mockConfirmationService.showDangerConfirm).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Delete symbol Test Symbol?',
+        targetName: 'Test Symbol',
+        confirmText: 'Delete symbol',
+      }));
+      expect(mockConfirmationService.showYesNoConfirmationDialog).not.toHaveBeenCalled();
+      expect(mockSymbolLibraryService.deleteSymbol).not.toHaveBeenCalled();
     });
   });
 });
