@@ -415,6 +415,16 @@ describe('LineChartWidgetComponent resolution signals (AB#5157)', () => {
     expect(cmp.resolutionHint()!.title).toBe(COVERAGE_DIAGNOSTIC);
   });
 
+  it('treats a missing finer rung start like null (the member is optional for older callers)', async () => {
+    const decision = denseDecision(SeriesResolutionSignalDto.CoverageLimitedDto);
+    delete decision['finerRungAvailableFrom'];
+    const { cmp } = createWithSignal(decision, 1300);
+
+    await load(cmp);
+
+    expect(cmp.resolutionHint()!.title).toBe(COVERAGE_DIAGNOSTIC);
+  });
+
   it('explains the coverage gap in plain language and appends the diagnostic', async () => {
     const { cmp } = createWithSignal(denseDecision(SeriesResolutionSignalDto.CoverageLimitedDto), 1300);
 

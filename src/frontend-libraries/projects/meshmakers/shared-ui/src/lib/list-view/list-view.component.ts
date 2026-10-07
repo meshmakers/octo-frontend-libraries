@@ -18,7 +18,7 @@ import {
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {ListViewFiltersDirective} from './list-view-filters.directive';
-import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewCommand, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {BadgeMapping, ColumnDefinition, ContextMenuType, ListViewCommand, ListViewMessages, resolveListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
@@ -469,13 +469,17 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   protected readonly defaultRowClass: RowClassFn = () => ({});
 
-  protected _messages: ListViewMessages = {...DEFAULT_LIST_VIEW_MESSAGES};
+  protected _messages: Required<ListViewMessages> = resolveListViewMessages(undefined);
 
-  @Input() public set messages(value: Partial<ListViewMessages>) {
-    this._messages = {...DEFAULT_LIST_VIEW_MESSAGES, ...value};
+  /**
+   * Translated messages. Partial: members that are not supplied (or are `undefined`) keep the
+   * English default from `DEFAULT_LIST_VIEW_MESSAGES`.
+   */
+  @Input() public set messages(value: Partial<ListViewMessages> | null | undefined) {
+    this._messages = resolveListViewMessages(value);
   }
 
-  public get messages(): ListViewMessages {
+  public get messages(): Required<ListViewMessages> {
     return this._messages;
   }
 
