@@ -327,6 +327,21 @@ Common lint issues:
 npm run build:octo-ui      # or whichever library was modified
 ```
 
+## CI Pipeline (`azure-pipelines.yml` at the repo root)
+
+- **Build job** runs `npm ci --prefer-offline --no-audit --no-fund` once, then lint, the
+  tiered library builds, the library tests **and the demo-app / legacy-demo-app tests**, and
+  publishes the `dist` + `docker-context` artifacts. The demo-app tests used to run in a
+  separate `verify_apps` job that repeated `npm ci` (~8 min); they moved into Build in
+  AB#5721. Consequence: a failing demo-app test now stops the Publish stage, so no npm
+  packages or demo-app image are published from that build.
+- **Publish stage** has two parallel jobs: `npm_publish` (10 packages) and `docker_build`
+  (`Dockerfile.prebuilt`, demo-app image via the shared `build-and-push-docker.yml`).
+- The CI trigger only fires for changes under `src/` or to `azure-pipelines.yml`, and
+  ignores `**/*.md` and `.claude/` — documentation-only commits build nothing.
+- Shared steps come from `octo-pipeline-templates` pinned at `tpl-v0.6.5` (registry layer
+  cache plus the reused buildx builder for the demo-app image).
+
 ## Pre-Commit Checklist (MANDATORY)
 
 **CRITICAL: Before every commit and push, ALL of the following steps MUST be completed locally to prevent CI failures. NEVER push code without running lint and build locally first — this has caused multiple failed CI builds in the past.**
