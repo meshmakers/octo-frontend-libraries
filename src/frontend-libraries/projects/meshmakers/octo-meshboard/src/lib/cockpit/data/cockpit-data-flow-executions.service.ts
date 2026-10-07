@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import { map, shareReplay, tap } from 'rxjs/operators';
 import { CockpitDataFlowExecutionsDtoGQL } from '../../graphQL/cockpitDataFlowExecutions';
 import { countPipelineExecutions, pipelineExecutionInputs } from '../../utils/pipeline-executions';
@@ -43,17 +43,19 @@ export class CockpitDataFlowExecutionsService {
     if (cached && now - cached.at <= SHARE_MS) {
       return cached.flows;
     }
-    const flows = this.gql.fetch({ variables: { first: COCKPIT_DATA_FLOW_LIMIT }, fetchPolicy: 'network-only' }).pipe(
+    const entry: { at: number; flows: Observable<CockpitDataFlowExecutions> } = { at: now, flows: EMPTY };
+    entry.flows = this.gql.fetch({ variables: { first: COCKPIT_DATA_FLOW_LIMIT }, fetchPolicy: 'network-only' }).pipe(
       map(result => {
         const connection = result.data?.runtime?.systemCommunicationDataFlow;
         const rows = (connection?.items ?? []).filter((row): row is NonNullable<typeof row> => !!row) as CockpitDataFlowRow[];
         return { flows: rows, totalCount: Math.max(connection?.totalCount ?? rows.length, rows.length) };
       }),
-      tap({ error: () => this.shared.delete(tenantId) }),
+      // Drop only this request: a newer one for the tenant may have replaced it meanwhile.
+      tap({ error: () => { if (this.shared.get(tenantId) === entry) { this.shared.delete(tenantId); } } }),
       shareReplay({ bufferSize: 1, refCount: false })
     );
-    this.shared.set(tenantId, { at: now, flows });
-    return flows;
+    this.shared.set(tenantId, entry);
+    return entry.flows;
   }
 }
 

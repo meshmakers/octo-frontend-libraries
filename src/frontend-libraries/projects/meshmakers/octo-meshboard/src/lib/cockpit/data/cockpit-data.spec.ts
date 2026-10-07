@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { firstValueFrom, of, throwError } from 'rxjs';
+import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { CockpitAdapterStatesDtoGQL } from '../../graphQL/cockpitAdapterStates';
 import { CockpitCkModelStatesDtoGQL } from '../../graphQL/cockpitCkModelStates';
 import { CockpitDataFlowExecutionsDtoGQL } from '../../graphQL/cockpitDataFlowExecutions';
@@ -64,6 +64,18 @@ describe('cockpit data services', () => {
     dataFlows.fetch.mockReturnValueOnce(throwError(() => new Error('boom')));
     await expect(firstValueFrom(service.executions('t1', 1000))).rejects.toThrow('boom');
     expect(await firstValueFrom(service.executions('t1', 2000))).toMatchObject({ totalCount: 4 });
+    expect(dataFlows.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('a late failure of an expired request keeps the newer shared request', async () => {
+    const service = TestBed.inject(CockpitDataFlowExecutionsService);
+    const slow = new Subject<never>();
+    dataFlows.fetch.mockReturnValueOnce(slow);
+    const failed = firstValueFrom(service.executions('t1', 1000));
+    await firstValueFrom(service.executions('t1', 20_000));
+    slow.error(new Error('late'));
+    await expect(failed).rejects.toThrow('late');
+    await firstValueFrom(service.executions('t1', 21_000));
     expect(dataFlows.fetch).toHaveBeenCalledTimes(2);
   });
 
