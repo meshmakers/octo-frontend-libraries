@@ -303,6 +303,17 @@ describe('EntityListComponent', () => {
       expect(column.badgeMapping?.['0']).toEqual({ label: 'Girokonto' });
     });
 
+    it('notifies a copy with the copiedId message (one format with the form header)', async () => {
+      setInputs(makeModel());
+      vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
+      const item = component.copyIdMenuItem().children!.find((c) => c.id === 'copyRtId')!;
+      await item.onClick!({ commandItem: item, data: { rtId: 'abc', ckTypeId: 'A/B' } });
+      expect(notifications.showSuccess).toHaveBeenCalledWith('RtId copied', 2000);
+      fixture.componentRef.setInput('messages', { copiedId: '{label} kopiert' });
+      await item.onClick!({ commandItem: item, data: { rtId: 'abc', ckTypeId: 'A/B' } });
+      expect(notifications.showSuccess).toHaveBeenCalledWith('RtId kopiert', 2000);
+    });
+
     it('uses the copyFailed message when the clipboard is unavailable', async () => {
       setInputs(makeModel());
       fixture.componentRef.setInput('messages', { copyFailed: 'Kopieren fehlgeschlagen' });

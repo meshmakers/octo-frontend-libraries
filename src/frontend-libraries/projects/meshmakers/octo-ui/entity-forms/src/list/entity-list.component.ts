@@ -423,7 +423,7 @@ export class EntityListComponent {
     const { value, label } = values[kind];
     try {
       await navigator.clipboard.writeText(value);
-      this.notificationService.showSuccess(`${label}: ${m.copied}`, 2000);
+      this.notificationService.showSuccess(formatEntityFormsMessage(m.copiedId, { label }), 2000);
     } catch (error) {
       console.error('mm-entity-list: failed to copy to clipboard', error);
       this.notificationService.showError(m.copyFailed);

@@ -453,6 +453,26 @@ describe('EntityPageComponent', () => {
       expect(api.listTitle()).toBe('SFTP-Konfigurationen');
     });
 
+    it('updates the breadcrumb labels when the label resolver language changes', async () => {
+      const lang = signal('en');
+      formService.resolve.mockResolvedValue(makeModel());
+      dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+      fixture.componentRef.setInput('labelResolver', (r: { kind: string }) =>
+        lang() === 'de' && r.kind === 'formTitle' ? 'SFTP-Konfigurationen' : null);
+      fixture.detectChanges();
+      expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenLastCalledWith({ entityFormTitle: 'SFTP configurations', entityName: 'Main SFTP' });
+      lang.set('de');
+      fixture.detectChanges();
+      expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenLastCalledWith({ entityFormTitle: 'SFTP-Konfigurationen', entityName: 'Main SFTP' });
+    });
+
+    it('uses the create title as breadcrumb entity name on the create form', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new', messages: { createTitle: 'Neu' } });
+      expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenLastCalledWith({ entityFormTitle: 'SFTP configurations', entityName: 'Neu' });
+    });
+
     it('passes the translatable Copy ID texts to the ID button', async () => {
       formService.resolve.mockResolvedValue(makeModel());
       dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });

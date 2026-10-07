@@ -82,6 +82,16 @@ describe('entity form labels (AB#5623)', () => {
     expect(resolveEntityFormLabel(() => 'Ix', request)).toBe('Ix');
   });
 
+  it('falls back to the default texts when the resolver throws and warns only once', () => {
+    const warn = vi.spyOn(console, 'warn').mockReturnValue(undefined);
+    const throwing: EntityFormLabelResolver = () => { throw new Error('missing translation table'); };
+    const out = localizeEntityForm(model(), throwing);
+    expect(out.title).toBe('Categorization rules');
+    expect(out.sections[0].fields[0].label).toBe('Match field');
+    expect(out.sections[0].fields[0].enumOptions?.[0].name).toBe('COUNTERPARTY');
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
   it('returns the very same model without a resolver (no behaviour change)', () => {
     const m = model();
     expect(localizeEntityForm(m, null)).toBe(m);

@@ -69,4 +69,19 @@
       box-shadow: none;
     }
   }
+
+  // Selected FLAT toggles (e.g. the list view's row-filter command, `themeColor="primary"
+  // fillMode="flat"`): the primary branch above has the same specificity as `.k-selected` and
+  // comes later, so it would paint selected and unselected alike. This rule is more specific and
+  // comes after it (AB#5623).
+  &.k-button-flat.k-selected {
+    background: var(--theme-bg-selected, var(--octo-mint-20));
+    border-color: var(--theme-accent, var(--octo-mint));
+    color: var(--theme-text-accent, var(--octo-mint));
+
+    &:hover:not(:disabled) {
+      background: var(--theme-bg-selected, var(--octo-mint-20));
+      border-color: var(--theme-accent, var(--octo-mint));
+    }
+  }
 }

@@ -74,7 +74,13 @@ export type EntityFormLabelResolver = (request: EntityFormLabelRequest) => strin
  */
 export const ENTITY_FORM_LABEL_RESOLVER = new InjectionToken<EntityFormLabelResolver>('ENTITY_FORM_LABEL_RESOLVER');
 
-/** Resolves one label; falls back to the default text when there is no resolver or no translation. */
+/** Resolvers that already threw (warned once each, not once per label). */
+const failedResolvers = new WeakSet<EntityFormLabelResolver>();
+
+/**
+ * Resolves one label; falls back to the default text when there is no resolver, no translation,
+ * or the resolver throws (logged once per resolver with `console.warn`).
+ */
 export function resolveEntityFormLabel(
   resolver: EntityFormLabelResolver | null | undefined,
   request: EntityFormLabelRequest,
@@ -82,7 +88,16 @@ export function resolveEntityFormLabel(
   if (!resolver) {
     return request.defaultText;
   }
-  const text = resolver(request);
+  let text: string | null | undefined;
+  try {
+    text = resolver(request);
+  } catch (error) {
+    if (!failedResolvers.has(resolver)) {
+      failedResolvers.add(resolver);
+      console.warn('entity-forms: the label resolver threw; showing the default texts', error);
+    }
+    return request.defaultText;
+  }
   return typeof text === 'string' && text !== '' ? text : request.defaultText;
 }
 

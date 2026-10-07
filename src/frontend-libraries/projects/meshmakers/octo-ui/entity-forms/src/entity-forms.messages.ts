@@ -147,10 +147,11 @@ export interface EntityFormsMessages {
   copyCkTypeId: string;
   copyRtCkTypeId: string;
   copyRtEntityId: string;
+  /** @deprecated No longer shown (AB#5623): both copy actions use {@link copiedId}. */
   copied: string;
   /** Tooltip of the Copy ID button in the form header (AB#5623). */
   copyIdTooltip: string;
-  /** Notification after copying one ID in the form header; `{label}` = RtId, CkTypeId, ... (AB#5623). */
+  /** Notification after copying one ID (list menu and form header); `{label}` = RtId, CkTypeId, ... (AB#5623). */
   copiedId: string;
   /** Notification when the clipboard is not available (AB#5623). */
   copyFailed: string;

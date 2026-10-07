@@ -249,6 +249,27 @@ export class EntityPageComponent implements HasUnsavedChanges {
     const model = this.baseModel();
     return model ? localizeEntityForm(model, this.effectiveLabelResolver()) : null;
   });
+  /**
+   * Breadcrumb labels (`{{entityFormTitle}}` / `{{entityName}}`), derived from the page state so
+   * they follow a language change of the label resolver or the messages (AB#5623). `null` while
+   * nothing is resolved.
+   */
+  protected readonly breadcrumbLabels = computed<Record<string, string> | null>(() => {
+    this.routeData();
+    const base = this.baseModel();
+    const view = this.view();
+    if (!base || view === 'loading') {
+      return null;
+    }
+    if (view !== 'form') {
+      const listLabels: Record<string, string> = { entityFormTitle: asString(this.inheritedData('entityListTitle')) ?? this.formTitle(base) ?? base.title };
+      return listLabels;
+    }
+    const entityFormTitle = this.formTitle(base) ?? this.formTitle(this.formModel()) ?? '';
+    const entityName = this.mode() === 'create' && !this.entityRtId() ? this.msgs().createTitle : this.entityName() ?? '';
+    return { entityFormTitle, entityName };
+  });
+
   /** Context of the host page actions template. */
   protected readonly actionsContext = computed<EntityPageActionsContext>(() => {
     const view = this.view() === 'form' ? 'form' : 'list';
@@ -322,6 +343,12 @@ export class EntityPageComponent implements HasUnsavedChanges {
       }
       lastKey = key;
       untracked(() => void this.load(ctx));
+    });
+    effect(() => {
+      const labels = this.breadcrumbLabels();
+      if (labels) {
+        untracked(() => void this.breadCrumbService?.updateBreadcrumbLabels(labels));
+      }
     });
   }
 
@@ -482,7 +509,6 @@ export class EntityPageComponent implements HasUnsavedChanges {
         return;
       }
       this.baseModel.set(model);
-      void this.breadCrumbService?.updateBreadcrumbLabels({ entityFormTitle: asString(this.inheritedData('entityListTitle')) ?? this.formTitle(model) ?? model.title });
 
       if (!ctx.rtId) {
         if (model.singleton) {
@@ -575,10 +601,6 @@ export class EntityPageComponent implements HasUnsavedChanges {
     });
     this.mode.set('create');
     this.view.set('form');
-    void this.breadCrumbService?.updateBreadcrumbLabels({
-      entityFormTitle: this.formTitle(this.baseModel()) ?? this.formTitle(formModel) ?? formModel.title,
-      entityName: this.msgs().createTitle,
-    });
   }
 
   /**
@@ -631,10 +653,6 @@ export class EntityPageComponent implements HasUnsavedChanges {
     this.state.set(state);
     const name = displayNameOf(state, rtId, rtDisplayName);
     this.entityName.set(name);
-    void this.breadCrumbService?.updateBreadcrumbLabels({
-      entityFormTitle: this.formTitle(this.baseModel()) ?? this.formTitle(this.formModel()) ?? '',
-      entityName: name,
-    });
   }
 
   private async recordsFor(model: ResolvedEntityForm): Promise<Record<string, CkRecordInfo>> {
@@ -739,15 +757,15 @@ export class EntityPageComponent implements HasUnsavedChanges {
 
   /**
    * Sets values of the open form from the host (AB#5623), e.g. a "Prefill from user" page action.
-   * See `EntityFormComponent.patchValues`: the values count as edits (dirty, saved with Save);
-   * secret and read-only fields are skipped. Returns the field keys that were set (`[]` when no
-   * writable form is shown).
+   * See `EntityFormComponent.patchValues`: the values always count as user edits (the form gets
+   * dirty, the unsaved-changes guard applies and Save sends them); secret and read-only fields are
+   * skipped. Returns the field keys that were set (`[]` when no writable form is shown).
    */
-  patchFormValues(values: EntityFormPrefillValues, options?: { markAsDirty?: boolean }): string[] {
+  patchFormValues(values: EntityFormPrefillValues): string[] {
     if (this.view() !== 'form' || this.mode() === 'view') {
       return [];
     }
-    return this.form()?.patchValues(values, options) ?? [];
+    return this.form()?.patchValues(values) ?? [];
   }
 
   /** Translated title of a model (AB#5623). */

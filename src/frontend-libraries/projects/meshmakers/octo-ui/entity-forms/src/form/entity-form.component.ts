@@ -296,11 +296,13 @@ export class EntityFormComponent {
 
   /**
    * Sets form values from the host (AB#5623), e.g. a "Prefill from user" action. Keys are field
-   * keys or attribute names (any casing). The values count as user edits: they make the form
-   * dirty and are part of the change set. Secret fields, read-only fields and unknown keys are
-   * skipped. Resolves to the field keys that were set.
+   * keys or attribute names (any casing). The values always count as user edits: the form gets
+   * dirty (compared with the values it was built from), the unsaved-changes guard applies and the
+   * change set sends them. To start a create form with values that are NOT edits, use the
+   * `initialValues` input instead. Secret fields, read-only fields and unknown keys are skipped.
+   * Returns the field keys that were set.
    */
-  patchValues(values: EntityFormPrefillValues, options: { markAsDirty?: boolean } = {}): string[] {
+  patchValues(values: EntityFormPrefillValues): string[] {
     const model = this.model();
     const form = this.form();
     const applied: string[] = [];
@@ -311,9 +313,7 @@ export class EntityFormComponent {
         continue;
       }
       control.setValue(cloneValue(toReferenceValue(field, value ?? null)), { emitEvent: false });
-      if (options.markAsDirty !== false) {
-        control.markAsDirty();
-      }
+      control.markAsDirty();
       applied.push(field.key);
     }
     if (applied.length > 0) {
