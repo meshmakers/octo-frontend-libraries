@@ -7,6 +7,8 @@ import { AttentionFinding } from '../attention/attention.models';
 import { AttentionState, CockpitAttentionService } from '../attention/attention.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
+import { CockpitLinkTarget } from '../cockpit-host';
+import { COCKPIT_WIDGET_MESSAGES } from '../cockpit-messages';
 import { CockpitKpiResult, CockpitKpiService } from '../kpi/cockpit-kpi.service';
 import { AttentionListConfigDialogComponent } from './attention-list-config-dialog.component';
 import { AttentionListWidgetComponent } from './attention-list-widget.component';
@@ -24,10 +26,18 @@ describe('cockpit widgets', () => {
   const kpi$ = new BehaviorSubject<CockpitKpiResult>({ state: 'loading' });
   const attention = { state: vi.fn(() => state$.asObservable()), availableProviders: vi.fn() };
   const kpiService = { kpi: vi.fn(() => kpi$.asObservable()) };
+  const resolveLink = (target: { kind: string; rtId?: string }, tenantId: string) =>
+    target.kind === 'secretsReEntry' || target.kind === 'route' ? null : `/${tenantId}/${target.kind}${target.rtId ? '/' + target.rtId : ''}`;
   const context = {
     tenantId: vi.fn().mockResolvedValue('acme'),
-    resolveLink: vi.fn((target: { kind: string; rtId?: string }, tenantId: string) =>
-      target.kind === 'secretsReEntry' ? null : `/${tenantId}/${target.kind}${target.rtId ? '/' + target.rtId : ''}`),
+    resolveLink: vi.fn(resolveLink),
+    resolveLinkTarget: vi.fn((target: CockpitLinkTarget, tenantId: string) => {
+      if (target.kind === 'route') {
+        return { path: typeof target.path === 'string' ? target.path : [...target.path], queryParams: target.queryParams };
+      }
+      const url = resolveLink(target, tenantId);
+      return url ? { path: url } : null;
+    }),
     explainEnabled: true,
     explain: vi.fn(),
     isBuilder: vi.fn().mockResolvedValue(true)
@@ -111,6 +121,46 @@ describe('cockpit widgets', () => {
       expect(context.explain).toHaveBeenCalledWith({ label: 'plc-07', prompt: 'Why?' });
     });
 
+    it('shows a count badge only for findings that carry a count (AB#5622)', async () => {
+      state$.next({ loading: false, visibleProviders: 1, findings: [
+        finding('queue', 'warning', { count: 1284 }),
+        finding('plain', 'info')
+      ] });
+      const fixture = await renderAttention();
+      const badge = fixture.nativeElement.querySelector('[data-finding="queue"] .finding-count') as HTMLElement;
+      expect(badge.textContent.trim()).toBe('1,284');
+      expect(badge.getAttribute('aria-label')).toBe('Count: 1,284');
+      expect(fixture.nativeElement.querySelector('[data-finding="plain"] .finding-count')).toBeNull();
+    });
+
+    it('navigates route targets with their query parameters, next to semantic links (AB#5622)', async () => {
+      state$.next({ loading: false, visibleProviders: 1, findings: [
+        finding('documents', 'error', { links: [
+          { label: 'Review', target: { kind: 'route', path: '/acme/de/documents', queryParams: { checkTier: '2', view: 'all' } } },
+          { label: 'Inbox', target: { kind: 'route', path: ['/', 'acme', 'inbox'] } },
+          { label: 'Adapters', target: { kind: 'adapters' } }
+        ] })
+      ] });
+      const fixture = await renderAttention();
+      const hrefs = [...fixture.nativeElement.querySelectorAll('[data-finding="documents"] a')].map(a => (a as HTMLAnchorElement).getAttribute('href'));
+      expect(hrefs).toEqual(['/acme/de/documents?checkTier=2&view=all', '/acme/inbox', '/acme/adapters']);
+    });
+
+    it('translates its texts through COCKPIT_WIDGET_MESSAGES; the messages input wins (AB#5622)', async () => {
+      TestBed.configureTestingModule({ providers: [{ provide: COCKPIT_WIDGET_MESSAGES, useValue: { severityError: 'Fehler', attentionMore: 'und {count} weitere', numberLocale: 'de-DE' } }] });
+      state$.next({ loading: false, visibleProviders: 1, findings: [
+        finding('a', 'error', { count: 1284 }), finding('b', 'warning'), finding('c', 'info')
+      ] });
+      const fixture = await renderAttention({ maxItems: 1 });
+      const item = fixture.nativeElement.querySelector('[data-finding="a"]') as HTMLElement;
+      expect(item.querySelector('.cw-status-chip')?.textContent).toContain('Fehler');
+      expect(item.querySelector('.finding-count')?.textContent?.trim()).toBe('1.284');
+      expect(fixture.nativeElement.querySelector('.more').textContent).toContain('und 2 weitere');
+      fixture.componentRef.setInput('messages', { severityError: 'Erreur' });
+      fixture.detectChanges();
+      expect(item.querySelector('.cw-status-chip')?.textContent).toContain('Erreur');
+    });
+
     it('hides Explain when the host disables it or the widget opts out', async () => {
       state$.next({ loading: false, visibleProviders: 1, findings: [finding('a', 'error', { explain: { label: 'x' } })] });
       let fixture = await renderAttention({ showExplain: false });
@@ -172,7 +222,7 @@ describe('cockpit widgets', () => {
 
     it('renders value, status chip, detail and a linked tile', async () => {
       const fixture = await renderKpi({ type: 'adapterStatus' });
-      expect(kpiService.kpi).toHaveBeenCalledWith('adapterStatus');
+      expect(kpiService.kpi).toHaveBeenCalledWith('adapterStatus', expect.objectContaining({ kpiAdaptersLabel: 'Adapters online' }));
       kpi$.next({ state: 'ready', kpi: { id: 'adapters-online', label: 'Adapters online', value: '3 / 4', status: 'warning', statusLabel: '1 offline', detail: '1 hibernated', link: { kind: 'adapters' } } });
       fixture.detectChanges();
       await fixture.whenStable();
@@ -201,6 +251,21 @@ describe('cockpit widgets', () => {
       const fixture = await renderKpi({ type: 'adapterStatus' });
       expect(fixture.nativeElement.querySelector('[data-state="unavailable"]').textContent).toContain('CommunicationManagement');
       expect(boardState.setWidgetHiddenForViewer).toHaveBeenLastCalledWith('w1', false);
+    });
+
+    it('links a route KPI target with its query parameters (AB#5622)', async () => {
+      kpi$.next({ state: 'ready', kpi: { id: 'k', label: 'x', value: '5', status: 'success', statusLabel: 'ok', link: { kind: 'route', path: '/acme/todos', queryParams: { mine: 1 } } } });
+      const fixture = await renderKpi({ type: 'adapterStatus' });
+      expect(fixture.nativeElement.querySelector('[data-kpi="k"]').getAttribute('href')).toBe('/acme/todos?mine=1');
+    });
+
+    it('passes the host texts to the KPI and translates "Not available" (AB#5622)', async () => {
+      TestBed.configureTestingModule({ providers: [{ provide: COCKPIT_WIDGET_MESSAGES, useValue: { notAvailable: 'Nicht verfügbar', kpiAdaptersLabel: 'Adapter online' } }] });
+      kpi$.next({ state: 'unavailable', reason: 'x', forBuilder: false });
+      const fixture = await renderKpi({ type: 'adapterStatus' });
+      expect(kpiService.kpi).toHaveBeenCalledWith('adapterStatus', expect.objectContaining({ kpiAdaptersLabel: 'Adapter online', kpiAdaptersAllOnline: 'All online' }));
+      expect(fixture.nativeElement.querySelector('[data-state="unavailable"]').textContent.trim()).toBe('Nicht verfügbar');
+      expect(kpiService.kpi).toHaveBeenCalledTimes(1);
     });
 
     it('shows end users "Not available" without role details and collapses the tile', async () => {

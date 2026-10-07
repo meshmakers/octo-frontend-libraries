@@ -409,7 +409,8 @@ providers: [
     access: () => { const auth = inject(AuthorizeService); return { isInRole: r => auth.isInRole(r) }; },
     links: () => myLinkResolver,                 // CockpitLinkTarget -> app URL (or null)
     explain: () => myAssistantBridge,            // optional "✦ Explain"
-    recents: () => myRecentItemsSource           // optional, feeds "Recent items"
+    recents: () => myRecentItemsSource,          // optional, feeds "Recent items"
+    messages: () => myCockpitTexts               // optional translations (object or signal), AB#5622
   }),
   // optional host checks
   { provide: COCKPIT_ATTENTION_PROVIDERS, useClass: MyCheck, multi: true }
@@ -435,7 +436,26 @@ providers: [
 - **Errors** never show raw messages: tiles say "The figure could not be loaded." (details in the console).
 - **Links.** Findings and KPI tiles carry semantic `CockpitLinkTarget`s (`adapter`, `adapters`,
   `pool`, `pools`, `dataFlows`, `ckModels`, `tenantSettings`, `secretsReEntry`); the host's
-  `COCKPIT_LINK_RESOLVER` maps them to URLs, `null` drops the chip.
+  `COCKPIT_LINK_RESOLVER` maps them to URLs, `null` drops the chip. Host providers may also link
+  straight to their own pages (AB#5622): `{ kind: 'route', path, queryParams? }` — `path` is a URL
+  path or router commands (`['/', tenantId, 'documents']`), navigated with `routerLink` +
+  `queryParams`; relative paths resolve against the route that renders the board. The resolver
+  sees route targets too and may return a rewritten path (e.g. with the tenant/language prefix);
+  `null` keeps `path`. `CockpitContextService.resolveLinkTarget()` returns `{ path, queryParams }`
+  for custom renderings; `resolveLink()` a URL string with the query appended.
+- **Counts.** `AttentionFinding.count?: number` (AB#5622) renders a badge next to the title
+  (formatted in `numberLocale`); without it nothing changes. The built-in checks set none — their
+  titles already name the count.
+- **Texts (i18n, AB#5622).** Every widget text (severity chips, empty / loading / unavailable
+  states, KPI labels, statuses and details, recent-items wording and relative times) comes from
+  `CockpitWidgetMessages` with English defaults (`DEFAULT_COCKPIT_WIDGET_MESSAGES`). Provide a
+  `Partial<CockpitWidgetMessages>` — or a `Signal` of one to follow a runtime language switch —
+  on `COCKPIT_WIDGET_MESSAGES` (or `provideCockpitWidgetHost({ messages })`); a widget used on its
+  own also takes a `messages` input. `{count}`-style placeholders; missing members keep English;
+  `numberLocale` (default `en-US`) formats the figures. `CockpitKpiService.kpi(kind, messages?)`
+  builds KPI texts the same way. Not covered: the config dialogs and the findings of the built-in
+  OctoMesh checks (a host's own providers bring their own translated titles and texts). Nothing of
+  this is persisted — the board JSON is unchanged.
 - **Adding a check.** Implement `AttentionProvider` (`id` — persisted, never rename — `label`,
   `description`, `isVisible` via `CockpitContextService.allows(roles, models)`, `load` = exactly one
   query emitting findings once) and register it on `COCKPIT_ATTENTION_PROVIDERS`.

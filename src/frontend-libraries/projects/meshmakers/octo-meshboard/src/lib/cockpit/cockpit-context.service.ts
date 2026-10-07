@@ -1,6 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { CkModelService, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
-import { COCKPIT_EXPLAIN_HANDLER, COCKPIT_LINK_RESOLVER, COCKPIT_VIEWER_ACCESS, CockpitExplainTarget, CockpitLinkTarget } from './cockpit-host';
+import {
+  COCKPIT_EXPLAIN_HANDLER,
+  COCKPIT_LINK_RESOLVER,
+  COCKPIT_VIEWER_ACCESS,
+  CockpitExplainTarget,
+  CockpitLinkQueryParams,
+  CockpitLinkTarget,
+  CockpitResolvedLink
+} from './cockpit-host';
 
 /**
  * The cockpit widgets' view of their host (AB#5558): tenant, roles, CK models, links and the
@@ -52,13 +60,42 @@ export class CockpitContextService {
     }
   }
 
-  /** Router URL of a link target, or `null` (no resolver, or the host has no such page). */
+  /**
+   * Router URL of a link target, or `null` (no resolver, or the host has no such page). A `route`
+   * target always resolves: the host's rewrite or its own path, with the query parameters
+   * appended (`/acme/documents?checkTier=2`) — for `routerLink` prefer {@link resolveLinkTarget},
+   * which keeps them apart.
+   */
   resolveLink(target: CockpitLinkTarget, tenantId: string): string | null {
-    try {
-      return this.links?.resolve(target, tenantId) ?? null;
-    } catch {
+    const resolved = this.resolveLinkTarget(target, tenantId);
+    if (!resolved) {
       return null;
     }
+    const path = Array.isArray(resolved.path) ? joinCommands(resolved.path) : resolved.path as string;
+    const query = queryString(resolved.queryParams);
+    return query ? `${path}?${query}` : path;
+  }
+
+  /**
+   * A link target resolved for `routerLink` + `queryParams` (AB#5622), or `null` when there is no
+   * page for it. Semantic targets go through the host's `CockpitLinkResolver`; `route` targets
+   * keep their path unless the resolver rewrites it, and always keep their query parameters.
+   */
+  resolveLinkTarget(target: CockpitLinkTarget, tenantId: string): CockpitResolvedLink | null {
+    let url: string | null;
+    try {
+      url = this.links?.resolve(target, tenantId) ?? null;
+    } catch {
+      url = null;
+    }
+    if (target.kind !== 'route') {
+      return url ? { path: url } : null;
+    }
+    const path = url ?? (typeof target.path === 'string' ? target.path : [...target.path]);
+    if (path.length === 0) {
+      return null;
+    }
+    return target.queryParams && Object.keys(target.queryParams).length > 0 ? { path, queryParams: { ...target.queryParams } } : { path };
   }
 
   /** Whether "✦ Explain" buttons are shown. */
@@ -69,4 +106,24 @@ export class CockpitContextService {
   explain(target: CockpitExplainTarget): void {
     this.explainHandler?.explain(target);
   }
+}
+
+/** `['/', 'acme', 'documents']` → `/acme/documents`; relative commands stay relative. */
+function joinCommands(commands: readonly string[]): string {
+  const [first, ...rest] = commands;
+  if (first === '/') {
+    return `/${rest.join('/')}`;
+  }
+  return commands.join('/');
+}
+
+function queryString(params: CockpitLinkQueryParams | undefined): string {
+  if (!params) {
+    return '';
+  }
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    search.append(key, String(value));
+  }
+  return search.toString();
 }

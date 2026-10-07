@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -6,6 +6,7 @@ import { CockpitKpiWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../../widgets/widget.interface';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
+import { CockpitWidgetMessages, injectCockpitWidgetMessages } from '../cockpit-messages';
 import { CockpitKpi, sparklineGeometry } from '../kpi/cockpit-kpi';
 import { CockpitKpiKind, CockpitKpiResult, CockpitKpiService } from '../kpi/cockpit-kpi.service';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
@@ -45,7 +46,7 @@ import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
       @case ('ready') {
         @if (kpi(); as k) {
           @if (url(); as link) {
-            <a class="kpi-tile" [routerLink]="link" [attr.data-kpi]="k.id">
+            <a class="kpi-tile" [routerLink]="link.path" [queryParams]="link.queryParams ?? null" [attr.data-kpi]="k.id">
               <ng-container *ngTemplateOutlet="tileBody; context: { $implicit: k }"></ng-container>
             </a>
           } @else {
@@ -62,7 +63,7 @@ import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
         <p class="cw-message cw-error-text" role="status" data-state="error">{{ reason() }}</p>
       }
       @default {
-        <p class="cw-message" role="status" data-state="loading">Loading…</p>
+        <p class="cw-message" role="status" data-state="loading">{{ texts().loading }}</p>
       }
     }
   `,
@@ -109,6 +110,18 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
 
   @Input() config!: CockpitKpiWidgetConfig;
 
+  /**
+   * Translated texts for a widget used on its own (AB#5622); wins over `COCKPIT_WIDGET_MESSAGES`.
+   * Missing members keep the English default.
+   */
+  readonly messages = input<Partial<CockpitWidgetMessages> | null>();
+
+  /** Resolved texts: defaults < host token < `messages` input. */
+  protected readonly texts = injectCockpitWidgetMessages(() => this.messages());
+  private initialised = false;
+  /** Texts of the last load, so the first effect run does not load twice. */
+  private loadedTexts: CockpitWidgetMessages | null = null;
+
   private readonly _result = signal<CockpitKpiResult>({ state: 'loading' });
   private readonly tenantId = signal<string | null>(null);
   private readonly options = signal<{ showDetail: boolean; showSparkline: boolean }>({ showDetail: true, showSparkline: true });
@@ -131,7 +144,7 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
   protected readonly reason = computed(() => {
     const result = this._result();
     if (result.state === 'unavailable') {
-      return result.forBuilder ? result.reason : NOT_AVAILABLE_TEXT;
+      return result.forBuilder ? result.reason : this.texts().notAvailable;
     }
     return result.state === 'error' ? result.message : '';
   });
@@ -142,11 +155,22 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
   protected readonly url = computed(() => {
     const kpi = this.data();
     const tenantId = this.tenantId();
-    return kpi?.link && tenantId ? this.context.resolveLink(kpi.link, tenantId) : null;
+    return kpi?.link && tenantId ? this.context.resolveLinkTarget(kpi.link, tenantId) : null;
   });
+
+  constructor() {
+    // The KPI texts are built with the figure: a language switch reloads the tile.
+    effect(() => {
+      const texts = this.texts();
+      if (this.initialised && texts !== this.loadedTexts) {
+        untracked(() => this.load());
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.load();
+    this.initialised = true;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -172,7 +196,8 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
     });
     void this.context.tenantId().then(tenantId => this.tenantId.set(tenantId));
     const previous = this._result();
-    this.subscription = this.kpiService.kpi(kpiKindOf(config)).subscribe(result => {
+    this.loadedTexts = untracked(() => this.texts());
+    this.subscription = this.kpiService.kpi(kpiKindOf(config), this.loadedTexts).subscribe(result => {
       // A refresh keeps the last figure until the new one arrives (no flicker).
       if (result.state === 'loading' && previous.state === 'ready') {
         return;

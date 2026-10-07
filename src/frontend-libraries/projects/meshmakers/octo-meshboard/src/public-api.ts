@@ -194,6 +194,8 @@ export type { WidgetPositionUpdate } from './lib/dialogs/edit-widget-dialog/edit
 
 // Cockpit widgets (AB#5558): attention list + platform KPIs, host services and shared rules
 export * from './lib/cockpit/cockpit-host';
+export { COCKPIT_WIDGET_MESSAGES, DEFAULT_COCKPIT_WIDGET_MESSAGES, resolveCockpitWidgetMessages, formatCockpitMessage } from './lib/cockpit/cockpit-messages';
+export type { CockpitWidgetMessages, CockpitWidgetMessagesSource } from './lib/cockpit/cockpit-messages';
 export { CockpitContextService } from './lib/cockpit/cockpit-context.service';
 export * from './lib/cockpit/attention/attention.models';
 export { CockpitAttentionService, selectProviders } from './lib/cockpit/attention/attention.service';

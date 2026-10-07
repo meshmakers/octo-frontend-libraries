@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, computed, inject, input, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AttentionListWidgetConfig } from '../../models/meshboard.models';
@@ -7,20 +7,35 @@ import { AttentionFinding, AttentionSeverity } from '../attention/attention.mode
 import { AttentionState, CockpitAttentionService } from '../attention/attention.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
-import { CockpitExplainTarget } from '../cockpit-host';
+import { CockpitExplainTarget, CockpitLinkQueryParams } from '../cockpit-host';
+import { CockpitWidgetMessages, formatCockpitMessage, injectCockpitWidgetMessages } from '../cockpit-messages';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
 import { reportCockpitContentHeight } from './content-height';
 
 /** Findings shown before "and N more" when the config sets none. */
 export const DEFAULT_ATTENTION_MAX_ITEMS = 6;
 
-const SEVERITY_LABEL: Record<AttentionSeverity, string> = { error: 'Error', warning: 'Warning', info: 'Info' };
+const SEVERITY_MESSAGE: Record<AttentionSeverity, keyof CockpitWidgetMessages> = {
+  error: 'severityError',
+  warning: 'severityWarning',
+  info: 'severityInfo'
+};
+
+/** A finding link resolved for `routerLink` + `queryParams`. */
+export interface AttentionLinkView {
+  label: string;
+  path: string | string[];
+  queryParams: CockpitLinkQueryParams | null;
+}
 
 /** A finding with its links resolved to host URLs (unresolvable links are left out). */
 export interface AttentionFindingView {
   finding: AttentionFinding;
   severityLabel: string;
-  links: { label: string; url: string }[];
+  /** Formatted `finding.count`, or null when the finding has none. */
+  count: string | null;
+  countLabel: string | null;
+  links: AttentionLinkView[];
   explain: CockpitExplainTarget | null;
 }
 
@@ -42,15 +57,15 @@ export interface AttentionFindingView {
         <p class="cw-message cw-error-text" role="status">{{ message }}</p>
       } @else if (state(); as current) {
         @if (current.visibleProviders === 0) {
-          <p class="cw-message" role="status" data-state="unavailable">{{ isBuilder() ? 'No health checks are available for your role.' : notAvailableText }}</p>
+          <p class="cw-message" role="status" data-state="unavailable">{{ isBuilder() ? texts().attentionNoChecksForRole : texts().notAvailable }}</p>
         } @else if (views().length === 0) {
           @if (current.loading) {
-            <p class="cw-message" role="status" data-state="loading">Checking…</p>
+            <p class="cw-message" role="status" data-state="loading">{{ texts().attentionChecking }}</p>
           } @else {
-            <p class="cw-message all-clear" role="status" data-state="clear"><span class="cw-status-chip cw-status-success">All clear</span> Nothing needs attention.</p>
+            <p class="cw-message all-clear" role="status" data-state="clear"><span class="cw-status-chip cw-status-success">{{ texts().attentionAllClear }}</span> {{ texts().attentionNothingNeedsAttention }}</p>
           }
         } @else {
-          <ul class="finding-list" role="list" aria-label="Needs attention">
+          <ul class="finding-list" role="list" [attr.aria-label]="texts().attentionListLabel">
             @for (view of shown(); track view.finding.id) {
               <li class="finding" [class]="'finding severity-' + view.finding.severity" [attr.data-finding]="view.finding.id">
                 <span class="severity-bar" aria-hidden="true"></span>
@@ -58,15 +73,18 @@ export interface AttentionFindingView {
                   <div class="finding-head">
                     <span class="cw-status-chip" [class]="'cw-status-chip cw-status-' + view.finding.severity">{{ view.severityLabel }}</span>
                     <span class="finding-title">{{ view.finding.title }}</span>
+                    @if (view.count !== null) {
+                      <span class="finding-count" [attr.aria-label]="view.countLabel" [attr.title]="view.countLabel">{{ view.count }}</span>
+                    }
                   </div>
                   <p class="finding-text">{{ view.finding.text }}</p>
                   @if (view.links.length > 0 || view.explain) {
                     <div class="finding-links">
-                      @for (link of view.links; track link.url) {
-                        <a class="link-chip" [routerLink]="link.url">{{ link.label }}</a>
+                      @for (link of view.links; track $index) {
+                        <a class="link-chip" [routerLink]="link.path" [queryParams]="link.queryParams">{{ link.label }}</a>
                       }
                       @if (view.explain; as target) {
-                        <button type="button" class="link-chip ai" (click)="explain(target)">✦ Explain</button>
+                        <button type="button" class="link-chip ai" (click)="explain(target)">{{ texts().attentionExplain }}</button>
                       }
                     </div>
                   }
@@ -75,11 +93,11 @@ export interface AttentionFindingView {
             }
           </ul>
           @if (hiddenCount() > 0) {
-            <p class="cw-message more">and {{ hiddenCount() }} more</p>
+            <p class="cw-message more">{{ moreText() }}</p>
           }
         }
       } @else {
-        <p class="cw-message" role="status" data-state="loading">Checking…</p>
+        <p class="cw-message" role="status" data-state="loading">{{ texts().attentionChecking }}</p>
       }
       </div>
     </div>
@@ -110,6 +128,20 @@ export interface AttentionFindingView {
     .finding-body { min-width: 0; }
     .finding-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
     .finding-title { font-weight: 500; }
+    .finding-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      box-sizing: border-box;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--_cw-text) 10%, transparent);
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
     .finding-text { margin: 4px 0 6px; color: var(--_cw-muted); font-size: 0.8125rem; }
     .finding-links { display: flex; flex-wrap: wrap; gap: 6px; }
     .link-chip {
@@ -141,6 +173,15 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
   @Input() config!: AttentionListWidgetConfig;
 
   /**
+   * Translated texts for a widget used on its own (AB#5622); wins over `COCKPIT_WIDGET_MESSAGES`.
+   * Missing members keep the English default.
+   */
+  readonly messages = input<Partial<CockpitWidgetMessages> | null>();
+
+  /** Resolved texts: defaults < host token < `messages` input. */
+  protected readonly texts = injectCockpitWidgetMessages(() => this.messages());
+
+  /**
    * Unconstrained wrapper of the content: its height is reported so the phone tier grows the
    * tile to fit the stacked cards instead of clipping them (AB#5558).
    */
@@ -148,7 +189,6 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
 
   /** Builders see why no check runs; other viewers a neutral text and the widget collapses. */
   protected readonly isBuilder = signal(false);
-  protected readonly notAvailableText = 'Not available';
 
   private readonly _state = signal<AttentionState | null>(null);
   private readonly _error = signal<string | null>(null);
@@ -166,21 +206,25 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     const tenantId = this.tenantId();
     const findings = this._state()?.findings ?? [];
     const withExplain = this.context.explainEnabled && this.config?.showExplain !== false;
-    return findings.map(finding => ({
-      finding,
-      severityLabel: SEVERITY_LABEL[finding.severity],
-      links: tenantId
-        ? finding.links
-          .map(link => ({ label: link.label, url: this.context.resolveLink(link.target, tenantId) }))
-          .filter((link): link is { label: string; url: string } => !!link.url)
-        : [],
-      explain: withExplain ? finding.explain ?? null : null
-    }));
+    const texts = this.texts();
+    const numbers = new Intl.NumberFormat(texts.numberLocale);
+    return findings.map(finding => {
+      const count = typeof finding.count === 'number' && Number.isFinite(finding.count) ? numbers.format(finding.count) : null;
+      return {
+        finding,
+        severityLabel: texts[SEVERITY_MESSAGE[finding.severity]] as string,
+        count,
+        countLabel: count === null ? null : formatCockpitMessage(texts.attentionCountLabel, { count }),
+        links: tenantId ? this.resolveLinks(finding, tenantId) : [],
+        explain: withExplain ? finding.explain ?? null : null
+      };
+    });
   });
 
   private readonly maxItems = signal(DEFAULT_ATTENTION_MAX_ITEMS);
   readonly shown = computed(() => this.views().slice(0, this.maxItems()));
   readonly hiddenCount = computed(() => Math.max(0, this.views().length - this.maxItems()));
+  protected readonly moreText = computed(() => formatCockpitMessage(this.texts().attentionMore, { count: this.hiddenCount() }));
 
   constructor() {
     reportCockpitContentHeight(this.content, () => this.config?.id);
@@ -208,6 +252,17 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     this.context.explain(target);
   }
 
+  private resolveLinks(finding: AttentionFinding, tenantId: string): AttentionLinkView[] {
+    const links: AttentionLinkView[] = [];
+    for (const link of finding.links) {
+      const resolved = this.context.resolveLinkTarget(link.target, tenantId);
+      if (resolved) {
+        links.push({ label: link.label, path: resolved.path, queryParams: resolved.queryParams ?? null });
+      }
+    }
+    return links;
+  }
+
   private async load(): Promise<void> {
     const token = ++this.loadToken;
     this.subscription?.unsubscribe();
@@ -221,7 +276,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     }
     if (!tenantId) {
       this._state.set(null);
-      this._error.set('No tenant selected.');
+      this._error.set(this.texts().noTenant);
       return;
     }
     this.tenantId.set(tenantId);
@@ -235,7 +290,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
           this.boardState.setWidgetHiddenForViewer(this.config.id, !builder && !state.loading && state.visibleProviders === 0);
         }
       },
-      error: () => this._error.set('The health checks could not be loaded.')
+      error: () => this._error.set(this.texts().attentionLoadFailed)
     });
   }
 }

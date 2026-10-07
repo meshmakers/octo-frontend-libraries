@@ -1,4 +1,5 @@
 import { InjectionToken, Provider, Signal } from '@angular/core';
+import { COCKPIT_WIDGET_MESSAGES, CockpitWidgetMessagesSource } from './cockpit-messages';
 
 /**
  * Host services of the cockpit widgets (AB#5558). The widgets live in this library and know
@@ -33,9 +34,30 @@ export interface CockpitViewerAccess {
  */
 export const COCKPIT_VIEWER_ACCESS = new InjectionToken<CockpitViewerAccess>('COCKPIT_VIEWER_ACCESS');
 
+/** Query parameters of a {@link CockpitRouteLinkTarget}. */
+export type CockpitLinkQueryParams = Readonly<Record<string, string | number | boolean>>;
+
+/**
+ * A link straight to an application route (AB#5622), for host providers whose findings point at
+ * their own pages, e.g. a pre-filtered list: `{ kind: 'route', path: 'documents', queryParams: {
+ * checkTier: '2' } }`. Navigates through the Angular Router (`routerLink` + `queryParams`).
+ *
+ * `path` is a URL path or router commands (`['/', tenantId, 'documents']`). Absolute paths are
+ * used as they are; relative ones resolve against the route that renders the board. The host's
+ * `CockpitLinkResolver` sees route targets too and may return a rewritten path (e.g. prefixed
+ * with the tenant root); `null` there keeps `path` — the query parameters always come from the
+ * target.
+ */
+export interface CockpitRouteLinkTarget {
+  kind: 'route';
+  path: string | readonly string[];
+  queryParams?: CockpitLinkQueryParams;
+}
+
 /**
  * What a finding or KPI links to — semantic targets, so the library holds no application routes.
- * The host maps them to its own URLs (`CockpitLinkResolver`).
+ * The host maps them to its own URLs (`CockpitLinkResolver`); `route` targets carry the route
+ * themselves.
  */
 export type CockpitLinkTarget =
   | { kind: 'adapter'; rtId: string }
@@ -45,13 +67,21 @@ export type CockpitLinkTarget =
   | { kind: 'dataFlows' }
   | { kind: 'ckModels' }
   | { kind: 'tenantSettings' }
-  | { kind: 'secretsReEntry' };
+  | { kind: 'secretsReEntry' }
+  | CockpitRouteLinkTarget;
+
+/** A link target resolved for `routerLink` (path or commands) and `queryParams`. */
+export interface CockpitResolvedLink {
+  path: string | string[];
+  queryParams?: CockpitLinkQueryParams;
+}
 
 /** Maps a link target to an application URL. */
 export interface CockpitLinkResolver {
   /**
    * Router URL of the target for the tenant (e.g. `/acme/communication/adapters`), or `null` when
-   * the host has no page for it — the link chip is then left out.
+   * the host has no page for it — the link chip is then left out. For `route` targets `null`
+   * means "use the target's path as it is".
    */
   resolve(target: CockpitLinkTarget, tenantId: string): string | null;
 }
@@ -126,6 +156,8 @@ export interface CockpitWidgetHost {
   links?: () => CockpitLinkResolver;
   explain?: () => CockpitExplainHandler;
   recents?: () => CockpitRecentItemsSource;
+  /** Translated widget texts (AB#5622), fixed or as a signal that follows the language. */
+  messages?: () => CockpitWidgetMessagesSource;
 }
 
 /**
@@ -152,6 +184,9 @@ export function provideCockpitWidgetHost(host: CockpitWidgetHost): Provider[] {
   }
   if (host.recents) {
     providers.push({ provide: COCKPIT_RECENT_ITEMS, useFactory: host.recents });
+  }
+  if (host.messages) {
+    providers.push({ provide: COCKPIT_WIDGET_MESSAGES, useFactory: host.messages });
   }
   return providers;
 }
