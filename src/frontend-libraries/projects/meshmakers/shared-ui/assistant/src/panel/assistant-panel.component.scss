@@ -1,0 +1,148 @@
+// Assistant panel (wireframe .assistant): 400 px right panel, 340 px on narrow
+// screens, full screen on phones. Violet only on the ✦ and AI affordances.
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  min-height: 0;
+  border-left: 1px solid var(--theme-border-subtle);
+  background: var(--theme-bg-surface);
+  color: var(--theme-text-primary);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--theme-border-subtle);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--theme-font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.sparkle {
+  color: var(--theme-ai);
+}
+
+.chip-neutral {
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: var(--theme-radius-xs);
+  background: var(--theme-status-neutral-subtle);
+  color: var(--theme-text-secondary);
+  font-size: 0.71875rem;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--theme-bg-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.close {
+  margin-left: auto;
+}
+
+.ctx {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 14px;
+  list-style: none;
+  border-bottom: 1px solid var(--theme-border-subtle);
+}
+
+.ctx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 22px;
+  padding: 0 4px 0 8px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-xs);
+  font-size: 0.75rem;
+  color: var(--theme-text-secondary);
+
+  button {
+    border: 0;
+    padding: 0 2px;
+    background: none;
+    color: var(--theme-text-muted);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--theme-text-primary);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--theme-focus-ring);
+    }
+  }
+}
+
+.ctx-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.thread {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.unavailable {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  margin: 0 14px var(--theme-space-2);
+  padding: 8px 10px;
+  border: 1px dashed var(--theme-border-default);
+  border-radius: var(--theme-radius-sm);
+  color: var(--theme-text-secondary);
+
+  p {
+    margin: 0;
+  }
+}
+
+@media (max-width: 1180px) {
+  :host {
+    width: 340px;
+  }
+}
+
+// Phones: the panel takes the screen below the 48 px top bar (wireframe,
+// ui-concept §7.5) and acts as a modal dialog.
+@media (max-width: 640px) {
+  :host {
+    position: fixed;
+    inset: 48px 0 0;
+    z-index: 30;
+    width: auto;
+    border-left: 0;
+  }
+}

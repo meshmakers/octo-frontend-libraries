@@ -1,0 +1,37 @@
+<ol class="thread" role="log" aria-live="polite" aria-relevant="additions text" [attr.aria-label]="m().conversationLabel"
+    [attr.aria-busy]="streaming()">
+  @for (item of items(); track item.id) {
+    @switch (item.kind) {
+      @case ('user') {
+        <li class="msg user"><span class="sr-only">{{ m().youPrefix }}</span>{{ item.text }}</li>
+      }
+      @case ('assistant') {
+        <li class="msg bot">
+          <span class="sr-only">{{ m().assistantPrefix }}</span>
+          <div class="md" [innerHTML]="item.markdown | assistantMarkdown"></div>
+          @if (item.streaming) {
+            <span class="streaming" aria-hidden="true">●</span>
+          }
+        </li>
+      }
+      @case ('tool-call') {
+        <li class="msg tool"><ng-container *ngComponentOutlet="toolCallComponent; inputs: { call: item.call }"></ng-container></li>
+      }
+      @case ('proposal') {
+        <li class="msg">
+          <mm-assistant-proposal-card
+            [messages]="messages()"
+            [proposal]="item.proposal"
+            [decision]="item.decision"
+            (run)="proposalDecision.emit({ kind: 'run', proposal: $event })"
+            (edit)="proposalDecision.emit({ kind: 'edit', proposal: $event })"
+            (discard)="proposalDecision.emit({ kind: 'discard', proposal: $event })">
+          </mm-assistant-proposal-card>
+        </li>
+      }
+      @case ('error') {
+        <li class="msg error"><span class="sr-only">{{ m().errorPrefix }}</span>{{ item.text }}</li>
+      }
+    }
+  }
+</ol>

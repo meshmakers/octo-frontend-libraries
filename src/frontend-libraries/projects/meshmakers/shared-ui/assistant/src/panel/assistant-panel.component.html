@@ -1,0 +1,38 @@
+<header class="head">
+  <span class="sparkle" aria-hidden="true">✦</span>
+  <h2 class="title" id="assistant-panel-title">{{ m().title }}</h2>
+  @if (connected()) {
+    <span class="chip-neutral">{{ m().readsWithYourPermissions }}</span>
+  }
+  <button type="button" class="icon-btn close" [attr.aria-label]="m().closeAssistant" (click)="assistant.close()">✕</button>
+</header>
+
+@if (assistant.contextChips().length) {
+  <ul class="ctx" [attr.aria-label]="m().contextLabel">
+    @for (chip of assistant.contextChips(); track chip.id; let i = $index) {
+      <li class="ctx-chip" [attr.data-kind]="chip.kind" [title]="chip.value">
+        <span class="ctx-label">{{ chip.label }}</span>
+        <button type="button" [attr.aria-label]="format(m().removeContext, { label: chip.label })" (click)="removeChip(chip.id, i)">✕</button>
+      </li>
+    }
+  </ul>
+}
+
+<mm-assistant-thread class="thread" [items]="assistant.thread()" [messages]="messages()" (proposalDecision)="onDecision($event)"></mm-assistant-thread>
+
+@if (!connected() || assistant.transportStatus() === 'error') {
+  <div class="unavailable" role="status">
+    <span class="sparkle" aria-hidden="true">✦</span>
+    <p>{{ assistant.transportMessage() ?? m().notAvailable }}</p>
+  </div>
+}
+
+<mm-assistant-composer
+  [messages]="messages()"
+  [text]="assistant.draft()"
+  (textChange)="assistant.setDraft($event)"
+  [canSend]="assistant.canSend()"
+  [sending]="assistant.sending()"
+  (send)="assistant.send($event)"
+  (stop)="assistant.stop()">
+</mm-assistant-composer>

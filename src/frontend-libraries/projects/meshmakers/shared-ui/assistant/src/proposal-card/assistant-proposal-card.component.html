@@ -1,0 +1,29 @@
+<article class="proposal" [class.settled]="decision() !== null" [attr.aria-label]="cardLabel()">
+  <header class="proposal-head">
+    <span aria-hidden="true">✦</span> {{ m().proposal }}@if (proposal().writes) { · {{ m().writesToTenant }} }
+  </header>
+  <div class="proposal-body">
+    <p class="proposal-title">{{ proposal().title }}</p>
+    @if (proposal().description) {
+      <p class="proposal-description">{{ proposal().description }}</p>
+    }
+    @if (proposal().parameters.length) {
+      <dl class="proposal-params">
+        @for (param of proposal().parameters; track param.name) {
+          <dt>{{ param.name }}</dt>
+          <dd>{{ param.value }}</dd>
+        }
+      </dl>
+    }
+    <p class="proposal-meta">{{ m().tool }} <span class="mono">{{ proposal().toolName }}</span> · {{ m().runsAfterConfirm }}</p>
+  </div>
+  <footer class="proposal-foot">
+    @if (decisionLabel(); as label) {
+      <span class="proposal-decision" role="status">{{ label }}</span>
+    } @else {
+      <button type="button" class="btn primary" (click)="run.emit(proposal())">{{ m().run }}</button>
+      <button type="button" class="btn" (click)="edit.emit(proposal())">{{ m().edit }}</button>
+      <button type="button" class="btn" (click)="discard.emit(proposal())">{{ m().discard }}</button>
+    }
+  </footer>
+</article>

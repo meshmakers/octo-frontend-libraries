@@ -1,0 +1,86 @@
+// Thread (wireframe .thread/.msg).
+:host {
+  display: block;
+  overflow: auto;
+}
+
+.thread {
+  display: grid;
+  align-content: start;
+  gap: var(--theme-space-3);
+  margin: 0;
+  padding: 14px;
+  list-style: none;
+}
+
+.msg {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.user {
+  justify-self: end;
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: var(--theme-radius-md);
+  background: var(--theme-bg-overlay);
+  white-space: pre-wrap;
+}
+
+.bot {
+  padding-left: 12px;
+  border-left: 2px solid var(--theme-ai);
+
+  // Rendered markdown (innerHTML) carries no view encapsulation attributes.
+  ::ng-deep p {
+    margin: 0 0 var(--theme-space-2);
+  }
+
+  ::ng-deep a {
+    color: var(--theme-text-accent);
+  }
+}
+
+.streaming {
+  color: var(--theme-ai);
+  font-size: 0.5rem;
+  animation: assistant-pulse 1s ease-in-out infinite;
+}
+
+@keyframes assistant-pulse {
+  50% { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streaming {
+    animation: none;
+  }
+}
+
+.error {
+  color: var(--theme-status-error);
+}
+
+// Tool-call rows reuse mm-ai-tool-call; map its tokens onto the Deep Sea theme.
+mm-ai-tool-call {
+  --mm-ai-tool-bg: var(--theme-bg-app);
+  --mm-ai-tool-border: var(--theme-border-default);
+  --mm-ai-tool-text: var(--theme-text-primary);
+  --mm-ai-tool-muted: var(--theme-text-secondary);
+  --mm-ai-tool-success: var(--theme-status-success);
+  --mm-ai-tool-failed: var(--theme-status-error);
+  --mm-ai-tool-rejected: var(--theme-status-warning);
+  --mm-ai-tool-pending: var(--theme-status-neutral);
+  --mm-ai-tool-code-bg: var(--theme-bg-sunken);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}

@@ -1,0 +1,36 @@
+<div class="composer">
+  @if (suggestions().length) {
+    <ul class="suggestions" role="listbox" [id]="listId" [attr.aria-label]="m().commandsLabel">
+      @for (command of suggestions(); track command.command; let i = $index) {
+        <li role="option" [id]="listId + '-' + i" [attr.aria-selected]="activeOptionId() === listId + '-' + i"
+            (mousedown)="$event.preventDefault()" (click)="pick(command)">
+          <span class="cmd">{{ command.command }}</span>
+          <span class="cmd-desc">{{ command.description }}</span>
+        </li>
+      }
+    </ul>
+  }
+  <div class="box">
+    <textarea #input
+              rows="2"
+              [attr.aria-label]="m().composerLabel"
+              [placeholder]="m().composerPlaceholder"
+              aria-autocomplete="list"
+              [attr.aria-controls]="suggestions().length ? listId : null"
+              [attr.aria-expanded]="suggestions().length > 0"
+              [attr.aria-activedescendant]="activeOptionId()"
+              [value]="text()"
+              (input)="onInput($any($event.target).value)"
+              (keydown)="onKeydown($event)"></textarea>
+    @if (sending()) {
+      <button type="button" class="send" (click)="stop.emit()">{{ m().stop }}</button>
+    } @else {
+      <button type="button" class="send" [disabled]="!canSend() || !text().trim()" (click)="submit()">{{ m().send }}</button>
+    }
+  </div>
+  <div class="hint" aria-hidden="true">
+    @for (command of commands; track command.command) {
+      <kbd>{{ command.command }}</kbd>
+    }
+  </div>
+</div>
