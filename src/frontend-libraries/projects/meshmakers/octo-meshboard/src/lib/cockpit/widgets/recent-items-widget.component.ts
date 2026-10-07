@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Input, NgZone, OnChanges, OnInit, SimpleChanges, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core';
 import { RecentItemsWidgetConfig } from '../../models/meshboard.models';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { DashboardWidget } from '../../widgets/widget.interface';
 import { COCKPIT_RECENT_ITEMS, CockpitRecentItem, CockpitRecentItemKind } from '../cockpit-host';
+import { CockpitWidgetMessages, DEFAULT_COCKPIT_WIDGET_MESSAGES, formatCockpitMessage, injectCockpitWidgetMessages } from '../cockpit-messages';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
 import { reportCockpitContentHeight } from './content-height';
 
@@ -13,21 +14,28 @@ export const MAX_RECENT_ITEMS = 20;
 
 const GLYPH: Record<CockpitRecentItemKind, string> = { page: '▤', entity: '◎', board: '#' };
 
-/** "just now", "12 min ago", "3 h ago", "yesterday", "4 days ago" (the Cmd+K palette's wording). */
-export function recentRelativeTime(timestamp: number, now: number): string {
+/**
+ * "just now", "12 min ago", "3 h ago", "yesterday", "4 days ago" (the Cmd+K palette's wording);
+ * translated through `messages` (AB#5622).
+ */
+export function recentRelativeTime(
+  timestamp: number,
+  now: number,
+  messages: Pick<CockpitWidgetMessages, 'recentJustNow' | 'recentMinutesAgo' | 'recentHoursAgo' | 'recentYesterday' | 'recentDaysAgo'> = DEFAULT_COCKPIT_WIDGET_MESSAGES
+): string {
   const minutes = Math.max(0, Math.round((now - timestamp) / 60_000));
   if (minutes < 1) {
-    return 'just now';
+    return messages.recentJustNow;
   }
   if (minutes < 60) {
-    return `${minutes} min ago`;
+    return formatCockpitMessage(messages.recentMinutesAgo, { count: minutes });
   }
   const hours = Math.round(minutes / 60);
   if (hours < 24) {
-    return `${hours} h ago`;
+    return formatCockpitMessage(messages.recentHoursAgo, { count: hours });
   }
   const days = Math.round(hours / 24);
-  return days === 1 ? 'yesterday' : `${days} days ago`;
+  return days === 1 ? messages.recentYesterday : formatCockpitMessage(messages.recentDaysAgo, { count: days });
 }
 
 /** A row with its glyph and time texts. */
@@ -54,12 +62,12 @@ interface RecentItemView {
     <div class="recent-widget">
       <div class="cw-content" #content>
       @if (!source) {
-        <p class="cw-message" role="status" data-state="unavailable">Not available</p>
+        <p class="cw-message" role="status" data-state="unavailable">{{ texts().notAvailable }}</p>
       } @else if (error()) {
-        <p class="cw-message cw-error-text" role="status" data-state="error">Recently opened items could not be read.</p>
+        <p class="cw-message cw-error-text" role="status" data-state="error">{{ texts().recentLoadFailed }}</p>
       } @else if (views(); as rows) {
         @if (rows.length > 0) {
-          <ul class="recent-list" role="list" [attr.aria-label]="config?.title || 'Recently opened'">
+          <ul class="recent-list" role="list" [attr.aria-label]="config?.title || texts().recentListLabel">
             @for (row of rows; track row.item.key) {
               <li>
                 <a class="recent-row" [href]="row.item.href" [attr.data-recent]="row.item.key" (click)="open(row.item, $event)">
@@ -74,15 +82,15 @@ interface RecentItemView {
             }
           </ul>
         } @else {
-          <p class="cw-message" role="status" data-state="empty">Nothing opened yet. Pages, entities and boards you open appear here.</p>
+          <p class="cw-message" role="status" data-state="empty">{{ texts().recentEmpty }}</p>
         }
         @if (source.openPalette) {
-          <button type="button" class="palette-hint" (click)="openPalette()" title="Open the command palette">
-            <kbd>{{ source.paletteShortcut || 'Ctrl K' }}</kbd> shows the same list
+          <button type="button" class="palette-hint" (click)="openPalette()" [title]="texts().recentPaletteTitle">
+            <kbd>{{ source.paletteShortcut || texts().recentPaletteShortcut }}</kbd> {{ texts().recentPaletteHint }}
           </button>
         }
       } @else {
-        <p class="cw-message" role="status" data-state="loading">Loading…</p>
+        <p class="cw-message" role="status" data-state="loading">{{ texts().loading }}</p>
       }
       </div>
     </div>
@@ -150,6 +158,15 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
 
   @Input() config!: RecentItemsWidgetConfig;
 
+  /**
+   * Translated texts for a widget used on its own (AB#5622); wins over `COCKPIT_WIDGET_MESSAGES`.
+   * Missing members keep the English default.
+   */
+  readonly messages = input<Partial<CockpitWidgetMessages> | null>();
+
+  /** Resolved texts: defaults < host token < `messages` input. */
+  protected readonly texts = injectCockpitWidgetMessages(() => this.messages());
+
   /** Unconstrained content wrapper; its height lets the phone tier grow the tile (AB#5558). */
   private readonly content = viewChild<ElementRef<HTMLElement>>('content');
 
@@ -164,17 +181,18 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
 
   readonly data = this._items.asReadonly();
   readonly isLoading = computed(() => this._items() === null && !this._error());
-  readonly error = computed(() => this._error() ? 'Recently opened items could not be read.' : null);
+  readonly error = computed(() => this._error() ? this.texts().recentLoadFailed : null);
 
   protected readonly views = computed<RecentItemView[] | null>(() => {
     const items = this._items();
     const now = this.now();
+    const texts = this.texts();
     return items?.map(item => {
       const date = new Date(item.lastVisitedAt);
       return {
         item,
         glyph: GLYPH[item.kind] ?? GLYPH.page,
-        when: recentRelativeTime(item.lastVisitedAt, now),
+        when: recentRelativeTime(item.lastVisitedAt, now, texts),
         datetime: date.toISOString(),
         absolute: date.toLocaleString()
       };

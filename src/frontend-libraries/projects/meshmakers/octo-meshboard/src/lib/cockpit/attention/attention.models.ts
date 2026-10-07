@@ -25,6 +25,12 @@ export interface AttentionFinding {
   severity: AttentionSeverity;
   title: string;
   text: string;
+  /**
+   * How many objects the finding is about (AB#5622), shown as a badge next to the title — e.g. the
+   * open items of a work queue. Omitted = no badge (the built-in providers name the count in the
+   * title instead).
+   */
+  count?: number;
   links: AttentionLink[];
   /** What "✦ Explain" hands to the host's assistant (only shown when the host enables it). */
   explain?: CockpitExplainTarget;

@@ -5,6 +5,7 @@ import { CkModelService, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import { CockpitDataFlowExecutionsDtoGQL } from '../../graphQL/cockpitDataFlowExecutions';
 import { HOUR_MS } from '../../utils/pipeline-executions';
 import { COCKPIT_ROLES, COCKPIT_VIEWER_ACCESS } from '../cockpit-host';
+import { COCKPIT_WIDGET_MESSAGES, resolveCockpitWidgetMessages } from '../cockpit-messages';
 import { CockpitAdapterState, CockpitAdapterStatesService } from '../data/cockpit-adapter-states.service';
 import { CockpitCkModelStatesService } from '../data/cockpit-ck-model-states.service';
 import { adapterKpi, ckModelKpi, CockpitDataFlowRow, executionKpi, formatCount, sparklineGeometry } from './cockpit-kpi';
@@ -109,6 +110,26 @@ describe('cockpit KPI mapping', () => {
     expect(ckModelKpi({ total: 0, available: 0, importing: 0, resolveFailed: 0, resolveFailedNames: [] })).toMatchObject({ status: 'neutral' });
   });
 
+  it('translates labels, statuses and details and formats numbers in the message locale (AB#5622)', () => {
+    const de = resolveCockpitWidgetMessages({
+      numberLocale: 'de-DE',
+      kpiAdaptersLabel: 'Adapter online',
+      kpiAdaptersOffline: '{count} offline (de)',
+      kpiAdaptersTruncated: 'erste {read} von {total} Adaptern',
+      kpiExecutionsLabel: 'Ausführungen 24 h',
+      kpiExecutionsFailed: '{count} fehlgeschlagen',
+      kpiCkModelsResolveFailed: '{count} nicht auflösbar'
+    });
+    const adapters = adapterKpi(all([adapter({ communicationState: 'OFFLINE', communicationStateTimestamp: new Date(0).toISOString() })], 1500), de);
+    expect(adapters.label).toBe('Adapter online');
+    expect(adapters.statusLabel).toBe('≥ 1 offline (de)');
+    expect(adapters.detail).toContain('erste 1 von 1.500 Adaptern');
+    const executions = executionKpi([flow(pipeline({ last24HoursSuccessCount: 2000, last24HoursFailureCount: 3 }))], 1, de);
+    expect(executions).toMatchObject({ label: 'Ausführungen 24 h', value: '2.003', statusLabel: '3 fehlgeschlagen' });
+    expect(ckModelKpi({ total: 2, available: 1, importing: 0, resolveFailed: 1, resolveFailedNames: ['A'] }, de).statusLabel).toBe('1 nicht auflösbar');
+    expect(formatCount(1284, 'de-DE')).toBe('1.284');
+  });
+
   it('scales sparkline points into the box', () => {
     const geometry = sparklineGeometry([0, 5, 10], 120, 36, 3)!;
     expect(geometry.line).toBe('M0 33 L60 18 L120 3');
@@ -182,6 +203,15 @@ describe('CockpitKpiService', () => {
     isModelAvailable.mockResolvedValue(false);
     expect((await run('pipelineExecutions'))[1].state).toBe('unavailable');
     expect(dataFlows.fetch).not.toHaveBeenCalled();
+  });
+
+  it('builds its texts from COCKPIT_WIDGET_MESSAGES, or from the messages passed in (AB#5622)', async () => {
+    TestBed.configureTestingModule({ providers: [{ provide: COCKPIT_WIDGET_MESSAGES, useValue: { kpiAdaptersLabel: 'Adapter online', kpiNeedsAdminPanel: 'Rolle fehlt.' } }] });
+    expect((await run('adapterStatus'))[1]).toMatchObject({ state: 'ready', kpi: { label: 'Adapter online', statusLabel: 'All online' } });
+    isInRole.mockReturnValue(false);
+    expect((await run('ckModelState'))[1]).toMatchObject({ state: 'unavailable', reason: 'Rolle fehlt.' });
+    const own = resolveCockpitWidgetMessages({ kpiNeedsAdminPanel: 'Own' });
+    expect(await firstValueFrom(TestBed.inject(CockpitKpiService).kpi('ckModelState', own).pipe(last()))).toMatchObject({ reason: 'Own' });
   });
 
   it('reports a failing query as error', async () => {

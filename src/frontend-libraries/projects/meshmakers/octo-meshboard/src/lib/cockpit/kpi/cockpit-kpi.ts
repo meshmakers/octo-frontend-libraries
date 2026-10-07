@@ -2,6 +2,7 @@ import { SystemCommunicationDeploymentStateDto } from '@meshmakers/octo-services
 import { isAdapterExpectedToRun, isAdapterOnline, summarizeAdapterOnline } from '../../utils/adapter-online';
 import { buildHourlyHistogram, countPipelineExecutions, HourlyExecutionBucket, latestStatisticsUpdate, pipelineExecutionInputs, RawHourBucket } from '../../utils/pipeline-executions';
 import { CockpitLinkTarget } from '../cockpit-host';
+import { CockpitWidgetMessages, DEFAULT_COCKPIT_WIDGET_MESSAGES, formatCockpitMessage as fmt } from '../cockpit-messages';
 import { CockpitAdapterStates } from '../data/cockpit-adapter-states.service';
 
 /** Status of a KPI tile, rendered as a chip (dot + label, never colour alone). */
@@ -41,10 +42,23 @@ export interface CockpitCkModelCounts {
 }
 
 const NUMBER_FORMAT = new Intl.NumberFormat('en-US');
+const NUMBER_FORMATS = new Map<string, Intl.NumberFormat>([['en-US', NUMBER_FORMAT]]);
 
-/** "1,284". */
-export function formatCount(value: number): string {
-  return NUMBER_FORMAT.format(value);
+/** "1,284" (en-US), or in the given BCP 47 locale ("1.284" for de-DE). */
+export function formatCount(value: number, locale?: string): string {
+  if (!locale) {
+    return NUMBER_FORMAT.format(value);
+  }
+  let format = NUMBER_FORMATS.get(locale);
+  if (!format) {
+    try {
+      format = new Intl.NumberFormat(locale);
+    } catch {
+      format = NUMBER_FORMAT;
+    }
+    NUMBER_FORMATS.set(locale, format);
+  }
+  return format.format(value);
 }
 
 /** "based on the first 500 of 620 adapters" when a read was capped, else undefined. */
@@ -52,13 +66,20 @@ export function truncationNote(read: number, total: number, noun: string): strin
   return total > read ? `based on the first ${formatCount(read)} of ${formatCount(total)} ${noun}` : undefined;
 }
 
+/** The capped-read note from a message template with `{read}` and `{total}`. */
+function truncationText(read: number, total: number, template: string, locale: string): string | undefined {
+  return total > read ? fmt(template, { read: formatCount(read, locale), total: formatCount(total, locale) }) : undefined;
+}
+
 /**
  * "Adapter status x / y" with the one adapter online rule (`utils/adapter-online.ts`): y counts
  * the adapters expected to run — Helm-deployed, online edge/local ones and registered adapters
  * without a Helm chart — x those online. On-demand adapters at rest are offline on purpose and do
- * not warn.
+ * not warn. Texts from `messages` (English by default, AB#5622).
  */
-export function adapterKpi({ states, totalCount }: CockpitAdapterStates): CockpitKpi {
+export function adapterKpi({ states, totalCount }: CockpitAdapterStates, messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): CockpitKpi {
+  const m = messages;
+  const n = (value: number) => formatCount(value, m.numberLocale);
   const summary = summarizeAdapterOnline(states);
   const expected = states.filter(isAdapterExpectedToRun);
   const online = expected.filter(isAdapterOnline);
@@ -69,18 +90,18 @@ export function adapterKpi({ states, totalCount }: CockpitAdapterStates): Cockpi
 
   const details: string[] = [];
   if (summary.resting > 0) {
-    details.push(`${summary.resting} hibernated`);
+    details.push(fmt(m.kpiAdaptersHibernated, { count: summary.resting }));
   }
   if (outsideHelm.length > 0) {
-    details.push(`${outsideHelm.length} edge / local`);
+    details.push(fmt(m.kpiAdaptersEdgeLocal, { count: outsideHelm.length }));
   }
   if (notExpected > 0) {
-    details.push(`${notExpected} not deployed`);
+    details.push(fmt(m.kpiAdaptersNotDeployed, { count: notExpected }));
   }
   if (details.length === 0 && expected.length === 1) {
     details.push(expected[0].name || String(expected[0].rtId));
   }
-  const note = truncationNote(states.length, totalCount, 'adapters');
+  const note = truncationText(states.length, totalCount, m.kpiAdaptersTruncated, m.numberLocale);
   if (note) {
     details.push(note);
   }
@@ -89,19 +110,19 @@ export function adapterKpi({ states, totalCount }: CockpitAdapterStates): Cockpi
   let statusLabel: string;
   if (expected.length === 0) {
     status = 'neutral';
-    statusLabel = states.length === 0 ? 'No adapters' : 'None deployed';
+    statusLabel = states.length === 0 ? m.kpiAdaptersNone : m.kpiAdaptersNoneDeployed;
   } else if (offline > 0) {
     status = 'warning';
-    statusLabel = `${truncated ? '≥ ' : ''}${offline} offline`;
+    statusLabel = fmt(m.kpiAdaptersOffline, { count: `${truncated ? '≥ ' : ''}${offline}` });
   } else {
     status = 'success';
-    statusLabel = 'All online';
+    statusLabel = m.kpiAdaptersAllOnline;
   }
 
   return {
     id: 'adapters-online',
-    label: 'Adapters online',
-    value: `${formatCount(online.length)} / ${truncated ? '≥ ' : ''}${formatCount(expected.length)}`,
+    label: m.kpiAdaptersLabel,
+    value: `${n(online.length)} / ${truncated ? '≥ ' : ''}${n(expected.length)}`,
     detail: details.join(' · ') || undefined,
     status,
     statusLabel,
@@ -113,8 +134,11 @@ export function adapterKpi({ states, totalCount }: CockpitAdapterStates): Cockpi
  * "Pipeline executions 24 h", computed exactly like the Studio's Data Flows list
  * (`countPipelineExecutions` per data flow, the hourly histogram per flow anchored on the newest
  * statistics update, AB#5583), then summed over the flows — so the cockpit and the list agree.
+ * Texts from `messages` (English by default, AB#5622).
  */
-export function executionKpi(flows: CockpitDataFlowRow[], totalCount = flows.length): CockpitKpi {
+export function executionKpi(flows: CockpitDataFlowRow[], totalCount = flows.length, messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): CockpitKpi {
+  const m = messages;
+  const n = (value: number) => formatCount(value, m.numberLocale);
   let ok = 0;
   let failed = 0;
   const slots: HourlyExecutionBucket[][] = [];
@@ -145,60 +169,63 @@ export function executionKpi(flows: CockpitDataFlowRow[], totalCount = flows.len
   const peak = Math.max(0, ...sparkline);
   const truncated = totalCount > flows.length;
   const atLeast = truncated ? '≥ ' : '';
-  const details = [total === 0 ? 'No executions in the last 24 hours' : `${formatCount(ok)} succeeded`];
-  const note = truncationNote(flows.length, totalCount, 'data flows');
+  const details = [total === 0 ? m.kpiExecutionsNone : fmt(m.kpiExecutionsSucceeded, { count: n(ok) })];
+  const note = truncationText(flows.length, totalCount, m.kpiExecutionsTruncated, m.numberLocale);
   if (note) {
     details.push(note);
   }
 
   return {
     id: 'pipeline-executions',
-    label: 'Pipeline executions 24 h',
-    value: `${atLeast}${formatCount(total)}`,
+    label: m.kpiExecutionsLabel,
+    value: `${atLeast}${n(total)}`,
     detail: details.join(' · '),
     status: total === 0 ? 'neutral' : failed > 0 ? 'error' : 'success',
-    statusLabel: total === 0 ? 'Idle' : failed > 0 ? `${atLeast}${formatCount(failed)} failed` : 'No failures',
+    statusLabel: total === 0 ? m.kpiExecutionsIdle : failed > 0 ? fmt(m.kpiExecutionsFailed, { count: `${atLeast}${n(failed)}` }) : m.kpiExecutionsNoFailures,
     link: { kind: 'dataFlows' },
     sparkline: peak > 0 ? sparkline : undefined,
     sparklineLabel: peak > 0
-      ? `Executions per hour over the last 24 hours, peak ${formatCount(peak)}; ${formatCount(total)} executions, ${formatCount(failed)} failed`
+      ? fmt(m.kpiExecutionsSparkline, { peak: n(peak), total: n(total), failed: n(failed) })
       : undefined
   };
 }
 
 /**
  * "CK model state": models available of all installed models. ResolveFailed is an error (the
- * data is intact, but the types are not served), importing is shown as progress.
+ * data is intact, but the types are not served), importing is shown as progress. Texts from
+ * `messages` (English by default, AB#5622).
  */
-export function ckModelKpi(counts: CockpitCkModelCounts): CockpitKpi {
+export function ckModelKpi(counts: CockpitCkModelCounts, messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): CockpitKpi {
+  const m = messages;
+  const n = (value: number) => formatCount(value, m.numberLocale);
   const details: string[] = [];
   if (counts.importing > 0) {
-    details.push(`${formatCount(counts.importing)} importing`);
+    details.push(fmt(m.kpiCkModelsImporting, { count: n(counts.importing) }));
   }
   if (counts.resolveFailed > 0 && counts.resolveFailedNames.length > 0) {
     const shown = counts.resolveFailedNames.slice(0, 2).join(', ');
     const rest = counts.resolveFailed - Math.min(2, counts.resolveFailedNames.length);
-    details.push(rest > 0 ? `${shown} and ${rest} more` : shown);
+    details.push(rest > 0 ? fmt(m.kpiCkModelsMoreNames, { names: shown, count: rest }) : shown);
   }
   let status: CockpitKpiStatus;
   let statusLabel: string;
   if (counts.total === 0) {
     status = 'neutral';
-    statusLabel = 'No models';
+    statusLabel = m.kpiCkModelsNone;
   } else if (counts.resolveFailed > 0) {
     status = 'error';
-    statusLabel = `${formatCount(counts.resolveFailed)} ResolveFailed`;
+    statusLabel = fmt(m.kpiCkModelsResolveFailed, { count: n(counts.resolveFailed) });
   } else if (counts.importing > 0) {
     status = 'warning';
-    statusLabel = 'Importing';
+    statusLabel = m.kpiCkModelsImportingStatus;
   } else {
     status = 'success';
-    statusLabel = 'All available';
+    statusLabel = m.kpiCkModelsAllAvailable;
   }
   return {
     id: 'ck-model-state',
-    label: 'CK models available',
-    value: `${formatCount(counts.available)} / ${formatCount(counts.total)}`,
+    label: m.kpiCkModelsLabel,
+    value: `${n(counts.available)} / ${n(counts.total)}`,
     detail: details.join(' · ') || undefined,
     status,
     statusLabel,

@@ -4,6 +4,7 @@ import { catchError, map, startWith, switchMap, take } from 'rxjs/operators';
 import { CockpitDataFlowExecutionsDtoGQL } from '../../graphQL/cockpitDataFlowExecutions';
 import { CockpitContextService } from '../cockpit-context.service';
 import { COCKPIT_ROLES } from '../cockpit-host';
+import { COCKPIT_WIDGET_MESSAGES, CockpitWidgetMessages, readCockpitMessagesSource, resolveCockpitWidgetMessages } from '../cockpit-messages';
 import { CockpitAdapterStatesService } from '../data/cockpit-adapter-states.service';
 import { CockpitCkModelStatesService } from '../data/cockpit-ck-model-states.service';
 import { adapterKpi, ckModelKpi, CockpitDataFlowRow, CockpitKpi, executionKpi } from './cockpit-kpi';
@@ -31,20 +32,24 @@ export type CockpitKpiResult =
 interface KpiGate {
   roles: string[];
   models: string[];
+  /** English reason (the default of {@link reasonMessage}). */
   reason: string;
+  /** Message member of the reason (AB#5622). */
+  reasonMessage: 'kpiNeedsCommunication' | 'kpiNeedsAdminPanel';
 }
 
 const COMMUNICATION_GATE: KpiGate = {
   roles: [COCKPIT_ROLES.CommunicationManagement],
   models: ['System.Communication'],
-  reason: 'Needs the CommunicationManagement role and the System.Communication model.'
+  reason: 'Needs the CommunicationManagement role and the System.Communication model.',
+  reasonMessage: 'kpiNeedsCommunication'
 };
 
 /** What each KPI needs — the same as the page its tile opens. */
 export const COCKPIT_KPI_GATES: Record<CockpitKpiKind, KpiGate> = {
   adapterStatus: COMMUNICATION_GATE,
   pipelineExecutions: COMMUNICATION_GATE,
-  ckModelState: { roles: [COCKPIT_ROLES.AdminPanelManagement], models: [], reason: 'Needs the AdminPanelManagement role.' }
+  ckModelState: { roles: [COCKPIT_ROLES.AdminPanelManagement], models: [], reason: 'Needs the AdminPanelManagement role.', reasonMessage: 'kpiNeedsAdminPanel' }
 };
 
 /**
@@ -57,24 +62,33 @@ export class CockpitKpiService {
   private readonly adapterStates = inject(CockpitAdapterStatesService);
   private readonly ckModelStates = inject(CockpitCkModelStatesService);
   private readonly dataFlowsGql = inject(CockpitDataFlowExecutionsDtoGQL);
+  private readonly messagesSource = inject(COCKPIT_WIDGET_MESSAGES, { optional: true });
 
-  kpi(kind: CockpitKpiKind): Observable<CockpitKpiResult> {
+  /**
+   * The KPI's state. Texts (label, status, detail, reasons) come from `messages`, else from the
+   * host's `COCKPIT_WIDGET_MESSAGES`, else English (AB#5622).
+   */
+  kpi(kind: CockpitKpiKind, messages?: CockpitWidgetMessages): Observable<CockpitKpiResult> {
     const gate = COCKPIT_KPI_GATES[kind];
-    return defer(() => from(this.resolve(gate))).pipe(
-      switchMap(access => {
-        if (access.kind === 'noTenant') {
-          return of<CockpitKpiResult>({ state: 'unavailable', reason: 'No tenant selected.', forBuilder: true });
-        }
-        if (access.kind === 'denied') {
-          return of<CockpitKpiResult>({ state: 'unavailable', reason: gate.reason, forBuilder: access.builder });
-        }
-        return this.load(kind, access.tenantId).pipe(take(1), map((kpi): CockpitKpiResult => ({ state: 'ready', kpi })));
-      }),
-      catchError(error => {
-        // Details go to the console only; the tile shows a generic text.
-        console.warn(`Cockpit: KPI '${kind}' failed`, error);
-        return of<CockpitKpiResult>({ state: 'error', message: KPI_ERROR_TEXT });
-      }),
+    return defer(() => {
+      const texts = messages ?? resolveCockpitWidgetMessages(readCockpitMessagesSource(this.messagesSource));
+      return from(this.resolve(gate)).pipe(
+        switchMap(access => {
+          if (access.kind === 'noTenant') {
+            return of<CockpitKpiResult>({ state: 'unavailable', reason: texts.noTenant, forBuilder: true });
+          }
+          if (access.kind === 'denied') {
+            return of<CockpitKpiResult>({ state: 'unavailable', reason: texts[gate.reasonMessage], forBuilder: access.builder });
+          }
+          return this.load(kind, access.tenantId, texts).pipe(take(1), map((kpi): CockpitKpiResult => ({ state: 'ready', kpi })));
+        }),
+        catchError(error => {
+          // Details go to the console only; the tile shows a generic text.
+          console.warn(`Cockpit: KPI '${kind}' failed`, error);
+          return of<CockpitKpiResult>({ state: 'error', message: texts.kpiLoadFailed });
+        })
+      );
+    }).pipe(
       startWith<CockpitKpiResult>({ state: 'loading' })
     );
   }
@@ -90,18 +104,18 @@ export class CockpitKpiService {
     return { kind: 'ok', tenantId };
   }
 
-  private load(kind: CockpitKpiKind, tenantId: string): Observable<CockpitKpi> {
+  private load(kind: CockpitKpiKind, tenantId: string, texts: CockpitWidgetMessages): Observable<CockpitKpi> {
     switch (kind) {
       case 'adapterStatus':
-        return this.adapterStates.states(tenantId).pipe(map(adapterKpi));
+        return this.adapterStates.states(tenantId).pipe(map(states => adapterKpi(states, texts)));
       case 'ckModelState':
-        return this.ckModelStates.counts(tenantId).pipe(map(ckModelKpi));
+        return this.ckModelStates.counts(tenantId).pipe(map(counts => ckModelKpi(counts, texts)));
       case 'pipelineExecutions':
         return this.dataFlowsGql.fetch({ variables: { first: COCKPIT_DATA_FLOW_LIMIT }, fetchPolicy: 'network-only' }).pipe(
           map(result => {
             const connection = result.data?.runtime?.systemCommunicationDataFlow;
             const flows = (connection?.items ?? []).filter((row): row is NonNullable<typeof row> => !!row) as CockpitDataFlowRow[];
-            return executionKpi(flows, Math.max(connection?.totalCount ?? flows.length, flows.length));
+            return executionKpi(flows, Math.max(connection?.totalCount ?? flows.length, flows.length), texts);
           })
         );
     }

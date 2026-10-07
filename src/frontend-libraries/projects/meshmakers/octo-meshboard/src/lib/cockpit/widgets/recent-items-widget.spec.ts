@@ -5,6 +5,7 @@ import { RecentItemsWidgetConfig } from '../../models/meshboard.models';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { COCKPIT_RECENT_ITEMS, CockpitRecentItem, CockpitRecentItemsSource, provideCockpitWidgetHost } from '../cockpit-host';
 import { RecentItemsConfigDialogComponent } from './recent-items-config-dialog.component';
+import { COCKPIT_WIDGET_MESSAGES, resolveCockpitWidgetMessages } from '../cockpit-messages';
 import { DEFAULT_RECENT_ITEMS_MAX, recentRelativeTime, RecentItemsWidgetComponent } from './recent-items-widget.component';
 
 const base = { id: 'r1', title: 'Recently opened', col: 4, row: 4, colSpan: 3, rowSpan: 2, dataSource: { type: 'static' as const } };
@@ -58,6 +59,18 @@ describe('RecentItemsWidgetComponent (AB#5558)', () => {
     expect(time.textContent).toBe('3 min ago');
     expect(time.getAttribute('datetime')).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(boardState.setWidgetHiddenForViewer).not.toHaveBeenCalled();
+  });
+
+  it('translates its texts through COCKPIT_WIDGET_MESSAGES (AB#5622)', async () => {
+    configure();
+    TestBed.configureTestingModule({ providers: [{ provide: COCKPIT_WIDGET_MESSAGES, useValue: {
+      recentEmpty: 'Noch nichts geöffnet.', recentPaletteHint: 'zeigt dieselbe Liste', recentPaletteTitle: 'Befehlspalette öffnen'
+    } }] });
+    const fixture = await render();
+    expect(fixture.nativeElement.querySelector('[data-state="empty"]').textContent).toContain('Noch nichts geöffnet.');
+    const hint = fixture.nativeElement.querySelector('.palette-hint') as HTMLElement;
+    expect(hint.textContent).toContain('zeigt dieselbe Liste');
+    expect(hint.getAttribute('title')).toBe('Befehlspalette öffnen');
   });
 
   it('asks for the configured number of rows and never shows more', async () => {
@@ -134,6 +147,11 @@ describe('RecentItemsWidgetComponent (AB#5558)', () => {
     expect(recentRelativeTime(now - 3 * 3_600_000, now)).toBe('3 h ago');
     expect(recentRelativeTime(now - 26 * 3_600_000, now)).toBe('yesterday');
     expect(recentRelativeTime(now - 4 * 24 * 3_600_000, now)).toBe('4 days ago');
+    const de = resolveCockpitWidgetMessages({ recentJustNow: 'gerade eben', recentMinutesAgo: 'vor {count} Min.', recentYesterday: 'gestern' });
+    expect(recentRelativeTime(now - 10_000, now, de)).toBe('gerade eben');
+    expect(recentRelativeTime(now - 12 * 60_000, now, de)).toBe('vor 12 Min.');
+    expect(recentRelativeTime(now - 26 * 3_600_000, now, de)).toBe('gestern');
+    expect(recentRelativeTime(now - 3 * 3_600_000, now, de)).toBe('3 h ago');
   });
 
   it('is provided through provideCockpitWidgetHost({ recents })', () => {
