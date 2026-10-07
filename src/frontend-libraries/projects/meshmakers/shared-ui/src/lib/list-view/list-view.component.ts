@@ -764,6 +764,44 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return CommandBaseService.getIsDisabled(commandItem, this._selectedRows);
   }
 
+  /**
+   * Accessible name of a host toolbar action. A button with a visible text is named by that
+   * text; an icon-only one (no text) gets its tooltip as `aria-label`, because `title` alone is
+   * not reliably announced (action guideline §2.2: icon-only = tooltip + aria-label).
+   */
+  protected toolbarItemAriaLabel(commandItem: CommandItem): string | null {
+    if (commandItem.text?.trim()) {
+      return null;
+    }
+    return commandItem.tooltip?.trim() ? commandItem.tooltip : null;
+  }
+
+  private readonly buttonAttributesCache = new Map<string, Record<string, string>>();
+  private static readonly NO_BUTTON_ATTRIBUTES: Record<string, string> = {};
+
+  /**
+   * `buttonAttributes` for Kendo split / dropdown buttons: same rule as
+   * {@link toolbarItemAriaLabel}, cached per label so change detection sees a stable object.
+   */
+  protected toolbarItemButtonAttributes(commandItem: CommandItem): Record<string, string> {
+    const label = this.toolbarItemAriaLabel(commandItem);
+    return label ? this.ariaLabelAttributes(label) : ListViewComponent.NO_BUTTON_ATTRIBUTES;
+  }
+
+  /** `buttonAttributes` of the icon-only menu the commands collapse into. */
+  protected get commandsMenuButtonAttributes(): Record<string, string> {
+    return this.ariaLabelAttributes(this._messages.commands);
+  }
+
+  private ariaLabelAttributes(label: string): Record<string, string> {
+    let attributes = this.buttonAttributesCache.get(label);
+    if (!attributes) {
+      attributes = { 'aria-label': label };
+      this.buttonAttributesCache.set(label, attributes);
+    }
+    return attributes;
+  }
+
   protected getValue(element: Record<string, unknown>, column: TableColumn): unknown {
     if(column.field.indexOf('.') === -1) {
       return element[column.field];

@@ -601,6 +601,69 @@ describe('MmTableComponent', () => {
       expect(refresh.hasAttribute('aria-pressed')).toBe(false);
     });
 
+    describe('accessible names of the icon-only toolbar buttons (AB#5621)', () => {
+      const el = () => fixture.nativeElement as HTMLElement;
+
+      it('labels every laid-out command button (row filter, exports, refresh) via aria-label', () => {
+        fixture.componentRef.setInput('rowFilterEnabled', true);
+        api().containerWidth.set(1200);
+        fixture.detectChanges();
+        const label = (id: string) =>
+          el().querySelector(`button[data-command="${id}"]`)?.getAttribute('aria-label');
+        expect(label('rowFilter')).toBe('Show Row Filter');
+        expect(label('excel')).toBe('Export to Excel');
+        expect(label('pdf')).toBe('Export to PDF');
+        expect(label('refresh')).toBe('Refresh Data');
+      });
+
+      it('labels the reset button while it is shown', () => {
+        component.hasExternalFilters = true;
+        api().containerWidth.set(1200);
+        fixture.detectChanges();
+        expect(el().querySelector('button[data-command="reset"]')?.getAttribute('aria-label')).toBe('Reset Filters');
+      });
+
+      it('takes the labels from the messages', () => {
+        fixture.componentRef.setInput('messages', {
+          showRowFilter: 'Zeilenfilter', exportToExcel: 'Nach Excel', exportToPdf: 'Als PDF', refreshData: 'Neu laden',
+        });
+        fixture.componentRef.setInput('rowFilterEnabled', true);
+        api().containerWidth.set(1200);
+        fixture.detectChanges();
+        const labels = Array.from(el().querySelectorAll('button[data-command]')).map(b => b.getAttribute('aria-label'));
+        expect(labels).toEqual(['Zeilenfilter', 'Nach Excel', 'Als PDF', 'Neu laden']);
+      });
+
+      it('labels the collapsed command menu with the commands message', () => {
+        fixture.componentRef.setInput('messages', { commands: 'Befehle' });
+        api().containerWidth.set(400);
+        fixture.detectChanges();
+        const menuButton = el().querySelector('kendo-dropdownbutton.mm-toolbar-commands button');
+        expect(menuButton?.getAttribute('aria-label')).toBe('Befehle');
+      });
+
+      it('names an icon-only host action after its tooltip, but leaves a text button alone', () => {
+        component.leftToolbarActions = [
+          { id: 'icon', type: 'link', text: '', tooltip: 'Import', onClick: () => Promise.resolve() },
+          { id: 'text', type: 'link', text: 'New', tooltip: 'Create a new item', onClick: () => Promise.resolve() },
+        ];
+        fixture.detectChanges();
+        const buttons = Array.from(el().querySelectorAll('kendo-grid-toolbar button[kendoButton]:not([data-command])'));
+        expect(buttons[0].getAttribute('aria-label')).toBe('Import');
+        expect(buttons[1].hasAttribute('aria-label')).toBe(false);
+      });
+
+      it('names an icon-only dropdown host action after its tooltip', () => {
+        component.leftToolbarActions = [{
+          id: 'group', type: 'link', text: '', tooltip: 'Add',
+          children: [{ id: 'child', type: 'link', text: 'Child' }],
+        }];
+        fixture.detectChanges();
+        const button = el().querySelector('kendo-dropdownbutton:not(.mm-toolbar-commands) button');
+        expect(button?.getAttribute('aria-label')).toBe('Add');
+      });
+    });
+
     it('routes each command to its handler', () => {
       // vi.spyOn calls through where Jasmine's spyOn stubbed, so stub explicitly —
       // these handlers touch the grid state and emit outputs.

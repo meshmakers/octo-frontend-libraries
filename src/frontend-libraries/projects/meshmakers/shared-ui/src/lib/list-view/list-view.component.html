@@ -131,6 +131,7 @@
                 themeColor="primary"
                 [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                 [title]="commandItem.tooltip ?? commandItem.text"
+                [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (buttonClick)="onToolbarCommand(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
@@ -144,6 +145,7 @@
                 themeColor="primary"
                 [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                 [title]="commandItem.tooltip ?? commandItem.text"
+                [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
               </kendo-dropdownbutton>
@@ -151,6 +153,7 @@
               <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon"
                       [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                       [title]="commandItem.tooltip ?? commandItem.text"
+                      [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
                       [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -158,6 +161,7 @@
               <button kendoTooltip kendoButton themeColor="primary"
                       [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                       [title]="commandItem.tooltip ?? commandItem.text"
+                      [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
                       [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -208,6 +212,7 @@
                 themeColor="primary"
                 [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                 [title]="commandItem.tooltip ?? commandItem.text"
+                [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (buttonClick)="onToolbarCommand(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
@@ -221,6 +226,7 @@
                 themeColor="primary"
                 [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                 [title]="commandItem.tooltip ?? commandItem.text"
+                [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
               </kendo-dropdownbutton>
@@ -228,6 +234,7 @@
               <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon"
                       [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                       [title]="commandItem.tooltip ?? commandItem.text"
+                      [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
                       [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -235,6 +242,7 @@
               <button kendoTooltip kendoButton themeColor="primary"
                       [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                       [title]="commandItem.tooltip ?? commandItem.text"
+                      [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
                       [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -254,17 +262,20 @@
       <kendo-dropdownbutton class="mm-toolbar-commands" [data]="toolbarCommands" textField="text" [svgIcon]="commandsIcon"
                             fillMode="flat" themeColor="primary" [disabled]="isLoading()"
                             [title]="_messages.commands"
+                            [buttonAttributes]="commandsMenuButtonAttributes"
                             (itemClick)="onCommand($any($event).id)"></kendo-dropdownbutton>
     } @else {
       @for (command of toolbarCommands; track command.id) {
         @switch (command.id) {
           @case ('excel') {
             <button kendoTooltip kendoGridExcelCommand themeColor="primary" fillMode="flat"
-                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"></button>
+                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"
+                    [attr.aria-label]="command.text" [attr.data-command]="command.id"></button>
           }
           @case ('pdf') {
             <button kendoTooltip kendoGridPDFCommand themeColor="primary" fillMode="flat"
-                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"></button>
+                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"
+                    [attr.aria-label]="command.text" [attr.data-command]="command.id"></button>
           }
           @default {
             <!-- The row filter is a toggle: its on state is shown (k-selected) and announced. -->
@@ -273,7 +284,7 @@
                     [class.k-selected]="command.id === 'rowFilter' && _showRowFilter"
                     [attr.aria-pressed]="command.id === 'rowFilter' ? _showRowFilter : null"
                     [attr.data-command]="command.id"
-                    [disabled]="isLoading()" [title]="command.text"></button>
+                    [disabled]="isLoading()" [title]="command.text" [attr.aria-label]="command.text"></button>
           }
         }
       }
