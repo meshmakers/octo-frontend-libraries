@@ -1,6 +1,7 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, throwError } from 'rxjs';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { AttentionListWidgetConfig, CockpitKpiWidgetConfig } from '../../models/meshboard.models';
 import { AttentionFinding } from '../attention/attention.models';
@@ -8,7 +9,7 @@ import { AttentionState, CockpitAttentionService } from '../attention/attention.
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
 import { CockpitLinkTarget } from '../cockpit-host';
-import { COCKPIT_WIDGET_MESSAGES } from '../cockpit-messages';
+import { COCKPIT_WIDGET_MESSAGES, CockpitWidgetMessages } from '../cockpit-messages';
 import { CockpitKpiResult, CockpitKpiService } from '../kpi/cockpit-kpi.service';
 import { AttentionListConfigDialogComponent } from './attention-list-config-dialog.component';
 import { AttentionListWidgetComponent } from './attention-list-widget.component';
@@ -128,8 +129,10 @@ describe('cockpit widgets', () => {
       ] });
       const fixture = await renderAttention();
       const badge = fixture.nativeElement.querySelector('[data-finding="queue"] .finding-count') as HTMLElement;
-      expect(badge.textContent.trim()).toBe('1,284');
-      expect(badge.getAttribute('aria-label')).toBe('Count: 1,284');
+      // A generic span cannot carry an accessible name: the label is visually hidden text instead.
+      expect(badge.querySelector('[aria-hidden="true"]')?.textContent).toBe('1,284');
+      expect(badge.querySelector('.cw-visually-hidden')?.textContent).toBe('Count: 1,284');
+      expect(badge.getAttribute('title')).toBe('Count: 1,284');
       expect(fixture.nativeElement.querySelector('[data-finding="plain"] .finding-count')).toBeNull();
     });
 
@@ -154,11 +157,39 @@ describe('cockpit widgets', () => {
       const fixture = await renderAttention({ maxItems: 1 });
       const item = fixture.nativeElement.querySelector('[data-finding="a"]') as HTMLElement;
       expect(item.querySelector('.cw-status-chip')?.textContent).toContain('Fehler');
-      expect(item.querySelector('.finding-count')?.textContent?.trim()).toBe('1.284');
+      expect(item.querySelector('.finding-count [aria-hidden="true"]')?.textContent?.trim()).toBe('1.284');
       expect(fixture.nativeElement.querySelector('.more').textContent).toContain('und 2 weitere');
       fixture.componentRef.setInput('messages', { severityError: 'Erreur' });
       fixture.detectChanges();
       expect(item.querySelector('.cw-status-chip')?.textContent).toContain('Erreur');
+    });
+
+    it('follows a runtime language switch on a signal token, incl. the error text (AB#5622)', async () => {
+      const language = signal<Partial<CockpitWidgetMessages>>({ severityError: 'Fehler' });
+      TestBed.configureTestingModule({ providers: [{ provide: COCKPIT_WIDGET_MESSAGES, useValue: language }] });
+      state$.next({ loading: false, visibleProviders: 1, findings: [finding('a', 'error')] });
+      const fixture = await renderAttention();
+      const chip = () => fixture.nativeElement.querySelector('[data-finding="a"] .cw-status-chip')?.textContent;
+      expect(chip()).toContain('Fehler');
+      language.set({ severityError: 'Erreur' });
+      fixture.detectChanges();
+      expect(chip()).toContain('Erreur');
+
+      // The error text is not frozen at load time either.
+      attention.state.mockReturnValueOnce(throwError(() => new Error('boom')));
+      language.set({ attentionLoadFailed: 'Échec du chargement.' });
+      const failing = await renderAttention();
+      expect(failing.nativeElement.querySelector('.cw-error-text').textContent).toContain('Échec du chargement.');
+      language.set({ attentionLoadFailed: 'Laden fehlgeschlagen.' });
+      failing.detectChanges();
+      expect(failing.nativeElement.querySelector('.cw-error-text').textContent).toContain('Laden fehlgeschlagen.');
+    });
+
+    it('does not break on an invalid numberLocale (falls back to en-US)', async () => {
+      TestBed.configureTestingModule({ providers: [{ provide: COCKPIT_WIDGET_MESSAGES, useValue: { numberLocale: 'not a locale!' } }] });
+      state$.next({ loading: false, visibleProviders: 1, findings: [finding('a', 'error', { count: 1284 })] });
+      const fixture = await renderAttention();
+      expect(fixture.nativeElement.querySelector('.finding-count [aria-hidden="true"]')?.textContent).toBe('1,284');
     });
 
     it('hides Explain when the host disables it or the widget opts out', async () => {
@@ -266,6 +297,17 @@ describe('cockpit widgets', () => {
       expect(kpiService.kpi).toHaveBeenCalledWith('adapterStatus', expect.objectContaining({ kpiAdaptersLabel: 'Adapter online', kpiAdaptersAllOnline: 'All online' }));
       expect(fixture.nativeElement.querySelector('[data-state="unavailable"]').textContent.trim()).toBe('Nicht verfügbar');
       expect(kpiService.kpi).toHaveBeenCalledTimes(1);
+    });
+
+    it('reloads the tile when the language signal changes (AB#5622)', async () => {
+      const language = signal<Partial<CockpitWidgetMessages>>({ kpiAdaptersLabel: 'Adapter online' });
+      TestBed.configureTestingModule({ providers: [{ provide: COCKPIT_WIDGET_MESSAGES, useValue: language }] });
+      await renderKpi({ type: 'adapterStatus' });
+      expect(kpiService.kpi).toHaveBeenCalledTimes(1);
+      language.set({ kpiAdaptersLabel: 'Adaptateurs en ligne' });
+      TestBed.tick();
+      expect(kpiService.kpi).toHaveBeenCalledTimes(2);
+      expect(kpiService.kpi).toHaveBeenLastCalledWith('adapterStatus', expect.objectContaining({ kpiAdaptersLabel: 'Adaptateurs en ligne' }));
     });
 
     it('shows end users "Not available" without role details and collapses the tile', async () => {

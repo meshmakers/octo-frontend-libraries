@@ -9,6 +9,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { CockpitContextService } from '../cockpit-context.service';
 import { CockpitExplainTarget, CockpitLinkQueryParams } from '../cockpit-host';
 import { CockpitWidgetMessages, formatCockpitMessage, injectCockpitWidgetMessages } from '../cockpit-messages';
+import { formatCount } from '../kpi/cockpit-kpi';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
 import { reportCockpitContentHeight } from './content-height';
 
@@ -74,7 +75,7 @@ export interface AttentionFindingView {
                     <span class="cw-status-chip" [class]="'cw-status-chip cw-status-' + view.finding.severity">{{ view.severityLabel }}</span>
                     <span class="finding-title">{{ view.finding.title }}</span>
                     @if (view.count !== null) {
-                      <span class="finding-count" [attr.aria-label]="view.countLabel" [attr.title]="view.countLabel">{{ view.count }}</span>
+                      <span class="finding-count" [attr.title]="view.countLabel"><span aria-hidden="true">{{ view.count }}</span><span class="cw-visually-hidden">{{ view.countLabel }}</span></span>
                     }
                   </div>
                   <p class="finding-text">{{ view.finding.text }}</p>
@@ -191,13 +192,17 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
   protected readonly isBuilder = signal(false);
 
   private readonly _state = signal<AttentionState | null>(null);
-  private readonly _error = signal<string | null>(null);
+  /** Message member of the current error, so the text follows a language switch (AB#5622). */
+  private readonly _error = signal<'noTenant' | 'attentionLoadFailed' | null>(null);
   private readonly tenantId = signal<string | null>(null);
   private subscription: Subscription | null = null;
   private loadToken = 0;
 
   readonly state = this._state.asReadonly();
-  readonly error = this._error.asReadonly();
+  readonly error = computed(() => {
+    const key = this._error();
+    return key ? this.texts()[key] : null;
+  });
   readonly isLoading = computed(() => this._state()?.loading ?? this._error() === null);
   readonly data = computed(() => this._state()?.findings ?? null);
 
@@ -207,9 +212,8 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     const findings = this._state()?.findings ?? [];
     const withExplain = this.context.explainEnabled && this.config?.showExplain !== false;
     const texts = this.texts();
-    const numbers = new Intl.NumberFormat(texts.numberLocale);
     return findings.map(finding => {
-      const count = typeof finding.count === 'number' && Number.isFinite(finding.count) ? numbers.format(finding.count) : null;
+      const count = typeof finding.count === 'number' && Number.isFinite(finding.count) ? formatCount(finding.count, texts.numberLocale) : null;
       return {
         finding,
         severityLabel: texts[SEVERITY_MESSAGE[finding.severity]] as string,
@@ -276,7 +280,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     }
     if (!tenantId) {
       this._state.set(null);
-      this._error.set(this.texts().noTenant);
+      this._error.set('noTenant');
       return;
     }
     this.tenantId.set(tenantId);
@@ -290,7 +294,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
           this.boardState.setWidgetHiddenForViewer(this.config.id, !builder && !state.loading && state.visibleProviders === 0);
         }
       },
-      error: () => this._error.set(this.texts().attentionLoadFailed)
+      error: () => this._error.set('attentionLoadFailed')
     });
   }
 }
