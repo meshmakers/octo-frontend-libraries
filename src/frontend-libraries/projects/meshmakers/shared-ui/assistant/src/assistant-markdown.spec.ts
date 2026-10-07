@@ -35,6 +35,7 @@ describe('renderAssistantMarkdown', () => {
       expect(html).toContain('click');
     }
     expect(renderAssistantMarkdown('<javascript:alert(1)>')).not.toContain('href="javascript');
+    expect(renderAssistantMarkdown('[click](/\\evil.example)')).not.toContain('<a');
   });
 });
 
@@ -46,6 +47,11 @@ describe('classifyAssistantHref', () => {
     expect(classifyAssistantHref('#anchor')).toBe('relative');
     expect(classifyAssistantHref('java\nscript:alert(1)')).toBe('unsafe');
     expect(classifyAssistantHref('//evil.example')).toBe('unsafe');
+    // Backslashes count as slashes in http(s) URLs: these are protocol-relative too.
+    expect(classifyAssistantHref('/\\evil.example')).toBe('unsafe');
+    expect(classifyAssistantHref('\\\\evil.example')).toBe('unsafe');
+    expect(classifyAssistantHref('\\/evil.example')).toBe('unsafe');
+    expect(classifyAssistantHref('/t/a\\b')).toBe('relative');
     expect(classifyAssistantHref('')).toBe('unsafe');
   });
 });

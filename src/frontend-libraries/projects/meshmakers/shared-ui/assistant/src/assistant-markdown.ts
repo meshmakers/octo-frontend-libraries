@@ -26,8 +26,9 @@ export function classifyAssistantHref(href: string | null | undefined): 'externa
   if (scheme) {
     return SAFE_PROTOCOLS.has(`${scheme[1].toLowerCase()}:`) ? 'external' : 'unsafe';
   }
-  // Protocol-relative URLs leave the origin.
-  if (compact.startsWith('//')) {
+  // Protocol-relative URLs leave the origin. Browsers treat a backslash like "/" in http(s)
+  // URLs, so "/\evil.example" and "\\evil.example" leave it as well.
+  if (compact.replace(/\\/g, '/').startsWith('//')) {
     return 'unsafe';
   }
   return 'relative';
