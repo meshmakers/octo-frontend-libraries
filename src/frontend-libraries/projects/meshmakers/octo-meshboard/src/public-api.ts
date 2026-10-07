@@ -134,6 +134,7 @@ export type { WidgetGroupConfigResult } from './lib/widgets/widget-group/widget-
 export { MarkdownWidgetComponent } from './lib/widgets/markdown-widget/markdown-widget.component';
 export { MarkdownConfigDialogComponent } from './lib/widgets/markdown-widget/markdown-config-dialog.component';
 export type { MarkdownConfigResult } from './lib/widgets/markdown-widget/markdown-config-dialog.component';
+export { LazyMarkdownComponent, loadNgxMarkdown } from './lib/components/lazy-markdown/lazy-markdown.component';
 
 export { StatusListWidgetComponent } from './lib/widgets/status-list-widget/status-list-widget.component';
 export { StatusListConfigDialogComponent } from './lib/widgets/status-list-widget/status-list-config-dialog.component';

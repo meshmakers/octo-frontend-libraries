@@ -448,20 +448,14 @@ interface MarkdownWidgetConfig extends BaseWidgetConfig {
 
 **Styling Note:** The markdown prose styles should use CSS custom properties with neutral defaults. Host applications can override these to match their theme. Avoid hardcoding theme-specific colors in the library.
 
-**Required Provider:**
-Applications using the Markdown Widget must include `provideMarkdown()` from `ngx-markdown`:
-
-```typescript
-// app.config.ts
-import { provideMarkdown } from 'ngx-markdown';
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    // ... other providers
-    provideMarkdown(),
-  ]
-};
-```
+**Lazy loading (AB#5621):**
+The widget and its config dialog render through `LazyMarkdownComponent` (`mm-lazy-markdown`), which loads
+`ngx-markdown` (and `marked`) with a bare-specifier `import('ngx-markdown')` on first render. Never import
+`ngx-markdown` statically in this library: the widget registry is eager, so a static import would put
+`ngx-markdown`/`marked` into the initial bundle of every host showing a MeshBoard. (A relative dynamic import
+would not help — ng-packagr inlines it into the FESM.) No root `provideMarkdown()` is required; if the host
+provides `MarkdownService` (e.g. `provideMarkdown({...})`), that configuration is used, otherwise the component
+creates its own environment injector with `provideMarkdown()`.
 
 **Example Usage:**
 

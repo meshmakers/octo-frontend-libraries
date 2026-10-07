@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MarkdownModule } from 'ngx-markdown';
+import { LazyMarkdownComponent } from '../../components/lazy-markdown/lazy-markdown.component';
 import { MarkdownWidgetConfig } from '../../models/meshboard.models';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
@@ -10,7 +10,7 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
 @Component({
   selector: 'mm-markdown-widget',
   standalone: true,
-  imports: [CommonModule, MarkdownModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, LazyMarkdownComponent, WidgetNotConfiguredComponent],
   templateUrl: './markdown-widget.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './markdown-widget.component.scss'

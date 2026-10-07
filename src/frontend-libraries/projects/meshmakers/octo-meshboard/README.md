@@ -370,7 +370,8 @@ interface MarkdownWidgetConfig {
 }
 ```
 
-Requires `provideMarkdown()` from `ngx-markdown` in the application providers.
+`ngx-markdown`/`marked` are loaded lazily on first render (`LazyMarkdownComponent`), so they stay out of the
+initial bundle. No root `provideMarkdown()` is needed; if the application provides one, its configuration is used.
 
 ### Entity Card Widget
 Displays a single runtime entity in a UML-style card.
