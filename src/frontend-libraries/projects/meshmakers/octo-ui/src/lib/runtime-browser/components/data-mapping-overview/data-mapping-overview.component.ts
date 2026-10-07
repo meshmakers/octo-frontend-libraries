@@ -5,7 +5,8 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { GridModule, PageChangeEvent, CellClickEvent } from '@progress/kendo-angular-grid';
 import { BadgeModule } from '@progress/kendo-angular-indicators';
 import { SwitchModule } from '@progress/kendo-angular-inputs';
-import { arrowRotateCwIcon, checkCircleIcon, exclamationCircleIcon, trashIcon, xCircleIcon } from '@progress/kendo-svg-icons';
+import { arrowRotateCwIcon, checkCircleIcon, exclamationCircleIcon, xCircleIcon } from '@progress/kendo-svg-icons';
+import { ConfirmationService, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { GetDataPointMappingsDtoGQL } from '../../../graphQL/getDataPointMappings';
 import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
@@ -132,8 +133,9 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
 
         <kendo-grid-column title="" [width]="50" [sortable]="false">
           <ng-template kendoGridCellTemplate let-dataItem>
-            <button kendoButton fillMode="flat" size="small" [svgIcon]="deleteIcon"
-              (click)="onDeleteMapping(dataItem); $event.stopPropagation()">
+            <button kendoButton fillMode="flat" size="small" themeColor="error" [svgIcon]="deleteIcon"
+              title="Delete mapping" [attr.aria-label]="'Delete mapping ' + (dataItem.name || dataItem.rtId)"
+              data-action="delete" (click)="onDeleteMapping(dataItem); $event.stopPropagation()">
             </button>
           </ng-template>
         </kendo-grid-column>
@@ -339,6 +341,7 @@ export class DataMappingOverviewComponent implements OnInit {
   private readonly getEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
   private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
   private readonly deleteEntitiesGQL = inject(DeleteEntitiesDtoGQL);
+  private readonly confirmation = inject(ConfirmationService);
 
   @Output() navigateToEntity = new EventEmitter<{ rtId: string; ckTypeId: string }>();
 
@@ -370,7 +373,7 @@ export class DataMappingOverviewComponent implements OnInit {
   protected readonly checkIcon = checkCircleIcon;
   protected readonly warnIcon = exclamationCircleIcon;
   protected readonly errorIcon = xCircleIcon;
-  protected readonly deleteIcon = trashIcon;
+  protected readonly deleteIcon = MM_ACTION_ICONS.delete;
 
   ngOnInit(): void {
     this.loadMappings();
@@ -440,6 +443,16 @@ export class DataMappingOverviewComponent implements OnInit {
   }
 
   async onDeleteMapping(item: DataPointMappingOverviewItem): Promise<void> {
+    // Danger confirmation naming the mapping (AB#5579): the mapping entity is erased.
+    const name = item.name || item.rtId;
+    if (!await this.confirmation.showDangerConfirm({
+      title: `Delete mapping ${name}?`,
+      targetName: name,
+      consequence: 'The data point mapping is erased. This cannot be undone.',
+      confirmText: 'Delete mapping',
+    })) {
+      return;
+    }
     try {
       await firstValueFrom(
         this.deleteEntitiesGQL.mutate({

@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { DialogService, WindowService } from '@progress/kendo-angular-dialog';
 import { WindowStateService } from '@meshmakers/shared-ui';
+import { expectIconButtonsAccessible } from '@meshmakers/shared-ui/testing';
 import { MeshBoardViewComponent } from './meshboard-view.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
@@ -119,6 +120,12 @@ describe('MeshBoardViewComponent — header mode and chrome', () => {
     expect(el.querySelector('.meshboard-title')).toBeNull();
     expect(el.querySelector('button[title="MeshBoard Settings"]')).not.toBeNull();
     expect(el.querySelector('button[title="Enter Edit Mode"]')).not.toBeNull();
+  });
+
+  it('names every icon-only toolbar button (AB#5581 guard)', async () => {
+    const el = await render(setup({}, false));
+    expect(el.querySelector('button[aria-label="Enter Edit Mode"]')).not.toBeNull();
+    expectIconButtonsAccessible(el);
   });
 
   it('none renders no header row', async () => {

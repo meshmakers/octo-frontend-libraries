@@ -17,7 +17,8 @@
               (click)="editSelector(i)"
               fillMode="flat"
               size="small"
-              title="Edit selector">
+              title="Edit selector"
+              [attr.aria-label]="'Edit selector ' + (selector.label || selector.ckTypeId)">
             </button>
             <button
               kendoButton
@@ -25,7 +26,9 @@
               (click)="removeSelector(i)"
               fillMode="flat"
               size="small"
+              themeColor="error"
               title="Remove selector"
+              [attr.aria-label]="'Remove selector ' + (selector.label || selector.ckTypeId)"
               class="remove-btn">
             </button>
           </div>

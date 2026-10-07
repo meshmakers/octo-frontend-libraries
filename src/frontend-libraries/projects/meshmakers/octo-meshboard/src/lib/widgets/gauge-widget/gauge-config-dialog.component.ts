@@ -7,7 +7,7 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
 import { CkTypeSelectorItem, CkTypeSelectorService, FieldFilterOperatorsDto, AttributeSelectorService, AttributeItem, FieldFilterDto } from '@meshmakers/octo-services';
-import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
+import { EntitySelectInputComponent, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { QueryExecutorService } from '../../services/query-executor.service';
@@ -478,7 +478,9 @@ interface GaugeTypeOption {
                 type="color"
                 [(ngModel)]="range.color"
                 class="color-picker">
-              <button kendoButton [fillMode]="'flat'" [icon]="'x'" (click)="removeRange($index)"></button>
+              <button kendoButton [fillMode]="'flat'" themeColor="error" [svgIcon]="deleteIcon"
+                      title="Remove range" [attr.aria-label]="'Remove range ' + ($index + 1)"
+                      (click)="removeRange($index)"></button>
             </div>
           }
 
@@ -679,6 +681,8 @@ interface GaugeTypeOption {
   `]
 })
 export class GaugeConfigDialogComponent implements OnInit {
+  protected readonly deleteIcon = MM_ACTION_ICONS.delete;
+
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly ckTypeSelectorService = inject(CkTypeSelectorService);
   private readonly attributeSelectorService = inject(AttributeSelectorService);

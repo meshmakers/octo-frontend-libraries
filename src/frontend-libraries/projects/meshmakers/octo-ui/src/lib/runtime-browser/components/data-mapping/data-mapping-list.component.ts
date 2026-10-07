@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { TextBoxModule } from '@progress/kendo-angular-inputs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
-import { hyperlinkOpenIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
+import { hyperlinkOpenIcon, plusIcon } from '@progress/kendo-svg-icons';
+import { MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { DataPointPickerComponent } from '../../../data-point-picker/data-point-picker.component';
 import { RtEntityDto } from '@meshmakers/octo-services';
 import { RuntimeBrowserMessages } from '../../runtime-browser.model';
@@ -76,7 +77,9 @@ export interface DataPointMappingItem {
         <div class="mapping-card">
           <div class="mapping-card-header">
             <span class="mapping-name">{{ mapping.name || ((messages?.mappingHeader ?? 'MAPPING') + ' ' + ($index + 1)) }}</span>
-            <button kendoButton fillMode="flat" size="small" [svgIcon]="trashIcon"
+            <button kendoButton fillMode="flat" size="small" themeColor="error" [svgIcon]="trashIcon"
+              [title]="messages?.mappingRemove ?? 'Remove mapping'" data-action="delete"
+              [attr.aria-label]="(messages?.mappingRemove ?? 'Remove mapping') + ' ' + (mapping.name || ((messages?.mappingHeader ?? 'MAPPING') + ' ' + ($index + 1)))"
               (click)="removeMapping.emit(mapping)"></button>
           </div>
           <div class="mapping-card-body">
@@ -110,7 +113,7 @@ export interface DataPointMappingItem {
                     <span class="entity-name">{{ mapping.targetName || mapping.targetRtId }}</span>
                     @if (mapping.targetRtId) {
                       <button kendoButton fillMode="flat" size="small" [svgIcon]="linkIcon"
-                        title="Navigate to entity"
+                        title="Navigate to entity" aria-label="Navigate to entity"
                         (click)="navigateToTarget.emit(mapping)"></button>
                     }
                   </div>
@@ -341,6 +344,6 @@ export class DataMappingListComponent {
   }
 
   protected readonly plusIcon = plusIcon;
-  protected readonly trashIcon = trashIcon;
+  protected readonly trashIcon = MM_ACTION_ICONS.delete;
   protected readonly linkIcon = hyperlinkOpenIcon;
 }

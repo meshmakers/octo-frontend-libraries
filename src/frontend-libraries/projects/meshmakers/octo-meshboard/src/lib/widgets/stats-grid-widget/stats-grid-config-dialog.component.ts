@@ -9,6 +9,7 @@ import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { StatItem, StatColor, AggregationQuery, AggregationType, PersistentQueryCellSource, EntitySelectorConfig } from '../../models/meshboard.models';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { PersistentQueryCellEditorComponent } from '../../components/persistent-query-cell-editor/persistent-query-cell-editor.component';
+import { MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 
 export interface StatsGridConfigResult extends WidgetConfigResult {
   ckTypeId: string;
@@ -89,9 +90,11 @@ interface EditableStat {
                 <span class="stat-number">#{{ i + 1 }}</span>
                 <button
                   kendoButton
-                  [icon]="'trash'"
+                  [svgIcon]="deleteIcon"
                   [fillMode]="'flat'"
                   [themeColor]="'error'"
+                  title="Remove statistic"
+                  [attr.aria-label]="'Remove statistic ' + (i + 1)"
                   (click)="removeStat(i)">
                 </button>
               </div>
@@ -331,6 +334,8 @@ interface EditableStat {
   `]
 })
 export class StatsGridConfigDialogComponent implements OnInit {
+  protected readonly deleteIcon = MM_ACTION_ICONS.delete;
+
   private readonly windowRef = inject(WindowRef);
   private readonly stateService = inject(MeshBoardStateService);
 

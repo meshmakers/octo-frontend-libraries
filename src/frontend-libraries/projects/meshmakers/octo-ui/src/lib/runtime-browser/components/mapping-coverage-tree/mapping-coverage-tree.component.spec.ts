@@ -153,6 +153,38 @@ describe('MappingCoverageTreeComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('delete mapping (AB#5579 danger confirmation)', () => {
+    const mapping = { rtId: 'm1', ckTypeId: 'System.Communication/DataPointMapping', name: 'Temp → Room 1' };
+    let showDangerConfirm: ReturnType<typeof vi.fn>;
+    let mutate: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      showDangerConfirm = vi.fn().mockResolvedValue(true);
+      mutate = vi.fn().mockReturnValue(of({ data: {} }));
+      (component as unknown as { confirmation: unknown }).confirmation = { showDangerConfirm };
+      (component as unknown as { deleteEntitiesGQL: unknown }).deleteEntitiesGQL = { mutate };
+      vi.spyOn(component as unknown as { refreshSelected(): Promise<void> }, 'refreshSelected').mockResolvedValue();
+    });
+
+    const del = () => (component as unknown as { deleteMapping(m: unknown): Promise<void> }).deleteMapping(mapping);
+
+    it('names the mapping in the danger confirmation, then erases it', async () => {
+      await del();
+      expect(showDangerConfirm).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Delete mapping Temp → Room 1?',
+        targetName: 'Temp → Room 1',
+        confirmText: 'Delete mapping',
+      }));
+      expect(mutate).toHaveBeenCalled();
+    });
+
+    it('keeps the mapping when cancelled', async () => {
+      showDangerConfirm.mockResolvedValue(false);
+      await del();
+      expect(mutate).not.toHaveBeenCalled();
+    });
+  });
+
   describe('loadOrphanCandidates paging', () => {
     beforeEach(() => {
       component['orphanCkType'].set('Loxone/Control');

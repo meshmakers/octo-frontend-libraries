@@ -172,7 +172,7 @@ export type BulkMappingDialogResult =
               [svgIcon]="browseIcon"
               [disabled]="!targetCkTypeId()"
               (click)="browseTargetAttribute()"
-              title="Browse all attributes (incl. navigation properties)"></button>
+              title="Browse all attributes (incl. navigation properties)" aria-label="Browse all attributes (incl. navigation properties)"></button>
           </div>
         </div>
       </div>

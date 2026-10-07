@@ -39,7 +39,7 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
               <span>Switch Tenant</span>
               <button kendoButton fillMode="flat" size="small" class="refresh-btn"
                       [disabled]="isRefreshing"
-                      title="Refresh tenant list"
+                      title="Refresh tenant list" aria-label="Refresh tenant list"
                       (click)="onRefresh($event)">
                 <kendo-svgicon [icon]="refreshIcon" size="small"
                                [class.spinning]="isRefreshing"></kendo-svgicon>

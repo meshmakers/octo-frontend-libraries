@@ -89,6 +89,8 @@ interface ValueTypeFilterOption {
               kendoButton
               [svgIcon]="searchIcon"
               fillMode="clear"
+            title="Search"
+            aria-label="Search"
             ></button>
           </ng-template>
         </kendo-textbox>
@@ -179,14 +181,14 @@ interface ValueTypeFilterOption {
             [svgIcon]="arrowRightIcon"
             [disabled]="selectedAvailableKeys.length === 0"
             (click)="addSelected()"
-            title="Add selected"
+            title="Add selected" aria-label="Add selected"
           ></button>
           <button
             kendoButton
             [svgIcon]="arrowLeftIcon"
             [disabled]="selectedChosenKeys.length === 0"
             (click)="removeSelected()"
-            title="Remove selected"
+            title="Remove selected" aria-label="Remove selected"
           ></button>
           <div class="separator"></div>
           <button
@@ -194,14 +196,14 @@ interface ValueTypeFilterOption {
             [svgIcon]="chevronDoubleRightIcon"
             [disabled]="availableAttributes.length === 0"
             (click)="addAll()"
-            title="Add all"
+            title="Add all" aria-label="Add all"
           ></button>
           <button
             kendoButton
             [svgIcon]="chevronDoubleLeftIcon"
             [disabled]="selectedAttributes.length === 0"
             (click)="removeAll()"
-            title="Remove all"
+            title="Remove all" aria-label="Remove all"
           ></button>
         </div>
 
@@ -244,7 +246,7 @@ interface ValueTypeFilterOption {
                     fillMode="flat"
                     size="small"
                     [svgIcon]="pencilIcon"
-                    title="Edit entity selector (pin the target entity)"
+                    title="Edit entity selector (pin the target entity)" aria-label="Edit entity selector (pin the target entity)"
                     (click)="openSelectorEditor(dataItem); $event.stopPropagation()"
                   ></button>
                 }
@@ -259,14 +261,14 @@ interface ValueTypeFilterOption {
             [svgIcon]="arrowUpIcon"
             [disabled]="!canMoveUp()"
             (click)="moveUp()"
-            title="Move up"
+            title="Move up" aria-label="Move up"
           ></button>
           <button
             kendoButton
             [svgIcon]="arrowDownIcon"
             [disabled]="!canMoveDown()"
             (click)="moveDown()"
-            title="Move down"
+            title="Move down" aria-label="Move down"
           ></button>
         </div>
       </div>

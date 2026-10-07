@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { DialogCloseResult, DialogService } from '@progress/kendo-angular-dialog';
 import { Subject } from 'rxjs';
+import { expectIconButtonsAccessible } from '@meshmakers/shared-ui/testing';
 import type { CkRecordInfo } from '../../models/entity-form.models';
 import { EntityFormService } from '../../services/entity-form.service';
 import { EntityFormRecordColumn, EntityFormRecordsFieldComponent } from './entity-form-records-field.component';
@@ -178,10 +179,29 @@ describe('EntityFormRecordsFieldComponent', () => {
       expect(keys()).toEqual(['a', 'b']);
     });
 
+    it('names the view buttons after the row (AB#5581 guard)', () => {
+      const el = fixture.nativeElement as HTMLElement;
+      expect(el.querySelector('.mm-efrec-actions button')!.getAttribute('aria-label')).toBe('Details row 1');
+      expectIconButtonsAccessible(fixture);
+    });
+
     it('shows no toolbar and no edit buttons', () => {
       const el = fixture.nativeElement as HTMLElement;
       expect(el.querySelector('.mm-efrec-add')).toBeNull();
       expect(el.querySelector('.mm-efrec-remove')).toBeNull();
+    });
+  });
+
+  describe('row buttons (AB#5579)', () => {
+    beforeEach(() => setup({ value: [{ key: 'a' }, { key: 'b' }] }));
+
+    it('names every icon-only row button after its row; Remove is danger-styled (AB#5581 guard)', () => {
+      const el = fixture.nativeElement as HTMLElement;
+      const removes = el.querySelectorAll<HTMLElement>('.mm-efrec-remove');
+      expect(removes[1].getAttribute('aria-label')).toBe('Remove row 2');
+      expect(removes[1].getAttribute('title')).toBe('Remove');
+      expect(removes[1].className).toMatch(/k-button-[a-z-]*error/);
+      expectIconButtonsAccessible(fixture);
     });
   });
 

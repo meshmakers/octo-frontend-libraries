@@ -7,19 +7,16 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import {
   plusIcon,
-  trashIcon,
   pencilIcon,
   checkIcon,
   xIcon,
   gridLayoutIcon,
-  downloadIcon,
   uploadIcon,
-  copyIcon,
   pinIcon,
   unpinIcon
 } from '@progress/kendo-svg-icons';
 import { AssetRepoService, JobManagementService, TENANT_ID_PROVIDER, TenantIdProvider } from '@meshmakers/octo-services';
-import { ImportStrategyDialogService } from '@meshmakers/shared-ui';
+import { ConfirmationService, ImportStrategyDialogService, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { firstValueFrom } from 'rxjs';
 
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -50,6 +47,7 @@ export class MeshBoardManagerDialogComponent implements OnInit {
   private readonly dialogRef = inject(DialogRef);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly dialogService = inject(DialogService);
+  private readonly confirmationService = inject(ConfirmationService, { optional: true });
   private readonly assetRepoService = inject(AssetRepoService);
   private readonly jobManagementService = inject(JobManagementService);
   private readonly importStrategyDialogService = inject(ImportStrategyDialogService);
@@ -75,14 +73,16 @@ export class MeshBoardManagerDialogComponent implements OnInit {
 
   // Icons
   protected readonly plusIcon = plusIcon;
-  protected readonly trashIcon = trashIcon;
+  protected readonly trashIcon = MM_ACTION_ICONS.delete;
   protected readonly pencilIcon = pencilIcon;
   protected readonly checkIcon = checkIcon;
   protected readonly xIcon = xIcon;
   protected readonly gridLayoutIcon = gridLayoutIcon;
-  protected readonly downloadIcon = downloadIcon;
+  /** Export (canonical export icon, AB#5580). */
+  protected readonly downloadIcon = MM_ACTION_ICONS.export;
   protected readonly uploadIcon = uploadIcon;
-  protected readonly copyIcon = copyIcon;
+  /** Duplicate (canonical duplicate icon, AB#5580). */
+  protected readonly copyIcon = MM_ACTION_ICONS.duplicate;
   protected readonly pinIcon = pinIcon;
   protected readonly unpinIcon = unpinIcon;
 
@@ -301,19 +301,30 @@ export class MeshBoardManagerDialogComponent implements OnInit {
    * Shows a confirmation dialog before deleting.
    */
   private async confirmDelete(meshBoardName: string): Promise<boolean> {
+    // AB#5580: danger confirmation naming the MeshBoard (Cancel left and focused, danger right).
+    if (this.confirmationService) {
+      return this.confirmationService.showDangerConfirm({
+        title: `Delete MeshBoard ${meshBoardName}?`,
+        targetName: meshBoardName,
+        consequence: 'The MeshBoard with its widgets, variables and time filter is deleted. This cannot be undone.',
+        confirmText: 'Delete MeshBoard',
+      });
+    }
+
+    // Fallback for hosts without ConfirmationService (provideMmSharedUi).
     const dialogRef = this.dialogService.open({
-      title: 'Confirm Delete',
-      content: `Are you sure you want to delete "${meshBoardName}"? This action cannot be undone.`,
+      title: `Delete MeshBoard ${meshBoardName}?`,
+      content: `The MeshBoard "${meshBoardName}" with its widgets, variables and time filter is deleted. This cannot be undone.`,
       actions: [
         { text: 'Cancel', fillMode: 'flat' },
-        { text: 'Delete', themeColor: 'error', primary: true }
+        { text: 'Delete MeshBoard', themeColor: 'error', primary: true }
       ],
       width: 450
     });
 
     try {
       const result = await firstValueFrom(dialogRef.result);
-      return result && typeof result === 'object' && 'text' in result && result.text === 'Delete';
+      return !!result && typeof result === 'object' && 'text' in result && result.text === 'Delete MeshBoard';
     } catch {
       // Dialog was closed without action
       return false;

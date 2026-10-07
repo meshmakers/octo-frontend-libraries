@@ -91,6 +91,8 @@ interface ValueTypeFilterOption {
               kendoButton
               [svgIcon]="searchIcon"
               fillMode="clear"
+            title="Search"
+            aria-label="Search"
             ></button>
           </ng-template>
         </kendo-textbox>
@@ -165,7 +167,7 @@ interface ValueTypeFilterOption {
               "
               (click)="setSortOrder('ascending')"
               class="sort-button"
-              title="Ascending"
+              title="Ascending" aria-label="Ascending"
             ></button>
             <button
               kendoButton
@@ -178,7 +180,7 @@ interface ValueTypeFilterOption {
               "
               (click)="setSortOrder('descending')"
               class="sort-button"
-              title="Descending"
+              title="Descending" aria-label="Descending"
             ></button>
           </div>
 

@@ -148,6 +148,12 @@ export interface RuntimeBrowserMessages {
   create: string;
   edit: string;
   delete: string;
+  /** Danger confirmation of the toolbar Delete (AB#5579); `{name}` = entity name. Missing = English default. */
+  confirmDeleteEntityTitle?: string;
+  /** What the toolbar Delete loses. */
+  confirmDeleteEntityConsequence?: string;
+  /** Confirming button of the toolbar Delete (verb + object). */
+  confirmDeleteEntityConfirmText?: string;
   createEntity: string;
   updateEntity: string;
   name: string;
@@ -201,6 +207,8 @@ export interface RuntimeBrowserMessages {
 
   /** Card header prefix for each mapping card: "MAPPING N". Default: "MAPPING" */
   mappingHeader?: string;
+  /** Tooltip / accessible name of a mapping card's remove button (AB#5579). */
+  mappingRemove?: string;
   /** Label for the source data point row. Default: "Source Data Point" */
   mappingSourceDataPoint?: string;
   /** Label for the "Add Mapping" toolbar button. Default: "+ Add Mapping" */
@@ -287,6 +295,9 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   create: 'Create',
   edit: 'Edit',
   delete: 'Delete',
+  confirmDeleteEntityTitle: 'Delete {name}?',
+  confirmDeleteEntityConsequence: 'The entity and all its child entities are erased. This cannot be undone.',
+  confirmDeleteEntityConfirmText: 'Delete entity',
   createEntity: 'Create Entity',
   updateEntity: 'Update Entity',
   name: 'Name',
@@ -337,6 +348,7 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   treeMoveToRootUnsupported: 'Moving item to the root of the tree is not supported',
   treeMoveOnRootUnsupported: 'Moving item on the root of the tree is not supported',
   mappingHeader: 'MAPPING',
+  mappingRemove: 'Remove mapping',
   mappingSourceDataPoint: 'Source Data Point',
   mappingAddMapping: '+ Add Mapping',
   mappingSaveAll: 'Save All Mappings',

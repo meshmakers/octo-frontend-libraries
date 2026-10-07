@@ -1,7 +1,6 @@
 import { Component, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { trashIcon, pencilIcon, plusIcon } from '@progress/kendo-svg-icons';
-import { ConfirmationService, InputService, ListViewComponent } from '@meshmakers/shared-ui';
+import { ConfirmationService, InputService, ListViewComponent, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import { CommandItemExecuteEventArgs } from '@meshmakers/shared-services';
 import { ProcessDiagramDataService, ProcessDiagramSummary } from '../../services/process-diagram-data.service';
@@ -37,9 +36,9 @@ export class ProcessDiagramListComponent {
   private readonly inputService = inject(InputService);
   private readonly dataService = inject(ProcessDiagramDataService);
 
-  protected readonly plusIcon = plusIcon;
-  protected readonly editIcon = pencilIcon;
-  protected readonly deleteIcon = trashIcon;
+  protected readonly plusIcon = MM_ACTION_ICONS.add;
+  protected readonly editIcon = MM_ACTION_ICONS.edit;
+  protected readonly deleteIcon = MM_ACTION_ICONS.delete;
 
   @ViewChild('dir', { static: false }) dataSource!: ProcessDiagramDataSourceDirective;
 
@@ -117,14 +116,20 @@ export class ProcessDiagramListComponent {
 
     if (itemsToDelete.length === 0) return;
 
-    const message = itemsToDelete.length === 1
-      ? `Are you sure you want to delete diagram "${itemsToDelete[0].name}"?`
-      : `Are you sure you want to delete ${itemsToDelete.length} diagrams?`;
+    const single = itemsToDelete.length === 1;
+    const targetName = single
+      ? (itemsToDelete[0].name || itemsToDelete[0].rtId)
+      : `${itemsToDelete.length} process diagrams`;
 
-    const confirmed = await this.confirmationService.showYesNoConfirmationDialog(
-      'Delete Process Diagram',
-      message
-    );
+    // AB#5580: danger confirmation naming the target (Studio action guideline §2.4).
+    const confirmed = await this.confirmationService.showDangerConfirm({
+      title: single ? `Delete process diagram ${targetName}?` : `Delete ${targetName}?`,
+      targetName,
+      consequence: single
+        ? 'The diagram and its layout are deleted. This cannot be undone.'
+        : 'The diagrams and their layouts are deleted. This cannot be undone.',
+      confirmText: single ? 'Delete process diagram' : 'Delete process diagrams',
+    });
 
     if (confirmed) {
       try {
