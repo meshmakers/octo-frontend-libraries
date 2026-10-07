@@ -215,9 +215,9 @@ export interface ListViewMessages {
   /** Title for the actions command column. Default: "Actions" */
   actionsColumnTitle: string;
   /** Accessible name of a row's menu button; `{name}` = the row's name. Default: "Actions for {name}" */
-  rowActionsFor: string;
+  rowActionsFor?: string;
   /** Accessible name of a row's menu button when the row has no name. Default: "Row actions" */
-  rowActions: string;
+  rowActions?: string;
   /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
   pdfPageTemplate: string;
 
