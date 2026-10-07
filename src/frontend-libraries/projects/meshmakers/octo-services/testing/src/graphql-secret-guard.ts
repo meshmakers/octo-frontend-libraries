@@ -1,4 +1,4 @@
-import { DocumentNode, getNamedType, GraphQLSchema, print, TypeInfo, visit, visitWithTypeInfo } from 'graphql';
+import { buildSchema, DocumentNode, getNamedType, GraphQLSchema, parse, print, TypeInfo, visit, visitWithTypeInfo } from 'graphql';
 import { isCredentialLikeAttributeName } from '@meshmakers/octo-services';
 
 /**
@@ -103,4 +103,22 @@ export function findSecretUnsafeSelections(schema: GraphQLSchema, doc: DocumentN
     },
   }));
   return violations;
+}
+
+const schemaCache = new Map<string, GraphQLSchema>();
+
+/**
+ * Same rule as {@link findSecretUnsafeSelections}, but from source text: the schema SDL and the
+ * document are parsed with THIS module's `graphql` instance. Hosts that consume the library as a
+ * published package must use this variant — passing a schema or document built with the host's
+ * own `graphql` copy fails with "Cannot use GraphQLObjectType from another module or realm"
+ * whenever the bundler resolves `graphql` twice (ESM/CJS or nested copies).
+ */
+export function findSecretUnsafeSelectionsInSource(schemaSdl: string, documentText: string, file: string): SecretGuardViolation[] {
+  let schema = schemaCache.get(schemaSdl);
+  if (!schema) {
+    schema = buildSchema(schemaSdl);
+    schemaCache.set(schemaSdl, schema);
+  }
+  return findSecretUnsafeSelections(schema, parse(documentText), file);
 }

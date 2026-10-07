@@ -7,7 +7,9 @@
     "@meshmakers/shared-auth": "*",
     "@meshmakers/shared-services": "*",
     "apollo-angular": "^14.0.0",
-    "tus-js-client": "^4.3.1"
+    "tus-js-client": "^4.3.1",
+    "@apollo/client": "^4.1.0",
+    "graphql": "^16.0.0 || ^17.0.0"
   },
   "dependencies": {
     "tslib": "^2.8.1"

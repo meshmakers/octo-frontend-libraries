@@ -1,5 +1,5 @@
 import { buildSchema, parse } from 'graphql';
-import { extractGraphQlDocuments, findSecretUnsafeSelections } from '../../testing/src/public-api';
+import { extractGraphQlDocuments, findSecretUnsafeSelections, findSecretUnsafeSelectionsInSource } from '../../testing/src/public-api';
 
 describe('findSecretUnsafeSelections (AB#5542)', () => {
   const schema = buildSchema(`
@@ -46,5 +46,16 @@ describe('findSecretUnsafeSelections (AB#5542)', () => {
     expect(extractGraphQlDocuments('a.graphql', 'query a { x }')).toEqual(['query a { x }']);
     const ts = 'const Q = gql`\n  query q { runtime { x } }\n`; // inline `gql` (not codegen) comment';
     expect(extractGraphQlDocuments('a.ts', ts)).toEqual(['\n  query q { runtime { x } }\n']);
+  });
+
+  it('checks source text with the library\'s own graphql instance (published-package hosts)', () => {
+    const sdl = `
+      type Query { runtime: Runtime }
+      type Runtime { sap: [Sap] }
+      type Sap { user: String password: String }
+    `;
+    expect(findSecretUnsafeSelectionsInSource(sdl, 'query q { runtime { sap { user } } }', 'a.graphql')).toEqual([]);
+    expect(findSecretUnsafeSelectionsInSource(sdl, 'query q { runtime { sap { password } } }', 'a.graphql').map((v) => v.key))
+      .toEqual(['a.graphql#runtime.sap.password']);
   });
 });
