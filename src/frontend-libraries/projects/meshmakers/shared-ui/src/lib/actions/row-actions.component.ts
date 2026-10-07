@@ -11,6 +11,7 @@ import {
   isActionDisabled,
   splitRowActions,
 } from './action.model';
+import {MM_ROW_ACTIONS_MESSAGES, RowActionsMessages, resolveRowActionsMessages} from './row-actions.messages';
 
 /** Overflow menu item handed to the Kendo DropDownButton. */
 interface RowActionMenuItem<TId extends string> {
@@ -26,6 +27,9 @@ interface RowActionMenuItem<TId extends string> {
  * At most `maxInline` slots (default 3): when the actions do not fit, the last slot becomes a
  * "More actions for …" menu. Disabled actions stay focusable and announce their reason;
  * in the menu the reason is shown under the item text.
+ *
+ * Texts ("Actions for …", "More actions for …") come from {@link MM_ROW_ACTIONS_MESSAGES} and the
+ * `messages` input (the input wins), English by default.
  *
  * The component only emits — destructive handlers confirm first (danger dialog naming the target).
  *
@@ -98,6 +102,8 @@ export class RowActionsComponent<TId extends string = string> {
   readonly rowLabel = input.required<string>();
   /** Slots incl. the overflow button. */
   readonly maxInline = input(MM_ROW_ACTIONS_MAX_INLINE, {transform: numberAttribute});
+  /** Translations for this instance; members left out come from `MM_ROW_ACTIONS_MESSAGES`, else English. */
+  readonly messages = input<Partial<RowActionsMessages> | null>(null);
 
   /** Fires for enabled actions only, inline or from the menu. */
   readonly triggered = output<MmActionEvent<TId>>();
@@ -105,7 +111,9 @@ export class RowActionsComponent<TId extends string = string> {
   private readonly router = inject(Router, {optional: true});
   /** Menu links resolve like the inline `routerLink`: relative to the hosting route. */
   private readonly route = inject(ActivatedRoute, {optional: true});
+  private readonly injectedMessages = inject(MM_ROW_ACTIONS_MESSAGES, {optional: true});
   protected readonly moreIcon = moreVerticalIcon;
+  private readonly m = computed(() => resolveRowActionsMessages(this.injectedMessages, this.messages()));
   protected readonly split = computed(() => splitRowActions(this.actions(), this.maxInline()));
   protected readonly menuItems = computed<RowActionMenuItem<TId>[]>(() =>
     this.split().menu.map((action) => ({
@@ -116,8 +124,13 @@ export class RowActionsComponent<TId extends string = string> {
     })));
   /** No group semantics for an empty cell (all actions hidden). */
   protected readonly hasActions = computed(() => this.split().inline.length > 0 || this.split().menu.length > 0);
-  protected readonly moreLabel = computed(() => `More actions for ${this.rowLabel()}`);
-  protected readonly groupLabel = computed(() => `Actions for ${this.rowLabel()}`);
+  protected readonly moreLabel = computed(() => this.format(this.m().moreActionsFor, this.m().moreActions));
+  protected readonly groupLabel = computed(() => this.format(this.m().actionsFor, this.m().actions));
+
+  private format(withName: string, withoutName: string): string {
+    const name = (this.rowLabel() ?? '').trim();
+    return name ? withName.split('{name}').join(name) : withoutName;
+  }
 
   protected onMenuItem(item: RowActionMenuItem<TId>): void {
     if (!item || item.disabled) {
