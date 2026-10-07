@@ -91,7 +91,7 @@
           @for (item of items(); track item.id) {
             <li>
               @if (item.href) {
-                <a class="user-item" [attr.data-user-item]="item.id" [href]="item.href" target="_blank" rel="noopener" (click)="followItemLink()">
+                <a class="user-item" [attr.data-user-item]="item.id" [href]="item.href" target="_blank" rel="noopener noreferrer" (click)="followItemLink()">
                   @if (item.svgIcon) {
                     <kendo-svgicon class="user-item-icon" [icon]="item.svgIcon"></kendo-svgicon>
                   }

@@ -270,7 +270,7 @@ describe('ShellUserMenuComponent host entries (AB#5621)', () => {
     expect(link.tagName).toBe('A');
     expect(link.href).toBe('https://docs.example/');
     expect(link.target).toBe('_blank');
-    expect(link.rel).toBe('noopener');
+    expect(link.rel).toBe('noopener noreferrer');
     const actions = element.querySelector('.user-actions')!;
     expect(element.querySelector('.user-items')!.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
