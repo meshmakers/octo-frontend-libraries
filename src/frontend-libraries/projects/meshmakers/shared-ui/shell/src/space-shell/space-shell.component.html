@@ -1,5 +1,5 @@
-<header class="space-head" [class.no-area]="!area()" [class.object-detail]="objectDetail()">
-  <div class="space-crumbs">
+<header class="space-head" [class.no-area]="!area()" [class.object-detail]="objectDetail()" [class.no-crumbs]="!hasCrumbs()">
+  <div class="space-crumbs" [class.is-empty]="!hasCrumbs()">
     @if (objectDetail() && backTarget(); as back) {
       <button type="button"
               class="space-back"

@@ -75,6 +75,18 @@
   min-height: 20px;
   font-size: 0.75rem;
   color: var(--theme-text-muted);
+
+  // No breadcrumbs (AB#5621): the line takes no height. Not `display: none` — a projected
+  // breadcrumb that measures its width must keep it for when its items arrive.
+  &.is-empty {
+    min-height: 0;
+    height: 0;
+    overflow: hidden;
+  }
+}
+
+.space-head.no-crumbs:not(.object-detail) .space-title-row {
+  margin-top: 0;
 }
 
 .space-title-row {

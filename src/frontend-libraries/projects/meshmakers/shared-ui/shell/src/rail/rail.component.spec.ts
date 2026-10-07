@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NavigationEnd, NavigationStart, Router } from '@angular/router';
+import { Subject } from 'rxjs';
 import { RAIL_FLYOUT_CLOSE_DELAY, RAIL_FLYOUT_OPEN_DELAY, ShellRailComponent } from './rail.component';
 import { ShellNavNode } from '../shell-navigation.service';
 
@@ -347,6 +349,113 @@ describe('ShellRailComponent', () => {
 
       expect(isOpen('area-home')).toBe(true);
     });
+  });
+});
+
+describe('ShellRailComponent closes on navigation (AB#5621)', () => {
+  let fixture: ComponentFixture<ShellRailComponent>;
+  let element: HTMLElement;
+  let events: Subject<unknown>;
+
+  const entry = (id: string): HTMLElement => element.querySelector<HTMLElement>(`[data-entry-id="${id}"]`)!;
+  const button = (id: string): HTMLButtonElement => element.querySelector<HTMLButtonElement>(`[data-area-id="${id}"]`)!;
+  const isOpen = (id: string): boolean => entry(id).classList.contains('open');
+  const pointerClick = (target: HTMLElement): void => {
+    target.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+    target.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    fixture.detectChanges();
+  };
+  const navigationEnd = (): void => {
+    events.next(new NavigationEnd(1, '/settings', '/settings'));
+    fixture.detectChanges();
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    if (typeof window.matchMedia !== 'function') {
+      Object.defineProperty(window, 'matchMedia', { value: () => undefined, writable: true, configurable: true });
+    }
+    vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({ matches: false, media: query } as unknown as MediaQueryList));
+    events = new Subject<unknown>();
+    TestBed.configureTestingModule({ providers: [{ provide: Router, useValue: { events } }] });
+    fixture = TestBed.createComponent(ShellRailComponent);
+    fixture.componentRef.setInput('areas', [HOME, DATA]);
+    fixture.componentRef.setInput('bottomAreas', [SETTINGS]);
+    fixture.componentRef.setInput('activeAreaId', 'area-data');
+    fixture.detectChanges();
+    element = fixture.nativeElement as HTMLElement;
+    document.body.appendChild(element);
+  });
+  afterEach(() => {
+    element.remove();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('closes the flyout pinned by an icon click once the navigation ends', () => {
+    pointerClick(button('area-settings'));
+    expect(isOpen('area-settings')).toBe(true);
+
+    events.next(new NavigationStart(1, '/settings'));
+    fixture.detectChanges();
+    expect(isOpen('area-settings')).toBe(true);
+
+    navigationEnd();
+    expect(isOpen('area-settings')).toBe(false);
+    expect(entry('area-settings').classList).not.toContain('pinned');
+  });
+
+  it('closes a hover-opened flyout on navigation too', () => {
+    entry('area-home').dispatchEvent(new MouseEvent('mouseenter'));
+    vi.advanceTimersByTime(RAIL_FLYOUT_OPEN_DELAY);
+    fixture.detectChanges();
+    expect(isOpen('area-home')).toBe(true);
+
+    navigationEnd();
+    expect(isOpen('area-home')).toBe(false);
+  });
+
+  it('closes when the active area changes (hosts without a router event)', () => {
+    pointerClick(button('area-settings'));
+
+    fixture.componentRef.setInput('activeAreaId', 'area-settings');
+    fixture.detectChanges();
+
+    expect(isOpen('area-settings')).toBe(false);
+  });
+
+  it('keeps the pin for a click that does not navigate', () => {
+    pointerClick(button('area-settings'));
+    fixture.componentRef.setInput('activeAreaId', 'area-data');
+    fixture.detectChanges();
+
+    expect(isOpen('area-settings')).toBe(true);
+    expect(entry('area-settings').classList).toContain('pinned');
+  });
+
+  it('does not take focus from the page the navigation opened', () => {
+    const pageInput = document.createElement('input');
+    document.body.appendChild(pageInput);
+    pointerClick(button('area-settings'));
+    pageInput.focus();
+
+    navigationEnd();
+
+    expect(document.activeElement).toBe(pageInput);
+    pageInput.remove();
+  });
+
+  it('returns focus from a closing flyout to its area icon instead of <body>', () => {
+    button('area-home').focus();
+    button('area-home').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    fixture.detectChanges();
+    const firstItem = entry('area-home').querySelector<HTMLElement>('.flyout-item')!;
+    expect(document.activeElement).toBe(firstItem);
+
+    navigationEnd();
+
+    expect(isOpen('area-home')).toBe(false);
+    expect(document.activeElement).toBe(button('area-home'));
   });
 });
 
