@@ -448,6 +448,12 @@ export interface TableColumn {
   title: string;
   width?: number;
   dataType?: string;
+  /**
+   * Display format passed to the list view. For `dataType: 'numeric'` it is an Angular
+   * DecimalPipe digits info, e.g. `'1.2-2'` for exactly two decimals; without it the
+   * pipe's default (up to three decimals) applies.
+   */
+  format?: string;
   statusMapping?: Record<string, TableColumnStatusIconMapping>;
 }
 
