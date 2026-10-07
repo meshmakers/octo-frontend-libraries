@@ -149,6 +149,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
         displayName: col.title,
         dataType: (col.dataType ?? 'text') as ListViewTableColumn['dataType'],
         width: col.width,
+        ...(col.format ? { format: col.format } : {}),
         ...(col.statusMapping ? { statusMapping: resolveStatusMapping(col.statusMapping) } : {})
       }));
     }
