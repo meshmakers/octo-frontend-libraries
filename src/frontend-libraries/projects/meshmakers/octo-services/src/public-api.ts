@@ -17,6 +17,7 @@ export * from './lib/shared/secret-state';
 export * from './lib/shared/octo-error-link';
 export * from './lib/shared/externalLoginDto';
 export * from './lib/shared/userDto';
+export * from './lib/shared/userDirectoryEntryDto';
 export * from './lib/shared/registerUserDto';
 export * from './lib/shared/mergeUsersRequestDto';
 export * from './lib/shared/roleDto';
