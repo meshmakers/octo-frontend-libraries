@@ -11,6 +11,8 @@ import { EntityFormComponent } from './entity-form.component';
 import { signal } from '@angular/core';
 import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-availability';
 import { ENTITY_FORM_LABEL_RESOLVER } from '../core/entity-form-labels';
+import { ENTITY_FORM_BEFORE_SAVE, EntityFormSaveVeto } from '../core/before-save';
+import { EntityFormChangeSet } from '../models/entity-form.models';
 
 /** Protected-member view used by the spec. */
 interface Testable {
@@ -561,6 +563,58 @@ describe('EntityFormComponent', () => {
     it('carries a host-prefilled well-known name on create (singleton)', async () => {
       await render(sftpModel(), 'create', { values: {}, secretPresence: {}, associations: {}, rtWellKnownName: 'Default' });
       expect(component.getChangeSet().rtWellKnownName).toBe('Default');
+    });
+  });
+
+  describe('beforeSave hook (AB#5623)', () => {
+    it('getChangeSetForSave applies an async hook from the input with the form context', async () => {
+      const hook = vi.fn(async (cs: EntityFormChangeSet) => ({
+        ...cs, attributes: [...cs.attributes, { attributeName: 'timeout', value: 30 }],
+      }));
+      fixture.componentRef.setInput('beforeSave', hook);
+      await render(sftpModel(), 'edit', editState());
+      api.control('port').setValue(2222);
+      const outcome = await component.getChangeSetForSave({ rtId: 'r1' });
+      expect(hook).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+        mode: 'edit', rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration',
+      }));
+      expect(outcome).toEqual({ kind: 'save', changeSet: expect.objectContaining({
+        attributes: [{ attributeName: 'port', value: 2222 }, { attributeName: 'timeout', value: 30 }],
+      }) });
+    });
+
+    it('hands a typed secret to the hook only as the typed write value, never the stored one', async () => {
+      const seen: EntityFormChangeSet[] = [];
+      fixture.componentRef.setInput('beforeSave', (cs: EntityFormChangeSet) => { seen.push(cs); });
+      await render(sftpModel(), 'edit', editState());
+      api.control('port').setValue(2222);
+      await component.getChangeSetForSave();
+      expect(JSON.stringify(seen[0])).not.toContain('must-not-show');
+      api.control('password').setValue('typed-now');
+      await component.getChangeSetForSave();
+      expect(seen[1].attributes).toContainEqual({ attributeName: 'password', value: 'typed-now' });
+      expect(JSON.stringify(seen[1])).not.toContain('must-not-show');
+    });
+
+    it('skips the hook for an edit form without changes', async () => {
+      const hook = vi.fn();
+      fixture.componentRef.setInput('beforeSave', hook);
+      await render(sftpModel(), 'edit', editState());
+      expect((await component.getChangeSetForSave()).kind).toBe('save');
+      expect(hook).not.toHaveBeenCalled();
+    });
+
+    it('uses ENTITY_FORM_BEFORE_SAVE when no input is bound and reports its veto', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        animationsEnabled: false,
+        providers: [{ provide: ENTITY_FORM_BEFORE_SAVE, useValue: () => { throw new EntityFormSaveVeto('Nein'); } }],
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      await render(sftpModel(), 'create');
+      expect(await component.getChangeSetForSave()).toEqual({ kind: 'veto', message: 'Nein' });
     });
   });
 

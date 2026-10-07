@@ -125,6 +125,42 @@ create title on `new`).
 - create → `EntityFormDataService.create`, then navigation to `:rtId` (replacing `new`);
 - edit → only the changed attributes are sent (empty change set = "no changes"), then the
   values are read again.
+- a host `beforeSave` hook (see below) runs after validation and before the server call; a
+  veto shows a warning (the hook's message or `saveVetoed`), an error shows `saveError`, and
+  nothing is saved in either case.
+
+### Before-save hook (`beforeSave`, AB#5623)
+
+Normalise or derive values, or stop the save, right before it happens. Sync or async
+(`Promise` / `Observable`, first value counts):
+
+```ts
+const normaliseContact: EntityFormBeforeSaveHook = (changeSet) => {
+  for (const a of changeSet.attributes) {
+    if (typeof a.value === 'string') a.value = a.value.trim();
+    if (a.attributeName === 'iban' && typeof a.value === 'string') a.value = a.value.replace(/\s+/g, '').toUpperCase();
+  }
+  const email = changeSet.attributes.find((a) => a.attributeName === 'email');
+  if (email) {
+    if (typeof email.value === 'string' && email.value && !email.value.includes('@')) {
+      throw new EntityFormSaveVeto(translate('CONTACT.INVALID_EMAIL'));
+    }
+    changeSet.attributes.push({ attributeName: 'normalizedEmail', value: String(email.value ?? '').toLowerCase() });
+  }
+  // returning nothing saves the (mutated) change set; return a new change set to replace it,
+  // or null / false to veto silently
+};
+```
+
+- Where: `mm-entity-page [beforeSave]` > route option `beforeSave` (data `entityFormBeforeSave`)
+  > `ENTITY_FORM_BEFORE_SAVE`. `mm-entity-form [beforeSave]` (or the token) applies through
+  `getChangeSetForSave({ rtId })` for hosts that save themselves; the form never notifies.
+- The hook gets a copy of the change set plus `{ mode, ckTypeId, rtId?, form }`. Attribute names
+  are camelCase; edit mode holds only the changed attributes, so derive from a source attribute
+  only when it is in the change set. An edit without changes skips the hook.
+- **Secrets:** nothing beyond the change set reaches the hook. A SECRET attribute appears only as
+  the write value the user just typed (or in `clearSecretAttributes`), never as a stored value —
+  the form never reads stored secrets. Do not log the change set.
 
 ### Embedding without routes
 
@@ -222,6 +258,7 @@ All optional; without them the components behave as before.
 | Translated labels / enum texts | `ENTITY_FORM_LABEL_RESOLVER` or the `labelResolver` input: `(request) => string \| null`; `request.kind` = `field`, `help`, `placeholder`, `section`, `sectionDescription`, `formTitle`, `formDescription`, `listColumn`, `recordColumn`, `enumOption`. Read a signal (language) inside to re-render on change; controls are not rebuilt |
 | Fixed texts incl. Copy ID | `messages` (`copyId`, `copyIdTooltip`, `copiedId`, `copyFailed`, ...); `mm-entity-id-info` has `buttonText` / `tooltip` / `copiedMessage` / `copyFailedMessage` |
 | Prefill a create form | `mm-entity-form [initialValues]` / `mm-entity-page [initialValues]` (object or `({ ckTypeId }) => values`; route option `initialValues`), or `entityFormPrefillState(values)` as `state` |
+| Normalise / veto before saving | `beforeSave` on `mm-entity-page` / `mm-entity-form`, route option `beforeSave`, or `ENTITY_FORM_BEFORE_SAVE` — see [Before-save hook](#before-save-hook-beforesave-ab5623) |
 | Set values from a host action | `EntityFormComponent.patchValues(values)` / `EntityPageComponent.patchFormValues(values)` — values count as edits (dirty, saved); secrets and read-only fields are skipped |
 | Placeholder values of legacy STRING secrets | `ENTITY_FORM_SECRET_PLACEHOLDER_VALUES` (exact values that read "Not set"). SECRET-typed attributes (AB#5528) need nothing: their state comes from the server |
 

@@ -49,6 +49,18 @@ export type { EntityFormCatalogEntry } from './core/entity-form-catalog';
 export { BUILT_IN_DEFAULT_FORM } from './core/built-in-default-form';
 export { ENTITY_FORM_FALLBACK_FORMS, withFallbackForms, selectFallbackForms, isChainEndForm } from './core/fallback-forms';
 export { ENTITY_FORM_ACTION_CONFIRMATION, confirmEntityFormAction } from './core/action-confirmation';
+export {
+  ENTITY_FORM_BEFORE_SAVE,
+  EntityFormSaveVeto,
+  isEntityFormSaveVeto,
+  runEntityFormBeforeSave,
+} from './core/before-save';
+export type {
+  EntityFormBeforeSaveHook,
+  EntityFormBeforeSaveContext,
+  EntityFormBeforeSaveResult,
+  EntityFormBeforeSaveOutcome,
+} from './core/before-save';
 export { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, ENTITY_FORM_SECRET_PLACEHOLDER_VALUES } from './core/secret-write-availability';
 export {
   ENTITY_FORM_LABEL_RESOLVER,

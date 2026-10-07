@@ -34,6 +34,13 @@ describe('entityFormRoutes', () => {
     expect(routes.every((r) => r.data?.['breadcrumb'] === undefined)).toBe(true);
   });
 
+  it('carries the beforeSave hook as route data entityFormBeforeSave on all three routes (AB#5623)', () => {
+    const hook = () => undefined;
+    const routes = entityFormRoutes({ ckTypeId: 'A/B', beforeSave: hook });
+    expect(routes.every((r) => r.data?.['entityFormBeforeSave'] === hook)).toBe(true);
+    expect(entityFormRoutes().every((r) => !('entityFormBeforeSave' in (r.data ?? {})))).toBe(true);
+  });
+
   it('loadComponent resolves to EntityPageComponent', async () => {
     const ctor = await entityFormRoutes()[0].loadComponent!();
     const { EntityPageComponent } = await import('./entity-page.component');

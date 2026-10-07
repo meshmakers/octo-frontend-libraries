@@ -96,6 +96,11 @@ export interface EntityFormsMessages {
   deleteError: string;
   loadError: string;
   noChanges: string;
+  /**
+   * Warning when a host `beforeSave` hook vetoed the save without a message of its own (AB#5623).
+   * Optional so that complete message objects of older hosts keep compiling.
+   */
+  saveVetoed?: string;
 
   // --- Empty / not found states ---
   emptyList: string;
@@ -226,6 +231,7 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   deleteError: 'The entity could not be deleted.',
   loadError: 'The data could not be loaded.',
   noChanges: 'There are no changes to save.',
+  saveVetoed: 'The changes were not saved.',
 
   emptyList: 'No entries yet.',
   emptyRecords: 'No entries.',

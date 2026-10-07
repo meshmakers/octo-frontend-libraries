@@ -11,6 +11,7 @@ import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
 import { EntityPageComponent } from './entity-page.component';
 import { EntityPageActionsDirective } from './entity-page-actions.directive';
+import { ENTITY_FORM_BEFORE_SAVE, EntityFormSaveVeto } from '../core/before-save';
 import { NgTemplateOutlet } from '@angular/common';
 
 /** Host projecting page actions into the page (AB#5623). */
@@ -100,7 +101,7 @@ describe('EntityPageComponent', () => {
 
   let hostFixture: ComponentFixture<PageHostComponent> | null = null;
 
-  async function create(data: Record<string, unknown>, params: Record<string, string> = {}, query: Record<string, string> = {}, withHost = false): Promise<void> {
+  async function create(data: Record<string, unknown>, params: Record<string, string> = {}, query: Record<string, string> = {}, withHost = false, extraProviders: unknown[] = []): Promise<void> {
     const route = {
       paramMap: of(convertToParamMap(params)),
       queryParamMap: of(convertToParamMap(query)),
@@ -118,6 +119,7 @@ describe('EntityPageComponent', () => {
         { provide: BreadCrumbService, useValue: breadCrumbs },
         { provide: NotificationDisplayService, useValue: { showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn(), showInfo: vi.fn() } },
         { provide: ConfirmationService, useValue: { showYesNoConfirmationDialog: vi.fn().mockResolvedValue(true) } },
+        ...(extraProviders as never[]),
       ],
     })
       .overrideComponent(EntityPageComponent, {
@@ -471,6 +473,95 @@ describe('EntityPageComponent', () => {
       formService.resolve.mockResolvedValue(makeModel());
       await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new', messages: { createTitle: 'Neu' } });
       expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenLastCalledWith({ entityFormTitle: 'SFTP configurations', entityName: 'Neu' });
+    });
+
+    describe('beforeSave', () => {
+      const CK = 'System.Communication/SftpConfiguration';
+      const notifications = () => TestBed.inject(NotificationDisplayService) as unknown as Record<string, ReturnType<typeof vi.fn>>;
+
+      async function openEdit(data: Record<string, unknown> = {}, extraProviders: unknown[] = []): Promise<void> {
+        formService.resolve.mockResolvedValue(makeModel());
+        dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: CK, state: STATE });
+        dataService.update.mockResolvedValue(undefined as never);
+        await create({ ckTypeId: CK, ...data }, { rtId: 'r1' }, {}, false, extraProviders);
+      }
+
+      it('saves the change set returned by an async hook (input) and passes the context', async () => {
+        await openEdit();
+        const hook = vi.fn(async (cs: EntityFormChangeSet) => ({
+          ...cs, attributes: cs.attributes.map((a) => ({ ...a, value: String(a.value).toUpperCase() })),
+        }));
+        fixture.componentRef.setInput('beforeSave', hook);
+        expect(await component.saveChanges()).toBe(true);
+        expect(hook).toHaveBeenCalledWith(stubForm().changeSet, expect.objectContaining({ mode: 'edit', ckTypeId: CK, rtId: 'r1' }));
+        expect(dataService.update).toHaveBeenCalledWith('r1', CK, expect.objectContaining({ attributes: [{ attributeName: 'host', value: 'H' }] }));
+      });
+
+      it('runs on create with the singleton well-known name already in the change set', async () => {
+        formService.resolveByFormKey.mockResolvedValue(makeModel({ singleton: { wellKnownName: 'MainSftp' } }));
+        dataService.load.mockResolvedValue(null);
+        dataService.create.mockResolvedValue('new-rt');
+        const hook = vi.fn();
+        await create({ formKey: 'sftp-configuration', entityFormBeforeSave: hook });
+        dataService.load.mockResolvedValue({ rtId: 'new-rt', ckTypeId: CK, state: STATE });
+        expect(await component.saveChanges()).toBe(true);
+        expect(hook).toHaveBeenCalledWith(expect.objectContaining({ rtWellKnownName: 'MainSftp' }), expect.objectContaining({ mode: 'create' }));
+        expect(hook.mock.calls[0][1]).not.toHaveProperty('rtId');
+        expect(dataService.create).toHaveBeenCalled();
+      });
+
+      it('vetoes with the hook message as a warning and saves nothing', async () => {
+        await openEdit({ entityFormBeforeSave: () => { throw new EntityFormSaveVeto('IBAN ungültig'); } });
+        expect(await component.saveChanges()).toBe(false);
+        expect(dataService.update).not.toHaveBeenCalled();
+        expect(notifications()['showWarning']).toHaveBeenCalledWith('IBAN ungültig');
+      });
+
+      it('vetoes silently (null) with the saveVetoed message', async () => {
+        await openEdit({ messages: { saveVetoed: 'Nicht gespeichert.' } }, [{ provide: ENTITY_FORM_BEFORE_SAVE, useValue: () => null }]);
+        expect(await component.saveChanges()).toBe(false);
+        expect(dataService.update).not.toHaveBeenCalled();
+        expect(notifications()['showWarning']).toHaveBeenCalledWith('Nicht gespeichert.');
+      });
+
+      it('reports a failing hook as a save error and saves nothing', async () => {
+        const errorLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        await openEdit({}, [{ provide: ENTITY_FORM_BEFORE_SAVE, useValue: () => Promise.reject(new Error('lookup failed')) }]);
+        expect(await component.saveChanges()).toBe(false);
+        expect(dataService.update).not.toHaveBeenCalled();
+        expect(notifications()['showError']).toHaveBeenCalledWith('The changes could not be saved.', 'lookup failed');
+        expect(errorLog.mock.calls.flat().map(String).join(' ')).not.toContain('"host"');
+        errorLog.mockRestore();
+      });
+
+      it('prefers the input over route data over the token', async () => {
+        const token = vi.fn();
+        const data = vi.fn();
+        await openEdit({ entityFormBeforeSave: data }, [{ provide: ENTITY_FORM_BEFORE_SAVE, useValue: token }]);
+        await component.saveChanges();
+        expect(data).toHaveBeenCalledTimes(1);
+        expect(token).not.toHaveBeenCalled();
+        const bound = vi.fn();
+        fixture.componentRef.setInput('beforeSave', bound);
+        await component.saveChanges();
+        expect(bound).toHaveBeenCalledTimes(1);
+        expect(data).toHaveBeenCalledTimes(1);
+      });
+
+      it('skips the hook when an edit has no changes', async () => {
+        const hook = vi.fn();
+        await openEdit({ entityFormBeforeSave: hook });
+        stubForm().changeSet = { attributes: [], associations: [], isEmpty: true };
+        expect(await component.saveChanges()).toBe(true);
+        expect(hook).not.toHaveBeenCalled();
+      });
+
+      it('treats a hook that empties an edit change set as "no changes"', async () => {
+        await openEdit({ entityFormBeforeSave: (cs: EntityFormChangeSet) => ({ ...cs, attributes: [] }) });
+        expect(await component.saveChanges()).toBe(true);
+        expect(dataService.update).not.toHaveBeenCalled();
+        expect(notifications()['showInfo']).toHaveBeenCalled();
+      });
     });
 
     it('passes the translatable Copy ID texts to the ID button', async () => {

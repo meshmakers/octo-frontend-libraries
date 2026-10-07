@@ -4,6 +4,7 @@ import { SVGIcon } from '@progress/kendo-svg-icons';
 import { EntityFormsMessages } from '../entity-forms.messages';
 import { EntityListSortDescriptor } from '../models/entity-form.models';
 import { EntityFormPrefillValues } from '../core/entity-form-prefill';
+import { EntityFormBeforeSaveHook } from '../core/before-save';
 
 /**
  * Options of {@link entityFormRoutes}.
@@ -63,6 +64,11 @@ export interface EntityFormRoutesOptions {
   actionBarPosition?: 'top' | 'bottom';
   /** Prefill of the create form (AB#5623). Route data key `entityFormInitialValues`. */
   initialValues?: EntityFormPrefillValues;
+  /**
+   * Hook run before every save (AB#5623): normalise / derive values or veto the save. Route data
+   * key `entityFormBeforeSave`. See `EntityFormBeforeSaveHook`.
+   */
+  beforeSave?: EntityFormBeforeSaveHook;
   /** Label of the create breadcrumb. Default `New`. */
   newBreadcrumbLabel?: string;
   /** Label of the edit breadcrumb. Default `{{entityName}}`. */
@@ -98,6 +104,7 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     defaultSort,
     actionBarPosition,
     initialValues,
+    beforeSave,
     data = {},
   } = opts;
 
@@ -112,6 +119,7 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     ...(defaultSort !== undefined && { entityListDefaultSort: defaultSort }),
     ...(actionBarPosition !== undefined && { entityPageActionBarPosition: actionBarPosition }),
     ...(initialValues !== undefined && { entityFormInitialValues: initialValues }),
+    ...(beforeSave !== undefined && { entityFormBeforeSave: beforeSave }),
   };
 
   const listCrumb = breadcrumbUrl !== undefined

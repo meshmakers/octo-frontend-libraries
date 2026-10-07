@@ -30,6 +30,12 @@ import { formValuesEqual } from '../core/entity-form-value-mapper';
 import { isVisible } from '../core/visible-when';
 import { ENTITY_FORM_LABEL_RESOLVER, EntityFormLabelResolver, localizeEntityForm } from '../core/entity-form-labels';
 import {
+  ENTITY_FORM_BEFORE_SAVE,
+  EntityFormBeforeSaveHook,
+  EntityFormBeforeSaveOutcome,
+  runEntityFormBeforeSave,
+} from '../core/before-save';
+import {
   canonicaliseEntityFormPrefill,
   entityFormPrefillField,
   EntityFormPrefillValues,
@@ -86,6 +92,8 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
  *   (`labelResolver` input or `ENTITY_FORM_LABEL_RESOLVER`, AB#5623); a language change re-renders
  *   the texts without rebuilding the controls.
  * - Host prefill (AB#5623): `initialValues` in create mode, `patchValues()` at any time.
+ * - Before-save hook (AB#5623): `beforeSave` input / `ENTITY_FORM_BEFORE_SAVE`, applied by
+ *   {@link getChangeSetForSave}; secrets reach it only as values typed into this form.
  */
 @Component({
   selector: 'mm-entity-form',
@@ -114,6 +122,7 @@ export class EntityFormComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly keyRingConfigured = inject(ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, { optional: true });
   private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
+  private readonly injectedBeforeSave = inject(ENTITY_FORM_BEFORE_SAVE, { optional: true });
 
   // --- Inputs ---
   readonly model = input.required<ResolvedEntityForm>();
@@ -135,6 +144,12 @@ export class EntityFormComponent {
    * Ignored in edit / view mode — use {@link patchValues} there.
    */
   readonly initialValues = input<EntityFormPrefillValues | null | undefined>(undefined);
+  /**
+   * Hook run by {@link getChangeSetForSave} (AB#5623): may modify the change set or veto the save.
+   * Wins over `ENTITY_FORM_BEFORE_SAVE`. `mm-entity-page` runs its own (input > route data >
+   * token), so set it there when the page saves. See `EntityFormBeforeSaveHook`.
+   */
+  readonly beforeSave = input<EntityFormBeforeSaveHook | null | undefined>(undefined);
 
   // --- Outputs ---
   readonly changeSetChange = output<EntityFormChangeSet>();
@@ -266,6 +281,29 @@ export class EntityFormComponent {
       changeSet.isEmpty = false;
     }
     return changeSet;
+  }
+
+  /**
+   * The change set to save, after the before-save hook (`beforeSave` input, else
+   * `ENTITY_FORM_BEFORE_SAVE`; AB#5623) — for hosts that render `mm-entity-form` and save
+   * themselves. The form never shows notifications: on `veto` / `error` the host tells the user
+   * (e.g. `outcome.message ?? messages.saveVetoed`). View mode, and an edit form without changes,
+   * skip the hook. `context.rtId` names the edited entity; `context.ckTypeId` defaults to the
+   * form's runtime CK type.
+   */
+  async getChangeSetForSave(context: { rtId?: string; ckTypeId?: string } = {}): Promise<EntityFormBeforeSaveOutcome> {
+    const changeSet = this.getChangeSet();
+    const mode = this.mode();
+    if (mode === 'view' || (mode === 'edit' && changeSet.isEmpty)) {
+      return { kind: 'save', changeSet };
+    }
+    const model = this.model();
+    return runEntityFormBeforeSave(this.beforeSave() ?? this.injectedBeforeSave ?? null, changeSet, {
+      mode,
+      ckTypeId: context.ckTypeId ?? model.rtCkTypeId,
+      ...(context.rtId ? { rtId: context.rtId } : {}),
+      form: model,
+    });
   }
 
   /** True when any editable, visible control differs from the value it was built with. */

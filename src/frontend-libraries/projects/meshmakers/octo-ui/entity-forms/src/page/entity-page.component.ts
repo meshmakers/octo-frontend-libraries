@@ -55,6 +55,7 @@ import { EntityFormService } from '../services/entity-form.service';
 import { entityListIncludesDerivedTypes } from '../list/entity-list-data-source.directive';
 import { EntityListComponent, EntityListCreateRequest, EntityListOpenRequest } from '../list/entity-list.component';
 import { confirmEntityFormAction, ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
+import { ENTITY_FORM_BEFORE_SAVE, EntityFormBeforeSaveHook, runEntityFormBeforeSave } from '../core/before-save';
 
 /** Value of the `rtId` input / route parameter that opens the create form. */
 export const ENTITY_PAGE_NEW = 'new';
@@ -124,8 +125,9 @@ interface PageContext {
  * Host extensions (AB#5623, all optional, defaults = unchanged behaviour): `actionBarPosition`
  * (Save / Cancel at the bottom), page actions via `<ng-template mmEntityPageActions>`, list
  * `listToolbarActions` / `listRowActions` / `listRowMenuActions`, `defaultSort`, `labelResolver`
- * (translated labels and enum texts), `initialValues` (create prefill) and
- * {@link patchFormValues} (prefill from a host action).
+ * (translated labels and enum texts), `initialValues` (create prefill),
+ * {@link patchFormValues} (prefill from a host action) and `beforeSave` (normalise / veto the
+ * change set before it is saved).
  */
 @Component({
   selector: 'mm-entity-page',
@@ -147,6 +149,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
   private readonly actionConfirmation = inject(ENTITY_FORM_ACTION_CONFIRMATION, { optional: true });
   private readonly breadCrumbService = inject(BreadCrumbService, { optional: true });
   private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
+  private readonly injectedBeforeSave = inject(ENTITY_FORM_BEFORE_SAVE, { optional: true });
 
   /** Form key (`form-sftp-configuration` or `sftp-configuration`). Wins over `ckTypeId`. */
   readonly formKey = input<string | undefined>(undefined);
@@ -172,6 +175,11 @@ export class EntityPageComponent implements HasUnsavedChanges {
   readonly defaultSort = input<readonly EntityListSortDescriptor[] | null | undefined>(undefined);
   /** Prefill of the create form (AB#5623). Falls back to route data `entityFormInitialValues`. */
   readonly initialValues = input<EntityPageInitialValues | null | undefined>(undefined);
+  /**
+   * Hook run before every save (AB#5623): may modify the change set or veto the save. Wins over
+   * route data `entityFormBeforeSave` and `ENTITY_FORM_BEFORE_SAVE`. See {@link EntityFormBeforeSaveHook}.
+   */
+  readonly beforeSave = input<EntityFormBeforeSaveHook | null | undefined>(undefined);
   /** Host toolbar actions of the list, after "New" (AB#5623). */
   readonly listToolbarActions = input<readonly CommandItem[]>([]);
   /** Host row actions of the list (icon buttons after Edit / View, AB#5623). */
@@ -233,6 +241,19 @@ export class EntityPageComponent implements HasUnsavedChanges {
   });
 
   protected readonly effectiveLabelResolver = computed(() => this.labelResolver() ?? this.injectedLabelResolver ?? null);
+
+  /** The effective before-save hook: input, else route data `entityFormBeforeSave`, else the token. */
+  private effectiveBeforeSave(): EntityFormBeforeSaveHook | null {
+    const bound = this.beforeSave();
+    if (bound) {
+      return bound;
+    }
+    const fromData = this.inheritedData('entityFormBeforeSave');
+    if (typeof fromData === 'function') {
+      return fromData as EntityFormBeforeSaveHook;
+    }
+    return this.injectedBeforeSave ?? null;
+  }
   protected readonly effectiveActionBarPosition = computed<EntityPageActionBarPosition>(() => {
     this.routeData();
     return (this.actionBarPosition() ?? this.inheritedData('entityPageActionBarPosition')) === 'bottom' ? 'bottom' : 'top';
@@ -386,13 +407,36 @@ export class EntityPageComponent implements HasUnsavedChanges {
       return false;
     }
     let changeSet = form.getChangeSet();
+    const isCreate = this.mode() === 'create';
+    if (isCreate) {
+      const wellKnownName = this.singletonWellKnownName();
+      if (wellKnownName) {
+        changeSet = { ...changeSet, rtWellKnownName: wellKnownName, isEmpty: false };
+      }
+    }
     this.saving.set(true);
     try {
-      if (this.mode() === 'create') {
-        const wellKnownName = this.singletonWellKnownName();
-        if (wellKnownName) {
-          changeSet = { ...changeSet, rtWellKnownName: wellKnownName, isEmpty: false };
-        }
+      // Nothing changed on an edit form: nothing to normalise either (the hook is skipped).
+      const hook = isCreate || !changeSet.isEmpty ? this.effectiveBeforeSave() : null;
+      const outcome = await runEntityFormBeforeSave(hook, changeSet, {
+        mode: isCreate ? 'create' : 'edit',
+        ckTypeId,
+        ...(isCreate ? {} : { rtId: this.entityRtId() ?? undefined }),
+        form: model,
+      });
+      if (outcome.kind === 'veto') {
+        this.notificationService.showWarning(outcome.message || m.saveVetoed || m.saveError);
+        return false;
+      }
+      if (outcome.kind === 'error') {
+        // Never log the change set: it may hold a secret the user typed.
+        console.error('mm-entity-page: beforeSave failed; nothing was saved', outcome.error);
+        this.notificationService.showError(m.saveError, outcome.error instanceof Error ? outcome.error.message : undefined);
+        return false;
+      }
+      changeSet = outcome.changeSet;
+
+      if (isCreate) {
         const rtId = await this.dataService.create(model, ckTypeId, changeSet);
         this.notificationService.showSuccess(m.createSuccess, 3000);
         this.saved.emit({ kind: 'create', rtId, ckTypeId });
