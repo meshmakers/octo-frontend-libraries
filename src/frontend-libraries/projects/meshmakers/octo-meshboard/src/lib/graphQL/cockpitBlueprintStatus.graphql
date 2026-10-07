@@ -1,0 +1,19 @@
+# Cockpit widgets (AB#5558): blueprints installed on the tenant and the catalog
+# entries to compare them with, for the "Blueprint updates" KPI and the
+# "Blueprint updates available" attention check. One request: the installations
+# plus one catalog page (the catalog lists one item per name and version).
+query cockpitBlueprintStatus($take: Int) {
+  blueprints {
+    installations {
+      blueprintId
+      isDependency
+    }
+    list(skip: 0, take: $take) {
+      totalCount
+      items {
+        name
+        version
+      }
+    }
+  }
+}

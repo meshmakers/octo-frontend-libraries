@@ -2,8 +2,12 @@ import { SystemCommunicationDeploymentStateDto } from '@meshmakers/octo-services
 import { isAdapterExpectedToRun, isAdapterOnline, summarizeAdapterOnline } from '../../utils/adapter-online';
 import { buildHourlyHistogram, HourlyExecutionBucket, latestStatisticsUpdate, pipelineExecutionInputs, RawHourBucket } from '../../utils/pipeline-executions';
 import { CockpitLinkTarget } from '../cockpit-host';
-import { CockpitWidgetMessages, DEFAULT_COCKPIT_WIDGET_MESSAGES, formatCockpitMessage as fmt } from '../cockpit-messages';
+import { CockpitWidgetMessages, DEFAULT_COCKPIT_WIDGET_MESSAGES, formatCockpitMessage as fmt, resolveCockpitWidgetMessages } from '../cockpit-messages';
 import { CockpitAdapterStates } from '../data/cockpit-adapter-states.service';
+import { CockpitBlueprintStatus } from '../data/cockpit-blueprint-status.service';
+import { CockpitChildTenants } from '../data/cockpit-child-tenants.service';
+import { CockpitServiceHealth, CockpitServiceHealthStatus } from '../data/cockpit-service-health.service';
+import { CockpitVersionEntry } from '../cockpit-host';
 import { CockpitDataFlowRow, countFlowExecutions } from '../data/cockpit-data-flow-executions.service';
 
 export type { CockpitDataFlowRow } from '../data/cockpit-data-flow-executions.service';
@@ -225,6 +229,146 @@ export function ckModelKpi(counts: CockpitCkModelCounts, messages: CockpitWidget
     statusLabel,
     link: { kind: 'ckModels' }
   };
+}
+
+/**
+ * "Tenants" (system cockpit, AB#5558): child tenants of the current tenant — on the system tenant
+ * every tenant of the installation. The tenant list has no state, so the tile counts only.
+ */
+export function tenantCountKpi(tenants: CockpitChildTenants, messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): CockpitKpi {
+  const m = withDefaults(messages);
+  const n = (value: number) => formatCount(value, m.numberLocale);
+  let detail: string | undefined;
+  if (tenants.firstIds.length > 0) {
+    const rest = tenants.total - tenants.firstIds.length;
+    const shown = tenants.firstIds.join(', ');
+    detail = rest > 0 ? fmt(m.kpiCkModelsMoreNames, { names: shown, count: n(rest) }) : shown;
+  }
+  return {
+    id: 'tenant-count',
+    label: m.kpiTenantsLabel,
+    value: n(tenants.total),
+    detail,
+    status: 'neutral',
+    statusLabel: tenants.total === 0 ? m.kpiTenantsNone : m.kpiTenantsRegistered,
+    link: { kind: 'tenants' }
+  };
+}
+
+/**
+ * "Blueprint updates" (system cockpit, AB#5558): installed blueprints with a newer catalog
+ * version. Only blueprints the tenant installed count as updates to act on (warning);
+ * service-managed ones (`System.*`) are applied by their service and only named in the detail.
+ */
+export function blueprintUpdatesKpi(status: CockpitBlueprintStatus, messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): CockpitKpi {
+  const m = withDefaults(messages);
+  const n = (value: number) => formatCount(value, m.numberLocale);
+  const own = status.updates.filter(update => !update.isServiceManaged);
+  const managed = status.updates.length - own.length;
+  const details: string[] = [];
+  if (own.length > 0) {
+    details.push(own.slice(0, 2).map(update => `${update.name} ${update.installedVersion} → ${update.availableVersion}`).join(', '));
+  } else {
+    details.push(fmt(m.kpiBlueprintsInstalled, { count: n(status.installed) }));
+  }
+  if (managed > 0) {
+    details.push(fmt(m.kpiBlueprintsServiceManaged, { count: n(managed) }));
+  }
+  const note = truncationText(status.catalogRead, status.catalogTotal, m.kpiBlueprintsTruncated, m.numberLocale);
+  if (note) {
+    details.push(note);
+  }
+  let kpiStatus: CockpitKpiStatus;
+  let statusLabel: string;
+  if (status.installed === 0 && status.updates.length === 0) {
+    kpiStatus = 'neutral';
+    statusLabel = m.kpiBlueprintsNone;
+  } else if (own.length > 0) {
+    kpiStatus = 'warning';
+    statusLabel = fmt(m.kpiBlueprintsAvailable, { count: n(own.length) });
+  } else {
+    kpiStatus = 'success';
+    statusLabel = m.kpiBlueprintsUpToDate;
+  }
+  return {
+    id: 'blueprint-updates',
+    label: m.kpiBlueprintsLabel,
+    value: n(own.length),
+    detail: details.join(' · ') || undefined,
+    status: kpiStatus,
+    statusLabel,
+    link: { kind: 'blueprints' }
+  };
+}
+
+/** The display word of a service health state (`degraded`, `unhealthy`, `not reachable`). */
+export function serviceStateText(state: CockpitServiceHealthStatus, messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): string {
+  const m = withDefaults(messages);
+  switch (state) {
+    case 'degraded':
+      return m.serviceStateDegraded;
+    case 'unknown':
+      return m.serviceStateUnknown;
+    default:
+      return m.serviceStateUnhealthy;
+  }
+}
+
+/**
+ * "Services healthy" (system cockpit, AB#5558): platform services whose health check reports
+ * Healthy, of all checked. Unhealthy and not answering are errors, degraded a warning; the tile
+ * opens the health details of the first service with a problem (else Identity).
+ */
+export function servicesHealthKpi(services: CockpitServiceHealth[], messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): CockpitKpi {
+  const m = withDefaults(messages);
+  const n = (value: number) => formatCount(value, m.numberLocale);
+  const healthy = services.filter(service => service.status === 'healthy');
+  const failing = services.filter(service => service.status === 'unhealthy' || service.status === 'unknown');
+  const degraded = services.filter(service => service.status === 'degraded');
+  const problems = [...failing, ...degraded];
+  let status: CockpitKpiStatus;
+  let statusLabel: string;
+  if (failing.length > 0) {
+    status = 'error';
+    statusLabel = fmt(m.kpiServicesUnhealthy, { count: n(failing.length) });
+  } else if (degraded.length > 0) {
+    status = 'warning';
+    statusLabel = fmt(m.kpiServicesDegraded, { count: n(degraded.length) });
+  } else {
+    status = 'success';
+    statusLabel = m.kpiServicesAllHealthy;
+  }
+  return {
+    id: 'services-health',
+    label: m.kpiServicesLabel,
+    value: `${n(healthy.length)} / ${n(services.length)}`,
+    detail: problems.length > 0
+      ? problems.map(service => `${service.name}: ${serviceStateText(service.status, m)}`).join(' · ')
+      : services.map(service => service.name).join(', ') || undefined,
+    status,
+    statusLabel,
+    link: { kind: 'serviceHealth', service: problems[0]?.service ?? services[0]?.service ?? 'identity' }
+  };
+}
+
+/** "Version" (system cockpit, AB#5558): the host's versions; the first is the value. No page behind it. */
+export function versionKpi(entries: CockpitVersionEntry[], messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): CockpitKpi {
+  const m = withDefaults(messages);
+  const valid = entries.filter(entry => !!entry?.label && !!entry.version);
+  const [first, ...rest] = valid;
+  return {
+    id: 'version-info',
+    label: m.kpiVersionLabel,
+    value: first?.version ?? '—',
+    detail: rest.map(entry => `${entry.label} ${entry.version}`).join(' · ') || undefined,
+    status: 'neutral',
+    statusLabel: first?.label ?? m.kpiVersionNone
+  };
+}
+
+/** Messages with every optional member filled (members added later are optional). */
+function withDefaults(messages: CockpitWidgetMessages): Required<CockpitWidgetMessages> {
+  return resolveCockpitWidgetMessages(messages);
 }
 
 /** SVG paths of a sparkline in a `width` × `height` box (line, filled area, last point). */

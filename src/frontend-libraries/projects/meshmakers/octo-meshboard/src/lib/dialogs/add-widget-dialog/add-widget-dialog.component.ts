@@ -124,6 +124,14 @@ export class AddWidgetDialogComponent implements OnInit {
         return dataIcon;
       case 'pipelineExecutions':
         return chartAreaRangeIcon;
+      case 'tenantCount':
+        return dataIcon;
+      case 'blueprintUpdates':
+        return dataIcon;
+      case 'servicesHealth':
+        return connectorIcon;
+      case 'versionInfo':
+        return dataIcon;
       case 'recentItems':
         return clockArrowRotateIcon;
       default:
@@ -174,6 +182,14 @@ export class AddWidgetDialogComponent implements OnInit {
         return 'Construction Kit models available, ResolveFailed as error';
       case 'pipelineExecutions':
         return 'Pipeline executions in the last 24 hours with failures and an hourly sparkline';
+      case 'tenantCount':
+        return 'Child tenants of this tenant (system cockpit)';
+      case 'blueprintUpdates':
+        return 'Installed blueprints with a newer catalog version';
+      case 'servicesHealth':
+        return 'Platform services whose health check reports Healthy';
+      case 'versionInfo':
+        return 'Versions the host application knows';
       case 'recentItems':
         return 'Pages, entities and boards the viewer opened recently — personal, from the host application';
       default:

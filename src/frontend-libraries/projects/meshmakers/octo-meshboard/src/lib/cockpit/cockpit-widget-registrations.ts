@@ -2,14 +2,20 @@ import { EnvironmentProviders, Type, inject, makeEnvironmentProviders, provideAp
 import {
   AdapterStatusWidgetConfig,
   AttentionListWidgetConfig,
+  BlueprintUpdatesWidgetConfig,
   CkModelStateWidgetConfig,
   CockpitKpiWidgetConfig,
   PipelineExecutionsWidgetConfig,
-  RecentItemsWidgetConfig
+  RecentItemsWidgetConfig,
+  ServicesHealthWidgetConfig,
+  TenantCountWidgetConfig,
+  VersionInfoWidgetConfig
 } from '../models/meshboard.models';
 import { BaseWidgetConfig, PersistedWidgetData, WidgetPersistenceData, WidgetRegistryService } from '../services/widget-registry.service';
 import { AttentionProvider, COCKPIT_ATTENTION_PROVIDERS } from './attention/attention.models';
 import { AdaptersAttentionProvider } from './attention/providers/adapters.provider';
+import { BlueprintUpdatesAttentionProvider } from './attention/providers/blueprint-updates.provider';
+import { ServicesHealthAttentionProvider } from './attention/providers/services-health.provider';
 import { CkModelsResolveFailedAttentionProvider } from './attention/providers/ck-models-resolve-failed.provider';
 import { FailedExecutionsAttentionProvider } from './attention/providers/failed-executions.provider';
 import { FeaturesNotInstalledAttentionProvider } from './attention/providers/features-not-installed.provider';
@@ -23,11 +29,14 @@ import { MAX_RECENT_ITEMS, RecentItemsWidgetComponent } from './widgets/recent-i
 
 /** The library's attention providers, in display order (errors of the platform first). */
 export const BUILT_IN_ATTENTION_PROVIDERS: readonly Type<AttentionProvider>[] = [
+  // System tenant only (AB#5558): hidden — and never loaded — on tenant cockpits.
+  ServicesHealthAttentionProvider,
   CkModelsResolveFailedAttentionProvider,
   AdaptersAttentionProvider,
   FailedExecutionsAttentionProvider,
   UnregisteredPoolsAttentionProvider,
-  FeaturesNotInstalledAttentionProvider
+  FeaturesNotInstalledAttentionProvider,
+  BlueprintUpdatesAttentionProvider
 ];
 
 function parseConfig(data: PersistedWidgetData): Record<string, unknown> {
@@ -62,7 +71,11 @@ function positiveInteger(value: unknown): number | undefined {
 const KPI_DESCRIPTIONS: Record<CockpitKpiWidgetConfig['type'], string> = {
   adapterStatus: 'Adapters online of the adapters expected to run — the same rule as the Integration overview. Needs CommunicationManagement.',
   ckModelState: 'Construction Kit models available of all installed models; ResolveFailed is shown as an error. Needs AdminPanelManagement.',
-  pipelineExecutions: 'Pipeline executions of all data flows in the last 24 hours with failures and an hourly sparkline — the same counting as the Data Flows list. Needs CommunicationManagement.'
+  pipelineExecutions: 'Pipeline executions of all data flows in the last 24 hours with failures and an hourly sparkline — the same counting as the Data Flows list. Needs CommunicationManagement.',
+  tenantCount: 'Child tenants of this tenant — on the system tenant every tenant of the installation. Needs TenantManagement.',
+  blueprintUpdates: 'Installed blueprints with a newer catalog version; service-managed ones are named separately. Needs AdminPanelManagement.',
+  servicesHealth: 'Platform services (Identity, Asset Repository, Bot, Communication Controller) whose health check reports Healthy.',
+  versionInfo: 'The versions the host application knows, e.g. its own build.'
 };
 
 /** Registration of one cockpit KPI widget type (one component and dialog for all three). */
@@ -127,7 +140,8 @@ function registerKpiWidget<T extends CockpitKpiWidgetConfig>(
 
 /**
  * Registers the cockpit widgets (AB#5558): "Attention list", "Adapter status", "CK model state",
- * "Pipeline executions 24 h" and "Recent items". Persisted with `dataSourceType: 'static'` and a small JSON
+ * "Pipeline executions 24 h", the system cockpit's "Tenants", "Blueprint updates", "Services
+ * healthy" and "Version", and "Recent items". Persisted with `dataSourceType: 'static'` and a small JSON
  * config (see the README widget catalogue for the exact keys).
  */
 export function registerCockpitWidgets(registry: WidgetRegistryService): void {
@@ -185,6 +199,11 @@ export function registerCockpitWidgets(registry: WidgetRegistryService): void {
   registerKpiWidget<AdapterStatusWidgetConfig>(registry, 'adapterStatus', 'Adapter Status', { colSpan: 2, rowSpan: 1 });
   registerKpiWidget<CkModelStateWidgetConfig>(registry, 'ckModelState', 'CK Model State', { colSpan: 2, rowSpan: 1 });
   registerKpiWidget<PipelineExecutionsWidgetConfig>(registry, 'pipelineExecutions', 'Pipeline Executions 24 h', { colSpan: 2, rowSpan: 1 });
+  // System cockpit (AB#5558).
+  registerKpiWidget<TenantCountWidgetConfig>(registry, 'tenantCount', 'Tenants', { colSpan: 2, rowSpan: 1 });
+  registerKpiWidget<BlueprintUpdatesWidgetConfig>(registry, 'blueprintUpdates', 'Blueprint Updates', { colSpan: 2, rowSpan: 1 });
+  registerKpiWidget<ServicesHealthWidgetConfig>(registry, 'servicesHealth', 'Services Healthy', { colSpan: 2, rowSpan: 1 });
+  registerKpiWidget<VersionInfoWidgetConfig>(registry, 'versionInfo', 'Version', { colSpan: 2, rowSpan: 1 });
 
   registry.registerWidget<RecentItemsWidgetConfig, RecentItemsConfigResult>({
     type: 'recentItems',

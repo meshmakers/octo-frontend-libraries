@@ -221,6 +221,11 @@ export function kpiKindOf(config: CockpitKpiWidgetConfig | undefined): CockpitKp
       return 'ckModelState';
     case 'pipelineExecutions':
       return 'pipelineExecutions';
+    case 'tenantCount':
+    case 'blueprintUpdates':
+    case 'servicesHealth':
+    case 'versionInfo':
+      return config.type;
     default:
       return 'adapterStatus';
   }

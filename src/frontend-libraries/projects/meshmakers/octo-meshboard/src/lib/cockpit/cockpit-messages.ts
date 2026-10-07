@@ -2,7 +2,8 @@ import { InjectionToken, Signal, computed, inject, isSignal } from '@angular/cor
 
 /**
  * Translatable texts of the cockpit widgets (AB#5622): "Attention list", the KPI tiles
- * ("Adapter status", "CK model state", "Pipeline executions 24 h") and "Recent items".
+ * ("Adapter status", "CK model state", "Pipeline executions 24 h", and for the system cockpit
+ * "Tenants", "Blueprint updates", "Services healthy", "Version") and "Recent items".
  *
  * The widgets are created by the MeshBoard, so a host translates them through
  * {@link COCKPIT_WIDGET_MESSAGES} (or `provideCockpitWidgetHost({ messages })`); a widget used on
@@ -13,7 +14,8 @@ import { InjectionToken, Signal, computed, inject, isSignal } from '@angular/cor
  *
  * Placeholders in braces (`{count}`) are filled with {@link formatCockpitMessage}. Not covered:
  * the config dialogs (board editors) and the findings of the built-in OctoMesh attention
- * providers, except "Failed pipeline executions" (`attentionFailedExecutions*`) — a host's own
+ * providers, except "Failed pipeline executions" (`attentionFailedExecutions*`), the service
+ * health (`attentionService*`) and blueprint update (`attentionBlueprintUpdates*`) checks — a host's own
  * providers bring their own (translated) titles and texts.
  */
 export interface CockpitWidgetMessages {
@@ -128,6 +130,66 @@ export interface CockpitWidgetMessages {
   /** Default: "All available" */
   kpiCkModelsAllAvailable: string;
 
+  // --- System cockpit (AB#5558; optional members, added later) ---
+  /** Builders without the role of the tenant tile. Default: "Needs the TenantManagement role." */
+  kpiNeedsTenantManagement?: string;
+  /** Default: "Tenants" */
+  kpiTenantsLabel?: string;
+  /** Status chip with child tenants. Default: "Registered" */
+  kpiTenantsRegistered?: string;
+  /** Status chip without child tenants. Default: "No child tenants" */
+  kpiTenantsNone?: string;
+  /** Default: "Blueprint updates" */
+  kpiBlueprintsLabel?: string;
+  /** Default: "Up to date" */
+  kpiBlueprintsUpToDate?: string;
+  /** Default: "{count} available" */
+  kpiBlueprintsAvailable?: string;
+  /** Default: "No blueprints installed" */
+  kpiBlueprintsNone?: string;
+  /** Default: "{count} installed" */
+  kpiBlueprintsInstalled?: string;
+  /** Service-managed blueprints whose newer version their service has not applied yet. Default: "{count} service-managed pending" */
+  kpiBlueprintsServiceManaged?: string;
+  /** Capped catalog read. Default: "based on the first {read} of {total} catalog entries" */
+  kpiBlueprintsTruncated?: string;
+  /** Default: "Services healthy" */
+  kpiServicesLabel?: string;
+  /** Default: "All healthy" */
+  kpiServicesAllHealthy?: string;
+  /** Default: "{count} unhealthy" */
+  kpiServicesUnhealthy?: string;
+  /** Default: "{count} degraded" */
+  kpiServicesDegraded?: string;
+  /** Default: "degraded" */
+  serviceStateDegraded?: string;
+  /** Default: "unhealthy" */
+  serviceStateUnhealthy?: string;
+  /** Health endpoint without answer. Default: "not reachable" */
+  serviceStateUnknown?: string;
+  /** Default: "Version" */
+  kpiVersionLabel?: string;
+  /** Default: "No version information" */
+  kpiVersionNone?: string;
+  /** Finding title; `{name}` service, `{state}` one of the serviceState* texts. Default: "{name} service is {state}" */
+  attentionServiceTitle?: string;
+  /** Default: "Its health check reports a problem. The health details list the failing checks." */
+  attentionServiceText?: string;
+  /** Default: "Its health endpoint does not answer. Features that use the service may fail." */
+  attentionServiceUnreachableText?: string;
+  /** Default: "Open health details" */
+  attentionServiceLink?: string;
+  /** Default: "Why is the {name} service {state}?" */
+  attentionServiceExplain?: string;
+  /** Title; the count is the finding's badge. Default: "Blueprint updates available" */
+  attentionBlueprintUpdatesTitle?: string;
+  /** `{list}` = "Name 1.0.0 → 1.1.0, …". Default: "{list}. Updates are applied on the Blueprints page." */
+  attentionBlueprintUpdatesText?: string;
+  /** Default: "Service-managed: {list} — applied by the owning service when it starts." */
+  attentionBlueprintUpdatesServiceManaged?: string;
+  /** Default: "Open blueprints" */
+  attentionBlueprintUpdatesLink?: string;
+
   // --- Recent items ---
   /** Default: "Recently opened items could not be read." */
   recentLoadFailed: string;
@@ -203,6 +265,35 @@ export const DEFAULT_COCKPIT_WIDGET_MESSAGES: Readonly<Required<CockpitWidgetMes
   kpiCkModelsResolveFailed: '{count} ResolveFailed',
   kpiCkModelsImportingStatus: 'Importing',
   kpiCkModelsAllAvailable: 'All available',
+  kpiNeedsTenantManagement: 'Needs the TenantManagement role.',
+  kpiTenantsLabel: 'Tenants',
+  kpiTenantsRegistered: 'Registered',
+  kpiTenantsNone: 'No child tenants',
+  kpiBlueprintsLabel: 'Blueprint updates',
+  kpiBlueprintsUpToDate: 'Up to date',
+  kpiBlueprintsAvailable: '{count} available',
+  kpiBlueprintsNone: 'No blueprints installed',
+  kpiBlueprintsInstalled: '{count} installed',
+  kpiBlueprintsServiceManaged: '{count} service-managed pending',
+  kpiBlueprintsTruncated: 'based on the first {read} of {total} catalog entries',
+  kpiServicesLabel: 'Services healthy',
+  kpiServicesAllHealthy: 'All healthy',
+  kpiServicesUnhealthy: '{count} unhealthy',
+  kpiServicesDegraded: '{count} degraded',
+  serviceStateDegraded: 'degraded',
+  serviceStateUnhealthy: 'unhealthy',
+  serviceStateUnknown: 'not reachable',
+  kpiVersionLabel: 'Version',
+  kpiVersionNone: 'No version information',
+  attentionServiceTitle: '{name} service is {state}',
+  attentionServiceText: 'Its health check reports a problem. The health details list the failing checks.',
+  attentionServiceUnreachableText: 'Its health endpoint does not answer. Features that use the service may fail.',
+  attentionServiceLink: 'Open health details',
+  attentionServiceExplain: 'Why is the {name} service {state}?',
+  attentionBlueprintUpdatesTitle: 'Blueprint updates available',
+  attentionBlueprintUpdatesText: '{list}. Updates are applied on the Blueprints page.',
+  attentionBlueprintUpdatesServiceManaged: 'Service-managed: {list} — applied by the owning service when it starts.',
+  attentionBlueprintUpdatesLink: 'Open blueprints',
   recentLoadFailed: 'Recently opened items could not be read.',
   recentListLabel: 'Recently opened',
   recentEmpty: 'Nothing opened yet. Pages, entities and boards you open appear here.',

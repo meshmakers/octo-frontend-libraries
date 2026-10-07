@@ -425,6 +425,10 @@ providers: [
 | `ckModelState` | CK Model State | CK models available / all; ResolveFailed = error, importing = warning | AdminPanelManagement | `{ "showDetail"?: boolean }` |
 | `recentItems` | Recent Items | The viewer's recently opened pages, entities and boards (most recent first, glyph, kind, relative time as `<time>`), real links; optional "⌘K shows the same list" | none — per user, from the host's `COCKPIT_RECENT_ITEMS`; without it "Not available" + collapsed | `{ "maxItems"?: number }` (default 8, 1–20) |
 | `pipelineExecutions` | Pipeline Executions 24 h | Executions of all data flows, failed count, hourly sparkline (same counting as the Studio's Data Flows list) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean, "showSparkline"?: boolean }` |
+| `tenantCount` | Tenants | Child tenants of the tenant (on the system tenant: all tenants), first ids; links `tenants` | TenantManagement | `{ "showDetail"?: boolean }` |
+| `blueprintUpdates` | Blueprint Updates | Installed blueprints with a newer catalog version (warning); service-managed `System.*` ones only in the detail; links `blueprints` | AdminPanelManagement | `{ "showDetail"?: boolean }` |
+| `servicesHealth` | Services Healthy | Identity, Asset Repository, Bot, Communication Controller (when installed) healthy / all; unhealthy or silent = error, degraded = warning; links `serviceHealth` of the first problem | none | `{ "showDetail"?: boolean }` |
+| `versionInfo` | Version | The host's versions (`COCKPIT_VERSION_SOURCE` / `provideCockpitWidgetHost({ versions })`), first = value; no link | none — without the source "Not available" + collapsed | `{ "showDetail"?: boolean }` |
 
 - **Role abstraction.** The library never imports the host's auth: `COCKPIT_VIEWER_ACCESS`
   (`isInRole(role)`) answers role checks, `CkModelService.isModelAvailable` the CK models.
@@ -467,6 +471,13 @@ providers: [
   error from `errorFailed` failures (default 1,000) or a failure share of `errorRatio` (default
   0.2); `null` disables an error rule. Override with `{ provide: COCKPIT_FAILED_EXECUTIONS_OPTIONS,
   useValue: { minFailed: 50 } }`. Links to `dataFlows` (the list has no "failed only" filter).
+- **System cockpit checks** (AB#5558). `services-unhealthy` (one finding per platform service
+  that is not Healthy, links `serviceHealth`) and `blueprint-updates` (info, count badge, links
+  `blueprints`; AdminPanelManagement) are visible on the system tenant only
+  (`CockpitContextService.isSystemTenant`, from `systemTenantId` of the platform configuration,
+  `octosystem` without it) — tenant cockpits are unchanged. Texts: `attentionService*`,
+  `attentionBlueprintUpdates*`, `kpiTenants*`, `kpiBlueprints*`, `kpiServices*`, `kpiVersion*`
+  (optional members). Seeded by `System.UI.SystemCockpit` ≥ 1.1.0.
 - **Data.** Lean documents with explicit fields in `graphQL/cockpit*.graphql`; the adapter states
   and the data flow executions are shared per tenant for 10 s between the KPI and the attention
   list (`CockpitAdapterStatesService`, `CockpitDataFlowExecutionsService`).

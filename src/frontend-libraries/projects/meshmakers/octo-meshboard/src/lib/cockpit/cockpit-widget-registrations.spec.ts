@@ -47,6 +47,46 @@ const TENANT_COCKPIT_SEED: SeedWidgetRow[] = [
   { name: 'Recently opened', type: 'recentItems', col: 4, row: 4, colSpan: 3, rowSpan: 2, dataSourceType: 'static', config: '{"maxItems":8}' }
 ];
 
+/** Blueprint version of System.UI.SystemCockpit whose seed the fixture below describes (AB#5558). */
+const SYSTEM_COCKPIT_SEED_VERSION = '1.1.0';
+
+/**
+ * The widgets of the octosystem `cockpit` board seeded by System.UI.SystemCockpit 1.1.0
+ * (octo-platform-services `src/SystemUiCkModel/Blueprints/System.UI.SystemCockpit/seed-data/entities.yaml`),
+ * in seed order. Same sibling check as the tenant cockpit.
+ */
+const SYSTEM_COCKPIT_SEED: SeedWidgetRow[] = [
+  { name: 'Needs attention', type: 'attentionList', col: 1, row: 1, colSpan: 6, rowSpan: 2, dataSourceType: 'static', config: '{"maxItems":6}' },
+  { name: 'Tenants', type: 'tenantCount', col: 1, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
+  { name: 'CK models', type: 'ckModelState', col: 3, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
+  { name: 'Blueprint updates', type: 'blueprintUpdates', col: 5, row: 3, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
+  { name: 'Services healthy', type: 'servicesHealth', col: 1, row: 4, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
+  { name: 'Adapters online', type: 'adapterStatus', col: 3, row: 4, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
+  { name: 'Pipeline executions 24 h', type: 'pipelineExecutions', col: 5, row: 4, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true,"showSparkline":true}' },
+  { name: 'Version', type: 'versionInfo', col: 1, row: 5, colSpan: 2, rowSpan: 1, dataSourceType: 'static', config: '{"showDetail":true}' },
+  { name: 'Error events', type: 'kpi', col: 3, row: 5, colSpan: 2, rowSpan: 1, dataSourceType: 'runtimeEntity',
+    config: '{"valueAttribute":"_count","icon":"chart","filters":[{"attributePath":"level","operator":"EQUALS","comparisonValue":"Error"}]}' },
+  { name: 'Fatal events', type: 'kpi', col: 5, row: 5, colSpan: 2, rowSpan: 1, dataSourceType: 'runtimeEntity',
+    config: '{"valueAttribute":"_count","icon":"chart","filters":[{"attributePath":"level","operator":"EQUALS","comparisonValue":"Critical"}]}' },
+  { name: 'Construction Kit Models', type: 'pieChart', col: 1, row: 6, colSpan: 3, rowSpan: 2, dataSourceType: 'constructionKitQuery',
+    config: '{"chartType":"donut","categoryField":"","valueField":"","showLabels":true,"showLegend":true,"legendPosition":"right","ckQueryTarget":"models","ckGroupBy":"modelState"}' },
+  { name: 'Recently opened', type: 'recentItems', col: 4, row: 6, colSpan: 3, rowSpan: 2, dataSourceType: 'static', config: '{"maxItems":8}' }
+];
+
+/** Fails when two widgets share a cell or a widget leaves the 6-column board. */
+function expectNoOverlap(widgets: AnyWidgetConfig[]): void {
+  const cells = new Set<string>();
+  for (const w of widgets) {
+    for (let c = w.col; c < w.col + w.colSpan; c++) {
+      for (let r = w.row; r < w.row + w.rowSpan; r++) {
+        expect(c).toBeLessThanOrEqual(6);
+        expect(cells.has(`${c}:${r}`)).toBe(false);
+        cells.add(`${c}:${r}`);
+      }
+    }
+  }
+}
+
 function persisted(row: SeedWidgetRow, index: number): PersistedWidgetData {
   return {
     rtId: `seed-${index}`,
@@ -235,6 +275,49 @@ describe('Cockpit widget registrations (AB#5558)', () => {
       return;
     }
     expect(parseSeedWidgets(fs.readFileSync(`${blueprintDir}/seed-data/entities.yaml`, 'utf8'))).toEqual(TENANT_COCKPIT_SEED);
+  });
+
+  it('parses the seeded system cockpit board (SystemCockpit 1.1.0) as the library persists it', () => {
+    const widgets = SYSTEM_COCKPIT_SEED.map((row, index) => registry.deserializeWidget(persisted(row, index)));
+    expect(widgets.map(w => w.type)).toEqual([
+      'attentionList', 'tenantCount', 'ckModelState', 'blueprintUpdates', 'servicesHealth', 'adapterStatus',
+      'pipelineExecutions', 'versionInfo', 'kpi', 'kpi', 'pieChart', 'recentItems'
+    ]);
+    expect(widgets[1]).toMatchObject({ title: 'Tenants', showDetail: true, colSpan: 2, dataSource: { type: 'static' } });
+    for (const [index, widget] of widgets.entries()) {
+      if (!isCockpitWidgetType(widget.type) && widget.type !== 'recentItems') continue;
+      const serialized = registry.serializeWidget(widget);
+      expect(serialized.dataSourceType).toBe(SYSTEM_COCKPIT_SEED[index].dataSourceType);
+      expect(JSON.parse(JSON.stringify(serialized.config))).toEqual(JSON.parse(SYSTEM_COCKPIT_SEED[index].config));
+    }
+    expectNoOverlap(widgets);
+  });
+
+  it('registers the system cockpit KPIs as cockpit widgets with the KPI component', () => {
+    for (const type of ['tenantCount', 'blueprintUpdates', 'servicesHealth', 'versionInfo'] as const) {
+      expect(isCockpitWidgetType(type)).toBe(true);
+      expect(registry.getWidgetComponent(type)).toBe(CockpitKpiWidgetComponent);
+      expect(registry.createWidget(type, { id: type, title: type, col: 1, row: 1, colSpan: 1, rowSpan: 1 })).toMatchObject({ type, colSpan: 2, rowSpan: 1, dataSource: { type: 'static' } });
+      const applied = registry.applyConfigResult(registry.createWidget(type, { id: type, title: type, col: 1, row: 1, colSpan: 2, rowSpan: 1 }), { ckTypeId: '', showDetail: false, showSparkline: false } as never);
+      expect(registry.serializeWidget(applied)).toEqual({ dataSourceType: 'static', config: { showDetail: false } });
+      expect(roundTrip(applied)).toMatchObject({ type, showDetail: false });
+    }
+  });
+
+  it('matches the real system cockpit seed when a sibling octo-platform-services carries this seed version', async (context) => {
+    const moduleName = 'node:fs';
+    const fs = (await import(/* @vite-ignore */ moduleName)) as NodeFs;
+    const blueprintDir = `${process.cwd()}/../../../octo-platform-services/src/SystemUiCkModel/Blueprints/System.UI.SystemCockpit`;
+    if (!fs.existsSync(`${blueprintDir}/blueprint.yaml`)) {
+      context.skip('octo-platform-services is not checked out next to this repository');
+      return;
+    }
+    const siblingVersion = blueprintVersionOf(fs.readFileSync(`${blueprintDir}/blueprint.yaml`, 'utf8'));
+    if (!siblingVersion || compareVersions(siblingVersion, SYSTEM_COCKPIT_SEED_VERSION) < 0) {
+      context.skip(`sibling SystemCockpit is ${siblingVersion ?? 'unknown'}, the fixture targets ${SYSTEM_COCKPIT_SEED_VERSION}`);
+      return;
+    }
+    expect(parseSeedWidgets(fs.readFileSync(`${blueprintDir}/seed-data/entities.yaml`, 'utf8'))).toEqual(SYSTEM_COCKPIT_SEED);
   });
 
   it('reads and compares blueprint versions for the sibling check', () => {
