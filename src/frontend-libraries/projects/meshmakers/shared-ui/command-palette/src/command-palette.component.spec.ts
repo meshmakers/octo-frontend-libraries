@@ -267,6 +267,15 @@ describe('CommandPaletteComponent', () => {
     expect(service.isOpen()).toBe(true);
   });
 
+  it('renders every footer key hint as its own key + label pair (AB#5621)', async () => {
+    await create();
+    const prefixes = [...element().querySelectorAll('.cp-footer .cp-prefix')] as HTMLElement[];
+    expect(prefixes.map(p => p.querySelector('kbd')?.textContent)).toEqual(['>', '@', '#', '/']);
+    for (const prefix of prefixes) {
+      expect(prefix.textContent!.replace(prefix.querySelector('kbd')!.textContent!, '').trim().length).toBeGreaterThan(0);
+    }
+  });
+
   it('shows an empty state', async () => {
     await create();
     type('zzzz');

@@ -228,13 +228,26 @@ kbd {
   }
 }
 
+// The prefix legend takes part in the footer's flex row (AB#5621): every key hint, prefix or
+// not, is one flex item with the same gap, so pairs never run together ("entities#boards") and
+// a narrow dialog wraps whole hints left-aligned with consistent spacing.
 .cp-prefixes {
-  margin-left: auto;
-  white-space: normal;
+  display: contents;
 
-  // The prefix legend wraps between its pairs only.
   .cp-prefix {
     white-space: nowrap;
+  }
+}
+
+// Normal desktop widths: the dialog is wide enough for all hints on one row, so the prefix
+// legend is pushed to the right end of that row.
+@media (min-width: 1100px) {
+  .cp-dialog {
+    width: min(720px, 100%);
+  }
+
+  .cp-prefixes > .cp-prefix:first-child {
+    margin-left: auto;
   }
 }
 
