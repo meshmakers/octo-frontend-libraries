@@ -42,7 +42,7 @@ interface CopyOption {
       [svgIcon]="copyIcon"
       look="flat"
       size="small"
-      title="Copy Entity ID to clipboard"
+      [title]="tooltip"
       (itemClick)="copyToClipboard($event)">
       <ng-template kendoDropDownButtonItemTemplate let-item>
         <div class="copy-item">
@@ -50,7 +50,7 @@ interface CopyOption {
           <span class="copy-value">{{ item.displayText }}</span>
         </div>
       </ng-template>
-      Copy ID
+      {{ buttonText }}
     </kendo-dropdownbutton>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -117,6 +117,18 @@ export class EntityIdInfoComponent {
   /** The CkTypeId - full versioned Construction Kit type ID (e.g., System.Communication-2.0.3/MeshAdapter-1) */
   @Input() ckTypeId?: string;
 
+  /** Button text (translatable, AB#5623). Default `Copy ID`. */
+  @Input() buttonText = 'Copy ID';
+
+  /** Tooltip of the button (translatable, AB#5623). Default `Copy Entity ID to clipboard`. */
+  @Input() tooltip = 'Copy Entity ID to clipboard';
+
+  /** Notification after copying; `{label}` is replaced by the copied ID kind (AB#5623). Default `{label} copied`. */
+  @Input() copiedMessage = '{label} copied';
+
+  /** Notification when copying failed (AB#5623). Default `Failed to copy to clipboard`. */
+  @Input() copyFailedMessage = 'Failed to copy to clipboard';
+
   protected get copyOptions(): CopyOption[] {
     const fullCkTypeId = this.ckTypeId || this.rtCkTypeId;
     const rtEntityId = `${this.rtCkTypeId}@${this.rtId}`;
@@ -153,10 +165,10 @@ export class EntityIdInfoComponent {
   protected async copyToClipboard(option: CopyOption): Promise<void> {
     try {
       await navigator.clipboard.writeText(option.value);
-      this.notificationService.showSuccess(`${option.label} copied`, 2000);
+      this.notificationService.showSuccess(this.copiedMessage.split('{label}').join(option.label), 2000);
     } catch (error) {
       console.error('Failed to copy to clipboard:', error);
-      this.notificationService.showError('Failed to copy to clipboard');
+      this.notificationService.showError(this.copyFailedMessage);
     }
   }
 }

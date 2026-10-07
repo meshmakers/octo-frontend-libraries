@@ -40,6 +40,22 @@
     cursor: not-allowed;
   }
 
+  // Selected state of toggle buttons (Kendo `togglable` / button groups set `.k-selected`,
+  // AB#5623). Without it the reset above hid the state: the a11y tree said "pressed", the eye saw
+  // nothing (quick-view segments in list toolbars). Before the primary branch, so a primary
+  // button keeps its look. z-index lifts the accent border above the next grouped button.
+  &.k-selected {
+    background: var(--theme-bg-selected, var(--octo-mint-20));
+    border-color: var(--theme-accent, var(--octo-mint));
+    color: var(--theme-text-accent, var(--octo-mint));
+    z-index: 1;
+
+    &:hover:not(:disabled) {
+      background: var(--theme-bg-selected, var(--octo-mint-20));
+      border-color: var(--theme-accent, var(--octo-mint));
+    }
+  }
+
   &.k-button-solid-primary,
   &.k-button-primary,
   &[themecolor="primary"] {
