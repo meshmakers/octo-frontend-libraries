@@ -122,7 +122,7 @@ import {
         type="button"
         [svgIcon]="searchIcon"
         [disabled]="disabled"
-        [title]="advancedSearchLabel || _messages.advancedSearchLabel"
+        [title]="advancedSearchLabel || _messages.advancedSearchLabel" [attr.aria-label]="advancedSearchLabel || _messages.advancedSearchLabel"
         class="dialog-button"
         (click)="openDialog()">
       </button>

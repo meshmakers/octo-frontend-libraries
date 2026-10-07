@@ -26,6 +26,7 @@ and other packages, and hosts that do not use it keep the primary bundle unchang
 | `EntityFormsMessages`, `DEFAULT_ENTITY_FORMS_MESSAGES` | All UI strings (English defaults; pass `Partial<…>` via `messages`) |
 | `ENTITY_FORM_FALLBACK_FORMS`, `provideEntityFormFallbacks`, `selectFallbackForms` | Host-provided built-in forms that apply per type where the resolution would end at `form-default` (see below) |
 | `ENTITY_FORM_ACTION_CONFIRMATION` | Optional host hook asked before a delete (e.g. a production-mode check) |
+| `ENTITY_FORM_DANGER_CONFIRMATION`, `entityDeleteConfirmation` | Optional host replacement of the delete danger confirmation (AB#5579) |
 
 ## Usage
 
@@ -221,8 +222,19 @@ responsible for keeping its copies in step with the seed.
 ## Action confirmation (`ENTITY_FORM_ACTION_CONFIRMATION`)
 
 Optional `(request: { action: 'delete', ckTypeId, count, description }) => Promise<boolean>`,
-asked by `mm-entity-list` and `mm-entity-page` **before** their own yes/no dialog; `false` (or a
+asked by `mm-entity-list` and `mm-entity-page` **before** their own danger confirmation; `false` (or a
 throwing hook) cancels. The Refinery Studio maps it to its production-mode confirmation.
+
+## Delete confirmation (`ENTITY_FORM_DANGER_CONFIRMATION`, AB#5579)
+
+Deletes ask `ConfirmationService.showDangerConfirm` (shared-ui action guideline): the title names the
+entity ("Delete Primary?") or the count ("Delete 3 entities?"), the confirming button says
+"Delete entity" / "Delete entities", Cancel keeps the initial focus. Texts: the optional
+`confirmDelete*` keys of `EntityFormsMessages` (the former `confirmDeleteTitle` / `confirmDeleteMessage` /
+`confirmDeleteManyMessage` are no longer shown). A host that adds environment knowledge provides
+`ENTITY_FORM_DANGER_CONFIRMATION: (options: DangerConfirmationOptions, request) => Promise<boolean>`
+instead of the built-in dialog — e.g. the Studio's `DangerConfirmService.confirm` (production = type the
+name); it then no longer needs the production check in `ENTITY_FORM_ACTION_CONFIRMATION`.
 
 ## `<mm-entity-list>`
 

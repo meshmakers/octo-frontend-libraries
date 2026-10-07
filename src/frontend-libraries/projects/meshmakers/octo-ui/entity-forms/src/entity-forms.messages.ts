@@ -78,11 +78,31 @@ export interface EntityFormsMessages {
   furtherAttributes: string;
 
   // --- Confirmations ---
+  /** @deprecated Deletes use the danger confirmation keys below (AB#5579); no longer shown. */
   confirmDeleteTitle: string;
-  /** `{name}` = display name of the entity. */
+  /** `{name}` = display name of the entity. @deprecated No longer shown (AB#5579). */
   confirmDeleteMessage: string;
-  /** `{count}` = number of entities. */
+  /** `{count}` = number of entities. @deprecated No longer shown (AB#5579). */
   confirmDeleteManyMessage: string;
+  /**
+   * Danger confirmation (AB#5579): title naming the entity, `{name}` = display name.
+   * Optional for hosts that pass a complete message set; missing = English default.
+   */
+  confirmDeleteNamedTitle?: string;
+  /** Danger confirmation title of a multi-delete; `{count}` = number of entities. */
+  confirmDeleteManyTitle?: string;
+  /** Target shown in a multi-delete confirmation; `{count}` = number of entities. */
+  confirmDeleteManyTarget?: string;
+  /** What a single delete loses. */
+  confirmDeleteConsequence?: string;
+  /** What a multi-delete loses; `{count}` = number of entities. */
+  confirmDeleteManyConsequence?: string;
+  /** Confirming button of a single delete (verb + object). */
+  confirmDeleteConfirmText?: string;
+  /** Confirming button of a multi-delete (verb + object). */
+  confirmDeleteManyConfirmText?: string;
+  /** Row name in the accessible names of the records editor's row buttons; `{index}` = 1-based row. */
+  recordRowLabel?: string;
   unsavedChangesTitle: string;
   unsavedChangesMessage: string;
   discardChanges: string;
@@ -224,6 +244,14 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   confirmDeleteTitle: 'Delete entity',
   confirmDeleteMessage: 'Do you really want to delete "{name}"? This cannot be undone.',
   confirmDeleteManyMessage: 'Do you really want to delete {count} entities? This cannot be undone.',
+  confirmDeleteNamedTitle: 'Delete {name}?',
+  confirmDeleteManyTitle: 'Delete {count} entities?',
+  confirmDeleteManyTarget: '{count} entities',
+  confirmDeleteConsequence: 'The entity and its values are deleted. This cannot be undone.',
+  confirmDeleteManyConsequence: 'The {count} entities and their values are deleted. This cannot be undone.',
+  confirmDeleteConfirmText: 'Delete entity',
+  confirmDeleteManyConfirmText: 'Delete entities',
+  recordRowLabel: 'row {index}',
   unsavedChangesTitle: 'Unsaved changes',
   unsavedChangesMessage: 'You have unsaved changes. Do you want to discard them?',
   discardChanges: 'Discard',

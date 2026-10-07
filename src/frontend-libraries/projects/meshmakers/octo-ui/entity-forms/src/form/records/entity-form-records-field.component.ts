@@ -5,9 +5,10 @@ import { firstValueFrom } from 'rxjs';
 import { GridModule } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { DialogCloseResult, DialogService } from '@progress/kendo-angular-dialog';
-import { arrowDownIcon, arrowUpIcon, pencilIcon, plusIcon, trashIcon, eyeIcon } from '@progress/kendo-svg-icons';
+import { arrowDownIcon, arrowUpIcon } from '@progress/kendo-svg-icons';
+import { MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import type { CkRecordInfo } from '../../models/entity-form.models';
-import { EntityFormsMessages, mergeEntityFormsMessages, secretStatusLabelsOf } from '../../entity-forms.messages';
+import { DEFAULT_ENTITY_FORMS_MESSAGES, EntityFormsMessages, formatEntityFormsMessage, mergeEntityFormsMessages, secretStatusLabelsOf } from '../../entity-forms.messages';
 import { EntityFormService } from '../../services/entity-form.service';
 import { buildRecordFieldModels, formatRecordCell, formatRecordSecretCell, humanizeAttributeName } from './entity-form-record-row';
 import { EntityFormRecordRowDialogComponent } from './entity-form-record-row-dialog.component';
@@ -67,18 +68,18 @@ interface GridRow {
             <div class="mm-efrec-actions">
               @if (isDisabled()) {
                 <button kendoButton type="button" fillMode="flat" size="small" [svgIcon]="icons.view"
-                        [title]="msg().viewTitle" [attr.aria-label]="msg().viewTitle" (click)="editRow(dataItem.index)"></button>
+                        [title]="msg().viewTitle" [attr.aria-label]="msg().viewTitle + ' ' + rowLabel(dataItem.index)" (click)="editRow(dataItem.index)"></button>
               } @else {
                 <button kendoButton type="button" fillMode="flat" size="small" [svgIcon]="icons.edit" class="mm-efrec-edit"
-                        [title]="msg().edit" [attr.aria-label]="msg().edit" (click)="editRow(dataItem.index)"></button>
+                        [title]="msg().edit" [attr.aria-label]="msg().edit + ' ' + rowLabel(dataItem.index)" (click)="editRow(dataItem.index)"></button>
                 <button kendoButton type="button" fillMode="flat" size="small" [svgIcon]="icons.up" class="mm-efrec-up"
-                        [title]="msg().moveUp" [attr.aria-label]="msg().moveUp" [disabled]="dataItem.index === 0"
+                        [title]="msg().moveUp" [attr.aria-label]="msg().moveUp + ' ' + rowLabel(dataItem.index)" [disabled]="dataItem.index === 0"
                         (click)="moveUp(dataItem.index)"></button>
                 <button kendoButton type="button" fillMode="flat" size="small" [svgIcon]="icons.down" class="mm-efrec-down"
-                        [title]="msg().moveDown" [attr.aria-label]="msg().moveDown" [disabled]="dataItem.index === rows().length - 1"
+                        [title]="msg().moveDown" [attr.aria-label]="msg().moveDown + ' ' + rowLabel(dataItem.index)" [disabled]="dataItem.index === rows().length - 1"
                         (click)="moveDown(dataItem.index)"></button>
-                <button kendoButton type="button" fillMode="flat" size="small" [svgIcon]="icons.remove" class="mm-efrec-remove"
-                        [title]="msg().remove" [attr.aria-label]="msg().remove" (click)="removeRow(dataItem.index)"></button>
+                <button kendoButton type="button" fillMode="flat" size="small" themeColor="error" [svgIcon]="icons.remove" class="mm-efrec-remove"
+                        [title]="msg().remove" [attr.aria-label]="msg().remove + ' ' + rowLabel(dataItem.index)" (click)="removeRow(dataItem.index)"></button>
               }
             </div>
           </ng-template>
@@ -111,7 +112,16 @@ export class EntityFormRecordsFieldComponent implements ControlValueAccessor {
   /** No key ring (Q17): SECRET members cannot get a new value in the row editor (badge + hint only). */
   readonly secretWritesDisabled = input(false);
 
-  protected readonly icons = { plus: plusIcon, edit: pencilIcon, up: arrowUpIcon, down: arrowDownIcon, remove: trashIcon, view: eyeIcon };
+  protected readonly icons = {
+    plus: MM_ACTION_ICONS.add, edit: MM_ACTION_ICONS.edit, up: arrowUpIcon, down: arrowDownIcon,
+    remove: MM_ACTION_ICONS.delete, view: MM_ACTION_ICONS.view,
+  };
+
+  /** Row name in the accessible names of the row buttons ("Remove row 2", AB#5579). */
+  protected rowLabel(index: number): string {
+    const m = this.msg();
+    return formatEntityFormsMessage(m.recordRowLabel ?? DEFAULT_ENTITY_FORMS_MESSAGES.recordRowLabel!, { index: index + 1 });
+  }
   protected readonly msg = computed(() => mergeEntityFormsMessages(this.messages()));
 
   protected readonly rows = signal<Record<string, unknown>[]>([]);

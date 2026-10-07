@@ -12,6 +12,7 @@
                 [svgIcon]="backIcon"
                 fillMode="flat"
                 title="Back to library list"
+                aria-label="Back to library list"
                 (click)="navigateBack()">
         </button>
         <h2 class="library-title">{{ libraryName() }}</h2>
@@ -24,6 +25,7 @@
                 [svgIcon]="uploadIcon"
                 fillMode="outline"
                 title="Import SVG"
+                aria-label="Import SVG"
                 (click)="showSvgImportDialogFn()"
                 [disabled]="!!library()?.isReadOnly">
         </button>
@@ -31,6 +33,7 @@
                 [svgIcon]="plusIcon"
                 themeColor="primary"
                 title="New Symbol"
+                aria-label="New Symbol"
                 (click)="showCreateSymbolDialog()"
                 [disabled]="!!library()?.isReadOnly">
         </button>
@@ -133,13 +136,10 @@
           </div>
           <div class="symbol-info">
             <span class="symbol-name">{{ symbol.name }}</span>
-            <div class="symbol-actions">
-              <button kendoButton [svgIcon]="editIcon" fillMode="flat" size="small" (click)="editSymbol(symbol); $event.stopPropagation()">
-              </button>
-              <button kendoButton [svgIcon]="deleteIcon" fillMode="flat" size="small"
-                      [disabled]="!!library()?.isReadOnly"
-                      (click)="deleteSymbol(symbol); $event.stopPropagation()">
-              </button>
+            <!-- AB#5580: shared row actions (icon buttons with tooltip + accessible name, danger delete) -->
+            <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+            <div class="symbol-actions" (click)="$event.stopPropagation()">
+              <mm-row-actions [actions]="symbolActions()" [rowLabel]="symbol.name" (triggered)="onSymbolAction($event.id, symbol)" />
             </div>
           </div>
         </div>

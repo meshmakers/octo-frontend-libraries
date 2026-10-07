@@ -60,6 +60,7 @@
                 [svgIcon]="undoIcon"
                 (click)="resetTimeFilterToDefault()"
                 title="Reset to default time filter"
+                aria-label="Reset to default time filter"
                 fillMode="flat"
                 size="small">
               </button>
@@ -92,6 +93,7 @@
               [svgIcon]="gridLayoutIcon"
               (click)="openManager()"
               title="Manage MeshBoards"
+              aria-label="Manage MeshBoards"
               fillMode="flat">
             </button>
 
@@ -101,6 +103,7 @@
               [svgIcon]="gearIcon"
               (click)="openSettings()"
               title="MeshBoard Settings"
+              aria-label="MeshBoard Settings"
               fillMode="flat">
             </button>
           }
@@ -111,6 +114,7 @@
             [svgIcon]="arrowRotateCwIcon"
             (click)="refresh()"
             title="Refresh All Widgets"
+            aria-label="Refresh All Widgets"
             fillMode="flat">
           </button>
 
@@ -122,6 +126,7 @@
                 [svgIcon]="pencilIcon"
                 (click)="toggleEditMode()"
                 title="Enter Edit Mode"
+                aria-label="Enter Edit Mode"
                 fillMode="flat">
               </button>
             } @else {
@@ -130,6 +135,7 @@
                 [svgIcon]="xIcon"
                 (click)="cancelEdit()"
                 title="Cancel Edit Mode"
+                aria-label="Cancel Edit Mode"
                 fillMode="flat">
               </button>
             }
@@ -202,7 +208,8 @@
                 fillMode="flat"
                 size="small"
                 [disabled]="first"
-                title="Move up">
+                title="Move up"
+                [attr.aria-label]="'Move up ' + widget.title">
               </button>
               <button
                 kendoButton
@@ -211,7 +218,8 @@
                 fillMode="flat"
                 size="small"
                 [disabled]="last"
-                title="Move down">
+                title="Move down"
+                [attr.aria-label]="'Move down ' + widget.title">
               </button>
               @if (supportsConfiguration(widget)) {
                 <button
@@ -222,7 +230,8 @@
                   size="small"
                   class="config-widget-btn"
                   [class.needs-config]="isWidgetUnconfigured(widget)"
-                  [title]="isWidgetUnconfigured(widget) ? 'Configure data source (required)' : 'Configure data source'">
+                  [title]="isWidgetUnconfigured(widget) ? 'Configure data source (required)' : 'Configure data source'"
+                  [attr.aria-label]="(isWidgetUnconfigured(widget) ? 'Configure data source (required) ' : 'Configure data source ') + widget.title">
                 </button>
               }
               <button
@@ -232,16 +241,19 @@
                 fillMode="flat"
                 size="small"
                 class="edit-widget-btn"
-                title="Edit widget">
+                title="Edit widget"
+                [attr.aria-label]="'Edit widget ' + widget.title">
               </button>
               <button
                 kendoButton
                 [svgIcon]="trashIcon"
                 (click)="removeWidget(widget.id)"
                 fillMode="flat"
+                themeColor="error"
                 size="small"
                 class="remove-widget-btn"
-                title="Delete widget">
+                title="Delete widget"
+                [attr.aria-label]="'Delete widget ' + widget.title">
               </button>
             </div>
           </div>
@@ -295,7 +307,8 @@
                         size="small"
                         class="config-widget-btn"
                         [class.needs-config]="isWidgetUnconfigured(widget)"
-                        [title]="isWidgetUnconfigured(widget) ? 'Configure data source (required)' : 'Configure data source'">
+                        [title]="isWidgetUnconfigured(widget) ? 'Configure data source (required)' : 'Configure data source'"
+                  [attr.aria-label]="(isWidgetUnconfigured(widget) ? 'Configure data source (required) ' : 'Configure data source ') + widget.title">
                       </button>
                     }
                     <button
@@ -305,7 +318,8 @@
                       fillMode="flat"
                       size="small"
                       class="edit-widget-btn"
-                      title="Edit position">
+                      title="Edit position"
+                      [attr.aria-label]="'Edit position ' + widget.title">
                     </button>
                     <button
                       kendoButton
@@ -314,16 +328,19 @@
                       fillMode="flat"
                       size="small"
                       class="duplicate-widget-btn"
-                      title="Duplicate widget">
+                      title="Duplicate widget"
+                      [attr.aria-label]="'Duplicate widget ' + widget.title">
                     </button>
                     <button
                       kendoButton
                       [svgIcon]="trashIcon"
                       (click)="removeWidget(widget.id)"
                       fillMode="flat"
+                      themeColor="error"
                       size="small"
                       class="remove-widget-btn"
-                      title="Delete widget">
+                      title="Delete widget"
+                [attr.aria-label]="'Delete widget ' + widget.title">
                     </button>
                   </div>
                 }

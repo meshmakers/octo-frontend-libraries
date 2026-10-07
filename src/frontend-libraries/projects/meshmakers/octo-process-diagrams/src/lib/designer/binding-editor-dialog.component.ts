@@ -82,9 +82,14 @@ interface TargetOption {
                     </div>
                     <div class="binding-actions">
                       <button kendoButton [svgIcon]="expandedIndex() === i ? chevronUpIcon : chevronDownIcon"
-                              look="flat" size="small">
+                              look="flat" size="small"
+                              [title]="expandedIndex() === i ? 'Collapse binding' : 'Expand binding'"
+                              [attr.aria-label]="(expandedIndex() === i ? 'Collapse binding ' : 'Expand binding ') + getTargetName(binding)"
+                              [attr.aria-expanded]="expandedIndex() === i">
                       </button>
-                      <button kendoButton [svgIcon]="trashIcon" look="flat" size="small"
+                      <button kendoButton [svgIcon]="trashIcon" look="flat" size="small" themeColor="error"
+                              title="Delete binding"
+                              [attr.aria-label]="'Delete binding ' + getTargetName(binding)"
                               (click)="deleteBinding(i, $event)">
                       </button>
                     </div>
@@ -170,6 +175,7 @@ interface TargetOption {
                                         class="anchor-point"
                                         [class.selected]="(binding.anchor ?? 'center') === anchor.value"
                                         [title]="anchor.label"
+                                        [attr.aria-label]="anchor.label"
                                         (click)="updateBinding(i, 'anchor', anchor.value)">
                                   <span class="anchor-dot"></span>
                                 </button>

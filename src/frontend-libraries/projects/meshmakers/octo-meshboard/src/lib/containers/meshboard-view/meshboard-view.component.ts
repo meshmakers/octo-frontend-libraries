@@ -17,10 +17,8 @@ import {
   pencilIcon,
   xIcon,
   linkIcon,
-  trashIcon,
   gridLayoutIcon,
   undoIcon,
-  copyIcon,
   infoCircleIcon,
   arrowUpIcon,
   arrowDownIcon
@@ -59,7 +57,8 @@ import {
   TimeRangeUtils,
   TimeRangeSelection as SharedTimeRangeSelection,
   TimeRangePickerLabels,
-  WindowStateService
+  WindowStateService,
+  MM_ACTION_ICONS
 } from '@meshmakers/shared-ui';
 
 /**
@@ -120,10 +119,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly pencilIcon = pencilIcon;
   protected readonly xIcon = xIcon;
   protected readonly linkIcon = linkIcon;
-  protected readonly trashIcon = trashIcon;
+  protected readonly trashIcon = MM_ACTION_ICONS.delete;
   protected readonly gridLayoutIcon = gridLayoutIcon;
   protected readonly undoIcon = undoIcon;
-  protected readonly copyIcon = copyIcon;
+  /** Duplicate widget (canonical duplicate icon, AB#5580). */
+  protected readonly copyIcon = MM_ACTION_ICONS.duplicate;
   protected readonly infoCircleIcon = infoCircleIcon;
   protected readonly arrowUpIcon = arrowUpIcon;
   protected readonly arrowDownIcon = arrowDownIcon;

@@ -114,7 +114,7 @@ interface DirectionOption {
                     fillMode="flat"
                     size="small"
                     [svgIcon]="copyIcon"
-                    [title]="_messages.copyToClipboard"
+                    [title]="_messages.copyToClipboard" [attr.aria-label]="_messages.copyToClipboard"
                     (click)="copyToClipboard(entity.rtId, _messages.runtimeId)"
                   ></button>
                 </div>
@@ -128,7 +128,7 @@ interface DirectionOption {
                     fillMode="flat"
                     size="small"
                     [svgIcon]="copyIcon"
-                    [title]="_messages.copyToClipboard"
+                    [title]="_messages.copyToClipboard" [attr.aria-label]="_messages.copyToClipboard"
                     (click)="copyToClipboard(entity.ckTypeId, _messages.typeId)"
                   ></button>
                 </div>
@@ -142,7 +142,7 @@ interface DirectionOption {
                     fillMode="flat"
                     size="small"
                     [svgIcon]="copyIcon"
-                    [title]="_messages.copyEntityIdentifierToClipboard"
+                    [title]="_messages.copyEntityIdentifierToClipboard" [attr.aria-label]="_messages.copyEntityIdentifierToClipboard"
                     (click)="
                       copyToClipboard(
                         getEntityIdentifier(),

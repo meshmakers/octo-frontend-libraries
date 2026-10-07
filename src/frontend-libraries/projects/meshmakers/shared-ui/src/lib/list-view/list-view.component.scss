@@ -498,3 +498,17 @@
 ::ng-deep .k-menu-group .mm-list-view-menu-item--danger > .k-menu-link {
   color: var(--theme-status-error, #c0385f);
 }
+
+// Row actions (AB#5572): mm-action-button hosts + the "…" button side by side, one line.
+.mm-list-view-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  vertical-align: middle;
+
+  .mm-list-view-row-actions__more:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring, 0 0 0 2px #ffffff, 0 0 0 4px #2e8473);
+  }
+}

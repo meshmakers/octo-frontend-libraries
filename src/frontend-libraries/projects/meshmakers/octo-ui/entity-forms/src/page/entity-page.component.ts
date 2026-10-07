@@ -21,12 +21,13 @@ import {
   ConfirmationService,
   HAS_UNSAVED_CHANGES,
   HasUnsavedChanges,
+  MM_ACTION_ICONS,
   NotificationDisplayService,
   UnsavedChangesMessages,
 } from '@meshmakers/shared-ui';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
 import { KENDO_DIALOG } from '@progress/kendo-angular-dialog';
-import { arrowLeftIcon, saveIcon, trashIcon } from '@progress/kendo-svg-icons';
+import { arrowLeftIcon, saveIcon } from '@progress/kendo-svg-icons';
 import { NgTemplateOutlet } from '@angular/common';
 import { CommandItem } from '@meshmakers/shared-services';
 import { firstValueFrom } from 'rxjs';
@@ -61,7 +62,13 @@ import {
   EntityListOpenRequest,
   EntityListRowClass,
 } from '../list/entity-list.component';
-import { confirmEntityFormAction, ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
+import {
+  confirmEntityFormAction,
+  confirmEntityFormDanger,
+  ENTITY_FORM_ACTION_CONFIRMATION,
+  ENTITY_FORM_DANGER_CONFIRMATION,
+  entityDeleteConfirmation,
+} from '../core/action-confirmation';
 import { ENTITY_FORM_BEFORE_SAVE, EntityFormBeforeSaveHook, runEntityFormBeforeSave } from '../core/before-save';
 
 /** Value of the `rtId` input / route parameter that opens the create form. */
@@ -171,6 +178,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
   private readonly notificationService = inject(NotificationDisplayService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly actionConfirmation = inject(ENTITY_FORM_ACTION_CONFIRMATION, { optional: true });
+  private readonly dangerConfirmation = inject(ENTITY_FORM_DANGER_CONFIRMATION, { optional: true });
   private readonly breadCrumbService = inject(BreadCrumbService, { optional: true });
   private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
   private readonly injectedBeforeSave = inject(ENTITY_FORM_BEFORE_SAVE, { optional: true });
@@ -262,7 +270,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
 
   protected readonly saveIcon = saveIcon;
   protected readonly backIcon = arrowLeftIcon;
-  protected readonly deleteIcon = trashIcon;
+  protected readonly deleteIcon = MM_ACTION_ICONS.delete;
 
   protected readonly msgs = computed(() =>
     mergeEntityFormsMessages(this.messages() ?? (this.inheritedData('messages') as Partial<EntityFormsMessages> | undefined)),
@@ -600,15 +608,13 @@ export class EntityPageComponent implements HasUnsavedChanges {
     if (!rtId || !ckTypeId || !this.canDeleteEntity()) {
       return;
     }
-    if (!await confirmEntityFormAction(this.actionConfirmation, { action: 'delete', ckTypeId, count: 1, description: 'delete 1 entity' })) {
+    const request = { action: 'delete' as const, ckTypeId, count: 1, description: 'delete 1 entity' };
+    if (!await confirmEntityFormAction(this.actionConfirmation, request)) {
       return;
     }
     const m = this.msgs();
-    const confirmed = await this.confirmationService.showYesNoConfirmationDialog(
-      m.confirmDeleteTitle,
-      formatEntityFormsMessage(m.confirmDeleteMessage, { name: this.entityName() ?? rtId }),
-    );
-    if (!confirmed) {
+    const options = entityDeleteConfirmation(m, [this.entityName() || rtId]);
+    if (!await confirmEntityFormDanger(this.dangerConfirmation, this.confirmationService, options, request)) {
       return;
     }
     try {

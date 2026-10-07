@@ -18,11 +18,11 @@ import {
   BadgeMappingTable,
   ConfirmationService,
   ListViewComponent,
+  MM_ACTION_ICONS,
   NotificationDisplayService,
   RowClassFn,
   TableColumn,
 } from '@meshmakers/shared-ui';
-import { copyIcon, eyeIcon, pencilIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 import {
   EntityFormsMessages,
   formatEntityFormsMessage,
@@ -37,7 +37,13 @@ import { ckTypeDisplayName, entityFormTypeTitles } from '../core/entity-form-cat
 import { humanizeCkTypeName } from '../core/ck-type-name';
 import { EntityListDataSourceDirective, EntityListRow } from './entity-list-data-source.directive';
 import { EntityListMonoCellComponent } from './entity-list-mono-cell.component';
-import { confirmEntityFormAction, ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
+import {
+  confirmEntityFormAction,
+  confirmEntityFormDanger,
+  ENTITY_FORM_ACTION_CONFIRMATION,
+  ENTITY_FORM_DANGER_CONFIRMATION,
+  entityDeleteConfirmation,
+} from '../core/action-confirmation';
 import {
   ENTITY_FORM_UNSET_PLACEHOLDER_VALUES,
   EntityFormUnsetPlaceholderLookup,
@@ -214,6 +220,7 @@ export function toEntityListColumn(
 })
 export class EntityListComponent {
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly dangerConfirmation = inject(ENTITY_FORM_DANGER_CONFIRMATION, { optional: true });
   private readonly actionConfirmation = inject(ENTITY_FORM_ACTION_CONFIRMATION, { optional: true });
   private readonly notificationService = inject(NotificationDisplayService);
   private readonly dataService = inject(EntityFormDataService);
@@ -313,7 +320,7 @@ export class EntityListComponent {
       id: 'copyId',
       type: 'link',
       text: m.copyId,
-      svgIcon: copyIcon,
+      svgIcon: MM_ACTION_ICONS.copy,
       children: [
         { id: 'copyRtId', type: 'link', text: m.copyRtId, onClick: (e) => this.copy(e, 'rtId') },
         { id: 'copyCkTypeId', type: 'link', text: m.copyCkTypeId, onClick: (e) => this.copy(e, 'ckTypeId') },
@@ -336,7 +343,8 @@ export class EntityListComponent {
           id: 'delete',
           type: 'link',
           text: this.msgs().delete,
-          svgIcon: trashIcon,
+          svgIcon: MM_ACTION_ICONS.delete,
+          danger: true,
           onClick: (e) => this.onDelete(e),
         },
       );
@@ -350,7 +358,7 @@ export class EntityListComponent {
       id: 'open',
       type: 'link',
       text: this.editable() ? this.msgs().edit : this.msgs().viewTitle,
-      svgIcon: this.editable() ? pencilIcon : eyeIcon,
+      svgIcon: this.editable() ? MM_ACTION_ICONS.edit : MM_ACTION_ICONS.view,
       onClick: async (e) => this.open(e.data as EntityListRow | undefined),
     },
     ...this.rowActions(),
@@ -366,7 +374,7 @@ export class EntityListComponent {
   /** Toolbar: New (only with `canCreate && canWrite`), then the host's `toolbarActions`. */
   readonly toolbarItems = computed<CommandItem[]>(() => [
     ...(this.canCreate()
-      ? [{ id: 'new', type: 'link', text: this.msgs().new, svgIcon: plusIcon, onClick: async () => this.requestCreate() } as CommandItem]
+      ? [{ id: 'new', type: 'link', text: this.msgs().new, svgIcon: MM_ACTION_ICONS.add, onClick: async () => this.requestCreate() } as CommandItem]
       : []),
     ...this.toolbarActions(),
   ]);
@@ -456,21 +464,18 @@ export class EntityListComponent {
     if (rows.length === 0) {
       return;
     }
-    const allowed = await confirmEntityFormAction(this.actionConfirmation, {
-      action: 'delete',
+    const request = {
+      action: 'delete' as const,
       ckTypeId: rows[0].ckTypeId || this.model().rtCkTypeId,
       count: rows.length,
       description: rows.length === 1 ? 'delete 1 entity' : `delete ${rows.length} entities`,
-    });
-    if (!allowed) {
+    };
+    if (!await confirmEntityFormAction(this.actionConfirmation, request)) {
       return;
     }
     const m = this.msgs();
-    const message = rows.length === 1
-      ? formatEntityFormsMessage(m.confirmDeleteMessage, { name: rowName(rows[0]) })
-      : formatEntityFormsMessage(m.confirmDeleteManyMessage, { count: rows.length });
-    const confirmed = await this.confirmationService.showYesNoConfirmationDialog(m.confirmDeleteTitle, message);
-    if (!confirmed) {
+    const options = entityDeleteConfirmation(m, rows.map(rowName));
+    if (!await confirmEntityFormDanger(this.dangerConfirmation, this.confirmationService, options, request)) {
       return;
     }
     const entities = rows.map((r) => ({ rtId: r.rtId, ckTypeId: r.ckTypeId || this.model().rtCkTypeId }));

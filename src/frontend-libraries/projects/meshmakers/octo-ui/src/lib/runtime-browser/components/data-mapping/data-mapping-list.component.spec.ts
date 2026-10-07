@@ -1,4 +1,7 @@
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DataPointPickerComponent } from '../../../data-point-picker/data-point-picker.component';
+import { expectIconButtonsAccessible } from '@meshmakers/shared-ui/testing';
 import { DataMappingListComponent, DataPointMappingItem, ExpressionValidatorFn, } from './data-mapping-list.component';
 
 describe('DataMappingListComponent', () => {
@@ -17,6 +20,28 @@ describe('DataMappingListComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('names the icon-only card buttons after the mapping (AB#5581 guard)', async () => {
+    // The data point picker needs Apollo; it is not under test here.
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({ imports: [DataMappingListComponent] })
+      .overrideComponent(DataMappingListComponent, {
+        remove: { imports: [DataPointPickerComponent] },
+        add: { schemas: [CUSTOM_ELEMENTS_SCHEMA] },
+      })
+      .compileComponents();
+    fixture = TestBed.createComponent(DataMappingListComponent);
+    fixture.componentInstance.mappings = [
+      { name: 'Room temperature', sourceAttributePath: 'currentValue', mappingExpression: '', targetAttributePath: 'temperature' },
+      { sourceAttributePath: 'currentValue', mappingExpression: '', targetAttributePath: 'humidity' },
+    ];
+    fixture.detectChanges();
+    const removes = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('[data-action="delete"]');
+    expect(removes[0].getAttribute('aria-label')).toBe('Remove mapping Room temperature');
+    expect(removes[1].getAttribute('aria-label')).toBe('Remove mapping MAPPING 2');
+    expect(removes[0].getAttribute('title')).toBe('Remove mapping');
+    expectIconButtonsAccessible(fixture);
   });
 
   describe('expression validation', () => {

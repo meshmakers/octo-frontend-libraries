@@ -16,7 +16,7 @@ import {
   CommandItemExecuteEventArgs,
   TreeItemDataTyped,
 } from '@meshmakers/shared-services';
-import { ListViewComponent } from '@meshmakers/shared-ui';
+import { ConfirmationService, ListViewComponent } from '@meshmakers/shared-ui';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { NotificationService } from '@progress/kendo-angular-notification';
@@ -257,6 +257,7 @@ implements OnChanges, AfterViewInit
   private readonly createEntitiesGQL = inject(CreateEntitiesDtoGQL);
   private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
   private readonly deleteEntitiesGQL = inject(DeleteEntitiesDtoGQL);
+  private readonly confirmation = inject(ConfirmationService);
   private readonly entitySelectorDialog = inject(EntitySelectorDialogService);
   private readonly attributeSelectorDialog = inject(AttributeSelectorDialogService);
 
@@ -824,6 +825,17 @@ implements OnChanges, AfterViewInit
    */
   async onRemoveMapping(mapping: DataPointMappingItem): Promise<void> {
     if (!mapping.rtId) return;
+
+    // Danger confirmation naming the mapping (AB#5579): the mapping entity is erased.
+    const name = mapping.name || mapping.rtId;
+    if (!await this.confirmation.showDangerConfirm({
+      title: `Delete mapping ${name}?`,
+      targetName: name,
+      consequence: 'The data point mapping is erased. This cannot be undone.',
+      confirmText: 'Delete mapping',
+    })) {
+      return;
+    }
 
     try {
       await firstValueFrom(

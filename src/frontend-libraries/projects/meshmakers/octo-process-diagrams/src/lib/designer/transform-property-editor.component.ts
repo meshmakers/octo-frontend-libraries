@@ -263,12 +263,15 @@ export interface TransformPropertyChangeEvent {
                 </div>
                 <div class="property-actions">
                   <button kendoButton [svgIcon]="linkIcon" look="flat" title="Edit Bindings"
+                          [attr.aria-label]="'Edit bindings of ' + property.name"
                           (click)="openBindingEditor(property)">
                   </button>
                   <button kendoButton [svgIcon]="pencilIcon" look="flat" title="Edit Property"
+                          [attr.aria-label]="'Edit property ' + property.name"
                           (click)="editProperty(property)">
                   </button>
-                  <button kendoButton [svgIcon]="trashIcon" look="flat" title="Delete Property"
+                  <button kendoButton [svgIcon]="trashIcon" look="flat" themeColor="error" title="Delete Property"
+                          [attr.aria-label]="'Delete property ' + property.name"
                           (click)="deleteProperty(property)">
                   </button>
                 </div>

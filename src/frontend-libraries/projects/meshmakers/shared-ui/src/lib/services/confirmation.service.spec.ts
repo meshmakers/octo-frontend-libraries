@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 
 import { ConfirmationService } from './confirmation.service';
 import { ButtonTypes, ConfirmationWindowResult, DialogType } from '../models/confirmation';
+import { DangerConfirmationResult, DangerConfirmationWindowComponent } from '../danger-confirmation/danger-confirmation-window.component';
 
 describe('ConfirmationService', () => {
   let service: ConfirmationService;
@@ -41,6 +42,40 @@ describe('ConfirmationService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('showDangerConfirm (AB#5578)', () => {
+    it('opens the danger window with the options, focuses Cancel and resolves true only on confirm', async () => {
+      const set = vi.fn();
+      (dialogRefMock.content.instance as unknown as { options: { set: typeof set } }).options = { set };
+      service.defaultDangerMessages = { cancel: 'Abbrechen' };
+      const promise = service.showDangerConfirm({ title: 'Delete adapter A?', targetName: 'A', consequence: 'Gone.', confirmText: 'Delete adapter' });
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Delete adapter A?', content: DangerConfirmationWindowComponent, autoFocusedElement: '[data-action="cancel"]',
+      }));
+      expect(set).toHaveBeenCalledWith(expect.objectContaining({ targetName: 'A', messages: { cancel: 'Abbrechen' } }));
+      resultSubject.next(new DangerConfirmationResult(true));
+      resultSubject.complete();
+      expect(await promise).toBe(true);
+    });
+
+    it('focuses the type-to-confirm input when typing is required; false on cancel', async () => {
+      (dialogRefMock.content.instance as unknown as { options: { set: () => void } }).options = { set: vi.fn() };
+      const promise = service.showDangerConfirm({ title: 't', targetName: 'A', consequence: 'c', confirmText: 'Delete', requireTypingName: true });
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({ autoFocusedElement: '[data-type-to-confirm]' }));
+      resultSubject.next(new DangerConfirmationResult(false));
+      resultSubject.complete();
+      expect(await promise).toBe(false);
+    });
+  });
+
+  it('focuses the dismissing button first in destructive and production-check dialogs (AB#5578)', () => {
+    void service.showDestructiveConfirmationDialog('Delete user x?', 'Sure?', 'Delete user');
+    expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="dismiss"], [data-action="cancel"]' }));
+    void service.showYesNoConfirmationDialog('PRODUCTION Environment', 'Sure?', 'mm-dialog-danger');
+    expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="dismiss"], [data-action="cancel"]' }));
+    void service.showYesNoConfirmationDialog('Plain', 'Sure?');
+    expect(dialogServiceMock.open.mock.lastCall?.[0]).not.toHaveProperty('autoFocusedElement');
   });
 
   describe('showDestructiveConfirmationDialog', () => {

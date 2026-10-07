@@ -50,7 +50,7 @@ interface BinaryLinkedValue {
               size="small"
               fillMode="flat"
               [svgIcon]="windowIcon"
-              title="Show details"
+              title="Show details" aria-label="Show details"
               class="detail-button"
               (click)="openDetailDialog($event)">
             </button>

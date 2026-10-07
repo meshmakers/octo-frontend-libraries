@@ -106,7 +106,8 @@
                     [disabled]="isLoading() || isPinning()"
                     fillMode="flat"
                     size="small"
-                    [title]="isPinned(item) ? 'Remove from Home' : 'Pin to Home'">
+                    [title]="isPinned(item) ? 'Remove from Home' : 'Pin to Home'"
+                    [attr.aria-label]="(isPinned(item) ? 'Remove from Home ' : 'Pin to Home ') + item.name">
                   </button>
                   @if (canExport) {
                     <button
@@ -116,7 +117,8 @@
                       [disabled]="isLoading() || isExporting()"
                       fillMode="flat"
                       size="small"
-                      title="Export">
+                      title="Export"
+                      [attr.aria-label]="'Export ' + item.name">
                     </button>
                   }
                   <button
@@ -126,7 +128,8 @@
                     [disabled]="isLoading() || isDuplicating()"
                     fillMode="flat"
                     size="small"
-                    title="Duplicate">
+                    title="Duplicate"
+                    [attr.aria-label]="'Duplicate ' + item.name">
                   </button>
                   <button
                     kendoButton
@@ -135,7 +138,8 @@
                     [disabled]="isLoading()"
                     fillMode="flat"
                     size="small"
-                    title="Edit">
+                    title="Edit"
+                    [attr.aria-label]="'Edit ' + item.name">
                   </button>
                   <button
                     kendoButton
@@ -145,7 +149,8 @@
                     fillMode="flat"
                     size="small"
                     themeColor="error"
-                    title="Delete">
+                    title="Delete MeshBoard"
+                    [attr.aria-label]="'Delete MeshBoard ' + item.name">
                   </button>
                 </div>
               </div>

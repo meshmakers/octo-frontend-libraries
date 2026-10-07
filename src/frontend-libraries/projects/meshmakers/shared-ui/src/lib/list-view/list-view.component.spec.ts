@@ -362,7 +362,7 @@ describe('MmTableComponent', () => {
 
     beforeEach(() => {
       api()._actionMenuItems = [];
-      api()._contextMenuItems = [];
+      component.contextMenuCommandItems = [];
     });
 
     it('keeps a host width that fits header and buttons', () => {
@@ -381,14 +381,14 @@ describe('MmTableComponent', () => {
       // Three buttons need 140px; 90 fits the header but clipped the third.
       component.actionsColumnWidth = 90;
       api()._actionMenuItems = [{ text: 'Edit' }, { text: 'Disable' }];
-      api()._contextMenuItems = [{}];
+      component.contextMenuCommandItems = [{ id: 'more', type: 'link', text: 'More' }];
       expect(api().effectiveActionsColumnWidth).toBe(fitting(3));
     });
 
     it('counts the context-menu button only when it renders inline', () => {
       component.actionsColumnWidth = 0;
       api()._actionMenuItems = [{ text: 'Edit' }];
-      api()._contextMenuItems = [{}];
+      component.contextMenuCommandItems = [{ id: 'more', type: 'link', text: 'More' }];
 
       component.contextMenuType = 'actionMenu';
       expect(api().effectiveActionsColumnWidth).toBe(Math.max(90, fitting(2)));

@@ -5,8 +5,8 @@ import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
-import { plusIcon, trashIcon, pencilIcon } from '@progress/kendo-svg-icons';
-import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
+import { plusIcon, pencilIcon } from '@progress/kendo-svg-icons';
+import { EntitySelectInputComponent, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import {
   CkTypeSelectorInputComponent,
   AttributeSelectorDialogService
@@ -53,7 +53,7 @@ export class EntitySelectorEditorComponent {
   @Output() editingStateChange = new EventEmitter<boolean>();
 
   protected readonly plusIcon = plusIcon;
-  protected readonly trashIcon = trashIcon;
+  protected readonly trashIcon = MM_ACTION_ICONS.delete;
   protected readonly pencilIcon = pencilIcon;
 
   // Editing state

@@ -218,6 +218,10 @@ export interface ListViewMessages {
   rowActionsFor?: string;
   /** Accessible name of a row's menu button when the row has no name. Default: "Row actions" */
   rowActions?: string;
+  /** Disabled reason of a row action whose `CommandItem` has no `disabledReason` (AB#5572). Default: "Not available for this row" */
+  rowActionUnavailable?: string;
+  /** Disabled reason of every row action while the list loads (AB#5572). Default: "The list is loading" */
+  rowActionsLoading?: string;
   /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
   pdfPageTemplate: string;
 
@@ -268,6 +272,8 @@ export const DEFAULT_LIST_VIEW_MESSAGES: Required<ListViewMessages> = {
   actionsColumnTitle: 'Actions',
   rowActionsFor: 'Actions for {name}',
   rowActions: 'Row actions',
+  rowActionUnavailable: 'Not available for this row',
+  rowActionsLoading: 'The list is loading',
   pdfPageTemplate: 'Page {pageNum} of {totalPages}',
   pagerItemsPerPage: 'items per page',
   pagerOf: 'of',
