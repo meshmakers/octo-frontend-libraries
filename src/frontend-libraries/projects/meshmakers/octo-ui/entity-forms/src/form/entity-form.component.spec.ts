@@ -13,6 +13,7 @@ import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-ava
 import { ENTITY_FORM_LABEL_RESOLVER } from '../core/entity-form-labels';
 import { ENTITY_FORM_BEFORE_SAVE, EntityFormSaveVeto } from '../core/before-save';
 import { EntityFormChangeSet } from '../models/entity-form.models';
+import { ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, EntityFormUnsetPlaceholderValues } from '../core/unset-placeholders';
 
 /** Protected-member view used by the spec. */
 interface Testable {
@@ -683,6 +684,130 @@ describe('EntityFormComponent', () => {
         { attributeName: 'port', value: 2200 },
         { attributeName: 'timeout', value: 30 },
       ]));
+    });
+  });
+
+  describe('unset placeholders (AB#5623)', () => {
+    const PLACEHOLDERS: EntityFormUnsetPlaceholderValues = {
+      global: ['TODO_SET_VALUE'],
+      attributes: { AzureTenantId: ['TODO_SET_AZURE_TENANT_ID'], clientSecret: ['TODO_SET_CLIENT_SECRET'], token: ['TODO_SET_TOKEN'] },
+    };
+
+    function graphModel(): ResolvedEntityForm {
+      return {
+        ...model([section('s', [
+          field({ key: 'azureTenantId', required: true }),
+          field({ key: 'clientId' }),
+          field({ key: 'mailbox' }),
+          field({ key: 'clientSecret', editor: 'password', secret: true }),
+          field({ key: 'token', valueType: 'SECRET', editor: 'password', secret: true }),
+          field({ key: 'legacyKey' }),
+        ])]),
+        secretFields: ['clientSecret', 'token', 'legacyKey'],
+      };
+    }
+
+    function graphState(): EntityFormValueState {
+      return {
+        values: {
+          azureTenantId: 'TODO_SET_AZURE_TENANT_ID',
+          clientId: 'TODO_SET_VALUE',
+          mailbox: 'TODO_SET_AZURE_TENANT_ID',
+          clientSecret: 'TODO_SET_CLIENT_SECRET',
+          legacyKey: 'TODO_SET_VALUE',
+        },
+        secretPresence: { clientSecret: true, token: false, legacyKey: true },
+        associations: {},
+      };
+    }
+
+    async function withPlaceholders(config: EntityFormUnsetPlaceholderValues = PLACEHOLDERS): Promise<void> {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        animationsEnabled: false,
+        providers: [{ provide: ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, useValue: config }],
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      api = component as unknown as Testable;
+    }
+
+    const input = (key: string): HTMLInputElement | null => fieldEl(key)?.querySelector('input') ?? null;
+
+    it('keeps a placeholder value as is without the token (unchanged behaviour)', async () => {
+      await render(graphModel(), 'edit', graphState());
+      expect(api.control('azureTenantId').value).toBe('TODO_SET_AZURE_TENANT_ID');
+    });
+
+    it('starts placeholder fields empty with the "Not configured" hint (global and per attribute, any casing)', async () => {
+      await withPlaceholders();
+      await render(graphModel(), 'edit', graphState());
+      expect(api.control('azureTenantId').value).toBeNull();
+      expect(api.control('clientId').value).toBeNull();
+      expect(input('azureTenantId')?.getAttribute('placeholder')).toBe('Not configured');
+      expect(input('clientId')?.getAttribute('placeholder')).toBe('Not configured');
+    });
+
+    it('matches per-attribute values only on their attribute', async () => {
+      await withPlaceholders();
+      await render(graphModel(), 'edit', graphState());
+      expect(api.control('mailbox').value).toBe('TODO_SET_AZURE_TENANT_ID');
+    });
+
+    it('treats the placeholder as unset: a required field is invalid until a value is typed', async () => {
+      await withPlaceholders();
+      await render(graphModel(), 'edit', graphState());
+      expect(component.isValid()).toBe(false);
+      api.control('azureTenantId').setValue('0000-tenant');
+      expect(component.isValid()).toBe(true);
+    });
+
+    it('never writes the placeholder back: untouched = no change, typed = written, emptied again = no change', async () => {
+      await withPlaceholders();
+      await render(graphModel(), 'edit', graphState());
+      expect(component.isDirty()).toBe(false);
+      expect(component.getChangeSet().isEmpty).toBe(true);
+
+      api.control('clientId').setValue('app-id');
+      expect(component.getChangeSet().attributes).toEqual([{ attributeName: 'clientId', value: 'app-id' }]);
+
+      api.control('clientId').setValue(null);
+      expect(component.isDirty()).toBe(false);
+      expect(component.getChangeSet().isEmpty).toBe(true);
+    });
+
+    it('clears a placeholder default / prefill of a create form and leaves it out of the create', async () => {
+      await withPlaceholders();
+      fixture.componentRef.setInput('initialValues', { clientId: 'TODO_SET_VALUE' });
+      await render(model([section('s', [
+        field({ key: 'clientId' }),
+        field({ key: 'mailbox', defaultValue: 'TODO_SET_VALUE' }),
+        field({ key: 'name', defaultValue: 'Main' }),
+      ])]), 'create');
+      expect(api.control('clientId').value).toBeNull();
+      expect(api.control('mailbox').value).toBeNull();
+      expect(component.getChangeSet().attributes).toEqual([{ attributeName: 'name', value: 'Main' }]);
+    });
+
+    it('never applies to secrets (SECRET type, secret fields, secretFields), even when listed', async () => {
+      await withPlaceholders();
+      await render(graphModel(), 'edit', graphState());
+      // A secret is never prefilled anyway; its state stays the server presence, not "not configured".
+      expect(api.control('clientSecret').value).toBeNull();
+      expect(input('clientSecret')?.getAttribute('placeholder')).not.toBe('Not configured');
+      expect(input('token')?.getAttribute('placeholder')).not.toBe('Not configured');
+      // legacyKey is in secretFields: no placeholder handling although the global value matches.
+      expect(api.control('legacyKey').value).toBe('TODO_SET_VALUE');
+      const unset = (component as unknown as { unsetPlaceholderFields: () => ReadonlySet<string> }).unsetPlaceholderFields();
+      expect([...unset].sort()).toEqual(['azureTenantId', 'clientId']);
+    });
+
+    it('uses the notConfigured message override', async () => {
+      await withPlaceholders(['TODO_SET_VALUE']);
+      fixture.componentRef.setInput('messages', { notConfigured: 'Nicht konfiguriert' });
+      await render(graphModel(), 'edit', graphState());
+      expect(input('clientId')?.getAttribute('placeholder')).toBe('Nicht konfiguriert');
     });
   });
 });

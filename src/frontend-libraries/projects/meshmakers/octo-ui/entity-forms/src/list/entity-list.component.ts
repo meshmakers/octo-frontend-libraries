@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   inject,
+  InjectionToken,
   Injector,
   input,
   output,
@@ -18,6 +19,7 @@ import {
   ConfirmationService,
   ListViewComponent,
   NotificationDisplayService,
+  RowClassFn,
   TableColumn,
 } from '@meshmakers/shared-ui';
 import { copyIcon, eyeIcon, pencilIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
@@ -36,6 +38,12 @@ import { humanizeCkTypeName } from '../core/ck-type-name';
 import { EntityListDataSourceDirective, EntityListRow } from './entity-list-data-source.directive';
 import { EntityListMonoCellComponent } from './entity-list-mono-cell.component';
 import { confirmEntityFormAction, ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
+import {
+  ENTITY_FORM_UNSET_PLACEHOLDER_VALUES,
+  EntityFormUnsetPlaceholderLookup,
+  entityFormUnsetPlaceholderLookup,
+} from '../core/unset-placeholders';
+import { isSecretValueType } from '@meshmakers/octo-services';
 
 /** Payload of {@link EntityListComponent.createRequested}: the concrete type to create. */
 export interface EntityListCreateRequest {
@@ -48,10 +56,43 @@ export interface EntityListOpenRequest {
   ckTypeId: string;
 }
 
+/**
+ * CSS classes of one list row (AB#5623), e.g. `{ 'row-disabled': row['enabled'] === false }`.
+ * Same shapes as Angular's `[ngClass]`; `null` / `undefined` = no class. The classes are set on the
+ * row's `<tr>` of the Kendo grid, so style them with global (or `::ng-deep`) CSS of the host.
+ */
+export type EntityListRowClass = (row: EntityListRow) => string | string[] | Record<string, boolean> | null | undefined;
+
+/**
+ * App-wide default of {@link EntityListComponent.rowClass} (AB#5623). The input (and
+ * `mm-entity-page`'s `listRowClass` / route data `entityListRowClass`) wins.
+ */
+export const ENTITY_LIST_ROW_CLASS = new InjectionToken<EntityListRowClass>('ENTITY_LIST_ROW_CLASS');
+
+/**
+ * Maps an {@link EntityListRowClass} onto `mm-list-view`'s `rowClass`. A throwing callback is
+ * logged and yields no class, so a host bug never breaks the list.
+ */
+export function toListViewRowClass(rowClass: EntityListRowClass | null | undefined): RowClassFn | undefined {
+  if (!rowClass) {
+    return undefined;
+  }
+  return ({ dataItem }) => {
+    try {
+      return rowClass(dataItem as EntityListRow) ?? {};
+    } catch (error) {
+      console.error('mm-entity-list: rowClass failed', error);
+      return {};
+    }
+  };
+}
+
 /** Labels of boolean list cells (default "Yes" / "No"). */
 export interface EntityListCellLabels {
   yes?: string;
   no?: string;
+  /** Text of a cell holding an unset placeholder (AB#5623). Default "Not configured". */
+  notConfigured?: string;
 }
 
 /** Whether a column's cells need formatting by CK value type (enum names, yes/no). */
@@ -85,7 +126,17 @@ function chipLabels(column: ResolvedListColumn, labels: EntityListCellLabels): B
  * CK value type like the reference display of the form (AB#5547): ENUM → the enum value's name
  * (the API returns the key), BOOLEAN → yes/no, dates → localized date and time.
  */
-export function toEntityListColumn(column: ResolvedListColumn, labels: EntityListCellLabels = {}): TableColumn {
+export function toEntityListColumn(
+  column: ResolvedListColumn,
+  labels: EntityListCellLabels = {},
+  unsetPlaceholders?: EntityFormUnsetPlaceholderLookup,
+): TableColumn {
+  // AB#5623: a placeholder value of a non-secret attribute reads "Not configured".
+  const placeholderValues = column.kind === 'attribute' && unsetPlaceholders && !isSecretValueType(column.valueType)
+    ? [...unsetPlaceholders.global, ...(unsetPlaceholders.attributes.get(column.field.toLowerCase()) ?? [])]
+    : [];
+  const notConfigured = labels.notConfigured ?? 'Not configured';
+  const isUnset = (value: unknown): boolean => typeof value === 'string' && placeholderValues.includes(value);
   const base: TableColumn = {
     field: column.field,
     displayName: column.label,
@@ -97,7 +148,13 @@ export function toEntityListColumn(column: ResolvedListColumn, labels: EntityLis
   const format = (value: unknown): string => formatReferenceDisplayValue(value, attribute, labels) ?? '';
   switch (column.display) {
     case 'chip': {
-      const badgeMapping = chipLabels(column, labels);
+      let badgeMapping = chipLabels(column, labels);
+      if (placeholderValues.length) {
+        badgeMapping = { ...(badgeMapping ?? {}) };
+        for (const value of placeholderValues) {
+          badgeMapping[value] = { label: notConfigured };
+        }
+      }
       return { ...base, dataType: 'badge', ...(badgeMapping ? { badgeMapping } : {}) };
     }
     case 'date':
@@ -109,10 +166,23 @@ export function toEntityListColumn(column: ResolvedListColumn, labels: EntityLis
         cellComponent: EntityListMonoCellComponent,
         cellInputs: (item: unknown) => {
           const value = (item as Record<string, unknown>)[column.field];
+          if (isUnset(value)) {
+            return { value: notConfigured };
+          }
           return { value: isFormattedType(column) ? format(value) : value };
         },
       };
     default:
+      if (placeholderValues.length) {
+        return {
+          ...base,
+          dataType: 'text',
+          truncate: true,
+          formatter: (value: unknown) => isUnset(value)
+            ? notConfigured
+            : isFormattedType(column) ? format(value) : value === null || value === undefined ? '' : String(value),
+        };
+      }
       return { ...base, dataType: 'text', truncate: true, ...(isFormattedType(column) ? { formatter: format } : {}) };
   }
 }
@@ -129,7 +199,7 @@ export function toEntityListColumn(column: ResolvedListColumn, labels: EntityLis
  * Host extensions (AB#5623): `toolbarActions` (after New), `rowActions` (icon buttons in the
  * actions column after Edit/View), `rowMenuActions` (context menu between Copy ID and Delete) —
  * plain `CommandItem`s as in `mm-list-view`; `onClick` receives the row (`EntityListRow`) as
- * `e.data`. `defaultSort` (or the form's `listDefaultSort`) orders the list while the user has not
+ * `e.data`. `rowClass` sets CSS classes per row (e.g. disabled rows). `defaultSort` (or the form's `listDefaultSort`) orders the list while the user has not
  * sorted by a column; `labelResolver` translates column titles and enum texts.
  *
  * The component does not navigate; `<mm-entity-page>` (or the host) reacts to the outputs.
@@ -151,6 +221,8 @@ export class EntityListComponent {
   /** Resolves `EntityFormService` lazily: only the Type column needs the form titles. */
   private readonly injector = inject(Injector);
   private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
+  private readonly injectedRowClass = inject(ENTITY_LIST_ROW_CLASS, { optional: true });
+  private readonly unsetPlaceholders = entityFormUnsetPlaceholderLookup(inject(ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, { optional: true }));
   /** Form titles per CK type (lower-case id) for the Type column (AB#5524). */
   private readonly typeTitles = signal<ReadonlyMap<string, string>>(new Map());
   private typeTitlesRequested = false;
@@ -185,6 +257,11 @@ export class EntityListComponent {
   readonly rowActions = input<readonly CommandItem[]>([]);
   /** Host row menu entries (AB#5623): context menu, between Copy ID and Delete. */
   readonly rowMenuActions = input<readonly CommandItem[]>([]);
+  /**
+   * CSS classes per row (AB#5623), e.g. to style disabled rows. Wins over `ENTITY_LIST_ROW_CLASS`;
+   * absent = no row classes (unchanged). See {@link EntityListRowClass}.
+   */
+  readonly rowClass = input<EntityListRowClass | null | undefined>(undefined);
 
   /** "New" was confirmed; carries the concrete type (after the subtype picker for abstract types). */
   readonly createRequested = output<EntityListCreateRequest>();
@@ -204,9 +281,11 @@ export class EntityListComponent {
 
   protected readonly columns = computed<TableColumn[]>(() => {
     const m = this.msgs();
-    const labels: EntityListCellLabels = { yes: m.toggleOn, no: m.toggleOff };
-    const columns = localizeEntityListColumns(this.model(), this.labelResolver() ?? this.injectedLabelResolver)
-      .map((c) => toEntityListColumn(c, labels));
+    const labels: EntityListCellLabels = { yes: m.toggleOn, no: m.toggleOff, notConfigured: m.notConfigured };
+    const model = this.model();
+    const secrets = new Set(model.secretFields.map((f) => f.toLowerCase()));
+    const columns = localizeEntityListColumns(model, this.labelResolver() ?? this.injectedLabelResolver)
+      .map((c) => toEntityListColumn(c, labels, secrets.has(c.field.toLowerCase()) ? undefined : this.unsetPlaceholders));
     if (this.showTypeColumn() && !columns.some((c) => c.field === 'ckTypeId')) {
       const titles = this.typeTitles();
       const changed = columns.findIndex((c) => c.field === 'rtChangedDateTime');
@@ -276,6 +355,10 @@ export class EntityListComponent {
     },
     ...this.rowActions(),
   ]);
+
+  /** The `mm-list-view` row class callback (input, else the token, else none). */
+  protected readonly listViewRowClass = computed<RowClassFn | undefined>(() =>
+    toListViewRowClass(this.rowClass() ?? this.injectedRowClass));
 
   /** Width of the actions column: Edit/View + the row menu, plus one icon button per host row action. */
   protected readonly actionsColumnWidth = computed(() => 80 + 40 * this.rowActions().length);

@@ -1,5 +1,5 @@
 import type { MockedObject } from 'vitest';
-import { Component, NO_ERRORS_SCHEMA, input, signal } from '@angular/core';
+import { Component, NO_ERRORS_SCHEMA, input, output, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { BreadCrumbService } from '@meshmakers/shared-services';
@@ -47,6 +47,24 @@ class StubEntityFormComponent {
   markAllAsTouched(): void { /* noop */ }
   getChangeSet(): EntityFormChangeSet { return this.changeSet; }
   patchValues(values: Record<string, unknown>): string[] { this.patched.push(values); return Object.keys(values); }
+}
+
+/** Stand-in for `<mm-entity-list>` (inputs as bound by the page, `refresh` spied). */
+@Component({ selector: 'mm-entity-list', standalone: true, template: '' })
+class StubEntityListComponent {
+  readonly model = input<unknown>();
+  readonly canWrite = input<unknown>();
+  readonly messages = input<unknown>();
+  readonly showTypeColumn = input<unknown>();
+  readonly defaultSort = input<unknown>();
+  readonly labelResolver = input<unknown>();
+  readonly toolbarActions = input<unknown>();
+  readonly rowActions = input<unknown>();
+  readonly rowMenuActions = input<unknown>();
+  readonly rowClass = input<unknown>();
+  readonly createRequested = output<unknown>();
+  readonly openRequested = output<unknown>();
+  readonly refresh = vi.fn();
 }
 
 function makeModel(overrides: Partial<ResolvedEntityForm> = {}): ResolvedEntityForm {
@@ -98,6 +116,7 @@ describe('EntityPageComponent', () => {
   let router: MockedObject<Router>;
   let breadCrumbs: MockedObject<BreadCrumbService>;
   let listGql: { fetch: ReturnType<typeof vi.fn> };
+  let confirmation: { showYesNoConfirmationDialog: ReturnType<typeof vi.fn> };
 
   let hostFixture: ComponentFixture<PageHostComponent> | null = null;
 
@@ -118,12 +137,12 @@ describe('EntityPageComponent', () => {
         { provide: EntityFormGetListDtoGQL, useValue: listGql },
         { provide: BreadCrumbService, useValue: breadCrumbs },
         { provide: NotificationDisplayService, useValue: { showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn(), showInfo: vi.fn() } },
-        { provide: ConfirmationService, useValue: { showYesNoConfirmationDialog: vi.fn().mockResolvedValue(true) } },
+        { provide: ConfirmationService, useValue: confirmation },
         ...(extraProviders as never[]),
       ],
     })
       .overrideComponent(EntityPageComponent, {
-        set: { imports: [StubEntityFormComponent, NgTemplateOutlet], schemas: [NO_ERRORS_SCHEMA] },
+        set: { imports: [StubEntityFormComponent, StubEntityListComponent, NgTemplateOutlet], schemas: [NO_ERRORS_SCHEMA] },
       })
       .compileComponents();
 
@@ -170,6 +189,7 @@ describe('EntityPageComponent', () => {
     router = { navigate: vi.fn().mockResolvedValue(true) } as unknown as MockedObject<Router>;
     breadCrumbs = { updateBreadcrumbLabels: vi.fn().mockResolvedValue(undefined) } as unknown as MockedObject<BreadCrumbService>;
     listGql = { fetch: vi.fn().mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } })) };
+    confirmation = { showYesNoConfirmationDialog: vi.fn().mockResolvedValue(true) };
   });
 
   it('shows the list when there is no rtId and sets the form title breadcrumb', async () => {
@@ -561,6 +581,226 @@ describe('EntityPageComponent', () => {
         expect(await component.saveChanges()).toBe(true);
         expect(dataService.update).not.toHaveBeenCalled();
         expect(notifications()['showInfo']).toHaveBeenCalled();
+      });
+    });
+
+    describe('listRowClass', () => {
+      const listStub = (): StubEntityListComponent =>
+        fixture.debugElement.query((d) => d.componentInstance instanceof StubEntityListComponent).componentInstance as StubEntityListComponent;
+
+      it('passes no row class by default, the input, or route data entityListRowClass', async () => {
+        formService.resolve.mockResolvedValue(makeModel());
+        const fromData = () => 'from-data';
+        await create({ ckTypeId: 'System.Communication/SftpConfiguration', entityListRowClass: fromData });
+        expect(listStub().rowClass()).toBe(fromData);
+        const fromInput = () => 'from-input';
+        fixture.componentRef.setInput('listRowClass', fromInput);
+        fixture.detectChanges();
+        expect(listStub().rowClass()).toBe(fromInput);
+      });
+
+      it('is undefined without input and route data', async () => {
+        formService.resolve.mockResolvedValue(makeModel());
+        await create({ ckTypeId: 'System.Communication/SftpConfiguration' });
+        expect(listStub().rowClass()).toBeUndefined();
+      });
+    });
+
+    describe('dialog mode (editMode dialog)', () => {
+      const CK = 'System.Communication/SftpConfiguration';
+      const notifications = () => TestBed.inject(NotificationDisplayService) as unknown as Record<string, ReturnType<typeof vi.fn>>;
+      const dialog = (): HTMLElement | null => el().querySelector('[data-entity-page-dialog]');
+      const listStub = (): StubEntityListComponent =>
+        fixture.debugElement.query((d) => d.componentInstance instanceof StubEntityListComponent).componentInstance as StubEntityListComponent;
+      interface DialogApi {
+        onOpenRequested(e: { rtId: string; ckTypeId: string }): Promise<void>;
+        onCreateRequested(e: { ckTypeId: string }): Promise<void>;
+        onDialogCancel(): Promise<void>;
+        onDelete(): Promise<void>;
+        dialogOpen: () => boolean;
+      }
+      const dlg = () => component as unknown as DialogApi;
+
+      async function openList(data: Record<string, unknown> = {}, withHost = false): Promise<void> {
+        formService.resolve.mockResolvedValue(makeModel());
+        dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: CK, state: STATE });
+        dataService.update.mockResolvedValue(undefined as never);
+        dataService.create.mockResolvedValue('r9');
+        dataService.delete.mockResolvedValue(true);
+        await create({ ckTypeId: CK, entityPageEditMode: 'dialog', ...data }, {}, {}, withHost);
+      }
+
+      async function openRow(): Promise<void> {
+        await dlg().onOpenRequested({ rtId: 'r1', ckTypeId: CK });
+        await settle();
+      }
+
+      it('navigates to the edit route by default (page mode unchanged)', async () => {
+        formService.resolve.mockResolvedValue(makeModel());
+        await create({ ckTypeId: CK });
+        await dlg().onOpenRequested({ rtId: 'r1', ckTypeId: CK });
+        expect(router.navigate).toHaveBeenCalledWith(['r1'], expect.anything());
+        expect(dialog()).toBeNull();
+      });
+
+      it('opens the edit form in a dialog over the list without navigating', async () => {
+        const resolver = () => null;
+        await openList();
+        fixture.componentRef.setInput('labelResolver', resolver);
+        const navigations: unknown[] = [];
+        component.navigate.subscribe((e) => navigations.push(e));
+        await openRow();
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(navigations).toEqual([]);
+        expect(api.view()).toBe('list');
+        expect(el().querySelector('mm-entity-list')).toBeTruthy();
+        expect(dialog()).toBeTruthy();
+        expect(fixture.debugElement.query((d) => d.name === 'kendo-dialog').properties['title']).toBe('Edit Main SFTP');
+        expect(api.mode()).toBe('edit');
+        // Secret presence and the label resolver reach the form unchanged.
+        expect(stubForm().state()).toEqual(STATE);
+        expect(stubForm().labelResolver()).toBe(resolver);
+        expect(dialog()?.querySelector('[data-entity-page-save]')).toBeTruthy();
+      });
+
+      it('puts Cancel left of the primary Save in the dialog action bar', async () => {
+        await openList();
+        await openRow();
+        const buttons = Array.from(dialog()!.querySelectorAll('kendo-dialog-actions button'));
+        const cancel = buttons.findIndex((b) => b.hasAttribute('data-entity-page-dialog-cancel'));
+        const save = buttons.findIndex((b) => b.hasAttribute('data-entity-page-save'));
+        expect(cancel).toBeGreaterThanOrEqual(0);
+        expect(save).toBe(buttons.length - 1);
+        expect(cancel).toBeLessThan(save);
+      });
+
+      it('reads the edit mode from the input and ignores it for singletons', async () => {
+        formService.resolve.mockResolvedValue(makeModel());
+        await create({ ckTypeId: CK });
+        fixture.componentRef.setInput('editMode', 'dialog');
+        expect((component as unknown as { effectiveEditMode: () => string }).effectiveEditMode()).toBe('dialog');
+        (component as unknown as { baseModel: { set(v: unknown): void } }).baseModel.set(makeModel({ singleton: { wellKnownName: 'X' } }));
+        expect((component as unknown as { effectiveEditMode: () => string }).effectiveEditMode()).toBe('page');
+      });
+
+      it('creates in the dialog with the prefill, then closes, reloads the list and emits saved', async () => {
+        await openList({ entityFormInitialValues: { host: 'prefilled' } });
+        await dlg().onCreateRequested({ ckTypeId: CK });
+        await settle();
+        expect(dialog()).toBeTruthy();
+        expect(api.mode()).toBe('create');
+        expect(stubForm().initialValues()).toEqual({ host: 'prefilled' });
+        const events: unknown[] = [];
+        component.saved.subscribe((e) => events.push(e));
+        expect(await component.saveChanges()).toBe(true);
+        await settle();
+        expect(dataService.create).toHaveBeenCalled();
+        expect(events).toEqual([{ kind: 'create', rtId: 'r9', ckTypeId: CK }]);
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(dialog()).toBeNull();
+        expect(listStub().refresh).toHaveBeenCalled();
+      });
+
+      it('runs beforeSave in the dialog; a veto keeps the dialog open', async () => {
+        await openList({ entityFormBeforeSave: () => null });
+        await openRow();
+        expect(await component.saveChanges()).toBe(false);
+        await settle();
+        expect(notifications()['showWarning']).toHaveBeenCalled();
+        expect(dataService.update).not.toHaveBeenCalled();
+        expect(dialog()).toBeTruthy();
+      });
+
+      it('updates, closes and reloads the list (no form reload)', async () => {
+        await openList();
+        await openRow();
+        expect(await component.saveChanges()).toBe(true);
+        await settle();
+        expect(dataService.update).toHaveBeenCalledWith('r1', CK, expect.objectContaining({ attributes: [{ attributeName: 'host', value: 'h' }] }));
+        expect(dataService.load).toHaveBeenCalledTimes(1);
+        expect(dialog()).toBeNull();
+        expect(listStub().refresh).toHaveBeenCalled();
+      });
+
+      it('closes on Cancel without asking when nothing changed', async () => {
+        await openList();
+        await openRow();
+        await dlg().onDialogCancel();
+        await settle();
+        expect(confirmation.showYesNoConfirmationDialog).not.toHaveBeenCalled();
+        expect(dialog()).toBeNull();
+        expect(listStub().refresh).not.toHaveBeenCalled();
+      });
+
+      it('asks before discarding unsaved changes (Cancel / close / Escape) and keeps editing on No', async () => {
+        await openList();
+        await openRow();
+        stubForm().dirty = true;
+        expect(component.hasUnsavedChanges()).toBe(true);
+        confirmation.showYesNoConfirmationDialog.mockResolvedValueOnce(false);
+        await dlg().onDialogCancel();
+        await settle();
+        expect(confirmation.showYesNoConfirmationDialog).toHaveBeenCalledWith(
+          'Unsaved changes', expect.any(String), undefined, expect.objectContaining({ yes: expect.any(String), no: expect.any(String) }));
+        expect(dialog()).toBeTruthy();
+
+        confirmation.showYesNoConfirmationDialog.mockResolvedValueOnce(true);
+        await dlg().onDialogCancel();
+        await settle();
+        expect(dialog()).toBeNull();
+        expect(dataService.update).not.toHaveBeenCalled();
+        expect(component.hasUnsavedChanges()).toBe(false);
+      });
+
+      it('deletes from the dialog: emits deleted, closes and reloads without navigating', async () => {
+        await openList();
+        await openRow();
+        const events: unknown[] = [];
+        component.deleted.subscribe((e) => events.push(e));
+        await dlg().onDelete();
+        await settle();
+        expect(events).toEqual([{ rtId: 'r1', ckTypeId: CK }]);
+        expect(router.navigate).not.toHaveBeenCalled();
+        expect(dialog()).toBeNull();
+        expect(listStub().refresh).toHaveBeenCalled();
+      });
+
+      it('reports a missing entity as a notification and keeps the list', async () => {
+        await openList();
+        dataService.load.mockResolvedValue(null);
+        await openRow();
+        expect(notifications()['showError']).toHaveBeenCalledWith(expect.any(String));
+        expect(api.view()).toBe('list');
+        expect(dialog()).toBeNull();
+      });
+
+      it('gives the focus back to the element that opened the dialog', async () => {
+        await openList();
+        const trigger = document.createElement('button');
+        document.body.appendChild(trigger);
+        trigger.focus();
+        try {
+          await openRow();
+          await dlg().onDialogCancel();
+          await new Promise((resolve) => setTimeout(resolve));
+          expect(document.activeElement).toBe(trigger);
+        } finally {
+          trigger.remove();
+        }
+      });
+
+      it('renders host page actions in the dialog with the form context', async () => {
+        await openList({}, true);
+        await openRow();
+        expect(dialog()?.querySelector('.host-action')?.textContent).toBe('form|edit|r1');
+        // The list header keeps the list context.
+        expect(el().querySelector('[data-entity-page-host-actions] .host-action')?.textContent).toBe('list||');
+      });
+
+      it('patchFormValues reaches the form in the dialog', async () => {
+        await openList();
+        await openRow();
+        expect(component.patchFormValues({ host: 'x' })).toEqual(['host']);
       });
     });
 

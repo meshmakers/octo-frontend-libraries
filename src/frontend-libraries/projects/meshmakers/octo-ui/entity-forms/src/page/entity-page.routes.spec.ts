@@ -41,6 +41,17 @@ describe('entityFormRoutes', () => {
     expect(entityFormRoutes().every((r) => !('entityFormBeforeSave' in (r.data ?? {})))).toBe(true);
   });
 
+  it('carries the rowClass callback as route data entityListRowClass (AB#5623)', () => {
+    const rowClass = () => 'x';
+    expect(entityFormRoutes({ rowClass }).every((r) => r.data?.['entityListRowClass'] === rowClass)).toBe(true);
+    expect(entityFormRoutes().every((r) => !('entityListRowClass' in (r.data ?? {})))).toBe(true);
+  });
+
+  it('carries the edit mode as route data entityPageEditMode (AB#5623)', () => {
+    expect(entityFormRoutes({ editMode: 'dialog' }).every((r) => r.data?.['entityPageEditMode'] === 'dialog')).toBe(true);
+    expect(entityFormRoutes().every((r) => !('entityPageEditMode' in (r.data ?? {})))).toBe(true);
+  });
+
   it('loadComponent resolves to EntityPageComponent', async () => {
     const ctor = await entityFormRoutes()[0].loadComponent!();
     const { EntityPageComponent } = await import('./entity-page.component');

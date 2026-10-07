@@ -261,6 +261,54 @@ All optional; without them the components behave as before.
 | Normalise / veto before saving | `beforeSave` on `mm-entity-page` / `mm-entity-form`, route option `beforeSave`, or `ENTITY_FORM_BEFORE_SAVE` — see [Before-save hook](#before-save-hook-beforesave-ab5623) |
 | Set values from a host action | `EntityFormComponent.patchValues(values)` / `EntityPageComponent.patchFormValues(values)` — values count as edits (dirty, saved); secrets and read-only fields are skipped |
 | Placeholder values of legacy STRING secrets | `ENTITY_FORM_SECRET_PLACEHOLDER_VALUES` (exact values that read "Not set"). SECRET-typed attributes (AB#5528) need nothing: their state comes from the server |
+| Create / edit in a dialog over the list | `mm-entity-page [editMode]="'dialog'"` (route option `editMode`, data `entityPageEditMode`) — see [Dialog mode](#dialog-mode-editmode-dialog-ab5623) |
+| CSS classes per list row (e.g. disabled rows) | `mm-entity-list [rowClass]` / `mm-entity-page [listRowClass]` (route option `rowClass`, data `entityListRowClass`) or `ENTITY_LIST_ROW_CLASS`: `(row) => string \| string[] \| Record<string, boolean> \| null`. Classes land on the grid's `<tr>`: style them globally (or `::ng-deep`) |
+| Placeholder values of NON-secret config fields | `ENTITY_FORM_UNSET_PLACEHOLDER_VALUES` — see [Unset placeholders](#unset-placeholders-entity_form_unset_placeholder_values-ab5623) |
+
+### Dialog mode (`editMode: 'dialog'`, AB#5623)
+
+"New", row click and Edit / View open the form in a Kendo dialog over the list; the URL does not
+change and no `navigate` events are emitted.
+
+- Same form behaviour as the page: `beforeSave`, `initialValues`, `labelResolver`, secrets,
+  `patchFormValues`, the record row dialog. Host page actions (`mmEntityPageActions`) render in the
+  dialog with `ctx.view === 'form'`.
+- Bottom bar (`kendo-dialog-actions`, right-aligned like the record row dialog): page actions,
+  Cancel (Close when read-only), Delete (edit, with permission), Save (primary, right-most).
+- Cancel, the title-bar close button and Escape ask before discarding unsaved changes
+  (`unsavedChangesTitle` / `unsavedChangesMessage` / `discardChanges` / `keepEditing`). A route
+  change while the dialog has changes goes through `UnsavedChangesGuard` (save / discard / stay).
+- After a successful save (also "no changes") or delete the dialog closes; after a write the list
+  reloads (`saved` / `deleted` are emitted as on the page). Focus returns to the element that opened
+  the dialog (the list when that element is gone).
+- A load error or a missing entity shows an error notification; the list stays.
+- The `new` / `:rtId` routes keep working as pages (deep links); singleton forms always use the page.
+
+### Unset placeholders (`ENTITY_FORM_UNSET_PLACEHOLDER_VALUES`, AB#5623)
+
+Seeded placeholder values of non-secret configuration attributes (e.g. `TODO_SET_AZURE_TENANT_ID`)
+read as "not configured":
+
+```ts
+providers: [{
+  provide: ENTITY_FORM_UNSET_PLACEHOLDER_VALUES,
+  // a plain list applies to every attribute; or per attribute (any casing) and/or global:
+  useValue: { attributes: { azureTenantId: ['TODO_SET_AZURE_TENANT_ID'], clientId: ['TODO_SET_CLIENT_ID'] } },
+}]
+```
+
+- Exact, case-sensitive match on string values.
+- List: the cell shows `messages.notConfigured` ("Not configured"; text, mono and chip columns).
+- Form: the field starts empty with `notConfigured` as placeholder hint; the value counts as unset
+  (a required field is invalid, `VisibleWhen` sees no value).
+- Save: the form never writes a placeholder back. Untouched = not in the change set (the stored
+  placeholder stays and keeps reading "not configured"); a typed value replaces it; emptying the
+  field again is "no change". To remove the placeholder from the store, write `null` yourself
+  (e.g. in `beforeSave`). In create mode a placeholder default / prefill is left out of the create.
+- Never applies to secrets (SECRET decision AB#5528: secret placeholders are dropped; secrets use
+  `secretIsSet`): fields with `secret` (value type `SECRET`, CK metadata, credential-name rule, form
+  decision) and attributes in `secretFields` are skipped even when listed. Legacy STRING secrets
+  keep using `ENTITY_FORM_SECRET_PLACEHOLDER_VALUES`.
 
 ## Secrets (write-only)
 

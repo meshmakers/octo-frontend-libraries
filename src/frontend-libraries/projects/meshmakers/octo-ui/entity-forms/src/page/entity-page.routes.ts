@@ -5,6 +5,7 @@ import { EntityFormsMessages } from '../entity-forms.messages';
 import { EntityListSortDescriptor } from '../models/entity-form.models';
 import { EntityFormPrefillValues } from '../core/entity-form-prefill';
 import { EntityFormBeforeSaveHook } from '../core/before-save';
+import type { EntityListRowClass } from '../list/entity-list.component';
 
 /**
  * Options of {@link entityFormRoutes}.
@@ -69,6 +70,17 @@ export interface EntityFormRoutesOptions {
    * key `entityFormBeforeSave`. See `EntityFormBeforeSaveHook`.
    */
   beforeSave?: EntityFormBeforeSaveHook;
+  /**
+   * CSS classes per list row (AB#5623), e.g. to style disabled rows. Route data key
+   * `entityListRowClass`. See `EntityListRowClass`.
+   */
+  rowClass?: EntityListRowClass;
+  /**
+   * `'dialog'` opens create / edit of a list row in a dialog over the list instead of navigating
+   * to `new` / `:rtId` (AB#5623; those routes still work as pages). Default `'page'`. Route data
+   * key `entityPageEditMode`.
+   */
+  editMode?: 'page' | 'dialog';
   /** Label of the create breadcrumb. Default `New`. */
   newBreadcrumbLabel?: string;
   /** Label of the edit breadcrumb. Default `{{entityName}}`. */
@@ -105,6 +117,8 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     actionBarPosition,
     initialValues,
     beforeSave,
+    rowClass,
+    editMode,
     data = {},
   } = opts;
 
@@ -120,6 +134,8 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     ...(actionBarPosition !== undefined && { entityPageActionBarPosition: actionBarPosition }),
     ...(initialValues !== undefined && { entityFormInitialValues: initialValues }),
     ...(beforeSave !== undefined && { entityFormBeforeSave: beforeSave }),
+    ...(rowClass !== undefined && { entityListRowClass: rowClass }),
+    ...(editMode !== undefined && { entityPageEditMode: editMode }),
   };
 
   const listCrumb = breadcrumbUrl !== undefined

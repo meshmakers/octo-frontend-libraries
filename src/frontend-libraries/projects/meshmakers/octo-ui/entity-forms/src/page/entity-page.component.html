@@ -40,9 +40,65 @@
           [toolbarActions]="listToolbarActions()"
           [rowActions]="listRowActions()"
           [rowMenuActions]="listRowMenuActions()"
+          [rowClass]="effectiveListRowClass()"
           (createRequested)="onCreateRequested($event)"
           (openRequested)="onOpenRequested($event)"
         />
+
+        <!-- Dialog mode (editMode 'dialog', AB#5623): create / edit over the list, actions in the
+             dialog's bottom bar (Cancel left of the primary Save, as in the record row dialog). -->
+        @if (dialogOpen()) {
+          @if (formModel(); as formModelInDialog) {
+            <kendo-dialog
+              class="mm-entity-page__dialog"
+              data-entity-page-dialog
+              [title]="title()"
+              [width]="760"
+              [maxWidth]="'95vw'"
+              [maxHeight]="'90vh'"
+              (close)="onDialogCancel()"
+            >
+              <kendo-dialog-messages [closeTitle]="msgs().close" />
+              <div class="mm-entity-page__dialog-body">
+                @if (mode() === 'view') {
+                  <p class="mm-entity-page__notice">{{ msgs().readOnlyNotice }}</p>
+                }
+                <mm-entity-form
+                  #entityForm
+                  class="mm-entity-page__form"
+                  [model]="formModelInDialog"
+                  [mode]="mode()"
+                  [state]="state()"
+                  [readOnly]="readOnly()"
+                  [messages]="msgs()"
+                  [records]="records()"
+                  [labelResolver]="effectiveLabelResolver()"
+                  [initialValues]="createInitialValues()"
+                />
+              </div>
+              <kendo-dialog-actions layout="end">
+                @if (pageActions(); as actions) {
+                  <ng-container *ngTemplateOutlet="actions.templateRef; context: dialogActionsContext()" />
+                }
+                <button kendoButton type="button" data-entity-page-dialog-cancel (click)="onDialogCancel()">
+                  {{ mode() === 'view' ? msgs().close : msgs().cancel }}
+                </button>
+                @if (canDeleteEntity()) {
+                  <button kendoButton type="button" fillMode="outline" themeColor="error" [svgIcon]="deleteIcon" (click)="onDelete()">
+                    {{ msgs().delete }}
+                  </button>
+                }
+                @if (mode() !== 'view') {
+                  <button kendoButton type="button" themeColor="primary" [svgIcon]="saveIcon"
+                          [disabled]="saving() || !!saveBlockedReason()" [attr.title]="saveBlockedReason()"
+                          data-entity-page-save (click)="onSave()">
+                    {{ msgs().save }}
+                  </button>
+                }
+              </kendo-dialog-actions>
+            </kendo-dialog>
+          }
+        }
       }
     }
 

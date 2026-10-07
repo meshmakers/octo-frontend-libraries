@@ -21,8 +21,9 @@ import {
   entityListAttributeNames,
   toEntityListRow,
 } from './entity-list-data-source.directive';
-import { EntityListComponent, toEntityListColumn } from './entity-list.component';
+import { ENTITY_LIST_ROW_CLASS, EntityListComponent, toEntityListColumn } from './entity-list.component';
 import { ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
+import { ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, entityFormUnsetPlaceholderLookup } from '../core/unset-placeholders';
 
 function makeModel(overrides: Partial<ResolvedEntityForm> = {}): ResolvedEntityForm {
   return {
@@ -333,6 +334,70 @@ describe('EntityListComponent', () => {
       fixture.componentRef.setInput('defaultSort', []);
       expect(sort()).toEqual([]);
     });
+
+    describe('rowClass', () => {
+      interface RowClassApi { listViewRowClass: () => ((c: { dataItem: unknown; index: number }) => unknown) | undefined }
+      const rowClassFn = () => (component as unknown as RowClassApi).listViewRowClass();
+
+      it('passes no row class callback by default (unchanged list)', () => {
+        setInputs(makeModel());
+        expect(rowClassFn()).toBeUndefined();
+      });
+
+      it('maps the row callback onto mm-list-view rowClass with the row as argument', () => {
+        setInputs(makeModel());
+        fixture.componentRef.setInput('rowClass', (row: Record<string, unknown>) => ({ 'row-disabled': row['enabled'] === false }));
+        const fn = rowClassFn()!;
+        expect(fn({ dataItem: { rtId: 'a', enabled: false }, index: 0 })).toEqual({ 'row-disabled': true });
+        expect(fn({ dataItem: { rtId: 'b', enabled: true }, index: 1 })).toEqual({ 'row-disabled': false });
+      });
+
+      it('accepts string and array results and treats null as no class', () => {
+        setInputs(makeModel());
+        fixture.componentRef.setInput('rowClass', (row: Record<string, unknown>) =>
+          row['rtId'] === 'a' ? 'one' : row['rtId'] === 'b' ? ['x', 'y'] : null);
+        const fn = rowClassFn()!;
+        expect(fn({ dataItem: { rtId: 'a' }, index: 0 })).toBe('one');
+        expect(fn({ dataItem: { rtId: 'b' }, index: 1 })).toEqual(['x', 'y']);
+        expect(fn({ dataItem: { rtId: 'c' }, index: 2 })).toEqual({});
+      });
+
+      it('logs a throwing callback and yields no class', () => {
+        setInputs(makeModel());
+        const error = vi.spyOn(console, 'error').mockReturnValue(undefined);
+        fixture.componentRef.setInput('rowClass', () => { throw new Error('boom'); });
+        expect(rowClassFn()!({ dataItem: { rtId: 'a' }, index: 0 })).toEqual({});
+        expect(error).toHaveBeenCalled();
+      });
+    });
+  });
+});
+
+describe('ENTITY_LIST_ROW_CLASS', () => {
+  it('is the default row class; the input wins', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [EntityListComponent],
+      providers: [
+        { provide: ConfirmationService, useValue: {} },
+        { provide: NotificationDisplayService, useValue: {} },
+        { provide: EntityFormDataService, useValue: {} },
+        { provide: EntityFormService, useValue: { getForms: vi.fn().mockResolvedValue([]) } },
+        { provide: ENTITY_LIST_ROW_CLASS, useValue: () => 'from-token' },
+      ],
+    })
+      .overrideComponent(EntityListComponent, {
+        set: { imports: [], schemas: [CUSTOM_ELEMENTS_SCHEMA], template: '<mm-list-view></mm-list-view>' },
+      })
+      .compileComponents();
+    const fixture = TestBed.createComponent(EntityListComponent);
+    fixture.componentRef.setInput('model', makeModel());
+    fixture.detectChanges();
+    const fn = () => (fixture.componentInstance as unknown as { listViewRowClass: () => (c: { dataItem: unknown; index: number }) => unknown })
+      .listViewRowClass();
+    expect(fn()({ dataItem: { rtId: 'a' }, index: 0 })).toBe('from-token');
+    fixture.componentRef.setInput('rowClass', () => 'from-input');
+    expect(fn()({ dataItem: { rtId: 'a' }, index: 0 })).toBe('from-input');
   });
 });
 
@@ -374,6 +439,70 @@ describe('entity list helpers', () => {
 
     // Strings keep the plain text column without a formatter.
     expect(toEntityListColumn({ field: 'url', label: 'URL', display: 'text', kind: 'attribute', valueType: 'STRING' }).formatter).toBeUndefined();
+  });
+
+  describe('unset placeholders (AB#5623)', () => {
+    const lookup = entityFormUnsetPlaceholderLookup({ global: ['TODO_SET_VALUE'], attributes: { azureTenantId: ['TODO_SET_AZURE_TENANT_ID'] } });
+
+    it('shows "Not configured" for a placeholder in text, mono and chip cells', () => {
+      const text = toEntityListColumn({ field: 'azureTenantId', label: 'Tenant', display: 'text', kind: 'attribute', valueType: 'STRING' }, {}, lookup);
+      expect(text.formatter!('TODO_SET_AZURE_TENANT_ID', {})).toBe('Not configured');
+      expect(text.formatter!('TODO_SET_VALUE', {})).toBe('Not configured');
+      expect(text.formatter!('real-id', {})).toBe('real-id');
+      expect(text.formatter!(null, {})).toBe('');
+
+      const mono = toEntityListColumn({ field: 'clientId', label: 'Client', display: 'mono', kind: 'attribute' }, { notConfigured: 'Nicht konfiguriert' }, lookup);
+      expect(mono.cellInputs!({ clientId: 'TODO_SET_VALUE' })).toEqual({ value: 'Nicht konfiguriert' });
+      // Per-attribute values only match their own attribute.
+      expect(mono.cellInputs!({ clientId: 'TODO_SET_AZURE_TENANT_ID' })).toEqual({ value: 'TODO_SET_AZURE_TENANT_ID' });
+
+      const chip = toEntityListColumn({ field: 'state', label: 'State', display: 'chip', kind: 'attribute' }, {}, lookup);
+      expect(chip.badgeMapping!['TODO_SET_VALUE'].label).toBe('Not configured');
+    });
+
+    it('is case-sensitive and leaves the columns unchanged without placeholders', () => {
+      const text = toEntityListColumn({ field: 'clientId', label: 'Client', display: 'text', kind: 'attribute' }, {}, lookup);
+      expect(text.formatter!('todo_set_value', {})).toBe('todo_set_value');
+      const plain = toEntityListColumn({ field: 'clientId', label: 'Client', display: 'text', kind: 'attribute' }, {}, entityFormUnsetPlaceholderLookup(null));
+      expect(plain.formatter).toBeUndefined();
+    });
+
+    it('never applies to SECRET columns or system columns', () => {
+      const secret = toEntityListColumn({ field: 'token', label: 'Token', display: 'text', kind: 'attribute', valueType: 'SECRET' }, {}, lookup);
+      expect(secret.formatter).toBeUndefined();
+      const system = toEntityListColumn({ field: 'rtWellKnownName', label: 'WK', display: 'mono', kind: 'system' }, {}, lookup);
+      expect(system.cellInputs!({ rtWellKnownName: 'TODO_SET_VALUE' })).toEqual({ value: 'TODO_SET_VALUE' });
+    });
+
+    it('mm-entity-list reads ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, skips secretFields and uses the notConfigured message', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityListComponent],
+        providers: [
+          { provide: ConfirmationService, useValue: {} },
+          { provide: NotificationDisplayService, useValue: {} },
+          { provide: EntityFormDataService, useValue: {} },
+          { provide: EntityFormService, useValue: { getForms: vi.fn().mockResolvedValue([]) } },
+          { provide: ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, useValue: ['TODO_SET_VALUE'] },
+        ],
+      })
+        .overrideComponent(EntityListComponent, {
+          set: { imports: [], schemas: [CUSTOM_ELEMENTS_SCHEMA], template: '<mm-list-view></mm-list-view>' },
+        })
+        .compileComponents();
+      const fixture = TestBed.createComponent(EntityListComponent);
+      fixture.componentRef.setInput('model', makeModel({
+        listColumns: [
+          { field: 'host', label: 'Host', display: 'text', kind: 'attribute' },
+          { field: 'password', label: 'Password', display: 'text', kind: 'attribute' },
+        ],
+      }));
+      fixture.componentRef.setInput('messages', { notConfigured: 'Nicht konfiguriert' });
+      fixture.detectChanges();
+      const cols = (fixture.componentInstance as unknown as { columns: () => { field: string; formatter?: (v: unknown, i: unknown) => string }[] }).columns();
+      expect(cols.find((c) => c.field === 'host')!.formatter!('TODO_SET_VALUE', {})).toBe('Nicht konfiguriert');
+      expect(cols.find((c) => c.field === 'password')!.formatter).toBeUndefined();
+    });
   });
 
   it('reads only non-secret attribute columns', () => {

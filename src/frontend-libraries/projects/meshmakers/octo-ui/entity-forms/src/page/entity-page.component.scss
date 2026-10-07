@@ -79,3 +79,10 @@
   padding-top: 12px;
   border-top: 1px solid var(--theme-border-subtle, rgba(0, 0, 0, 0.12));
 }
+
+// Dialog mode (editMode 'dialog', AB#5623): the form scrolls inside the dialog content.
+.mm-entity-page__dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

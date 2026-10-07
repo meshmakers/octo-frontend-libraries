@@ -25,6 +25,11 @@ import { chevronDownIcon, chevronRightIcon } from '@progress/kendo-svg-icons';
 import { isSecretValueType } from '@meshmakers/octo-services';
 import { Subscription } from 'rxjs';
 import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-availability';
+import {
+  ENTITY_FORM_UNSET_PLACEHOLDER_VALUES,
+  entityFormUnsetPlaceholderFields,
+  entityFormUnsetPlaceholderLookup,
+} from '../core/unset-placeholders';
 import { buildChangeSet } from '../core/change-set-builder';
 import { formValuesEqual } from '../core/entity-form-value-mapper';
 import { isVisible } from '../core/visible-when';
@@ -42,7 +47,12 @@ import {
   mergeEntityFormPrefill,
   toReferenceValue,
 } from '../core/entity-form-prefill';
-import { EntityFormsMessages, formatEntityFormsMessage, mergeEntityFormsMessages } from '../entity-forms.messages';
+import {
+  DEFAULT_ENTITY_FORMS_MESSAGES,
+  EntityFormsMessages,
+  formatEntityFormsMessage,
+  mergeEntityFormsMessages,
+} from '../entity-forms.messages';
 import {
   CkAttributeInfo,
   CkRecordInfo,
@@ -61,6 +71,7 @@ import {
   allFields,
   buildFormGroup,
   cloneValue,
+  emptyValue,
   isFieldReadOnly,
   isFormReadOnly,
   isSecretRequired,
@@ -94,6 +105,10 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
  * - Host prefill (AB#5623): `initialValues` in create mode, `patchValues()` at any time.
  * - Before-save hook (AB#5623): `beforeSave` input / `ENTITY_FORM_BEFORE_SAVE`, applied by
  *   {@link getChangeSetForSave}; secrets reach it only as values typed into this form.
+ * - Unset placeholders (AB#5623, `ENTITY_FORM_UNSET_PLACEHOLDER_VALUES`): a non-secret field whose
+ *   stored / default / prefilled value is a listed placeholder starts empty with the
+ *   `notConfigured` hint; untouched it is not part of the change set, so the placeholder is never
+ *   written back. Secrets are never affected.
  */
 @Component({
   selector: 'mm-entity-form',
@@ -123,6 +138,7 @@ export class EntityFormComponent {
   private readonly keyRingConfigured = inject(ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, { optional: true });
   private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
   private readonly injectedBeforeSave = inject(ENTITY_FORM_BEFORE_SAVE, { optional: true });
+  private readonly unsetPlaceholders = entityFormUnsetPlaceholderLookup(inject(ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, { optional: true }));
 
   // --- Inputs ---
   readonly model = input.required<ResolvedEntityForm>();
@@ -178,6 +194,8 @@ export class EntityFormComponent {
   /** Raw values (disabled controls included) for VisibleWhen evaluation. */
   private readonly rawValues = signal<Record<string, unknown>>({});
   private readonly collapsed = signal<ReadonlySet<string>>(new Set<string>());
+  /** Keys of the fields whose stored value was an unset placeholder (AB#5623); they start empty. */
+  protected readonly unsetPlaceholderFields = signal<ReadonlySet<string>>(new Set<string>());
   /** attributeNames of secrets whose clear is staged for the next save (Q8). */
   private readonly clearedSecrets = signal<ReadonlySet<string>>(new Set<string>());
   /** Value snapshot taken when the form was built (D6 baseline). */
@@ -458,6 +476,9 @@ export class EntityFormComponent {
   }
 
   protected placeholder(field: ResolvedField): string {
+    if (this.unsetPlaceholderFields().has(field.key)) {
+      return this.resolvedMessages().notConfigured ?? DEFAULT_ENTITY_FORMS_MESSAGES.notConfigured ?? '';
+    }
     const state = this.secretState(field);
     if (state === 'set' || state === 'keyMissing') {
       return this.resolvedMessages().secretSetPlaceholder;
@@ -517,6 +538,7 @@ export class EntityFormComponent {
     this.clearedSecrets.set(new Set<string>());
     const form = buildFormGroup(model, mode, { state, readOnly });
     this.normaliseAttributeReferences(model, form);
+    this.clearUnsetPlaceholders(model, form);
     this.form.set(form);
     this.collapsed.set(new Set(model.sections.filter((s) => s.collapsed && s.title).map((s) => s.key)));
     this.rawValues.set(form.getRawValue());
@@ -527,6 +549,20 @@ export class EntityFormComponent {
     this.formSub = form.events.subscribe(() => this.onFormEvent());
     this.bump();
     this.emitState();
+  }
+
+  /**
+   * Empties the fields that hold an unset placeholder (AB#5623) before the baseline is taken, so an
+   * untouched field is "no change" and the placeholder is never written back.
+   */
+  private clearUnsetPlaceholders(model: ResolvedEntityForm, form: FormGroup<Record<string, FormControl<unknown>>>): void {
+    const keys = entityFormUnsetPlaceholderFields(model, form.getRawValue(), this.unsetPlaceholders);
+    const byKey = new Map(allFields(model).map((f) => [f.key, f]));
+    for (const key of keys) {
+      const field = byKey.get(key);
+      form.controls[key]?.setValue(field ? emptyValue(field) : null, { emitEvent: false });
+    }
+    this.unsetPlaceholderFields.set(new Set(keys));
   }
 
   /** Attribute-held references store a bare rtId; the reference editor works with an array. */

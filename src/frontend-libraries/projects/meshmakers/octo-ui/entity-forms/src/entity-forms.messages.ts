@@ -101,6 +101,11 @@ export interface EntityFormsMessages {
    * Optional so that complete message objects of older hosts keep compiling.
    */
   saveVetoed?: string;
+  /**
+   * List cell and form field hint of a non-secret value that holds a host-listed placeholder
+   * (`ENTITY_FORM_UNSET_PLACEHOLDER_VALUES`, AB#5623). Optional for older complete message objects.
+   */
+  notConfigured?: string;
 
   // --- Empty / not found states ---
   emptyList: string;
@@ -232,6 +237,7 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   loadError: 'The data could not be loaded.',
   noChanges: 'There are no changes to save.',
   saveVetoed: 'The changes were not saved.',
+  notConfigured: 'Not configured',
 
   emptyList: 'No entries yet.',
   emptyRecords: 'No entries.',

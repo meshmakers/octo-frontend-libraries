@@ -63,6 +63,17 @@ export type {
 } from './core/before-save';
 export { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, ENTITY_FORM_SECRET_PLACEHOLDER_VALUES } from './core/secret-write-availability';
 export {
+  ENTITY_FORM_UNSET_PLACEHOLDER_VALUES,
+  entityFormUnsetPlaceholderLookup,
+  entityFormUnsetPlaceholderFields,
+  isEntityFormUnsetPlaceholder,
+} from './core/unset-placeholders';
+export type {
+  EntityFormUnsetPlaceholderValues,
+  EntityFormUnsetPlaceholderLookup,
+  EntityFormUnsetPlaceholderTarget,
+} from './core/unset-placeholders';
+export {
   ENTITY_FORM_LABEL_RESOLVER,
   resolveEntityFormLabel,
   localizeEntityForm,

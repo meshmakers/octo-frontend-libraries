@@ -4,6 +4,7 @@ import {
   computed,
   contentChild,
   effect,
+  ElementRef,
   inject,
   input,
   output,
@@ -24,6 +25,7 @@ import {
   UnsavedChangesMessages,
 } from '@meshmakers/shared-ui';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
+import { KENDO_DIALOG } from '@progress/kendo-angular-dialog';
 import { arrowLeftIcon, saveIcon, trashIcon } from '@progress/kendo-svg-icons';
 import { NgTemplateOutlet } from '@angular/common';
 import { CommandItem } from '@meshmakers/shared-services';
@@ -53,7 +55,12 @@ import { EntityPageActionsContext, EntityPageActionsDirective } from './entity-p
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
 import { entityListIncludesDerivedTypes } from '../list/entity-list-data-source.directive';
-import { EntityListComponent, EntityListCreateRequest, EntityListOpenRequest } from '../list/entity-list.component';
+import {
+  EntityListComponent,
+  EntityListCreateRequest,
+  EntityListOpenRequest,
+  EntityListRowClass,
+} from '../list/entity-list.component';
 import { confirmEntityFormAction, ENTITY_FORM_ACTION_CONFIRMATION } from '../core/action-confirmation';
 import { ENTITY_FORM_BEFORE_SAVE, EntityFormBeforeSaveHook, runEntityFormBeforeSave } from '../core/before-save';
 
@@ -95,6 +102,12 @@ export type EntityPageView = 'loading' | 'list' | 'form' | 'error';
 export type EntityPageActionBarPosition = 'top' | 'bottom';
 
 /**
+ * How create / edit of a list row opens (AB#5623): `'page'` (navigate to the `new` / `:rtId`
+ * route, default) or `'dialog'` (a dialog over the list; the URL does not change).
+ */
+export type EntityPageEditMode = 'page' | 'dialog';
+
+/**
  * Prefill of the create form (AB#5623): the values, or a function of the concrete type to create
  * (called once per create form; may return `null`).
  */
@@ -126,13 +139,24 @@ interface PageContext {
  * (Save / Cancel at the bottom), page actions via `<ng-template mmEntityPageActions>`, list
  * `listToolbarActions` / `listRowActions` / `listRowMenuActions`, `defaultSort`, `labelResolver`
  * (translated labels and enum texts), `initialValues` (create prefill),
- * {@link patchFormValues} (prefill from a host action) and `beforeSave` (normalise / veto the
- * change set before it is saved).
+ * {@link patchFormValues} (prefill from a host action), `beforeSave` (normalise / veto the
+ * change set before it is saved), `listRowClass` (CSS classes per row) and `editMode: 'dialog'`
+ * (create / edit in a dialog over the list).
+ *
+ * Dialog mode (`editMode: 'dialog'`, AB#5623): "New", row click and Edit / View open the form in
+ * a Kendo dialog over the list instead of navigating. The same form, hooks and texts apply
+ * (`beforeSave`, `initialValues`, `labelResolver`, secrets, page actions with `view: 'form'`);
+ * actions sit in the dialog's bottom bar (page actions, Cancel, Delete, Save — Cancel left of the
+ * primary Save). Cancel, the close button and Escape ask before discarding unsaved changes; a
+ * route change while the dialog has changes goes through the unsaved-changes guard. After a save
+ * or delete the dialog closes and the list reloads; focus returns to the element that opened the
+ * dialog. No `navigate` events are emitted for dialog transitions. The `new` / `:rtId` routes keep
+ * working as pages (deep links); singleton forms always use the page.
  */
 @Component({
   selector: 'mm-entity-page',
   standalone: true,
-  imports: [EntityListComponent, EntityFormComponent, EntityIdInfoComponent, ButtonComponent, NgTemplateOutlet],
+  imports: [EntityListComponent, EntityFormComponent, EntityIdInfoComponent, ButtonComponent, NgTemplateOutlet, KENDO_DIALOG],
   providers: [{ provide: HAS_UNSAVED_CHANGES, useExisting: EntityPageComponent }],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './entity-page.component.html',
@@ -186,6 +210,16 @@ export class EntityPageComponent implements HasUnsavedChanges {
   readonly listRowActions = input<readonly CommandItem[]>([]);
   /** Host row menu entries of the list (context menu, AB#5623). */
   readonly listRowMenuActions = input<readonly CommandItem[]>([]);
+  /**
+   * How create / edit opens (AB#5623): `'page'` (default) or `'dialog'` (over the list). Falls back
+   * to route data `entityPageEditMode`. Ignored for singleton forms.
+   */
+  readonly editMode = input<EntityPageEditMode | undefined>(undefined);
+  /**
+   * CSS classes per list row (AB#5623), passed to `mm-entity-list`'s `rowClass`. Falls back to
+   * route data `entityListRowClass`, then `ENTITY_LIST_ROW_CLASS`.
+   */
+  readonly listRowClass = input<EntityListRowClass | null | undefined>(undefined);
 
   /** Emitted for every list / create / edit transition. */
   readonly navigate = output<EntityPageNavigateEvent>();
@@ -199,6 +233,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
   /** Why Save / Create is disabled (e.g. a required secret without key ring, Q17), or `null`. */
   protected readonly saveBlockedReason = computed(() => this.form()?.saveBlockedReason() ?? null);
   private readonly list = viewChild<EntityListComponent>('entityList');
+  private readonly listElement = viewChild('entityList', { read: ElementRef });
   /** Host page actions (`<ng-template mmEntityPageActions>`, AB#5623). */
   protected readonly pageActions = contentChild(EntityPageActionsDirective);
 
@@ -222,6 +257,8 @@ export class EntityPageComponent implements HasUnsavedChanges {
   protected readonly records = signal<Record<string, CkRecordInfo>>({});
   /** Well-known name forced onto a singleton that is created on first save. */
   protected readonly singletonWellKnownName = signal<string | null>(null);
+  /** The create / edit dialog over the list is shown (`editMode: 'dialog'`, AB#5623). */
+  protected readonly dialogOpen = signal(false);
 
   protected readonly saveIcon = saveIcon;
   protected readonly backIcon = arrowLeftIcon;
@@ -254,6 +291,12 @@ export class EntityPageComponent implements HasUnsavedChanges {
     }
     return this.injectedBeforeSave ?? null;
   }
+  /** `'dialog'` only for non-singleton forms with `editMode` (input, else route data) `'dialog'`. */
+  protected readonly effectiveEditMode = computed<EntityPageEditMode>(() => {
+    this.routeData();
+    const mode = this.editMode() ?? this.inheritedData('entityPageEditMode');
+    return mode === 'dialog' && !this.isSingleton() ? 'dialog' : 'page';
+  });
   protected readonly effectiveActionBarPosition = computed<EntityPageActionBarPosition>(() => {
     this.routeData();
     return (this.actionBarPosition() ?? this.inheritedData('entityPageActionBarPosition')) === 'bottom' ? 'bottom' : 'top';
@@ -262,6 +305,16 @@ export class EntityPageComponent implements HasUnsavedChanges {
   protected readonly effectiveDefaultSort = computed<readonly EntityListSortDescriptor[] | undefined>(() => {
     this.routeData();
     return this.defaultSort() ?? (this.inheritedData('entityListDefaultSort') as EntityListSortDescriptor[] | undefined);
+  });
+  /** The list's row class callback: input, else route data `entityListRowClass` (else the list's token). */
+  protected readonly effectiveListRowClass = computed<EntityListRowClass | undefined>(() => {
+    this.routeData();
+    const bound = this.listRowClass();
+    if (bound) {
+      return bound;
+    }
+    const fromData = this.inheritedData('entityListRowClass');
+    return typeof fromData === 'function' ? fromData as EntityListRowClass : undefined;
   });
   /** The prefill of the current create form (AB#5623), computed when the form opens. */
   protected readonly createInitialValues = signal<EntityFormPrefillValues | null>(null);
@@ -292,8 +345,12 @@ export class EntityPageComponent implements HasUnsavedChanges {
   });
 
   /** Context of the host page actions template. */
-  protected readonly actionsContext = computed<EntityPageActionsContext>(() => {
-    const view = this.view() === 'form' ? 'form' : 'list';
+  protected readonly actionsContext = computed<EntityPageActionsContext>(() =>
+    this.buildActionsContext(this.view() === 'form' ? 'form' : 'list'));
+  /** Context of the host page actions in the create / edit dialog (always the form view). */
+  protected readonly dialogActionsContext = computed<EntityPageActionsContext>(() => this.buildActionsContext('form'));
+
+  private buildActionsContext(view: 'list' | 'form'): EntityPageActionsContext {
     const ctx: EntityPageActionsContext = {
       view,
       mode: view === 'form' ? this.mode() : null,
@@ -305,7 +362,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
     } as EntityPageActionsContext;
     ctx.$implicit = ctx;
     return ctx;
-  });
+  }
 
   protected readonly isSingleton = computed(() => !!this.baseModel()?.singleton);
   /** Host heading override (`entityListTitle` route data), else the resolved form title. */
@@ -353,6 +410,10 @@ export class EntityPageComponent implements HasUnsavedChanges {
 
   private loadToken = 0;
   private suppressGuard = false;
+  /** Where the next loaded form is shown: the page, or the dialog over the list. */
+  private formTarget: 'page' | 'dialog' = 'page';
+  /** Element focused when the dialog opened; focused again when it closes. */
+  private dialogTrigger: HTMLElement | null = null;
 
   constructor() {
     let lastKey: string | null = null;
@@ -378,7 +439,8 @@ export class EntityPageComponent implements HasUnsavedChanges {
   // ---------------------------------------------------------------------------------------------
 
   hasUnsavedChanges(): boolean {
-    if (this.suppressGuard || this.view() !== 'form' || this.mode() === 'view') {
+    const formShown = this.view() === 'form' || this.dialogOpen();
+    if (this.suppressGuard || !formShown || this.mode() === 'view') {
       return false;
     }
     return !!this.form()?.isDirty();
@@ -440,7 +502,9 @@ export class EntityPageComponent implements HasUnsavedChanges {
         const rtId = await this.dataService.create(model, ckTypeId, changeSet);
         this.notificationService.showSuccess(m.createSuccess, 3000);
         this.saved.emit({ kind: 'create', rtId, ckTypeId });
-        if (this.isSingleton()) {
+        if (this.dialogOpen()) {
+          this.closeDialog(true);
+        } else if (this.isSingleton()) {
           this.singletonWellKnownName.set(null);
           await this.openEntity(model, { rtId }, this.loadToken);
         } else {
@@ -456,11 +520,18 @@ export class EntityPageComponent implements HasUnsavedChanges {
       }
       if (changeSet.isEmpty) {
         this.notificationService.showInfo(m.noChanges, 2000);
+        if (this.dialogOpen()) {
+          this.closeDialog(false);
+        }
         return true;
       }
       await this.dataService.update(rtId, ckTypeId, changeSet);
       this.notificationService.showSuccess(m.saveSuccess, 3000);
       this.saved.emit({ kind: 'update', rtId, ckTypeId });
+      if (this.dialogOpen()) {
+        this.closeDialog(true);
+        return true;
+      }
       const reloaded = await this.dataService.load(model, { rtId });
       if (reloaded) {
         this.applyLoaded(reloaded.rtId, reloaded.ckTypeId, reloaded.state, reloaded.rtDisplayName);
@@ -488,11 +559,39 @@ export class EntityPageComponent implements HasUnsavedChanges {
   }
 
   protected async onCreateRequested(event: EntityListCreateRequest): Promise<void> {
+    if (this.effectiveEditMode() === 'dialog') {
+      await this.openDialog({ kind: 'create', ckTypeId: event.ckTypeId });
+      return;
+    }
     await this.go({ kind: 'create', ckTypeId: event.ckTypeId });
   }
 
   protected async onOpenRequested(event: EntityListOpenRequest): Promise<void> {
+    if (this.effectiveEditMode() === 'dialog') {
+      await this.openDialog({ kind: 'edit', rtId: event.rtId, ckTypeId: event.ckTypeId });
+      return;
+    }
     await this.go({ kind: 'edit', rtId: event.rtId, ckTypeId: event.ckTypeId });
+  }
+
+  /** Cancel, the dialog's close button and Escape: asks before discarding unsaved changes. */
+  protected async onDialogCancel(): Promise<void> {
+    if (!this.dialogOpen() || this.saving()) {
+      return;
+    }
+    if (this.hasUnsavedChanges()) {
+      const m = this.msgs();
+      const discard = await this.confirmationService.showYesNoConfirmationDialog(
+        m.unsavedChangesTitle,
+        m.unsavedChangesMessage,
+        undefined,
+        { yes: m.discardChanges, no: m.keepEditing },
+      );
+      if (!discard) {
+        return;
+      }
+    }
+    this.closeDialog(false);
   }
 
   protected async onDelete(): Promise<void> {
@@ -519,6 +618,11 @@ export class EntityPageComponent implements HasUnsavedChanges {
         return;
       }
       this.notificationService.showSuccess(m.deleteSuccess, 3000);
+      if (this.dialogOpen()) {
+        this.deleted.emit({ rtId, ckTypeId });
+        this.closeDialog(true);
+        return;
+      }
       this.suppressGuard = true;
       this.deleted.emit({ rtId, ckTypeId });
       await this.go({ kind: 'list' });
@@ -535,6 +639,9 @@ export class EntityPageComponent implements HasUnsavedChanges {
   private async load(ctx: PageContext): Promise<void> {
     const token = ++this.loadToken;
     this.suppressGuard = false;
+    this.formTarget = 'page';
+    this.dialogOpen.set(false);
+    this.dialogTrigger = null;
     this.view.set('loading');
     this.errorMessage.set(null);
     const m = this.msgs();
@@ -644,7 +751,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
       rtWellKnownName: singletonWellKnownName,
     });
     this.mode.set('create');
-    this.view.set('form');
+    this.showForm();
   }
 
   /**
@@ -687,7 +794,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
     this.applyLoaded(loaded.rtId, loaded.ckTypeId || formModel.rtCkTypeId, loaded.state, loaded.rtDisplayName);
     const writable = this.effectiveCanWrite() && formModel.capabilities.canEdit;
     this.mode.set(writable ? 'edit' : 'view');
-    this.view.set('form');
+    this.showForm();
     return true;
   }
 
@@ -748,8 +855,82 @@ export class EntityPageComponent implements HasUnsavedChanges {
   }
 
   private fail(message: string): void {
+    if (this.formTarget === 'dialog') {
+      // The list stays: tell the user and reload it (the entity may be gone).
+      this.notificationService.showError(message);
+      this.closeDialog(true);
+      return;
+    }
     this.errorMessage.set(message);
     this.view.set('error');
+  }
+
+  /** Shows the loaded form: on the page, or in the dialog over the list. */
+  private showForm(): void {
+    if (this.formTarget === 'dialog') {
+      this.dialogOpen.set(true);
+    } else {
+      this.view.set('form');
+    }
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // Dialog mode (AB#5623)
+  // ---------------------------------------------------------------------------------------------
+
+  /** Loads the create / edit form into the dialog over the list. */
+  private async openDialog(target: { kind: 'create'; ckTypeId: string } | { kind: 'edit'; rtId: string; ckTypeId: string }): Promise<void> {
+    const base = this.baseModel();
+    if (!base || this.dialogOpen()) {
+      return;
+    }
+    const m = this.msgs();
+    if (target.kind === 'create' && (!this.effectiveCanWrite() || !base.capabilities.canCreate)) {
+      this.notificationService.showWarning(m.readOnlyNotice);
+      return;
+    }
+    this.dialogTrigger = activeElement();
+    const token = ++this.loadToken;
+    this.formTarget = 'dialog';
+    try {
+      const formModel = await this.modelForType(base, target.ckTypeId);
+      if (token !== this.loadToken) {
+        return;
+      }
+      if (target.kind === 'create') {
+        await this.startCreate(formModel, null, token);
+      } else {
+        await this.openEntity(formModel, { rtId: target.rtId }, token);
+      }
+    } catch (error) {
+      if (token === this.loadToken) {
+        console.error('mm-entity-page: dialog load failed', error);
+        this.fail(m.loadError);
+      }
+    }
+  }
+
+  /**
+   * Closes the dialog without asking, optionally reloads the list, and gives the focus back to
+   * the element that opened the dialog (or the list when that element is gone).
+   */
+  private closeDialog(refresh: boolean): void {
+    this.loadToken++;
+    this.formTarget = 'page';
+    this.dialogOpen.set(false);
+    this.resetEntity();
+    if (refresh) {
+      this.list()?.refresh();
+    }
+    const trigger = this.dialogTrigger;
+    this.dialogTrigger = null;
+    const listElement = this.listElement()?.nativeElement as HTMLElement | undefined;
+    setTimeout(() => {
+      const target = trigger?.isConnected
+        ? trigger
+        : listElement?.querySelector<HTMLElement>('.k-grid [tabindex="0"], .k-grid-table, .k-grid') ?? null;
+      target?.focus?.();
+    });
   }
 
   // ---------------------------------------------------------------------------------------------
@@ -806,7 +987,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
    * skipped. Returns the field keys that were set (`[]` when no writable form is shown).
    */
   patchFormValues(values: EntityFormPrefillValues): string[] {
-    if (this.view() !== 'form' || this.mode() === 'view') {
+    if ((this.view() !== 'form' && !this.dialogOpen()) || this.mode() === 'view') {
       return [];
     }
     return this.form()?.patchValues(values) ?? [];
@@ -830,6 +1011,12 @@ export class EntityPageComponent implements HasUnsavedChanges {
       return null;
     }
   }
+}
+
+/** The focused element (the dialog's trigger), or `null` outside a browser. */
+function activeElement(): HTMLElement | null {
+  const element = typeof document !== 'undefined' ? document.activeElement : null;
+  return element instanceof HTMLElement && element !== document.body ? element : null;
 }
 
 function asString(value: unknown): string | undefined {
