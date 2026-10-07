@@ -1,3 +1,4 @@
+import type { Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { toCkTypeInfo } from '../core/ck-metadata';
@@ -17,6 +18,7 @@ import { EntityFormGetValuesDtoGQL } from '../graphQL/getEntityFormValues';
 import { EntityFormUpdateEntitiesDtoGQL } from '../graphQL/updateEntityFormEntities';
 import { EntityFormDataService } from './entity-form-data.service';
 import { EntityFormService } from './entity-form.service';
+import { ENTITY_FORM_SECRET_PLACEHOLDER_VALUES } from '../core/secret-write-availability';
 
 const SFTP = 'System.Communication/SftpConfiguration';
 const RT_ID = '6ac41210de1ac5b9fc3e7f99';
@@ -57,23 +59,25 @@ describe('EntityFormDataService', () => {
     values.fetch.mockReturnValue(of({ data: { runtime: { runtimeEntities: { totalCount: 1, items: [entity] } } } }));
     presence.fetch.mockImplementation(({ variables }: { variables: { fieldFilters: { attributePath: string }[] } }) =>
       of({ data: { runtime: { runtimeEntities: { totalCount: variables.fieldFilters[0].attributePath === 'password' ? 1 : 0 } } } }));
-    TestBed.configureTestingModule({
-      providers: [
-        { provide: EntityFormGetValuesDtoGQL, useValue: values },
-        { provide: EntityFormGetListDtoGQL, useValue: list },
-        { provide: EntityFormGetCountDtoGQL, useValue: list },
-        { provide: EntityFormGetAttributePresenceDtoGQL, useValue: presence },
-        { provide: EntityFormGetAssociationTargetsDtoGQL, useValue: targets },
-        { provide: EntityFormGetAssociationDefinitionsDtoGQL, useValue: definitions },
-        { provide: EntityFormGetReferenceOptionsDtoGQL, useValue: options },
-        { provide: EntityFormCreateEntitiesDtoGQL, useValue: create },
-        { provide: EntityFormUpdateEntitiesDtoGQL, useValue: update },
-        { provide: EntityFormDeleteEntitiesDtoGQL, useValue: del },
-        { provide: EntityFormService, useValue: { getCkRecord: vi.fn().mockResolvedValue(null) } },
-      ],
-    });
+    TestBed.configureTestingModule({ providers: providers() });
     service = TestBed.inject(EntityFormDataService);
   });
+
+  function providers(): Provider[] {
+    return [
+      { provide: EntityFormGetValuesDtoGQL, useValue: values },
+      { provide: EntityFormGetListDtoGQL, useValue: list },
+      { provide: EntityFormGetCountDtoGQL, useValue: list },
+      { provide: EntityFormGetAttributePresenceDtoGQL, useValue: presence },
+      { provide: EntityFormGetAssociationTargetsDtoGQL, useValue: targets },
+      { provide: EntityFormGetAssociationDefinitionsDtoGQL, useValue: definitions },
+      { provide: EntityFormGetReferenceOptionsDtoGQL, useValue: options },
+      { provide: EntityFormCreateEntitiesDtoGQL, useValue: create },
+      { provide: EntityFormUpdateEntitiesDtoGQL, useValue: update },
+      { provide: EntityFormDeleteEntitiesDtoGQL, useValue: del },
+      { provide: EntityFormService, useValue: { getCkRecord: vi.fn().mockResolvedValue(null) } },
+    ];
+  }
 
   function sentAttributeNames(): unknown[] {
     return values.fetch.mock.calls.map((c) => (c[0] as { variables: { attributeNames: unknown } }).variables.attributeNames);
@@ -112,6 +116,21 @@ describe('EntityFormDataService', () => {
         { attributePath: 'password', operator: 'NOT_EQUALS', comparisonValue: '' },
       ] },
       fetchPolicy: 'network-only',
+    }));
+  });
+
+  it('excludes the host placeholder values from the presence of legacy STRING secrets (AB#5623)', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [...providers(), { provide: ENTITY_FORM_SECRET_PLACEHOLDER_VALUES, useValue: ['TODO_SET_PASSWORD', ''] }],
+    });
+    await TestBed.inject(EntityFormDataService).load(sftpModel, { rtId: RT_ID });
+    expect(presence.fetch).toHaveBeenCalledWith(expect.objectContaining({
+      variables: { ckTypeId: SFTP, rtId: RT_ID, fieldFilters: [
+        { attributePath: 'password', operator: 'IS_NOT_NULL' },
+        { attributePath: 'password', operator: 'NOT_EQUALS', comparisonValue: '' },
+        { attributePath: 'password', operator: 'NOT_EQUALS', comparisonValue: 'TODO_SET_PASSWORD' },
+      ] },
     }));
   });
 

@@ -69,3 +69,13 @@
 .mm-entity-page__state--error {
   color: var(--theme-status-error, inherit);
 }
+
+// Bottom action bar (actionBarPosition 'bottom', AB#5623): Save / Cancel bottom right, below the
+// scrolling form, so it stays reachable on long forms.
+.mm-entity-page__footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--theme-border-subtle, rgba(0, 0, 0, 0.12));
+}

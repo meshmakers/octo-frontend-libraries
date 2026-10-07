@@ -10,6 +10,7 @@ import {
 import { EntityFormComponent } from './entity-form.component';
 import { signal } from '@angular/core';
 import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-availability';
+import { ENTITY_FORM_LABEL_RESOLVER } from '../core/entity-form-labels';
 
 /** Protected-member view used by the spec. */
 interface Testable {
@@ -560,6 +561,74 @@ describe('EntityFormComponent', () => {
     it('carries a host-prefilled well-known name on create (singleton)', async () => {
       await render(sftpModel(), 'create', { values: {}, secretPresence: {}, associations: {}, rtWellKnownName: 'Default' });
       expect(component.getChangeSet().rtWellKnownName).toBe('Default');
+    });
+  });
+
+  describe('host labels and prefill (AB#5623)', () => {
+    it('renders translated labels without rebuilding the controls on a language change', async () => {
+      const lang = signal('en');
+      fixture.componentRef.setInput('labelResolver', (r: { kind: string; key: string }) =>
+        lang() === 'de' && r.kind === 'field' && r.key === 'host' ? 'Rechner' : null);
+      await render(sftpModel(), 'create');
+      expect(fieldEl('host')?.textContent).toContain('host');
+      api.control('host').setValue('typed');
+
+      lang.set('de');
+      fixture.detectChanges();
+      expect(fieldEl('host')?.textContent).toContain('Rechner');
+      expect(api.control('host').value).toBe('typed');
+    });
+
+    it('uses ENTITY_FORM_LABEL_RESOLVER when no input is bound, and names translated fields in saveBlockedReason', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        animationsEnabled: false,
+        providers: [
+          { provide: ENTITY_FORM_LABEL_RESOLVER, useValue: (r: { key: string }) => (r.key === 'token' ? 'Schlüssel' : null) },
+          { provide: ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, useValue: signal(false) },
+        ],
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      await render(model([section('s', [field({ key: 'token', valueType: 'SECRET', editor: 'password', secret: true, required: true })])]), 'create');
+      expect(component.saveBlockedReason()).toContain('Schlüssel');
+    });
+
+    it('prefills a create form from initialValues (any key casing, over defaults, never secrets)', async () => {
+      fixture.componentRef.setInput('initialValues', { HOST: 'h.example.com', port: 2222, password: 'nope', rtWellKnownName: 'Main' });
+      await render(model([section('s', [
+        field({ key: 'host' }),
+        field({ key: 'port', valueType: 'INT', editor: 'number', defaultValue: 22 }),
+        field({ key: 'password', editor: 'password', secret: true }),
+      ])]), 'create');
+      expect(api.control('host').value).toBe('h.example.com');
+      expect(api.control('port').value).toBe(2222);
+      expect(api.control('password').value).toBeNull();
+      expect(component.isDirty()).toBe(false);
+      const changeSet = component.getChangeSet();
+      expect(changeSet.rtWellKnownName).toBe('Main');
+      expect(changeSet.attributes).toEqual(expect.arrayContaining([{ attributeName: 'host', value: 'h.example.com' }]));
+    });
+
+    it('ignores initialValues outside create mode', async () => {
+      fixture.componentRef.setInput('initialValues', { host: 'other' });
+      await render(sftpModel(), 'edit', editState());
+      expect(api.control('host').value).toBe('sftp.example.com');
+    });
+
+    it('patchValues sets writable fields as edits and skips secrets, read-only and unknown keys', async () => {
+      await render(sftpModel(), 'edit', editState());
+      const applied = component.patchValues({ Port: 2200, host: 'x', password: 'secret', unknown: 1, timeout: 30 });
+      // host is afterCreate (read-only in edit mode), password is a secret.
+      expect(applied).toEqual(['port', 'timeout']);
+      expect(api.control('port').value).toBe(2200);
+      expect(api.control('host').value).toBe('sftp.example.com');
+      expect(component.isDirty()).toBe(true);
+      expect(component.getChangeSet().attributes).toEqual(expect.arrayContaining([
+        { attributeName: 'port', value: 2200 },
+        { attributeName: 'timeout', value: 30 },
+      ]));
     });
   });
 });

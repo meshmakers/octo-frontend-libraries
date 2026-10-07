@@ -1,5 +1,5 @@
 import { Directive, forwardRef, inject } from '@angular/core';
-import { FieldFilterDto, FieldFilterOperatorsDto, GraphQL } from '@meshmakers/octo-services';
+import { FieldFilterDto, FieldFilterOperatorsDto, GraphQL, SortDto, SortOrdersDto } from '@meshmakers/octo-services';
 import { OctoGraphQlDataSource } from '@meshmakers/octo-ui';
 import {
   DataSourceBase,
@@ -10,7 +10,7 @@ import {
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { EntityFormGetListDtoGQL, EntityFormGetListQueryDto } from '../graphQL/getEntityFormList';
-import { ResolvedEntityForm } from '../models/entity-form.models';
+import { EntityListSortDescriptor, ResolvedEntityForm } from '../models/entity-form.models';
 
 /**
  * One row of `<mm-entity-list>`. System properties keep their GraphQL names and every list
@@ -97,14 +97,48 @@ function isSystemKey(key: string): boolean {
 export class EntityListDataSourceDirective extends OctoGraphQlDataSource<EntityListRow> {
   private readonly listGQL = inject(EntityFormGetListDtoGQL);
   private model: ResolvedEntityForm | null = null;
+  private defaultSort: readonly EntityListSortDescriptor[] = [];
 
   constructor() {
     super(inject(ListViewComponent));
   }
 
-  /** Sets the resolved form and refetches from the first page. */
-  public setModel(model: ResolvedEntityForm | null): void {
+  /**
+   * Sets the order used while the user has not sorted by a column (AB#5623). Refetches when the
+   * order changed and a model is set.
+   */
+  public setDefaultSort(sort: readonly EntityListSortDescriptor[] | null | undefined): void {
+    const next = (sort ?? []).filter((s) => !!s?.field);
+    if (JSON.stringify(next) === JSON.stringify(this.defaultSort)) {
+      return;
+    }
+    this.defaultSort = next;
+    if (this.model) {
+      this.fetchAgain({ resetSkip: true });
+    }
+  }
+
+  /** The user's column sort, else the default sort, else `null` (server order). */
+  private effectiveSort(options: FetchDataOptions): SortDto[] | null {
+    const userSorted = (options.state.sort ?? []).some((s) => !!s.dir);
+    if (userSorted || this.defaultSort.length === 0) {
+      return this.getSortDefinitions(options.state);
+    }
+    return this.defaultSort.map((s) => ({
+      attributePath: s.field,
+      sortOrder: s.dir === 'desc' ? SortOrdersDto.DescendingDto : SortOrdersDto.AscendingDto,
+    }));
+  }
+
+  /**
+   * Sets the resolved form and refetches from the first page. `defaultSort` (optional) replaces
+   * the order used while the user has not sorted by a column (see {@link setDefaultSort}).
+   */
+  public setModel(model: ResolvedEntityForm | null, defaultSort?: readonly EntityListSortDescriptor[] | null): void {
     this.model = model;
+    if (defaultSort !== undefined) {
+      this.defaultSort = (defaultSort ?? []).filter((s) => !!s?.field);
+    }
     this.searchFilterAttributePaths = model
       ? model.listColumns.filter((c) => c.display !== 'date').map((c) => c.field)
       : [];
@@ -129,7 +163,7 @@ export class EntityListDataSourceDirective extends OctoGraphQlDataSource<EntityL
       ckTypeId: model.rtCkTypeId,
       first: options.state.take,
       after: GraphQL.offsetToCursor(options.state.skip ?? 0),
-      sort: this.getSortDefinitions(options.state),
+      sort: this.effectiveSort(options),
       fieldFilters: fieldFilters.length > 0 ? fieldFilters : null,
       searchFilter: this.getSearchFilterDefinitions(options.textSearch),
       attributeNames: entityListAttributeNames(model),

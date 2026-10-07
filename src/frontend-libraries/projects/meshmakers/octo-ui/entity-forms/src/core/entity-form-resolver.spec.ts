@@ -573,3 +573,28 @@ describe('associationFieldKey (FormGroup keys cannot include ".")', () => {
   });
 });
 
+
+describe('listDefaultSort (AB#5623)', () => {
+  const type = ckType('Basic.Accounting/CategorizationRule', {
+    attributes: [attr('priority', 'INT'), attr('name'), attr('apiKey', 'SECRET'), attr('lines', 'RECORD_ARRAY')],
+  });
+
+  it('is absent without a definition (server order, unchanged behaviour)', () => {
+    expect(resolveEntityForm(type, [form('Basic.Accounting/CategorizationRule')]).listDefaultSort).toBeUndefined();
+  });
+
+  it('canonicalises paths, defaults to asc and drops secrets, records and unknown paths with a warning', () => {
+    const model = resolveEntityForm(type, [form('Basic.Accounting/CategorizationRule', {
+      listDefaultSort: [
+        { attributePath: 'Priority' },
+        { attributePath: 'rtChangedDateTime', direction: 'desc' },
+        { attributePath: 'apiKey' },
+        { attributePath: 'lines' },
+        { attributePath: 'nope' },
+        { attributePath: 'priority', direction: 'desc' },
+      ],
+    })]);
+    expect(model.listDefaultSort).toEqual([{ field: 'priority', dir: 'asc' }, { field: 'rtChangedDateTime', dir: 'desc' }]);
+    expect(model.warnings.filter((w) => w.startsWith('List default sort'))).toHaveLength(3);
+  });
+});

@@ -13,3 +13,19 @@ import { InjectionToken, Signal } from '@angular/core';
 export const ENTITY_FORM_SECRET_KEY_RING_CONFIGURED = new InjectionToken<Signal<boolean | null | undefined>>(
   'ENTITY_FORM_SECRET_KEY_RING_CONFIGURED',
 );
+
+/**
+ * Values that count as "not set" for LEGACY secret fields (AB#5623): plain `STRING` attributes
+ * treated as secrets by form decision, CK metadata or the credential-name rule. Their presence is
+ * probed with field filters (`IS_NOT_NULL` and `NOT_EQUALS ''`); each value listed here adds a
+ * `NOT_EQUALS <value>` filter, so a seeded placeholder (exact, case-sensitive match) reads
+ * "Not set" instead of "Set".
+ *
+ * Optional; not provided = only `null` and `''` count as not set (unchanged behaviour). The
+ * library ships no placeholder values of its own — the host lists the ones its seed data uses.
+ * It has no effect on attributes of value type `SECRET` (AB#5528): their state comes from the
+ * server (`secretIsSet`), which is the reliable way — migrate secrets to `SECRET` where possible.
+ */
+export const ENTITY_FORM_SECRET_PLACEHOLDER_VALUES = new InjectionToken<readonly string[]>(
+  'ENTITY_FORM_SECRET_PLACEHOLDER_VALUES',
+);

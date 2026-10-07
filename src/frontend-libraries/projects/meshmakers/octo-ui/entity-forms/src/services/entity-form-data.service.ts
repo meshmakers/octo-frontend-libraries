@@ -13,6 +13,7 @@ import {
 } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 import { toFormValue } from '../core/entity-form-value-mapper';
+import { ENTITY_FORM_SECRET_PLACEHOLDER_VALUES } from '../core/secret-write-availability';
 import { EntityFormCreateEntitiesDtoGQL } from '../graphQL/createEntityFormEntities';
 import { EntityFormDeleteEntitiesDtoGQL } from '../graphQL/deleteEntityFormEntities';
 import { EntityFormGetAttributePresenceDtoGQL } from '../graphQL/getEntityAttributePresence';
@@ -97,6 +98,7 @@ export class EntityFormDataService {
   private readonly listGql = inject(EntityFormGetListDtoGQL);
   private readonly countGql = inject(EntityFormGetCountDtoGQL);
   private readonly formService = inject(EntityFormService);
+  private readonly secretPlaceholders = inject(ENTITY_FORM_SECRET_PLACEHOLDER_VALUES, { optional: true }) ?? [];
 
   /**
    * The attribute names to read for a model: `readAttributeNames` with every secret removed except
@@ -316,7 +318,9 @@ export class EntityFormDataService {
 
   /**
    * "Set / not set" per secret: not null AND — for STRING secrets — not the empty string (an empty
-   * string is "no secret", AB#5524; same rule as the Studio's service account page).
+   * string is "no secret", AB#5524; same rule as the Studio's service account page) and none of the
+   * host's placeholder values (`ENTITY_FORM_SECRET_PLACEHOLDER_VALUES`, AB#5623). SECRET-typed
+   * attributes are not probed here: their state comes from the server.
    */
   private async loadSecretPresence(
     secretFields: string[],
@@ -328,7 +332,10 @@ export class EntityFormDataService {
       const valueType = fields.find((f) => f.attributeName === name)?.valueType ?? 'STRING';
       const fieldFilters = [
         { attributePath: name, operator: FieldFilterOperatorsDto.IsNotNullDto },
-        ...(valueType === 'STRING' ? [{ attributePath: name, operator: FieldFilterOperatorsDto.NotEqualsDto, comparisonValue: '' }] : []),
+        ...(valueType === 'STRING'
+          ? ['', ...this.secretPlaceholders.filter((v) => typeof v === 'string' && v !== '')]
+            .map((comparisonValue) => ({ attributePath: name, operator: FieldFilterOperatorsDto.NotEqualsDto, comparisonValue }))
+          : []),
       ];
       const result = await firstValueFrom(this.presenceGql.fetch({
         variables: { ckTypeId, rtId, fieldFilters },

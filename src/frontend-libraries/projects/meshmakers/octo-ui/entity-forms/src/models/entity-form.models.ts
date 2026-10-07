@@ -105,6 +105,17 @@ export interface EntityFormFieldDef {
   referenceDisplayAttributes?: string[] | null;
 }
 
+/**
+ * One entry of the default list order (AB#5623). Not part of the `System.UI/EntityForm` CK type:
+ * set it in host fallback forms (`provideEntityFormFallbacks`) or pass `defaultSort` to the list.
+ */
+export interface EntityFormSortDef {
+  /** Attribute path (any casing) or system property (`rtChangedDateTime`, `rtWellKnownName`, ...). */
+  attributePath: string;
+  /** Default `'asc'`. */
+  direction?: 'asc' | 'desc' | null;
+}
+
 export interface EntityFormColumnDef {
   attributePath: string;
   label?: string | null;
@@ -138,6 +149,11 @@ export interface EntityFormDefinition {
   sections: EntityFormSectionDef[];
   fields: EntityFormFieldDef[];
   listColumns: EntityFormColumnDef[];
+  /**
+   * Initial order of the list (AB#5623; host fallback forms only, the CK type has no such
+   * attribute). The user can still sort by any column; without a user sort this order applies.
+   */
+  listDefaultSort?: EntityFormSortDef[] | null;
 }
 
 /** A parsed `VisibleWhen` expression: `Path=value` or `Path=*` (any value). */
@@ -211,6 +227,15 @@ export interface ResolvedListColumn {
   enumOptions?: { key: number; name: string }[];
 }
 
+/**
+ * Sort order of `mm-entity-list` (AB#5623). Same shape as a Kendo `SortDescriptor`; `field` is the
+ * list row field = GraphQL attribute path (camelCase attribute name or system property).
+ */
+export interface EntityListSortDescriptor {
+  field: string;
+  dir: 'asc' | 'desc';
+}
+
 export interface ResolvedEntityForm {
   source: 'tenant' | 'seeded' | 'builtIn';
   formRtId?: string;
@@ -235,6 +260,11 @@ export interface ResolvedEntityForm {
   singleton?: { wellKnownName?: string };
   sections: ResolvedSection[];
   listColumns: ResolvedListColumn[];
+  /**
+   * Initial list order from the form definition (`listDefaultSort`, canonicalised; secret
+   * attributes dropped). Absent = server order (today's behaviour).
+   */
+  listDefaultSort?: EntityListSortDescriptor[];
   /**
    * Attribute names to read (non-secret fields plus record sub-attribute names, plus the SECRET
    * fields of {@link secretStateFields}, whose value the server never returns).

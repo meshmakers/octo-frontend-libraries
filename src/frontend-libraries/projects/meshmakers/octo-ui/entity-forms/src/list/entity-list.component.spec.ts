@@ -1,7 +1,7 @@
 import type { Mock, MockedObject } from 'vitest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FieldFilterOperatorsDto } from '@meshmakers/octo-services';
+import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-services';
 import { CkTypeSelectorDialogService } from '@meshmakers/octo-ui';
 import { CommandItem } from '@meshmakers/shared-services';
 import {
@@ -270,6 +270,59 @@ describe('EntityListComponent', () => {
       .columns().find((c) => c.field === 'enabled')!;
     expect(column.formatter!(true, {})).toBe('Ja');
   });
+
+  describe('host extensions (AB#5623)', () => {
+    const noop = async () => undefined;
+
+    it('appends host toolbar, row and row-menu actions; the actions column grows per row action', () => {
+      setInputs(makeModel());
+      fixture.componentRef.setInput('toolbarActions', [{ id: 'import', type: 'link', text: 'Import', onClick: noop }]);
+      fixture.componentRef.setInput('rowActions', [{ id: 'export', type: 'link', text: 'Export', onClick: noop }]);
+      fixture.componentRef.setInput('rowMenuActions', [{ id: 'archive', type: 'link', text: 'Archive', onClick: noop }]);
+      expect(ids(component.toolbarItems())).toEqual(['new', 'import']);
+      expect(ids(component.actionItems())).toEqual(['open', 'export']);
+      expect(ids(component.contextMenuItems())).toEqual(['copyId', 'archive', 'separator1', 'delete']);
+      expect((component as unknown as { actionsColumnWidth: () => number }).actionsColumnWidth()).toBe(120);
+    });
+
+    it('keeps host toolbar actions for read-only users (New is hidden)', () => {
+      setInputs(makeModel(), false);
+      fixture.componentRef.setInput('toolbarActions', [{ id: 'export', type: 'link', text: 'Export', onClick: noop }]);
+      expect(ids(component.toolbarItems())).toEqual(['export']);
+      expect((component as unknown as { actionsColumnWidth: () => number }).actionsColumnWidth()).toBe(80);
+    });
+
+    it('translates column titles and enum chips with the label resolver', () => {
+      setInputs(makeModel({
+        listColumns: [{ field: 'kind', label: 'Kind', display: 'chip', kind: 'attribute', valueType: 'ENUM', enumOptions: [{ key: 0, name: 'GIRO' }] }],
+      }));
+      fixture.componentRef.setInput('labelResolver', (r: { kind: string; key: string }) =>
+        r.kind === 'listColumn' ? 'Art' : r.kind === 'enumOption' && r.key === 'GIRO' ? 'Girokonto' : null);
+      const column = (component as unknown as { columns: () => { displayName?: string; badgeMapping?: Record<string, { label: string }> }[] }).columns()[0];
+      expect(column.displayName).toBe('Art');
+      expect(column.badgeMapping?.['0']).toEqual({ label: 'Girokonto' });
+    });
+
+    it('uses the copyFailed message when the clipboard is unavailable', async () => {
+      setInputs(makeModel());
+      fixture.componentRef.setInput('messages', { copyFailed: 'Kopieren fehlgeschlagen' });
+      vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('denied'));
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
+      const item = component.copyIdMenuItem().children!.find((c) => c.id === 'copyRtId')!;
+      await item.onClick!({ commandItem: item, data: { rtId: 'abc', ckTypeId: 'A/B' } });
+      expect(notifications.showError).toHaveBeenCalledWith('Kopieren fehlgeschlagen');
+    });
+
+    it('prefers the defaultSort input over the form listDefaultSort', () => {
+      setInputs(makeModel({ listDefaultSort: [{ field: 'host', dir: 'asc' }] }));
+      const sort = () => (component as unknown as { effectiveDefaultSort: () => unknown }).effectiveDefaultSort();
+      expect(sort()).toEqual([{ field: 'host', dir: 'asc' }]);
+      fixture.componentRef.setInput('defaultSort', [{ field: 'port', dir: 'desc' }]);
+      expect(sort()).toEqual([{ field: 'port', dir: 'desc' }]);
+      fixture.componentRef.setInput('defaultSort', []);
+      expect(sort()).toEqual([]);
+    });
+  });
 });
 
 describe('entity list helpers', () => {
@@ -391,6 +444,28 @@ describe('EntityListDataSourceDirective', () => {
       listColumns: [{ field: 'password', label: 'P', display: 'text', kind: 'attribute' }],
     }));
     expect(directive.buildVariables(options)!['attributeNames']).toEqual([]);
+  });
+
+  it('applies the default sort until the user sorts by a column (AB#5623)', () => {
+    directive.setModel(makeModel(), [{ field: 'port', dir: 'desc' }, { field: 'host', dir: 'asc' }]);
+    expect(directive.buildVariables(options)!['sort']).toEqual([
+      { attributePath: 'port', sortOrder: SortOrdersDto.DescendingDto },
+      { attributePath: 'host', sortOrder: SortOrdersDto.AscendingDto },
+    ]);
+    // A cleared column sort (descriptor without direction) still counts as "not sorted".
+    expect(directive.buildVariables({ ...options, state: { ...options.state, sort: [{ field: 'host' }] } })!['sort'])
+      .toEqual(expect.arrayContaining([{ attributePath: 'port', sortOrder: SortOrdersDto.DescendingDto }]));
+    expect(directive.buildVariables({ ...options, state: { ...options.state, sort: [{ field: 'host', dir: 'desc' }] } })!['sort'])
+      .toEqual([{ attributePath: 'host', sortOrder: SortOrdersDto.DescendingDto }]);
+  });
+
+  it('keeps the server order without a default sort and refetches only on a changed default sort', () => {
+    directive.setModel(makeModel());
+    expect(directive.buildVariables(options)!['sort']).toBeNull();
+    const fetchAgain = vi.spyOn(directive, 'fetchAgain').mockImplementation(() => undefined);
+    directive.setDefaultSort([{ field: 'host', dir: 'asc' }]);
+    directive.setDefaultSort([{ field: 'host', dir: 'asc' }]);
+    expect(fetchAgain).toHaveBeenCalledTimes(1);
   });
 
   it('returns flattened rows', async () => {
