@@ -3,7 +3,7 @@
   @for (item of items(); track item.id) {
     @switch (item.kind) {
       @case ('user') {
-        <li class="msg user"><span class="sr-only">{{ m().youPrefix }}</span>{{ item.text }}@if (item.attachments?.length) {<ul class="attachments" [attr.aria-label]="m().attachmentsLabel">@for (file of item.attachments; track $index) {<li class="attachment">{{ file.name }}</li>}</ul>}</li>
+        <li class="msg user"><span class="sr-only">{{ m().youPrefix }}</span>@if (item.slashCommand) {<span class="slash-command"><span class="sr-only">{{ m().slashCommandPrefix }}</span>{{ item.slashCommand }}</span>}{{ item.text }}@if (item.attachments?.length) {<ul class="attachments" [attr.aria-label]="m().attachmentsLabel">@for (file of item.attachments; track $index) {<li class="attachment">{{ file.name }}</li>}</ul>}</li>
       }
       @case ('assistant') {
         <li class="msg bot">

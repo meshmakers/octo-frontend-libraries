@@ -192,7 +192,8 @@ describe('AssistantPanelComponent optional capabilities (AB#5621)', () => {
       const transport = new SessionTransport();
       transport.sessions.set([]);
       await setup(transport, { noSessions: 'Noch keine Chats', sessions: 'Verlauf' });
-      expect(button('.sessions-toggle')!.textContent?.trim()).toBe('Verlauf');
+      expect(button('.sessions-toggle')!.getAttribute('aria-label')).toBe('Verlauf');
+      expect(button('.sessions-toggle')!.title).toBe('Verlauf');
       button('.sessions-toggle')!.click();
       await settle();
       expect(element.querySelector('.session-empty')!.textContent).toBe('Noch keine Chats');

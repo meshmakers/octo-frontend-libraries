@@ -29,6 +29,14 @@
   white-space: pre-wrap;
 }
 
+// The typed slash command above its expanded prompt (AB#5621).
+.slash-command {
+  color: var(--theme-text-muted);
+  font-family: var(--theme-font-mono, monospace);
+  font-size: 0.71875rem;
+  overflow-wrap: anywhere;
+}
+
 .attachments {
   display: flex;
   flex-wrap: wrap;

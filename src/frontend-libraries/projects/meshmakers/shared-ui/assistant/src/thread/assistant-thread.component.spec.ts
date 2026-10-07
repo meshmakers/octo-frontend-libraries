@@ -98,3 +98,22 @@ describe('AssistantThreadComponent default tool-call row', () => {
     expect(row?.querySelector('.tool-status')?.textContent).toBe('Succeeded');
   });
 });
+
+describe('AssistantThreadComponent slash command label (AB#5621)', () => {
+  it('shows the expanded prompt with the typed command as a labelled line above it', async () => {
+    await TestBed.configureTestingModule({ imports: [AssistantThreadComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(AssistantThreadComponent);
+    fixture.componentRef.setInput('items', [
+      { kind: 'user', id: 'u1', text: 'Which items are open for March?', slashCommand: '/open March' },
+      { kind: 'user', id: 'u2', text: 'plain question' }
+    ] satisfies AssistantThreadItem[]);
+    fixture.componentRef.setInput('messages', { slashCommandPrefix: 'Befehl: ' });
+    fixture.detectChanges();
+    const [expanded, plain] = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.msg.user'));
+    const label = expanded.querySelector('.slash-command')!;
+    expect(label.textContent).toBe('Befehl: /open March');
+    expect(label.querySelector('.sr-only')?.textContent).toBe('Befehl: ');
+    expect(expanded.textContent).toContain('Which items are open for March?');
+    expect(plain.querySelector('.slash-command')).toBeNull();
+  });
+});

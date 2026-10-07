@@ -38,7 +38,10 @@
  * - `ASSISTANT_PAGE_CONTEXT` (optional) — area/tab labels for the page chip;
  * - `ASSISTANT_TOOL_CALL_COMPONENT` (default {@link AssistantToolCallRowComponent}) — tool-call renderer
  *   (OctoMesh hosts: `AiToolCallComponent` of `@meshmakers/octo-ai-console`);
- * - `ASSISTANT_SLASH_COMMANDS` (default {@link DEFAULT_ASSISTANT_SLASH_COMMANDS}) — composer commands;
+ * - `ASSISTANT_SLASH_COMMANDS` (default {@link DEFAULT_ASSISTANT_SLASH_COMMANDS}) — composer commands; a
+ *   command with `expand(command, args)` is sent (and shown) as the prompt it returns (AB#5621);
+ * - `ASSISTANT_PANEL_OPTIONS` (optional) — panel layout: `mode` (`docked` | `overlay`), `resizable`,
+ *   `minWidth` / `maxWidth`, `storageKey` of the persisted width (AB#5621);
  * - `ASSISTANT_MESSAGES` — translations (`Partial<AssistantMessages>`; component `messages` inputs win).
  *
  * Requires the `marked` package (markdown of assistant turns).
@@ -62,6 +65,10 @@ export {
   ASSISTANT_TOOL_CALL_COMPONENT,
   ASSISTANT_SLASH_COMMANDS,
   DEFAULT_ASSISTANT_SLASH_COMMANDS,
+  ASSISTANT_PANEL_OPTIONS,
+  DEFAULT_ASSISTANT_PANEL_MIN_WIDTH,
+  DEFAULT_ASSISTANT_PANEL_MAX_WIDTH,
+  DEFAULT_ASSISTANT_PANEL_STORAGE_KEY,
   DEFAULT_ASSISTANT_MESSAGES,
   ASSISTANT_MESSAGES,
   resolveAssistantMessages,
@@ -104,6 +111,8 @@ export type {
   AssistantStarterQuestions,
   AssistantAsyncResult,
   AssistantAttachmentSelection,
+  AssistantPanelOptions,
+  AssistantPanelMode,
 } from '@meshmakers/shared-ui/assistant-core';
 
 // --- Markdown (needs `marked`) ---

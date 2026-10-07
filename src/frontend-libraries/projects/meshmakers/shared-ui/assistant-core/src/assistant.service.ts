@@ -5,9 +5,11 @@ import { BreadCrumbService } from '@meshmakers/shared-services';
 import { Observable, Subject, Subscription, firstValueFrom, isObservable, lastValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { deriveAssistantContext } from './assistant-context';
-import { ASSISTANT_MESSAGES, resolveAssistantMessages } from './assistant.messages';
+import { ASSISTANT_MESSAGES, formatAssistantMessage, resolveAssistantMessages } from './assistant.messages';
 import {
   ASSISTANT_ENABLED,
+  ASSISTANT_SLASH_COMMANDS,
+  AssistantSlashCommand,
   ASSISTANT_PAGE_CONTEXT,
   AssistantPageContext,
   ASSISTANT_TRANSPORT,
@@ -29,6 +31,12 @@ const NO_SESSIONS = signal<readonly AssistantSessionSummary[]>([]).asReadonly();
 const NO_ACTIVE_SESSION = signal<string | null>(null).asReadonly();
 
 /** Awaits a promise or the last value of an observable; an observable that completes empty (e.g. `EMPTY` for a void result) yields `undefined` instead of rejecting. */
+/** `/word rest` → the word (lower-case) and the trimmed rest; anything else → null. */
+function parseSlashCommand(text: string): { word: string; args: string } | null {
+  const match = /^(\/[\w-]+)(?:\s+([\s\S]*))?$/.exec(text);
+  return match ? { word: match[1].toLowerCase(), args: (match[2] ?? '').trim() } : null;
+}
+
 function settle<T>(result: AssistantAsyncResult<T>): Promise<T | undefined> {
   return isObservable(result) ? lastValueFrom(result, { defaultValue: undefined }) : result;
 }
@@ -53,6 +61,8 @@ function settle<T>(result: AssistantAsyncResult<T>): Promise<T | undefined> {
  *   {@link openSession}, {@link deleteSession}, {@link newThread}), file attachments
  *   ({@link attachments}, {@link draftFiles}) and starter questions ({@link starterQuestions}) are
  *   only offered when the transport implements them; otherwise they are inert.
+ * - **Slash commands (AB#5621).** A command of `ASSISTANT_SLASH_COMMANDS` with `expand` is sent as
+ *   the prompt it returns; see {@link send}.
  */
 @Injectable({ providedIn: 'root' })
 export class AssistantService {
@@ -65,6 +75,7 @@ export class AssistantService {
   /** Only resolved while enabled: a disabled assistant binds nothing. */
   private readonly pageContext: AssistantPageContext | null = null;
   private readonly messages = inject(ASSISTANT_MESSAGES, { optional: true });
+  private readonly slashCommands: readonly AssistantSlashCommand[] = inject(ASSISTANT_SLASH_COMMANDS);
 
   private readonly _isOpen = signal(false);
   private readonly _draft = signal('');
@@ -84,6 +95,8 @@ export class AssistantService {
   private returnFocusTo: HTMLElement | null = null;
   private pending: Subscription | null = null;
   private itemCounter = 0;
+  /** Bumped by {@link stop}: an async slash-command expansion that resolves later is dropped. */
+  private expansionGeneration = 0;
 
   /** Whether the panel is shown. */
   readonly isOpen = this._isOpen.asReadonly();
@@ -358,6 +371,13 @@ export class AssistantService {
    * the text may be empty; the attached files are cleared with the draft. Explicitly passed `files`
    * are not checked again against {@link attachments} (`accept`, `maxFiles`, `maxFileSizeBytes`) —
    * the composer validates on pick; a host passing files itself is responsible for them.
+   *
+   * **Slash commands (AB#5621).** When the text is `<command> [args]` and that command of
+   * `ASSISTANT_SLASH_COMMANDS` has `expand`, its result is sent instead and shown as the user turn,
+   * with the typed text as `slashCommand` (label in the thread, also on the send request). A
+   * promise-returning `expand` makes the turn start once it resolves (the composer is busy and Stop
+   * cancels meanwhile); returns true when the expansion started. If `expand` throws, rejects or yields
+   * an empty prompt, nothing is sent: an error row is added and the draft (text and files) comes back.
    */
   send(text: string, files?: readonly File[]): boolean {
     const trimmed = text.trim();
@@ -365,28 +385,74 @@ export class AssistantService {
     if (!this.enabled || (!trimmed && !attached.length) || !this.canSend()) {
       return false;
     }
-    this.append(attached.length
-      ? { kind: 'user', id: this.nextId('user'), text: trimmed, attachments: attached.map(file => ({ name: file.name, size: file.size })) }
-      : { kind: 'user', id: this.nextId('user'), text: trimmed });
+    const parsed = parseSlashCommand(trimmed);
+    const command = parsed ? this.slashCommands.find(c => c.command.toLowerCase() === parsed.word && typeof c.expand === 'function') : undefined;
+    if (!parsed || !command) {
+      this._draft.set('');
+      this._draftFiles.set([]);
+      this.startTurn(trimmed, attached);
+      return true;
+    }
+
+    const restoreDraft = (): void => {
+      if (!this._draft()) {
+        this._draft.set(text);
+      }
+      if (this.attachments && !this._draftFiles().length) {
+        this._draftFiles.set(attached);
+      }
+    };
+    const fail = (): void => {
+      this.append({
+        kind: 'error', id: this.nextId('error'),
+        text: formatAssistantMessage(resolveAssistantMessages(this.messages).slashCommandFailed, { command: command.command })
+      });
+      restoreDraft();
+    };
+    const accept = (prompt: unknown): boolean => {
+      const expanded = typeof prompt === 'string' ? prompt.trim() : '';
+      if (!expanded) {
+        fail();
+        return false;
+      }
+      this.startTurn(expanded, attached, trimmed);
+      return true;
+    };
+
+    let result: string | Promise<string>;
+    try {
+      result = command.expand!(command.command, parsed.args);
+    } catch {
+      fail();
+      return false;
+    }
     this._draft.set('');
     this._draftFiles.set([]);
+    if (typeof result === 'string' || !result || typeof (result as Promise<string>).then !== 'function') {
+      return accept(result);
+    }
+    // Async: busy until the prompt is there; stop() (or a thread switch) drops it.
+    const generation = ++this.expansionGeneration;
     this._sending.set(true);
-    const request: AssistantSendRequest = attached.length
-      ? { text: trimmed, context: this.contextChips(), files: attached }
-      : { text: trimmed, context: this.contextChips() };
-    this.pending = this.transport.send(request).subscribe({
-      next: event => this.apply(event),
-      error: (error: unknown) => {
-        this.append({ kind: 'error', id: this.nextId('error'), text: error instanceof Error ? error.message : String(error) });
-        this.finishTurn();
+    (result as Promise<string>).then(
+      prompt => {
+        if (generation === this.expansionGeneration) {
+          this._sending.set(false);
+          accept(prompt);
+        }
       },
-      complete: () => this.finishTurn()
-    });
+      () => {
+        if (generation === this.expansionGeneration) {
+          this._sending.set(false);
+          fail();
+        }
+      });
     return true;
   }
 
-  /** Stops the running turn (the composer's stop button). */
+  /** Stops the running turn (the composer's stop button), including a pending slash-command expansion. */
   stop(): void {
+    this.expansionGeneration += 1;
     this.pending?.unsubscribe();
     this.finishTurn();
   }
@@ -402,6 +468,34 @@ export class AssistantService {
         item.kind === 'proposal' && item.proposal.id === proposal.id ? { ...item, decision: kind } : item));
     }
     this.decisions.next({ kind, proposal });
+  }
+
+  /** Appends the user turn and streams the transport's answer. */
+  private startTurn(text: string, attached: File[], slashCommand?: string): void {
+    const user: Extract<AssistantThreadItem, { kind: 'user' }> = { kind: 'user', id: this.nextId('user'), text };
+    if (attached.length) {
+      user.attachments = attached.map(file => ({ name: file.name, size: file.size }));
+    }
+    if (slashCommand !== undefined) {
+      user.slashCommand = slashCommand;
+    }
+    this.append(user);
+    this._sending.set(true);
+    const request: AssistantSendRequest = { text, context: this.contextChips() };
+    if (attached.length) {
+      request.files = attached;
+    }
+    if (slashCommand !== undefined) {
+      request.slashCommand = slashCommand;
+    }
+    this.pending = this.transport.send(request).subscribe({
+      next: event => this.apply(event),
+      error: (error: unknown) => {
+        this.append({ kind: 'error', id: this.nextId('error'), text: error instanceof Error ? error.message : String(error) });
+        this.finishTurn();
+      },
+      complete: () => this.finishTurn()
+    });
   }
 
   private apply(event: AssistantStreamEvent): void {

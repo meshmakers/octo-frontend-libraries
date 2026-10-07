@@ -21,6 +21,10 @@ export {
   ASSISTANT_TOOL_CALL_COMPONENT,
   ASSISTANT_SLASH_COMMANDS,
   DEFAULT_ASSISTANT_SLASH_COMMANDS,
+  ASSISTANT_PANEL_OPTIONS,
+  DEFAULT_ASSISTANT_PANEL_MIN_WIDTH,
+  DEFAULT_ASSISTANT_PANEL_MAX_WIDTH,
+  DEFAULT_ASSISTANT_PANEL_STORAGE_KEY,
 } from './assistant.models';
 export type {
   AssistantTransportStatus,
@@ -43,6 +47,8 @@ export type {
   AssistantSessionSummary,
   AssistantStarterQuestions,
   AssistantAsyncResult,
+  AssistantPanelOptions,
+  AssistantPanelMode,
 } from './assistant.models';
 
 // --- Messages / i18n ---
