@@ -135,7 +135,7 @@
                     kendoButton
                     fillMode="flat"
                     [svgIcon]="removeIcon"
-                    [title]="messages().removeRule"
+                    [title]="messages().removeRule" [attr.aria-label]="messages().removeRule"
                     (click)="removeRule($index)"
                   ></button>
                 </td>
@@ -243,7 +243,7 @@
                     kendoButton
                     fillMode="flat"
                     [svgIcon]="removeIcon"
-                    [title]="messages().removeRule"
+                    [title]="messages().removeRule" [attr.aria-label]="messages().removeRule"
                     (click)="removePerspective($index)"
                   ></button>
                 </td>

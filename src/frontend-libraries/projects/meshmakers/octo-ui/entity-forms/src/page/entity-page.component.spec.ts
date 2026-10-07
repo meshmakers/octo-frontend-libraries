@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { BreadCrumbService } from '@meshmakers/shared-services';
 import { ConfirmationService, NotificationDisplayService } from '@meshmakers/shared-ui';
+import { expectIconButtonsAccessible } from '@meshmakers/shared-ui/testing';
 import { of } from 'rxjs';
 import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
 import { EntityFormChangeSet, EntityFormValueState, ResolvedEntityForm } from '../models/entity-form.models';
@@ -116,7 +117,7 @@ describe('EntityPageComponent', () => {
   let router: MockedObject<Router>;
   let breadCrumbs: MockedObject<BreadCrumbService>;
   let listGql: { fetch: ReturnType<typeof vi.fn> };
-  let confirmation: { showYesNoConfirmationDialog: ReturnType<typeof vi.fn> };
+  let confirmation: { showYesNoConfirmationDialog: ReturnType<typeof vi.fn>; showDangerConfirm: ReturnType<typeof vi.fn> };
 
   let hostFixture: ComponentFixture<PageHostComponent> | null = null;
 
@@ -189,7 +190,7 @@ describe('EntityPageComponent', () => {
     router = { navigate: vi.fn().mockResolvedValue(true) } as unknown as MockedObject<Router>;
     breadCrumbs = { updateBreadcrumbLabels: vi.fn().mockResolvedValue(undefined) } as unknown as MockedObject<BreadCrumbService>;
     listGql = { fetch: vi.fn().mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } })) };
-    confirmation = { showYesNoConfirmationDialog: vi.fn().mockResolvedValue(true) };
+    confirmation = { showYesNoConfirmationDialog: vi.fn().mockResolvedValue(true), showDangerConfirm: vi.fn().mockResolvedValue(true) };
   });
 
   it('shows the list when there is no rtId and sets the form title breadcrumb', async () => {
@@ -391,8 +392,31 @@ describe('EntityPageComponent', () => {
     const events: unknown[] = [];
     component.deleted.subscribe((e) => events.push(e));
     await (component as unknown as { onDelete(): Promise<void> }).onDelete();
+    expect(confirmation.showDangerConfirm).toHaveBeenCalledWith(expect.objectContaining({
+      title: expect.stringMatching(/^Delete .+\?$/),
+      targetName: expect.any(String),
+      confirmText: 'Delete entity',
+    }));
+    expect(confirmation.showYesNoConfirmationDialog).not.toHaveBeenCalled();
     expect(events).toEqual([{ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration' }]);
     expect(router.navigate).toHaveBeenCalledWith(['..'], expect.anything());
+  });
+
+  it('keeps the entity when the danger confirmation is cancelled (AB#5579)', async () => {
+    formService.resolve.mockResolvedValue(makeModel());
+    dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+    confirmation.showDangerConfirm.mockResolvedValue(false);
+    await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+    await (component as unknown as { onDelete(): Promise<void> }).onDelete();
+    expect(dataService.delete).not.toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('names every icon-only action on the edit page (AB#5581 guard)', async () => {
+    formService.resolve.mockResolvedValue(makeModel());
+    dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+    await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+    expectIconButtonsAccessible(fixture);
   });
 
   it('shows an error when no form resolves for the key', async () => {

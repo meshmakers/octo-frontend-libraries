@@ -48,7 +48,13 @@ export { humanizeCkTypeName, ckTypeShortName } from './core/ck-type-name';
 export type { EntityFormCatalogEntry } from './core/entity-form-catalog';
 export { BUILT_IN_DEFAULT_FORM } from './core/built-in-default-form';
 export { ENTITY_FORM_FALLBACK_FORMS, withFallbackForms, selectFallbackForms, isChainEndForm } from './core/fallback-forms';
-export { ENTITY_FORM_ACTION_CONFIRMATION, confirmEntityFormAction } from './core/action-confirmation';
+export {
+  ENTITY_FORM_ACTION_CONFIRMATION,
+  ENTITY_FORM_DANGER_CONFIRMATION,
+  confirmEntityFormAction,
+  confirmEntityFormDanger,
+  entityDeleteConfirmation,
+} from './core/action-confirmation';
 export {
   ENTITY_FORM_BEFORE_SAVE,
   EntityFormSaveVeto,
@@ -88,7 +94,7 @@ export {
 } from './core/entity-form-prefill';
 export type { EntityFormPrefillValues, EntityFormPrefillOptions } from './core/entity-form-prefill';
 export { resolveListDefaultSort } from './core/entity-form-resolver';
-export type { EntityFormActionConfirmation, EntityFormActionRequest } from './core/action-confirmation';
+export type { EntityFormActionConfirmation, EntityFormActionRequest, EntityFormDangerConfirmation } from './core/action-confirmation';
 export { canonicalisePath, SYSTEM_PROPERTIES, toKebabTypeKey } from './core/attribute-path';
 export type { CanonicalPath } from './core/attribute-path';
 export { parseVisibleWhen, isVisible } from './core/visible-when';

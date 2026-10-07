@@ -35,7 +35,7 @@
       }
     </select>
     <button kendoButton fillMode="flat" size="small" [svgIcon]="icons.refresh"
-            (click)="refreshRoots()" title="Refresh tree list"></button>
+            (click)="refreshRoots()" title="Refresh tree list" aria-label="Refresh tree list"></button>
     <button kendoButton fillMode="flat" size="small" [svgIcon]="icons.folderOpen"
             (click)="pickRoot()" title="Browse for entity">Browse...</button>
 
@@ -217,7 +217,7 @@
             <div class="detail-subtitle">{{ node.ckTypeId }}@{{ node.rtId }}</div>
           </div>
           <button kendoButton fillMode="flat" size="small" [svgIcon]="icons.refresh"
-                  (click)="refreshSelected()" title="Refresh"></button>
+                  (click)="refreshSelected()" title="Refresh" aria-label="Refresh mappings"></button>
         </div>
 
         <div class="detail-section-title">
@@ -277,13 +277,13 @@
                   }
                 </div>
                 <div class="mapping-actions">
-                  <button kendoButton themeColor="primary" fillMode="flat" size="small"
+                  <button kendoButton fillMode="flat" size="small"
                           [svgIcon]="icons.pencil"
                           (click)="editMapping(mapping)"
-                          title="Edit mapping">Edit…</button>
-                  <button kendoButton fillMode="flat" size="small" [svgIcon]="icons.trash"
-                          (click)="deleteMapping(mapping)"
-                          title="Delete mapping"></button>
+                          title="Edit mapping" [attr.aria-label]="'Edit mapping ' + (mapping.name || mapping.rtId)"></button>
+                  <button kendoButton fillMode="flat" size="small" themeColor="error" [svgIcon]="icons.trash"
+                          (click)="deleteMapping(mapping)" data-action="delete"
+                          title="Delete mapping" [attr.aria-label]="'Delete mapping ' + (mapping.name || mapping.rtId)"></button>
                 </div>
               </li>
             }
@@ -311,7 +311,7 @@
       </select>
       <button kendoButton fillMode="flat" size="small" [svgIcon]="icons.refresh"
               [disabled]="!orphanCkType() || orphanLoading()"
-              (click)="refreshOrphans()" title="Reload"></button>
+              (click)="refreshOrphans()" title="Reload" aria-label="Reload orphans"></button>
       <span class="orphan-search-wrap">
         <input type="text" class="root-select orphan-search"
                placeholder="Search name, room, description…"

@@ -13,18 +13,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommandItem, TreeItemDataTyped } from '@meshmakers/shared-services';
 import {
   BaseTreeDetailComponent,
+  ConfirmationService,
   InputService,
+  MM_ACTION_ICONS,
   NodeDroppedEvent,
 } from '@meshmakers/shared-ui';
 import { NotificationService } from '@progress/kendo-angular-notification';
-import {
-  arrowRotateCwIcon,
-  locationsIcon,
-  pencilIcon,
-  plusIcon,
-  SVGIcon,
-  xIcon,
-} from '@progress/kendo-svg-icons';
+import { locationsIcon, SVGIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
 import {
   CkModelDto,
@@ -108,6 +103,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   protected readonly dataSource = inject(RuntimeBrowserDataSource);
   private readonly getRuntimeEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
   private readonly inputService = inject(InputService);
+  private readonly confirmation = inject(ConfirmationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly stateService = inject(RuntimeBrowserStateService);
@@ -182,7 +178,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         id: 'refresh',
         type: 'link',
         text: messages.refresh,
-        svgIcon: arrowRotateCwIcon,
+        svgIcon: MM_ACTION_ICONS.refresh,
         onClick: async () => await this.onRefresh(),
         isDisabled: () => !this.isRefreshButtonEnabled,
       },
@@ -190,7 +186,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         id: 'create',
         type: 'link',
         text: messages.create,
-        svgIcon: plusIcon,
+        svgIcon: MM_ACTION_ICONS.add,
         onClick: async () => await this.onCreate(),
         isDisabled: () => !this.isCreateButtonEnabled,
       },
@@ -198,7 +194,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         id: 'edit',
         type: 'link',
         text: messages.edit,
-        svgIcon: pencilIcon,
+        svgIcon: MM_ACTION_ICONS.edit,
         onClick: async () => await this.onEdit(),
         isDisabled: () => !this.isEditButtonEnabled,
       },
@@ -206,7 +202,8 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         id: 'delete',
         type: 'link',
         text: messages.delete,
-        svgIcon: xIcon,
+        svgIcon: MM_ACTION_ICONS.delete,
+        danger: true,
         onClick: async () => await this.onDelete(),
         isDisabled: () => !this.isDeleteButtonEnabled,
       },
@@ -678,19 +675,32 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       return;
     }
 
+    if (!this.isSelectedItemAnRtEntity) {
+      console.warn(
+        'Selected item is not a runtime entity, cannot delete.',
+        this.selectedItem,
+      );
+      return;
+    }
+
+    // Danger confirmation naming the entity (AB#5579): the entity and its children are erased.
+    const selected = this.selectedItem;
+    const runtimeEntity = selected.item as RtEntityDto;
+    const m = this.resolvedMessages();
+    const name = selected.text || runtimeEntity.rtWellKnownName || runtimeEntity.rtId;
+    const confirmed = await this.confirmation.showDangerConfirm({
+      title: (m.confirmDeleteEntityTitle ?? DEFAULT_RUNTIME_BROWSER_MESSAGES.confirmDeleteEntityTitle!).replace('{name}', name),
+      targetName: name,
+      consequence: m.confirmDeleteEntityConsequence ?? DEFAULT_RUNTIME_BROWSER_MESSAGES.confirmDeleteEntityConsequence!,
+      confirmText: m.confirmDeleteEntityConfirmText ?? DEFAULT_RUNTIME_BROWSER_MESSAGES.confirmDeleteEntityConfirmText!,
+    });
+    if (!confirmed || this.selectedItem !== selected) {
+      return;
+    }
+
     try {
       this.isLoading = true;
       this.treeDetail.setEnabledState(false);
-
-      if (!this.isSelectedItemAnRtEntity) {
-        console.warn(
-          'Selected item is not a runtime entity, cannot delete.',
-          this.selectedItem,
-        );
-        return;
-      }
-
-      const runtimeEntity = this.selectedItem.item as RtEntityDto;
 
       const parentIdPair = await this.dataSource.getRuntimeEntityParentData(
         runtimeEntity.ckTypeId,

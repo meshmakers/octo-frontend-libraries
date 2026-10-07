@@ -1,16 +1,23 @@
 import type { Mock, MockedObject } from 'vitest';
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Directive, forwardRef, inject } from '@angular/core';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-services';
 import { CkTypeSelectorDialogService } from '@meshmakers/octo-ui';
-import { CommandItem } from '@meshmakers/shared-services';
+import { CommandItem, CommandSettingsService } from '@meshmakers/shared-services';
 import {
   ConfirmationService,
+  DataSourceBase,
   FetchDataOptions,
+  FetchResult,
+  FetchResultBase,
   ListViewComponent,
+  MM_ACTION_ICONS,
   NotificationDisplayService,
 } from '@meshmakers/shared-ui';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { expectIconButtonsAccessible } from '@meshmakers/shared-ui/testing';
 import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
 import { ResolvedEntityForm } from '../models/entity-form.models';
 import { EntityFormDataService } from '../services/entity-form-data.service';
@@ -73,6 +80,7 @@ describe('EntityListComponent', () => {
   beforeEach(async () => {
     confirmation = {
       showYesNoConfirmationDialog: vi.fn().mockResolvedValue(true),
+      showDangerConfirm: vi.fn().mockResolvedValue(true),
     } as unknown as MockedObject<ConfirmationService>;
     notifications = {
       showSuccess: vi.fn(),
@@ -233,30 +241,71 @@ describe('EntityListComponent', () => {
     const deleted: unknown[] = [];
     component.deleted.subscribe((e) => deleted.push(e));
     const del = component.contextMenuItems().find((i) => i.id === 'delete')!;
+    expect(del.danger).toBe(true);
     await del.onClick!({ commandItem: del, data: { rtId: 'r1', ckTypeId: 'A/B', rtWellKnownName: 'one' } });
-    expect(confirmation.showYesNoConfirmationDialog).toHaveBeenCalled();
+    expect(confirmation.showDangerConfirm).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Delete one?',
+      targetName: 'one',
+      confirmText: 'Delete entity',
+    }));
+    expect(confirmation.showYesNoConfirmationDialog).not.toHaveBeenCalled();
     expect(dataService.delete).toHaveBeenCalledWith([{ rtId: 'r1', ckTypeId: 'A/B' }]);
     expect(deleted).toContainEqual([{ rtId: 'r1', ckTypeId: 'A/B' }]);
   });
 
-  it('asks the host action confirmation (production check) before the yes/no dialog (AB#5524)', async () => {
+  it('asks the host action confirmation (production check) before the danger dialog (AB#5524)', async () => {
     const hook = actionHook.mockResolvedValue(false);
     setInputs(makeModel());
     const del = component.contextMenuItems().find((i) => i.id === 'delete')!;
     await del.onClick!({ commandItem: del, data: [{ rtId: 'r1', ckTypeId: 'A/B' }, { rtId: 'r2', ckTypeId: 'A/B' }] });
     expect(hook).toHaveBeenCalledWith({ action: 'delete', ckTypeId: 'A/B', count: 2, description: 'delete 2 entities' });
-    expect(confirmation.showYesNoConfirmationDialog).not.toHaveBeenCalled();
+    expect(confirmation.showDangerConfirm).not.toHaveBeenCalled();
     expect(dataService.delete).not.toHaveBeenCalled();
 
     hook.mockResolvedValue(true);
     await del.onClick!({ commandItem: del, data: { rtId: 'r1', ckTypeId: 'A/B' } });
-    expect(confirmation.showYesNoConfirmationDialog).toHaveBeenCalled();
+    expect(confirmation.showDangerConfirm).toHaveBeenCalled();
     expect(dataService.delete).toHaveBeenCalledWith([{ rtId: 'r1', ckTypeId: 'A/B' }]);
+  });
+
+  it('names the count in a multi-delete danger confirmation (AB#5579)', async () => {
+    setInputs(makeModel());
+    const del = component.contextMenuItems().find((i) => i.id === 'delete')!;
+    await del.onClick!({ commandItem: del, data: [{ rtId: 'r1', ckTypeId: 'A/B' }, { rtId: 'r2', ckTypeId: 'A/B' }] });
+    expect(confirmation.showDangerConfirm).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Delete 2 entities?',
+      targetName: '2 entities',
+      confirmText: 'Delete entities',
+    }));
+  });
+
+  it('uses the host danger confirmation instead of the built-in dialog when provided (AB#5579)', async () => {
+    const host = vi.fn().mockResolvedValue(false);
+    // The token is optional and injected at construction; stand in for a provided host hook.
+    (component as unknown as { dangerConfirmation: unknown }).dangerConfirmation = host;
+    setInputs(makeModel());
+    const del = component.contextMenuItems().find((i) => i.id === 'delete')!;
+    await del.onClick!({ commandItem: del, data: { rtId: 'r1', ckTypeId: 'A/B', name: 'Primary' } });
+    expect(host).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Delete Primary?', targetName: 'Primary' }),
+      expect.objectContaining({ action: 'delete', count: 1 }),
+    );
+    expect(confirmation.showDangerConfirm).not.toHaveBeenCalled();
+    expect(dataService.delete).not.toHaveBeenCalled();
+  });
+
+  it('uses canonical icons for the row actions (AB#5579)', () => {
+    setInputs(makeModel());
+    expect(component.actionItems()[0].svgIcon).toBe(MM_ACTION_ICONS.edit);
+    expect(component.contextMenuItems()[0].svgIcon).toBe(MM_ACTION_ICONS.copy);
+    expect(component.contextMenuItems().find((i) => i.id === 'delete')!.svgIcon).toBe(MM_ACTION_ICONS.delete);
+    setInputs(makeModel(), false);
+    expect(component.actionItems()[0].svgIcon).toBe(MM_ACTION_ICONS.view);
   });
 
   it('does not delete when the confirmation is declined', async () => {
     setInputs(makeModel());
-    confirmation.showYesNoConfirmationDialog.mockResolvedValue(false);
+    confirmation.showDangerConfirm.mockResolvedValue(false);
     const del = component.contextMenuItems().find((i) => i.id === 'delete')!;
     await del.onClick!({ commandItem: del, data: { rtId: 'r1', ckTypeId: 'A/B' } });
     expect(dataService.delete).not.toHaveBeenCalled();
@@ -615,5 +664,70 @@ describe('EntityListDataSourceDirective', () => {
     expect(result?.totalCount).toBe(1);
     expect(result?.data[0]).toEqual(expect.objectContaining({ rtId: 'r1', host: 'h' }));
     expect(gql.fetch).toHaveBeenCalled();
+  });
+});
+
+@Directive({
+  selector: '[mmTestEntityListDs]',
+  standalone: true,
+  providers: [{ provide: DataSourceBase, useExisting: forwardRef(() => StaticEntityListDataSourceDirective) }],
+})
+class StaticEntityListDataSourceDirective extends DataSourceBase {
+  constructor() {
+    super(inject(ListViewComponent));
+  }
+
+  public fetchData(_options: FetchDataOptions): Observable<FetchResult | null> {
+    const rows = [
+      { rtId: 'r1', ckTypeId: 'A/B', rtWellKnownName: 'primary', host: 'sftp.example.com' },
+      { rtId: 'r2', ckTypeId: 'A/B', rtWellKnownName: 'backup', host: 'backup.example.com' },
+    ];
+    return of(new FetchResultBase(rows, rows.length));
+  }
+}
+
+describe('EntityListComponent rendered row actions (AB#5579)', () => {
+  async function render(): Promise<ComponentFixture<EntityListComponent>> {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [EntityListComponent],
+      providers: [
+        provideNoopAnimations(),
+        provideRouter([]),
+        { provide: CommandSettingsService, useValue: { navigateRelativeToRoute: {}, commandItems: [] } },
+        { provide: ConfirmationService, useValue: {} },
+        { provide: NotificationDisplayService, useValue: {} },
+        { provide: EntityFormDataService, useValue: {} },
+        { provide: EntityFormService, useValue: { getForms: vi.fn().mockResolvedValue([]) } },
+      ],
+    })
+      // The real mm-list-view with a static data source instead of the GraphQL one.
+      .overrideComponent(EntityListComponent, {
+        set: {
+          imports: [ListViewComponent, StaticEntityListDataSourceDirective],
+          template: `
+            <div style="height: 600px; display: flex;">
+              <mm-list-view mmTestEntityListDs style="flex: 1" [columns]="columns()"
+                            [actionCommandItems]="actionItems()" [contextMenuCommandItems]="contextMenuItems()"
+                            [leftToolbarActions]="toolbarItems()" rowLabelField="rtWellKnownName"></mm-list-view>
+            </div>`,
+        },
+      })
+      .compileComponents();
+    const fixture = TestBed.createComponent(EntityListComponent);
+    fixture.componentRef.setInput('model', makeModel());
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  it('names every icon-only action (AB#5581 guard)', async () => {
+    const fixture = await render();
+    const el = fixture.nativeElement as HTMLElement;
+    const edit = el.querySelector<HTMLElement>('tr.k-master-row [data-action="open"]')!;
+    expect(edit.getAttribute('aria-label')).toBe('Edit primary');
+    expect(edit.getAttribute('title')).toBe('Edit');
+    expectIconButtonsAccessible(fixture);
   });
 });

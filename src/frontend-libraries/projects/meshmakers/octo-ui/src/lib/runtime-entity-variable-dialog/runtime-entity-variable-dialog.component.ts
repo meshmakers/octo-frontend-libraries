@@ -113,7 +113,7 @@ interface CkTypeSelectorItem {
                   [svgIcon]="trashIcon"
                   fillMode="flat"
                   themeColor="error"
-                  title="Remove">
+                  title="Remove" aria-label="Remove">
                 </button>
               </div>
             </div>

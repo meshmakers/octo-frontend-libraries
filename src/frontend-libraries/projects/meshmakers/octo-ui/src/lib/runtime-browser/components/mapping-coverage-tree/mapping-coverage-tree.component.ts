@@ -18,19 +18,9 @@ import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { MultiSelectModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LayoutModule } from '@progress/kendo-angular-layout';
-import {
-  arrowRotateCwIcon,
-  downloadIcon,
-  folderOpenIcon,
-  linkIcon,
-  pencilIcon,
-  plusIcon,
-  trashIcon,
-  uploadIcon,
-  xIcon,
-} from '@progress/kendo-svg-icons';
+import { folderOpenIcon, linkIcon, xIcon } from '@progress/kendo-svg-icons';
 import { TreeItemData, TreeItemDataTyped } from '@meshmakers/shared-services';
-import { ConfirmationService, TreeComponent } from '@meshmakers/shared-ui';
+import { ConfirmationService, MM_ACTION_ICONS, TreeComponent } from '@meshmakers/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { CreateEntitiesDtoGQL } from '../../../graphQL/createEntities';
@@ -247,15 +237,15 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   @Output() readonly entitySelected = new EventEmitter<CoverageEntityRef>();
 
   protected readonly icons = {
-    refresh: arrowRotateCwIcon,
+    refresh: MM_ACTION_ICONS.refresh,
     folderOpen: folderOpenIcon,
-    plus: plusIcon,
-    pencil: pencilIcon,
-    trash: trashIcon,
+    plus: MM_ACTION_ICONS.add,
+    pencil: MM_ACTION_ICONS.edit,
+    trash: MM_ACTION_ICONS.delete,
     link: linkIcon,
     x: xIcon,
-    download: downloadIcon,
-    upload: uploadIcon,
+    download: MM_ACTION_ICONS.export,
+    upload: MM_ACTION_ICONS.import,
   };
 
   /** Selectable tree perspectives (built-in Spatial + per-tenant configured). */
@@ -1511,10 +1501,13 @@ export class MappingCoverageTreeComponent implements OnInit, OnChanges {
   }
 
   protected async deleteMapping(mapping: CoverageMappingItem): Promise<void> {
-    const confirmed = await this.confirmation.showYesNoConfirmationDialog(
-      'Delete Mapping',
-      `Delete mapping '${mapping.name || mapping.rtId}'? This cannot be undone.`,
-    );
+    const name = mapping.name || mapping.rtId;
+    const confirmed = await this.confirmation.showDangerConfirm({
+      title: `Delete mapping ${name}?`,
+      targetName: name,
+      consequence: 'The data point mapping is erased. This cannot be undone.',
+      confirmText: 'Delete mapping',
+    });
     if (!confirmed) return;
 
     try {
