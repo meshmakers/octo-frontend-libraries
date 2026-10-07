@@ -83,14 +83,47 @@ as a disabled button (no `href`). `triggered` fires in every case.
 
 ## Confirming destructive actions
 
-The components only emit. Destructive handlers confirm first, naming the target, e.g. with
-`ConfirmationService.showDestructiveConfirmationDialog(title, message, confirmLabel)` or an own
-`kendo-dialog` whose confirm button is `themeColor="error"` and whose title names the target.
+The components only emit. Destructive handlers confirm first, naming the target, with
+`ConfirmationService.showDangerConfirm(options)` (AB#5578):
 
-## List view
+```ts
+const ok = await confirmation.showDangerConfirm({
+  title: 'Delete adapter Mesh Adapter?',   // names the target
+  targetName: 'Mesh Adapter',              // shown emphasised; typed when requireTypingName
+  consequence: 'The adapter and its configuration are deleted. This cannot be undone.',
+  confirmText: 'Delete adapter',           // verb + object, never "Yes"
+  requireTypingName: false,                // true: confirm enables only after typing targetName
+  environmentLabel: null,                  // 'PRODUCTION' / 'STAGING' shows the environment notice
+});
+```
 
-`mm-list-view` renders its own row actions from `CommandItem`s (icon buttons with
-`aria-label` = text + row label, context menu as overflow). `CommandItem.danger` renders the row
-action button with `themeColor="error"` and the context / overflow menu item in the error colour;
-toolbar controls are not styled (destructive page actions go into the page header). Converging the list view onto `mm-row-actions` (max-3 rule,
-disabled reasons) is a follow-up.
+Cancel left, danger confirm right; the initial focus is on Cancel (or the type-to-confirm input),
+never on the destructive button — `showDestructiveConfirmationDialog` and Yes/No dialogs with the
+`mm-dialog-danger` class focus their dismissing button the same way. Texts: `options.messages` /
+`ConfirmationService.defaultDangerMessages` (`DangerConfirmationMessages`). Rich dialogs (lists,
+counts, warnings) may still use an own `kendo-dialog` with the same rules. Apps add environment
+knowledge in a thin wrapper (the Studio: `DangerConfirmService`, production = typing required).
+
+## List view (AB#5572)
+
+`mm-list-view` row actions follow the same rules as `mm-row-actions`: neutral icon buttons
+(`mm-action-button`, danger colour only for `danger`), tooltip = label, `aria-label` = label + row
+label (`rowLabelField`), at most `maxInlineRowActions` slots (default 3) — with more actions, or with
+`contextMenuCommandItems` / `overflow: true` actions, the last slot is the "…" button whose menu holds
+the overflowing actions first, then the context menu items. Disabled actions stay focusable
+(`aria-disabled`, reason via `aria-describedby`, in the tooltip and in the menu item text).
+
+- **Preferred:** `[rowActions]="actions"` (`MmListRowAction<TRow>[]`: an `MmAction` whose
+  `disabledReason` / `visible` / `link` may be row callbacks, plus optional `run(row)`) and
+  `(rowAction)` (`MmListRowActionEvent {id, action, row}`).
+- **Still supported (adapter):** `actionCommandItems` (inline candidates, rendered before
+  `rowActions`; `isDisabled` + new `CommandItem.disabledReason`, generic reason otherwise) and
+  `contextMenuCommandItems` (overflow menu, incl. children and separators).
+
+## Spec guard (AB#5581)
+
+`@meshmakers/shared-ui/testing` exports `expectIconButtonsAccessible(fixtureOrElement, options?)`:
+throws when an icon-only button (icon, no visible text) lacks an accessible name (`aria-label` /
+`aria-labelledby`) or a tooltip (`title`; opt out with `requireTooltip: false`). Kendo widget
+internals are skipped (`includeKendoInternals: true` checks them); `ignore` takes a selector.
+`findInaccessibleIconButtons` returns the problems instead of throwing.

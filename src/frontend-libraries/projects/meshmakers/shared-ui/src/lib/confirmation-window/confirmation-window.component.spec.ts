@@ -45,6 +45,21 @@ describe('ConfirmationWindowComponent', () => {
     expect(buttons[0].className).not.toMatch(/error|primary/);
   });
 
+  it('focuses the dismissing button first in a destructive confirmation, never the danger button (AB#5578)', async () => {
+    vi.useFakeTimers();
+    try {
+      const danger = TestBed.createComponent(ConfirmationWindowComponent);
+      danger.componentInstance.data = { title: 'Delete user x?', message: 'm', dialogType: DialogType.YesNo, buttonLabels: { yes: 'Delete user', no: 'Cancel' }, danger: true };
+      document.body.appendChild(danger.nativeElement);
+      danger.detectChanges();
+      vi.runAllTimers();
+      expect((document.activeElement as HTMLElement | null)?.getAttribute('data-action')).toBe('dismiss');
+      (danger.nativeElement as HTMLElement).remove();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   function render(dialogType: DialogType, danger = false): { texts: (string | undefined)[]; buttons: HTMLButtonElement[] } {
     const f = TestBed.createComponent(ConfirmationWindowComponent);
     f.componentInstance.data = { title: 't', message: 'm', dialogType, ...(danger ? { danger: true } : {}) };
