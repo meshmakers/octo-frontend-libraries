@@ -15,11 +15,18 @@ import {
   DangerConfirmationResult,
   DangerConfirmationWindowComponent,
 } from '../danger-confirmation/danger-confirmation-window.component';
-import {DangerConfirmationMessages, DangerConfirmationOptions} from '../danger-confirmation/danger-confirmation.model';
+import {
+  DANGER_CONFIRM_ENVIRONMENT,
+  DangerConfirmationMessages,
+  DangerConfirmationOptions,
+  applyDangerConfirmEnvironment,
+} from '../danger-confirmation/danger-confirmation.model';
 
 @Injectable()
 export class ConfirmationService {
   private readonly dialogService = inject(DialogService);
+  /** Optional app-wide environment defaults (e.g. production → type the name), AB#5578. */
+  private readonly dangerEnvironment = inject(DANGER_CONFIRM_ENVIRONMENT, {optional: true});
 
   public defaultMessages: Partial<ConfirmationWindowMessages> | undefined;
   /** App-wide translations of {@link showDangerConfirm}; per-call `options.messages` win. */
@@ -29,9 +36,11 @@ export class ConfirmationService {
    * Danger confirmation that names the target (Studio action guideline §2.4, AB#5578): title +
    * target + consequence, Cancel left / danger confirm right, initial focus on Cancel (or on the
    * type-to-confirm input when `requireTypingName`, e.g. in production tenants). Resolves `true`
-   * only when the confirming button was used.
+   * only when the confirming button was used. Unset `requireTypingName` / `environmentLabel` fall
+   * back to the app's {@link DANGER_CONFIRM_ENVIRONMENT}, if provided.
    */
-  public async showDangerConfirm(options: DangerConfirmationOptions): Promise<boolean> {
+  public async showDangerConfirm(callerOptions: DangerConfirmationOptions): Promise<boolean> {
+    const options = applyDangerConfirmEnvironment(callerOptions, this.dangerEnvironment?.());
     const dialogRef: DialogRef = this.dialogService.open({
       title: options.title,
       content: DangerConfirmationWindowComponent,

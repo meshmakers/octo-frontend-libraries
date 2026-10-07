@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { ConfirmationService } from './confirmation.service';
 import { ButtonTypes, ConfirmationWindowResult, DialogType } from '../models/confirmation';
 import { DangerConfirmationResult, DangerConfirmationWindowComponent } from '../danger-confirmation/danger-confirmation-window.component';
+import { DANGER_CONFIRM_ENVIRONMENT, DangerConfirmEnvironment, DangerConfirmationOptions } from '../danger-confirmation/danger-confirmation.model';
 
 describe('ConfirmationService', () => {
   let service: ConfirmationService;
@@ -76,6 +77,57 @@ describe('ConfirmationService', () => {
     expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="dismiss"], [data-action="cancel"]' }));
     void service.showYesNoConfirmationDialog('Plain', 'Sure?');
     expect(dialogServiceMock.open.mock.lastCall?.[0]).not.toHaveProperty('autoFocusedElement');
+  });
+
+  /** Global environment hook (AB#5578 review fix 1): library dialogs follow the app's production rule. */
+  describe('showDangerConfirm with DANGER_CONFIRM_ENVIRONMENT', () => {
+    const libraryOptions: DangerConfirmationOptions = { title: 'Delete diagram D?', targetName: 'D', consequence: 'Gone.', confirmText: 'Delete diagram' };
+    let environment: DangerConfirmEnvironment;
+    let instance: { options: { set: ReturnType<typeof vi.fn> } };
+
+    function setup(provide: boolean): ConfirmationService {
+      TestBed.resetTestingModule();
+      instance = { options: { set: vi.fn() } };
+      dialogServiceMock.open.mockReturnValue({ ...dialogRefMock, content: { instance } } as unknown as DialogRef);
+      TestBed.configureTestingModule({
+        providers: [
+          ConfirmationService,
+          { provide: DialogService, useValue: dialogServiceMock },
+          ...(provide ? [{ provide: DANGER_CONFIRM_ENVIRONMENT, useValue: () => environment }] : []),
+        ],
+      });
+      return TestBed.inject(ConfirmationService);
+    }
+
+    it('without the token: options are passed unchanged', () => {
+      void setup(false).showDangerConfirm(libraryOptions);
+      expect(instance.options.set).toHaveBeenCalledWith({ ...libraryOptions, messages: {} });
+      expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="cancel"]' }));
+    });
+
+    it('production: a library dialog without explicit options requires typing and shows the notice', () => {
+      environment = { requireTypingName: true, environmentLabel: 'PRODUCTION' };
+      void setup(true).showDangerConfirm(libraryOptions);
+      expect(instance.options.set).toHaveBeenCalledWith(expect.objectContaining({ requireTypingName: true, environmentLabel: 'PRODUCTION' }));
+      expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-type-to-confirm]' }));
+    });
+
+    it('reads the environment each time a dialog opens', () => {
+      environment = { requireTypingName: false, environmentLabel: 'STAGING' };
+      const svc = setup(true);
+      void svc.showDangerConfirm(libraryOptions);
+      expect(instance.options.set).toHaveBeenLastCalledWith(expect.objectContaining({ requireTypingName: false, environmentLabel: 'STAGING' }));
+      environment = { requireTypingName: false };
+      void svc.showDangerConfirm(libraryOptions);
+      expect(instance.options.set).toHaveBeenLastCalledWith(expect.objectContaining({ requireTypingName: false, environmentLabel: null }));
+    });
+
+    it('explicit caller options win over the environment', () => {
+      environment = { requireTypingName: true, environmentLabel: 'PRODUCTION' };
+      void setup(true).showDangerConfirm({ ...libraryOptions, requireTypingName: false, environmentLabel: null });
+      expect(instance.options.set).toHaveBeenCalledWith(expect.objectContaining({ requireTypingName: false, environmentLabel: null }));
+      expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="cancel"]' }));
+    });
   });
 
   describe('showDestructiveConfirmationDialog', () => {

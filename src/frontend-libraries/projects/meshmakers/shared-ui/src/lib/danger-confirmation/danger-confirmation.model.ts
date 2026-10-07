@@ -1,3 +1,5 @@
+import {InjectionToken} from '@angular/core';
+
 /**
  * Texts of the danger confirmation (AB#5578); apps translate them like the other shared-ui
  * dialogs (`Partial<…Messages>` per call or as `ConfirmationService.defaultDangerMessages`).
@@ -53,7 +55,63 @@ export interface DangerConfirmationOptions {
   messages?: Partial<DangerConfirmationMessages>;
 }
 
-/** True when `typed` matches the target name (trimmed, case-sensitive). */
+/** Word typed when the target name is empty and no confirm text is set either. */
+export const DANGER_CONFIRM_FALLBACK_WORD = 'DELETE';
+
+/**
+ * The text the user has to type when `requireTypingName` is set: the target name, or — when the
+ * target name is empty/whitespace — the confirm button text, else {@link DANGER_CONFIRM_FALLBACK_WORD}.
+ * Never empty, so an empty input can never satisfy the type-to-confirm rule.
+ */
+export function dangerConfirmTypingToken(options: Pick<DangerConfirmationOptions, 'targetName' | 'confirmText'>): string {
+  return (options.targetName ?? '').trim() || (options.confirmText ?? '').trim() || DANGER_CONFIRM_FALLBACK_WORD;
+}
+
+/**
+ * True when `typed` matches the target name (trimmed, case-sensitive). An empty/whitespace target
+ * name never matches — use {@link dangerConfirmTypingToken} to get a non-empty word to type.
+ */
 export function dangerConfirmNameMatches(typed: string | null | undefined, targetName: string): boolean {
-  return (typed ?? '').trim() === targetName.trim();
+  const expected = (targetName ?? '').trim();
+  return expected.length > 0 && (typed ?? '').trim() === expected;
+}
+
+/**
+ * App-wide environment defaults of {@link ConfirmationService.showDangerConfirm} (AB#5578), e.g.
+ * "production tenants type the target name". Applied whenever a caller — typically a library
+ * component — leaves `requireTypingName` / `environmentLabel` unset; explicit caller options win.
+ */
+export interface DangerConfirmEnvironment {
+  /** Default of `requireTypingName`. */
+  requireTypingName: boolean;
+  /** Default of `environmentLabel` ("PRODUCTION", "STAGING"); `null`/omitted = no notice. */
+  environmentLabel?: string | null;
+}
+
+/**
+ * Optional hook providing the current {@link DangerConfirmEnvironment}; evaluated each time a
+ * danger confirmation opens (so it may read signals). Absent = behaviour unchanged.
+ *
+ * ```ts
+ * { provide: DANGER_CONFIRM_ENVIRONMENT, useFactory: () => {
+ *   const mode = inject(MyEnvironmentService);
+ *   return () => ({ requireTypingName: mode.isProduction(), environmentLabel: mode.label() });
+ * } }
+ * ```
+ */
+export const DANGER_CONFIRM_ENVIRONMENT = new InjectionToken<() => DangerConfirmEnvironment>('DANGER_CONFIRM_ENVIRONMENT');
+
+/** Applies the environment defaults to options that leave `requireTypingName` / `environmentLabel` unset. */
+export function applyDangerConfirmEnvironment(
+  options: DangerConfirmationOptions,
+  environment: DangerConfirmEnvironment | null | undefined,
+): DangerConfirmationOptions {
+  if (!environment) {
+    return options;
+  }
+  return {
+    ...options,
+    requireTypingName: options.requireTypingName ?? environment.requireTypingName,
+    environmentLabel: options.environmentLabel !== undefined ? options.environmentLabel : (environment.environmentLabel ?? null),
+  };
 }

@@ -6,6 +6,7 @@ import {
   DangerConfirmationMessages,
   DangerConfirmationOptions,
   dangerConfirmNameMatches,
+  dangerConfirmTypingToken,
 } from './danger-confirmation.model';
 
 let nextId = 0;
@@ -89,11 +90,13 @@ export class DangerConfirmationWindowComponent extends DialogContentBase {
     ...DEFAULT_DANGER_CONFIRMATION_MESSAGES,
     ...(this.options().messages ?? {}),
   }));
-  protected readonly typeLabel = computed(() => this.messages().typeToConfirm.replace('{name}', this.options().targetName));
+  /** What has to be typed: the target name, or a non-empty fallback when it is empty. */
+  protected readonly typingToken = computed(() => dangerConfirmTypingToken(this.options()));
+  protected readonly typeLabel = computed(() => this.messages().typeToConfirm.replace('{name}', this.typingToken()));
   protected readonly environmentNotice = computed(() =>
     this.messages().environmentNotice.replace('{environment}', this.options().environmentLabel ?? ''));
   protected readonly canConfirm = computed(() =>
-    !this.options().requireTypingName || dangerConfirmNameMatches(this.typed(), this.options().targetName));
+    !this.options().requireTypingName || dangerConfirmNameMatches(this.typed(), this.typingToken()));
 
   constructor() {
     const ref = inject(DialogRef);
