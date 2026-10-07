@@ -1,0 +1,318 @@
+// Top bar (wireframe .topbar): flat, 48px, hairline bottom border. Production
+// tenants tint the bottom edge with the error colour — no pulse, no glow.
+
+:host {
+  display: block;
+}
+
+.top-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-3);
+  height: 48px;
+  min-width: 0;
+  padding-inline: var(--theme-space-3);
+  background: var(--theme-bg-app);
+  border-bottom: 1px solid var(--theme-border-subtle);
+  color: var(--theme-text-primary);
+
+  &.production {
+    border-bottom: 2px solid var(--theme-status-error);
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  flex: none;
+  white-space: nowrap;
+}
+
+.brand-mark {
+  width: 22px;
+  height: 22px;
+}
+
+.brand-name {
+  font-family: var(--theme-font-display);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+}
+
+.separator {
+  flex: none;
+  width: 1px;
+  height: 20px;
+  background: var(--theme-border-default);
+}
+
+// The tenant block is the only part of the top bar that shrinks: the switcher's name
+// truncates, the environment chip keeps its size (it used to be pushed over the mode switch).
+.tenant {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+// Flat tenant switcher (projected by the host): the component exposes these custom properties.
+.tenant ::ng-deep mm-tenant-switcher {
+  --mm-tenant-switcher-bg: transparent;
+  --mm-tenant-switcher-bg-hover: var(--theme-bg-hover);
+  --mm-tenant-switcher-border: var(--theme-border-default);
+  --mm-tenant-switcher-radius: var(--theme-radius-sm);
+  --mm-tenant-switcher-shadow: none;
+  --mm-tenant-switcher-shadow-hover: none;
+  --mm-tenant-switcher-accent: var(--theme-text-secondary);
+  --mm-tenant-switcher-font: var(--theme-font-mono);
+  --mm-tenant-switcher-text-shadow: none;
+  --mm-tenant-switcher-icon-animation: none;
+  --mm-tenant-switcher-denied-bg: var(--theme-status-error-subtle);
+  --mm-tenant-switcher-denied-border: var(--theme-status-error);
+  --mm-tenant-switcher-denied-shadow: none;
+  --mm-tenant-switcher-denied-accent: var(--theme-status-error);
+  --mm-tenant-switcher-denied-text-shadow: none;
+  --mm-tenant-switcher-denied-label-bg: var(--theme-status-error-subtle);
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+// Status chip: dot + label.
+.env-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--theme-radius-xs);
+  font-size: 0.71875rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &.status-success { color: var(--theme-status-success); background: var(--theme-status-success-subtle); }
+  &.status-warning { color: var(--theme-status-warning); background: var(--theme-status-warning-subtle); }
+  &.status-error { color: var(--theme-status-error); background: var(--theme-status-error-subtle); }
+  &.status-info { color: var(--theme-status-info); background: var(--theme-status-info-subtle); }
+  &.status-neutral { color: var(--theme-status-neutral); background: var(--theme-status-neutral-subtle); }
+}
+
+.mode-switch {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-sm);
+
+  button {
+    padding: 2px 10px;
+    border: 0;
+    border-radius: var(--theme-radius-xs);
+    background: none;
+    color: var(--theme-text-secondary);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--theme-text-primary);
+    }
+
+    &[aria-pressed='true'] {
+      background: var(--theme-bg-overlay);
+      color: var(--theme-text-primary);
+      box-shadow: 0 0 0 1px var(--theme-border-default);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--theme-focus-ring);
+    }
+  }
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  flex: 1 1 260px;
+  min-width: 0;
+  max-width: 420px;
+  height: 30px;
+  margin-inline: auto;
+  padding-inline: 10px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-sm);
+  background: var(--theme-bg-surface);
+  color: var(--theme-text-muted);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--theme-border-strong);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+
+  svg {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+}
+
+.search-label {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.search-shortcut {
+  padding: 0 5px;
+  border: 1px solid var(--theme-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--theme-radius-xs);
+  background: var(--theme-bg-elevated);
+  color: var(--theme-text-primary);
+  font-family: var(--theme-font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+// Assistant toggle (AB#5549, wireframe .ai-btn): violet only on the ✦.
+.ai-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding-inline: 10px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-primary);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--theme-border-strong);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+
+  &[aria-expanded='true'] {
+    border-color: color-mix(in srgb, var(--theme-ai) 55%, transparent);
+    background: var(--theme-ai-subtle);
+  }
+}
+
+.ai-sparkle {
+  color: var(--theme-ai);
+}
+
+.ai-shortcut {
+  padding: 0 5px;
+  border: 1px solid var(--theme-border-strong);
+  border-bottom-width: 2px;
+  border-radius: var(--theme-radius-xs);
+  background: var(--theme-bg-elevated);
+  font-family: var(--theme-font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+}
+
+// Narrow screens: the product name and separator go first and the search
+// collapses to its icon. The mode switch stays — on a phone it is the only
+// way between Home and Studio.
+@media (max-width: 760px) {
+  .brand-name,
+  .separator {
+    display: none;
+  }
+
+  .search {
+    flex: 0 0 auto;
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .search-label,
+  .search-shortcut,
+  .ai-shortcut {
+    display: none;
+  }
+
+  // The ✦ alone; the label stays in the accessibility tree.
+  .ai-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+
+.env-short {
+  display: none;
+}
+
+// Phones: a short label keeps the environment readable (never colour-only).
+// The full label stays in the accessibility tree.
+@media (max-width: 480px) {
+  .top-bar {
+    gap: var(--theme-space-2);
+    padding-inline: var(--theme-space-2);
+  }
+
+  mm-tenant-switcher {
+    --mm-tenant-switcher-padding: 4px 8px;
+  }
+
+  .mode-switch button {
+    padding: 2px 8px;
+  }
+
+  .env-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .env-short {
+    display: inline;
+  }
+}

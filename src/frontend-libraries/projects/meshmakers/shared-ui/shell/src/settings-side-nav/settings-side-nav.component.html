@@ -1,0 +1,25 @@
+<nav class="side-nav" [attr.aria-label]="navLabel()">
+  <button type="button"
+          class="side-nav__item"
+          data-side-nav="home"
+          [attr.aria-current]="homeActive() ? 'page' : null"
+          (click)="homeSelected.emit()">
+    <span>{{ homeLabel() }}</span>
+  </button>
+  @for (category of categories(); track category.id) {
+    <button type="button"
+            class="side-nav__item"
+            [attr.data-tab-id]="category.id"
+            [attr.aria-current]="!homeActive() && category.id === activeTabId() ? 'page' : null"
+            [title]="category.tooltip ?? ''"
+            (click)="tabSelected.emit(category)">
+      <span>{{ category.text }}</span>
+      @if (badges()[category.id]; as badge) {
+        <span class="side-nav__count"
+              [class.is-attention]="badge.attention"
+              [attr.data-badge]="category.id"
+              [attr.aria-label]="badge.label ?? null">{{ badge.count }}</span>
+      }
+    </button>
+  }
+</nav>

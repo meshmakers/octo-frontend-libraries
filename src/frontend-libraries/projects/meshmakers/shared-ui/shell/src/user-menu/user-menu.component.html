@@ -1,0 +1,101 @@
+@if (sessionLoading()) {
+  <span class="avatar placeholder" aria-hidden="true"></span>
+} @else if (!user()) {
+  <button type="button" class="sign-in" (click)="login()">{{ m().signIn }}</button>
+} @else {
+  <button type="button"
+          class="avatar-button"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="open()"
+          aria-controls="user-menu-panel"
+          [attr.aria-label]="avatarLabel()"
+          (click)="toggle()">
+    <span class="avatar">{{ initials() }}</span>
+  </button>
+  @if (open()) {
+    <div class="user-panel" id="user-menu-panel" role="dialog" [attr.aria-label]="m().accountAndPreferences" (focusout)="onPanelFocusOut($event)">
+      <div class="user-identity">
+        <span class="avatar large" aria-hidden="true">{{ initials() }}</span>
+        <div class="user-names">
+          @if (fullName(); as name) {
+            <span class="user-full-name">{{ name }}</span>
+          }
+          @if (userName(); as account) {
+            <span class="user-login">{{ account }}</span>
+          }
+        </div>
+      </div>
+
+      <fieldset class="pref">
+        <legend class="pref-label">{{ m().theme }}</legend>
+        <div class="segmented">
+          @for (option of themeOptions(); track option.value) {
+            <label class="segment">
+              <input type="radio"
+                     name="user-menu-theme"
+                     class="pref-radio"
+                     [value]="option.value"
+                     [checked]="theme() === option.value"
+                     (change)="setTheme(option.value)" />
+              <span>{{ option.label }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      @if (densityOptions().length > 0) {
+        <fieldset class="pref">
+          <legend class="pref-label">{{ m().density }}</legend>
+          <div class="option-list">
+            @for (option of densityOptions(); track option.mode) {
+              <label class="option">
+                <input type="radio"
+                       name="user-menu-density"
+                       class="pref-radio"
+                       [value]="option.mode"
+                       [checked]="density() === option.mode"
+                       (change)="setDensity(option.mode)" />
+                <span>{{ option.label }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      }
+
+      @if (languages().length > 1) {
+        <fieldset class="pref">
+          <legend class="pref-label">{{ m().language }}</legend>
+          <div class="option-list">
+            @for (option of languages(); track option.code) {
+              <label class="option">
+                <input type="radio"
+                       name="user-menu-language"
+                       class="pref-radio"
+                       [value]="option.code"
+                       [checked]="currentLanguage() === option.code"
+                       (change)="setLanguage(option.code)" />
+                <span [attr.lang]="option.code">{{ option.label }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      } @else if (currentLanguageLabel(); as languageLabel) {
+        <div class="pref">
+          <span class="pref-label">{{ m().language }}</span>
+          <span class="pref-value">{{ languageLabel }}</span>
+        </div>
+      }
+
+      <div class="user-actions">
+        @if (profileUri(); as uri) {
+          <a class="action-link" [href]="uri" target="_blank" rel="noopener">{{ m().manageProfile }} <span aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span></a>
+        }
+        <button type="button" class="action-button" (click)="logout()">{{ m().signOut }}</button>
+      </div>
+
+      @if (versionText(); as text) {
+        <div class="user-version">{{ text }}</div>
+      }
+    </div>
+  }
+}

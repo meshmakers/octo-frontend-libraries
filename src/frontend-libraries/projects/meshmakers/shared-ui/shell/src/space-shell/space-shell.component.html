@@ -1,0 +1,93 @@
+<header class="space-head" [class.no-area]="!area()" [class.object-detail]="objectDetail()">
+  <div class="space-crumbs">
+    @if (objectDetail() && backTarget(); as back) {
+      <button type="button"
+              class="space-back"
+              data-testid="space-back"
+              [attr.aria-label]="format(m().backTo, { target: back.text })"
+              (click)="onBackClick(back)">
+        <span aria-hidden="true">←</span> {{ back.text }}
+      </button>
+    }
+    <ng-content select="[spaceCrumbs]"></ng-content>
+  </div>
+  <div class="space-title-row">
+    @if (!objectDetail()) {
+      @if (area(); as current) {
+        <h1 class="space-title">{{ heading() ?? current.text }}</h1>
+        @if (meta().length > 0) {
+          <p class="space-meta">
+            @for (item of meta(); track item.label) {
+              <span class="space-meta-item">{{ item.label }} <span class="space-meta-value">{{ item.value }}</span></span>
+            }
+          </p>
+        }
+      }
+    }
+    @if (!objectDetail() && chips().length > 0) {
+      <ul class="space-chips" [attr.aria-label]="m().statusChips">
+        @for (chip of chips(); track chip.label) {
+          <li class="space-chip" [class]="'space-chip status-' + chip.status">{{ chip.label }}</li>
+        }
+      </ul>
+    }
+    <div class="space-actions">
+      <ng-content select="[spaceActions]"></ng-content>
+    </div>
+  </div>
+  @if (area(); as current) {
+    @if (!objectDetail() && showTabs() && tabs().length > 0) {
+      <nav class="space-tabs" [attr.aria-label]="format(m().areaPages, { area: current.text })" (scroll)="onViewportChange()">
+        @for (tab of tabs(); track tab.id) {
+          @if (tab.separator) {
+            <span class="tab-separator" aria-hidden="true"></span>
+          } @else {
+            <div class="tab-wrapper" [attr.data-wrapper-id]="tab.id" (focusout)="onWrapperFocusOut(tab, $event)">
+              <button #tabButton
+                      type="button"
+                      class="space-tab"
+                      [attr.data-tab-id]="tab.id"
+                      [attr.aria-current]="tab.id === activeTabId() ? 'page' : null"
+                      [attr.aria-haspopup]="isGroup(tab) ? 'menu' : null"
+                      [attr.aria-expanded]="isGroup(tab) ? openMenuId() === tab.id : null"
+                      [attr.aria-controls]="isGroup(tab) && openMenuId() === tab.id ? menuId(tab) : null"
+                      [title]="tab.tooltip ?? ''"
+                      (keydown)="onTabKeydown(tab, tabButton, $event)"
+                      (click)="onTabClick(tab, tabButton)">
+                {{ tab.text }}
+                @if (tab.external) {
+                  <span class="tab-external" aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span>
+                }
+                @if (isGroup(tab)) {
+                  <span class="tab-caret" aria-hidden="true">▾</span>
+                }
+              </button>
+              @if (isGroup(tab) && openMenuId() === tab.id) {
+                <ul class="tab-menu"
+                    role="menu"
+                    [id]="menuId(tab)"
+                    [attr.aria-label]="tab.text"
+                    [style.top.px]="menuPosition().top"
+                    [style.left.px]="menuPosition().left"
+                    (keydown)="onMenuKeydown($event)">
+                  @for (item of tab.children; track item.id) {
+                    @if (!item.separator) {
+                      <li role="none">
+                        <button type="button" role="menuitem" tabindex="-1" class="tab-menu-item" (click)="onMenuItemClick(item)">
+                          {{ item.text }}
+                          @if (item.external) {
+                            <span class="tab-external" aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span>
+                          }
+                        </button>
+                      </li>
+                    }
+                  }
+                </ul>
+              }
+            </div>
+          }
+        }
+      </nav>
+    }
+  }
+</header>
