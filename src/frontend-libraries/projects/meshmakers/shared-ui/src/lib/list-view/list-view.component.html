@@ -267,8 +267,12 @@
                     [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"></button>
           }
           @default {
+            <!-- The row filter is a toggle: its on state is shown (k-selected) and announced. -->
             <button kendoTooltip kendoButton themeColor="primary" fillMode="flat"
                     [svgIcon]="command.svgIcon" (click)="onCommand(command.id)"
+                    [class.k-selected]="command.id === 'rowFilter' && _showRowFilter"
+                    [attr.aria-pressed]="command.id === 'rowFilter' ? _showRowFilter : null"
+                    [attr.data-command]="command.id"
                     [disabled]="isLoading()" [title]="command.text"></button>
           }
         }

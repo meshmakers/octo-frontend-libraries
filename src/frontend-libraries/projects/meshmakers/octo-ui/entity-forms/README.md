@@ -209,6 +209,22 @@ throwing hook) cancels. The Refinery Studio maps it to its production-mode confi
   restricted to concrete subtypes (`derivedFromRtCkTypeId`, `allowAbstract: false`);
   cancelling emits nothing.
 
+## Host extensions (AB#5623)
+
+All optional; without them the components behave as before.
+
+| Need | API |
+|---|---|
+| Save / Cancel below the form | `mm-entity-page [actionBarPosition]="'bottom'"` (route option `actionBarPosition`, data `entityPageActionBarPosition`) |
+| Extra page actions (Export, Prefill, ...) | `<ng-template mmEntityPageActions let-ctx>` inside `mm-entity-page` — rendered in the list header and in the form's action bar; `ctx` = `EntityPageActionsContext` (`view`, `mode`, `rtId`, `ckTypeId`, `model`, `saving`, `page`) |
+| Extra list actions | `mm-entity-list` `toolbarActions` / `rowActions` (icon buttons) / `rowMenuActions` (context menu); on the page `listToolbarActions` / `listRowActions` / `listRowMenuActions`. Plain `CommandItem`s; `onClick` gets the row as `e.data` |
+| Default list order | `listDefaultSort` in a host fallback form, or `defaultSort` on list / page (route option `defaultSort`). A user sort (also a remembered one) wins; the header shows no marker for the default order |
+| Translated labels / enum texts | `ENTITY_FORM_LABEL_RESOLVER` or the `labelResolver` input: `(request) => string \| null`; `request.kind` = `field`, `help`, `placeholder`, `section`, `sectionDescription`, `formTitle`, `formDescription`, `listColumn`, `recordColumn`, `enumOption`. Read a signal (language) inside to re-render on change; controls are not rebuilt |
+| Fixed texts incl. Copy ID | `messages` (`copyId`, `copyIdTooltip`, `copiedId`, `copyFailed`, ...); `mm-entity-id-info` has `buttonText` / `tooltip` / `copiedMessage` / `copyFailedMessage` |
+| Prefill a create form | `mm-entity-form [initialValues]` / `mm-entity-page [initialValues]` (object or `({ ckTypeId }) => values`; route option `initialValues`), or `entityFormPrefillState(values)` as `state` |
+| Set values from a host action | `EntityFormComponent.patchValues(values)` / `EntityPageComponent.patchFormValues(values)` — values count as edits (dirty, saved); secrets and read-only fields are skipped |
+| Placeholder values of legacy STRING secrets | `ENTITY_FORM_SECRET_PLACEHOLDER_VALUES` (exact values that read "Not set"). SECRET-typed attributes (AB#5528) need nothing: their state comes from the server |
+
 ## Secrets (write-only)
 
 Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, decisions 2026-10-06).

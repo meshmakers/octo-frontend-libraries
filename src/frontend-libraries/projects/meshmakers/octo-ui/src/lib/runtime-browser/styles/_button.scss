@@ -40,6 +40,22 @@
     cursor: not-allowed;
   }
 
+  // Selected state of toggle buttons (Kendo `togglable` / button groups set `.k-selected`,
+  // AB#5623). Without it the reset above hid the state: the a11y tree said "pressed", the eye saw
+  // nothing (quick-view segments in list toolbars). Before the primary branch, so a primary
+  // button keeps its look. z-index lifts the accent border above the next grouped button.
+  &.k-selected {
+    background: var(--theme-bg-selected, var(--octo-mint-20));
+    border-color: var(--theme-accent, var(--octo-mint));
+    color: var(--theme-text-accent, var(--octo-mint));
+    z-index: 1;
+
+    &:hover:not(:disabled) {
+      background: var(--theme-bg-selected, var(--octo-mint-20));
+      border-color: var(--theme-accent, var(--octo-mint));
+    }
+  }
+
   &.k-button-solid-primary,
   &.k-button-primary,
   &[themecolor="primary"] {
@@ -51,6 +67,21 @@
       background: var(--theme-accent-hover, var(--octo-mint));
       border-color: var(--theme-accent-hover, var(--octo-mint));
       box-shadow: none;
+    }
+  }
+
+  // Selected FLAT toggles (e.g. the list view's row-filter command, `themeColor="primary"
+  // fillMode="flat"`): the primary branch above has the same specificity as `.k-selected` and
+  // comes later, so it would paint selected and unselected alike. This rule is more specific and
+  // comes after it (AB#5623).
+  &.k-button-flat.k-selected {
+    background: var(--theme-bg-selected, var(--octo-mint-20));
+    border-color: var(--theme-accent, var(--octo-mint));
+    color: var(--theme-text-accent, var(--octo-mint));
+
+    &:hover:not(:disabled) {
+      background: var(--theme-bg-selected, var(--octo-mint-20));
+      border-color: var(--theme-accent, var(--octo-mint));
     }
   }
 }

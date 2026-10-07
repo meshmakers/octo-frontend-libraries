@@ -298,6 +298,37 @@ describe('EntityIdInfoComponent', () => {
     });
   });
 
+  describe('Translatable texts (AB#5623)', () => {
+    it('renders the given button text and tooltip', () => {
+      fixture.componentRef.setInput('rtId', mockRtId);
+      fixture.componentRef.setInput('rtCkTypeId', mockRtCkTypeId);
+      fixture.componentRef.setInput('buttonText', 'ID kopieren');
+      fixture.componentRef.setInput('tooltip', 'Entitäts-ID kopieren');
+      fixture.detectChanges();
+      const dropdownButton: HTMLElement = fixture.nativeElement.querySelector('kendo-dropdownbutton');
+      expect(dropdownButton.textContent).toContain('ID kopieren');
+      expect(dropdownButton.textContent).not.toContain('Copy ID');
+      expect(fixture.nativeElement.querySelector('[title="Entitäts-ID kopieren"]')).toBeTruthy();
+    });
+
+    it('uses the given copied / failed messages', async () => {
+      const clipboardSpy = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue();
+      component.rtId = mockRtId;
+      component.rtCkTypeId = mockRtCkTypeId;
+      component.copiedMessage = '{label} kopiert';
+      component.copyFailedMessage = 'Kopieren fehlgeschlagen';
+      fixture.detectChanges();
+
+      await testAccess.copyToClipboard(testAccess.copyOptions[0]);
+      expect(notificationServiceMock.showSuccess).toHaveBeenCalledWith('RtId kopiert', 2000);
+
+      clipboardSpy.mockRejectedValue(new Error('x'));
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
+      await testAccess.copyToClipboard(testAccess.copyOptions[0]);
+      expect(notificationServiceMock.showError).toHaveBeenCalledWith('Kopieren fehlgeschlagen');
+    });
+  });
+
   describe('Edge cases', () => {
     it('should handle empty rtId', () => {
       component.rtId = '';

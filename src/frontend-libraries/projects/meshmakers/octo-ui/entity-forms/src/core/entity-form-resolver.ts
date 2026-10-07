@@ -9,6 +9,7 @@ import {
   ReadOnlyMode,
   ResolvedEntityForm,
   ResolvedField,
+  EntityListSortDescriptor,
   ResolvedListColumn,
   ResolvedSection,
 } from '../models/entity-form.models';
@@ -513,6 +514,39 @@ function resolveListColumns(form: EntityFormDefinition, type: CkTypeInfo, secret
   return derived;
 }
 
+/**
+ * The default list order of a form (AB#5623): `listDefaultSort` canonicalised against the type.
+ * Unknown paths, secrets and record attributes are dropped (with a warning); `rtId` sorts by id.
+ */
+export function resolveListDefaultSort(
+  form: EntityFormDefinition,
+  type: CkTypeInfo,
+  secretNames: ReadonlySet<string>,
+  warnings: string[] = [],
+): EntityListSortDescriptor[] {
+  const result: EntityListSortDescriptor[] = [];
+  for (const def of form.listDefaultSort ?? []) {
+    const dir: 'asc' | 'desc' = def.direction === 'desc' ? 'desc' : 'asc';
+    const c = canonicalisePath(def.attributePath, type.attributes);
+    let field: string | null = null;
+    if (c.kind === 'system') {
+      field = c.name;
+    } else if (c.kind === 'rtId') {
+      field = 'rtId';
+    } else if (c.kind === 'attribute' && !secretNames.has(c.name) && !isSecretAttribute(c.attribute) && !isRecordType(c.attribute.valueType)) {
+      field = c.name;
+    }
+    if (!field) {
+      warnings.push(`List default sort '${def.attributePath}' is not a sortable attribute of ${type.rtCkTypeId}; ignored.`);
+      continue;
+    }
+    if (!result.some((r) => r.field === field)) {
+      result.push({ field, dir });
+    }
+  }
+  return result;
+}
+
 /** Value type (and enum options) of an attribute column, used to format its cells. */
 function listColumnType(attribute: CkAttributeInfo): Pick<ResolvedListColumn, 'valueType' | 'enumOptions'> {
   return {
@@ -728,6 +762,10 @@ export function resolveEntityForm(
     secretStateFields,
     warnings,
   };
+  const listDefaultSort = resolveListDefaultSort(form, type, secretNames, warnings);
+  if (listDefaultSort.length > 0) {
+    result.listDefaultSort = listDefaultSort;
+  }
   if (picked) {
     result.formRtId = form.rtId;
     if (form.rtWellKnownName) {

@@ -584,6 +584,23 @@ describe('MmTableComponent', () => {
       });
     });
 
+    it('shows the on state of the row filter toggle (k-selected + aria-pressed, AB#5623)', () => {
+      fixture.componentRef.setInput('rowFilterEnabled', true);
+      api().containerWidth.set(1200);
+      fixture.detectChanges();
+      const button = (): HTMLButtonElement | null => fixture.nativeElement.querySelector('button[data-command="rowFilter"]');
+      expect(button()).toBeTruthy();
+      expect(button()!.classList.contains('k-selected')).toBe(false);
+      expect(button()!.getAttribute('aria-pressed')).toBe('false');
+
+      button()!.click();
+      fixture.detectChanges();
+      expect(button()!.classList.contains('k-selected')).toBe(true);
+      expect(button()!.getAttribute('aria-pressed')).toBe('true');
+      const refresh = fixture.nativeElement.querySelector('button[data-command="refresh"]') as HTMLButtonElement;
+      expect(refresh.hasAttribute('aria-pressed')).toBe(false);
+    });
+
     it('routes each command to its handler', () => {
       // vi.spyOn calls through where Jasmine's spyOn stubbed, so stub explicitly —
       // these handlers touch the grid state and emit outputs.

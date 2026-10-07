@@ -4,7 +4,7 @@
   @if (saveBlockedReason(); as reason) {
     <p class="mm-ef-blocked" role="status" data-save-blocked>{{ reason }}</p>
   }
-  @for (section of model().sections; track section.key) {
+  @for (section of view().sections; track section.key) {
     @if (visibleFieldCount(section) > 0) {
       <section
         class="mm-ef-section"
@@ -150,6 +150,7 @@
                         [single]="field.record?.single ?? false"
                         [readOnly]="ro"
                         [secretWritesDisabled]="secretWritesDisabled()"
+                        [messages]="messages()"
                       ></mm-entity-form-records-field>
                     }
                     @case ('unsupported') {

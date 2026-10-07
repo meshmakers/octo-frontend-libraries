@@ -24,6 +24,7 @@ export type { EntityFormRecordColumn } from './form/records/entity-form-records-
 export * from './list/entity-list.component';
 export * from './list/entity-list-data-source.directive';
 export * from './page/entity-page.component';
+export * from './page/entity-page-actions.directive';
 
 // --- Routes ---
 export * from './page/entity-page.routes';
@@ -48,7 +49,22 @@ export type { EntityFormCatalogEntry } from './core/entity-form-catalog';
 export { BUILT_IN_DEFAULT_FORM } from './core/built-in-default-form';
 export { ENTITY_FORM_FALLBACK_FORMS, withFallbackForms, selectFallbackForms, isChainEndForm } from './core/fallback-forms';
 export { ENTITY_FORM_ACTION_CONFIRMATION, confirmEntityFormAction } from './core/action-confirmation';
-export { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from './core/secret-write-availability';
+export { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, ENTITY_FORM_SECRET_PLACEHOLDER_VALUES } from './core/secret-write-availability';
+export {
+  ENTITY_FORM_LABEL_RESOLVER,
+  resolveEntityFormLabel,
+  localizeEntityForm,
+  localizeEntityListColumns,
+  localizeEntityFormTitle,
+} from './core/entity-form-labels';
+export type { EntityFormLabelResolver, EntityFormLabelRequest, EntityFormLabelKind } from './core/entity-form-labels';
+export {
+  entityFormPrefillState,
+  mergeEntityFormPrefill,
+  canonicaliseEntityFormPrefill,
+} from './core/entity-form-prefill';
+export type { EntityFormPrefillValues, EntityFormPrefillOptions } from './core/entity-form-prefill';
+export { resolveListDefaultSort } from './core/entity-form-resolver';
 export type { EntityFormActionConfirmation, EntityFormActionRequest } from './core/action-confirmation';
 export { canonicalisePath, SYSTEM_PROPERTIES, toKebabTypeKey } from './core/attribute-path';
 export type { CanonicalPath } from './core/attribute-path';

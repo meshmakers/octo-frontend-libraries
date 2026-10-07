@@ -28,6 +28,14 @@ import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-ava
 import { buildChangeSet } from '../core/change-set-builder';
 import { formValuesEqual } from '../core/entity-form-value-mapper';
 import { isVisible } from '../core/visible-when';
+import { ENTITY_FORM_LABEL_RESOLVER, EntityFormLabelResolver, localizeEntityForm } from '../core/entity-form-labels';
+import {
+  canonicaliseEntityFormPrefill,
+  entityFormPrefillField,
+  EntityFormPrefillValues,
+  mergeEntityFormPrefill,
+  toReferenceValue,
+} from '../core/entity-form-prefill';
 import { EntityFormsMessages, formatEntityFormsMessage, mergeEntityFormsMessages } from '../entity-forms.messages';
 import {
   CkAttributeInfo,
@@ -74,6 +82,10 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
  * - `afterCreate` fields are read-only outside create mode; `readOnly`, `view` mode or
  *   `capabilities.canEdit === false` (edit mode) make every field read-only.
  * - The change set holds only dirty controls (D6), built by `buildChangeSet`.
+ * - Texts (labels, help, sections, enum options, record columns) go through the label resolver
+ *   (`labelResolver` input or `ENTITY_FORM_LABEL_RESOLVER`, AB#5623); a language change re-renders
+ *   the texts without rebuilding the controls.
+ * - Host prefill (AB#5623): `initialValues` in create mode, `patchValues()` at any time.
  */
 @Component({
   selector: 'mm-entity-form',
@@ -101,6 +113,7 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
 export class EntityFormComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly keyRingConfigured = inject(ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, { optional: true });
+  private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
 
   // --- Inputs ---
   readonly model = input.required<ResolvedEntityForm>();
@@ -110,6 +123,18 @@ export class EntityFormComponent {
   readonly messages = input<Partial<EntityFormsMessages>>({});
   /** Record metadata keyed by versioned ckRecordId; improves type conversion of record sub-values. */
   readonly records = input<Record<string, CkRecordInfo>>({});
+  /**
+   * Translates field labels, help texts, section titles, enum option texts and record columns
+   * (AB#5623). Wins over `ENTITY_FORM_LABEL_RESOLVER`; absent = the definition / CK texts.
+   */
+  readonly labelResolver = input<EntityFormLabelResolver | null | undefined>(undefined);
+  /**
+   * Host prefill of a create form (AB#5623), keyed by field key / attribute name (any casing).
+   * Wins over the field defaults and over `state.values`; secrets are never prefilled. The values
+   * are the starting point of the form (not "dirty"); a create sends every non-empty value anyway.
+   * Ignored in edit / view mode — use {@link patchValues} there.
+   */
+  readonly initialValues = input<EntityFormPrefillValues | null | undefined>(undefined);
 
   // --- Outputs ---
   readonly changeSetChange = output<EntityFormChangeSet>();
@@ -125,6 +150,13 @@ export class EntityFormComponent {
 
   // --- State ---
   protected readonly resolvedMessages = computed(() => mergeEntityFormsMessages(this.messages()));
+  /** The effective label resolver (input, else the injected one, else none). */
+  private readonly effectiveLabelResolver = computed(() => this.labelResolver() ?? this.injectedLabelResolver ?? null);
+  /**
+   * The model as rendered: every text passed through the label resolver (AB#5623). Keys are
+   * unchanged, so the controls built from {@link model} match it.
+   */
+  protected readonly view = computed(() => localizeEntityForm(this.model(), this.effectiveLabelResolver()));
   protected readonly form = signal<FormGroup<Record<string, FormControl<unknown>>>>(new FormGroup({}));
   /** Bumped on every form event so OnPush children re-evaluate errors. */
   protected readonly revision = signal(0);
@@ -134,7 +166,9 @@ export class EntityFormComponent {
   /** attributeNames of secrets whose clear is staged for the next save (Q8). */
   private readonly clearedSecrets = signal<ReadonlySet<string>>(new Set<string>());
   /** Value snapshot taken when the form was built (D6 baseline). */
-  private initialValues: Record<string, unknown> = {};
+  private baselineValues: Record<string, unknown> = {};
+  /** The state the form was built from (input `state` plus host prefill). */
+  private builtState: EntityFormValueState | null = null;
   private formSub?: Subscription;
   private lastValid?: boolean;
   private lastDirty?: boolean;
@@ -174,7 +208,7 @@ export class EntityFormComponent {
     const vis = this.visibility();
     const presence = this.secretPresence();
     // Only SECRET-typed fields need the key ring; name-rule / metadata secrets are stored as plain values.
-    const labels = allFields(this.model())
+    const labels = allFields(this.view())
       .filter((f) => f.secret && isSecretValueType(f.valueType) && vis[f.key] !== false
         && !isFieldReadOnly(f, 'create', false) && isSecretRequired(f, 'create', presence))
       .map((f) => f.label);
@@ -192,7 +226,8 @@ export class EntityFormComponent {
       const mode = this.mode();
       const state = this.state();
       const readOnly = this.readOnly();
-      untracked(() => this.rebuild(model, mode, state ?? null, readOnly));
+      const initialValues = this.initialValues();
+      untracked(() => this.rebuild(model, mode, this.withPrefill(model, mode, state ?? null, initialValues), readOnly));
     });
     // The key ring status arrives asynchronously (and may change): re-apply the enabled state of
     // the secret controls whenever it flips after the form was built.
@@ -216,7 +251,7 @@ export class EntityFormComponent {
   getChangeSet(): EntityFormChangeSet {
     const mode = this.mode();
     const changeSet = buildChangeSet(
-      this.initialValues,
+      this.baselineValues,
       this.enabledValues(),
       this.model(),
       mode,
@@ -225,7 +260,7 @@ export class EntityFormComponent {
     );
     // A host-prefilled well-known name (singleton create) is carried even when its field is
     // read-only or not part of the form.
-    const prefilled = this.state()?.rtWellKnownName;
+    const prefilled = this.builtState?.rtWellKnownName ?? this.state()?.rtWellKnownName;
     if (mode === 'create' && !changeSet.rtWellKnownName && typeof prefilled === 'string' && prefilled.trim()) {
       changeSet.rtWellKnownName = prefilled.trim();
       changeSet.isEmpty = false;
@@ -239,7 +274,7 @@ export class EntityFormComponent {
       return true;
     }
     const current = this.enabledValues();
-    return Object.keys(current).some((k) => !formValuesEqual(this.initialValues[k], current[k]));
+    return Object.keys(current).some((k) => !formValuesEqual(this.baselineValues[k], current[k]));
   }
 
   /** True when every enabled control is valid and nothing blocks saving ({@link saveBlockedReason}). */
@@ -256,7 +291,36 @@ export class EntityFormComponent {
 
   /** Rebuilds the form from the current inputs, discarding user edits. */
   reset(): void {
-    this.rebuild(this.model(), this.mode(), this.state() ?? null, this.readOnly());
+    this.rebuild(this.model(), this.mode(), this.withPrefill(this.model(), this.mode(), this.state() ?? null, this.initialValues()), this.readOnly());
+  }
+
+  /**
+   * Sets form values from the host (AB#5623), e.g. a "Prefill from user" action. Keys are field
+   * keys or attribute names (any casing). The values always count as user edits: the form gets
+   * dirty (compared with the values it was built from), the unsaved-changes guard applies and the
+   * change set sends them. To start a create form with values that are NOT edits, use the
+   * `initialValues` input instead. Secret fields, read-only fields and unknown keys are skipped.
+   * Returns the field keys that were set.
+   */
+  patchValues(values: EntityFormPrefillValues): string[] {
+    const model = this.model();
+    const form = this.form();
+    const applied: string[] = [];
+    for (const [key, value] of Object.entries(values ?? {})) {
+      const field = entityFormPrefillField(model, key);
+      const control = field ? form.controls[field.key] : undefined;
+      if (!field || !control || field.secret || isFieldReadOnly(field, this.mode(), this.formReadOnly())) {
+        continue;
+      }
+      control.setValue(cloneValue(toReferenceValue(field, value ?? null)), { emitEvent: false });
+      control.markAsDirty();
+      applied.push(field.key);
+    }
+    if (applied.length > 0) {
+      // One form event for all values: VisibleWhen, validity and dirty state follow.
+      form.updateValueAndValidity();
+    }
+    return applied;
   }
 
   // --- Template helpers ---
@@ -396,8 +460,22 @@ export class EntityFormComponent {
 
   // --- Internals ---
 
+  /** `state` with the host prefill merged in (create mode only). */
+  private withPrefill(
+    model: ResolvedEntityForm,
+    mode: EntityFormMode,
+    state: EntityFormValueState | null,
+    initialValues: EntityFormPrefillValues | null | undefined,
+  ): EntityFormValueState | null {
+    if (mode !== 'create' || !initialValues) {
+      return state;
+    }
+    return mergeEntityFormPrefill(state, canonicaliseEntityFormPrefill(model, initialValues));
+  }
+
   private rebuild(model: ResolvedEntityForm, mode: EntityFormMode, state: EntityFormValueState | null, readOnly: boolean): void {
     this.formSub?.unsubscribe();
+    this.builtState = state;
     this.clearedSecrets.set(new Set<string>());
     const form = buildFormGroup(model, mode, { state, readOnly });
     this.normaliseAttributeReferences(model, form);
@@ -405,7 +483,7 @@ export class EntityFormComponent {
     this.collapsed.set(new Set(model.sections.filter((s) => s.collapsed && s.title).map((s) => s.key)));
     this.rawValues.set(form.getRawValue());
     this.applyVisibility();
-    this.initialValues = cloneValue(form.getRawValue());
+    this.baselineValues = cloneValue(form.getRawValue());
     this.lastValid = undefined;
     this.lastDirty = undefined;
     this.formSub = form.events.subscribe(() => this.onFormEvent());

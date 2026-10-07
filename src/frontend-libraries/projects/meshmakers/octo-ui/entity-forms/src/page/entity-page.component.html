@@ -18,10 +18,15 @@
         <header class="mm-entity-page__header">
           <div class="mm-entity-page__titles">
             <h2 class="mm-entity-page__title">{{ listTitle() }}</h2>
-            @if (model.description) {
-              <p class="mm-entity-page__description">{{ model.description }}</p>
+            @if (localizedBase()?.description; as description) {
+              <p class="mm-entity-page__description">{{ description }}</p>
             }
           </div>
+          @if (pageActions(); as actions) {
+            <div class="mm-entity-page__actions" data-entity-page-host-actions>
+              <ng-container *ngTemplateOutlet="actions.templateRef; context: actionsContext()" />
+            </div>
+          }
         </header>
         <mm-entity-list
           #entityList
@@ -30,6 +35,11 @@
           [canWrite]="effectiveCanWrite()"
           [messages]="msgs()"
           [showTypeColumn]="showTypeColumn()"
+          [defaultSort]="effectiveDefaultSort()"
+          [labelResolver]="effectiveLabelResolver()"
+          [toolbarActions]="listToolbarActions()"
+          [rowActions]="listRowActions()"
+          [rowMenuActions]="listRowMenuActions()"
           (createRequested)="onCreateRequested($event)"
           (openRequested)="onOpenRequested($event)"
         />
@@ -46,27 +56,16 @@
                 [rtId]="entityRtId()!"
                 [rtCkTypeId]="entityCkTypeId() ?? model.rtCkTypeId"
                 [ckTypeId]="entityCkTypeId() ?? model.rtCkTypeId"
+                [buttonText]="msgs().copyId"
+                [tooltip]="msgs().copyIdTooltip"
+                [copiedMessage]="msgs().copiedId"
+                [copyFailedMessage]="msgs().copyFailed"
               />
             }
           </div>
-          <div class="mm-entity-page__actions">
-            @if (!isSingleton()) {
-              <button kendoButton fillMode="flat" [svgIcon]="backIcon" (click)="onBack()">
-                {{ mode() === 'view' ? msgs().back : msgs().cancel }}
-              </button>
-            }
-            @if (canDeleteEntity()) {
-              <button kendoButton fillMode="outline" themeColor="error" [svgIcon]="deleteIcon" (click)="onDelete()">
-                {{ msgs().delete }}
-              </button>
-            }
-            @if (mode() !== 'view') {
-              <button kendoButton themeColor="primary" [svgIcon]="saveIcon" [disabled]="saving() || !!saveBlockedReason()"
-                      [attr.title]="saveBlockedReason()" data-entity-page-save (click)="onSave()">
-                {{ msgs().save }}
-              </button>
-            }
-          </div>
+          @if (effectiveActionBarPosition() === 'top') {
+            <ng-container *ngTemplateOutlet="formActions" />
+          }
         </header>
         @if (mode() === 'view') {
           <p class="mm-entity-page__notice">{{ msgs().readOnlyNotice }}</p>
@@ -83,7 +82,38 @@
           [readOnly]="readOnly()"
           [messages]="msgs()"
           [records]="records()"
+          [labelResolver]="effectiveLabelResolver()"
+          [initialValues]="createInitialValues()"
         />
+        @if (effectiveActionBarPosition() === 'bottom') {
+          <footer class="mm-entity-page__footer" data-entity-page-footer>
+            <ng-container *ngTemplateOutlet="formActions" />
+          </footer>
+        }
+
+        <ng-template #formActions>
+          <div class="mm-entity-page__actions">
+            @if (pageActions(); as actions) {
+              <ng-container *ngTemplateOutlet="actions.templateRef; context: actionsContext()" />
+            }
+            @if (!isSingleton()) {
+              <button kendoButton fillMode="flat" [svgIcon]="backIcon" data-entity-page-back (click)="onBack()">
+                {{ mode() === 'view' ? msgs().back : msgs().cancel }}
+              </button>
+            }
+            @if (canDeleteEntity()) {
+              <button kendoButton fillMode="outline" themeColor="error" [svgIcon]="deleteIcon" (click)="onDelete()">
+                {{ msgs().delete }}
+              </button>
+            }
+            @if (mode() !== 'view') {
+              <button kendoButton themeColor="primary" [svgIcon]="saveIcon" [disabled]="saving() || !!saveBlockedReason()"
+                      [attr.title]="saveBlockedReason()" data-entity-page-save (click)="onSave()">
+                {{ msgs().save }}
+              </button>
+            }
+          </div>
+        </ng-template>
       }
     }
   }

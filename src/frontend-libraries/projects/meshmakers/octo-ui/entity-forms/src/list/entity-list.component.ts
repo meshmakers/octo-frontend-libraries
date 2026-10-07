@@ -26,7 +26,8 @@ import {
   formatEntityFormsMessage,
   mergeEntityFormsMessages,
 } from '../entity-forms.messages';
-import { CkAttributeInfo, ResolvedEntityForm, ResolvedListColumn } from '../models/entity-form.models';
+import { CkAttributeInfo, EntityListSortDescriptor, ResolvedEntityForm, ResolvedListColumn } from '../models/entity-form.models';
+import { ENTITY_FORM_LABEL_RESOLVER, EntityFormLabelResolver, localizeEntityListColumns } from '../core/entity-form-labels';
 import { formatReferenceDisplayValue } from '../form/reference/reference-display-format';
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
@@ -125,6 +126,12 @@ export function toEntityListColumn(column: ResolvedListColumn, labels: EntityLis
  * subtype. The context menu carries the Copy ID submenu (RtId / CkTypeId / RtCkTypeId /
  * RtEntityId) and, when `canDelete && canWrite`, Delete with a confirmation.
  *
+ * Host extensions (AB#5623): `toolbarActions` (after New), `rowActions` (icon buttons in the
+ * actions column after Edit/View), `rowMenuActions` (context menu between Copy ID and Delete) —
+ * plain `CommandItem`s as in `mm-list-view`; `onClick` receives the row (`EntityListRow`) as
+ * `e.data`. `defaultSort` (or the form's `listDefaultSort`) orders the list while the user has not
+ * sorted by a column; `labelResolver` translates column titles and enum texts.
+ *
  * The component does not navigate; `<mm-entity-page>` (or the host) reacts to the outputs.
  */
 @Component({
@@ -143,6 +150,7 @@ export class EntityListComponent {
   private readonly ckTypeSelectorDialog = inject(CkTypeSelectorDialogService, { optional: true });
   /** Resolves `EntityFormService` lazily: only the Type column needs the form titles. */
   private readonly injector = inject(Injector);
+  private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
   /** Form titles per CK type (lower-case id) for the Type column (AB#5524). */
   private readonly typeTitles = signal<ReadonlyMap<string, string>>(new Map());
   private typeTitlesRequested = false;
@@ -160,6 +168,23 @@ export class EntityListComponent {
    * the title of the type's entity form, else the humanized type name (AB#5524).
    */
   readonly showTypeColumn = input<boolean>(false);
+  /**
+   * Order while the user has not sorted by a column (AB#5623). Wins over the form's
+   * `listDefaultSort`; `[]` = server order. A sort the user picked (also a remembered one from
+   * `listStateKey`) always wins. The column header shows no sort marker for the default order.
+   */
+  readonly defaultSort = input<readonly EntityListSortDescriptor[] | null | undefined>(undefined);
+  /** Translates column titles and enum texts (AB#5623); wins over `ENTITY_FORM_LABEL_RESOLVER`. */
+  readonly labelResolver = input<EntityFormLabelResolver | null | undefined>(undefined);
+  /** Host toolbar actions, shown after "New" (AB#5623). */
+  readonly toolbarActions = input<readonly CommandItem[]>([]);
+  /**
+   * Host row actions (AB#5623): icon buttons in the actions column after Edit / View. Set
+   * `svgIcon` and `text` (tooltip / aria-label); `onClick` gets the row as `e.data`.
+   */
+  readonly rowActions = input<readonly CommandItem[]>([]);
+  /** Host row menu entries (AB#5623): context menu, between Copy ID and Delete. */
+  readonly rowMenuActions = input<readonly CommandItem[]>([]);
 
   /** "New" was confirmed; carries the concrete type (after the subtype picker for abstract types). */
   readonly createRequested = output<EntityListCreateRequest>();
@@ -180,7 +205,8 @@ export class EntityListComponent {
   protected readonly columns = computed<TableColumn[]>(() => {
     const m = this.msgs();
     const labels: EntityListCellLabels = { yes: m.toggleOn, no: m.toggleOff };
-    const columns = this.model().listColumns.map((c) => toEntityListColumn(c, labels));
+    const columns = localizeEntityListColumns(this.model(), this.labelResolver() ?? this.injectedLabelResolver)
+      .map((c) => toEntityListColumn(c, labels));
     if (this.showTypeColumn() && !columns.some((c) => c.field === 'ckTypeId')) {
       const titles = this.typeTitles();
       const changed = columns.findIndex((c) => c.field === 'rtChangedDateTime');
@@ -218,9 +244,12 @@ export class EntityListComponent {
     };
   });
 
-  /** Context menu: Copy ID, then (only with `canDelete && canWrite`) separator + Delete. */
+  /**
+   * Context menu: Copy ID, the host's `rowMenuActions`, then (only with `canDelete && canWrite`)
+   * separator + Delete.
+   */
   readonly contextMenuItems = computed<CommandItem[]>(() => {
-    const items: CommandItem[] = [this.copyIdMenuItem()];
+    const items: CommandItem[] = [this.copyIdMenuItem(), ...this.rowMenuActions()];
     if (this.canDelete()) {
       items.push(
         { id: 'separator1', type: 'separator' },
@@ -236,7 +265,7 @@ export class EntityListComponent {
     return items;
   });
 
-  /** Row action column: Edit (or View when read-only). */
+  /** Row action column: Edit (or View when read-only), then the host's `rowActions`. */
   readonly actionItems = computed<CommandItem[]>(() => [
     {
       id: 'open',
@@ -245,20 +274,30 @@ export class EntityListComponent {
       svgIcon: this.editable() ? pencilIcon : eyeIcon,
       onClick: async (e) => this.open(e.data as EntityListRow | undefined),
     },
+    ...this.rowActions(),
   ]);
 
-  /** Toolbar: New (only with `canCreate && canWrite`). */
-  readonly toolbarItems = computed<CommandItem[]>(() =>
-    this.canCreate()
-      ? [{ id: 'new', type: 'link', text: this.msgs().new, svgIcon: plusIcon, onClick: async () => this.requestCreate() }]
-      : [],
-  );
+  /** Width of the actions column: Edit/View + the row menu, plus one icon button per host row action. */
+  protected readonly actionsColumnWidth = computed(() => 80 + 40 * this.rowActions().length);
+
+  /** Toolbar: New (only with `canCreate && canWrite`), then the host's `toolbarActions`. */
+  readonly toolbarItems = computed<CommandItem[]>(() => [
+    ...(this.canCreate()
+      ? [{ id: 'new', type: 'link', text: this.msgs().new, svgIcon: plusIcon, onClick: async () => this.requestCreate() } as CommandItem]
+      : []),
+    ...this.toolbarActions(),
+  ]);
+
+  /** The order used while the user has not sorted: the input, else the form's `listDefaultSort`. */
+  protected readonly effectiveDefaultSort = computed<readonly EntityListSortDescriptor[]>(() =>
+    this.defaultSort() ?? this.model().listDefaultSort ?? []);
 
   constructor() {
     effect(() => {
       const ds = this.dataSource();
       const model = this.model();
-      ds?.setModel(model);
+      const defaultSort = this.effectiveDefaultSort();
+      ds?.setModel(model, defaultSort);
     });
     effect(() => {
       if (this.showTypeColumn()) {
@@ -384,10 +423,10 @@ export class EntityListComponent {
     const { value, label } = values[kind];
     try {
       await navigator.clipboard.writeText(value);
-      this.notificationService.showSuccess(`${label}: ${m.copied}`, 2000);
+      this.notificationService.showSuccess(formatEntityFormsMessage(m.copiedId, { label }), 2000);
     } catch (error) {
       console.error('mm-entity-list: failed to copy to clipboard', error);
-      this.notificationService.showError('Failed to copy to clipboard');
+      this.notificationService.showError(m.copyFailed);
     }
   }
 }

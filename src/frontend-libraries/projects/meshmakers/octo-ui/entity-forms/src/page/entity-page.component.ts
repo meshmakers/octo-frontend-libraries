@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  contentChild,
   effect,
   inject,
   input,
@@ -24,6 +25,8 @@ import {
 } from '@meshmakers/shared-ui';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
 import { arrowLeftIcon, saveIcon, trashIcon } from '@progress/kendo-svg-icons';
+import { NgTemplateOutlet } from '@angular/common';
+import { CommandItem } from '@meshmakers/shared-services';
 import { firstValueFrom } from 'rxjs';
 import {
   EntityFormsMessages,
@@ -36,8 +39,17 @@ import {
   CkRecordInfo,
   EntityFormMode,
   EntityFormValueState,
+  EntityListSortDescriptor,
   ResolvedEntityForm,
 } from '../models/entity-form.models';
+import {
+  ENTITY_FORM_LABEL_RESOLVER,
+  EntityFormLabelResolver,
+  localizeEntityForm,
+  localizeEntityFormTitle,
+} from '../core/entity-form-labels';
+import { EntityFormPrefillValues } from '../core/entity-form-prefill';
+import { EntityPageActionsContext, EntityPageActionsDirective } from './entity-page-actions.directive';
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
 import { entityListIncludesDerivedTypes } from '../list/entity-list-data-source.directive';
@@ -78,6 +90,17 @@ export interface EntityPageDeletedEvent {
 /** Which part of the page is shown. */
 export type EntityPageView = 'loading' | 'list' | 'form' | 'error';
 
+/** Where the form's Save / Cancel / Delete buttons sit (AB#5623). */
+export type EntityPageActionBarPosition = 'top' | 'bottom';
+
+/**
+ * Prefill of the create form (AB#5623): the values, or a function of the concrete type to create
+ * (called once per create form; may return `null`).
+ */
+export type EntityPageInitialValues =
+  | EntityFormPrefillValues
+  | ((context: { ckTypeId: string }) => EntityFormPrefillValues | null | undefined);
+
 interface PageContext {
   formKey?: string;
   ckTypeId?: string;
@@ -97,11 +120,17 @@ interface PageContext {
  * page falls back to `ActivatedRoute` (params, data of this route and its parents, query params).
  * Navigation is relative (`..`, `new`, `:rtId`), so it works under any mount point; set
  * `routerNavigation` to `false` and handle {@link navigate} to drive it yourself.
+ *
+ * Host extensions (AB#5623, all optional, defaults = unchanged behaviour): `actionBarPosition`
+ * (Save / Cancel at the bottom), page actions via `<ng-template mmEntityPageActions>`, list
+ * `listToolbarActions` / `listRowActions` / `listRowMenuActions`, `defaultSort`, `labelResolver`
+ * (translated labels and enum texts), `initialValues` (create prefill) and
+ * {@link patchFormValues} (prefill from a host action).
  */
 @Component({
   selector: 'mm-entity-page',
   standalone: true,
-  imports: [EntityListComponent, EntityFormComponent, EntityIdInfoComponent, ButtonComponent],
+  imports: [EntityListComponent, EntityFormComponent, EntityIdInfoComponent, ButtonComponent, NgTemplateOutlet],
   providers: [{ provide: HAS_UNSAVED_CHANGES, useExisting: EntityPageComponent }],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './entity-page.component.html',
@@ -117,6 +146,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly actionConfirmation = inject(ENTITY_FORM_ACTION_CONFIRMATION, { optional: true });
   private readonly breadCrumbService = inject(BreadCrumbService, { optional: true });
+  private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
 
   /** Form key (`form-sftp-configuration` or `sftp-configuration`). Wins over `ckTypeId`. */
   readonly formKey = input<string | undefined>(undefined);
@@ -130,6 +160,24 @@ export class EntityPageComponent implements HasUnsavedChanges {
   readonly messages = input<Partial<EntityFormsMessages> | undefined>(undefined);
   /** Perform the default relative Router navigation (in addition to emitting {@link navigate}). */
   readonly routerNavigation = input<boolean>(true);
+  /**
+   * Where Save / Cancel / Delete sit on the form (AB#5623): `'top'` (header, default) or
+   * `'bottom'` (a bar below the form, right-aligned). Falls back to route data
+   * `entityPageActionBarPosition`.
+   */
+  readonly actionBarPosition = input<EntityPageActionBarPosition | undefined>(undefined);
+  /** Translates labels, titles and enum texts (AB#5623); wins over `ENTITY_FORM_LABEL_RESOLVER`. */
+  readonly labelResolver = input<EntityFormLabelResolver | null | undefined>(undefined);
+  /** List order while the user has not sorted (AB#5623). Falls back to route data `entityListDefaultSort`, then the form's `listDefaultSort`. */
+  readonly defaultSort = input<readonly EntityListSortDescriptor[] | null | undefined>(undefined);
+  /** Prefill of the create form (AB#5623). Falls back to route data `entityFormInitialValues`. */
+  readonly initialValues = input<EntityPageInitialValues | null | undefined>(undefined);
+  /** Host toolbar actions of the list, after "New" (AB#5623). */
+  readonly listToolbarActions = input<readonly CommandItem[]>([]);
+  /** Host row actions of the list (icon buttons after Edit / View, AB#5623). */
+  readonly listRowActions = input<readonly CommandItem[]>([]);
+  /** Host row menu entries of the list (context menu, AB#5623). */
+  readonly listRowMenuActions = input<readonly CommandItem[]>([]);
 
   /** Emitted for every list / create / edit transition. */
   readonly navigate = output<EntityPageNavigateEvent>();
@@ -143,6 +191,8 @@ export class EntityPageComponent implements HasUnsavedChanges {
   /** Why Save / Create is disabled (e.g. a required secret without key ring, Q17), or `null`. */
   protected readonly saveBlockedReason = computed(() => this.form()?.saveBlockedReason() ?? null);
   private readonly list = viewChild<EntityListComponent>('entityList');
+  /** Host page actions (`<ng-template mmEntityPageActions>`, AB#5623). */
+  protected readonly pageActions = contentChild(EntityPageActionsDirective);
 
   private readonly paramMap = toSignal(this.route.paramMap);
   private readonly queryParamMap = toSignal(this.route.queryParamMap);
@@ -182,11 +232,65 @@ export class EntityPageComponent implements HasUnsavedChanges {
     return fromData === undefined ? true : fromData !== false;
   });
 
+  protected readonly effectiveLabelResolver = computed(() => this.labelResolver() ?? this.injectedLabelResolver ?? null);
+  protected readonly effectiveActionBarPosition = computed<EntityPageActionBarPosition>(() => {
+    this.routeData();
+    return (this.actionBarPosition() ?? this.inheritedData('entityPageActionBarPosition')) === 'bottom' ? 'bottom' : 'top';
+  });
+  /** `undefined` = no page-level default (the list falls back to the form's `listDefaultSort`). */
+  protected readonly effectiveDefaultSort = computed<readonly EntityListSortDescriptor[] | undefined>(() => {
+    this.routeData();
+    return this.defaultSort() ?? (this.inheritedData('entityListDefaultSort') as EntityListSortDescriptor[] | undefined);
+  });
+  /** The prefill of the current create form (AB#5623), computed when the form opens. */
+  protected readonly createInitialValues = signal<EntityFormPrefillValues | null>(null);
+  /** Base model with translated title / description (list header). */
+  protected readonly localizedBase = computed(() => {
+    const model = this.baseModel();
+    return model ? localizeEntityForm(model, this.effectiveLabelResolver()) : null;
+  });
+  /**
+   * Breadcrumb labels (`{{entityFormTitle}}` / `{{entityName}}`), derived from the page state so
+   * they follow a language change of the label resolver or the messages (AB#5623). `null` while
+   * nothing is resolved.
+   */
+  protected readonly breadcrumbLabels = computed<Record<string, string> | null>(() => {
+    this.routeData();
+    const base = this.baseModel();
+    const view = this.view();
+    if (!base || view === 'loading') {
+      return null;
+    }
+    if (view !== 'form') {
+      const listLabels: Record<string, string> = { entityFormTitle: asString(this.inheritedData('entityListTitle')) ?? this.formTitle(base) ?? base.title };
+      return listLabels;
+    }
+    const entityFormTitle = this.formTitle(base) ?? this.formTitle(this.formModel()) ?? '';
+    const entityName = this.mode() === 'create' && !this.entityRtId() ? this.msgs().createTitle : this.entityName() ?? '';
+    return { entityFormTitle, entityName };
+  });
+
+  /** Context of the host page actions template. */
+  protected readonly actionsContext = computed<EntityPageActionsContext>(() => {
+    const view = this.view() === 'form' ? 'form' : 'list';
+    const ctx: EntityPageActionsContext = {
+      view,
+      mode: view === 'form' ? this.mode() : null,
+      rtId: view === 'form' ? this.entityRtId() : null,
+      ckTypeId: view === 'form' ? this.entityCkTypeId() : this.baseModel()?.rtCkTypeId ?? null,
+      model: view === 'form' ? this.formModel() : this.baseModel(),
+      saving: this.saving(),
+      page: this,
+    } as EntityPageActionsContext;
+    ctx.$implicit = ctx;
+    return ctx;
+  });
+
   protected readonly isSingleton = computed(() => !!this.baseModel()?.singleton);
   /** Host heading override (`entityListTitle` route data), else the resolved form title. */
   protected readonly listTitle = computed(() => {
     this.routeData();
-    return asString(this.inheritedData('entityListTitle')) ?? this.baseModel()?.title ?? '';
+    return asString(this.inheritedData('entityListTitle')) ?? this.localizedBase()?.title ?? '';
   });
   /** `entityListTypeColumn` route data: show the row's CK type in the list. */
   protected readonly showTypeColumn = computed(() => {
@@ -204,7 +308,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
     }
     // A singleton is "the" setting (e.g. Tenant mode): its form name, not "Edit <entity name>".
     if (this.isSingleton()) {
-      return asString(this.inheritedData('entityListTitle')) ?? this.formModel()?.title ?? this.baseModel()?.title ?? m.viewTitle;
+      return asString(this.inheritedData('entityListTitle')) ?? this.formTitle(this.formModel()) ?? this.localizedBase()?.title ?? m.viewTitle;
     }
     const name = this.entityName() ?? '';
     return this.mode() === 'edit' ? formatEntityFormsMessage(m.editTitle, { name }) : name || m.viewTitle;
@@ -239,6 +343,12 @@ export class EntityPageComponent implements HasUnsavedChanges {
       }
       lastKey = key;
       untracked(() => void this.load(ctx));
+    });
+    effect(() => {
+      const labels = this.breadcrumbLabels();
+      if (labels) {
+        untracked(() => void this.breadCrumbService?.updateBreadcrumbLabels(labels));
+      }
     });
   }
 
@@ -399,7 +509,6 @@ export class EntityPageComponent implements HasUnsavedChanges {
         return;
       }
       this.baseModel.set(model);
-      void this.breadCrumbService?.updateBreadcrumbLabels({ entityFormTitle: asString(this.inheritedData('entityListTitle')) ?? model.title });
 
       if (!ctx.rtId) {
         if (model.singleton) {
@@ -483,6 +592,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
     this.entityRtId.set(null);
     this.entityCkTypeId.set(formModel.rtCkTypeId);
     this.entityName.set(null);
+    this.createInitialValues.set(this.initialValuesFor(formModel.rtCkTypeId));
     this.state.set({
       values: {},
       secretPresence: {},
@@ -491,10 +601,6 @@ export class EntityPageComponent implements HasUnsavedChanges {
     });
     this.mode.set('create');
     this.view.set('form');
-    void this.breadCrumbService?.updateBreadcrumbLabels({
-      entityFormTitle: this.baseModel()?.title ?? formModel.title,
-      entityName: this.msgs().createTitle,
-    });
   }
 
   /**
@@ -533,6 +639,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
     this.records.set(records);
     this.formModel.set(formModel);
     this.singletonWellKnownName.set(null);
+    this.createInitialValues.set(null);
     this.applyLoaded(loaded.rtId, loaded.ckTypeId || formModel.rtCkTypeId, loaded.state, loaded.rtDisplayName);
     const writable = this.effectiveCanWrite() && formModel.capabilities.canEdit;
     this.mode.set(writable ? 'edit' : 'view');
@@ -546,10 +653,6 @@ export class EntityPageComponent implements HasUnsavedChanges {
     this.state.set(state);
     const name = displayNameOf(state, rtId, rtDisplayName);
     this.entityName.set(name);
-    void this.breadCrumbService?.updateBreadcrumbLabels({
-      entityFormTitle: this.baseModel()?.title ?? this.formModel()?.title ?? '',
-      entityName: name,
-    });
   }
 
   private async recordsFor(model: ResolvedEntityForm): Promise<Record<string, CkRecordInfo>> {
@@ -597,6 +700,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
     this.entityCkTypeId.set(null);
     this.entityName.set(null);
     this.singletonWellKnownName.set(null);
+    this.createInitialValues.set(null);
   }
 
   private fail(message: string): void {
@@ -649,6 +753,38 @@ export class EntityPageComponent implements HasUnsavedChanges {
   /** Reloads the list (when the list is shown). */
   refreshList(): void {
     this.list()?.refresh();
+  }
+
+  /**
+   * Sets values of the open form from the host (AB#5623), e.g. a "Prefill from user" page action.
+   * See `EntityFormComponent.patchValues`: the values always count as user edits (the form gets
+   * dirty, the unsaved-changes guard applies and Save sends them); secret and read-only fields are
+   * skipped. Returns the field keys that were set (`[]` when no writable form is shown).
+   */
+  patchFormValues(values: EntityFormPrefillValues): string[] {
+    if (this.view() !== 'form' || this.mode() === 'view') {
+      return [];
+    }
+    return this.form()?.patchValues(values) ?? [];
+  }
+
+  /** Translated title of a model (AB#5623). */
+  private formTitle(model: ResolvedEntityForm | null): string | undefined {
+    return model ? localizeEntityFormTitle(model, this.effectiveLabelResolver()) : undefined;
+  }
+
+  /** The host prefill for a create form of the given type. */
+  private initialValuesFor(ckTypeId: string): EntityFormPrefillValues | null {
+    const source = this.initialValues() ?? (this.inheritedData('entityFormInitialValues') as EntityPageInitialValues | undefined);
+    if (!source) {
+      return null;
+    }
+    try {
+      return (typeof source === 'function' ? source({ ckTypeId }) : source) ?? null;
+    } catch (error) {
+      console.error('mm-entity-page: initialValues failed', error);
+      return null;
+    }
   }
 }
 

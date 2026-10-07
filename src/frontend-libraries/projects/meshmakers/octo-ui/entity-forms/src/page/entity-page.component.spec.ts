@@ -10,6 +10,20 @@ import { EntityFormChangeSet, EntityFormValueState, ResolvedEntityForm } from '.
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
 import { EntityPageComponent } from './entity-page.component';
+import { EntityPageActionsDirective } from './entity-page-actions.directive';
+import { NgTemplateOutlet } from '@angular/common';
+
+/** Host projecting page actions into the page (AB#5623). */
+@Component({
+  standalone: true,
+  imports: [EntityPageComponent, EntityPageActionsDirective],
+  template: `<mm-entity-page actionBarPosition="bottom">
+    <ng-template mmEntityPageActions let-ctx>
+      <button class="host-action" type="button">{{ ctx.view }}|{{ ctx.mode }}|{{ ctx.rtId }}</button>
+    </ng-template>
+  </mm-entity-page>`,
+})
+class PageHostComponent {}
 
 /** Stand-in for `<mm-entity-form>` exposing the public methods the page calls. */
 @Component({ selector: 'mm-entity-form', standalone: true, template: '' })
@@ -20,6 +34,9 @@ class StubEntityFormComponent {
   readonly readOnly = input<unknown>();
   readonly messages = input<unknown>();
   readonly records = input<unknown>();
+  readonly labelResolver = input<unknown>();
+  readonly initialValues = input<unknown>();
+  patched: unknown[] = [];
   dirty = false;
   valid = true;
   readonly saveBlockedReason = signal<string | null>(null);
@@ -28,6 +45,7 @@ class StubEntityFormComponent {
   isValid(): boolean { return this.valid; }
   markAllAsTouched(): void { /* noop */ }
   getChangeSet(): EntityFormChangeSet { return this.changeSet; }
+  patchValues(values: Record<string, unknown>): string[] { this.patched.push(values); return Object.keys(values); }
 }
 
 function makeModel(overrides: Partial<ResolvedEntityForm> = {}): ResolvedEntityForm {
@@ -80,7 +98,9 @@ describe('EntityPageComponent', () => {
   let breadCrumbs: MockedObject<BreadCrumbService>;
   let listGql: { fetch: ReturnType<typeof vi.fn> };
 
-  async function create(data: Record<string, unknown>, params: Record<string, string> = {}, query: Record<string, string> = {}): Promise<void> {
+  let hostFixture: ComponentFixture<PageHostComponent> | null = null;
+
+  async function create(data: Record<string, unknown>, params: Record<string, string> = {}, query: Record<string, string> = {}, withHost = false): Promise<void> {
     const route = {
       paramMap: of(convertToParamMap(params)),
       queryParamMap: of(convertToParamMap(query)),
@@ -101,12 +121,19 @@ describe('EntityPageComponent', () => {
       ],
     })
       .overrideComponent(EntityPageComponent, {
-        set: { imports: [StubEntityFormComponent], schemas: [NO_ERRORS_SCHEMA] },
+        set: { imports: [StubEntityFormComponent, NgTemplateOutlet], schemas: [NO_ERRORS_SCHEMA] },
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(EntityPageComponent);
-    component = fixture.componentInstance;
+    if (withHost) {
+      hostFixture = TestBed.createComponent(PageHostComponent);
+      fixture = hostFixture as unknown as ComponentFixture<EntityPageComponent>;
+      component = hostFixture.debugElement.query((d) => d.componentInstance instanceof EntityPageComponent).componentInstance as EntityPageComponent;
+    } else {
+      hostFixture = null;
+      fixture = TestBed.createComponent(EntityPageComponent);
+      component = fixture.componentInstance;
+    }
     api = component as unknown as Testable;
     fixture.detectChanges();
     await settle();
@@ -350,5 +377,109 @@ describe('EntityPageComponent', () => {
     formService.resolveByFormKey.mockResolvedValue(null);
     await create({ formKey: 'unknown' });
     expect(api.view()).toBe('error');
+  });
+
+  describe('host extensions (AB#5623)', () => {
+    function el(): HTMLElement {
+      return fixture.nativeElement as HTMLElement;
+    }
+
+    it('keeps Save / Cancel in the header by default', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new' });
+      expect(el().querySelector('header [data-entity-page-save]')).toBeTruthy();
+      expect(el().querySelector('[data-entity-page-footer]')).toBeNull();
+    });
+
+    it('moves Save / Cancel into a bottom bar (route data) and renders host page actions there', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' }, {}, true);
+      const footer = el().querySelector('[data-entity-page-footer]');
+      expect(footer?.querySelector('[data-entity-page-save]')).toBeTruthy();
+      expect(footer?.querySelector('[data-entity-page-back]')).toBeTruthy();
+      expect(el().querySelector('header [data-entity-page-save]')).toBeNull();
+      expect(footer?.querySelector('.host-action')?.textContent).toBe('form|edit|r1');
+    });
+
+    it('renders host page actions in the list header', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, {}, {}, true);
+      expect(el().querySelector('[data-entity-page-host-actions] .host-action')?.textContent).toBe('list||');
+    });
+
+    it('reads the bottom position from route data', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new', entityPageActionBarPosition: 'bottom' });
+      expect(el().querySelector('[data-entity-page-footer] [data-entity-page-save]')).toBeTruthy();
+    });
+
+    it('passes the create prefill (route data or function input) to the form, not to edit forms', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new', entityFormInitialValues: { host: 'h' } });
+      expect(stubForm().initialValues()).toEqual({ host: 'h' });
+
+      TestBed.resetTestingModule();
+      dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration', entityFormInitialValues: { host: 'h' } }, { rtId: 'r1' });
+      expect(stubForm().initialValues()).toBeNull();
+    });
+
+    it('calls an initialValues function with the concrete type', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      const fn = vi.fn().mockReturnValue({ port: 22 });
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new', entityFormInitialValues: fn });
+      expect(fn).toHaveBeenCalledWith({ ckTypeId: 'System.Communication/SftpConfiguration' });
+      expect(stubForm().initialValues()).toEqual({ port: 22 });
+    });
+
+    it('patchFormValues delegates to the open form, and does nothing on the list', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' });
+      expect(component.patchFormValues({ host: 'x' })).toEqual([]);
+
+      TestBed.resetTestingModule();
+      dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+      expect(component.patchFormValues({ host: 'x' })).toEqual(['host']);
+      expect(stubForm().patched).toEqual([{ host: 'x' }]);
+    });
+
+    it('translates the list title and the breadcrumb with the label resolver', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' });
+      fixture.componentRef.setInput('labelResolver', (r: { kind: string }) => (r.kind === 'formTitle' ? 'SFTP-Konfigurationen' : null));
+      fixture.detectChanges();
+      expect(api.listTitle()).toBe('SFTP-Konfigurationen');
+    });
+
+    it('updates the breadcrumb labels when the label resolver language changes', async () => {
+      const lang = signal('en');
+      formService.resolve.mockResolvedValue(makeModel());
+      dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+      fixture.componentRef.setInput('labelResolver', (r: { kind: string }) =>
+        lang() === 'de' && r.kind === 'formTitle' ? 'SFTP-Konfigurationen' : null);
+      fixture.detectChanges();
+      expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenLastCalledWith({ entityFormTitle: 'SFTP configurations', entityName: 'Main SFTP' });
+      lang.set('de');
+      fixture.detectChanges();
+      expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenLastCalledWith({ entityFormTitle: 'SFTP-Konfigurationen', entityName: 'Main SFTP' });
+    });
+
+    it('uses the create title as breadcrumb entity name on the create form', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration', rtId: 'new', messages: { createTitle: 'Neu' } });
+      expect(breadCrumbs.updateBreadcrumbLabels).toHaveBeenLastCalledWith({ entityFormTitle: 'SFTP configurations', entityName: 'Neu' });
+    });
+
+    it('passes the translatable Copy ID texts to the ID button', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration', messages: { copyId: 'ID kopieren', copyIdTooltip: 'Kopieren' } }, { rtId: 'r1' });
+      const idInfo = fixture.debugElement.query((d) => d.name === 'mm-entity-id-info');
+      expect(idInfo.properties['buttonText']).toBe('ID kopieren');
+      expect(idInfo.properties['tooltip']).toBe('Kopieren');
+    });
   });
 });

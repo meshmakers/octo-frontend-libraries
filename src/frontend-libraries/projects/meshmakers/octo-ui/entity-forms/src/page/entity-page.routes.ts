@@ -2,6 +2,8 @@ import { Route, Routes } from '@angular/router';
 import { UnsavedChangesGuard } from '@meshmakers/shared-ui';
 import { SVGIcon } from '@progress/kendo-svg-icons';
 import { EntityFormsMessages } from '../entity-forms.messages';
+import { EntityListSortDescriptor } from '../models/entity-form.models';
+import { EntityFormPrefillValues } from '../core/entity-form-prefill';
 
 /**
  * Options of {@link entityFormRoutes}.
@@ -49,6 +51,18 @@ export interface EntityFormRoutesOptions {
    * with derived types. Route data key `entityListTypeColumn`.
    */
   showTypeColumn?: boolean;
+  /**
+   * Order of the list while the user has not sorted by a column (AB#5623). Wins over the form's
+   * `listDefaultSort`. Route data key `entityListDefaultSort`.
+   */
+  defaultSort?: EntityListSortDescriptor[];
+  /**
+   * Where the form's Save / Cancel / Delete buttons sit (AB#5623): `'top'` (header, default) or
+   * `'bottom'` (bar below the form). Route data key `entityPageActionBarPosition`.
+   */
+  actionBarPosition?: 'top' | 'bottom';
+  /** Prefill of the create form (AB#5623). Route data key `entityFormInitialValues`. */
+  initialValues?: EntityFormPrefillValues;
   /** Label of the create breadcrumb. Default `New`. */
   newBreadcrumbLabel?: string;
   /** Label of the edit breadcrumb. Default `{{entityName}}`. */
@@ -81,6 +95,9 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     svgIcon,
     title,
     showTypeColumn,
+    defaultSort,
+    actionBarPosition,
+    initialValues,
     data = {},
   } = opts;
 
@@ -92,6 +109,9 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     ...(messages !== undefined && { messages }),
     ...(title !== undefined && { entityListTitle: title }),
     ...(showTypeColumn !== undefined && { entityListTypeColumn: showTypeColumn }),
+    ...(defaultSort !== undefined && { entityListDefaultSort: defaultSort }),
+    ...(actionBarPosition !== undefined && { entityPageActionBarPosition: actionBarPosition }),
+    ...(initialValues !== undefined && { entityFormInitialValues: initialValues }),
   };
 
   const listCrumb = breadcrumbUrl !== undefined
