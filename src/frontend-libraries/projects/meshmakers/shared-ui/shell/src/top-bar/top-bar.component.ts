@@ -6,7 +6,8 @@ import {
   ShellLanguage,
   ShellThemePreference,
   ShellUser,
-  ShellUserMenuComponent
+  ShellUserMenuComponent,
+  ShellUserMenuItem
 } from '../user-menu/user-menu.component';
 import { ShellEnvironmentChip } from '../shell-environment';
 import { ShellMessages, shellMessages } from '../shell.messages';
@@ -40,7 +41,9 @@ export interface ShellModeOption {
  *   open); a click emits `assistantToggle`, `assistantOpen` reflects the panel state.
  * - **User menu**: `user`, `sessionLoading`, `theme`, `densityOptions`, `density`,
  *   `languages`, `language`, `version` and the outputs `signIn`, `signOut`, `themeChange`,
- *   `densityChange` and `languageChange` are passed through to `mm-shell-user-menu`.
+ *   `densityChange` and `languageChange` are passed through to `mm-shell-user-menu`, as are the
+ *   host entries (AB#5621): `userMenuItems` → `items`, `itemSelected` → `userMenuItemSelected`,
+ *   and content with the `shellUserMenuItems` attribute, projected into the panel.
  */
 @Component({
   selector: 'mm-shell-top-bar',
@@ -81,6 +84,8 @@ export class ShellTopBarComponent {
   readonly languages = input<readonly ShellLanguage[]>(DEFAULT_SHELL_LANGUAGES);
   readonly language = input<string | null>(null);
   readonly version = input<string | null>(null);
+  /** Host entries of the user menu (its `items`). */
+  readonly userMenuItems = input<readonly ShellUserMenuItem[]>([]);
 
   /** Translations; members left out fall back to {@link SHELL_MESSAGES}, then English. */
   readonly messages = input<Partial<ShellMessages> | null>(null);
@@ -96,6 +101,8 @@ export class ShellTopBarComponent {
   readonly themeChange = output<ShellThemePreference>();
   readonly densityChange = output<string>();
   readonly languageChange = output<string>();
+  /** A host entry of the user menu was chosen (its `itemSelected`). */
+  readonly userMenuItemSelected = output<ShellUserMenuItem>();
 
   protected readonly m = shellMessages(this.messages);
 

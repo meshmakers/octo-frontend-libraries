@@ -26,6 +26,11 @@ export interface ShellNavNode {
   /** Opens in a new browser tab. */
   external: boolean;
   children: ShellNavNode[];
+  /**
+   * Optional count shown as a badge on the rail icon / flyout entry (AB#5621); 0 or none shows
+   * nothing. The rail's `badges` input wins over it. Not set by {@link ShellNavigationService}.
+   */
+  badgeCount?: number;
 }
 
 /** `space` / `tab` / `objectDetail` route data, merged from the root to the deepest active route. */
@@ -158,16 +163,17 @@ export class ShellNavigationService {
   }
 
   /**
-   * Opens an area from the rail: its first page — unless the current page
-   * already lives in it, then nothing happens (re-clicking the active area
-   * must not throw the person out of the page they are on). External entries
-   * are skipped; an area click never pops up a browser tab.
+   * Opens an area from the rail. An area with its own in-app link (e.g. Home without tabs, or a
+   * Settings overview) opens that page (AB#5621); any other area opens its first page. Nothing
+   * happens when the current page already lives in the area (re-clicking the active area must
+   * not throw the person out of the page they are on). External entries are skipped; an area
+   * click never pops up a browser tab.
    */
   async openArea(area: ShellNavNode): Promise<void> {
     if (area.id === this.activeArea()?.id) {
       return;
     }
-    const target = ShellNavigationService.firstPage(area, false);
+    const target = ShellNavigationService.areaTarget(area);
     if (target) {
       await this.commandService.setSelectedDrawerItem({ id: target.id } as DrawerItem);
     }
@@ -176,10 +182,21 @@ export class ShellNavigationService {
   /** Opens the first page of the first area (used after a mode switch). */
   async openFirstPage(): Promise<void> {
     const first = this.topAreas()[0];
-    const target = first ? ShellNavigationService.firstPage(first, false) : null;
+    const target = first ? ShellNavigationService.areaTarget(first) : null;
     if (target) {
       await this.commandService.setSelectedDrawerItem({ id: target.id } as DrawerItem);
     }
+  }
+
+  /**
+   * Where a rail click on an area leads: the area itself when it has its own in-app link,
+   * else its first navigable, in-app entry; `null` when there is none.
+   */
+  static areaTarget(area: ShellNavNode): ShellNavNode | null {
+    if (area.navigable && !area.external) {
+      return area;
+    }
+    return ShellNavigationService.firstPage(area, false);
   }
 
   /** The selected entry at or below a node, deepest first; `null` when none is selected. */

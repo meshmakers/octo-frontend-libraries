@@ -304,6 +304,107 @@ describe('ShellNavigationService with SHELL_SETTINGS_SPACE', () => {
   });
 });
 
+/*
+ * Areas with their own link (AB#5621): Home without tabs, Settings with an overview page and
+ * categories, an external-only area and an area without link or entries.
+ */
+const LINKED_AREAS: CommandItem[] = [
+  { id: 'area-home', type: 'link', text: 'Home', link: '/t' },
+  {
+    id: 'area-data', type: 'section', text: 'Data', children: [
+      { id: 'data-explorer', type: 'link', text: 'Explorer', link: 'data/explorer' }
+    ]
+  },
+  { id: 'area-docs', type: 'link', text: 'Docs', href: 'https://docs' },
+  { id: 'area-empty', type: 'section', text: 'Empty' },
+  { id: RAIL_BOTTOM_SEPARATOR_ID, type: 'separator' },
+  {
+    id: 'area-settings', type: 'link', text: 'Settings', link: 'settings', children: [
+      { id: 'settings-bank', type: 'link', text: 'Bank', link: 'settings/bank' }
+    ]
+  }
+];
+
+describe('ShellNavigationService with areas that have their own link (AB#5621)', () => {
+  let drawerItems$: BehaviorSubject<DrawerItem[]>;
+  let setSelectedDrawerItem: ReturnType<typeof vi.fn>;
+  let service: ShellNavigationService;
+  const select = (id: string | null): void => drawerItems$.next(toDrawerItems(LINKED_AREAS, id));
+  const area = (id: string): ShellNavNode => [...service.topAreas(), ...service.bottomAreas()].find(a => a.id === id)!;
+  const openedId = (): string => (setSelectedDrawerItem.mock.lastCall![0] as DrawerItem).id as string;
+
+  beforeEach(() => {
+    drawerItems$ = new BehaviorSubject<DrawerItem[]>([]);
+    setSelectedDrawerItem = vi.fn().mockResolvedValue(undefined);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CommandService, useValue: { drawerItems: drawerItems$, setSelectedDrawerItem } },
+        { provide: CommandSettingsService, useValue: { commandItems: LINKED_AREAS } },
+        { provide: Router, useValue: { events: new Subject<unknown>(), get routerState() { return { snapshot: { root: routeTree({}) } }; } } }
+      ]
+    });
+    service = TestBed.inject(ShellNavigationService);
+  });
+
+  it('opens an area without entries through its own link (Home)', async () => {
+    select('data-explorer');
+
+    await service.openArea(area('area-home'));
+
+    expect(openedId()).toBe('area-home');
+  });
+
+  it('opens the own page of an area with entries (Settings overview), not its first entry', async () => {
+    select('data-explorer');
+
+    await service.openArea(area('area-settings'));
+
+    expect(openedId()).toBe('area-settings');
+  });
+
+  it('keeps opening the first entry of an area without own link', async () => {
+    select('area-home');
+
+    await service.openArea(area('area-data'));
+
+    expect(openedId()).toBe('data-explorer');
+  });
+
+  it('never opens an external area link or an area with nothing to open', async () => {
+    select('area-home');
+
+    await service.openArea(area('area-docs'));
+    await service.openArea(area('area-empty'));
+
+    expect(setSelectedDrawerItem).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate when the linked area is already active', async () => {
+    select('area-home');
+
+    await service.openArea(area('area-home'));
+
+    expect(setSelectedDrawerItem).not.toHaveBeenCalled();
+  });
+
+  it('openFirstPage opens the first area itself when it has its own link', async () => {
+    select(null);
+
+    await service.openFirstPage();
+
+    expect(openedId()).toBe('area-home');
+  });
+
+  it('areaTarget prefers the own in-app link, then the first in-app entry', () => {
+    select(null);
+
+    expect(ShellNavigationService.areaTarget(area('area-settings'))?.id).toBe('area-settings');
+    expect(ShellNavigationService.areaTarget(area('area-data'))?.id).toBe('data-explorer');
+    expect(ShellNavigationService.areaTarget(area('area-docs'))).toBeNull();
+    expect(ShellNavigationService.areaTarget(area('area-empty'))).toBeNull();
+  });
+});
+
 describe('ShellNavigationService helpers', () => {
   const node = (id: string, separator = false): ShellNavNode => ({
     id, text: id, separator, selected: false, active: false, navigable: !separator, external: false, children: []

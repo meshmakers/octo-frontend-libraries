@@ -87,6 +87,38 @@
   height: 20px;
 }
 
+// Count badge (AB#5621): top-right corner of the icon button; also used in the flyout.
+.rail-badge,
+.flyout-badge {
+  box-sizing: border-box;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--theme-accent);
+  color: var(--theme-text-on-accent);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+
+  &.attention {
+    background: var(--theme-status-warning);
+  }
+}
+
+.rail-badge {
+  position: absolute;
+  top: 2px;
+  right: 0;
+}
+
+.flyout-badge {
+  flex: 0 0 auto;
+}
+
 // ----------------------------------------------------------------------------
 // Flyout: label + the area's entries; opens on hover, click or Arrow Right.
 // The host begins at the icon's right edge; its transparent padding is the

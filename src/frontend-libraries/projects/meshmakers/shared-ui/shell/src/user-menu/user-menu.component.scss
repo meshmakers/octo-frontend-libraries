@@ -205,6 +205,58 @@
   }
 }
 
+// Host entries (AB#5621): full-width rows above "Manage profile" / "Sign out".
+.user-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: var(--theme-space-2) 0 0;
+  list-style: none;
+  border-top: 1px solid var(--theme-border-subtle);
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--theme-space-1) var(--theme-space-2);
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-primary);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--theme-bg-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.user-item-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--theme-text-secondary);
+}
+
+.user-item-text {
+  flex: 1;
+}
+
+// Projected host content: no box of its own when empty.
+.user-items-slot:empty {
+  display: none;
+}
+
 .user-actions {
   display: flex;
   align-items: center;

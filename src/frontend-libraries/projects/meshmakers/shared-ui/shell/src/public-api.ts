@@ -28,7 +28,7 @@
  *       <mm-tenant-switcher shellTenant [currentTenantId]="tenantId()" (tenantSelected)="openTenant($event)" />
  *     </mm-shell-top-bar>
  *     <mm-shell-rail [areas]="nav.topAreas()" [bottomAreas]="nav.bottomAreas()"
- *       [activeAreaId]="nav.activeArea()?.id ?? null"
+ *       [activeAreaId]="nav.activeArea()?.id ?? null" [badges]="{ 'area-inbox': inboxCount() }"
  *       (areaSelected)="nav.openArea($event)" (itemSelected)="nav.open($event)" />
  *     <mm-space-shell [area]="nav.activeArea()" [activeTabId]="nav.activeTab()?.id ?? null"
  *       [chips]="spaceHeader.chips()" [showTabs]="nav.showTabs()" (tabSelected)="nav.open($event)">
@@ -72,6 +72,8 @@ export type { ShellMessages } from './shell.messages';
 export { areaId, spaceOfAreaId, tabId, RAIL_BOTTOM_SEPARATOR_ID, SHELL_SETTINGS_SPACE } from './shell-areas';
 export { ShellNavigationService } from './shell-navigation.service';
 export type { ShellNavNode, ShellRouteData, ShellNavItemKind } from './shell-navigation.service';
+export { resolveShellBadge, shellBadgeText, SHELL_BADGE_MAX } from './shell-badges';
+export type { ShellNavBadge, ShellNavBadges } from './shell-badges';
 export { SpaceHeaderService } from './space-header.service';
 export type { SpaceStatusChip } from './space-header.service';
 export { ShellSearchTriggerService } from './shell-search-trigger.service';
@@ -89,9 +91,10 @@ export { SHELL_NOTIFICATION_OPTIONS } from './shell-notifications';
 export { ShellRailComponent, RAIL_FLYOUT_OPEN_DELAY, RAIL_FLYOUT_CLOSE_DELAY } from './rail/rail.component';
 export { SpaceShellComponent } from './space-shell/space-shell.component';
 export { SettingsSideNavComponent } from './settings-side-nav/settings-side-nav.component';
+export type { SettingsSideNavGroup } from './settings-side-nav/settings-side-nav.component';
 export { SettingsSideNavBadgesService } from './settings-side-nav/settings-side-nav-badges.service';
 export type { SettingsSideNavBadge } from './settings-side-nav/settings-side-nav-badges.service';
 export { ShellTopBarComponent } from './top-bar/top-bar.component';
 export type { ShellModeOption } from './top-bar/top-bar.component';
 export { ShellUserMenuComponent, DEFAULT_SHELL_LANGUAGES } from './user-menu/user-menu.component';
-export type { ShellDensityOption, ShellLanguage, ShellThemePreference, ShellUser } from './user-menu/user-menu.component';
+export type { ShellDensityOption, ShellLanguage, ShellThemePreference, ShellUser, ShellUserMenuItem } from './user-menu/user-menu.component';

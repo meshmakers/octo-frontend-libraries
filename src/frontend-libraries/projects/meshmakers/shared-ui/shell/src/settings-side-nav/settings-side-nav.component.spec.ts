@@ -101,3 +101,71 @@ describe('SettingsSideNavComponent messages', () => {
     expect(element.querySelector('[data-side-nav="home"]')?.textContent?.trim()).toBe('Alle (settings)');
   });
 });
+
+describe('SettingsSideNavComponent groups (AB#5621)', () => {
+  const AREA = node('area-settings', 'Settings', {
+    navigable: false,
+    children: [
+      node('settings-company', 'Company'),
+      node('settings-bank', 'Bank'),
+      node('settings-mail', 'Mail'),
+      node('settings-users', 'Users'),
+    ],
+  });
+  let fixture: ComponentFixture<SettingsSideNavComponent>;
+  let element: HTMLElement;
+
+  const render = (groups?: unknown): void => {
+    fixture = TestBed.createComponent(SettingsSideNavComponent);
+    fixture.componentRef.setInput('area', AREA);
+    fixture.componentRef.setInput('activeTabId', 'settings-mail');
+    if (groups) {
+      fixture.componentRef.setInput('groups', groups);
+    }
+    fixture.detectChanges();
+    element = fixture.nativeElement as HTMLElement;
+  };
+  const texts = (root: ParentNode): string[] =>
+    Array.from(root.querySelectorAll<HTMLButtonElement>('.side-nav__item')).map((b) => b.textContent!.trim());
+
+  it('stays flat without groups', () => {
+    render();
+
+    expect(element.querySelectorAll('.side-nav__group').length).toBe(0);
+    expect(texts(element)).toEqual(['All settings', 'Company', 'Bank', 'Mail', 'Users']);
+  });
+
+  it('puts labelled groups over their categories in group order, ungrouped ones last', () => {
+    render([
+      { id: 'org', label: 'Organisation', tabIds: ['settings-company', 'settings-users'] },
+      { id: 'integrations', label: 'Integrations', tabIds: ['settings-mail', 'settings-missing'] },
+      { id: 'empty', label: 'Empty', tabIds: ['settings-gone'] },
+    ]);
+
+    const groups = Array.from(element.querySelectorAll<HTMLElement>('.side-nav__group'));
+    expect(groups.map((g) => g.getAttribute('data-group'))).toEqual(['org', 'integrations']);
+    expect(texts(groups[0])).toEqual(['Company', 'Users']);
+    expect(texts(groups[1])).toEqual(['Mail']);
+    expect(texts(element)).toEqual(['All settings', 'Company', 'Users', 'Mail', 'Bank']);
+
+    const heading = groups[0].querySelector('.side-nav__group-label')!;
+    expect(groups[0].getAttribute('role')).toBe('group');
+    expect(groups[0].getAttribute('aria-labelledby')).toBe(heading.id);
+    expect(heading.textContent!.trim()).toBe('Organisation');
+  });
+
+  it('lists a category only once and keeps aria-current and selection inside groups', () => {
+    render([
+      { id: 'a', label: 'A', tabIds: ['settings-mail'] },
+      { id: 'b', label: 'B', tabIds: ['settings-mail', 'settings-bank'] },
+    ]);
+    const selected: string[] = [];
+    fixture.componentInstance.tabSelected.subscribe((tab) => selected.push(tab.id));
+
+    expect(texts(element)).toEqual(['All settings', 'Mail', 'Bank', 'Company', 'Users']);
+    const mail = element.querySelector<HTMLButtonElement>('[data-tab-id="settings-mail"]')!;
+    expect(mail.getAttribute('aria-current')).toBe('page');
+    mail.click();
+    expect(selected).toEqual(['settings-mail']);
+  });
+});

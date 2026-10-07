@@ -16,12 +16,14 @@ class StubUserMenuComponent {
   readonly languages = input<unknown[]>([]);
   readonly language = input<string | null>(null);
   readonly version = input<string | null>(null);
+  readonly items = input<unknown[]>([]);
   readonly messages = input<unknown>(null);
   readonly signIn = output<void>();
   readonly signOut = output<void>();
   readonly themeChange = output<string>();
   readonly densityChange = output<string>();
   readonly languageChange = output<string>();
+  readonly itemSelected = output<unknown>();
 }
 
 @Component({
@@ -268,5 +270,37 @@ describe('ShellTopBarComponent tenant slot', () => {
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('.tenant .projected-switcher')?.textContent).toContain('meshmakers');
+  });
+});
+
+@Component({
+  imports: [ShellTopBarComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <mm-shell-top-bar [user]="user" [userMenuItems]="items" (userMenuItemSelected)="chosen.push($event.id)">
+      <a shellUserMenuItems class="projected-entry" href="#help">Help</a>
+    </mm-shell-top-bar>`
+})
+class UserMenuHostComponent {
+  readonly user = { initials: 'GL', displayName: 'Gerald Lochner' };
+  readonly items = [{ id: 'my-identities', text: 'My identities' }];
+  readonly chosen: string[] = [];
+}
+
+describe('ShellTopBarComponent user menu entries (AB#5621)', () => {
+  it('passes the host entries and the projected content through to the user menu', async () => {
+    await TestBed.configureTestingModule({ imports: [UserMenuHostComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(UserMenuHostComponent);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    element.querySelector<HTMLButtonElement>('.avatar-button')!.click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('.user-panel .user-items-slot .projected-entry')?.textContent).toBe('Help');
+    element.querySelector<HTMLButtonElement>('[data-user-item="my-identities"]')!.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.chosen).toEqual(['my-identities']);
+    expect(element.querySelector('.user-panel')).toBeNull();
   });
 });

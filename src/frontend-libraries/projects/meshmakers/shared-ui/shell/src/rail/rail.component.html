@@ -24,7 +24,7 @@
     <button type="button"
             class="rail-item"
             [attr.data-area-id]="area.id"
-            [attr.aria-label]="area.text"
+            [attr.aria-label]="areaLabel(area)"
             [attr.aria-current]="area.id === activeAreaId() ? 'true' : null"
             [attr.aria-expanded]="hasFlyout(area) ? openId() === area.id : null"
             [attr.aria-controls]="hasFlyout(area) ? flyoutId(area) : null"
@@ -34,6 +34,9 @@
             (click)="onAreaClick(area, $event)">
       @if (area.svgIcon) {
         <kendo-svgicon class="rail-icon" [icon]="area.svgIcon"></kendo-svgicon>
+      }
+      @if (badgeOf(area); as badge) {
+        <span class="rail-badge" [class.attention]="badge.attention" [attr.data-badge]="area.id" aria-hidden="true">{{ badgeText(badge) }}</span>
       }
     </button>
     @if (hasFlyout(area)) {
@@ -55,6 +58,9 @@
                           (keydown)="onFlyoutKeydown(area, $event)"
                           (click)="onItemClick(area, child)">
                     <span class="flyout-text">{{ child.text }}</span>
+                    @if (badgeOf(child); as badge) {
+                      <span class="flyout-badge" [class.attention]="badge.attention" [attr.data-badge]="child.id" aria-hidden="true">{{ badgeText(badge) }}</span><span class="visually-hidden">, {{ badgeLabel(badge) }}</span>
+                    }
                     @if (child.external) {
                       <span class="flyout-external" aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span>
                     }
@@ -70,6 +76,9 @@
                               (keydown)="onFlyoutKeydown(area, $event)"
                               (click)="onItemClick(area, nested)">
                         <span class="flyout-text">{{ nested.text }}</span>
+                        @if (badgeOf(nested); as badge) {
+                          <span class="flyout-badge" [class.attention]="badge.attention" [attr.data-badge]="nested.id" aria-hidden="true">{{ badgeText(badge) }}</span><span class="visually-hidden">, {{ badgeLabel(badge) }}</span>
+                        }
                         @if (nested.external) {
                           <span class="flyout-external" aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span>
                         }
