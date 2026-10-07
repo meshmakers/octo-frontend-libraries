@@ -4,7 +4,7 @@ import { DrawerItem } from '@progress/kendo-angular-layout';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { CommandItem, CommandService, CommandSettingsService } from '@meshmakers/shared-services';
 import { ShellNavigationService, ShellNavNode } from './shell-navigation.service';
-import { RAIL_BOTTOM_SEPARATOR_ID } from './shell-areas';
+import { RAIL_BOTTOM_SEPARATOR_ID, SHELL_SETTINGS_SPACE } from './shell-areas';
 
 /*
  * Tree under test (as the CommandService emits it: flat, parentId links):
@@ -257,6 +257,50 @@ describe('ShellNavigationService', () => {
     await service.openFirstPage();
 
     expect(openedId()).toBe('home-cockpit');
+  });
+});
+
+describe('ShellNavigationService with SHELL_SETTINGS_SPACE', () => {
+  const setup = (settingsSpace: string | null) => {
+    const drawerItems$ = new BehaviorSubject<DrawerItem[]>([]);
+    const routerEvents$ = new Subject<unknown>();
+    let routerRoot = routeTree({});
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: CommandService, useValue: { drawerItems: drawerItems$, setSelectedDrawerItem: vi.fn().mockResolvedValue(undefined) } },
+        { provide: CommandSettingsService, useValue: { commandItems: COMMAND_ITEMS } },
+        { provide: Router, useValue: { events: routerEvents$, get routerState() { return { snapshot: { root: routerRoot } }; } } },
+        { provide: SHELL_SETTINGS_SPACE, useValue: settingsSpace }
+      ]
+    });
+    const service = TestBed.inject(ShellNavigationService);
+    drawerItems$.next(toDrawerItems(COMMAND_ITEMS, null));
+    const navigateTo = (space: string): void => {
+      routerRoot = routeTree({ space });
+      routerEvents$.next(new NavigationEnd(1, '/x', '/x'));
+    };
+    return { service, navigateTo };
+  };
+
+  it('null: no space uses the side navigation, Settings keeps its tab strip', () => {
+    const { service, navigateTo } = setup(null);
+    navigateTo('settings');
+
+    expect(service.activeArea()?.id).toBe('area-settings');
+    expect(service.settingsSideNav()).toBe(false);
+    expect(service.settingsHomeActive()).toBe(false);
+    expect(service.showTabs()).toBe(true);
+  });
+
+  it('a custom space gets the side navigation instead of Settings', () => {
+    const { service, navigateTo } = setup('integration');
+    navigateTo('integration');
+    expect(service.settingsSideNav()).toBe(true);
+    expect(service.showTabs()).toBe(false);
+
+    navigateTo('settings');
+    expect(service.settingsSideNav()).toBe(false);
+    expect(service.showTabs()).toBe(true);
   });
 });
 
