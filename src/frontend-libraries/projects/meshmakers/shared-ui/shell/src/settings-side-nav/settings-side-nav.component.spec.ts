@@ -49,15 +49,15 @@ describe('SettingsSideNavComponent', () => {
     element = fixture.nativeElement as HTMLElement;
   });
 
-  it('lists "All settings" and the categories of the area, without separators, as one labelled nav', () => {
+  it('lists "All Settings" and the categories of the area, without separators, as one labelled nav', () => {
     expect(element.querySelector('nav')?.getAttribute('aria-label')).toBe('Settings categories');
-    expect(items().map((b) => b.textContent!.trim())).toEqual(['All settings', 'Tenant', 'Connections']);
+    expect(items().map((b) => b.textContent!.trim())).toEqual(['All Settings', 'Tenant', 'Connections']);
     expect(items().every((b) => b.type === 'button')).toBe(true);
     expect(items()[1].title).toBe('Tenant settings');
   });
 
   it('marks the home or the active category as the current page', () => {
-    expect(current()).toEqual(['All settings']);
+    expect(current()).toEqual(['All Settings']);
 
     host.homeActive.set(false);
     host.activeTabId.set('settings-connections');
@@ -98,7 +98,35 @@ describe('SettingsSideNavComponent messages', () => {
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('nav')?.getAttribute('aria-label')).toBe('Kategorien: Settings');
-    expect(element.querySelector('[data-side-nav="home"]')?.textContent?.trim()).toBe('Alle (settings)');
+    expect(element.querySelector('[data-side-nav="home"]')?.textContent?.trim()).toBe('Alle (Settings)');
+  });
+});
+
+describe('SettingsSideNavComponent labels as given (AB#5621)', () => {
+  it('passes the area name to "All {area}" unchanged (no lower-casing)', () => {
+    TestBed.configureTestingModule({ providers: [{ provide: SHELL_MESSAGES, useValue: { allOfArea: 'Alle {area}' } }] });
+    const fixture = TestBed.createComponent(SettingsSideNavComponent);
+    fixture.componentRef.setInput('area', node('area-settings', 'Einstellungen', { navigable: false, children: [node('settings-mail', 'E-Mail-Postfach')] }));
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-side-nav="home"]')?.textContent?.trim()).toBe('Alle Einstellungen');
+    expect(element.querySelector('[data-tab-id="settings-mail"]')?.textContent?.trim()).toBe('E-Mail-Postfach');
+  });
+
+  it('applies no text-transform to entries and group headings', () => {
+    const fixture = TestBed.createComponent(SettingsSideNavComponent);
+    fixture.componentRef.setInput('area', SETTINGS);
+    fixture.componentRef.setInput('groups', [{ id: 'org', label: 'Organisation und Konten', tabIds: ['settings-tenant'] }]);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const transformOf = (selector: string): string => getComputedStyle(element.querySelector<HTMLElement>(selector)!).textTransform;
+
+    const heading = element.querySelector<HTMLElement>('.side-nav__group-label')!;
+    expect(heading.textContent!.trim()).toBe('Organisation und Konten');
+    for (const selector of ['.side-nav__group-label', '[data-side-nav="home"]', '[data-tab-id="settings-tenant"]']) {
+      expect(['', 'none']).toContain(transformOf(selector));
+    }
   });
 });
 
@@ -132,7 +160,7 @@ describe('SettingsSideNavComponent groups (AB#5621)', () => {
     render();
 
     expect(element.querySelectorAll('.side-nav__group').length).toBe(0);
-    expect(texts(element)).toEqual(['All settings', 'Company', 'Bank', 'Mail', 'Users']);
+    expect(texts(element)).toEqual(['All Settings', 'Company', 'Bank', 'Mail', 'Users']);
   });
 
   it('puts labelled groups over their categories in group order, ungrouped ones last', () => {
@@ -146,7 +174,7 @@ describe('SettingsSideNavComponent groups (AB#5621)', () => {
     expect(groups.map((g) => g.getAttribute('data-group'))).toEqual(['org', 'integrations']);
     expect(texts(groups[0])).toEqual(['Company', 'Users']);
     expect(texts(groups[1])).toEqual(['Mail']);
-    expect(texts(element)).toEqual(['All settings', 'Company', 'Users', 'Mail', 'Bank']);
+    expect(texts(element)).toEqual(['All Settings', 'Company', 'Users', 'Mail', 'Bank']);
 
     const heading = groups[0].querySelector('.side-nav__group-label')!;
     expect(groups[0].getAttribute('role')).toBe('group');
@@ -173,7 +201,7 @@ describe('SettingsSideNavComponent groups (AB#5621)', () => {
     const selected: string[] = [];
     fixture.componentInstance.tabSelected.subscribe((tab) => selected.push(tab.id));
 
-    expect(texts(element)).toEqual(['All settings', 'Mail', 'Bank', 'Company', 'Users']);
+    expect(texts(element)).toEqual(['All Settings', 'Mail', 'Bank', 'Company', 'Users']);
     const mail = element.querySelector<HTMLButtonElement>('[data-tab-id="settings-mail"]')!;
     expect(mail.getAttribute('aria-current')).toBe('page');
     mail.click();

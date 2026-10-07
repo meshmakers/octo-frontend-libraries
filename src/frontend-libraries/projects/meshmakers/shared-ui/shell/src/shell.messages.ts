@@ -37,7 +37,7 @@ export interface ShellMessages {
   // --- Settings side navigation ---
   /** `aria-label` of the side navigation; `{area}` = area name. */
   areaCategories: string;
-  /** The "home" entry of the side navigation; `{area}` = area name in lower case. */
+  /** The "home" entry of the side navigation; `{area}` = area name as given (not re-cased, AB#5621). */
   allOfArea: string;
 
   // --- Top bar ---

@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, DestroyRef, ElementRef, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, DestroyRef, effect, ElementRef, inject, input, output, signal, untracked } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { NavigationEnd, Router } from '@angular/router';
 import { SVGIconComponent } from '@progress/kendo-angular-icons';
 import { ShellNavNode } from '../shell-navigation.service';
 import { formatShellMessage, ShellMessages, shellMessages } from '../shell.messages';
@@ -20,8 +21,15 @@ import { resolveShellBadge, ShellNavBadge, ShellNavBadges, shellBadgeText } from
  * once the pointer has left both. A mouse click on an icon with a flyout
  * still navigates, and additionally pins the flyout open (as does Arrow
  * Right): a pinned flyout ignores the pointer leaving and closes on an
- * outside click, Escape, choosing an entry, focus leaving the entry, or a
- * second click on the same icon.
+ * outside click, Escape, choosing an entry, focus leaving the entry, a
+ * second click on the same icon, or a navigation (AB#5621).
+ *
+ * Navigation (AB#5621): every open flyout — pinned or hovered — closes when a
+ * router navigation ends or the active area changes, so a click on an icon
+ * that navigates does not leave the flyout over the new page. A click that
+ * does not navigate (the area's page is already open) keeps the pin. Closing
+ * on navigation moves focus only when it was inside the flyout (back to its
+ * area icon); focus the new page took is left alone.
  *
  * Keyboard: the rail is one tab stop (roving tabindex). Arrow Up/Down (Left/
  * Right on the bottom bar) move between areas, Home/End jump, Arrow Right
@@ -83,7 +91,26 @@ export class ShellRailComponent {
   private closeTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.clearTimers());
+    const destroyRef = inject(DestroyRef);
+    destroyRef.onDestroy(() => this.clearTimers());
+
+    // Optional: the rail also works without a router (the active area change covers that case).
+    const router = inject(Router, { optional: true });
+    const subscription = router?.events.subscribe(event => {
+      if (event instanceof NavigationEnd) {
+        this.closeOnNavigation();
+      }
+    });
+    destroyRef.onDestroy(() => subscription?.unsubscribe());
+
+    let previousActive: string | null | undefined;
+    effect(() => {
+      const active = this.activeAreaId();
+      if (previousActive !== undefined && previousActive !== active) {
+        untracked(() => this.closeOnNavigation());
+      }
+      previousActive = active;
+    });
   }
 
   private readonly allAreas = computed(() => [...this.areas(), ...this.bottomAreas()]);
@@ -295,6 +322,21 @@ export class ShellRailComponent {
         this.close();
         break;
     }
+  }
+
+  /** A navigation happened: close the flyout without taking focus from the new page. */
+  private closeOnNavigation(): void {
+    const id = this.openId();
+    if (id === null) {
+      return;
+    }
+    const flyout = this.findByAttribute('id', `rail-flyout-${id}`);
+    if (flyout && document.activeElement instanceof Node && flyout.contains(document.activeElement)) {
+      // Focus would drop to <body> once the flyout hides.
+      this.focusArea(id);
+    }
+    this.close();
+    this.changeDetector.markForCheck();
   }
 
   private openNow(id: string, pinned: boolean): void {

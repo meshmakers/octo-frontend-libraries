@@ -264,3 +264,71 @@ describe('SpaceShellComponent', () => {
     expect(element.querySelector('.space-crumbs .crumbs')).not.toBeNull();
   });
 });
+
+@Component({
+  imports: [SpaceShellComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <mm-space-shell [area]="area" [objectDetail]="objectDetail()" [backTarget]="backTarget()">
+      <!-- Like a Kendo breadcrumb: the element is always there, its items may be empty. -->
+      <nav spaceCrumbs class="crumbs"><ol>@for (crumb of crumbs(); track crumb) {<li>{{ crumb }}</li>}</ol></nav>
+    </mm-space-shell>`
+})
+class EmptyCrumbsHostComponent {
+  readonly area = OPERATE;
+  readonly crumbs = signal<string[]>([]);
+  readonly objectDetail = signal(false);
+  readonly backTarget = signal<ShellNavNode | null>(null);
+}
+
+describe('SpaceShellComponent empty breadcrumbs (AB#5621)', () => {
+  let fixture: ComponentFixture<EmptyCrumbsHostComponent>;
+  let host: EmptyCrumbsHostComponent;
+  let element: HTMLElement;
+
+  const crumbLine = (): HTMLElement => element.querySelector<HTMLElement>('.space-crumbs')!;
+  /** Lets the MutationObserver report and the view refresh. */
+  const settle = async (): Promise<void> => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
+  beforeEach(async () => {
+    fixture = TestBed.createComponent(EmptyCrumbsHostComponent);
+    host = fixture.componentInstance;
+    element = fixture.nativeElement as HTMLElement;
+    await settle();
+  });
+
+  it('collapses the crumb line when nothing is shown in it', () => {
+    expect(crumbLine().classList).toContain('is-empty');
+    expect(element.querySelector('.space-head')?.classList).toContain('no-crumbs');
+    const style = getComputedStyle(crumbLine());
+    expect(style.height).toBe('0px');
+    expect(style.minHeight).toBe('0px');
+    // The title follows directly, without the gap kept for the crumbs.
+    expect(getComputedStyle(element.querySelector<HTMLElement>('.space-title-row')!).marginTop).toBe('0px');
+  });
+
+  it('shows the line again as soon as crumbs arrive, and collapses it when they go', async () => {
+    host.crumbs.set(['Operate', 'Events']);
+    await settle();
+    expect(crumbLine().classList).not.toContain('is-empty');
+    expect(element.querySelector('.space-head')?.classList).not.toContain('no-crumbs');
+    expect(getComputedStyle(crumbLine()).minHeight).toBe('20px');
+
+    host.crumbs.set([]);
+    await settle();
+    expect(crumbLine().classList).toContain('is-empty');
+  });
+
+  it('keeps the line for the back link of an object detail page', async () => {
+    host.objectDetail.set(true);
+    host.backTarget.set(node('operate-events', 'Events'));
+    await settle();
+
+    expect(element.querySelector('[data-testid="space-back"]')).not.toBeNull();
+    expect(crumbLine().classList).not.toContain('is-empty');
+  });
+});

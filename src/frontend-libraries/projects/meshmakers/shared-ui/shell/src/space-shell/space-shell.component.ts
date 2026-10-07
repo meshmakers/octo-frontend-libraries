@@ -1,4 +1,4 @@
-import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
+import { afterNextRender, afterRenderEffect, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { ShellNavNode } from '../shell-navigation.service';
 import { SpaceStatusChip } from '../space-header.service';
 import { SpaceMetaItem } from '../home-greeting';
@@ -34,6 +34,11 @@ interface MenuPosition {
  * the tab strip: the space header shrinks to one line with a back link to the list
  * the object belongs to (`backTarget`, e.g. "Adapters"), the breadcrumbs and the
  * actions slot.
+ *
+ * An empty breadcrumb line (AB#5621) takes no height: when the `[spaceCrumbs]` content shows
+ * nothing (no text, no list item, link, button or image — e.g. a Kendo breadcrumb without
+ * items) and there is no back link, the line collapses. It stays in the DOM with its width, so
+ * a breadcrumb that measures its width (Kendo's collapse mode) is laid out right once items arrive.
  */
 @Component({
   selector: 'mm-space-shell',
@@ -69,7 +74,25 @@ export class SpaceShellComponent {
 
   protected readonly tabs = computed(() => this.area()?.children ?? []);
 
+  /** The breadcrumb line shows something (projected crumbs or the back link). */
+  protected readonly hasCrumbs = signal(true);
+
   constructor() {
+    // The projected crumbs change outside this component (async items): watch the line itself.
+    const destroyRef = inject(DestroyRef);
+    afterNextRender(() => {
+      const crumbs = this.crumbsElement();
+      if (!crumbs) {
+        return;
+      }
+      this.updateHasCrumbs();
+      if (typeof MutationObserver === 'function') {
+        const observer = new MutationObserver(() => this.updateHasCrumbs());
+        observer.observe(crumbs, { childList: true, subtree: true, characterData: true });
+        destroyRef.onDestroy(() => observer.disconnect());
+      }
+    });
+
     // A tab strip wider than the screen (phones) scrolls sideways: keep the active tab visible.
     afterRenderEffect(() => {
       const id = this.activeTabId();
@@ -95,6 +118,21 @@ export class SpaceShellComponent {
       strip.scrollLeft += tabRect.left - stripRect.left - margin;
     } else if (tabRect.right > stripRect.right) {
       strip.scrollLeft += tabRect.right - stripRect.right + margin;
+    }
+  }
+
+  private crumbsElement(): HTMLElement | null {
+    return this.host.nativeElement.querySelector<HTMLElement>('.space-crumbs');
+  }
+
+  private updateHasCrumbs(): void {
+    const crumbs = this.crumbsElement();
+    const visible = !!crumbs && (
+      (crumbs.textContent ?? '').trim().length > 0 ||
+      crumbs.querySelector('li, a, button, img, svg, input, [role="img"]') !== null
+    );
+    if (visible !== this.hasCrumbs()) {
+      this.hasCrumbs.set(visible);
     }
   }
 

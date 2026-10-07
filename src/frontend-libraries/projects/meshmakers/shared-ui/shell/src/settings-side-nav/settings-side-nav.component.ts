@@ -38,6 +38,10 @@ interface SideNavSection {
  * Groups (AB#5621, optional): `groups` puts headings over the categories they list (in the
  * group's order); categories in no group follow without a heading, groups without a visible
  * category are left out. Without groups the list is flat, as before.
+ *
+ * Labels are shown exactly as given (AB#5621): the area name, the categories and the group
+ * headings keep the host's case — no lower-casing, no CSS `text-transform`. A language that
+ * needs a different case in "All {area}" sets `allOfArea` to the whole text.
  */
 @Component({
   selector: 'mm-settings-side-nav',
@@ -95,5 +99,5 @@ export class SettingsSideNavComponent {
   }
 
   protected readonly navLabel = computed(() => formatShellMessage(this.m().areaCategories, { area: this.area().text }));
-  protected readonly homeLabel = computed(() => formatShellMessage(this.m().allOfArea, { area: this.area().text.toLowerCase() }));
+  protected readonly homeLabel = computed(() => formatShellMessage(this.m().allOfArea, { area: this.area().text }));
 }
