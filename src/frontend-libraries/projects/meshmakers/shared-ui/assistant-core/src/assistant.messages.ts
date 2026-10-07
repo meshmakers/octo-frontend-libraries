@@ -38,6 +38,10 @@ export interface AssistantMessages {
   assistantPrefix: string;
   /** Screen-reader prefix of error rows. */
   errorPrefix: string;
+  /** Screen-reader prefix of the typed slash command shown above its expanded prompt. */
+  slashCommandPrefix: string;
+  /** Error row when a slash command's `expand` fails; `{command}` = command word. */
+  slashCommandFailed: string;
   // --- Proposal card ---
   /** `aria-label` of a proposal card; `{title}` = proposal title. */
   proposalLabel: string;
@@ -58,9 +62,9 @@ export interface AssistantMessages {
   /** `{page}` = page label. */
   contextPage: string;
   // --- Sessions (only with a transport that has sessions) ---
-  /** Header button that opens the list of saved chats. */
+  /** Header icon button that opens the list of saved chats (tooltip + `aria-label`). */
   sessions: string;
-  /** Header button that starts a fresh chat. */
+  /** Header icon button that starts a fresh chat (tooltip + `aria-label`). */
   newChat: string;
   /** `aria-label` of the saved chats list. */
   sessionsLabel: string;
@@ -95,6 +99,9 @@ export interface AssistantMessages {
   // --- Starter questions (only with a transport that provides them) ---
   /** Heading above the starter questions of an empty chat. */
   startersTitle: string;
+  // --- Resizing ---
+  /** `aria-label` / tooltip of the panel's resize handle. */
+  resizePanel: string;
 }
 
 export const DEFAULT_ASSISTANT_MESSAGES: AssistantMessages = {
@@ -114,6 +121,8 @@ export const DEFAULT_ASSISTANT_MESSAGES: AssistantMessages = {
   youPrefix: 'You: ',
   assistantPrefix: 'Assistant: ',
   errorPrefix: 'Error: ',
+  slashCommandPrefix: 'Command: ',
+  slashCommandFailed: 'The command {command} could not be run.',
   proposalLabel: 'Proposal: {title}',
   proposal: 'Proposal',
   writesToTenant: 'writes to the tenant',
@@ -145,6 +154,7 @@ export const DEFAULT_ASSISTANT_MESSAGES: AssistantMessages = {
   attachmentTooLarge: '{name} is larger than {max}.',
   attachmentTooMany: 'At most {max} file(s) per message.',
   startersTitle: 'Try asking',
+  resizePanel: 'Resize assistant panel',
 };
 
 /** App-wide translations of the assistant (partial). */

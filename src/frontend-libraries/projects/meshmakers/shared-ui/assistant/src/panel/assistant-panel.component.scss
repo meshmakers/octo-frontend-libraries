@@ -1,6 +1,7 @@
 // Assistant panel (wireframe .assistant): 400 px right panel, 340 px on narrow
 // screens, full screen on phones. Violet only on the ✦ and AI affordances.
 :host {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 400px;
@@ -19,7 +20,9 @@
 }
 
 .title {
+  flex: none;
   margin: 0;
+  white-space: nowrap;
   font-family: var(--theme-font-display);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -30,6 +33,10 @@
 }
 
 .chip-neutral {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   margin-left: 6px;
   padding: 0 7px;
   border-radius: var(--theme-radius-xs);
@@ -39,6 +46,7 @@
 }
 
 .icon-btn {
+  flex: none;
   display: grid;
   place-items: center;
   width: 28px;
@@ -51,6 +59,11 @@
 
   &:hover {
     background: var(--theme-bg-hover);
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--theme-accent-subtle);
+    color: var(--theme-text-primary);
   }
 
   &:focus-visible {
@@ -86,6 +99,9 @@
   color: var(--theme-text-secondary);
 
   button {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
     border: 0;
     padding: 0 2px;
     background: none;
@@ -150,6 +166,7 @@
 // --- Optional capabilities (AB#5621) ---
 .head-actions {
   display: flex;
+  flex: none;
   gap: 2px;
   margin-left: auto;
 
@@ -326,4 +343,61 @@
     outline: none;
     box-shadow: var(--theme-focus-ring);
   }
+}
+
+// --- Layout (AB#5621): resize handle and overlay mode ---
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  z-index: 1;
+  width: 6px;
+  cursor: col-resize;
+  touch-action: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 2px;
+    width: 2px;
+    background: transparent;
+    transition: background-color 0.15s;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    background: var(--theme-accent);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+:host(.mm-assistant-resizing) {
+  user-select: none;
+  cursor: col-resize;
+
+  .resize-handle::after {
+    background: var(--theme-accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resize-handle::after {
+    transition: none;
+  }
+}
+
+// Overlay: floats over the content at the right edge instead of taking a column.
+:host(.mm-assistant-overlay) {
+  position: fixed;
+  top: var(--mm-assistant-overlay-top, 48px);
+  right: 0;
+  bottom: 0;
+  z-index: var(--mm-assistant-overlay-z-index, 20);
+  box-shadow: var(--theme-shadow-panel);
 }

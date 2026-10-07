@@ -8,6 +8,8 @@ import {
   formatAssistantMessage,
   selectAssistantAttachments
 } from '@meshmakers/shared-ui/assistant-core';
+import { SVGIconComponent } from '@progress/kendo-angular-icons';
+import { paperclipIcon, xIcon } from '@progress/kendo-svg-icons';
 
 let nextComposerId = 0;
 
@@ -25,6 +27,7 @@ let nextComposerId = 0;
  */
 @Component({
   selector: 'mm-assistant-composer',
+  imports: [SVGIconComponent],
   templateUrl: './assistant-composer.component.html',
   styleUrl: './assistant-composer.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -56,6 +59,8 @@ export class AssistantComposerComponent {
   /** Something to send: text, or (with attachments) at least one file. */
   protected readonly hasContent = computed(() => this.text().trim().length > 0 || (!!this.attachments() && this.files().length > 0));
   protected readonly multiple = computed(() => (this.attachments()?.maxFiles ?? 1) > 1);
+  protected readonly xIcon = xIcon;
+  protected readonly paperclipIcon = paperclipIcon;
   protected readonly commands: readonly AssistantSlashCommand[] = inject(ASSISTANT_SLASH_COMMANDS);
 
   protected readonly listId = `assistant-slash-${nextComposerId++}`;

@@ -123,7 +123,19 @@ export const ASSISTANT_PAGE_CONTEXT = new InjectionToken<AssistantPageContext>('
 
 /** One rendered item of the thread. */
 export type AssistantThreadItem =
-  | { kind: 'user'; id: string; text: string; attachments?: readonly AssistantAttachmentRef[] }
+  | {
+    kind: 'user';
+    id: string;
+    /** What was sent — for a slash command with `expand`, the expanded prompt. */
+    text: string;
+    attachments?: readonly AssistantAttachmentRef[];
+    /**
+     * The slash command as typed (e.g. `/open March`) when {@link text} is its expansion (AB#5621).
+     * The thread shows it as a subtle label above the prompt. A transport may store it and return it
+     * from `loadSession` so reopened chats show the label too; without it they show the prompt only.
+     */
+    slashCommand?: string;
+  }
   | { kind: 'assistant'; id: string; markdown: string; streaming: boolean }
   | { kind: 'tool-call'; id: string; call: AssistantToolCall }
   | { kind: 'proposal'; id: string; proposal: AssistantProposal; decision: AssistantProposalDecisionKind | null }
@@ -153,6 +165,13 @@ export interface AssistantSendRequest {
    * (already checked against `accept`, `maxFiles` and `maxFileSizeBytes`).
    */
   files?: File[];
+  /**
+   * The slash command as typed (e.g. `/open March`) when {@link text} is the prompt its
+   * {@link AssistantSlashCommand.expand} produced (AB#5621). `text` is always what the model should
+   * read; store `text` as the turn so a reopened chat matches the live thread, and optionally keep
+   * this alongside it (returned as `slashCommand` on the restored user item) for the label.
+   */
+  slashCommand?: string;
 }
 
 /** Name (and size) of a file sent with a user turn, shown under the turn in the thread. */
@@ -256,8 +275,25 @@ export const ASSISTANT_TRANSPORT = new InjectionToken<AssistantTransport>('ASSIS
 
 /** A composer slash command (ui-concept §5.3). */
 export interface AssistantSlashCommand {
+  /** The command word with its slash, lower-case, e.g. `/explain`. */
   command: string;
   description: string;
+  /**
+   * Turns the typed command into the prompt that is sent (AB#5621). Called by
+   * `AssistantService.send` when the text is `<command>` or `<command> <args>`: `command` is this
+   * command's word, `args` the trimmed rest (`''` when none). The returned text — synchronously or
+   * as a promise — is what goes to the transport **and** what the live thread shows (with the typed
+   * command as a small label), so a chat reopened from the transport reads the same.
+   *
+   * If it throws, rejects or returns an empty text, nothing is sent: an error row is added and the
+   * draft is restored. Without `expand` the typed text is sent unchanged (default behaviour).
+   *
+   * ```ts
+   * { command: '/open', description: 'Open items',
+   *   expand: (_command, args) => args ? `Which items are open for ${args}?` : 'Which items are open?' }
+   * ```
+   */
+  expand?: (command: string, args: string) => string | Promise<string>;
 }
 
 /** The default slash commands (English descriptions). */
@@ -273,3 +309,44 @@ export const ASSISTANT_SLASH_COMMANDS = new InjectionToken<readonly AssistantSla
   providedIn: 'root',
   factory: () => DEFAULT_ASSISTANT_SLASH_COMMANDS
 });
+
+/**
+ * Layout of `mm-assistant-panel` (AB#5621); every member is optional and the panel's inputs of the
+ * same name win. Defaults keep the original look: a docked panel 400 px wide (340 px ≤ 1180 px)
+ * that pushes the content, without a resize handle (opt in with `resizable: true`).
+ */
+export interface AssistantPanelOptions {
+  /**
+   * `docked` (default): the panel takes its own column and pushes the content.
+   * `overlay`: it floats over the content at the right edge (`position: fixed`), from
+   * `--mm-assistant-overlay-top` (default 48 px, the shell's top bar) to the bottom.
+   */
+  mode?: AssistantPanelMode;
+  /**
+   * Shows the drag handle on the left edge (default `false`: no handle, no extra tab stop; never on
+   * phones). Only with it on does a persisted width apply.
+   */
+  resizable?: boolean;
+  /** Smallest width in px the handle allows (default {@link DEFAULT_ASSISTANT_PANEL_MIN_WIDTH}). */
+  minWidth?: number;
+  /**
+   * Largest width in px the handle allows (default {@link DEFAULT_ASSISTANT_PANEL_MAX_WIDTH});
+   * further capped so at least 240 px of the window stay free.
+   */
+  maxWidth?: number;
+  /**
+   * `localStorage` key of the width the person chose (default
+   * {@link DEFAULT_ASSISTANT_PANEL_STORAGE_KEY}); `null` = do not persist. Storage that is missing or
+   * throws (private mode, blocked site data) is ignored — the width then lasts as long as the panel.
+   */
+  storageKey?: string | null;
+}
+
+export type AssistantPanelMode = 'docked' | 'overlay';
+
+export const DEFAULT_ASSISTANT_PANEL_MIN_WIDTH = 320;
+export const DEFAULT_ASSISTANT_PANEL_MAX_WIDTH = 720;
+export const DEFAULT_ASSISTANT_PANEL_STORAGE_KEY = 'mm-assistant-panel-width';
+
+/** App-wide {@link AssistantPanelOptions}; optional. */
+export const ASSISTANT_PANEL_OPTIONS = new InjectionToken<AssistantPanelOptions>('ASSISTANT_PANEL_OPTIONS');

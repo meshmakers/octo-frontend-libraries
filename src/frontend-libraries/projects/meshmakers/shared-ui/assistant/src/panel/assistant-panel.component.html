@@ -1,18 +1,32 @@
+@if (canResize()) {
+  <div class="resize-handle" role="separator" tabindex="0" aria-orientation="vertical" aria-controls="assistant-panel"
+       [attr.aria-label]="m().resizePanel" [title]="m().resizePanel"
+       [attr.aria-valuenow]="currentWidth()" [attr.aria-valuemin]="effectiveMin()" [attr.aria-valuemax]="effectiveMax()"
+       (pointerdown)="startResize($event)" (keydown)="onResizeKey($event)" (dblclick)="resetWidth()"></div>
+}
+
 <header class="head">
   <span class="sparkle" aria-hidden="true">✦</span>
   <h2 class="title" id="assistant-panel-title">{{ m().title }}</h2>
   @if (connected()) {
-    <span class="chip-neutral">{{ m().readsWithYourPermissions }}</span>
+    <span class="chip-neutral" [title]="m().readsWithYourPermissions">{{ m().readsWithYourPermissions }}</span>
   }
   @if (assistant.sessionsSupported) {
     <div class="head-actions">
-      <button type="button" class="text-btn new-chat" (click)="newChat()">{{ m().newChat }}</button>
-      <button type="button" class="text-btn sessions-toggle" aria-controls="assistant-sessions"
+      <button type="button" class="icon-btn new-chat" [attr.aria-label]="m().newChat" [title]="m().newChat" (click)="newChat()">
+        <kendo-svg-icon [icon]="plusIcon"></kendo-svg-icon>
+      </button>
+      <button type="button" class="icon-btn sessions-toggle" aria-controls="assistant-sessions"
+              [attr.aria-label]="m().sessions" [title]="m().sessions"
               [attr.aria-expanded]="view() === 'sessions'"
-              (click)="view() === 'sessions' ? backToChat() : showSessions()">{{ m().sessions }}</button>
+              (click)="view() === 'sessions' ? backToChat() : showSessions()">
+        <kendo-svg-icon [icon]="historyIcon"></kendo-svg-icon>
+      </button>
     </div>
   }
-  <button type="button" class="icon-btn close" [attr.aria-label]="m().closeAssistant" (click)="assistant.close()">✕</button>
+  <button type="button" class="icon-btn close" [attr.aria-label]="m().closeAssistant" [title]="m().closeAssistant" (click)="assistant.close()">
+    <kendo-svg-icon [icon]="xIcon"></kendo-svg-icon>
+  </button>
 </header>
 
 @if (assistant.contextChips().length) {
@@ -20,7 +34,7 @@
     @for (chip of assistant.contextChips(); track chip.id; let i = $index) {
       <li class="ctx-chip" [attr.data-kind]="chip.kind" [title]="chip.value">
         <span class="ctx-label">{{ chip.label }}</span>
-        <button type="button" [attr.aria-label]="format(m().removeContext, { label: chip.label })" (click)="removeChip(chip.id, i)">✕</button>
+        <button type="button" [attr.aria-label]="format(m().removeContext, { label: chip.label })" [title]="format(m().removeContext, { label: chip.label })" (click)="removeChip(chip.id, i)"><kendo-svg-icon [icon]="xIcon" size="small"></kendo-svg-icon></button>
       </li>
     }
   </ul>
@@ -56,10 +70,7 @@
                       [title]="format(m().deleteSession, { title: session.title })"
                       [disabled]="busySession() === session.id"
                       (click)="askDelete(session)">
-                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
-                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>
-                </svg>
+                <kendo-svg-icon [icon]="trashIcon" size="small"></kendo-svg-icon>
               </button>
             }
           }

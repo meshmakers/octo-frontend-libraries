@@ -10,6 +10,9 @@ import { ASSISTANT_TOOL_CALL_COMPONENT, AssistantProposalDecision, AssistantThre
  * render with the `ASSISTANT_TOOL_CALL_COMPONENT` (an OctoMesh host passes `mm-ai-tool-call` from
  * `@meshmakers/octo-ai-console`, ui-concept §5.1 "do not rebuild"); proposals are emitted, never executed.
  *
+ * A user turn sent through a slash command's `expand` (AB#5621) shows the expanded prompt with the
+ * typed command (`slashCommand`) as a small label above it.
+ *
  * The list is an `aria-live` log; it is `aria-busy` while a turn streams so a
  * screen reader announces finished messages instead of every token. Nothing
  * inside it carries its own live role, so each addition is announced once.
