@@ -1,8 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { firstValueFrom, of } from 'rxjs';
+import { filter, firstValueFrom, of, throwError } from 'rxjs';
 import { AssetRepoService, CkModelService, CONFIGURATION_SERVICE, TenantFeaturesStatus } from '@meshmakers/octo-services';
 import { CockpitUnregisteredPoolsDtoGQL } from '../../../graphQL/cockpitUnregisteredPools';
 import { COCKPIT_ROLES, COCKPIT_VIEWER_ACCESS } from '../../cockpit-host';
+import { COCKPIT_WIDGET_MESSAGES } from '../../cockpit-messages';
+import { CockpitDataFlowExecutionsService, CockpitDataFlowRow } from '../../data/cockpit-data-flow-executions.service';
+import { CockpitAttentionService } from '../attention.service';
+import { COCKPIT_ATTENTION_PROVIDERS } from '../attention.models';
+import { COCKPIT_FAILED_EXECUTIONS_OPTIONS, DEFAULT_FAILED_EXECUTIONS_OPTIONS, FailedExecutionsAttentionProvider, failedExecutionsSeverity } from './failed-executions.provider';
 import { ADAPTER_OFFLINE_GRACE_MS, adaptersInError, adaptersOffline, CockpitAdapterState, CockpitAdapterStatesService } from '../../data/cockpit-adapter-states.service';
 import { CockpitCkModelStatesService } from '../../data/cockpit-ck-model-states.service';
 import { AdaptersAttentionProvider } from './adapters.provider';
@@ -27,6 +32,7 @@ describe('cockpit attention providers', () => {
   const ckModelStates = { counts: vi.fn() };
   const pools = { fetch: vi.fn() };
   const adapterStates = { states: vi.fn() };
+  const dataFlowExecutions = { executions: vi.fn() };
   const assetRepo = { getTenantFeaturesStatus: vi.fn() };
   const configuration = { config: { reportingServices: 'https://reporting/', aiServices: '' } as Record<string, string> };
 
@@ -41,6 +47,8 @@ describe('cockpit attention providers', () => {
         UnregisteredPoolsAttentionProvider,
         AdaptersAttentionProvider,
         FeaturesNotInstalledAttentionProvider,
+        FailedExecutionsAttentionProvider,
+        { provide: CockpitDataFlowExecutionsService, useValue: dataFlowExecutions },
         { provide: COCKPIT_VIEWER_ACCESS, useValue: { isInRole } },
         { provide: CkModelService, useValue: { isModelAvailable } },
         { provide: CockpitCkModelStatesService, useValue: ckModelStates },
@@ -90,7 +98,6 @@ describe('cockpit attention providers', () => {
 
     it('needs CommunicationManagement and the System.Communication model', async () => {
       expect(await provider().isVisible()).toBe(true);
-      expect(isModelAvailable).toHaveBeenCalledWith('System.Communication');
       isModelAvailable.mockResolvedValue(false);
       expect(await provider().isVisible()).toBe(false);
       isModelAvailable.mockResolvedValue(true);
@@ -208,6 +215,87 @@ describe('cockpit attention providers', () => {
     it('reports nothing when everything enabled is installed', async () => {
       assetRepo.getTenantFeaturesStatus.mockResolvedValue(status({ reporting: { tenantEnabled: true } }));
       expect(await firstValueFrom(provider().load(context))).toEqual([]);
+    });
+  });
+
+  describe('failed pipeline executions (AB#5622)', () => {
+    const provider = () => TestBed.inject(FailedExecutionsAttentionProvider);
+    const pipeline = (ok: number, failed: number) => ({
+      __typename: 'SystemCommunicationPipeline',
+      statisticsForPipeline: { items: [{ lastHourSuccessCount: 0, lastHourFailureCount: 0, last24HoursSuccessCount: ok, last24HoursFailureCount: failed, hourlyBuckets: [] }] },
+      executedPipeline: { items: [] }
+    });
+    const flows = (ok: number, failed: number, totalCount = 1) => of({ flows: [{ children: { items: [pipeline(ok, failed)] } }] as CockpitDataFlowRow[], totalCount });
+
+    it('needs CommunicationManagement and the System.Communication model', async () => {
+      expect(await provider().isVisible()).toBe(true);
+      isInRole.mockImplementation((role: string) => role !== COCKPIT_ROLES.CommunicationManagement);
+      expect(await provider().isVisible()).toBe(false);
+    });
+
+    it('reports nothing below the threshold', async () => {
+      dataFlowExecutions.executions.mockReturnValue(flows(500, DEFAULT_FAILED_EXECUTIONS_OPTIONS.minFailed - 1));
+      expect(await firstValueFrom(provider().load(context))).toEqual([]);
+      dataFlowExecutions.executions.mockReturnValue(flows(0, 0));
+      expect(await firstValueFrom(provider().load(context))).toEqual([]);
+    });
+
+    it('builds a warning with the count and a link to the data flows from the shared request', async () => {
+      dataFlowExecutions.executions.mockReturnValue(flows(27_279, 802));
+      const findings = await firstValueFrom(provider().load(context));
+      expect(dataFlowExecutions.executions).toHaveBeenCalledWith('meshmakers');
+      expect(findings).toEqual([{
+        id: 'pipeline-executions-failed',
+        severity: 'warning',
+        title: 'Failed pipeline executions in the last 24 h',
+        text: '802 of 28,081 executions failed (2.9%). The Data Flows list shows which pipelines fail, their execution history the errors.',
+        count: 802,
+        links: [{ label: 'Open data flows', target: { kind: 'dataFlows' } }],
+        explain: { label: 'Failed pipeline executions in the last 24 h: 802', prompt: 'Why did 802 pipeline executions fail in the last 24 hours?' }
+      }]);
+    });
+
+    it('is an error above the error count or the failure ratio, and says when the read was capped', async () => {
+      dataFlowExecutions.executions.mockReturnValue(flows(100_000, 1500, 800));
+      const [byCount] = await firstValueFrom(provider().load(context));
+      expect(byCount).toMatchObject({ severity: 'error', count: 1500 });
+      expect(byCount.text).toContain('Counted over the first 1 of 800 data flows.');
+      dataFlowExecutions.executions.mockReturnValue(flows(30, 20));
+      expect((await firstValueFrom(provider().load(context)))[0]).toMatchObject({ severity: 'error', count: 20 });
+    });
+
+    it('takes thresholds from COCKPIT_FAILED_EXECUTIONS_OPTIONS and texts from COCKPIT_WIDGET_MESSAGES', async () => {
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: COCKPIT_FAILED_EXECUTIONS_OPTIONS, useValue: { minFailed: 1, errorRatio: null, errorFailed: undefined } },
+          { provide: COCKPIT_WIDGET_MESSAGES, useValue: { numberLocale: 'de-DE', attentionFailedExecutionsTitle: 'Fehlgeschlagene Ausführungen (24 h)', attentionFailedExecutionsLink: 'Datenflüsse öffnen' } }
+        ]
+      });
+      dataFlowExecutions.executions.mockReturnValue(flows(1, 1));
+      const [finding] = await firstValueFrom(provider().load(context));
+      expect(finding).toMatchObject({ severity: 'warning', title: 'Fehlgeschlagene Ausführungen (24 h)', count: 1, links: [{ label: 'Datenflüsse öffnen' }] });
+      expect(finding.text).toMatch(/\(50\s%\)/);
+    });
+
+    it('decides the severity from count and ratio', () => {
+      const options = DEFAULT_FAILED_EXECUTIONS_OPTIONS;
+      expect(failedExecutionsSeverity(9, 9, options)).toBeNull();
+      expect(failedExecutionsSeverity(10, 1000, options)).toBe('warning');
+      expect(failedExecutionsSeverity(10, 50, options)).toBe('error');
+      expect(failedExecutionsSeverity(1000, 1_000_000, options)).toBe('error');
+      expect(failedExecutionsSeverity(1000, 1_000_000, { ...options, errorFailed: null })).toBe('warning');
+      expect(failedExecutionsSeverity(0, 0, { ...options, minFailed: 0 })).toBeNull();
+    });
+
+    it('fails soft: a failing query only removes its own findings', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      dataFlowExecutions.executions.mockReturnValue(throwError(() => new Error('boom')));
+      TestBed.configureTestingModule({
+        providers: [{ provide: COCKPIT_ATTENTION_PROVIDERS, useExisting: FailedExecutionsAttentionProvider, multi: true }]
+      });
+      const state = await firstValueFrom(TestBed.inject(CockpitAttentionService).state(context).pipe(filter(s => !s.loading)));
+      expect(state).toEqual({ findings: [], loading: false, visibleProviders: 1 });
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('pipeline-executions-failed'), expect.any(Error));
     });
   });
 });

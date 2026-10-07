@@ -1,9 +1,12 @@
 import { SystemCommunicationDeploymentStateDto } from '@meshmakers/octo-services';
 import { isAdapterExpectedToRun, isAdapterOnline, summarizeAdapterOnline } from '../../utils/adapter-online';
-import { buildHourlyHistogram, countPipelineExecutions, HourlyExecutionBucket, latestStatisticsUpdate, pipelineExecutionInputs, RawHourBucket } from '../../utils/pipeline-executions';
+import { buildHourlyHistogram, HourlyExecutionBucket, latestStatisticsUpdate, pipelineExecutionInputs, RawHourBucket } from '../../utils/pipeline-executions';
 import { CockpitLinkTarget } from '../cockpit-host';
 import { CockpitWidgetMessages, DEFAULT_COCKPIT_WIDGET_MESSAGES, formatCockpitMessage as fmt } from '../cockpit-messages';
 import { CockpitAdapterStates } from '../data/cockpit-adapter-states.service';
+import { CockpitDataFlowRow, countFlowExecutions } from '../data/cockpit-data-flow-executions.service';
+
+export type { CockpitDataFlowRow } from '../data/cockpit-data-flow-executions.service';
 
 /** Status of a KPI tile, rendered as a chip (dot + label, never colour alone). */
 export type CockpitKpiStatus = 'success' | 'warning' | 'error' | 'neutral';
@@ -24,11 +27,6 @@ export interface CockpitKpi {
   sparkline?: number[];
   /** Accessible summary of the sparkline, including failures. */
   sparklineLabel?: string;
-}
-
-/** A data flow of `cockpitDataFlowExecutions`: its child pipelines with statistics and latest execution. */
-export interface CockpitDataFlowRow {
-  children?: { items?: (unknown | null)[] | null } | null;
 }
 
 /** Counts of `cockpitCkModelStates`. */
@@ -139,8 +137,7 @@ export function adapterKpi({ states, totalCount }: CockpitAdapterStates, message
 export function executionKpi(flows: CockpitDataFlowRow[], totalCount = flows.length, messages: CockpitWidgetMessages = DEFAULT_COCKPIT_WIDGET_MESSAGES): CockpitKpi {
   const m = messages;
   const n = (value: number) => formatCount(value, m.numberLocale);
-  let ok = 0;
-  let failed = 0;
+  const { succeeded: ok, failed } = countFlowExecutions(flows);
   const slots: HourlyExecutionBucket[][] = [];
   // One time axis for all flows (the bars are summed per index): the newest statistics update.
   const anchor = latestStatisticsUpdate(flows.flatMap(flow => pipelineExecutionInputs(flow.children?.items).map(input => input.statistics)));
@@ -149,9 +146,6 @@ export function executionKpi(flows: CockpitDataFlowRow[], totalCount = flows.len
     if (inputs.length === 0) {
       continue;
     }
-    const counts = countPipelineExecutions(inputs);
-    ok += counts.success24h;
-    failed += counts.failure24h;
     const buckets: RawHourBucket[] = [];
     for (const input of inputs) {
       for (const bucket of input.statistics?.hourlyBuckets ?? []) {

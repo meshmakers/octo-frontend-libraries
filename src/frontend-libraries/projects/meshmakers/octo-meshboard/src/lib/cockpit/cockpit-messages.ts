@@ -13,7 +13,8 @@ import { InjectionToken, Signal, computed, inject, isSignal } from '@angular/cor
  *
  * Placeholders in braces (`{count}`) are filled with {@link formatCockpitMessage}. Not covered:
  * the config dialogs (board editors) and the findings of the built-in OctoMesh attention
- * providers — a host's own providers bring their own (translated) titles and texts.
+ * providers, except "Failed pipeline executions" (`attentionFailedExecutions*`) — a host's own
+ * providers bring their own (translated) titles and texts.
  */
 export interface CockpitWidgetMessages {
   /** BCP 47 locale for numbers on the tiles and the finding count badge. Default: "en-US" */
@@ -52,6 +53,18 @@ export interface CockpitWidgetMessages {
   attentionCountLabel: string;
   /** Default: "The health checks could not be loaded." */
   attentionLoadFailed: string;
+
+  // --- Attention finding "Failed pipeline executions" (optional members, added later) ---
+  /** Title; the count is the finding's badge. Default: "Failed pipeline executions in the last 24 h" */
+  attentionFailedExecutionsTitle?: string;
+  /** `{failed}`, `{total}` formatted counts, `{ratio}` formatted percentage. Default: "{failed} of {total} executions failed ({ratio}). The Data Flows list shows which pipelines fail, their execution history the errors." */
+  attentionFailedExecutionsText?: string;
+  /** Appended to the text after a capped read. Default: "Counted over the first {read} of {total} data flows." */
+  attentionFailedExecutionsTruncated?: string;
+  /** Link chip. Default: "Open data flows" */
+  attentionFailedExecutionsLink?: string;
+  /** "✦ Explain" prefill; `{count}` = formatted failed count. Default: "Why did {count} pipeline executions fail in the last 24 hours?" */
+  attentionFailedExecutionsExplain?: string;
 
   // --- KPI tiles (shared) ---
   /** A tile whose query failed. Default: "The figure could not be loaded." */
@@ -140,8 +153,8 @@ export interface CockpitWidgetMessages {
   recentDaysAgo: string;
 }
 
-/** English defaults — today's texts. Complete: every member has a value. */
-export const DEFAULT_COCKPIT_WIDGET_MESSAGES: Readonly<CockpitWidgetMessages> = {
+/** English defaults — today's texts. Complete: every member (optional ones too) has a value. */
+export const DEFAULT_COCKPIT_WIDGET_MESSAGES: Readonly<Required<CockpitWidgetMessages>> = {
   numberLocale: 'en-US',
   notAvailable: 'Not available',
   loading: 'Loading…',
@@ -158,6 +171,11 @@ export const DEFAULT_COCKPIT_WIDGET_MESSAGES: Readonly<CockpitWidgetMessages> = 
   attentionMore: 'and {count} more',
   attentionCountLabel: 'Count: {count}',
   attentionLoadFailed: 'The health checks could not be loaded.',
+  attentionFailedExecutionsTitle: 'Failed pipeline executions in the last 24 h',
+  attentionFailedExecutionsText: '{failed} of {total} executions failed ({ratio}). The Data Flows list shows which pipelines fail, their execution history the errors.',
+  attentionFailedExecutionsTruncated: 'Counted over the first {read} of {total} data flows.',
+  attentionFailedExecutionsLink: 'Open data flows',
+  attentionFailedExecutionsExplain: 'Why did {count} pipeline executions fail in the last 24 hours?',
   kpiLoadFailed: 'The figure could not be loaded.',
   kpiNeedsCommunication: 'Needs the CommunicationManagement role and the System.Communication model.',
   kpiNeedsAdminPanel: 'Needs the AdminPanelManagement role.',
@@ -211,8 +229,8 @@ export const COCKPIT_WIDGET_MESSAGES = new InjectionToken<CockpitWidgetMessagesS
  * Merges messages over {@link DEFAULT_COCKPIT_WIDGET_MESSAGES}; missing, `undefined` and `null`
  * members keep their default, so a widget never renders an empty label.
  */
-export function resolveCockpitWidgetMessages(...layers: (Partial<CockpitWidgetMessages> | null | undefined)[]): CockpitWidgetMessages {
-  const resolved: CockpitWidgetMessages = { ...DEFAULT_COCKPIT_WIDGET_MESSAGES };
+export function resolveCockpitWidgetMessages(...layers: (Partial<CockpitWidgetMessages> | null | undefined)[]): Required<CockpitWidgetMessages> {
+  const resolved: Required<CockpitWidgetMessages> = { ...DEFAULT_COCKPIT_WIDGET_MESSAGES };
   for (const layer of layers) {
     if (!layer) {
       continue;
