@@ -195,9 +195,9 @@ export class ShellUserMenuComponent {
     this.itemSelected.emit(item);
   }
 
-  /** An external host entry opens in a new tab; the panel closes without moving focus. */
+  /** An external host entry opens in a new tab; the panel closes and focus returns to the avatar. */
   protected followItemLink(): void {
-    this.close(false);
+    this.close(true);
   }
 
   /** A click on a button or link of the projected `shellUserMenuItems` content closes the panel. */

@@ -4,6 +4,8 @@ import { ShellNavNode } from '../shell-navigation.service';
 import { SettingsSideNavBadge } from './settings-side-nav-badges.service';
 import { formatShellMessage, ShellMessages, shellMessages } from '../shell.messages';
 
+let nextSideNavId = 0;
+
 /**
  * A heading over some categories of the Settings side navigation (AB#5621).
  */
@@ -85,8 +87,11 @@ export class SettingsSideNavComponent {
     return sections;
   });
 
+  /** Unique per instance, so two side navs on one page never share heading ids. */
+  private readonly instanceId = nextSideNavId++;
+
   protected groupHeadingId(section: SideNavSection): string {
-    return `mm-settings-side-nav-group-${section.id}`;
+    return `mm-settings-side-nav-${this.instanceId}-group-${section.id}`;
   }
 
   protected readonly navLabel = computed(() => formatShellMessage(this.m().areaCategories, { area: this.area().text }));

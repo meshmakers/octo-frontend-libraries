@@ -186,7 +186,7 @@ export interface AssistantSessionSummary {
   createdAt?: string;
 }
 
-/** Starter questions as a transport can provide them: synchronously, as a promise or as an observable. */
+/** Starter questions as a transport can provide them: synchronously, as a promise or as an observable (first value counts). */
 export type AssistantStarterQuestions =
   | readonly string[]
   | Promise<readonly string[]>
@@ -226,7 +226,8 @@ export interface AssistantTransport {
 
   /**
    * Example questions for an empty thread, in the UI language. Read each time the panel opens;
-   * clicking one sends it as if it had been typed.
+   * clicking one sends it as if it had been typed. An observable need not complete: its first
+   * emitted value is taken (later emissions are ignored until the next opening).
    */
   starterQuestions?(): AssistantStarterQuestions;
 

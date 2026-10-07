@@ -154,6 +154,17 @@ describe('SettingsSideNavComponent groups (AB#5621)', () => {
     expect(heading.textContent!.trim()).toBe('Organisation');
   });
 
+  it('gives each side nav instance its own group heading ids', () => {
+    const groups = [{ id: 'org', label: 'Organisation', tabIds: ['settings-company'] }];
+    render(groups);
+    const firstId = element.querySelector('.side-nav__group-label')!.id;
+    render(groups);
+    const secondId = element.querySelector('.side-nav__group-label')!.id;
+
+    expect(firstId).toContain('org');
+    expect(secondId).not.toBe(firstId);
+  });
+
   it('lists a category only once and keeps aria-current and selection inside groups', () => {
     render([
       { id: 'a', label: 'A', tabIds: ['settings-mail'] },

@@ -2,7 +2,7 @@ import { DestroyRef, Injectable, Signal, computed, inject, signal } from '@angul
 import { NavigationEnd, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadCrumbService } from '@meshmakers/shared-services';
-import { Observable, Subject, Subscription, isObservable, lastValueFrom } from 'rxjs';
+import { Observable, Subject, Subscription, firstValueFrom, isObservable, lastValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { deriveAssistantContext } from './assistant-context';
 import { ASSISTANT_MESSAGES, resolveAssistantMessages } from './assistant.messages';
@@ -225,7 +225,8 @@ export class AssistantService {
 
   /**
    * Asks the transport for its starter questions (the panel calls it when it opens).
-   * No-op without `starterQuestions`; a failing source leaves the list empty.
+   * No-op without `starterQuestions`; a failing source leaves the list empty. Of an observable
+   * only the first emitted value counts (it need not complete); one that completes empty yields none.
    */
   loadStarterQuestions(): void {
     const source = this.transport.starterQuestions;
@@ -242,8 +243,11 @@ export class AssistantService {
       const result = source.call(this.transport);
       if (Array.isArray(result)) {
         accept(result);
+      } else if (isObservable(result)) {
+        // The first emitted value counts, so a never-completing source (BehaviorSubject, signal stream) works too.
+        firstValueFrom(result as Observable<readonly string[]>, { defaultValue: [] as readonly string[] }).then(accept, () => accept([]));
       } else {
-        settle(result as AssistantAsyncResult<readonly string[]>).then(accept, () => accept([]));
+        (result as Promise<readonly string[]>).then(accept, () => accept([]));
       }
     } catch {
       accept([]);
@@ -351,7 +355,9 @@ export class AssistantService {
    * the transport is `ready` — the default transport never is.
    *
    * With a transport that takes attachments, `files` (default: {@link draftFiles}) go along and
-   * the text may be empty; the attached files are cleared with the draft.
+   * the text may be empty; the attached files are cleared with the draft. Explicitly passed `files`
+   * are not checked again against {@link attachments} (`accept`, `maxFiles`, `maxFileSizeBytes`) —
+   * the composer validates on pick; a host passing files itself is responsible for them.
    */
   send(text: string, files?: readonly File[]): boolean {
     const trimmed = text.trim();

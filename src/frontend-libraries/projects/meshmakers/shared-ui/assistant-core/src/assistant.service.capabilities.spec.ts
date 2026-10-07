@@ -282,5 +282,28 @@ describe('AssistantService optional transport capabilities (AB#5621)', () => {
       assistant.loadStarterQuestions();
       expect(assistant.starterQuestions()).toEqual([]);
     });
+
+    it('takes the first value of an observable that never completes', async () => {
+      const transport = new FakeAssistantTransport() as FakeAssistantTransport & { starterQuestions: () => unknown };
+      const source = new BehaviorSubject<readonly string[]>(['First']);
+      transport.starterQuestions = () => source.asObservable();
+      const assistant = setup(transport);
+      assistant.loadStarterQuestions();
+      await new Promise(resolve => setTimeout(resolve));
+      expect(assistant.starterQuestions()).toEqual(['First']);
+      source.next(['Later']);
+      await new Promise(resolve => setTimeout(resolve));
+      expect(assistant.starterQuestions()).toEqual(['First']);
+      expect(source.observed).toBe(false);
+    });
+
+    it('shows none for an observable that completes without a value', async () => {
+      const transport = new FakeAssistantTransport() as FakeAssistantTransport & { starterQuestions: () => unknown };
+      transport.starterQuestions = () => EMPTY;
+      const assistant = setup(transport);
+      assistant.loadStarterQuestions();
+      await new Promise(resolve => setTimeout(resolve));
+      expect(assistant.starterQuestions()).toEqual([]);
+    });
   });
 });

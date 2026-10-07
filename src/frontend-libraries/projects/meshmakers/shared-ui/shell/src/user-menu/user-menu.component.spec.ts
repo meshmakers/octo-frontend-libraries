@@ -72,6 +72,7 @@ describe('ShellUserMenuComponent', () => {
     expect(element.querySelector('.user-full-name')?.textContent?.trim()).toBe('Gerald Lochner');
     expect(element.querySelector('.user-login')?.textContent?.trim()).toBe('gerald');
     expect(element.querySelector<HTMLAnchorElement>('.action-link')?.href).toBe('https://id.example/meshmakers/manage');
+    expect(element.querySelector<HTMLAnchorElement>('.action-link')?.rel).toBe('noopener noreferrer');
   });
 
   it('leaves the profile link out without a profile URI and falls back to "?" initials', () => {
@@ -288,7 +289,7 @@ describe('ShellUserMenuComponent host entries (AB#5621)', () => {
     expect(document.activeElement).toBe(element.querySelector('.avatar-button'));
   });
 
-  it('opens an href entry without emitting and closes the panel', () => {
+  it('opens an href entry without emitting, closes the panel and returns focus to the avatar', () => {
     fixture.componentRef.setInput('items', ITEMS);
     fixture.detectChanges();
     openMenu();
@@ -300,6 +301,7 @@ describe('ShellUserMenuComponent host entries (AB#5621)', () => {
 
     expect(chosen).toEqual([]);
     expect(element.querySelector('.user-panel')).toBeNull();
+    expect(document.activeElement).toBe(element.querySelector('.avatar-button'));
   });
 });
 

@@ -116,7 +116,7 @@
 
       <div class="user-actions">
         @if (profileUri(); as uri) {
-          <a class="action-link" [href]="uri" target="_blank" rel="noopener">{{ m().manageProfile }} <span aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span></a>
+          <a class="action-link" [href]="uri" target="_blank" rel="noopener noreferrer">{{ m().manageProfile }} <span aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span></a>
         }
         <button type="button" class="action-button" (click)="logout()">{{ m().signOut }}</button>
       </div>
