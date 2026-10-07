@@ -358,3 +358,104 @@ describe('ShellRailComponent messages', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('nav')?.getAttribute('aria-label')).toBe('Bereiche');
   });
 });
+
+describe('ShellRailComponent areas without entries (AB#5621)', () => {
+  const INBOX = node('area-inbox', [], { navigable: true });
+  let fixture: ComponentFixture<ShellRailComponent>;
+  let element: HTMLElement;
+
+  beforeEach(() => {
+    if (typeof window.matchMedia !== 'function') {
+      Object.defineProperty(window, 'matchMedia', { value: () => undefined, writable: true, configurable: true });
+    }
+    vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({ matches: false, media: query } as unknown as MediaQueryList));
+    fixture = TestBed.createComponent(ShellRailComponent);
+    fixture.componentRef.setInput('areas', [INBOX, DATA]);
+    fixture.detectChanges();
+    element = fixture.nativeElement as HTMLElement;
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('emits areaSelected for a mouse click and for Enter/Space, without a flyout', () => {
+    const selected: string[] = [];
+    fixture.componentInstance.areaSelected.subscribe(area => selected.push(area.id));
+    const inbox = element.querySelector<HTMLButtonElement>('[data-area-id="area-inbox"]')!;
+
+    inbox.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    inbox.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+    fixture.detectChanges();
+
+    expect(selected).toEqual(['area-inbox', 'area-inbox']);
+    expect(inbox.getAttribute('aria-expanded')).toBeNull();
+    expect(element.querySelector('[data-entry-id="area-inbox"] .rail-flyout')).toBeNull();
+  });
+});
+
+describe('ShellRailComponent badges (AB#5621)', () => {
+  const INBOX = node('area-inbox', [node('inbox-uploads'), node('inbox-todos', [node('inbox-todos-mine')])], { navigable: false });
+  let fixture: ComponentFixture<ShellRailComponent>;
+  let element: HTMLElement;
+
+  const badge = (id: string): HTMLElement | null => element.querySelector<HTMLElement>(`[data-badge="${id}"]`);
+  const areaButton = (id: string): HTMLButtonElement => element.querySelector<HTMLButtonElement>(`[data-area-id="${id}"]`)!;
+  const render = (areas: ShellNavNode[], badges?: Record<string, unknown>): void => {
+    fixture.componentRef.setInput('areas', areas);
+    if (badges) {
+      fixture.componentRef.setInput('badges', badges);
+    }
+    fixture.detectChanges();
+  };
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ShellRailComponent);
+    element = fixture.nativeElement as HTMLElement;
+  });
+
+  it('shows a count on the area icon and adds it to the accessible name', () => {
+    render([INBOX, DATA], { 'area-inbox': 3 });
+
+    expect(badge('area-inbox')?.textContent?.trim()).toBe('3');
+    expect(badge('area-inbox')?.getAttribute('aria-hidden')).toBe('true');
+    expect(areaButton('area-inbox').getAttribute('aria-label')).toBe('area-inbox, 3 open');
+    expect(areaButton('area-data').getAttribute('aria-label')).toBe('area-data');
+  });
+
+  it('hides the badge for 0, null, undefined and missing counts', () => {
+    render([INBOX, DATA], { 'area-inbox': 0, 'area-data': null, 'inbox-uploads': undefined });
+
+    expect(element.querySelectorAll('[data-badge]').length).toBe(0);
+    expect(areaButton('area-inbox').getAttribute('aria-label')).toBe('area-inbox');
+  });
+
+  it('shows badges on flyout entries (also nested ones) with screen-reader text', () => {
+    render([INBOX], { 'inbox-uploads': 2, 'inbox-todos-mine': { count: 5, label: '5 open ToDos', attention: true } });
+
+    const uploads = badge('inbox-uploads')!;
+    expect(uploads.textContent?.trim()).toBe('2');
+    expect(uploads.nextElementSibling?.textContent).toBe(', 2 open');
+    const todos = badge('inbox-todos-mine')!;
+    expect(todos.classList.contains('attention')).toBe(true);
+    expect(todos.nextElementSibling?.textContent).toBe(', 5 open ToDos');
+  });
+
+  it('falls back to the node badgeCount; the badges input wins', () => {
+    render([{ ...INBOX, badgeCount: 4 }, { ...DATA, badgeCount: 7 }], { 'area-data': 1 });
+
+    expect(badge('area-inbox')?.textContent?.trim()).toBe('4');
+    expect(badge('area-data')?.textContent?.trim()).toBe('1');
+  });
+
+  it('caps large counts at 99+ and keeps the full count for screen readers', () => {
+    render([INBOX], { 'area-inbox': 250 });
+
+    expect(badge('area-inbox')?.textContent?.trim()).toBe('99+');
+    expect(areaButton('area-inbox').getAttribute('aria-label')).toBe('area-inbox, 250 open');
+  });
+
+  it('translates the badge texts through the messages input', () => {
+    fixture.componentRef.setInput('messages', { navBadge: '{count} offen', navItemWithBadge: '{label} ({badge})' });
+    render([INBOX], { 'area-inbox': 3 });
+
+    expect(areaButton('area-inbox').getAttribute('aria-label')).toBe('area-inbox (3 offen)');
+  });
+});

@@ -28,7 +28,7 @@
  *       <mm-tenant-switcher shellTenant [currentTenantId]="tenantId()" (tenantSelected)="openTenant($event)" />
  *     </mm-shell-top-bar>
  *     <mm-shell-rail [areas]="nav.topAreas()" [bottomAreas]="nav.bottomAreas()"
- *       [activeAreaId]="nav.activeArea()?.id ?? null"
+ *       [activeAreaId]="nav.activeArea()?.id ?? null" [badges]="{ 'area-inbox': inboxCount() }"
  *       (areaSelected)="nav.openArea($event)" (itemSelected)="nav.open($event)" />
  *     <mm-space-shell [area]="nav.activeArea()" [activeTabId]="nav.activeTab()?.id ?? null"
  *       [chips]="spaceHeader.chips()" [showTabs]="nav.showTabs()" (tabSelected)="nav.open($event)">
@@ -72,6 +72,8 @@ export type { ShellMessages } from './shell.messages';
 export { areaId, spaceOfAreaId, tabId, RAIL_BOTTOM_SEPARATOR_ID, SHELL_SETTINGS_SPACE } from './shell-areas';
 export { ShellNavigationService } from './shell-navigation.service';
 export type { ShellNavNode, ShellRouteData, ShellNavItemKind } from './shell-navigation.service';
+export { resolveShellBadge, shellBadgeText, SHELL_BADGE_MAX } from './shell-badges';
+export type { ShellNavBadge, ShellNavBadges } from './shell-badges';
 export { SpaceHeaderService } from './space-header.service';
 export type { SpaceStatusChip } from './space-header.service';
 export { ShellSearchTriggerService } from './shell-search-trigger.service';

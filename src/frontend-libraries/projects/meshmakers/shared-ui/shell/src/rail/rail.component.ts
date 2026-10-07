@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, Destro
 import { NgTemplateOutlet } from '@angular/common';
 import { SVGIconComponent } from '@progress/kendo-angular-icons';
 import { ShellNavNode } from '../shell-navigation.service';
-import { ShellMessages, shellMessages } from '../shell.messages';
+import { formatShellMessage, ShellMessages, shellMessages } from '../shell.messages';
+import { resolveShellBadge, ShellNavBadge, ShellNavBadges, shellBadgeText } from '../shell-badges';
 
 /**
  * The rail: one icon per area of the navigation tree, Settings pinned to the
@@ -27,6 +28,14 @@ import { ShellMessages, shellMessages } from '../shell.messages';
  * opens the flyout and focuses its first entry; inside the flyout Arrow
  * Up/Down move, Escape or Arrow Left return to the icon. After choosing a
  * flyout entry focus returns to the area icon instead of falling to <body>.
+ *
+ * Badges (AB#5621): `badges` maps node ids (areas and flyout entries) to a count or a
+ * {@link ShellNavBadge}; a node's own `badgeCount` is the fallback. 0 or no count shows nothing.
+ * The count joins the icon's accessible name ("Inbox, 3 open") and is read after a flyout entry.
+ *
+ * Every activation of an area icon emits `areaSelected` — also for areas without entries
+ * (Home, a Settings overview), which have no flyout; `ShellNavigationService.openArea` opens
+ * the area's own link then.
  *
  * Pure presentation: the host feeds the areas (`ShellNavigationService.topAreas()` /
  * `bottomAreas()`) and handles the outputs (`openArea` / `open`).
@@ -54,6 +63,8 @@ export class ShellRailComponent {
   readonly areas = input<ShellNavNode[]>([]);
   readonly bottomAreas = input<ShellNavNode[]>([]);
   readonly activeAreaId = input<string | null>(null);
+  /** Counts per node id (area or flyout entry); wins over `ShellNavNode.badgeCount`. */
+  readonly badges = input<ShellNavBadges>({});
   /** Translations; members left out fall back to {@link SHELL_MESSAGES}, then English. */
   readonly messages = input<Partial<ShellMessages> | null>(null);
   protected readonly m = shellMessages(this.messages);
@@ -90,6 +101,28 @@ export class ShellRailComponent {
 
   protected hasFlyout(area: ShellNavNode): boolean {
     return area.children.some(child => !child.separator);
+  }
+
+  /** The badge of a node, or null when it shows none. */
+  protected badgeOf(node: ShellNavNode): ShellNavBadge | null {
+    return resolveShellBadge(this.badges(), node.id, node.badgeCount);
+  }
+
+  protected badgeText(badge: ShellNavBadge): string {
+    return shellBadgeText(badge.count);
+  }
+
+  /** Accessible text of a badge: its own label, else "{count} open". */
+  protected badgeLabel(badge: ShellNavBadge): string {
+    return badge.label ?? formatShellMessage(this.m().navBadge, { count: badge.count });
+  }
+
+  /** Accessible name of an area icon, with its badge when it has one. */
+  protected areaLabel(area: ShellNavNode): string {
+    const badge = this.badgeOf(area);
+    return badge
+      ? formatShellMessage(this.m().navItemWithBadge, { label: area.text, badge: this.badgeLabel(badge) })
+      : area.text;
   }
 
   protected flyoutId(area: ShellNavNode): string {

@@ -21,6 +21,10 @@ export interface ShellMessages {
   // --- Rail ---
   /** `aria-label` of the rail navigation. */
   railLabel: string;
+  /** Accessible text of a navigation badge without its own label; `{count}` = the count. */
+  navBadge: string;
+  /** `aria-label` of a rail icon with a badge; `{label}` = area name, `{badge}` = badge text. */
+  navItemWithBadge: string;
 
   // --- Space shell ---
   /** `aria-label` of the back link on object detail pages; `{target}` = list name. */
@@ -89,6 +93,8 @@ export interface ShellMessages {
 export const DEFAULT_SHELL_MESSAGES: ShellMessages = {
   opensInNewTab: '(opens in a new tab)',
   railLabel: 'Areas',
+  navBadge: '{count} open',
+  navItemWithBadge: '{label}, {badge}',
   backTo: 'Back to {target}',
   statusChips: 'Status',
   areaPages: '{area} pages',
