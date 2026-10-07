@@ -6,7 +6,9 @@
   } @else {
     @switch (column.dataType) {
       @case ('boolean') {
-        <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(element, column))" [disabled]="true" />
+        <!-- Read-only marker: named after its column so a screen reader says what is checked (AB#5621). -->
+        <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(element, column))" [disabled]="true"
+                        [inputAttributes]="booleanCellAttributes(column)" />
       }
       @case ('iso8601') {
         {{ $any(getValue(element, column)) | date:column.format }}
@@ -18,9 +20,12 @@
         <span class="status-icons-cell">
           @for (fieldConfig of getStatusFields(column); track fieldConfig.field) {
             @if (getStatusIconMapping(element, fieldConfig); as mapping) {
+              <!-- Icon-only status: the mapping's tooltip is also its accessible name (AB#5621). -->
               <span
                 class="status-icon"
+                role="img"
                 [title]="mapping.tooltip"
+                [attr.aria-label]="mapping.tooltip || null"
                 [style.color]="mapping.color">
                 <kendo-svg-icon [icon]="mapping.icon"></kendo-svg-icon>
               </span>
@@ -324,7 +329,8 @@
             <ng-template kendoDropDownListValueTemplate let-dataItem>
               @if (dataItem?.value && column.statusMapping?.[dataItem.value]; as mapping) {
                 <span class="filter-status-item">
-                  <span [style.color]="mapping.color">
+                  <span role="img" [attr.aria-label]="dataItem.text || mapping.tooltip || null" [title]="dataItem.text || mapping.tooltip"
+                        [style.color]="mapping.color">
                     <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
                   </span>
                 </span>

@@ -871,6 +871,25 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    * Gets all status field configurations for a statusIcons column.
    * Returns an array of StatusFieldConfig, whether the column uses single or multi-field configuration.
    */
+  /** Input attributes of a read-only boolean cell, cached per column and name (AB#5621). */
+  private readonly booleanCellAttributeCache = new WeakMap<TableColumn, { name: string; attributes: Record<string, string> }>();
+
+  /**
+   * Input attributes of a `boolean` cell's read-only checkbox: its accessible name is the column's
+   * display name (AB#5621), so a screen reader announces "<column>, checked" instead of an unnamed
+   * checkbox.
+   */
+  protected booleanCellAttributes(column: TableColumn): Record<string, string> {
+    const name = this.getDisplayName(column) ?? '';
+    const cached = this.booleanCellAttributeCache.get(column);
+    if (cached && cached.name === name) {
+      return cached.attributes;
+    }
+    const attributes: Record<string, string> = name ? { 'aria-label': name } : {};
+    this.booleanCellAttributeCache.set(column, { name, attributes });
+    return attributes;
+  }
+
   protected getStatusFields(column: TableColumn): StatusFieldConfig[] {
     if (column.statusFields && column.statusFields.length > 0) {
       return column.statusFields;
