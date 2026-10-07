@@ -4,6 +4,14 @@
   @if (connected()) {
     <span class="chip-neutral">{{ m().readsWithYourPermissions }}</span>
   }
+  @if (assistant.sessionsSupported) {
+    <div class="head-actions">
+      <button type="button" class="text-btn new-chat" (click)="newChat()">{{ m().newChat }}</button>
+      <button type="button" class="text-btn sessions-toggle" aria-controls="assistant-sessions"
+              [attr.aria-expanded]="view() === 'sessions'"
+              (click)="view() === 'sessions' ? backToChat() : showSessions()">{{ m().sessions }}</button>
+    </div>
+  }
   <button type="button" class="icon-btn close" [attr.aria-label]="m().closeAssistant" (click)="assistant.close()">✕</button>
 </header>
 
@@ -18,21 +26,80 @@
   </ul>
 }
 
-<mm-assistant-thread class="thread" [items]="assistant.thread()" [messages]="messages()" (proposalDecision)="onDecision($event)"></mm-assistant-thread>
+@if (view() === 'sessions') {
+  <section class="sessions" id="assistant-sessions" [attr.aria-label]="m().sessionsLabel">
+    <button type="button" class="text-btn back" (click)="backToChat()">← {{ m().backToChat }}</button>
+    <ul class="session-list">
+      @for (session of assistant.sessions(); track session.id) {
+        <li class="session-row" [attr.data-session-id]="session.id"
+            [class.active]="session.id === assistant.activeSessionId()">
+          @if (confirmingDelete() === session.id) {
+            <div class="session-confirm" role="group" [attr.aria-label]="format(m().deleteSessionConfirm, { title: session.title })">
+              <span class="confirm-text">{{ format(m().deleteSessionConfirm, { title: session.title }) }}</span>
+              <button type="button" class="text-btn danger confirm-delete" [disabled]="busySession() === session.id"
+                      (click)="confirmDelete(session)">{{ m().delete }}</button>
+              <button type="button" class="text-btn cancel-delete" (click)="cancelDelete()">{{ m().cancel }}</button>
+            </div>
+          } @else {
+            <button type="button" class="session-open" [title]="session.title"
+                    [attr.aria-current]="session.id === assistant.activeSessionId() ? 'true' : null"
+                    [disabled]="busySession() === session.id"
+                    (click)="openSession(session)">
+              <span class="session-title">{{ session.title }}</span>
+              @if (sessionDate(session); as date) {
+                <span class="session-date">{{ date }}</span>
+              }
+            </button>
+            @if (assistant.sessionDeleteSupported) {
+              <button type="button" class="icon-btn session-delete"
+                      [attr.aria-label]="format(m().deleteSession, { title: session.title })"
+                      [title]="format(m().deleteSession, { title: session.title })"
+                      [disabled]="busySession() === session.id"
+                      (click)="askDelete(session)">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+                  <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>
+                </svg>
+              </button>
+            }
+          }
+        </li>
+      } @empty {
+        <li class="session-empty">{{ m().noSessions }}</li>
+      }
+    </ul>
+  </section>
+} @else {
+  @if (showStarters()) {
+    <section class="starters" aria-labelledby="assistant-starters-title">
+      <h3 class="starters-title" id="assistant-starters-title">{{ m().startersTitle }}</h3>
+      <ul class="starter-list">
+        @for (question of assistant.starterQuestions(); track $index) {
+          <li><button type="button" class="starter" [disabled]="!assistant.canSend()" (click)="sendStarter(question)">{{ question }}</button></li>
+        }
+      </ul>
+    </section>
+  }
 
-@if (!connected() || assistant.transportStatus() === 'error') {
-  <div class="unavailable" role="status">
-    <span class="sparkle" aria-hidden="true">✦</span>
-    <p>{{ assistant.transportMessage() ?? m().notAvailable }}</p>
-  </div>
+  <mm-assistant-thread class="thread" [items]="assistant.thread()" [messages]="messages()" (proposalDecision)="onDecision($event)"></mm-assistant-thread>
+
+  @if (!connected() || assistant.transportStatus() === 'error') {
+    <div class="unavailable" role="status">
+      <span class="sparkle" aria-hidden="true">✦</span>
+      <p>{{ assistant.transportMessage() ?? m().notAvailable }}</p>
+    </div>
+  }
+
+  <mm-assistant-composer
+    [messages]="messages()"
+    [text]="assistant.draft()"
+    (textChange)="assistant.setDraft($event)"
+    [attachments]="assistant.attachments"
+    [files]="assistant.draftFiles()"
+    (filesChange)="assistant.setDraftFiles($event)"
+    [canSend]="assistant.canSend()"
+    [sending]="assistant.sending()"
+    (send)="assistant.send($event)"
+    (stop)="assistant.stop()">
+  </mm-assistant-composer>
 }
-
-<mm-assistant-composer
-  [messages]="messages()"
-  [text]="assistant.draft()"
-  (textChange)="assistant.setDraft($event)"
-  [canSend]="assistant.canSend()"
-  [sending]="assistant.sending()"
-  (send)="assistant.send($event)"
-  (stop)="assistant.stop()">
-</mm-assistant-composer>

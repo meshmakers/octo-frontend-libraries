@@ -10,7 +10,37 @@
       }
     </ul>
   }
+  @if (attachments(); as options) {
+    @if (files().length) {
+      <ul class="files" [attr.aria-label]="m().attachmentsLabel">
+        @for (file of files(); track $index; let i = $index) {
+          <li class="file">
+            <span class="file-name" [title]="file.name">{{ file.name }}</span>
+            <button type="button" [attr.aria-label]="format(m().removeAttachment, { name: file.name })" (click)="removeFile(i)">✕</button>
+          </li>
+        }
+      </ul>
+    }
+    @if (attachmentErrors().length) {
+      <div class="file-errors" role="alert">
+        @for (error of attachmentErrors(); track $index) {
+          <p>{{ error }}</p>
+        }
+      </div>
+    }
+    <input #fileInput class="file-input" type="file" tabindex="-1" aria-hidden="true"
+           [attr.accept]="options.accept || null" [multiple]="multiple()"
+           (change)="onFilesPicked($any($event.target))">
+  }
   <div class="box">
+    @if (attachments()) {
+      <button type="button" class="attach" [attr.aria-label]="m().attachFile" [title]="m().attachFile" (click)="openFilePicker()">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+          <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.5 3.5 0 0 1 5 5l-8.6 8.6a2 2 0 0 1-2.8-2.8l7.9-7.9"/>
+        </svg>
+      </button>
+    }
     <textarea #input
               rows="2"
               [attr.aria-label]="m().composerLabel"
@@ -25,7 +55,7 @@
     @if (sending()) {
       <button type="button" class="send" (click)="stop.emit()">{{ m().stop }}</button>
     } @else {
-      <button type="button" class="send" [disabled]="!canSend() || !text().trim()" (click)="submit()">{{ m().send }}</button>
+      <button type="button" class="send" [disabled]="!canSend() || !hasContent()" (click)="submit()">{{ m().send }}</button>
     }
   </div>
   <div class="hint" aria-hidden="true">

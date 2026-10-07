@@ -57,6 +57,44 @@ export interface AssistantMessages {
   contextTenant: string;
   /** `{page}` = page label. */
   contextPage: string;
+  // --- Sessions (only with a transport that has sessions) ---
+  /** Header button that opens the list of saved chats. */
+  sessions: string;
+  /** Header button that starts a fresh chat. */
+  newChat: string;
+  /** `aria-label` of the saved chats list. */
+  sessionsLabel: string;
+  /** Shown when there are no saved chats. */
+  noSessions: string;
+  /** Leaves the chat list without opening a chat. */
+  backToChat: string;
+  /** `aria-label` of a chat's delete button; `{title}` = chat title. */
+  deleteSession: string;
+  /** Inline confirmation; `{title}` = chat title. */
+  deleteSessionConfirm: string;
+  /** Confirms the deletion. */
+  delete: string;
+  cancel: string;
+  /** Error row when a saved chat cannot be opened. */
+  sessionLoadFailed: string;
+  /** Error row when a saved chat cannot be deleted. */
+  sessionDeleteFailed: string;
+  // --- Attachments (only with a transport that accepts files) ---
+  /** `aria-label` / tooltip of the attach button. */
+  attachFile: string;
+  /** `aria-label` of the attached files list. */
+  attachmentsLabel: string;
+  /** `aria-label` of an attachment's remove button; `{name}` = file name. */
+  removeAttachment: string;
+  /** `{name}` = file name. */
+  attachmentWrongType: string;
+  /** `{name}` = file name, `{max}` = size limit (e.g. "10 MB"). */
+  attachmentTooLarge: string;
+  /** `{max}` = most files per message. */
+  attachmentTooMany: string;
+  // --- Starter questions (only with a transport that provides them) ---
+  /** Heading above the starter questions of an empty chat. */
+  startersTitle: string;
 }
 
 export const DEFAULT_ASSISTANT_MESSAGES: AssistantMessages = {
@@ -89,6 +127,24 @@ export const DEFAULT_ASSISTANT_MESSAGES: AssistantMessages = {
   discarded: 'Discarded',
   contextTenant: 'Tenant: {tenant}',
   contextPage: 'Page: {page}',
+  sessions: 'Chats',
+  newChat: 'New chat',
+  sessionsLabel: 'Saved chats',
+  noSessions: 'No saved chats yet',
+  backToChat: 'Back to the chat',
+  deleteSession: 'Delete chat {title}',
+  deleteSessionConfirm: 'Delete “{title}”?',
+  delete: 'Delete',
+  cancel: 'Cancel',
+  sessionLoadFailed: 'The chat could not be opened.',
+  sessionDeleteFailed: 'The chat could not be deleted.',
+  attachFile: 'Attach file',
+  attachmentsLabel: 'Attached files',
+  removeAttachment: 'Remove attachment {name}',
+  attachmentWrongType: '{name} is not an accepted file type.',
+  attachmentTooLarge: '{name} is larger than {max}.',
+  attachmentTooMany: 'At most {max} file(s) per message.',
+  startersTitle: 'Try asking',
 };
 
 /** App-wide translations of the assistant (partial). */

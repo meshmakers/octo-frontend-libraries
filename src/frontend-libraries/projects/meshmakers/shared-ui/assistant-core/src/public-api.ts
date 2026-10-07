@@ -38,6 +38,11 @@ export type {
   AssistantStreamEvent,
   AssistantTransport,
   AssistantSlashCommand,
+  AssistantAttachmentRef,
+  AssistantAttachmentOptions,
+  AssistantSessionSummary,
+  AssistantStarterQuestions,
+  AssistantAsyncResult,
 } from './assistant.models';
 
 // --- Messages / i18n ---
@@ -60,6 +65,8 @@ export { FakeAssistantTransport } from './testing/fake-assistant-transport';
 // --- Pure functions ---
 export { deriveAssistantContext } from './assistant-context';
 export type { AssistantContextSource } from './assistant-context';
+export { selectAssistantAttachments, assistantFileAccepted, formatAssistantFileSize } from './assistant-attachments';
+export type { AssistantAttachmentSelection } from './assistant-attachments';
 
 // --- Components / directives ---
 export { AssistantToolCallRowComponent } from './assistant-tool-call-row.component';

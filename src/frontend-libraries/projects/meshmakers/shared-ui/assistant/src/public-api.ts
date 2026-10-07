@@ -47,6 +47,11 @@
  * Explain directives) lives in `@meshmakers/shared-ui/assistant-core` and is re-exported here with
  * the same identity. Import from `assistant-core` in eagerly loaded code and load the panel lazily.
  * {@link FakeAssistantTransport} is a scriptable transport for host specs.
+ *
+ * Optional transport capabilities (AB#5621) — the panel adds UI only for what the transport has:
+ * `sessions` + `loadSession` (+ `refreshSessions`, `deleteSession`, `newSession`, `activeSessionId`)
+ * → "New chat" / "Chats" list; `attachments` → composer file picker, files on
+ * `AssistantSendRequest.files`; `starterQuestions()` → clickable questions on an empty thread.
  */
 
 // Startup part — re-exported from assistant-core so tokens and classes keep a single identity.
@@ -68,6 +73,9 @@ export {
   ASSISTANT_NOT_CONNECTED_MESSAGE,
   FakeAssistantTransport,
   deriveAssistantContext,
+  selectAssistantAttachments,
+  assistantFileAccepted,
+  formatAssistantFileSize,
   AssistantToolCallRowComponent,
   IfAssistantDirective,
   AssistantExplainDirective,
@@ -90,6 +98,12 @@ export type {
   AssistantSlashCommand,
   AssistantMessages,
   AssistantContextSource,
+  AssistantAttachmentRef,
+  AssistantAttachmentOptions,
+  AssistantSessionSummary,
+  AssistantStarterQuestions,
+  AssistantAsyncResult,
+  AssistantAttachmentSelection,
 } from '@meshmakers/shared-ui/assistant-core';
 
 // --- Markdown (needs `marked`) ---

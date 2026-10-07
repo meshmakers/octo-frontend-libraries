@@ -1,5 +1,13 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, model, output, signal, viewChild } from '@angular/core';
-import { ASSISTANT_SLASH_COMMANDS, AssistantSlashCommand, AssistantMessages, assistantMessages } from '@meshmakers/shared-ui/assistant-core';
+import {
+  ASSISTANT_SLASH_COMMANDS,
+  AssistantAttachmentOptions,
+  AssistantSlashCommand,
+  AssistantMessages,
+  assistantMessages,
+  formatAssistantMessage,
+  selectAssistantAttachments
+} from '@meshmakers/shared-ui/assistant-core';
 
 let nextComposerId = 0;
 
@@ -9,6 +17,11 @@ let nextComposerId = 0;
  * `/explain`, `/query`, `/summarise`, `/draft-pipeline`). The suggestion list follows the combobox
  * pattern: focus stays in the textarea, ↑/↓ move, Enter/Tab pick, Esc closes the
  * list (and only then lets Esc reach the panel).
+ *
+ * With {@link attachments} set (the transport accepts files, AB#5621) an "Attach file" button opens
+ * a file picker limited to `accept`; files are checked against `maxFiles` / `maxFileSizeBytes`,
+ * rejected ones are announced in an alert, attached ones are listed with a remove button, and a
+ * message may then be sent without text. Without it there is no attachment UI.
  */
 @Component({
   selector: 'mm-assistant-composer',
@@ -24,6 +37,11 @@ export class AssistantComposerComponent {
   /** A turn is running: the send button becomes a stop button. */
   readonly sending = input(false);
 
+  /** Accepted attachments; `null` (default) = no attachment UI. */
+  readonly attachments = input<AssistantAttachmentOptions | null>(null);
+  /** The attached files (two-way); sent with the next message by the host. */
+  readonly files = model<readonly File[]>([]);
+
   readonly send = output<string>();
   readonly stop = output<void>();
   /** Translations; members left out fall back to {@link ASSISTANT_MESSAGES}, then English. */
@@ -31,6 +49,13 @@ export class AssistantComposerComponent {
   protected readonly m = assistantMessages(this.messages);
 
   private readonly textarea = viewChild.required<ElementRef<HTMLTextAreaElement>>('input');
+  private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+
+  /** Messages about rejected files of the last pick. */
+  protected readonly attachmentErrors = signal<readonly string[]>([]);
+  /** Something to send: text, or (with attachments) at least one file. */
+  protected readonly hasContent = computed(() => this.text().trim().length > 0 || (!!this.attachments() && this.files().length > 0));
+  protected readonly multiple = computed(() => (this.attachments()?.maxFiles ?? 1) > 1);
   protected readonly commands: readonly AssistantSlashCommand[] = inject(ASSISTANT_SLASH_COMMANDS);
 
   protected readonly listId = `assistant-slash-${nextComposerId++}`;
@@ -104,8 +129,36 @@ export class AssistantComposerComponent {
   }
 
   protected submit(): void {
-    if (this.canSend() && this.text().trim()) {
+    if (this.canSend() && this.hasContent()) {
+      this.attachmentErrors.set([]);
       this.send.emit(this.text());
     }
+  }
+
+  protected openFilePicker(): void {
+    this.fileInput()?.nativeElement.click();
+  }
+
+  protected onFilesPicked(input: HTMLInputElement): void {
+    const options = this.attachments();
+    const picked = Array.from(input.files ?? []);
+    // Reset so picking the same file again fires `change`.
+    input.value = '';
+    if (!options || !picked.length) {
+      return;
+    }
+    const selection = selectAssistantAttachments(this.files(), picked, options, this.m());
+    this.files.set(selection.files);
+    this.attachmentErrors.set(selection.errors);
+  }
+
+  protected removeFile(index: number): void {
+    this.files.update(files => files.filter((_, i) => i !== index));
+    this.attachmentErrors.set([]);
+    this.focus();
+  }
+
+  protected format(message: string, values: Record<string, string>): string {
+    return formatAssistantMessage(message, values);
   }
 }

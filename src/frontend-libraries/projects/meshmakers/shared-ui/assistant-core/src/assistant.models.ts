@@ -123,7 +123,7 @@ export const ASSISTANT_PAGE_CONTEXT = new InjectionToken<AssistantPageContext>('
 
 /** One rendered item of the thread. */
 export type AssistantThreadItem =
-  | { kind: 'user'; id: string; text: string }
+  | { kind: 'user'; id: string; text: string; attachments?: readonly AssistantAttachmentRef[] }
   | { kind: 'assistant'; id: string; markdown: string; streaming: boolean }
   | { kind: 'tool-call'; id: string; call: AssistantToolCall }
   | { kind: 'proposal'; id: string; proposal: AssistantProposal; decision: AssistantProposalDecisionKind | null }
@@ -143,10 +143,57 @@ export interface AssistantProposalDecision {
 
 /** What the composer hands to the transport. */
 export interface AssistantSendRequest {
+  /** The typed text; may be empty when the turn only carries {@link files}. */
   text: string;
   /** The chips that remained after the user removed what they did not want to share. */
   context: AssistantContextChip[];
+  /**
+   * Files attached in the composer. Only set when the transport declares
+   * {@link AssistantTransport.attachments} and the person attached at least one file
+   * (already checked against `accept`, `maxFiles` and `maxFileSizeBytes`).
+   */
+  files?: File[];
 }
+
+/** Name (and size) of a file sent with a user turn, shown under the turn in the thread. */
+export interface AssistantAttachmentRef {
+  name: string;
+  /** Bytes, when known. */
+  size?: number;
+}
+
+/**
+ * File attachments a transport accepts (AB#5621). Declaring {@link AssistantTransport.attachments}
+ * shows an "Attach file" button in the composer; without it there is no attachment UI.
+ */
+export interface AssistantAttachmentOptions {
+  /**
+   * Accepted types, in the syntax of `<input type="file" accept>`: comma separated MIME types
+   * (`application/pdf`, `image/*`) and/or extensions (`.pdf`). Empty or omitted = any type.
+   */
+  accept?: string;
+  /** How many files one turn may carry (default 1). */
+  maxFiles?: number;
+  /** Largest accepted file in bytes; omitted = no limit in the UI. */
+  maxFileSizeBytes?: number;
+}
+
+/** A saved conversation of the person, as listed by {@link AssistantTransport.sessions}. */
+export interface AssistantSessionSummary {
+  id: string;
+  title: string;
+  /** ISO 8601 timestamp; shown as a secondary line when present. */
+  createdAt?: string;
+}
+
+/** Starter questions as a transport can provide them: synchronously, as a promise or as an observable. */
+export type AssistantStarterQuestions =
+  | readonly string[]
+  | Promise<readonly string[]>
+  | Observable<readonly string[]>;
+
+/** A result a session method may return: a promise or an observable (its last value counts). */
+export type AssistantAsyncResult<T> = Promise<T> | Observable<T>;
 
 /** Events a transport streams back for one send. */
 export type AssistantStreamEvent =
@@ -168,6 +215,36 @@ export interface AssistantTransport {
   readonly statusMessage: Signal<string | null>;
   /** One user turn; completes when the assistant turn is complete. */
   send(request: AssistantSendRequest): Observable<AssistantStreamEvent>;
+
+  // --- Optional capabilities (AB#5621). The panel only shows the matching UI when present. ---
+
+  /**
+   * Accepted file attachments. When set, the composer gets an "Attach file" button and
+   * {@link AssistantSendRequest.files} carries the files; a turn may then have empty text.
+   */
+  readonly attachments?: AssistantAttachmentOptions | null;
+
+  /**
+   * Example questions for an empty thread, in the UI language. Read each time the panel opens;
+   * clicking one sends it as if it had been typed.
+   */
+  starterQuestions?(): AssistantStarterQuestions;
+
+  /**
+   * Saved sessions of the signed-in person, newest first. Together with {@link loadSession} it
+   * enables the panel's chat list ("Chats" and "New chat" in the header).
+   */
+  readonly sessions?: Signal<readonly AssistantSessionSummary[]>;
+  /** The session the next send writes to; `null` = a fresh chat. Marks the current row in the list. */
+  readonly activeSessionId?: Signal<string | null>;
+  /** Reloads {@link sessions}; called when the chat list is opened. */
+  refreshSessions?(): AssistantAsyncResult<void>;
+  /** Makes a saved session active and returns its thread. */
+  loadSession?(id: string): AssistantAsyncResult<AssistantThreadItem[]>;
+  /** Deletes a saved session. Without it the chat list has no delete buttons. */
+  deleteSession?(id: string): AssistantAsyncResult<void>;
+  /** Starts a fresh chat: the next send creates a new session. */
+  newSession?(): void;
 }
 
 /** The assistant's transport; defaults to the honest "not connected" one. */

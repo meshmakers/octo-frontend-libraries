@@ -2,10 +2,10 @@ import { DestroyRef, Injectable, Signal, computed, inject, signal } from '@angul
 import { NavigationEnd, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BreadCrumbService } from '@meshmakers/shared-services';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { Observable, Subject, Subscription, isObservable, lastValueFrom } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { deriveAssistantContext } from './assistant-context';
-import { ASSISTANT_MESSAGES } from './assistant.messages';
+import { ASSISTANT_MESSAGES, resolveAssistantMessages } from './assistant.messages';
 import {
   ASSISTANT_ENABLED,
   ASSISTANT_PAGE_CONTEXT,
@@ -17,9 +17,20 @@ import {
   AssistantProposal,
   AssistantProposalDecision,
   AssistantProposalDecisionKind,
+  AssistantAsyncResult,
+  AssistantAttachmentOptions,
+  AssistantSendRequest,
+  AssistantSessionSummary,
   AssistantStreamEvent,
   AssistantThreadItem
 } from './assistant.models';
+
+const NO_SESSIONS = signal<readonly AssistantSessionSummary[]>([]).asReadonly();
+const NO_ACTIVE_SESSION = signal<string | null>(null).asReadonly();
+
+function settle<T>(result: AssistantAsyncResult<T>): Promise<T> {
+  return isObservable(result) ? lastValueFrom(result) : result;
+}
 
 /**
  * State and entry points of the assistant panel (ui-concept §5.3, AB#5549).
@@ -37,6 +48,10 @@ import {
  *   breadcrumb of shared-services' `BreadCrumbService`) and entity chips; see {@link deriveAssistantContext}.
  * - **Proposals.** Run / Edit / Discard are published on {@link proposalDecisions$}
  *   and nothing else — executing a write is the backend's confirm round-trip (AB#5550).
+ * - **Optional transport capabilities (AB#5621).** Sessions ({@link sessionsSupported},
+ *   {@link openSession}, {@link deleteSession}, {@link newThread}), file attachments
+ *   ({@link attachments}, {@link draftFiles}) and starter questions ({@link starterQuestions}) are
+ *   only offered when the transport implements them; otherwise they are inert.
  */
 @Injectable({ providedIn: 'root' })
 export class AssistantService {
@@ -57,6 +72,9 @@ export class AssistantService {
   private readonly _removedChips = signal<ReadonlySet<string>>(new Set());
   private readonly _thread = signal<AssistantThreadItem[]>([]);
   private readonly _sending = signal(false);
+  private readonly _draftFiles = signal<readonly File[]>([]);
+  private readonly _starterQuestions = signal<readonly string[]>([]);
+  private starterRequest = 0;
   private readonly _routeTick = signal(0);
   private readonly _breadcrumbs = signal<string[]>([]);
   private readonly decisions = new Subject<AssistantProposalDecision>();
@@ -78,6 +96,23 @@ export class AssistantService {
   readonly transportMessage = this.transport.statusMessage;
   /** The composer may send: the transport is ready and no turn is running. */
   readonly canSend = computed(() => this.transport.status() === 'ready' && !this._sending());
+
+  /** The transport has saved sessions (`sessions` + `loadSession`): the panel shows its chat list. */
+  readonly sessionsSupported = !!this.transport.sessions && typeof this.transport.loadSession === 'function';
+  /** Saved sessions can be deleted (`deleteSession`). */
+  readonly sessionDeleteSupported = this.sessionsSupported && typeof this.transport.deleteSession === 'function';
+  /** Saved sessions of the transport (empty without session support). */
+  readonly sessions: Signal<readonly AssistantSessionSummary[]> = this.transport.sessions ?? NO_SESSIONS;
+  /** The session the next send writes to (`null` = fresh chat or no session support). */
+  readonly activeSessionId: Signal<string | null> = this.transport.activeSessionId ?? NO_ACTIVE_SESSION;
+
+  /** Accepted attachments, or `null` when the transport takes no files (no attach UI). */
+  readonly attachments: AssistantAttachmentOptions | null = this.transport.attachments ?? null;
+  /** Files attached in the composer; sent and cleared with the next turn. */
+  readonly draftFiles = this._draftFiles.asReadonly();
+
+  /** Starter questions for an empty thread (see {@link loadStarterQuestions}). */
+  readonly starterQuestions = this._starterQuestions.asReadonly();
 
   /** Context of the current page minus the chips the person removed. */
   readonly contextChips: Signal<AssistantContextChip[]> = computed(() => {
@@ -178,6 +213,119 @@ export class AssistantService {
     this._draft.set(text);
   }
 
+  /** Replaces the attached files (ignored while the transport takes no files). */
+  setDraftFiles(files: readonly File[]): void {
+    if (this.attachments) {
+      this._draftFiles.set([...files]);
+    }
+  }
+
+  /**
+   * Asks the transport for its starter questions (the panel calls it when it opens).
+   * No-op without `starterQuestions`; a failing source leaves the list empty.
+   */
+  loadStarterQuestions(): void {
+    const source = this.transport.starterQuestions;
+    if (!this.enabled || typeof source !== 'function') {
+      return;
+    }
+    const request = ++this.starterRequest;
+    const accept = (questions: readonly string[] | null | undefined): void => {
+      if (request === this.starterRequest) {
+        this._starterQuestions.set((questions ?? []).filter(q => typeof q === 'string' && q.trim().length > 0));
+      }
+    };
+    try {
+      const result = source.call(this.transport);
+      if (Array.isArray(result)) {
+        accept(result);
+      } else {
+        settle(result as AssistantAsyncResult<readonly string[]>).then(accept, () => accept([]));
+      }
+    } catch {
+      accept([]);
+    }
+  }
+
+  /** Reloads the transport's session list. Resolves false without session support or on failure. */
+  async refreshSessions(): Promise<boolean> {
+    if (!this.enabled || !this.sessionsSupported || typeof this.transport.refreshSessions !== 'function') {
+      return false;
+    }
+    try {
+      await settle(this.transport.refreshSessions());
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Opens a saved session: stops a running turn, asks the transport for the session's thread and
+   * shows it. On failure the current thread stays and an error row is added. Resolves whether the
+   * session was opened.
+   */
+  async openSession(id: string): Promise<boolean> {
+    if (!this.enabled || !this.sessionsSupported) {
+      return false;
+    }
+    this.stop();
+    try {
+      const items = await settle(this.transport.loadSession!(id));
+      this.loadThread(items ?? []);
+      return true;
+    } catch {
+      this.append({ kind: 'error', id: this.nextId('error'), text: resolveAssistantMessages(this.messages).sessionLoadFailed });
+      return false;
+    }
+  }
+
+  /**
+   * Deletes a saved session; deleting the active one leaves an empty thread. On failure an error
+   * row is added. Resolves whether it was deleted.
+   */
+  async deleteSession(id: string): Promise<boolean> {
+    if (!this.enabled || !this.sessionDeleteSupported) {
+      return false;
+    }
+    const wasActive = this.activeSessionId() === id;
+    try {
+      await settle(this.transport.deleteSession!(id));
+    } catch {
+      this.append({ kind: 'error', id: this.nextId('error'), text: resolveAssistantMessages(this.messages).sessionDeleteFailed });
+      return false;
+    }
+    if (wasActive) {
+      this.stop();
+      this._thread.set([]);
+    }
+    return true;
+  }
+
+  /**
+   * Starts a fresh chat: stops a running turn, empties the thread and the attached files and tells
+   * the transport (`newSession`, when it has one). Works without session support too.
+   */
+  newThread(): void {
+    if (!this.enabled) {
+      return;
+    }
+    this.stop();
+    this._thread.set([]);
+    this._draftFiles.set([]);
+    this.transport.newSession?.();
+    this.loadStarterQuestions();
+  }
+
+  /** Replaces the thread, e.g. with a conversation the host restored itself. Stops a running turn. */
+  loadThread(items: readonly AssistantThreadItem[]): void {
+    if (!this.enabled) {
+      return;
+    }
+    this.stop();
+    this._thread.set([...items]);
+  }
+
   /** Drops a context chip; it stays dropped until its value changes. */
   removeChip(id: string): void {
     this._removedChips.update(removed => new Set(removed).add(id));
@@ -186,16 +334,26 @@ export class AssistantService {
   /**
    * Sends one user turn through the transport. Does nothing (returns false) unless
    * the transport is `ready` — the default transport never is.
+   *
+   * With a transport that takes attachments, `files` (default: {@link draftFiles}) go along and
+   * the text may be empty; the attached files are cleared with the draft.
    */
-  send(text: string): boolean {
+  send(text: string, files?: readonly File[]): boolean {
     const trimmed = text.trim();
-    if (!this.enabled || !trimmed || !this.canSend()) {
+    const attached = this.attachments ? [...(files ?? this._draftFiles())] : [];
+    if (!this.enabled || (!trimmed && !attached.length) || !this.canSend()) {
       return false;
     }
-    this.append({ kind: 'user', id: this.nextId('user'), text: trimmed });
+    this.append(attached.length
+      ? { kind: 'user', id: this.nextId('user'), text: trimmed, attachments: attached.map(file => ({ name: file.name, size: file.size })) }
+      : { kind: 'user', id: this.nextId('user'), text: trimmed });
     this._draft.set('');
+    this._draftFiles.set([]);
     this._sending.set(true);
-    this.pending = this.transport.send({ text: trimmed, context: this.contextChips() }).subscribe({
+    const request: AssistantSendRequest = attached.length
+      ? { text: trimmed, context: this.contextChips(), files: attached }
+      : { text: trimmed, context: this.contextChips() };
+    this.pending = this.transport.send(request).subscribe({
       next: event => this.apply(event),
       error: (error: unknown) => {
         this.append({ kind: 'error', id: this.nextId('error'), text: error instanceof Error ? error.message : String(error) });

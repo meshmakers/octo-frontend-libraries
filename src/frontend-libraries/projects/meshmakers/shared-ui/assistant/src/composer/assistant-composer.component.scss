@@ -112,3 +112,85 @@ textarea {
 .cmd-desc {
   color: var(--theme-text-secondary);
 }
+
+// Attachments (AB#5621; only with a transport that accepts files).
+.attach {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--theme-bg-hover);
+    color: var(--theme-text-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.file-input {
+  display: none;
+}
+
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.file {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 22px;
+  padding: 0 4px 0 8px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-xs);
+  font-size: 0.75rem;
+  color: var(--theme-text-secondary);
+
+  button {
+    border: 0;
+    padding: 0 2px;
+    background: none;
+    color: var(--theme-text-muted);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--theme-text-primary);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--theme-focus-ring);
+    }
+  }
+}
+
+.file-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.file-errors {
+  color: var(--theme-status-error);
+  font-size: 0.75rem;
+
+  p {
+    margin: 0;
+  }
+}

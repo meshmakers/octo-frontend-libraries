@@ -29,6 +29,24 @@
   white-space: pre-wrap;
 }
 
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  white-space: normal;
+}
+
+.attachment {
+  padding: 0 6px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-xs);
+  color: var(--theme-text-secondary);
+  font-size: 0.75rem;
+}
+
 .bot {
   padding-left: 12px;
   border-left: 2px solid var(--theme-ai);
