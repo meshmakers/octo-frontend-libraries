@@ -33,6 +33,14 @@ export interface CommandItem {
    * In the actions column and context menu a callback receives the row item.
    */
   isDisabled?: boolean | ((data?: unknown) => boolean);
+
+  /*
+   * Why the item is disabled (AB#5572). Shown by the list view on row actions: the button stays
+   * focusable (`aria-disabled`), the reason is announced via `aria-describedby` and shown in the
+   * tooltip / overflow menu ("Delete — The adapter is deployed"). A callback receives the row item.
+   * Only used while `isDisabled` is true; without it the list view uses a generic reason.
+   */
+  disabledReason?: string | ((data?: unknown) => string | null | undefined);
   children?: CommandItem[];
 
   /*

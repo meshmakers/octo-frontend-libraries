@@ -76,26 +76,27 @@
   }
 </ng-template>
 
-<!-- Row actions (AB#4930): shared by the actions column and the card header. -->
+<!-- Row actions (AB#4930, AB#5572): shared by the actions column and the card header. One MmAction
+     per action (CommandItems via adapter): neutral icon buttons, danger colour only for destructive
+     actions, max `maxInlineRowActions` slots, the rest (and the context menu) behind "…". Disabled
+     actions stay focusable and announce their reason (mm-action-button). -->
 <ng-template #rowActions let-dataItem="dataItem">
-  @if (_actionMenuItems.length > 0) {
-    @for (menuItem of _actionMenuItems; track menuItem.text) {
-      @if (!menuItem.separator && getMenuItemVisible(menuItem, dataItem)) {
-        <button kendoButton [themeColor]="menuItem.data?.danger ? 'error' : 'primary'" fillMode="flat"
-          [svgIcon]="menuItem.svgIcon!"
-          [title]="menuItem.text ?? ''"
-          [attr.aria-label]="(menuItem.text ?? '') + (rowLabel(dataItem) ? ' ' + rowLabel(dataItem) : '')"
-          [disabled]="getMenuItemDisabled(menuItem, dataItem) || isLoading()"
-          (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
-        </button>
+  @let view = rowActionsView(dataItem);
+  @if (view.inline.length > 0 || view.hasMenu) {
+    <span class="mm-list-view-row-actions" role="group" [attr.aria-label]="rowActionsGroupLabel(dataItem)">
+      @for (entry of view.inline; track entry.action.id) {
+        <!-- Clicks never reach the grid (no row selection / row navigation from an action). -->
+        <mm-action-button [action]="entry.action" [targetLabel]="rowLabel(dataItem)" context="row" display="icon"
+                          (click)="$event.stopPropagation()"
+                          (triggered)="onInlineRowAction(entry, dataItem)" />
       }
-    }
-  }
-
-  @if (_contextMenuItems.length > 0 && contextMenuType == 'actionMenu') {
-    <button kendoButton themeColor="primary" fillMode="flat" [svgIcon]="moreVerticalIcon"
-      [title]="rowActionsLabel(dataItem)" [attr.aria-label]="rowActionsLabel(dataItem)" aria-haspopup="menu"
-      [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
+      @if (view.hasMenu) {
+        <button kendoButton themeColor="base" fillMode="flat" size="small" class="mm-list-view-row-actions__more"
+          [svgIcon]="moreVerticalIcon" data-action="more"
+          [title]="rowActionsLabel(dataItem)" [attr.aria-label]="rowActionsLabel(dataItem)" aria-haspopup="menu"
+          [disabled]="isLoading()" (click)="$event.stopPropagation(); onContextMenu(dataItem, $event)"></button>
+      }
+    </span>
   }
 </ng-template>
 
@@ -403,7 +404,7 @@
     </kendo-grid-column>
   }
 
-  @if (_actionMenuItems.length > 0 || (_contextMenuItems.length > 0 &&  contextMenuType == 'actionMenu')) {
+  @if (hasRowActions) {
     <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="effectiveActionsColumnWidth">
       <ng-template kendoGridCellTemplate let-dataItem>
         <ng-container

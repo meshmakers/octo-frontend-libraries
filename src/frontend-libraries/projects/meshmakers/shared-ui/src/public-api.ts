@@ -52,6 +52,7 @@ export * from './lib/entity-select-dialog/entity-select-dialog.component';
 export * from './lib/entity-select-dialog/entity-select-dialog.service';
 export * from './lib/entity-select-dialog/entity-select-dialog-data-source';
 export * from './lib/list-view/list-view.model';
+export * from './lib/list-view/list-view-row-actions';
 export * from './lib/guards/unsaved-changes.interface';
 export * from './lib/guards/unsaved-changes.guard';
 export * from './lib/guards/unsaved-changes.directive';
