@@ -73,6 +73,14 @@ describe('RecentItemsWidgetComponent (AB#5558)', () => {
     expect(hint.getAttribute('title')).toBe('Befehlspalette öffnen');
   });
 
+  it('keeps the palette hint as a list footer when there are entries (AB#5622)', async () => {
+    configure();
+    source.items.mockResolvedValue([item('/a')]);
+    const fixture = await render();
+    const hint: HTMLElement = fixture.nativeElement.querySelector('.palette-hint');
+    expect(hint.classList).not.toContain('palette-hint-empty');
+  });
+
   it('asks for the configured number of rows and never shows more', async () => {
     configure();
     source.items.mockResolvedValue([item('/a'), item('/b'), item('/c')]);
@@ -106,6 +114,8 @@ describe('RecentItemsWidgetComponent (AB#5558)', () => {
     expect(fixture.nativeElement.querySelector('[data-state="empty"]').textContent).toContain('Nothing opened yet');
     const hint: HTMLButtonElement = fixture.nativeElement.querySelector('.palette-hint');
     expect(hint.textContent).toContain('⌘K');
+    // Directly under the empty text, aligned with it (AB#5622).
+    expect(hint.classList).toContain('palette-hint-empty');
     hint.click();
     expect(source.openPalette).toHaveBeenCalled();
   });

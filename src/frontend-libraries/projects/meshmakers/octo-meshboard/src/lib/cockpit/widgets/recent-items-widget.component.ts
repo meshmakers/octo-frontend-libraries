@@ -85,7 +85,7 @@ interface RecentItemView {
           <p class="cw-message" role="status" data-state="empty">{{ texts().recentEmpty }}</p>
         }
         @if (source.openPalette) {
-          <button type="button" class="palette-hint" (click)="openPalette()" [title]="texts().recentPaletteTitle">
+          <button type="button" class="palette-hint" [class.palette-hint-empty]="rows.length === 0" (click)="openPalette()" [title]="texts().recentPaletteTitle">
             <kbd>{{ source.paletteShortcut || texts().recentPaletteShortcut }}</kbd> {{ texts().recentPaletteHint }}
           </button>
         }
@@ -144,6 +144,8 @@ interface RecentItemView {
       font-size: 0.75rem;
       cursor: pointer;
     }
+    /* Under the empty text the hint continues that text, left-aligned with it (AB#5622). */
+    .palette-hint.palette-hint-empty { align-self: flex-start; margin: -8px 0 0 10px; padding-top: 0; text-align: left; }
     .palette-hint:hover { color: var(--_cw-text); }
     .palette-hint kbd { font-family: inherit; font-size: 0.6875rem; }
     .cw-error-text { color: var(--_cw-error); }

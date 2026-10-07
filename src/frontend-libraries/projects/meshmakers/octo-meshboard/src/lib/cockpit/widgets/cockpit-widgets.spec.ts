@@ -85,6 +85,19 @@ describe('cockpit widgets', () => {
       expect(fixture.nativeElement.querySelector('[data-state="clear"]').textContent).toContain('Nothing needs attention');
     });
 
+    it('centres the lone "All clear" message in the tile and lays findings out as a list (AB#5622)', async () => {
+      const fixture = await renderAttention();
+      state$.next({ findings: [], loading: false, visibleProviders: 2 });
+      fixture.detectChanges();
+      const container: HTMLElement = fixture.nativeElement.querySelector('.attention-widget');
+      expect(container.classList).toContain('message-only');
+      expect(container.getAttribute('data-layout')).toBe('message');
+      state$.next({ findings: [finding('adapters:error', 'error')], loading: false, visibleProviders: 2 });
+      fixture.detectChanges();
+      expect(container.classList).not.toContain('message-only');
+      expect(container.getAttribute('data-layout')).toBe('list');
+    });
+
     it('never claims "all clear" when no check is available; builders see why and the widget stays', async () => {
       state$.next({ findings: [], loading: false, visibleProviders: 0 });
       const fixture = await renderAttention();

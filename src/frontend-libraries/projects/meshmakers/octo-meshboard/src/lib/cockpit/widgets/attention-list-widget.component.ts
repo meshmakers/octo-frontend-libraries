@@ -52,7 +52,7 @@ export interface AttentionFindingView {
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="attention-widget">
+    <div class="attention-widget" [class.message-only]="messageOnly()" [attr.data-layout]="messageOnly() ? 'message' : 'list'">
       <div class="cw-content" #content>
       @if (error(); as message) {
         <p class="cw-message cw-error-text" role="status">{{ message }}</p>
@@ -105,6 +105,16 @@ export interface AttentionFindingView {
   `,
   styles: [COCKPIT_WIDGET_STYLES, `
     .attention-widget { height: 100%; overflow-y: auto; padding: 8px 12px; box-sizing: border-box; }
+    /*
+     * A lone status message ("All clear", "Checking…", "Not available") sits in the middle of the
+     * tile instead of its top-left corner (AB#5622), so a 2-row tile without findings looks
+     * intentional. Auto margins centre without clipping when the tile is shorter than the text,
+     * and the content wrapper keeps its natural height for the phone-tier measurement.
+     */
+    .attention-widget.message-only { display: flex; flex-direction: column; }
+    .attention-widget.message-only .cw-content { margin: auto 0; }
+    .attention-widget.message-only .cw-message { text-align: center; }
+    .attention-widget.message-only .all-clear { justify-content: center; flex-wrap: wrap; }
     .finding-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -228,6 +238,11 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
   private readonly maxItems = signal(DEFAULT_ATTENTION_MAX_ITEMS);
   readonly shown = computed(() => this.views().slice(0, this.maxItems()));
   readonly hiddenCount = computed(() => Math.max(0, this.views().length - this.maxItems()));
+  /**
+   * True while the widget shows a single status message instead of findings (loading, error,
+   * no visible check, all clear); the message is then centred in the tile (AB#5622).
+   */
+  protected readonly messageOnly = computed(() => this.error() !== null || this._state() === null || this.views().length === 0);
   protected readonly moreText = computed(() => formatCockpitMessage(this.texts().attentionMore, { count: this.hiddenCount() }));
 
   constructor() {
