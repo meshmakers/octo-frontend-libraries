@@ -867,10 +867,6 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     }
   }
 
-  /**
-   * Gets all status field configurations for a statusIcons column.
-   * Returns an array of StatusFieldConfig, whether the column uses single or multi-field configuration.
-   */
   /** Input attributes of a read-only boolean cell, cached per column and name (AB#5621). */
   private readonly booleanCellAttributeCache = new WeakMap<TableColumn, { name: string; attributes: Record<string, string> }>();
 
@@ -890,6 +886,10 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return attributes;
   }
 
+  /**
+   * Gets all status field configurations for a statusIcons column.
+   * Returns an array of StatusFieldConfig, whether the column uses single or multi-field configuration.
+   */
   protected getStatusFields(column: TableColumn): StatusFieldConfig[] {
     if (column.statusFields && column.statusFields.length > 0) {
       return column.statusFields;
