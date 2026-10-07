@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { CommandSettingsService } from '@meshmakers/shared-services';
 
 import { ListViewComponent } from './list-view.component';
+import { DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, resolveListViewMessages } from './list-view.model';
 
 describe('MmTableComponent', () => {
   let component: ListViewComponent;
@@ -409,6 +410,79 @@ describe('MmTableComponent', () => {
 
     it('leaves the default alone', () => {
       expect(api().effectiveActionsColumnWidth).toBe(220);
+    });
+  });
+
+  describe('messages backward compatibility', () => {
+    /**
+     * The complete message object an app wrote against the 3.3 shape: everything except the
+     * members added later (`resetFilters`, `commands`). It must still type-check as
+     * `ListViewMessages` - this assignment is the compile-time guard - and fall back to the defaults.
+     */
+    const legacyMessages: ListViewMessages = {
+      searchPlaceholder: 'Suchen...',
+      showRowFilter: 'Zeilenfilter',
+      exportToExcel: 'Excel',
+      exportToPdf: 'PDF',
+      refreshData: 'Aktualisieren',
+      actionsColumnTitle: 'Aktionen',
+      pdfPageTemplate: 'Seite {pageNum} von {totalPages}',
+      pagerItemsPerPage: 'pro Seite',
+      pagerOf: 'von',
+      pagerItems: 'Einträge',
+      pagerPage: 'Seite',
+      pagerFirstPage: 'Erste Seite',
+      pagerLastPage: 'Letzte Seite',
+      pagerPreviousPage: 'Vorherige Seite',
+      pagerNextPage: 'Nächste Seite',
+      noRecords: 'Keine Einträge.',
+    };
+
+    it('fills members a legacy complete message object lacks from the defaults', () => {
+      component.messages = legacyMessages;
+
+      expect(component.messages.commands).toBe(DEFAULT_LIST_VIEW_MESSAGES.commands);
+      expect(component.messages.resetFilters).toBe(DEFAULT_LIST_VIEW_MESSAGES.resetFilters);
+      expect(component.messages.noRecords).toBe('Keine Einträge.');
+      expect(component.messages.actionsColumnTitle).toBe('Aktionen');
+    });
+
+    it('keeps the default for members passed as undefined or null', () => {
+      component.messages = {
+        commands: undefined,
+        resetFilters: null as unknown as string,
+        searchPlaceholder: 'Suche',
+      };
+
+      expect(component.messages.commands).toBe('Commands');
+      expect(component.messages.resetFilters).toBe('Reset Filters');
+      expect(component.messages.searchPlaceholder).toBe('Suche');
+      expect(component.messages.noRecords).toBe(DEFAULT_LIST_VIEW_MESSAGES.noRecords);
+    });
+
+    it('uses the defaults when the messages input is cleared', () => {
+      component.messages = { commands: 'Befehle' };
+      component.messages = undefined;
+
+      expect(component.messages).toEqual(DEFAULT_LIST_VIEW_MESSAGES);
+    });
+
+    it('labels the collapsed command menu and the reset command from the defaults for legacy messages', () => {
+      component.messages = legacyMessages;
+      component.hasExternalFilters = true;
+      const api = component as unknown as { toolbarCommands: { id: string; text: string }[] };
+
+      const reset = api.toolbarCommands.find(c => c.id === 'reset');
+      expect(reset?.text).toBe('Reset Filters');
+      expect(api.toolbarCommands.every(c => !!c.text)).toBe(true);
+    });
+
+    it('resolveListViewMessages never mutates the defaults', () => {
+      const resolved = resolveListViewMessages({ commands: 'Befehle' });
+
+      expect(resolved.commands).toBe('Befehle');
+      expect(DEFAULT_LIST_VIEW_MESSAGES.commands).toBe('Commands');
+      expect(resolveListViewMessages(null)).toEqual(DEFAULT_LIST_VIEW_MESSAGES);
     });
   });
 

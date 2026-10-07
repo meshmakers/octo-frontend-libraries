@@ -36,8 +36,10 @@ export interface SeriesResolutionResult {
    * Set only on `CoverageLimited`, null otherwise. Passed through as the wire delivers it —
    * a `DateTime` scalar arrives as an ISO string unless a scalar parser turns it into a `Date` —
    * so read it through `toInstant` / `formatInstant` rather than assuming either shape.
+   * Optional so that code constructing a result (mocks, adapters) written before AB#5157 keeps
+   * compiling; a missing value means the same as `null`.
    */
-  finerRungAvailableFrom: Date | string | null;
+  finerRungAvailableFrom?: Date | string | null;
 }
 
 /**
