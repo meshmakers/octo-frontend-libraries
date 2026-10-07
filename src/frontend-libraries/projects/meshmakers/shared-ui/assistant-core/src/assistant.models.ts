@@ -313,7 +313,7 @@ export const ASSISTANT_SLASH_COMMANDS = new InjectionToken<readonly AssistantSla
 /**
  * Layout of `mm-assistant-panel` (AB#5621); every member is optional and the panel's inputs of the
  * same name win. Defaults keep the original look: a docked panel 400 px wide (340 px ≤ 1180 px)
- * that pushes the content, with a resize handle on its left edge.
+ * that pushes the content, without a resize handle (opt in with `resizable: true`).
  */
 export interface AssistantPanelOptions {
   /**
@@ -322,7 +322,10 @@ export interface AssistantPanelOptions {
    * `--mm-assistant-overlay-top` (default 48 px, the shell's top bar) to the bottom.
    */
   mode?: AssistantPanelMode;
-  /** Shows the drag handle on the left edge (default `true`; never on phones). */
+  /**
+   * Shows the drag handle on the left edge (default `false`: no handle, no extra tab stop; never on
+   * phones). Only with it on does a persisted width apply.
+   */
   resizable?: boolean;
   /** Smallest width in px the handle allows (default {@link DEFAULT_ASSISTANT_PANEL_MIN_WIDTH}). */
   minWidth?: number;

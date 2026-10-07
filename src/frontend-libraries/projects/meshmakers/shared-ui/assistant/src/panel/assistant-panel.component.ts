@@ -76,12 +76,13 @@ function writeStoredWidth(key: string | null, width: number | null): void {
  * the messages, so they never wrap in a narrow panel (AB#5621).
  *
  * **Layout (AB#5621)** — inputs, else {@link ASSISTANT_PANEL_OPTIONS}, else the defaults:
- * - `resizable` (default `true`): a handle on the left edge (`role="separator"`) changes the width by
- *   dragging or with ←/→ (Shift: bigger steps), Home/End (min/max); a double click forgets the
- *   chosen width. The width stays within `minWidth`..`maxWidth` (320..720 px, and at least 240 px of
- *   the window stay free) and is kept in `localStorage` under `storageKey`
- *   (`mm-assistant-panel-width`; `null` = not kept). Until someone resizes it, the panel keeps its
- *   CSS width (400 px, 340 px ≤ 1180 px). Unavailable storage only means the width is not kept.
+ * - `resizable` (default `false`, so no handle and no extra tab stop; opt in per input or token):
+ *   a handle on the left edge (`role="separator"`) changes the width by dragging or with ←/→
+ *   (Shift: bigger steps), Home/End (min/max); a double click forgets the chosen width. The width
+ *   stays within `minWidth`..`maxWidth` (320..720 px, and at least 240 px of the window stay free)
+ *   and is kept in `localStorage` under `storageKey` (`mm-assistant-panel-width`; `null` = not
+ *   kept). Without `resizable`, or until someone resizes it, the panel keeps its CSS width (400 px,
+ *   340 px ≤ 1180 px). Unavailable storage only means the width is not kept.
  * - `mode`: `docked` (default, pushes the content) or `overlay` (floats over it, `position: fixed`
  *   at the right edge below `--mm-assistant-overlay-top`, default 48 px; stacking via
  *   `--mm-assistant-overlay-z-index`, default 20).
@@ -119,7 +120,7 @@ export class AssistantPanelComponent {
 
   /** `docked` pushes the content, `overlay` floats over it (default: options token, else `docked`). */
   readonly mode = input<AssistantPanelMode | null>(null);
-  /** Shows the resize handle (default: options token, else `true`). */
+  /** Shows the resize handle (default: options token, else `false`). */
   readonly resizable = input<boolean | null>(null);
   /** Smallest width in px of the resize handle (default: options token, else 320). */
   readonly minWidth = input<number | null>(null);
@@ -155,7 +156,7 @@ export class AssistantPanelComponent {
     return Math.round(Math.max(this.effectiveMin(), Math.min(configured, viewport)));
   });
   /** The handle is shown (never on phones). */
-  protected readonly canResize = computed(() => (this.resizable() ?? this.options?.resizable ?? true) && !this.isPhone());
+  protected readonly canResize = computed(() => (this.resizable() ?? this.options?.resizable ?? false) && !this.isPhone());
 
   /** Width chosen in this panel instance; `undefined` = not touched yet (stored width applies). */
   private readonly chosenWidth = signal<number | null | undefined>(undefined);

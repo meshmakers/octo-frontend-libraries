@@ -124,8 +124,16 @@ describe('AssistantPanelComponent layout (AB#5621)', () => {
   });
 
   describe('G14 resizing', () => {
-    it('keeps the CSS width until resized and exposes an accessible separator', async () => {
+    it('is off by default: no handle, no tab stop, a stored width is ignored', async () => {
+      localStorage.setItem(DEFAULT_ASSISTANT_PANEL_STORAGE_KEY, '600');
       await setup();
+      expect(handle()).toBeNull();
+      expect(element.querySelector('[role="separator"]')).toBeNull();
+      expect(element.style.width).toBe('');
+    });
+
+    it('keeps the CSS width until resized and exposes an accessible separator', async () => {
+      await setup({ inputs: { resizable: true } });
       expect(element.style.width).toBe('');
       expect(element.getAttribute('data-mode')).toBe('docked');
       expect(element.classList).not.toContain('mm-assistant-overlay');
@@ -141,7 +149,7 @@ describe('AssistantPanelComponent layout (AB#5621)', () => {
     });
 
     it('resizes with the keyboard and keeps the width in localStorage', async () => {
-      await setup();
+      await setup({ panelOptions: { resizable: true } });
       expect(key(handle()!, 'ArrowLeft').defaultPrevented).toBe(true);
       expect(element.style.width).toBe('416px');
       expect(handle()!.getAttribute('aria-valuenow')).toBe('416');
@@ -158,7 +166,7 @@ describe('AssistantPanelComponent layout (AB#5621)', () => {
     });
 
     it('resizes by dragging the handle (left widens) and stores the width on release', async () => {
-      await setup();
+      await setup({ panelOptions: { resizable: true } });
       pointer(handle()!, 'pointerdown', 1000);
       expect(element.classList).toContain('mm-assistant-resizing');
       pointer(document, 'pointermove', 900);
@@ -175,7 +183,7 @@ describe('AssistantPanelComponent layout (AB#5621)', () => {
 
     it('restores the stored width (clamped) and forgets it on double click', async () => {
       localStorage.setItem(DEFAULT_ASSISTANT_PANEL_STORAGE_KEY, '9999');
-      await setup();
+      await setup({ panelOptions: { resizable: true } });
       expect(element.style.width).toBe('720px');
       handle()!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
       fixture.detectChanges();
@@ -185,14 +193,14 @@ describe('AssistantPanelComponent layout (AB#5621)', () => {
 
     it('ignores an invalid stored width', async () => {
       localStorage.setItem(DEFAULT_ASSISTANT_PANEL_STORAGE_KEY, 'wide');
-      await setup();
+      await setup({ panelOptions: { resizable: true } });
       expect(element.style.width).toBe('');
     });
 
     it('takes min, max and the storage key from the inputs over the options token', async () => {
       localStorage.setItem('host-key', '600');
       await setup({
-        panelOptions: { minWidth: 100, maxWidth: 1000, storageKey: 'token-key' },
+        panelOptions: { resizable: true, minWidth: 100, maxWidth: 1000, storageKey: 'token-key' },
         inputs: { minWidth: 360, maxWidth: 560, storageKey: 'host-key' }
       });
       expect(element.style.width).toBe('560px');
@@ -204,14 +212,14 @@ describe('AssistantPanelComponent layout (AB#5621)', () => {
 
     it('leaves at least 240 px of the window to the content', async () => {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
-      await setup();
+      await setup({ panelOptions: { resizable: true } });
       expect(handle()!.getAttribute('aria-valuemax')).toBe('560');
       key(handle()!, 'End');
       expect(element.style.width).toBe('560px');
     });
 
     it('does not persist with storageKey null', async () => {
-      await setup({ panelOptions: { storageKey: null } });
+      await setup({ panelOptions: { resizable: true, storageKey: null } });
       key(handle()!, 'ArrowLeft');
       expect(element.style.width).toBe('416px');
       expect(localStorage.length).toBe(0);
@@ -221,7 +229,7 @@ describe('AssistantPanelComponent layout (AB#5621)', () => {
       vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('SecurityError'); });
       vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('QuotaExceededError'); });
       vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => { throw new Error('SecurityError'); });
-      await setup();
+      await setup({ panelOptions: { resizable: true } });
       expect(element.style.width).toBe('');
       key(handle()!, 'ArrowLeft');
       expect(element.style.width).toBe('416px');
@@ -249,7 +257,7 @@ describe('AssistantPanelComponent layout (AB#5621)', () => {
 
       it('neither resizes nor overlays: the panel stays the full-screen dialog', async () => {
         localStorage.setItem(DEFAULT_ASSISTANT_PANEL_STORAGE_KEY, '600');
-        await setup({ panelOptions: { mode: 'overlay' } });
+        await setup({ panelOptions: { mode: 'overlay', resizable: true } });
         expect(handle()).toBeNull();
         expect(element.style.width).toBe('');
         expect(element.classList).not.toContain('mm-assistant-overlay');

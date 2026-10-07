@@ -40,7 +40,7 @@
  *   (OctoMesh hosts: `AiToolCallComponent` of `@meshmakers/octo-ai-console`);
  * - `ASSISTANT_SLASH_COMMANDS` (default {@link DEFAULT_ASSISTANT_SLASH_COMMANDS}) — composer commands; a
  *   command with `expand(command, args)` is sent (and shown) as the prompt it returns (AB#5621);
- * - `ASSISTANT_PANEL_OPTIONS` (optional) — panel layout: `mode` (`docked` | `overlay`), `resizable`,
+ * - `ASSISTANT_PANEL_OPTIONS` (optional) — panel layout: `mode` (`docked` | `overlay`), `resizable` (off by default),
  *   `minWidth` / `maxWidth`, `storageKey` of the persisted width (AB#5621);
  * - `ASSISTANT_MESSAGES` — translations (`Partial<AssistantMessages>`; component `messages` inputs win).
  *
