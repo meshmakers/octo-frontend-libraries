@@ -86,6 +86,11 @@ export interface EntityFormRoutesOptions {
    * Route data key `entityListBooleanDisplay`.
    */
   booleanDisplay?: 'text' | 'icon';
+  /**
+   * Field naming a row / entity for people (AB#5623): row action names, dialog / page title and
+   * delete confirmations. Route data key `entityListRowLabelField`.
+   */
+  rowLabelField?: string;
   /** Label of the create breadcrumb. Default `New`. */
   newBreadcrumbLabel?: string;
   /** Label of the edit breadcrumb. Default `{{entityName}}`. */
@@ -125,6 +130,7 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     rowClass,
     editMode,
     booleanDisplay,
+    rowLabelField,
     data = {},
   } = opts;
 
@@ -143,6 +149,7 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     ...(rowClass !== undefined && { entityListRowClass: rowClass }),
     ...(editMode !== undefined && { entityPageEditMode: editMode }),
     ...(booleanDisplay !== undefined && { entityListBooleanDisplay: booleanDisplay }),
+    ...(rowLabelField !== undefined && { entityListRowLabelField: rowLabelField }),
   };
 
   const listCrumb = breadcrumbUrl !== undefined

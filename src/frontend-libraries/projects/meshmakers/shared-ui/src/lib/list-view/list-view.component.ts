@@ -43,6 +43,7 @@ import {
   MmListRowActionEvent,
   ResolvedListRowAction,
   resolveListRowAction,
+  resolveListRowLabel,
   sameAction,
 } from './list-view-row-actions';
 import {BytesToSizePipe} from '../pipes/bytes-to-size.pipe';
@@ -1324,20 +1325,14 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   /**
    * Row field naming a row for assistive technology (row menu "Actions for <name>", action
-   * buttons "<action> <name>"). Falls back to `rtWellKnownName`, then `rtId`.
+   * buttons "<action> <name>"). Falls back to `rtWellKnownName`, then `rtId`. A dotted path
+   * (`contact.displayName`) reads a nested value (AB#5623).
    */
   @Input() public rowLabelField = 'name';
 
   /** Human name of a row (`rowLabelField`, `rtWellKnownName`, `rtId`), or '' when unknown. */
   protected rowLabel(dataItem: unknown): string {
-    const row = (dataItem ?? {}) as Record<string, unknown>;
-    for (const key of [this.rowLabelField, 'rtWellKnownName', 'rtId']) {
-      const value = row[key];
-      if (value !== null && value !== undefined && String(value).trim() !== '') {
-        return String(value);
-      }
-    }
-    return '';
+    return resolveListRowLabel(dataItem, this.rowLabelField);
   }
 
   /** Accessible name and tooltip of the row menu button. */

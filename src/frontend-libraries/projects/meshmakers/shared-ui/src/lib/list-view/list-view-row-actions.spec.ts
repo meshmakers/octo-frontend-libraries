@@ -7,7 +7,7 @@ import { copyIcon, eyeIcon, pencilIcon, trashIcon } from '@progress/kendo-svg-ic
 import { Observable, of } from 'rxjs';
 
 import { ListViewComponent, RowActionsView } from './list-view.component';
-import { MmListRowAction, MmListRowActionEvent, resolveListRowAction, sameAction } from './list-view-row-actions';
+import { MmListRowAction, MmListRowActionEvent, resolveListRowAction, resolveListRowLabel, sameAction } from './list-view-row-actions';
 import { TableColumn } from './list-view.model';
 import { DataSourceBase, FetchDataOptions } from '../data-sources/data-source-base';
 import { FetchResult, FetchResultBase } from '../models/fetchResult';
@@ -252,5 +252,24 @@ describe('expectIconButtonsAccessible (AB#5581)', () => {
       <button><svg></svg> Save</button>
       <a class="k-button" title="Open" aria-labelledby="l1"><svg></svg></a><span id="l1">Open alpha</span>`))).not.toThrow();
     expect(findInaccessibleIconButtons(dom('<button aria-label="Edit"><svg></svg></button>'), { requireTooltip: false })).toEqual([]);
+  });
+});
+
+describe('resolveListRowLabel (AB#5623)', () => {
+  it('reads the field, then rtWellKnownName, then rtId', () => {
+    expect(resolveListRowLabel({ title: 'T', rtId: 'x' }, 'title')).toBe('T');
+    expect(resolveListRowLabel({ title: ' ', rtWellKnownName: 'wk', rtId: 'x' }, 'title')).toBe('wk');
+    expect(resolveListRowLabel({ rtId: 'x' }, 'title')).toBe('x');
+    expect(resolveListRowLabel(null, 'title')).toBe('');
+  });
+
+  it('reads dotted paths; a flat key with dots wins', () => {
+    expect(resolveListRowLabel({ contact: { displayName: 'Sebastian' } }, 'contact.displayName')).toBe('Sebastian');
+    expect(resolveListRowLabel({ 'contact.displayName': 'flat', contact: { displayName: 'nested' } }, 'contact.displayName')).toBe('flat');
+  });
+
+  it('skips object values and honours explicit fallbacks', () => {
+    expect(resolveListRowLabel({ name: { a: 1 }, rtId: 'x' }, 'name')).toBe('x');
+    expect(resolveListRowLabel({ rtId: 'x' }, 'name', [])).toBe('');
   });
 });

@@ -253,6 +253,16 @@ describe('EntityListComponent', () => {
     expect(deleted).toContainEqual([{ rtId: 'r1', ckTypeId: 'A/B' }]);
   });
 
+  it('names the delete target by rowLabelField, else by name / well-known name (AB#5623)', async () => {
+    setInputs(makeModel());
+    fixture.componentRef.setInput('rowLabelField', 'displayName');
+    const del = component.contextMenuItems().find((i) => i.id === 'delete')!;
+    await del.onClick!({ commandItem: del, data: { rtId: 'r1', ckTypeId: 'A/B', displayName: 'Sebastian Schöndorfer', name: 'n' } });
+    expect(confirmation.showDangerConfirm).toHaveBeenLastCalledWith(expect.objectContaining({ targetName: 'Sebastian Schöndorfer' }));
+    await del.onClick!({ commandItem: del, data: { rtId: 'r2', ckTypeId: 'A/B', name: 'fallback' } });
+    expect(confirmation.showDangerConfirm).toHaveBeenLastCalledWith(expect.objectContaining({ targetName: 'fallback' }));
+  });
+
   it('asks the host action confirmation (production check) before the danger dialog (AB#5524)', async () => {
     const hook = actionHook.mockResolvedValue(false);
     setInputs(makeModel());

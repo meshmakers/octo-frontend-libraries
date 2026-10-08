@@ -14,6 +14,7 @@
   [listStateKey]="listStateKey()"
   [messages]="listViewMessages()"
   [rowClass]="listViewRowClass()"
+  [rowLabelField]="rowLabelField() || 'name'"
   (rowClicked)="onRowClicked($event)"
 >
 </mm-list-view>

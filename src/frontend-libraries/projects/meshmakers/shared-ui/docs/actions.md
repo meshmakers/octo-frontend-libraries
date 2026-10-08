@@ -114,6 +114,10 @@ label (`rowLabelField`), at most `maxInlineRowActions` slots (default 3) — wit
 the overflowing actions first, then the context menu items. Disabled actions stay focusable
 (`aria-disabled`, reason via `aria-describedby`, in the tooltip and in the menu item text).
 
+`rowLabelField` (default `name`, then `rtWellKnownName`, `rtId`; a dotted path such as
+`contact.displayName` reads a nested value) names the row. Hosts that build their own dialog titles
+or danger confirmations use the same rule via `resolveListRowLabel(row, field)` (AB#5623).
+
 - **Preferred:** `[rowActions]="actions"` (`MmListRowAction<TRow>[]`: an `MmAction` whose
   `disabledReason` / `visible` / `link` may be row callbacks, plus optional `run(row)`) and
   `(rowAction)` (`MmListRowActionEvent {id, action, row}`).

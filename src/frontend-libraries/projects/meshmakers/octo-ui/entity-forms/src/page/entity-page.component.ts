@@ -23,6 +23,7 @@ import {
   HasUnsavedChanges,
   MM_ACTION_ICONS,
   NotificationDisplayService,
+  resolveListRowLabel,
   UnsavedChangesMessages,
 } from '@meshmakers/shared-ui';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
@@ -234,6 +235,13 @@ export class EntityPageComponent implements HasUnsavedChanges {
    * `'text'` (default) or `'icon'`. Falls back to route data `entityListBooleanDisplay`.
    */
   readonly listBooleanDisplay = input<EntityListBooleanDisplay | undefined>(undefined);
+  /**
+   * Field naming a row / entity for people (AB#5623): passed to `mm-entity-list`'s
+   * `rowLabelField` (row action names, delete confirmation) and used for the dialog / page title
+   * ("Edit <label>") and the delete confirmation of the open entity. Falls back to route data
+   * `entityListRowLabelField`; absent = today's behaviour (`name`, well-known name, display name, rtId).
+   */
+  readonly listRowLabelField = input<string | undefined>(undefined);
 
   /** Emitted for every list / create / edit transition. */
   readonly navigate = output<EntityPageNavigateEvent>();
@@ -329,6 +337,12 @@ export class EntityPageComponent implements HasUnsavedChanges {
     }
     const fromData = this.inheritedData('entityListRowClass');
     return typeof fromData === 'function' ? fromData as EntityListRowClass : undefined;
+  });
+  /** Row label field: input, else route data `entityListRowLabelField`, else none (default naming). */
+  protected readonly effectiveRowLabelField = computed<string | undefined>(() => {
+    this.routeData();
+    const bound = this.listRowLabelField() ?? this.inheritedData('entityListRowLabelField');
+    return typeof bound === 'string' && bound.trim() ? bound.trim() : undefined;
   });
   /** Boolean columns of the list: input, else route data `entityListBooleanDisplay`, else text. */
   protected readonly effectiveListBooleanDisplay = computed<EntityListBooleanDisplay>(() => {
@@ -819,7 +833,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
     this.entityRtId.set(rtId);
     this.entityCkTypeId.set(ckTypeId);
     this.state.set(state);
-    const name = displayNameOf(state, rtId, rtDisplayName);
+    const name = displayNameOf(state, rtId, rtDisplayName, untracked(() => this.effectiveRowLabelField()));
     this.entityName.set(name);
   }
 
@@ -1048,7 +1062,11 @@ function paramValue(map: ParamMap | undefined, key: string): string | undefined 
  * Entity label: `name` attribute, then `rtWellKnownName`, then a computed `rtDisplayName`
  * (the backend's synthetic `<ckTypeId>@<rtId>` form counts as absent), then the rtId.
  */
-function displayNameOf(state: EntityFormValueState, rtId: string, rtDisplayName?: string | null): string {
+function displayNameOf(state: EntityFormValueState, rtId: string, rtDisplayName?: string | null, labelField?: string): string {
+  const label = labelField ? resolveListRowLabel(state.values, labelField, []) : '';
+  if (label) {
+    return label;
+  }
   const name = state.values['name'];
   if (typeof name === 'string' && name) {
     return name;

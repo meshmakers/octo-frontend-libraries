@@ -64,6 +64,7 @@ class StubEntityListComponent {
   readonly rowMenuActions = input<unknown>();
   readonly rowClass = input<unknown>();
   readonly booleanDisplay = input<unknown>();
+  readonly rowLabelField = input<unknown>();
   readonly createRequested = output<unknown>();
   readonly openRequested = output<unknown>();
   readonly refresh = vi.fn();
@@ -385,6 +386,25 @@ describe('EntityPageComponent', () => {
     expect(events.length).toBe(1);
   });
 
+  it('titles and confirms the open entity by listRowLabelField / route data entityListRowLabelField (AB#5623)', async () => {
+    formService.resolve.mockResolvedValue(makeModel());
+    dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+    await create({ ckTypeId: 'System.Communication/SftpConfiguration', entityListRowLabelField: 'host' }, { rtId: 'r1' });
+    const api = component as unknown as { title(): string; entityName(): string | null; onDelete(): Promise<void> };
+    expect(api.entityName()).toBe('sftp.example.com');
+    expect(api.title()).toContain('sftp.example.com');
+    confirmation.showDangerConfirm.mockResolvedValue(false);
+    await api.onDelete();
+    expect(confirmation.showDangerConfirm).toHaveBeenCalledWith(expect.objectContaining({ targetName: 'sftp.example.com' }));
+  });
+
+  it('passes the row label field to the list; without it the entity keeps its name (unchanged)', async () => {
+    formService.resolve.mockResolvedValue(makeModel());
+    dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+    await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+    expect((component as unknown as { entityName(): string | null }).entityName()).toBe('Main SFTP');
+  });
+
   it('emits deleted before navigating back to the list', async () => {
     formService.resolve.mockResolvedValue(makeModel());
     dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
@@ -642,6 +662,15 @@ describe('EntityPageComponent', () => {
         fixture.componentRef.setInput('listBooleanDisplay', 'text');
         fixture.detectChanges();
         expect(listStub().booleanDisplay()).toBe('text');
+      });
+
+      it('passes the row label field (input over route data) to the list', async () => {
+        formService.resolve.mockResolvedValue(makeModel());
+        await create({ ckTypeId: 'System.Communication/SftpConfiguration', entityListRowLabelField: 'host' });
+        expect(listStub().rowLabelField()).toBe('host');
+        fixture.componentRef.setInput('listRowLabelField', 'username');
+        fixture.detectChanges();
+        expect(listStub().rowLabelField()).toBe('username');
       });
 
       it('is text without input and route data', async () => {

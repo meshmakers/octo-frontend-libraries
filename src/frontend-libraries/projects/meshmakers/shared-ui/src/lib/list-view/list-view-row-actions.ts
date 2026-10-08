@@ -52,6 +52,41 @@ export interface ResolvedListRowAction {
   rowAction?: MmListRowAction;
 }
 
+/**
+ * Human label of a list row (AB#5623) — the row's name in row action names ("Actions for <label>"),
+ * dialog titles and danger confirmations. Reads `field` (a dotted path such as `contact.displayName`
+ * also works, a flat key with dots wins), then each of `fallbacks` (default `rtWellKnownName`,
+ * `rtId`); the first non-blank value wins. `''` when none is set.
+ */
+export function resolveListRowLabel(
+  row: unknown,
+  field: string | null | undefined,
+  fallbacks: readonly string[] = ['rtWellKnownName', 'rtId'],
+): string {
+  const record = (row ?? {}) as Record<string, unknown>;
+  for (const key of field ? [field, ...fallbacks] : fallbacks) {
+    const value = readRowPath(record, key);
+    if (value !== null && value !== undefined && typeof value !== 'object' && String(value).trim() !== '') {
+      return String(value);
+    }
+  }
+  return '';
+}
+
+function readRowPath(row: Record<string, unknown>, path: string): unknown {
+  if (path in row || path.indexOf('.') === -1) {
+    return row[path];
+  }
+  let value: unknown = row;
+  for (const key of path.split('.')) {
+    if (value === null || value === undefined || typeof value !== 'object') {
+      return undefined;
+    }
+    value = (value as Record<string, unknown>)[key];
+  }
+  return value;
+}
+
 /** Resolves the per-row callbacks of a {@link MmListRowAction}. */
 export function resolveListRowAction(definition: MmListRowAction, row: unknown): MmAction {
   const {disabledReason, visible, link, run: _run, ...rest} = definition;

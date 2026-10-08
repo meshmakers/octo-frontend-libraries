@@ -20,6 +20,7 @@ import {
   ListViewComponent,
   MM_ACTION_ICONS,
   NotificationDisplayService,
+  resolveListRowLabel,
   RowClassFn,
   TableColumn,
 } from '@meshmakers/shared-ui';
@@ -299,6 +300,12 @@ export class EntityListComponent {
    * `display: icon` always renders as icon.
    */
   readonly booleanDisplay = input<EntityListBooleanDisplay>('text');
+  /**
+   * Row field used as the row's human label (AB#5623): row action names ("Actions for <label>"),
+   * the delete confirmation target. A dotted path reads a nested value. Absent = today's
+   * behaviour (`name`, then `rtWellKnownName`, display name, `rtId`).
+   */
+  readonly rowLabelField = input<string | null | undefined>(undefined);
 
   /** "New" was confirmed; carries the concrete type (after the subtype picker for abstract types). */
   readonly createRequested = output<EntityListCreateRequest>();
@@ -506,7 +513,8 @@ export class EntityListComponent {
       return;
     }
     const m = this.msgs();
-    const options = entityDeleteConfirmation(m, rows.map(rowName));
+    const labelField = this.rowLabelField();
+    const options = entityDeleteConfirmation(m, rows.map((row) => rowName(row, labelField)));
     if (!await confirmEntityFormDanger(this.dangerConfirmation, this.confirmationService, options, request)) {
       return;
     }
@@ -551,7 +559,11 @@ export class EntityListComponent {
   }
 }
 
-function rowName(row: EntityListRow): string {
+function rowName(row: EntityListRow, labelField?: string | null): string {
+  const label = labelField ? resolveListRowLabel(row, labelField, []) : '';
+  if (label) {
+    return label;
+  }
   const name = row['name'];
   if (typeof name === 'string' && name) {
     return name;

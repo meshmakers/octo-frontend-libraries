@@ -41,6 +41,11 @@ describe('entityFormRoutes', () => {
     expect(entityFormRoutes().every((r) => !('entityFormBeforeSave' in (r.data ?? {})))).toBe(true);
   });
 
+  it('carries rowLabelField as route data entityListRowLabelField (AB#5623)', () => {
+    expect(entityFormRoutes({ rowLabelField: 'displayName' }).every((r) => r.data?.['entityListRowLabelField'] === 'displayName')).toBe(true);
+    expect(entityFormRoutes().every((r) => !('entityListRowLabelField' in (r.data ?? {})))).toBe(true);
+  });
+
   it('carries booleanDisplay as route data entityListBooleanDisplay (AB#5623)', () => {
     expect(entityFormRoutes({ booleanDisplay: 'icon' }).every((r) => r.data?.['entityListBooleanDisplay'] === 'icon')).toBe(true);
     expect(entityFormRoutes().every((r) => !('entityListBooleanDisplay' in (r.data ?? {})))).toBe(true);
