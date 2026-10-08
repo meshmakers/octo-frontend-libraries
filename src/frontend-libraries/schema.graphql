@@ -55956,7 +55956,7 @@ type SystemBotFixupUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/Adapter-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/Adapter-1'
 """
 type SystemCommunicationAdapter implements SystemCommunicationDeployableEntityInterface & SystemCommunicationDeployableWorkloadInterface & SystemEntityInterface {
   associations(
@@ -56037,6 +56037,7 @@ type SystemCommunicationAdapter implements SystemCommunicationDeployableEntityIn
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   constructionKitType: CkType
   deploymentState: SystemCommunicationDeploymentState!
   description: String
@@ -56184,6 +56185,7 @@ type SystemCommunicationAdapter implements SystemCommunicationDeployableEntityIn
   lastConfigurationErrorTimestamp: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   lastSyncedSequenceNumber: Int!
   lentFrom(
     """Only return edges after the specified cursor."""
@@ -56501,6 +56503,7 @@ input SystemCommunicationAdapterInput {
   configuration: String
   configurationState: SystemCommunicationConfigurationState
   configuredBy: [RtAssociationInput]
+  consecutiveStatusFailures: Int
   deploymentState: SystemCommunicationDeploymentState
   description: String
   executes: [RtAssociationInput]
@@ -56515,6 +56518,7 @@ input SystemCommunicationAdapterInput {
   lastConfigurationErrorTimestamp: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   lastSyncedSequenceNumber: Int
   lentFrom: [RtAssociationInput]
   lifecycleMode: SystemCommunicationLifecycleMode
@@ -56558,7 +56562,7 @@ type SystemCommunicationAdapterMutations {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/AdapterPool-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/AdapterPool-1'
 """
 type SystemCommunicationAdapterPool implements SystemCommunicationDeployableEntityInterface & SystemCommunicationDeployableWorkloadInterface & SystemEntityInterface {
   associations(
@@ -56635,6 +56639,7 @@ type SystemCommunicationAdapterPool implements SystemCommunicationDeployableEnti
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   constructionKitType: CkType
   deploymentState: SystemCommunicationDeploymentState!
   description: String
@@ -56712,6 +56717,7 @@ type SystemCommunicationAdapterPool implements SystemCommunicationDeployableEnti
   lastActivityAt: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   lendingAllowedTenantIds: [String!]
   lendingMaxConcurrentLeasesPerTenant: Int
   lifecycleMode: SystemCommunicationLifecycleMode!
@@ -57002,6 +57008,7 @@ input SystemCommunicationAdapterPoolInput {
   chartName: String
   chartVersion: String
   configuredBy: [RtAssociationInput]
+  consecutiveStatusFailures: Int
   deploymentState: SystemCommunicationDeploymentState
   description: String
   helmRepository: [RtAssociationInput]
@@ -57012,6 +57019,7 @@ input SystemCommunicationAdapterPoolInput {
   lastActivityAt: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   lendingAllowedTenantIds: [String!]
   lendingMaxConcurrentLeasesPerTenant: Int
   lifecycleMode: SystemCommunicationLifecycleMode
@@ -57305,7 +57313,7 @@ type SystemCommunicationAdapter_PipelineServiceAccountOfUnionEdge {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/AiConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/AiConfiguration-1'
 """
 type SystemCommunicationAiConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   aiModel: String!
@@ -57701,7 +57709,7 @@ type SystemCommunicationAiConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/Application-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/Application-1'
 """
 type SystemCommunicationApplication implements SystemCommunicationDeployableEntityInterface & SystemCommunicationDeployableWorkloadInterface & SystemEntityInterface {
   associations(
@@ -57778,6 +57786,7 @@ type SystemCommunicationApplication implements SystemCommunicationDeployableEnti
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   constructionKitType: CkType
   deploymentState: SystemCommunicationDeploymentState!
   description: String
@@ -57855,6 +57864,7 @@ type SystemCommunicationApplication implements SystemCommunicationDeployableEnti
   lastActivityAt: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   lifecycleMode: SystemCommunicationLifecycleMode!
   lifecycleState: SystemCommunicationLifecycleState!
   mapsFrom(
@@ -58099,6 +58109,7 @@ input SystemCommunicationApplicationInput {
   chartName: String
   chartVersion: String
   configuredBy: [RtAssociationInput]
+  consecutiveStatusFailures: Int
   deploymentState: SystemCommunicationDeploymentState
   description: String
   helmRepository: [RtAssociationInput]
@@ -58109,6 +58120,7 @@ input SystemCommunicationApplicationInput {
   lastActivityAt: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   lifecycleMode: SystemCommunicationLifecycleMode
   lifecycleState: SystemCommunicationLifecycleState
   mapsFrom: [RtAssociationInput]
@@ -58179,7 +58191,7 @@ enum SystemCommunicationConfigurationState {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/DataFlow-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/DataFlow-1'
 """
 type SystemCommunicationDataFlow implements SystemEntityInterface {
   associations(
@@ -58628,7 +58640,7 @@ input SystemCommunicationDataPointInput {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/DataPointMapping-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/DataPointMapping-1'
 """
 type SystemCommunicationDataPointMapping implements SystemEntityInterface {
   associations(
@@ -59141,7 +59153,7 @@ type SystemCommunicationDataPointMapping_MapsToUnionEdge {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/DeployableEntity-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/DeployableEntity-1'
 """
 type SystemCommunicationDeployableEntity implements SystemEntityInterface {
   associations(
@@ -59216,11 +59228,13 @@ type SystemCommunicationDeployableEntity implements SystemEntityInterface {
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   constructionKitType: CkType
   deploymentState: SystemCommunicationDeploymentState!
   description: String
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   mapsFrom(
     """Only return edges after the specified cursor."""
     after: String
@@ -59455,7 +59469,7 @@ type SystemCommunicationDeployableEntityEdge {
 }
 
 """
-Interface for runtime entities of construction kit type 'System.Communication-4.5.0/DeployableEntity-1'
+Interface for runtime entities of construction kit type 'System.Communication-4.6.0/DeployableEntity-1'
 """
 interface SystemCommunicationDeployableEntityInterface {
   ckTypeId: RtCkTypeId!
@@ -59489,10 +59503,12 @@ interface SystemCommunicationDeployableEntityInterface {
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   deploymentState: SystemCommunicationDeploymentState!
   description: String
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   mapsFrom(
     """Returns the elements in the list that come after the specified cursor."""
     after: String
@@ -59682,7 +59698,7 @@ type SystemCommunicationDeployableEntityUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/DeployableWorkload-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/DeployableWorkload-1'
 """
 type SystemCommunicationDeployableWorkload implements SystemCommunicationDeployableEntityInterface & SystemEntityInterface {
   associations(
@@ -59759,6 +59775,7 @@ type SystemCommunicationDeployableWorkload implements SystemCommunicationDeploya
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   constructionKitType: CkType
   deploymentState: SystemCommunicationDeploymentState!
   description: String
@@ -59836,6 +59853,7 @@ type SystemCommunicationDeployableWorkload implements SystemCommunicationDeploya
   lastActivityAt: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   lifecycleMode: SystemCommunicationLifecycleMode!
   lifecycleState: SystemCommunicationLifecycleState!
   mapsFrom(
@@ -60077,7 +60095,7 @@ type SystemCommunicationDeployableWorkloadEdge {
 }
 
 """
-Interface for runtime entities of construction kit type 'System.Communication-4.5.0/DeployableWorkload-1'
+Interface for runtime entities of construction kit type 'System.Communication-4.6.0/DeployableWorkload-1'
 """
 interface SystemCommunicationDeployableWorkloadInterface {
   chartName: String
@@ -60113,6 +60131,7 @@ interface SystemCommunicationDeployableWorkloadInterface {
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   deploymentState: SystemCommunicationDeploymentState!
   description: String
   helmRepository(
@@ -60181,6 +60200,7 @@ interface SystemCommunicationDeployableWorkloadInterface {
   lastActivityAt: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   lifecycleMode: SystemCommunicationLifecycleMode!
   lifecycleState: SystemCommunicationLifecycleState!
   mapsFrom(
@@ -60461,7 +60481,7 @@ type SystemCommunicationDeployableWorkload_HostsUnionEdge {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/DeploymentSite-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/DeploymentSite-1'
 """
 type SystemCommunicationDeploymentSite implements SystemCommunicationDeployableEntityInterface & SystemEntityInterface {
   associations(
@@ -60539,6 +60559,7 @@ type SystemCommunicationDeploymentSite implements SystemCommunicationDeployableE
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   constructionKitType: CkType
   deploymentState: SystemCommunicationDeploymentState!
   description: String
@@ -60581,6 +60602,7 @@ type SystemCommunicationDeploymentSite implements SystemCommunicationDeployableE
   lastConfigurationErrorTimestamp: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   mapsFrom(
     """Only return edges after the specified cursor."""
     after: String
@@ -60819,6 +60841,7 @@ input SystemCommunicationDeploymentSiteInput {
   communicationStateTimestamp: DateTime
   configurationState: SystemCommunicationConfigurationState
   configuredBy: [RtAssociationInput]
+  consecutiveStatusFailures: Int
   deploymentState: SystemCommunicationDeploymentState
   description: String
   environment: SystemCommunicationEnvironment
@@ -60827,6 +60850,7 @@ input SystemCommunicationDeploymentSiteInput {
   lastConfigurationErrorTimestamp: DateTime
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   mapsFrom: [RtAssociationInput]
   mapsTo: [RtAssociationInput]
   name: String
@@ -60923,7 +60947,7 @@ enum SystemCommunicationDeploymentState {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/DiscordConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/DiscordConfiguration-1'
 """
 type SystemCommunicationDiscordConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -61317,7 +61341,7 @@ type SystemCommunicationDiscordConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/EMailReceiverConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/EMailReceiverConfiguration-1'
 """
 type SystemCommunicationEMailReceiverConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -61719,7 +61743,7 @@ type SystemCommunicationEMailReceiverConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/EMailSenderConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/EMailSenderConfiguration-1'
 """
 type SystemCommunicationEMailSenderConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -62121,7 +62145,7 @@ type SystemCommunicationEMailSenderConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/EdaConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/EdaConfiguration-1'
 """
 type SystemCommunicationEdaConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -62511,7 +62535,7 @@ type SystemCommunicationEdaConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/EnergyCommunityConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/EnergyCommunityConfiguration-1'
 """
 type SystemCommunicationEnergyCommunityConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   appHeading: String
@@ -62961,7 +62985,7 @@ enum SystemCommunicationEnvironment {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/FinApiConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/FinApiConfiguration-1'
 """
 type SystemCommunicationFinApiConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -63361,7 +63385,7 @@ type SystemCommunicationFinApiConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/GrafanaConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/GrafanaConfiguration-1'
 """
 type SystemCommunicationGrafanaConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   adminPassword: String!
@@ -63771,7 +63795,7 @@ enum SystemCommunicationHelmChannel {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/HelmRepositoryConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/HelmRepositoryConfiguration-1'
 """
 type SystemCommunicationHelmRepositoryConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -64271,7 +64295,7 @@ input SystemCommunicationLenderReferenceInput {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/LentAdapterPool-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/LentAdapterPool-1'
 """
 type SystemCommunicationLentAdapterPool implements SystemEntityInterface {
   associations(
@@ -64732,7 +64756,7 @@ enum SystemCommunicationLifecycleState {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/LoxoneConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/LoxoneConfiguration-1'
 """
 type SystemCommunicationLoxoneConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -65150,7 +65174,7 @@ input SystemCommunicationMappingTargetInput {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/MicrosoftGraphConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/MicrosoftGraphConfiguration-1'
 """
 type SystemCommunicationMicrosoftGraphConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -65546,7 +65570,7 @@ type SystemCommunicationMicrosoftGraphConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/Pipeline-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/Pipeline-1'
 """
 type SystemCommunicationPipeline implements SystemCommunicationDeployableEntityInterface & SystemEntityInterface {
   associations(
@@ -65621,6 +65645,7 @@ type SystemCommunicationPipeline implements SystemCommunicationDeployableEntityI
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   constructionKitType: CkType
   deploymentState: SystemCommunicationDeploymentState!
   description: String
@@ -65731,6 +65756,7 @@ type SystemCommunicationPipeline implements SystemCommunicationDeployableEntityI
   ): SystemConfiguration_IsUsingUnionConnection
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   mapsFrom(
     """Only return edges after the specified cursor."""
     after: String
@@ -66136,7 +66162,7 @@ type SystemCommunicationPipelineEdge {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/PipelineExecution-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/PipelineExecution-1'
 """
 type SystemCommunicationPipelineExecution implements SystemEntityInterface {
   adapterExecutions(
@@ -66712,6 +66738,7 @@ type SystemCommunicationPipelineExecution_ExecutingAdapterUnionEdge {
 
 input SystemCommunicationPipelineInput {
   configuredBy: [RtAssociationInput]
+  consecutiveStatusFailures: Int
   deploymentState: SystemCommunicationDeploymentState
   description: String
   enabled: Boolean
@@ -66722,6 +66749,7 @@ input SystemCommunicationPipelineInput {
   isUsing: [RtAssociationInput]
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   mapsFrom: [RtAssociationInput]
   mapsTo: [RtAssociationInput]
   name: String
@@ -66761,7 +66789,7 @@ type SystemCommunicationPipelineMutations {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/PipelineStatistics-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/PipelineStatistics-1'
 """
 type SystemCommunicationPipelineStatistics implements SystemEntityInterface {
   associations(
@@ -66837,6 +66865,7 @@ type SystemCommunicationPipelineStatistics implements SystemEntityInterface {
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
   constructionKitType: CkType
+  foldedBefore: DateTime
   hourlyBuckets: [SystemCommunicationPipelineStatisticsHourBucket!]
   last12HoursAvgDurationMs: Int!
   last12HoursFailureCount: Int!
@@ -67139,6 +67168,7 @@ input SystemCommunicationPipelineStatisticsHourBucketInput {
 
 input SystemCommunicationPipelineStatisticsInput {
   configuredBy: [RtAssociationInput]
+  foldedBefore: DateTime
   hourlyBuckets: [SystemCommunicationPipelineStatisticsHourBucketInput]
   last12HoursAvgDurationMs: Int
   last12HoursFailureCount: Int
@@ -67242,7 +67272,7 @@ type SystemCommunicationPipelineStatistics_StatisticsForPipelineUnionEdge {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/PipelineTrigger-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/PipelineTrigger-1'
 """
 type SystemCommunicationPipelineTrigger implements SystemCommunicationDeployableEntityInterface & SystemEntityInterface {
   associations(
@@ -67317,6 +67347,7 @@ type SystemCommunicationPipelineTrigger implements SystemCommunicationDeployable
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  consecutiveStatusFailures: Int
   constructionKitType: CkType
   cronExpression: String!
   deploymentState: SystemCommunicationDeploymentState!
@@ -67324,6 +67355,7 @@ type SystemCommunicationPipelineTrigger implements SystemCommunicationDeployable
   enabled: Boolean!
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   mapsFrom(
     """Only return edges after the specified cursor."""
     after: String
@@ -67627,12 +67659,14 @@ type SystemCommunicationPipelineTriggerEdge {
 
 input SystemCommunicationPipelineTriggerInput {
   configuredBy: [RtAssociationInput]
+  consecutiveStatusFailures: Int
   cronExpression: String
   deploymentState: SystemCommunicationDeploymentState
   description: String
   enabled: Boolean
   lastDeploymentError: String
   lastDeploymentErrorTimestamp: DateTime
+  lastSuccessfulStatusAt: DateTime
   mapsFrom: [RtAssociationInput]
   mapsTo: [RtAssociationInput]
   name: String
@@ -68078,7 +68112,7 @@ enum SystemCommunicationPoolScaleUpPolicy {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/SapConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/SapConfiguration-1'
 """
 type SystemCommunicationSapConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   appServerHost: String!
@@ -68488,7 +68522,7 @@ type SystemCommunicationSapConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/ServiceAccountConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/ServiceAccountConfiguration-1'
 """
 type SystemCommunicationServiceAccountConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   allowDelegation: Boolean
@@ -69046,7 +69080,7 @@ type SystemCommunicationServiceAccountConfiguration_PoolServiceAccountUnionEdge 
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/SftpConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/SftpConfiguration-1'
 """
 type SystemCommunicationSftpConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -69448,7 +69482,7 @@ type SystemCommunicationSftpConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/SignalChannel-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/SignalChannel-1'
 """
 type SystemCommunicationSignalChannel implements SystemConfigurationInterface & SystemEntityInterface {
   apiUrl: String!
@@ -69890,7 +69924,7 @@ enum SystemCommunicationSignalRegistrationState {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/Tag-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/Tag-1'
 """
 type SystemCommunicationTag implements SystemEntityInterface {
   associations(
@@ -70355,7 +70389,7 @@ input SystemCommunicationValueOverrideInput {
 }
 
 """
-Runtime entities of construction kit type 'System.Communication-4.5.0/WeClappConfiguration-1'
+Runtime entities of construction kit type 'System.Communication-4.6.0/WeClappConfiguration-1'
 """
 type SystemCommunicationWeClappConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   apiKey: String!
