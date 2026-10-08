@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, inject, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GridModule } from '@progress/kendo-angular-grid';
@@ -18,6 +18,7 @@ import {
 import { PropertyGridItem, PropertyGridConfig, PropertyChangeEvent, AttributeValueTypeDto, BinaryDownloadEvent } from '../models/property-grid.models';
 import { PropertyValueDisplayComponent } from './property-value-display.component';
 import { DEFAULT_PROPERTY_GRID_MESSAGES, PropertyGridMessages } from '../property-grid.messages';
+import { emitOrDownloadBinary } from '../services/binary-download';
 
 /**
  * Generic property grid component for OctoMesh
@@ -226,6 +227,8 @@ export class PropertyGridComponent implements OnInit, OnChanges {
   @Output() saveRequested = new EventEmitter<PropertyGridItem[]>();
   @Output() binaryDownload = new EventEmitter<BinaryDownloadEvent>();
 
+  private readonly injector = inject(Injector);
+
   // Component state
   filteredData: PropertyGridItem[] = [];
   searchTerm = '';
@@ -379,9 +382,10 @@ export class PropertyGridComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Handle binary download request from property value display
+   * Handle binary download request from property value display: forwarded to the host when it binds
+   * `(binaryDownload)`, otherwise downloaded here with the user's bearer (AB#6179).
    */
   onBinaryDownload(event: BinaryDownloadEvent): void {
-    this.binaryDownload.emit(event);
+    emitOrDownloadBinary(this.binaryDownload, event, this.injector);
   }
 }

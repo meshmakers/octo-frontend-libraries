@@ -710,7 +710,18 @@ export class MyComponent {
 | Output | Type | Description |
 |--------|------|-------------|
 | `propertyChange` | `PropertyChangeEvent` | Emitted when a property value changes |
-| `binaryDownload` | `BinaryDownloadEvent` | Emitted when binary download is requested |
+| `binaryDownload` | `BinaryDownloadEvent` | Emitted with the clicked `BINARY_LINKED` value (`binaryId`, `filename`, `contentType`, `downloadUri?`) when a host binds it |
+
+**Binary download (AB#6179):** the Download button never opens a raw URL. When the host binds
+`(binaryDownload)` the event is forwarded; otherwise `PropertyGridComponent` / `PropertyValueDisplayComponent`
+download the value themselves through `FileDownloadService` (`@meshmakers/octo-services`) — bearer via
+`authorizeInterceptor`, blob saved under the real file name. The event is structurally a `BinaryReference`,
+so a host handler is just `fileDownloadService.downloadBinary(event)`. The runtime browser's
+`EntityDetailViewComponent` does exactly that; it no longer queries `systemReportingFileSystemItem`
+(the removed `getBinaryInfo` query), so downloads work for every owner type and on tenants without
+System.Reporting. `FileDownloadService` is resolved lazily at click time, so rendering a grid needs no
+`HttpClient`/`CONFIGURATION_SERVICE`; downloading by `binaryId` needs `CONFIGURATION_SERVICE`
+(`assetServices`) and `TENANT_ID_PROVIDER`.
 
 ### PropertyConverterService
 

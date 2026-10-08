@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, LOCALE_ID, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, LOCALE_ID, inject, Injector } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
@@ -6,6 +6,7 @@ import { WindowService } from '@progress/kendo-angular-dialog';
 import { chevronRightIcon, chevronDownIcon, downloadIcon, windowIcon } from '@progress/kendo-svg-icons';
 import { AttributeValueTypeDto, PropertyDisplayMode, BinaryDownloadEvent } from '../models/property-grid.models';
 import { RecordDetailDialogComponent } from './record-detail-dialog.component';
+import { emitOrDownloadBinary } from '../services/binary-download';
 import { formatSecretStatus, isSecretStateObject, SecretStatus, secretStatusOf, toSecretState } from '@meshmakers/octo-services';
 
 /**
@@ -436,6 +437,7 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   isExpanded = false;
 
   private readonly windowService = inject(WindowService);
+  private readonly injector = inject(Injector);
   private readonly locale = inject(LOCALE_ID);
 
   /** Non-null when the value is a secret state (SECRET value type or record member marker). */
@@ -941,7 +943,11 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Handle download button click
+   * Handle download button click.
+   *
+   * Emits {@link binaryDownload} with the clicked value when a host listens. Without a listener the
+   * component downloads the value itself through `FileDownloadService` — an authenticated blob
+   * download with the user's bearer, never `window.open(rawUrl)`, which carries no token (AB#6179).
    */
   onDownload(): void {
     if (!this.value || typeof this.value !== 'object') {
@@ -949,19 +955,16 @@ export class PropertyValueDisplayComponent implements OnInit, OnChanges {
     }
 
     const binaryValue = this.value as BinaryLinkedValue;
-
-    if (binaryValue.downloadUri) {
-      window.open(binaryValue.downloadUri, '_blank', 'noopener,noreferrer');
+    if (!binaryValue.downloadUri && !binaryValue.binaryId) {
       return;
     }
 
-    if (binaryValue.binaryId) {
-      const event: BinaryDownloadEvent = {
-        binaryId: binaryValue.binaryId,
-        filename: binaryValue.filename,
-        contentType: binaryValue.contentType
-      };
-      this.binaryDownload.emit(event);
-    }
+    const event: BinaryDownloadEvent = {
+      binaryId: binaryValue.binaryId,
+      filename: binaryValue.filename,
+      contentType: binaryValue.contentType,
+      downloadUri: binaryValue.downloadUri
+    };
+    emitOrDownloadBinary(this.binaryDownload, event, this.injector);
   }
 }
