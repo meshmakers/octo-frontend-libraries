@@ -321,7 +321,7 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   copiedToClipboard: 'copied to clipboard',
   failedToCopyToClipboard: 'Failed to copy to clipboard',
   downloadNotAvailable: 'Download not available for this file',
-  failedToLoadDownloadInfo: 'Failed to load download information',
+  failedToLoadDownloadInfo: 'Failed to download the file',
   missingRequiredIdentifiers:
     'Missing required identifiers to create an entity.',
   failedToCreateEntity: 'Failed to create entity. Please try again.',

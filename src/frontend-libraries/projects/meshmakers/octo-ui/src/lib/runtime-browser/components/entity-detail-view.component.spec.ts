@@ -2,12 +2,16 @@ import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync } from '@angular/core/testing';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { PropertyConverterService } from '../../property-grid';
-import { CkTypeAttributeService, RtEntityDto } from '@meshmakers/octo-services';
+import {
+  BinaryDownloadUnavailableError,
+  CkTypeAttributeService,
+  FileDownloadService,
+  RtEntityDto,
+} from '@meshmakers/octo-services';
 import { SelectEvent } from '@progress/kendo-angular-layout';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import { of } from 'rxjs';
-import { GetBinaryInfoDtoGQL } from '../../graphQL/getBinaryInfo';
-import { AttributeValueTypeDto, PropertyGridItem } from '../../property-grid';
+import { AttributeValueTypeDto, BinaryDownloadEvent, PropertyGridItem } from '../../property-grid';
 import { EntityDetailViewComponent } from './entity-detail-view.component';
 
 describe('EntityDetailViewComponent', () => {
@@ -22,8 +26,8 @@ describe('EntityDetailViewComponent', () => {
     convertRtEntityToProperties: vi.fn().mockName('convertRtEntityToProperties').mockReturnValue(of([])),
   };
 
-  const mockGetBinaryInfoGQL = {
-    fetch: vi.fn().mockName('fetch').mockReturnValue(of({ data: null })),
+  const mockFileDownloadService = {
+    downloadBinary: vi.fn().mockName('downloadBinary').mockResolvedValue(undefined),
   };
 
   const mockCkTypeAttributeService = {
@@ -49,7 +53,7 @@ describe('EntityDetailViewComponent', () => {
           provide: PropertyConverterService,
           useValue: mockPropertyConverterService,
         },
-        { provide: GetBinaryInfoDtoGQL, useValue: mockGetBinaryInfoGQL },
+        { provide: FileDownloadService, useValue: mockFileDownloadService },
         {
           provide: CkTypeAttributeService,
           useValue: mockCkTypeAttributeService,
@@ -65,11 +69,81 @@ describe('EntityDetailViewComponent', () => {
   afterEach(() => {
     mockNotificationService.show.mockClear();
     mockPropertyConverterService.convertRtEntityToProperties.mockClear();
-    mockGetBinaryInfoGQL.fetch.mockClear();
+    mockFileDownloadService.downloadBinary.mockReset().mockResolvedValue(undefined);
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('onBinaryDownload (AB#6179)', () => {
+    const download = (event: BinaryDownloadEvent): Promise<void> =>
+      (component as unknown as { onBinaryDownload(e: BinaryDownloadEvent): Promise<void> }).onBinaryDownload(event);
+
+    // The generic attribute projection carries the stored binary info, no downloadUri.
+    const binaryValue: BinaryDownloadEvent = {
+      binaryId: '69a1b2c3d4e5f6a7b8c9d0e1',
+      filename: 'meter-config.json',
+      contentType: 'application/json',
+    };
+
+    it.each([
+      ['Basic/File'],
+      ['System.Communication/Adapter'],
+      ['System.Reporting/FileSystemItem'],
+    ])('downloads the clicked value itself for a %s owner', async (ckTypeId) => {
+      component.entity = createMockEntity({ ckTypeId });
+
+      await download(binaryValue);
+
+      expect(mockFileDownloadService.downloadBinary).toHaveBeenCalledTimes(1);
+      expect(mockFileDownloadService.downloadBinary).toHaveBeenCalledWith(binaryValue);
+      expect(mockNotificationService.show).not.toHaveBeenCalled();
+    });
+
+    it('does not need the entity rtId (no owner lookup)', async () => {
+      component.entity = null;
+
+      await download(binaryValue);
+
+      expect(mockFileDownloadService.downloadBinary).toHaveBeenCalledWith(binaryValue);
+    });
+
+    it('passes a downloadUri through unchanged', async () => {
+      const withUri = { ...binaryValue, downloadUri: 'https://asset.example.com/t/v1/largeBinaries?largeBinaryId=x' };
+
+      await download(withUri);
+
+      expect(mockFileDownloadService.downloadBinary).toHaveBeenCalledWith(withUri);
+    });
+
+    it('shows a warning when no download URL can be built', async () => {
+      mockFileDownloadService.downloadBinary.mockRejectedValue(new BinaryDownloadUnavailableError('no tenant'));
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      await download(binaryValue);
+
+      expect(mockNotificationService.show).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: 'Download not available for this file',
+          type: { style: 'warning', icon: true },
+        }),
+      );
+    });
+
+    it('shows an error when the download fails', async () => {
+      mockFileDownloadService.downloadBinary.mockRejectedValue(new Error('403'));
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      await download(binaryValue);
+
+      expect(mockNotificationService.show).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: 'Failed to download the file',
+          type: { style: 'error', icon: true },
+        }),
+      );
+    });
   });
 
   describe('getEntityIdentifier', () => {

@@ -1,8 +1,9 @@
 import type { Mock } from 'vitest';
-import { SimpleChange } from '@angular/core';
+import { Injector, SimpleChange } from '@angular/core';
+import { FileDownloadService } from '@meshmakers/octo-services';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { isSecretMarker, PropertyValueDisplayComponent } from './property-value-display.component';
-import { AttributeValueTypeDto, PropertyDisplayMode } from '../models/property-grid.models';
+import { AttributeValueTypeDto, BinaryDownloadEvent, PropertyDisplayMode } from '../models/property-grid.models';
 import { chevronRightIcon, chevronDownIcon, downloadIcon } from '@progress/kendo-svg-icons';
 
 describe('PropertyValueDisplayComponent', () => {
@@ -609,52 +610,75 @@ describe('PropertyValueDisplayComponent', () => {
 
   describe('onDownload', () => {
     let windowOpenSpy: Mock;
+    let received: BinaryDownloadEvent[];
+    let downloads: { downloadBinary: Mock };
+    let injectorGetSpy: Mock;
 
     beforeEach(() => {
+      // AB#6179: a raw window.open carries no bearer token and must never be used.
       windowOpenSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+      received = [];
+      downloads = { downloadBinary: vi.fn().mockResolvedValue(undefined) };
+      const injector = (component as unknown as { injector: Injector }).injector;
+      injectorGetSpy = vi.spyOn(injector, 'get').mockReturnValue(downloads) as unknown as Mock;
     });
 
+    afterEach(() => {
+      expect(windowOpenSpy).not.toHaveBeenCalled();
+    });
+
+    const listen = () => component.binaryDownload.subscribe(e => received.push(e));
+
     it('should do nothing for null value', () => {
+      listen();
       component.value = null;
       component.onDownload();
-      expect(windowOpenSpy).not.toHaveBeenCalled();
+      expect(received).toEqual([]);
+      expect(downloads.downloadBinary).not.toHaveBeenCalled();
     });
 
     it('should do nothing for non-object value', () => {
+      listen();
       component.value = 'string';
       component.onDownload();
-      expect(windowOpenSpy).not.toHaveBeenCalled();
+      expect(received).toEqual([]);
+      expect(downloads.downloadBinary).not.toHaveBeenCalled();
     });
 
-    it('should open downloadUri in new window when present', () => {
+    it('should emit binaryDownload with the full value when a host listens', () => {
+      listen();
+      component.value = { binaryId: '123', filename: 'test.pdf', contentType: 'application/pdf', size: 10 };
+      component.onDownload();
+      expect(received).toEqual([{
+        binaryId: '123', filename: 'test.pdf', contentType: 'application/pdf', downloadUri: undefined
+      }]);
+      expect(downloads.downloadBinary).not.toHaveBeenCalled();
+    });
+
+    it('should emit a downloadUri-only value instead of opening it', () => {
+      listen();
       component.value = { downloadUri: 'https://example.com/file.pdf' };
       component.onDownload();
-      expect(windowOpenSpy).toHaveBeenCalledWith('https://example.com/file.pdf', '_blank', 'noopener,noreferrer');
+      expect(received).toEqual([{
+        binaryId: undefined, filename: undefined, contentType: undefined, downloadUri: 'https://example.com/file.pdf'
+      }]);
     });
 
-    it('should emit binaryDownload event when only binaryId present', () => {
-      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
+    it('should download the value itself with FileDownloadService when nobody listens', () => {
       component.value = { binaryId: '123', filename: 'test.pdf', contentType: 'application/pdf' };
       component.onDownload();
-      expect(component.binaryDownload.emit).toHaveBeenCalledWith({
-        binaryId: '123', filename: 'test.pdf', contentType: 'application/pdf'
+      expect(injectorGetSpy).toHaveBeenCalledWith(FileDownloadService);
+      expect(downloads.downloadBinary).toHaveBeenCalledWith({
+        binaryId: '123', filename: 'test.pdf', contentType: 'application/pdf', downloadUri: undefined
       });
     });
 
-    it('should prefer downloadUri over binaryId', () => {
-      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
-      component.value = { binaryId: '123', downloadUri: 'https://example.com/file.pdf' };
-      component.onDownload();
-      expect(windowOpenSpy).toHaveBeenCalled();
-      expect(component.binaryDownload.emit).not.toHaveBeenCalled();
-    });
-
     it('should do nothing when neither binaryId nor downloadUri present', () => {
-      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
+      listen();
       component.value = { filename: 'test.pdf' };
       component.onDownload();
-      expect(windowOpenSpy).not.toHaveBeenCalled();
-      expect(component.binaryDownload.emit).not.toHaveBeenCalled();
+      expect(received).toEqual([]);
+      expect(downloads.downloadBinary).not.toHaveBeenCalled();
     });
   });
 
