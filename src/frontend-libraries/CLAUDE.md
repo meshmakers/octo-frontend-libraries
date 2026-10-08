@@ -640,6 +640,35 @@ Nullability follows the CK attribute: `isOptional: true` becomes a nullable fiel
 that a real introspection would not produce. Fields are in alphabetical order; keep them
 there, or the next real refresh shows a phantom diff.
 
+### Refreshing one CK domain from another tenant (`scripts/merge-schema-domain.mjs`)
+
+When a whole CK model moves ahead (System.Communication 3.x → 4.x, AB#5842), surgical edits do
+not scale and a full re-introspection loses models the source tenant does not carry (System.UI
+EntityForm, System.Ai, ...). `scripts/merge-schema-domain.mjs` swaps exactly one domain, matched
+by type-name prefix, from an introspected SDL into `schema.graphql`:
+
+```bash
+node scripts/merge-schema-domain.mjs --base schema.graphql \
+     --source /path/to/introspected.graphql --out schema.graphql   # --prefix SystemCommunication (default)
+npm run codegen
+```
+
+- Takes every `SystemCommunication*` definition from the source and removes prefixed definitions the
+  source no longer has (`SystemCommunicationPool*` → gone, `SystemCommunicationDeploymentSite*` → added).
+- On shared, non-prefixed types it replaces only the domain's fields (`systemCommunication*` root
+  fields on `RuntimeModelQuery` / `Runtime` / `OctoSubscriptions`, navigation fields typed with a
+  prefixed type) and the prefixed members of runtime unions (`SystemEntity_RelatesToUnion`, ...).
+- **SECRET overlay** (default on): a base field typed `OctoSecretState` wins over the source's plain
+  `String`, plus the ValueOverride SECRET companions — the source tenant (Communication 4.5.0) predates
+  AB#5537. Pass `--no-secret-overlay` once the source declares the credentials as SECRET itself.
+- Validates the result and prints it lexicographically sorted with the generated header, exactly
+  like the snapshot: merging the schema with itself is byte-identical and re-runs are idempotent.
+  `--check` reports without writing. The Refinery Studio (S0b) runs the same script against its
+  own schema file.
+
+The System.Communication 4.x merge (AB#5842) used the test-2-dev `meshdev` introspection with
+System.Communication 4.5.0.
+
 **Watch `possibleTypes.ts` on the way out.** The committed file is ahead of the committed
 `schema.graphql` (it carries union members the snapshot lacks), so any `codegen` run deletes
 those entries as collateral. Revert that file unless the change actually touches unions —
