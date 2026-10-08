@@ -314,8 +314,24 @@ interface PieChartWidgetConfig {
   showLegend?: boolean;
   legendPosition?: 'top' | 'bottom' | 'left' | 'right';
   filters?: WidgetFilterConfig[];
+  categoryColors?: Record<string, string>;            // AB#5622
+  labelPosition?: 'inside' | 'outside' | 'none';      // AB#5622
+  hideLabelsBelowPercent?: number;                    // AB#5622
 }
 ```
+
+Colours and labels (AB#5622): every slice gets an explicit colour — a `categoryColors` entry
+(key = raw category value, case-insensitive, or the displayed label; value = hex / CSS colour,
+custom property `--brand-paid` / `var(--brand-paid, #2fb37a)`, or a status name `success` /
+`warning` / `error` / `info`), else the status colour of a well-known state, else the theme
+palette colour of its position (`chartSeriesColors()`: `--theme-chart-1…12`, then
+`--kendo-chart-series-1…12`, then `--kendo-color-series-a…f`, then a fixed palette; unresolved or
+invalid tokens are skipped, so no slice falls back to black in dark mode). The palette is part of
+the theme signature, so a live theme switch re-colours the chart without a redraw loop.
+`labelPosition` (labels mode only) maps to Kendo `outsideEnd` (theme-coloured connector lines) /
+`insideEnd` / hidden; `hideLabelsBelowPercent` drops the labels of small slices so neighbours do
+not overlap. All three are optional, written to the board JSON only when set, and edited in the
+config dialog (Label Position, Hide labels below, Category Colours).
 
 Display rules (`utils/chart-categories.ts`): enum-style categories read as words (`RESOLVE_FAILED` →
 "Resolve failed"); well-known state categories get the theme status colours (`--theme-status-*`,

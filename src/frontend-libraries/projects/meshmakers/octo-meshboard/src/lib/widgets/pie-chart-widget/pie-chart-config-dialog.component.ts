@@ -6,9 +6,9 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
-import { searchIcon, chartPieIcon } from '@progress/kendo-svg-icons';
+import { searchIcon, chartPieIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
-import { PieChartType, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
+import { PieChartType, PieChartLabelPosition, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -44,6 +44,12 @@ export interface PieChartConfigResult extends WidgetConfigResult {
   showLabels: boolean;
   showLegend: boolean;
   legendPosition: 'top' | 'bottom' | 'left' | 'right';
+  /** Colour per category (AB#5622); absent = default colours. */
+  categoryColors?: Record<string, string>;
+  /** Slice label position (AB#5622); absent = chart default. */
+  labelPosition?: PieChartLabelPosition;
+  /** Hide labels of slices below this share in percent (AB#5622); absent = all labelled. */
+  hideLabelsBelowPercent?: number;
   // Filters
   filters?: FieldFilterDto[];
 }
@@ -263,6 +269,48 @@ export interface PieChartConfigResult extends WidgetConfigResult {
               </kendo-dropdownlist>
             </div>
           }
+
+          @if (form.displayMode === 'labels') {
+            <div class="form-field">
+              <label for="pie-label-position">Label Position</label>
+              <kendo-dropdownlist
+                id="pie-label-position"
+                data-pie-label-position
+                [data]="labelPositions"
+                [textField]="'label'"
+                [valueField]="'value'"
+                [valuePrimitive]="true"
+                [(ngModel)]="form.labelPosition">
+              </kendo-dropdownlist>
+            </div>
+            <div class="form-field">
+              <label for="pie-hide-labels-below">Hide labels of slices below (%)</label>
+              <kendo-numerictextbox
+                id="pie-hide-labels-below"
+                data-pie-hide-labels-below
+                [min]="0"
+                [max]="50"
+                [decimals]="1"
+                [format]="'n1'"
+                [(ngModel)]="form.hideLabelsBelowPercent">
+              </kendo-numerictextbox>
+              <span class="section-hint">Small neighbouring slices no longer overlap; 0 labels every slice.</span>
+            </div>
+          }
+
+          <div class="form-field" data-pie-category-colors>
+            <label>Category Colours</label>
+            <span class="section-hint">Raw category value or label → hex colour, CSS variable (--brand-paid) or status (success, warning, error, info). Others use the theme palette.</span>
+            @for (entry of categoryColorRows; track entry.id) {
+              <div class="category-color-row">
+                <kendo-textbox [(ngModel)]="entry.category" placeholder="Category (e.g. PAID)" [attr.aria-label]="'Category'"></kendo-textbox>
+                <kendo-textbox [(ngModel)]="entry.color" placeholder="#2fb37a or --token" [attr.aria-label]="'Colour'"></kendo-textbox>
+                <input type="color" class="category-color-swatch" [value]="swatchValue(entry.color)" (input)="entry.color = $any($event.target).value" [attr.aria-label]="'Pick colour'" />
+                <button kendoButton fillMode="flat" type="button" [svgIcon]="removeIcon" (click)="removeCategoryColor(entry.id)" [attr.aria-label]="'Remove category colour'" title="Remove"></button>
+              </div>
+            }
+            <button kendoButton fillMode="flat" type="button" [svgIcon]="addIcon" (click)="addCategoryColor()" data-pie-add-category-color>Add category colour</button>
+          </div>
         </div>
       </div>
 
@@ -345,6 +393,10 @@ export interface PieChartConfigResult extends WidgetConfigResult {
       color: var(--kendo-color-subtle, #6c757d);
     }
 
+    .category-color-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .category-color-row kendo-textbox { flex: 1; min-width: 0; }
+    .category-color-swatch { width: 32px; height: 28px; padding: 0; border: none; background: none; cursor: pointer; }
+
     .radio-group {
       display: flex;
       gap: 24px;
@@ -413,6 +465,23 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   @Input() initialCkQueryTarget?: CkQueryTarget;
   @Input() initialCkGroupBy?: string;
   @Input() initialFilters?: WidgetFilterConfig[];
+  @Input() initialCategoryColors?: Record<string, string>;
+  @Input() initialLabelPosition?: PieChartLabelPosition;
+  @Input() initialHideLabelsBelowPercent?: number;
+
+  protected readonly addIcon = plusIcon;
+  protected readonly removeIcon = trashIcon;
+
+  /** Rows of the category colour editor (AB#5622). */
+  categoryColorRows: { id: number; category: string; color: string }[] = [];
+  private nextCategoryColorId = 1;
+
+  labelPositions: { value: PieChartLabelPosition | undefined; label: string }[] = [
+    { value: undefined, label: 'Default' },
+    { value: 'outside', label: 'Outside (with connector lines)' },
+    { value: 'inside', label: 'Inside' },
+    { value: 'none', label: 'None' }
+  ];
 
   protected readonly searchIcon = searchIcon;
   protected readonly chartPieIcon = chartPieIcon;
@@ -468,7 +537,9 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     displayMode: 'legend' as 'legend' | 'labels',
     legendPosition: 'right' as 'top' | 'bottom' | 'left' | 'right',
     ckQueryTarget: 'models' as CkQueryTarget,
-    ckGroupBy: 'modelState'
+    ckGroupBy: 'modelState',
+    labelPosition: undefined as PieChartLabelPosition | undefined,
+    hideLabelsBelowPercent: 0 as number | null
   };
 
   get isValid(): boolean {
@@ -513,6 +584,9 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     this.form.legendPosition = this.initialLegendPosition ?? 'right';
     this.form.ckQueryTarget = this.initialCkQueryTarget ?? 'models';
     this.form.ckGroupBy = this.initialCkGroupBy ?? 'modelState';
+    this.form.labelPosition = this.initialLabelPosition;
+    this.form.hideLabelsBelowPercent = this.initialHideLabelsBelowPercent ?? 0;
+    this.categoryColorRows = Object.entries(this.initialCategoryColors ?? {}).map(([category, color]) => ({ id: this.nextCategoryColorId++, category, color }));
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
     this.entitySelectorId = this.initialEntitySelectorId;
 
@@ -659,6 +733,27 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     }));
   }
 
+  addCategoryColor(): void {
+    this.categoryColorRows = [...this.categoryColorRows, { id: this.nextCategoryColorId++, category: '', color: '' }];
+  }
+
+  removeCategoryColor(id: number): void {
+    this.categoryColorRows = this.categoryColorRows.filter(row => row.id !== id);
+  }
+
+  /** Value of the native colour picker: the row's hex colour, else black (the picker needs a #rrggbb value). */
+  swatchValue(color: string): string {
+    return /^#[0-9a-f]{6}$/i.test(color.trim()) ? color.trim() : '#000000';
+  }
+
+  /** The edited category colours; rows without category or colour are dropped; none = undefined. */
+  private categoryColorsResult(): Record<string, string> | undefined {
+    const entries = this.categoryColorRows
+      .map(row => [row.category.trim(), row.color.trim()] as const)
+      .filter(([category, color]) => category !== '' && color !== '');
+    return entries.length ? Object.fromEntries(entries) : undefined;
+  }
+
   onFiltersChange(updatedFilters: FieldFilterItem[]): void {
     this.filters = updatedFilters;
   }
@@ -685,6 +780,18 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
       legendPosition: this.form.legendPosition,
       filters: filtersDto
     };
+    const categoryColors = this.categoryColorsResult();
+    if (categoryColors) {
+      result.categoryColors = categoryColors;
+    }
+    if (this.form.displayMode === 'labels') {
+      if (this.form.labelPosition) {
+        result.labelPosition = this.form.labelPosition;
+      }
+      if (this.form.hideLabelsBelowPercent && this.form.hideLabelsBelowPercent > 0) {
+        result.hideLabelsBelowPercent = this.form.hideLabelsBelowPercent;
+      }
+    }
 
     if (this.form.dataSourceType === 'persistentQuery') {
       if (!this.selectedPersistentQuery) return;

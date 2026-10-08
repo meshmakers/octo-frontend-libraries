@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { WindowService } from '@progress/kendo-angular-dialog';
 import { WidgetRegistryService, PersistedWidgetData, WidgetPersistenceData } from '../services/widget-registry.service';
 import { registerDefaultWidgets } from './default-widget-registrations';
-import { KpiWidgetConfig } from '../models/meshboard.models';
+import { KpiWidgetConfig, PieChartWidgetConfig } from '../models/meshboard.models';
+import { PieChartConfigResult } from '../widgets/pie-chart-widget/pie-chart-config-dialog.component';
 import { KpiConfigResult } from '../widgets/kpi-widget/kpi-config-dialog.component';
 
 describe('Default widget registrations — KPI', () => {
@@ -154,5 +155,73 @@ describe('Default widget registrations — KPI', () => {
       expect(applied.formula).toBeUndefined();
       expect(roundTrip(applied).valueMode).toBeUndefined();
     });
+  });
+});
+
+describe('Default widget registrations — pie chart presentation (AB#5622)', () => {
+  let registry: WidgetRegistryService;
+
+  function pie(overrides: Partial<PieChartWidgetConfig> = {}): PieChartWidgetConfig {
+    return {
+      id: 'pie-1', rtId: 'pie-1', type: 'pieChart', title: 'Pie', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q1' },
+      chartType: 'donut', categoryField: 'state', valueField: 'count', showLabels: true, showLegend: false, legendPosition: 'right',
+      ...overrides
+    } as PieChartWidgetConfig;
+  }
+
+  function roundTrip(widget: PieChartWidgetConfig): PieChartWidgetConfig {
+    const data = registry.serializeWidget(widget);
+    return registry.deserializeWidget({
+      rtId: widget.id, ckTypeId: 'System.UI/DashboardWidget', name: widget.title, type: 'pieChart',
+      col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSourceType: data.dataSourceType === 'persistentQuery' ? 'systemQuery' : data.dataSourceType,
+      dataSourceCkTypeId: data.dataSourceCkTypeId ?? null, dataSourceRtId: data.dataSourceRtId ?? null,
+      config: JSON.stringify(data.config)
+    }) as PieChartWidgetConfig;
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [{ provide: WindowService, useValue: { open: vi.fn() } }] });
+    registry = TestBed.inject(WidgetRegistryService);
+    registerDefaultWidgets(registry);
+  });
+
+  it('persists category colours, label position and the small-slice threshold in the board JSON', () => {
+    const restored = roundTrip(pie({ categoryColors: { PAID: '#2fb37a', OPEN: '--brand-open' }, labelPosition: 'outside', hideLabelsBelowPercent: 3 }));
+    expect(restored.categoryColors).toEqual({ PAID: '#2fb37a', OPEN: '--brand-open' });
+    expect(restored.labelPosition).toBe('outside');
+    expect(restored.hideLabelsBelowPercent).toBe(3);
+  });
+
+  it('writes nothing new for boards without the settings (backward compatible)', () => {
+    const data = registry.serializeWidget(pie());
+    expect(Object.keys(data.config)).not.toContain('categoryColors');
+    expect(Object.keys(data.config)).not.toContain('labelPosition');
+    const restored = roundTrip(pie());
+    expect(restored.categoryColors).toBeUndefined();
+    expect(restored.labelPosition).toBeUndefined();
+  });
+
+  it('ignores an unknown label position from a hand-edited board', () => {
+    const data = registry.serializeWidget(pie());
+    const restored = registry.deserializeWidget({
+      rtId: 'pie-1', ckTypeId: 'System.UI/DashboardWidget', name: 'Pie', type: 'pieChart', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSourceType: 'systemQuery', dataSourceCkTypeId: null, dataSourceRtId: 'q1',
+      config: JSON.stringify({ ...data.config, labelPosition: 'diagonal' })
+    }) as PieChartWidgetConfig;
+    expect(restored.labelPosition).toBeUndefined();
+  });
+
+  it('carries the settings through the config dialog result', () => {
+    const initial = registry.getInitialConfig(pie({ categoryColors: { PAID: 'success' }, labelPosition: 'inside' })) as Record<string, unknown>;
+    expect(initial['initialCategoryColors']).toEqual({ PAID: 'success' });
+    expect(initial['initialLabelPosition']).toBe('inside');
+    const applied = registry.applyConfigResult(pie(), {
+      ckTypeId: '', rtId: '', dataSourceType: 'persistentQuery', queryRtId: 'q1', chartType: 'pie', categoryField: 'state', valueField: 'count',
+      showLabels: true, showLegend: false, legendPosition: 'right', categoryColors: { PAID: '#00ff00' }, labelPosition: 'none'
+    } as PieChartConfigResult) as PieChartWidgetConfig;
+    expect(applied.categoryColors).toEqual({ PAID: '#00ff00' });
+    expect(applied.labelPosition).toBe('none');
   });
 });

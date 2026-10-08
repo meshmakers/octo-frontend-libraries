@@ -11,7 +11,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
-import { categoryStatus, humanizeCategory, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
+import { categoryStatus, chartSeriesColors, humanizeCategory, resolveChartColor, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
 
@@ -21,9 +21,22 @@ import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/mes
 interface ChartDataItem {
   category: string;
   value: number;
-  /** Status colour of a well-known state category (`RESOLVE_FAILED` → error); default series colour otherwise. */
+  /**
+   * Slice colour: the configured category colour, else the status colour of a well-known state
+   * category (`RESOLVE_FAILED` → error), else the theme palette colour of its position (AB#5622).
+   */
   color?: string;
 }
+
+/** Series label options of the pie / donut (one object per config, AB#5568). */
+interface PieChartLabelSettings {
+  visible: boolean;
+  content: (e: { category: string; value: number; percentage?: number }) => string;
+  position?: 'insideEnd' | 'outsideEnd';
+}
+
+/** Kendo label position per configured {@link PieChartWidgetConfig.labelPosition}. */
+const KENDO_LABEL_POSITION: Record<'inside' | 'outside', 'insideEnd' | 'outsideEnd'> = { inside: 'insideEnd', outside: 'outsideEnd' };
 
 /** Plot area options of the pie / donut (stable references, AB#5568). */
 export interface PieChartPlotArea {
@@ -58,14 +71,27 @@ const PLOT_AREA_WITHOUT_LABELS: PieChartPlotArea = Object.freeze({ background: '
         <kendo-chart class="chart-container" [plotArea]="plotArea()">
           <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
           <kendo-chart-series>
-            <kendo-chart-series-item
-              [type]="config.chartType"
-              [data]="chartData()"
-              field="value"
-              categoryField="category"
-              colorField="color"
-              [labels]="labelSettings()">
-            </kendo-chart-series-item>
+            <!-- Connector lines only bound when outside labels are configured (AB#5622); otherwise the Kendo default stays untouched. -->
+            @if (connectors(); as labelConnectors) {
+              <kendo-chart-series-item
+                [type]="config.chartType"
+                [data]="chartData()"
+                field="value"
+                categoryField="category"
+                colorField="color"
+                [labels]="labelSettings()"
+                [connectors]="labelConnectors">
+              </kendo-chart-series-item>
+            } @else {
+              <kendo-chart-series-item
+                [type]="config.chartType"
+                [data]="chartData()"
+                field="value"
+                categoryField="category"
+                colorField="color"
+                [labels]="labelSettings()">
+              </kendo-chart-series-item>
+            }
           </kendo-chart-series>
           <kendo-chart-legend
             [visible]="config.showLegend !== false"
@@ -184,7 +210,8 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   /** Keeps its reference while categories, values and colours are unchanged (AB#5568). */
   readonly chartData = computed<ChartDataItem[]>(() => {
     this.chartTheme();
-    return this._rawData().map(item => this.toItem(item.category, item.value));
+    const palette = chartSeriesColors();
+    return this._rawData().map((item, index) => this.toItem(item.category, item.value, index, palette));
   }, { equal: sameChartItems });
   readonly error = this._error.asReadonly();
 
@@ -218,7 +245,8 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
    * chart on every hover (AB#5568).
    */
   plotArea(): PieChartPlotArea {
-    return this.config?.showLabels === true ? PLOT_AREA_WITH_LABELS : PLOT_AREA_WITHOUT_LABELS;
+    const outsideLabels = this.config?.showLabels === true && this.config?.labelPosition !== 'inside' && this.config?.labelPosition !== 'none';
+    return outsideLabels ? PLOT_AREA_WITH_LABELS : PLOT_AREA_WITHOUT_LABELS;
   }
 
   /** Margin of the plot area (see `plotArea`). */
@@ -255,9 +283,25 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
    * Human label and status colour for a raw category value (exposed for tests). The label is the
    * host resolver's text (AB#5622), else the humanized category; the colour still follows the raw value.
    */
-  toItem(rawCategory: string, value: number): ChartDataItem {
+  toItem(rawCategory: string, value: number, index = 0, palette: readonly string[] = chartSeriesColors()): ChartDataItem {
+    const category = this.categoryLabel(rawCategory);
     const status = categoryStatus(rawCategory);
-    return { category: this.categoryLabel(rawCategory), value, ...(status ? { color: statusColor(status) } : {}) };
+    const color = this.configuredColor(rawCategory, category)
+      ?? (status ? statusColor(status) : undefined)
+      ?? (palette.length ? palette[index % palette.length] : undefined);
+    return { category, value, ...(color ? { color } : {}) };
+  }
+
+  /** The `categoryColors` entry of a category (raw value, case-insensitive, then the label), resolved. */
+  private configuredColor(rawCategory: string, label: string): string | undefined {
+    const colors = this.config?.categoryColors;
+    if (!colors) {
+      return undefined;
+    }
+    const lower = rawCategory.toLowerCase();
+    const key = rawCategory in colors ? rawCategory
+      : Object.keys(colors).find(k => k.toLowerCase() === lower) ?? (label in colors ? label : undefined);
+    return key !== undefined ? resolveChartColor(colors[key]) : undefined;
   }
 
   /** Display name of a raw category: the host label resolver, else `humanizeCategory`. */
@@ -273,17 +317,30 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     return resolveMeshBoardLabel(this.labelResolver, { kind: 'chartCategory', attribute, value: rawCategory, defaultText });
   }
 
-  private readonly _labelSettings = signal<{ visible: boolean; content: (e: { category: string; value: number }) => string }>({
+  private readonly _labelSettings = signal<PieChartLabelSettings>({
     visible: false,
     content: (e) => e.category
   });
   /** Series label options incl. the theme text colour (new object only when either changes). */
   readonly labelSettings = computed(() => ({ ...this._labelSettings(), color: this.chartTheme().text }));
 
+  /** Connector lines of outside labels: theme coloured when `labelPosition: 'outside'` is set, else the chart default (AB#5622). */
+  private readonly _explicitOutsideLabels = signal(false);
+  readonly connectors = computed(() => this._explicitOutsideLabels()
+    ? { color: this.chartTheme().muted, width: 1, padding: 4 }
+    : undefined);
+
   private updateLabelSettings(): void {
+    const position = this.config?.labelPosition;
+    const minPercent = Math.max(0, Number(this.config?.hideLabelsBelowPercent) || 0);
+    this._explicitOutsideLabels.set(this.config?.showLabels === true && position === 'outside');
     this._labelSettings.set({
-      visible: this.config?.showLabels === true,
-      content: (e: { category: string; value: number }) => {
+      visible: this.config?.showLabels === true && position !== 'none',
+      ...(position === 'inside' || position === 'outside' ? { position: KENDO_LABEL_POSITION[position] } : {}),
+      content: (e: { category: string; value: number; percentage?: number }) => {
+        if (minPercent > 0 && typeof e.percentage === 'number' && e.percentage * 100 < minPercent) {
+          return '';
+        }
         const maxLen = 20;
         const name = e.category.length > maxLen ? e.category.substring(0, maxLen) + '...' : e.category;
         return `${name}: ${this.formatValue(e.value)}`;

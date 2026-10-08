@@ -40,7 +40,10 @@ export {
   categoryStatus,
   humanizeCategory,
   statusColor,
-  observeThemeChanges
+  observeThemeChanges,
+  chartSeriesColors,
+  resolveChartColor,
+  FALLBACK_SERIES_COLORS
 } from './lib/utils/chart-categories';
 export type { CategoryStatus } from './lib/utils/chart-categories';
 

@@ -1,4 +1,4 @@
-import { categoryStatus, chartThemeColors, humanizeCategory, observeThemeChanges, responsiveLegendPosition, sameChartItems, statusColor, themeSignature } from './chart-categories';
+import { categoryStatus, chartSeriesColors, chartThemeColors, FALLBACK_SERIES_COLORS, humanizeCategory, observeThemeChanges, resolveChartColor, responsiveLegendPosition, sameChartItems, statusColor, themeSignature } from './chart-categories';
 
 describe('chart categories', () => {
   it('humanizes enum-style categories only', () => {
@@ -115,5 +115,43 @@ describe('chart categories', () => {
     expect(categoryStatus('Enabled')).toBe('success');
     expect(categoryStatus('Hibernated')).toBe('info');
     expect(categoryStatus('Waking')).toBe('warning');
+  });
+});
+
+describe('chart palette (AB#5622)', () => {
+  const root = document.documentElement;
+  const props = ['--theme-chart-1', '--theme-chart-2', '--kendo-chart-series-1', '--kendo-chart-series-2', '--brand-paid'];
+  afterEach(() => props.forEach(p => root.style.removeProperty(p)));
+
+  it('prefers the host chart tokens', () => {
+    root.style.setProperty('--theme-chart-1', 'rgb(100, 206, 185)');
+    root.style.setProperty('--theme-chart-2', 'rgb(0, 168, 220)');
+    root.style.setProperty('--kendo-chart-series-1', 'rgb(1, 2, 3)');
+    expect(chartSeriesColors()).toEqual(['rgb(100, 206, 185)', 'rgb(0, 168, 220)']);
+  });
+
+  it('falls back to the Kendo series tokens, then to the fixed palette (never empty, never black)', () => {
+    root.style.setProperty('--kendo-chart-series-1', 'rgb(1, 2, 3)');
+    expect(chartSeriesColors()).toEqual(['rgb(1, 2, 3)']);
+    root.style.removeProperty('--kendo-chart-series-1');
+    expect(chartSeriesColors()).toEqual([...FALLBACK_SERIES_COLORS]);
+    expect(FALLBACK_SERIES_COLORS).not.toContain('#000000');
+  });
+
+  it('is part of the theme signature, so a palette change re-colours the charts', () => {
+    const before = themeSignature();
+    root.style.setProperty('--theme-chart-1', 'rgb(9, 9, 9)');
+    expect(themeSignature()).not.toBe(before);
+  });
+
+  it('resolves configured colours: CSS colour, custom property, var() with fallback, status name', () => {
+    root.style.setProperty('--brand-paid', 'rgb(47, 179, 122)');
+    expect(resolveChartColor('#123456')).toBe('#123456');
+    expect(resolveChartColor('--brand-paid')).toBe('rgb(47, 179, 122)');
+    expect(resolveChartColor('var(--brand-paid)')).toBe('rgb(47, 179, 122)');
+    expect(resolveChartColor('var(--missing, #abcdef)')).toBe('#abcdef');
+    expect(resolveChartColor('--missing')).toBeUndefined();
+    expect(resolveChartColor('error')).toBe(statusColor('error'));
+    expect(resolveChartColor('')).toBeUndefined();
   });
 });

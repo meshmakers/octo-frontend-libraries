@@ -120,6 +120,77 @@ export function chartThemeColors(doc: Document | null = typeof document !== 'und
   return chartThemeColorsFrom(computedRootStyle(doc));
 }
 
+/** Fixed series colours, the last resort when the host theme defines no chart palette (or no CSS). */
+export const FALLBACK_SERIES_COLORS: readonly string[] = Object.freeze(['#3b9eff', '#2fb37a', '#e0a43a', '#c861d6', '#64ceb9', '#da9162', '#6c4da8', '#8a94a0']);
+
+const SERIES_TOKEN_PREFIXES = ['--theme-chart-', '--kendo-chart-series-'];
+const KENDO_SERIES_LETTERS = ['a', 'b', 'c', 'd', 'e', 'f'];
+const MAX_SERIES_TOKENS = 12;
+
+/** A resolved custom property value usable as an SVG fill (non-empty, no unresolved `var()`, a valid colour where checkable). */
+function isUsableColor(value: string | undefined): value is string {
+  if (!value || value.includes('var(')) {
+    return false;
+  }
+  return typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || CSS.supports('color', value);
+}
+
+function chartSeriesColorsFrom(style: CSSStyleDeclaration | null): string[] {
+  for (const prefix of SERIES_TOKEN_PREFIXES) {
+    const colors: string[] = [];
+    for (let i = 1; i <= MAX_SERIES_TOKENS; i++) {
+      const value = style?.getPropertyValue(`${prefix}${i}`).trim();
+      if (isUsableColor(value)) {
+        colors.push(value);
+      }
+    }
+    if (colors.length) {
+      return colors;
+    }
+  }
+  const kendo = KENDO_SERIES_LETTERS.map(letter => style?.getPropertyValue(`--kendo-color-series-${letter}`).trim()).filter(isUsableColor);
+  return kendo.length ? kendo : [...FALLBACK_SERIES_COLORS];
+}
+
+/**
+ * The categorical chart palette of the current theme (AB#5622): the host's `--theme-chart-1…12`
+ * (Studio tokens), else the Kendo theme's `--kendo-chart-series-1…12`, else
+ * `--kendo-color-series-a…f`, else {@link FALLBACK_SERIES_COLORS}. Values that are empty, still
+ * contain `var()` or are no valid colour are skipped — Kendo resolves its series colours once per
+ * page load, and a token it could not resolve rendered a slice black in dark mode. The charts set
+ * these colours explicitly on every data item, so the palette also follows a live theme switch.
+ */
+export function chartSeriesColors(doc: Document | null = typeof document !== 'undefined' ? document : null): string[] {
+  return chartSeriesColorsFrom(computedRootStyle(doc));
+}
+
+/**
+ * Resolves a configured colour (per-category colour of a chart, AB#5622): a status name
+ * (`success`, `warning`, `error`, `info` → theme status colour), a custom property (`--brand-paid`
+ * or `var(--brand-paid, #2fb37a)`) read from the document root, or any CSS colour (`#2fb37a`,
+ * `rgb(…)`) used as it is. Returns `undefined` when it cannot be resolved (the default colour applies).
+ */
+export function resolveChartColor(token: string | null | undefined, doc: Document | null = typeof document !== 'undefined' ? document : null): string | undefined {
+  const text = token?.trim();
+  if (!text) {
+    return undefined;
+  }
+  if (text === 'success' || text === 'warning' || text === 'error' || text === 'info') {
+    return statusColor(text, doc);
+  }
+  const variable = /^var\(\s*(--[\w-]+)\s*(?:,\s*(.+))?\)$/.exec(text);
+  const name = text.startsWith('--') ? text : variable?.[1];
+  if (name) {
+    const value = computedRootStyle(doc)?.getPropertyValue(name).trim();
+    if (isUsableColor(value)) {
+      return value;
+    }
+    const fallback = variable?.[2]?.trim();
+    return isUsableColor(fallback) ? fallback : undefined;
+  }
+  return isUsableColor(text) ? text : undefined;
+}
+
 /**
  * What the charts' resolved colours depend on: the `data-theme` attribute, the OS colour scheme,
  * the resolved status colours and the chart text / line colours. `class` / `style` of `<html>` are deliberately not part of it —
@@ -130,7 +201,7 @@ export function themeSignature(doc: Document | null = typeof document !== 'undef
   // One style computation per signature (it runs on every <html> mutation).
   const style = computedRootStyle(doc);
   const text = chartThemeColorsFrom(style);
-  const colors = [...(['success', 'warning', 'error', 'info'] as CategoryStatus[]).map(status => statusColorFrom(status, style)), text.text, text.muted, text.grid].join(',');
+  const colors = [...(['success', 'warning', 'error', 'info'] as CategoryStatus[]).map(status => statusColorFrom(status, style)), text.text, text.muted, text.grid, ...chartSeriesColorsFrom(style)].join(',');
   return `${doc?.documentElement?.getAttribute('data-theme') ?? ''}|${dark ? 'dark' : 'light'}|${colors}`;
 }
 

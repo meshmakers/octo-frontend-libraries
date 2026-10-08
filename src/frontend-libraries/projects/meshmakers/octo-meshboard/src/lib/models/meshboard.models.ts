@@ -535,7 +535,27 @@ export interface PieChartWidgetConfig extends WidgetConfig {
   legendPosition?: 'top' | 'bottom' | 'left' | 'right';
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /**
+   * Colour per category (AB#5622), keyed by the raw category value (`PAID`; case-insensitive) or
+   * its displayed label. Value: a hex / CSS colour, a custom property (`--brand-paid`,
+   * `var(--brand-paid, #2fb37a)`) or a status name (`success`, `warning`, `error`, `info`).
+   * Categories without an entry keep the default (status colour, else the theme palette).
+   */
+  categoryColors?: Record<string, string>;
+  /**
+   * Where slice labels sit while `showLabels` is on (AB#5622): `outside` (with connector lines),
+   * `inside` or `none` (no labels). Absent = the chart default (outside, unchanged).
+   */
+  labelPosition?: PieChartLabelPosition;
+  /**
+   * Overlap handling (AB#5622): slices smaller than this share of the total (in percent, e.g. `3`)
+   * get no label, so small neighbours do not overlap. Absent / 0 = every slice is labelled.
+   */
+  hideLabelsBelowPercent?: number;
 }
+
+/** Slice label position of a pie / donut chart (AB#5622). */
+export type PieChartLabelPosition = 'inside' | 'outside' | 'none';
 
 /**
  * Bar Chart types available

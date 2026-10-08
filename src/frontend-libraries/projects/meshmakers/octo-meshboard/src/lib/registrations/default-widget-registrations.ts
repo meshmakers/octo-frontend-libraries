@@ -997,7 +997,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowLabels: pieWidget.showLabels,
         initialShowLegend: pieWidget.showLegend,
         initialLegendPosition: pieWidget.legendPosition,
-        initialFilters: pieWidget.filters
+        initialFilters: pieWidget.filters,
+        initialCategoryColors: pieWidget.categoryColors,
+        initialLabelPosition: pieWidget.labelPosition,
+        initialHideLabelsBelowPercent: pieWidget.hideLabelsBelowPercent
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1038,7 +1041,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLabels: result.showLabels,
         showLegend: result.showLegend,
         legendPosition: result.legendPosition,
-        filters
+        filters,
+        categoryColors: result.categoryColors,
+        labelPosition: result.labelPosition,
+        hideLabelsBelowPercent: result.hideLabelsBelowPercent
       };
     },
 
@@ -1074,7 +1080,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
             legendPosition: widget.legendPosition,
             ckQueryTarget: ckDataSource.queryTarget,
             ckGroupBy: ckDataSource.groupBy,
-            filters: widget.filters
+            filters: widget.filters,
+            ...pieChartPresentationConfig(widget)
           }
         };
       }
@@ -1101,7 +1108,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           ...((dataSource as PersistentQueryDataSource).entitySelectorId && {
             entitySelectorId: (dataSource as PersistentQueryDataSource).entitySelectorId
           }),
-          filters: widget.filters
+          filters: widget.filters,
+          ...pieChartPresentationConfig(widget)
         }
       };
     },
@@ -1127,7 +1135,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           showLabels: (config['showLabels'] as boolean) ?? false,
           showLegend: (config['showLegend'] as boolean) ?? true,
           legendPosition: (config['legendPosition'] as PieChartWidgetConfig['legendPosition']) ?? 'right',
-          filters: config['filters'] as WidgetFilterConfig[] | undefined
+          filters: config['filters'] as WidgetFilterConfig[] | undefined,
+          ...readPieChartPresentationConfig(config)
         };
       }
 
@@ -1145,7 +1154,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showLabels: (config['showLabels'] as boolean) ?? false,
         showLegend: (config['showLegend'] as boolean) ?? true,
         legendPosition: (config['legendPosition'] as PieChartWidgetConfig['legendPosition']) ?? 'right',
-        filters: config['filters'] as WidgetFilterConfig[] | undefined
+        filters: config['filters'] as WidgetFilterConfig[] | undefined,
+        ...readPieChartPresentationConfig(config)
       };
     }
   });
@@ -2393,6 +2403,30 @@ export function provideDefaultWidgets(): EnvironmentProviders {
       registerDefaultWidgets(registry);
     })
   ]);
+}
+
+/**
+ * Optional presentation settings of a pie chart for the board JSON (AB#5622): written only when
+ * set, so boards without them persist exactly as before.
+ */
+function pieChartPresentationConfig(widget: PieChartWidgetConfig): Record<string, unknown> {
+  return {
+    ...(widget.categoryColors && Object.keys(widget.categoryColors).length ? { categoryColors: widget.categoryColors } : {}),
+    ...(widget.labelPosition ? { labelPosition: widget.labelPosition } : {}),
+    ...(widget.hideLabelsBelowPercent ? { hideLabelsBelowPercent: widget.hideLabelsBelowPercent } : {})
+  };
+}
+
+/** Reads {@link pieChartPresentationConfig} back; unknown or missing values are left out. */
+function readPieChartPresentationConfig(config: Record<string, unknown>): Partial<PieChartWidgetConfig> {
+  const colors = config['categoryColors'];
+  const position = config['labelPosition'];
+  const minPercent = config['hideLabelsBelowPercent'];
+  return {
+    ...(colors && typeof colors === 'object' && !Array.isArray(colors) ? { categoryColors: colors as Record<string, string> } : {}),
+    ...(position === 'inside' || position === 'outside' || position === 'none' ? { labelPosition: position } : {}),
+    ...(typeof minPercent === 'number' && minPercent > 0 ? { hideLabelsBelowPercent: minPercent } : {})
+  };
 }
 
 // ========== Main Provider Functions ==========
