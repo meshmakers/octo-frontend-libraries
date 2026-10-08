@@ -244,6 +244,30 @@ export interface ListViewMessages {
   pagerNextPage: string;
   /** Grid: no records message. Default: "No records available." */
   noRecords: string;
+  /** Empty state title while a search or filter matches nothing (`emptyState` set, AB#3444). Default: "No results". Optional. */
+  noResultsTitle?: string;
+  /** Empty state text while a search or filter matches nothing (AB#3444). Default: "Nothing matches the current search or filter." Optional. */
+  noResultsText?: string;
+}
+
+/**
+ * Texts of the list's shared empty state (`mm-list-view [emptyState]`, AB#3444). `title` / `text`
+ * describe a list without records ("No data flows yet"); the `filtered*` texts override the
+ * "no results" texts of {@link ListViewMessages} while a search or filter is active.
+ */
+export interface MmListEmptyState {
+  title: string;
+  text?: string | null;
+  filteredTitle?: string | null;
+  filteredText?: string | null;
+}
+
+/** Template context of `mm-list-view [emptyTemplate]` (AB#3444). */
+export interface MmListEmptyContext {
+  /** Same as `filtered`. */
+  $implicit: boolean;
+  /** A search, row filter or host filter is active (an empty list means "no results"). */
+  filtered: boolean;
 }
 
 /**
@@ -284,6 +308,8 @@ export const DEFAULT_LIST_VIEW_MESSAGES: Required<ListViewMessages> = {
   pagerPreviousPage: 'Go to the previous page',
   pagerNextPage: 'Go to the next page',
   noRecords: 'No records available.',
+  noResultsTitle: 'No results',
+  noResultsText: 'Nothing matches the current search or filter.',
 };
 
 /**

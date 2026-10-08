@@ -148,6 +148,26 @@ describe('AssistantPanelComponent', () => {
     expect(assistant.thread()).toEqual([]);
   });
 
+  it('greets an empty chat with the waving OctoBot once, and drops the greeting after the first message (AB#3444)', async () => {
+    const transport = new FakeAssistantTransport();
+    await setup(transport);
+    const greeting = (): HTMLElement | null => element.querySelector('[data-testid="assistant-greeting"]');
+    expect(greeting()?.textContent).toContain('Hi! How can I help?');
+    const bots = element.querySelectorAll('mm-octobot');
+    expect(bots.length).toBe(1);
+    expect(bots[0].getAttribute('data-animation')).toBe('wave');
+    expect(bots[0].getAttribute('aria-hidden')).toBe('true');
+
+    textarea().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    fixture.detectChanges();
+    expect(greeting()).toBeNull();
+  });
+
+  it('does not greet while the assistant is unavailable (AB#3444)', async () => {
+    await setup();
+    expect(element.querySelector('[data-testid="assistant-greeting"]')).toBeNull();
+  });
+
   it('sends through a ready transport and forwards proposal decisions to the service', async () => {
     const transport = new FakeAssistantTransport();
     await setup(transport);

@@ -3,5 +3,12 @@
   "dest": "../../../dist/meshmakers/shared-ui",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "assets": [
+    {
+      "input": "assets/octobot",
+      "glob": "**/*.{webp,png}",
+      "output": "assets/octobot"
+    }
+  ]
 }

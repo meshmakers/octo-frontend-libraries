@@ -38,6 +38,8 @@ npm run test:shared-ui
 | `EntitySelectInputComponent` | `mm-entity-select-input` | Autocomplete with dialog fallback |
 | `RowActionsComponent` | `mm-row-actions` | Row actions from `MmAction[]`: icon buttons, max 3 slots + overflow, focusable disabled reasons (AB#5570, `docs/actions.md`) |
 | `ActionButtonComponent` | `mm-action-button` | One `MmAction` as icon / text button (row, toolbar, page context) |
+| `OctoBotComponent` | `mm-octobot` | Animated mascot `<img>` from library assets (`OCTOBOT_ASSET_BASE_URL`), still under reduced motion; never in rows/tiles/buttons/toasts (AB#3444, `docs/octobot.md`) |
+| `EmptyStateComponent` | `mm-empty-state` | Empty (`idle`) / no-results (`look`) / error (no figure, "Try again") block; `mm-list-view [emptyState]` renders it once per list |
 
 ### Dialog Services Pattern
 

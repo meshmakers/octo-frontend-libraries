@@ -66,6 +66,8 @@ export * from './lib/import-strategy-dialog/import-strategy-dialog.component';
 export * from './lib/import-strategy-dialog/import-strategy-dialog.service';
 export * from './lib/services/window-state.service';
 export * from './lib/actions';
+export * from './lib/octobot/octobot.component';
+export * from './lib/empty-state/empty-state.component';
 
 import { EntitySelectDialogService } from './lib/entity-select-dialog/entity-select-dialog.service';
 import { SaveAsDialogService } from './lib/save-as-dialog';

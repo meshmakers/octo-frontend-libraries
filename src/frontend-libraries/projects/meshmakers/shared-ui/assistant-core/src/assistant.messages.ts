@@ -31,6 +31,10 @@ export interface AssistantMessages {
   send: string;
   stop: string;
   // --- Thread ---
+  /** Greeting of an empty chat, next to the waving OctoBot (AB#3444). */
+  greeting: string;
+  /** Shown next to the thinking OctoBot while a reply streams (AB#3444). */
+  thinking: string;
   conversationLabel: string;
   /** Screen-reader prefix of user turns. */
   youPrefix: string;
@@ -117,6 +121,8 @@ export const DEFAULT_ASSISTANT_MESSAGES: AssistantMessages = {
   composerPlaceholder: 'Ask something or type / for commands…',
   send: 'Send',
   stop: 'Stop',
+  greeting: 'Hi! How can I help?',
+  thinking: 'Thinking…',
   conversationLabel: 'Conversation',
   youPrefix: 'You: ',
   assistantPrefix: 'Assistant: ',

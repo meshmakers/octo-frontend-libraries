@@ -16,6 +16,7 @@ import { SVGIconComponent } from '@progress/kendo-angular-icons';
 import { clockArrowRotateIcon, plusIcon, trashIcon, xIcon } from '@progress/kendo-svg-icons';
 import { AssistantComposerComponent } from '../composer/assistant-composer.component';
 import { AssistantThreadComponent } from '../thread/assistant-thread.component';
+import { OctoBotComponent } from '@meshmakers/shared-ui';
 
 /** Width of the panel before anyone resized it (CSS: 400 px, 340 px ≤ 1180 px), used until measured. */
 const FALLBACK_WIDTH = 400;
@@ -90,7 +91,7 @@ function writeStoredWidth(key: string | null, width: number | null): void {
  */
 @Component({
   selector: 'mm-assistant-panel',
-  imports: [AssistantThreadComponent, AssistantComposerComponent, SVGIconComponent],
+  imports: [AssistantThreadComponent, AssistantComposerComponent, SVGIconComponent, OctoBotComponent],
   templateUrl: './assistant-panel.component.html',
   styleUrl: './assistant-panel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -184,6 +185,14 @@ export class AssistantPanelComponent {
   protected readonly confirmingDelete = signal<string | null>(null);
   /** Session being opened or deleted (its buttons are disabled meanwhile). */
   protected readonly busySession = signal<string | null>(null);
+
+  /**
+   * Greeting of an empty chat (AB#3444): the OctoBot waves once, then rests on its still frame.
+   * Not shown while the assistant is unavailable (the panel says so instead).
+   */
+  protected readonly showGreeting = computed(() =>
+    this.view() === 'chat' && this.assistant.thread().length === 0 && this.connected()
+    && this.assistant.transportStatus() !== 'error');
 
   /** Starter questions on an empty thread (transports with `starterQuestions` only). */
   protected readonly showStarters = computed(() =>

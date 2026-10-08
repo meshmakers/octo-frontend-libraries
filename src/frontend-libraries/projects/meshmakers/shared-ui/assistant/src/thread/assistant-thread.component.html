@@ -10,7 +10,12 @@
           <span class="sr-only">{{ m().assistantPrefix }}</span>
           <div class="md" [innerHTML]="item.markdown | assistantMarkdown"></div>
           @if (item.streaming) {
-            <span class="streaming" aria-hidden="true">●</span>
+            <span class="streaming" data-testid="assistant-thinking">
+              <mm-octobot animation="thinking" size="sm" />
+              <span class="streaming-text">{{ m().thinking }}</span>
+            </span>
+          } @else if (item.id === lastAssistantId()) {
+            <mm-octobot class="settled" animation="thinking" size="sm" still data-testid="assistant-settled" />
           }
         </li>
       }

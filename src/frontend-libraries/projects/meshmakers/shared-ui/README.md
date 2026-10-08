@@ -137,6 +137,8 @@ Configurable data grid with Kendo Grid integration.
 
 **Features:** Pagination, sorting, filtering, row selection, search, context menus, action menus, Excel/PDF export, toolbar actions, column types (text, numeric, boolean, date, bytes, status icons, cron expressions).
 
+Empty state (AB#3444): `[emptyState]="{ title, text }"` shows the shared `mm-empty-state` (OctoBot `idle`) for a list without records and the "no results" variant (OctoBot `look`) while a search or filter is active; `[emptyTemplate]` replaces it. Without either the list keeps the plain "No records available." line.
+
 The toolbar's "Reset Filters" button only appears while something narrows the default view: a row filter, a column sort, a free-text search, or host-side filters. Hosts with their own quick-view/bar filters announce them via `[hasExternalFilters]="myBarFilterIsSet"` so the button shows (and `(resetFilters)` lets them clear those filters when it is clicked).
 
 ```html
@@ -194,6 +196,21 @@ and a canonical verb→icon map (`MM_ACTION_ICONS`). See [Actions](docs/actions.
 ```html
 <mm-row-actions [actions]="actionsFor(row)" [rowLabel]="row.name" (triggered)="onAction($event, row)" />
 <mm-action-button [action]="refresh" context="toolbar" (triggered)="reload()" />
+```
+
+### OctoBot (`mm-octobot`, `mm-empty-state`)
+
+The meshmakers mascot as a small animated pixel-art image (`idle`, `blink`, `look`, `swim`,
+`thinking`, `wave`; `sm`/`md`/`lg`), loaded by URL from the library assets (copy
+`node_modules/@meshmakers/shared-ui/assets/octobot` to `/assets/octobot` in `angular.json`;
+base URL via `OCTOBOT_ASSET_BASE_URL`). Decorative unless labelled; still frame under
+`prefers-reduced-motion`. `mm-empty-state` is the shared empty / no-results / error block, and
+`mm-list-view [emptyState]` renders it once per list. Placement rules (never in rows, tiles,
+buttons, toasts or errors): see [OctoBot](docs/octobot.md).
+
+```html
+<mm-octobot animation="wave" size="md" playOnce />
+<mm-list-view [emptyState]="{ title: 'No data flows yet', text: 'Create your first data flow.' }" ...></mm-list-view>
 ```
 
 ### EntitySelectInputComponent (`mm-entity-select-input`)
@@ -296,6 +313,7 @@ Data binding directive for `ListViewComponent`, managing data source and paginat
 ## Detailed Documentation
 
 - [Actions](docs/actions.md) — `mm-row-actions`, `mm-action-button`, `MmAction`, canonical icons
+- [OctoBot](docs/octobot.md) — `mm-octobot`, `mm-empty-state`, assets, placement rules
 - [Time Range Picker](docs/time-range-picker.md) — Full API reference, configuration, examples
 - [Unsaved Changes Guard](docs/unsaved-changes-guard.md) — Implementation guide with checklists
 - [Progress Window Usage](src/lib/progress-window/USAGE.md) — Progress dialog examples, migration from Angular Material

@@ -79,6 +79,40 @@ describe('AssistantThreadComponent', () => {
     expect(element.querySelector('.streaming')).not.toBeNull();
   });
 
+  it('shows the thinking OctoBot with text while a reply streams, then a still frame (AB#3444)', () => {
+    fixture.componentRef.setInput('items', [
+      { kind: 'user', id: 'u9', text: 'Which adapters are offline?' },
+      { kind: 'assistant', id: 'a9', markdown: 'Checking', streaming: true }
+    ]);
+    fixture.detectChanges();
+    const thinking = element.querySelector('[data-testid="assistant-thinking"]');
+    expect(thinking?.textContent).toContain('Thinking…');
+    expect(thinking?.querySelector('mm-octobot')?.getAttribute('data-animation')).toBe('thinking');
+    expect(thinking?.querySelector('mm-octobot')?.getAttribute('data-still')).toBeNull();
+    expect(element.textContent).not.toContain('●');
+
+    fixture.componentRef.setInput('items', [
+      { kind: 'user', id: 'u9', text: 'Which adapters are offline?' },
+      { kind: 'assistant', id: 'a9', markdown: 'Two adapters are offline.', streaming: false }
+    ]);
+    fixture.detectChanges();
+    expect(element.querySelector('[data-testid="assistant-thinking"]')).toBeNull();
+    const settled = element.querySelectorAll('mm-octobot');
+    expect(settled.length).toBe(1);
+    expect(settled[0].getAttribute('data-still')).toBe('true');
+  });
+
+  it('keeps the resting OctoBot on the newest assistant turn only (AB#3444)', () => {
+    fixture.componentRef.setInput('items', [
+      { kind: 'assistant', id: 'a1', markdown: 'One', streaming: false },
+      { kind: 'assistant', id: 'a2', markdown: 'Two', streaming: false }
+    ]);
+    fixture.detectChanges();
+    const bots = element.querySelectorAll('li.bot mm-octobot');
+    expect(bots.length).toBe(1);
+    expect(bots[0].closest('li')?.textContent).toContain('Two');
+  });
+
   it('forwards proposal buttons as decisions', () => {
     const decisions: AssistantProposalDecision[] = [];
     fixture.componentInstance.proposalDecision.subscribe(decision => decisions.push(decision));

@@ -1,4 +1,5 @@
 import type { Mock } from 'vitest';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
@@ -681,6 +682,54 @@ describe('MmTableComponent', () => {
     });
   });
 
+  describe('empty state (AB#3444)', () => {
+    const root = (): HTMLElement => fixture.nativeElement as HTMLElement;
+    const noRecords = (): HTMLElement | null => root().querySelector('.k-grid-norecords');
+
+    it('keeps the plain "No records available." line without an emptyState', () => {
+      expect(noRecords()?.textContent).toContain('No records available.');
+      expect(root().querySelector('mm-empty-state')).toBeNull();
+    });
+
+    it('shows one idle OctoBot with the list texts for a list without records', () => {
+      fixture.componentRef.setInput('emptyState', { title: 'No data flows yet', text: 'Create your first data flow.' });
+      fixture.detectChanges();
+      const states = root().querySelectorAll('mm-empty-state');
+      expect(states.length).toBe(1);
+      expect(states[0].getAttribute('data-variant')).toBe('empty');
+      expect(states[0].querySelector('mm-octobot')?.getAttribute('data-animation')).toBe('idle');
+      expect(states[0].textContent).toContain('No data flows yet');
+      expect(states[0].textContent).toContain('Create your first data flow.');
+      expect(root().querySelectorAll('mm-octobot').length).toBe(1);
+    });
+
+    it('shows the look OctoBot and the "no results" texts while a search is active', () => {
+      fixture.componentRef.setInput('emptyState', { title: 'No data flows yet' });
+      (component as unknown as { searchValue: string }).searchValue = 'pump';
+      fixture.detectChanges();
+      const state = root().querySelector('mm-empty-state');
+      expect(state?.getAttribute('data-variant')).toBe('no-results');
+      expect(state?.querySelector('mm-octobot')?.getAttribute('data-animation')).toBe('look');
+      expect(state?.textContent).toContain('No results');
+      expect(state?.textContent).toContain('Nothing matches the current search or filter.');
+    });
+
+    it('treats host filters as "no results" and takes translated texts from the messages', () => {
+      fixture.componentRef.setInput('emptyState', { title: 'No users yet' });
+      fixture.componentRef.setInput('hasExternalFilters', true);
+      fixture.componentRef.setInput('messages', { noResultsTitle: 'Keine Treffer' });
+      fixture.detectChanges();
+      expect(root().querySelector('mm-empty-state')?.textContent).toContain('Keine Treffer');
+    });
+
+    it('shows nothing while the list loads', () => {
+      fixture.componentRef.setInput('emptyState', { title: 'No data flows yet' });
+      (component as unknown as { isLoading: { set(v: boolean): void } }).isLoading.set(true);
+      fixture.detectChanges();
+      expect(root().querySelector('mm-empty-state')).toBeNull();
+    });
+  });
+
   describe('card mode (AB#4930)', () => {
     interface CardApi {
       containerWidth: {
@@ -777,5 +826,32 @@ describe('MmTableComponent', () => {
       expect(api().getToolbarItemDisabled(item)).toBe(true);
       expect(seen[2]).toEqual([]);
     });
+  });
+});
+
+@Component({
+  imports: [ListViewComponent],
+  template: `
+    <mm-list-view [emptyTemplate]="custom" [emptyState]="{ title: 'ignored' }"></mm-list-view>
+    <ng-template #custom let-filtered><p class="custom-empty">custom {{ filtered ? 'filtered' : 'empty' }}</p></ng-template>
+  `
+})
+class EmptyTemplateHostComponent {}
+
+describe('ListViewComponent emptyTemplate (AB#3444)', () => {
+  it('renders the host template instead of the shared empty state, with the filtered flag', async () => {
+    await TestBed.configureTestingModule({
+      imports: [EmptyTemplateHostComponent],
+      providers: [
+        provideNoopAnimations(),
+        { provide: Router, useValue: { navigate: vi.fn() } },
+        { provide: CommandSettingsService, useValue: { navigateRelativeToRoute: {}, commandItems: [] } }
+      ]
+    }).compileComponents();
+    const fixture = TestBed.createComponent(EmptyTemplateHostComponent);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('.custom-empty')?.textContent).toBe('custom empty');
+    expect(root.querySelector('mm-empty-state')).toBeNull();
   });
 });
