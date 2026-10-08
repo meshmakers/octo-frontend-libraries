@@ -171,12 +171,16 @@ export {
   provideDefaultWidgets,
   registerDefaultWidgets,
   provideMeshBoard,
+  provideMeshBoardMessages,
   provideWidgetRegistrations,
   MESHBOARD_OPTIONS,
   TENANT_ID_PROVIDER,
   MESHBOARD_TENANT_ID_PROVIDER  // @deprecated - use TENANT_ID_PROVIDER from @meshmakers/octo-services
 } from './lib/registrations/default-widget-registrations';
 export type { MeshBoardOptions, WidgetRegistration, TenantIdProvider } from './lib/registrations/default-widget-registrations';
+// Host translations of the widget texts (AB#5622)
+export { MESHBOARD_MESSAGES, DEFAULT_MESHBOARD_MESSAGES, resolveMeshBoardMessages } from './lib/utils/meshboard-messages';
+export type { MeshBoardMessages, MeshBoardMessagesSource } from './lib/utils/meshboard-messages';
 
 // Entity Selector Components
 export { EntitySelectorEditorComponent } from './lib/components/entity-selector-editor/entity-selector-editor.component';

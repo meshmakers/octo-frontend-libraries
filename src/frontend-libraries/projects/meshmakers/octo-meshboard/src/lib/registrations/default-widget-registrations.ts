@@ -1,4 +1,4 @@
-import { EnvironmentProviders, makeEnvironmentProviders, inject, provideAppInitializer } from '@angular/core';
+import { EnvironmentProviders, makeEnvironmentProviders, inject, provideAppInitializer, Provider } from '@angular/core';
 import { WidgetRegistryService, WidgetConfigResult, BaseWidgetConfig, PersistedWidgetData, WidgetPersistenceData } from '../services/widget-registry.service';
 import {
   AnyWidgetConfig,
@@ -2399,6 +2399,7 @@ export function provideDefaultWidgets(): EnvironmentProviders {
 
 import { InjectionToken } from '@angular/core';
 import { WidgetRegistration } from '../services/widget-registry.service';
+import { MESHBOARD_MESSAGES, MeshBoardMessagesSource } from '../utils/meshboard-messages';
 
 /**
  * Configuration options for MeshBoard
@@ -2412,6 +2413,11 @@ export interface MeshBoardOptions {
   defaultRowHeight?: number;
   /** Default gap between widgets in pixels (default: 16) */
   defaultGap?: number;
+  /**
+   * Host translations of the widget texts (AB#5622), provided as `MESHBOARD_MESSAGES` — e.g. the
+   * table widget's list texts. Fixed object or signal. Absent = English.
+   */
+  messages?: MeshBoardMessagesSource;
 }
 
 /**
@@ -2452,9 +2458,12 @@ export const MESHBOARD_TENANT_ID_PROVIDER = TENANT_ID_PROVIDER;
 export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProviders {
   const opts = { includeDefaultWidgets: true, ...options };
 
-  const providers = [
+  const providers: (Provider | EnvironmentProviders)[] = [
     { provide: MESHBOARD_OPTIONS, useValue: opts }
   ];
+  if (opts.messages) {
+    providers.push({ provide: MESHBOARD_MESSAGES, useValue: opts.messages });
+  }
 
   // Include default widgets unless explicitly disabled
   if (opts.includeDefaultWidgets !== false) {
@@ -2462,11 +2471,19 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
       provideAppInitializer(() => {
         const registry = inject(WidgetRegistryService);
         registerDefaultWidgets(registry);
-      }) as never
+      })
     );
   }
 
   return makeEnvironmentProviders(providers);
+}
+
+/**
+ * Provides the host translations of the MeshBoard widget texts (`MESHBOARD_MESSAGES`, AB#5622)
+ * without `provideMeshBoard()` — for apps that register the widgets lazily.
+ */
+export function provideMeshBoardMessages(messages: MeshBoardMessagesSource): EnvironmentProviders {
+  return makeEnvironmentProviders([{ provide: MESHBOARD_MESSAGES, useValue: messages }]);
 }
 
 /**

@@ -6,6 +6,7 @@ import { ListViewComponent, TableColumn as ListViewTableColumn, StatusMapping } 
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { formatTableCellValue } from '../../utils/meshboard-datetime';
 import { TableWidgetDataSourceDirective, QueryColumn } from './table-widget-data-source.directive';
+import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { SVGIcon, checkCircleIcon, xCircleIcon, exclamationCircleIcon, questionCircleIcon, minusCircleIcon, warningTriangleIcon, circleIcon } from '@progress/kendo-svg-icons';
 
 const ICON_MAP: Record<string, SVGIcon> = {
@@ -51,11 +52,12 @@ function resolveStatusMapping(config: Record<string, TableColumnStatusIconMappin
           [showRowCheckBoxes]="false"
           [showRowSelectAllCheckBox]="false"
           [rowIsClickable]="false"
+          [messages]="texts().tableList"
           (queryColumnsLoaded)="onQueryColumnsLoaded($event)">
         </mm-list-view>
       } @else {
         <div class="no-config-overlay">
-          <span>Table not configured</span>
+          <span>{{ texts().tableNotConfigured }}</span>
         </div>
       }
     </div>
@@ -93,6 +95,8 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   @ViewChild('dataSource') dataSource?: TableWidgetDataSourceDirective;
 
   private readonly stateService = inject(MeshBoardStateService);
+  /** Host texts (`MESHBOARD_MESSAGES`, AB#5622): list texts (empty state, pager, toolbar) and the placeholder. */
+  protected readonly texts = injectMeshBoardMessages();
 
   // Widget state signals
   private readonly _isLoading = signal(false);

@@ -40,3 +40,35 @@ describe('TableWidgetComponent — explicit columns', () => {
     expect(cmp.listViewColumns()[0].format).toBeUndefined();
   });
 });
+
+describe('TableWidgetComponent — host messages (AB#5622)', () => {
+  it('forwards MESHBOARD_MESSAGES list texts to mm-list-view', async () => {
+    const { MESHBOARD_MESSAGES } = await import('../../utils/meshboard-messages');
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MeshBoardStateService, useValue: { timeZoneMode: signal('local') } },
+        { provide: MESHBOARD_MESSAGES, useValue: { tableList: { noRecords: 'Keine Einträge vorhanden.', pagerItemsPerPage: 'Einträge pro Seite' }, tableNotConfigured: 'Tabelle nicht konfiguriert' } }
+      ]
+    });
+    const cmp = TestBed.runInInjectionContext(() => new TableWidgetComponent());
+    const texts = (cmp as unknown as { texts: () => { tableList?: { noRecords?: string; pagerItemsPerPage?: string }; tableNotConfigured: string } }).texts();
+    expect(texts.tableList?.noRecords).toBe('Keine Einträge vorhanden.');
+    expect(texts.tableList?.pagerItemsPerPage).toBe('Einträge pro Seite');
+    expect(texts.tableNotConfigured).toBe('Tabelle nicht konfiguriert');
+  });
+
+  it('renders the translated placeholder when the table is not configured', async () => {
+    const { MESHBOARD_MESSAGES } = await import('../../utils/meshboard-messages');
+    TestBed.configureTestingModule({
+      imports: [TableWidgetComponent],
+      providers: [
+        { provide: MeshBoardStateService, useValue: { timeZoneMode: signal('local') } },
+        { provide: MESHBOARD_MESSAGES, useValue: { tableNotConfigured: 'Tabelle nicht konfiguriert' } }
+      ]
+    });
+    const fixture = TestBed.createComponent(TableWidgetComponent);
+    fixture.componentInstance.config = { id: 'w', type: 'table', title: 'T', col: 1, row: 1, colSpan: 1, rowSpan: 1, columns: [] } as unknown as TableWidgetConfig;
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Tabelle nicht konfiguriert');
+  });
+});

@@ -278,6 +278,20 @@ interface TableWidgetConfig {
 }
 ```
 
+**Texts (AB#5622).** The list inside the table (`mm-list-view`) takes its texts from
+`MESHBOARD_MESSAGES` — "No records available.", pager texts, toolbar labels — merged over the
+English defaults; the host sets them once (fixed object or a signal for a runtime language switch):
+
+```typescript
+providers: [
+  provideMeshBoard({ messages: { tableList: { noRecords: 'Keine Einträge vorhanden.', pagerItemsPerPage: 'Einträge pro Seite' } } }),
+  // or, when the widgets are registered lazily (no provideMeshBoard()):
+  provideMeshBoardMessages(appMeshBoardMessages),
+]
+```
+
+`tableNotConfigured` translates the placeholder of an unconfigured table.
+
 ### Pie Chart Widget
 Displays data as pie or donut chart.
 
