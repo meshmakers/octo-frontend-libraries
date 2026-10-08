@@ -2,7 +2,7 @@ import { Injector, runInInjectionContext, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CkModelService, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import { CockpitContextService } from './cockpit-context.service';
-import { COCKPIT_LINK_RESOLVER, CockpitLinkResolver, provideCockpitWidgetHost } from './cockpit-host';
+import { COCKPIT_LINK_RESOLVER, CockpitLinkResolver, CockpitLinkTarget, legacyCockpitLinkTarget, provideCockpitWidgetHost } from './cockpit-host';
 import {
   COCKPIT_WIDGET_MESSAGES,
   CockpitWidgetMessages,
@@ -59,8 +59,47 @@ describe('CockpitContextService link targets (AB#5622)', () => {
   it('keeps semantic targets on the host resolver (null drops them)', () => {
     const context = setup({ resolve: target => target.kind === 'adapters' ? '/acme/communication/adapters' : null });
     expect(context.resolveLinkTarget({ kind: 'adapters' }, 'acme')).toEqual({ path: '/acme/communication/adapters' });
-    expect(context.resolveLinkTarget({ kind: 'pools' }, 'acme')).toBeNull();
+    expect(context.resolveLinkTarget({ kind: 'deployment-sites' }, 'acme')).toBeNull();
     expect(context.resolveLink({ kind: 'adapters' }, 'acme')).toBe('/acme/communication/adapters');
+  });
+
+  describe('deployment-site targets (AB#5842)', () => {
+    it('uses the host mapping of the new kinds when it has one', () => {
+      const resolve = vi.fn((target: CockpitLinkTarget) => {
+        if (target.kind === 'deployment-site') {
+          return `/acme/communication/deployment-sites/details/${target.rtId}`;
+        }
+        return target.kind === 'deployment-sites' ? '/acme/communication/deployment-sites' : null;
+      });
+      const context = setup({ resolve });
+      expect(context.resolveLinkTarget({ kind: 'deployment-site', rtId: 'p1' }, 'acme')).toEqual({ path: '/acme/communication/deployment-sites/details/p1' });
+      expect(context.resolveLinkTarget({ kind: 'deployment-sites' }, 'acme')).toEqual({ path: '/acme/communication/deployment-sites' });
+      expect(resolve).toHaveBeenCalledTimes(2);
+    });
+
+    it('falls back to the deprecated pool kinds for hosts that only map those', () => {
+      const legacyResolver: CockpitLinkResolver = {
+        resolve: target => {
+          switch (target.kind) {
+            case 'pool':
+              return `/acme/communication/pools/details/${target.rtId}`;
+            case 'pools':
+              return '/acme/communication/pools';
+            default:
+              return null;
+          }
+        }
+      };
+      const context = setup(legacyResolver);
+      expect(context.resolveLinkTarget({ kind: 'deployment-site', rtId: 'p1' }, 'acme')).toEqual({ path: '/acme/communication/pools/details/p1' });
+      expect(context.resolveLink({ kind: 'deployment-sites' }, 'acme')).toBe('/acme/communication/pools');
+    });
+
+    it('maps only deployment-site kinds to a legacy alias', () => {
+      expect(legacyCockpitLinkTarget({ kind: 'deployment-site', rtId: 'x' })).toEqual({ kind: 'pool', rtId: 'x' });
+      expect(legacyCockpitLinkTarget({ kind: 'deployment-sites' })).toEqual({ kind: 'pools' });
+      expect(legacyCockpitLinkTarget({ kind: 'adapters' })).toBeNull();
+    });
   });
 
   it('resolves route targets without a resolver, keeping path and query parameters', () => {

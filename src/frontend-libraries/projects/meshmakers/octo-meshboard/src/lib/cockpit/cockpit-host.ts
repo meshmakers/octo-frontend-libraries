@@ -59,17 +59,43 @@ export interface CockpitRouteLinkTarget {
  * What a finding or KPI links to — semantic targets, so the library holds no application routes.
  * The host maps them to its own URLs (`CockpitLinkResolver`); `route` targets carry the route
  * themselves.
+ *
+ * Deployment sites (System.Communication 4.x, AB#5842): the library emits `deployment-site` /
+ * `deployment-sites`. `pool` / `pools` are their deprecated pre-4.x aliases, kept so existing
+ * resolvers still compile; a resolver that answers `null` for a deployment-site kind is asked once
+ * more with the legacy alias (`legacyCockpitLinkTarget`), so hosts keep their links until they map
+ * the new kinds.
  */
 export type CockpitLinkTarget =
   | { kind: 'adapter'; rtId: string }
   | { kind: 'adapters' }
+  | { kind: 'deployment-site'; rtId: string }
+  | { kind: 'deployment-sites' }
+  /** @deprecated Since System.Communication 4.x (AB#5842): use `deployment-site`. */
   | { kind: 'pool'; rtId: string }
+  /** @deprecated Since System.Communication 4.x (AB#5842): use `deployment-sites`. */
   | { kind: 'pools' }
   | { kind: 'dataFlows' }
   | { kind: 'ckModels' }
   | { kind: 'tenantSettings' }
   | { kind: 'secretsReEntry' }
   | CockpitRouteLinkTarget;
+
+/**
+ * The deprecated pre-4.x alias of a deployment-site target (`deployment-site` → `pool`,
+ * `deployment-sites` → `pools`), or `null` for every other target. Used as the fallback when a
+ * host's resolver has no page for the new kind yet (AB#5842).
+ */
+export function legacyCockpitLinkTarget(target: CockpitLinkTarget): CockpitLinkTarget | null {
+  switch (target.kind) {
+    case 'deployment-site':
+      return { kind: 'pool', rtId: target.rtId };
+    case 'deployment-sites':
+      return { kind: 'pools' };
+    default:
+      return null;
+  }
+}
 
 /** A link target resolved for `routerLink` (path or commands) and `queryParams`. */
 export interface CockpitResolvedLink {

@@ -1,8 +1,10 @@
-# Cockpit widgets (AB#5558): pools no Communication Operator has registered
-# for. Adapters and applications of such a pool are never rolled out.
+# Cockpit widgets (AB#5558): deployment sites (System.Communication 4.x,
+# formerly "pools") no Communication Operator has registered for. Adapters and
+# applications hosted by such a site are never rolled out. File and operation
+# name keep "Pools" so the generated identifiers stay stable (AB#5842).
 query cockpitUnregisteredPools($first: Int) {
   runtime {
-    systemCommunicationPool(
+    systemCommunicationDeploymentSite(
       first: $first
       fieldFilter: [{ attributePath: "communicationState", operator: EQUALS, comparisonValue: "UNREGISTERED" }]
       sortOrder: [{ attributePath: "name", sortOrder: ASCENDING }]

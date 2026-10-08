@@ -420,7 +420,7 @@ providers: [
 
 | Type | Label | Shows | Gate (per check / KPI) | Persisted `config` |
 |------|-------|-------|------------------------|--------------------|
-| `attentionList` | Attention List | Findings, errors first: CK models in ResolveFailed, adapters in error / offline > 10 min, failed pipeline executions in 24 h above a threshold, pools not registered, features enabled but not installed, plus host checks (Refinery Studio: secrets needing re-entry) | each provider: AdminPanelManagement / CommunicationManagement + `System.Communication` / TenantManagement | `{ "providerIds"?: string[], "maxItems"?: number, "showExplain"?: boolean }` — no `providerIds` = all checks, including ones added later |
+| `attentionList` | Attention List | Findings, errors first: CK models in ResolveFailed, adapters in error / offline > 10 min, failed pipeline executions in 24 h above a threshold, deployment sites not registered (provider id `pools-unregistered`, kept stable for persisted `providerIds`), features enabled but not installed, plus host checks (Refinery Studio: secrets needing re-entry) | each provider: AdminPanelManagement / CommunicationManagement + `System.Communication` / TenantManagement | `{ "providerIds"?: string[], "maxItems"?: number, "showExplain"?: boolean }` — no `providerIds` = all checks, including ones added later |
 | `adapterStatus` | Adapter Status | Adapters online / expected to run (shared rule `utils/adapter-online.ts`) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean }` |
 | `ckModelState` | CK Model State | CK models available / all; ResolveFailed = error, importing = warning | AdminPanelManagement | `{ "showDetail"?: boolean }` |
 | `recentItems` | Recent Items | The viewer's recently opened pages, entities and boards (most recent first, glyph, kind, relative time as `<time>`), real links; optional "⌘K shows the same list" | none — per user, from the host's `COCKPIT_RECENT_ITEMS`; without it "Not available" + collapsed | `{ "maxItems"?: number }` (default 8, 1–20) |
@@ -436,8 +436,11 @@ providers: [
   close up, `collapseEmptyRows`). An attention list never claims "All clear" without visible checks.
 - **Errors** never show raw messages: tiles say "The figure could not be loaded." (details in the console).
 - **Links.** Findings and KPI tiles carry semantic `CockpitLinkTarget`s (`adapter`, `adapters`,
-  `pool`, `pools`, `dataFlows`, `ckModels`, `tenantSettings`, `secretsReEntry`); the host's
-  `COCKPIT_LINK_RESOLVER` maps them to URLs, `null` drops the chip. Host providers may also link
+  `deployment-site`, `deployment-sites`, `dataFlows`, `ckModels`, `tenantSettings`, `secretsReEntry`;
+  `pool` / `pools` are the deprecated pre-System.Communication-4.x aliases); the host's
+  `COCKPIT_LINK_RESOLVER` maps them to URLs, `null` drops the chip. When the resolver answers `null`
+  for a deployment-site kind, the context asks once more with the legacy alias
+  (`legacyCockpitLinkTarget`), so hosts that only map `pool` / `pools` keep their links (AB#5842). Host providers may also link
   straight to their own pages (AB#5622): `{ kind: 'route', path, queryParams? }` — `path` is a URL
   path or router commands (`['/', tenantId, 'documents']`), navigated with `routerLink` +
   `queryParams`; relative paths resolve against the route that renders the board. The resolver

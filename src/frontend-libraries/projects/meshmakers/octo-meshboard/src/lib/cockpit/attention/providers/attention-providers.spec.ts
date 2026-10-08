@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { filter, firstValueFrom, of, throwError } from 'rxjs';
 import { AssetRepoService, CkModelService, CONFIGURATION_SERVICE, TenantFeaturesStatus } from '@meshmakers/octo-services';
-import { CockpitUnregisteredPoolsDtoGQL } from '../../../graphQL/cockpitUnregisteredPools';
+import { print } from 'graphql';
+import { CockpitUnregisteredPoolsDocumentDto, CockpitUnregisteredPoolsDtoGQL } from '../../../graphQL/cockpitUnregisteredPools';
 import { COCKPIT_ROLES, COCKPIT_VIEWER_ACCESS } from '../../cockpit-host';
 import { COCKPIT_WIDGET_MESSAGES } from '../../cockpit-messages';
 import { CockpitDataFlowExecutionsService, CockpitDataFlowRow } from '../../data/cockpit-data-flow-executions.service';
@@ -93,7 +94,7 @@ describe('cockpit attention providers', () => {
     });
   });
 
-  describe('pools not registered', () => {
+  describe('deployment sites not registered (provider id pools-unregistered)', () => {
     const provider = () => TestBed.inject(UnregisteredPoolsAttentionProvider);
 
     it('needs CommunicationManagement and the System.Communication model', async () => {
@@ -105,20 +106,33 @@ describe('cockpit attention providers', () => {
       expect(await provider().isVisible()).toBe(false);
     });
 
-    it('links a single unregistered pool directly', async () => {
-      pools.fetch.mockReturnValue(of({ data: { runtime: { systemCommunicationPool: { totalCount: 1, items: [{ rtId: RT('p'), name: 'Default Cloud' }] } } } }));
-      const [found] = await firstValueFrom(provider().load());
-      expect(found).toMatchObject({ severity: 'warning', title: 'Pool "Default Cloud" is not registered' });
-      expect(found.links[0].target).toEqual({ kind: 'pool', rtId: RT('p') });
+    it('keeps its persisted provider id (AB#5842: deployment sites, id unchanged)', () => {
+      expect(provider().id).toBe('pools-unregistered');
+      expect(provider().label).toBe('Deployment sites not registered');
     });
 
-    it('summarises several pools and reports nothing when there are none', async () => {
-      pools.fetch.mockReturnValue(of({ data: { runtime: { systemCommunicationPool: { totalCount: 2, items: [{ rtId: RT('p'), name: 'a' }, { rtId: RT('q'), name: 'b' }] } } } }));
-      const [found] = await firstValueFrom(provider().load());
-      expect(found.title).toBe('2 pools not registered');
-      expect(found.links).toEqual([{ label: 'Open pools', target: { kind: 'pools' } }]);
+    it('queries System.Communication 4.x deployment sites', () => {
+      const text = print(CockpitUnregisteredPoolsDocumentDto);
+      expect(text).toContain('systemCommunicationDeploymentSite(');
+      expect(text).not.toContain('systemCommunicationPool');
+    });
 
-      pools.fetch.mockReturnValue(of({ data: { runtime: { systemCommunicationPool: { totalCount: 0, items: [] } } } }));
+    it('links a single unregistered deployment site directly', async () => {
+      pools.fetch.mockReturnValue(of({ data: { runtime: { systemCommunicationDeploymentSite: { totalCount: 1, items: [{ rtId: RT('p'), name: 'Default Cloud' }] } } } }));
+      const [found] = await firstValueFrom(provider().load());
+      expect(found).toMatchObject({ severity: 'warning', title: 'Deployment site "Default Cloud" is not registered' });
+      expect(found.links[0].target).toEqual({ kind: 'deployment-site', rtId: RT('p') });
+      expect(found.links[1].target).toEqual({ kind: 'deployment-sites' });
+      expect(found.explain).toMatchObject({ rtId: RT('p'), ckTypeId: 'System.Communication/DeploymentSite' });
+    });
+
+    it('summarises several deployment sites and reports nothing when there are none', async () => {
+      pools.fetch.mockReturnValue(of({ data: { runtime: { systemCommunicationDeploymentSite: { totalCount: 2, items: [{ rtId: RT('p'), name: 'a' }, { rtId: RT('q'), name: 'b' }] } } } }));
+      const [found] = await firstValueFrom(provider().load());
+      expect(found.title).toBe('2 deployment sites not registered');
+      expect(found.links).toEqual([{ label: 'Open deployment sites', target: { kind: 'deployment-sites' } }]);
+
+      pools.fetch.mockReturnValue(of({ data: { runtime: { systemCommunicationDeploymentSite: { totalCount: 0, items: [] } } } }));
       expect(await firstValueFrom(provider().load())).toEqual([]);
     });
   });

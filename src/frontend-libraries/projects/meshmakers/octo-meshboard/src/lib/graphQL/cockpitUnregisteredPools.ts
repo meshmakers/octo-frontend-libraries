@@ -8,12 +8,12 @@ export type CockpitUnregisteredPoolsQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type CockpitUnregisteredPoolsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemCommunicationPool?: { __typename?: 'SystemCommunicationPoolConnection', totalCount?: number | null, items?: Array<{ __typename?: 'SystemCommunicationPool', rtId: any, name?: string | null } | null> | null } | null } | null };
+export type CockpitUnregisteredPoolsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemCommunicationDeploymentSite?: { __typename?: 'SystemCommunicationDeploymentSiteConnection', totalCount?: number | null, items?: Array<{ __typename?: 'SystemCommunicationDeploymentSite', rtId: any, name?: string | null } | null> | null } | null } | null };
 
 export const CockpitUnregisteredPoolsDocumentDto = gql`
     query cockpitUnregisteredPools($first: Int) {
   runtime {
-    systemCommunicationPool(
+    systemCommunicationDeploymentSite(
       first: $first
       fieldFilter: [{attributePath: "communicationState", operator: EQUALS, comparisonValue: "UNREGISTERED"}]
       sortOrder: [{attributePath: "name", sortOrder: ASCENDING}]

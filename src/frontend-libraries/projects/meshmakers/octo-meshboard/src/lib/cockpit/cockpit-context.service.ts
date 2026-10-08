@@ -7,7 +7,8 @@ import {
   CockpitExplainTarget,
   CockpitLinkQueryParams,
   CockpitLinkTarget,
-  CockpitResolvedLink
+  CockpitResolvedLink,
+  legacyCockpitLinkTarget
 } from './cockpit-host';
 
 /**
@@ -82,11 +83,11 @@ export class CockpitContextService {
    * keep their path unless the resolver rewrites it, and always keep their query parameters.
    */
   resolveLinkTarget(target: CockpitLinkTarget, tenantId: string): CockpitResolvedLink | null {
-    let url: string | null;
-    try {
-      url = this.links?.resolve(target, tenantId) ?? null;
-    } catch {
-      url = null;
+    let url = this.resolveWithHost(target, tenantId);
+    if (url === null) {
+      // Hosts that predate System.Communication 4.x only map `pool` / `pools` (AB#5842).
+      const legacy = legacyCockpitLinkTarget(target);
+      url = legacy ? this.resolveWithHost(legacy, tenantId) : null;
     }
     if (target.kind !== 'route') {
       return url ? { path: url } : null;
@@ -100,6 +101,14 @@ export class CockpitContextService {
       return null;
     }
     return target.queryParams && Object.keys(target.queryParams).length > 0 ? { path, queryParams: { ...target.queryParams } } : { path };
+  }
+
+  private resolveWithHost(target: CockpitLinkTarget, tenantId: string): string | null {
+    try {
+      return this.links?.resolve(target, tenantId) ?? null;
+    } catch {
+      return null;
+    }
   }
 
   /** Whether "✦ Explain" buttons are shown. */
