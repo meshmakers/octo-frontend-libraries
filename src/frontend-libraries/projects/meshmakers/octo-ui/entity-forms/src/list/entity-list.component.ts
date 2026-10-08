@@ -101,6 +101,23 @@ export interface EntityListCellLabels {
   notConfigured?: string;
 }
 
+/**
+ * How BOOLEAN list columns without an explicit `display` render (AB#5623): `'text'` (Yes / No,
+ * default) or `'icon'` (check / x icon named "<column>: Yes|No", filterable as boolean).
+ */
+export type EntityListBooleanDisplay = 'text' | 'icon';
+
+/** Options of {@link toEntityListColumn}. */
+export interface EntityListColumnOptions {
+  /** See {@link EntityListBooleanDisplay}. Default `'text'`. */
+  booleanDisplay?: EntityListBooleanDisplay;
+}
+
+/** Whether a column is a single (non-array) BOOLEAN attribute. */
+function isBooleanColumn(column: ResolvedListColumn): boolean {
+  return (column.valueType ?? '').toUpperCase() === 'BOOLEAN';
+}
+
 /** Whether a column's cells need formatting by CK value type (enum names, yes/no). */
 function isFormattedType(column: ResolvedListColumn): boolean {
   const type = (column.valueType ?? '').toUpperCase().replace(/_ARRAY$/, '');
@@ -136,6 +153,7 @@ export function toEntityListColumn(
   column: ResolvedListColumn,
   labels: EntityListCellLabels = {},
   unsetPlaceholders?: EntityFormUnsetPlaceholderLookup,
+  options: EntityListColumnOptions = {},
 ): TableColumn {
   // AB#5623: a placeholder value of a non-secret attribute reads "Not configured".
   const placeholderValues = column.kind === 'attribute' && unsetPlaceholders && !isSecretValueType(column.valueType)
@@ -152,6 +170,12 @@ export function toEntityListColumn(
     ? { attributeName: column.field, valueType: column.valueType, isOptional: true, defaultValues: [], secret: false, enumOptions: column.enumOptions }
     : undefined;
   const format = (value: unknown): string => formatReferenceDisplayValue(value, attribute, labels) ?? '';
+  // AB#5623: boolean as icon — per column (`display: icon`) or for every plain BOOLEAN column.
+  const asIcon = isBooleanColumn(column)
+    && (column.display === 'icon' || (column.display === 'text' && options.booleanDisplay === 'icon'));
+  if (asIcon) {
+    return { ...base, dataType: 'booleanIcon' };
+  }
   switch (column.display) {
     case 'chip': {
       let badgeMapping = chipLabels(column, labels);
@@ -269,6 +293,12 @@ export class EntityListComponent {
    * absent = no row classes (unchanged). See {@link EntityListRowClass}.
    */
   readonly rowClass = input<EntityListRowClass | null | undefined>(undefined);
+  /**
+   * How BOOLEAN columns without an explicit display render (AB#5623): `'text'` (Yes / No, default)
+   * or `'icon'` (check / x with an accessible name, boolean filter). A column's own
+   * `display: icon` always renders as icon.
+   */
+  readonly booleanDisplay = input<EntityListBooleanDisplay>('text');
 
   /** "New" was confirmed; carries the concrete type (after the subtype picker for abstract types). */
   readonly createRequested = output<EntityListCreateRequest>();
@@ -284,6 +314,8 @@ export class EntityListComponent {
   protected readonly listViewMessages = computed(() => ({
     searchPlaceholder: this.msgs().searchPlaceholder,
     noRecords: this.msgs().emptyList,
+    booleanYes: this.msgs().toggleOn,
+    booleanNo: this.msgs().toggleOff,
   }));
 
   protected readonly columns = computed<TableColumn[]>(() => {
@@ -292,7 +324,7 @@ export class EntityListComponent {
     const model = this.model();
     const secrets = new Set(model.secretFields.map((f) => f.toLowerCase()));
     const columns = localizeEntityListColumns(model, this.labelResolver() ?? this.injectedLabelResolver)
-      .map((c) => toEntityListColumn(c, labels, secrets.has(c.field.toLowerCase()) ? undefined : this.unsetPlaceholders));
+      .map((c) => toEntityListColumn(c, labels, secrets.has(c.field.toLowerCase()) ? undefined : this.unsetPlaceholders, { booleanDisplay: this.booleanDisplay() }));
     if (this.showTypeColumn() && !columns.some((c) => c.field === 'ckTypeId')) {
       const titles = this.typeTitles();
       const changed = columns.findIndex((c) => c.field === 'rtChangedDateTime');

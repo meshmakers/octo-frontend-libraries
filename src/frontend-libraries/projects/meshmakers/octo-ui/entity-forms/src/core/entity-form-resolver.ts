@@ -557,7 +557,7 @@ function listColumnType(attribute: CkAttributeInfo): Pick<ResolvedListColumn, 'v
 
 function normaliseDisplay(display: string | null | undefined, valueType: string): ResolvedListColumn['display'] {
   const d = (display ?? '').trim().toLowerCase();
-  if (d === 'text' || d === 'chip' || d === 'date' || d === 'mono') {
+  if (d === 'text' || d === 'chip' || d === 'date' || d === 'mono' || d === 'icon') {
     return d;
   }
   return isDateType(valueType) ? 'date' : 'text';

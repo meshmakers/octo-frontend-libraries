@@ -10,6 +10,23 @@
         <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(element, column))" [disabled]="true"
                         [inputAttributes]="booleanCellAttributes(column)" />
       }
+      @case ('booleanIcon') {
+        <!-- Boolean as icon (AB#5623): named "<column>: Yes|No" like the status icons (G13). -->
+        @if (booleanIconState(element, column); as state) {
+          @if (booleanIcon(column, state); as icon) {
+            <span
+              class="boolean-icon"
+              [class.boolean-icon--true]="state === 'true'"
+              [class.boolean-icon--false]="state === 'false'"
+              role="img"
+              [title]="booleanIconLabel(column, state)"
+              [attr.aria-label]="booleanIconLabel(column, state)"
+              [style.color]="state === 'true' ? column.booleanIcons?.trueColor : column.booleanIcons?.falseColor">
+              <kendo-svg-icon [icon]="icon"></kendo-svg-icon>
+            </span>
+          }
+        }
+      }
       @case ('iso8601') {
         {{ $any(getValue(element, column)) | date:column.format }}
       }

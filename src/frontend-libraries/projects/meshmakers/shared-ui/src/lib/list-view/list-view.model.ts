@@ -53,7 +53,12 @@ export type BadgeMappingTable = Record<string, BadgeMapping>;
 export interface TableColumn {
   displayName?: string | null;
   field: string;
-  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression' | 'progressBar' | 'badge' | 'component';
+  /**
+   * How the cell renders and filters. `booleanIcon` (AB#5623) shows a boolean as a check / x icon
+   * named "<column>: Yes|No" for screen readers (`role="img"` + `aria-label`, texts from
+   * `messages.booleanYes` / `booleanNo`) and filters like `boolean`; see {@link booleanIcons}.
+   */
+  dataType?: 'text' | 'numeric' | 'numericRange' | 'boolean' | 'booleanIcon' | 'date' | 'iso8601' | 'bytes' | 'statusIcons' | 'cronExpression' | 'progressBar' | 'badge' | 'component';
   format?: string;
   /**
    * Column width in pixels. If not set, the column will auto-size.
@@ -132,6 +137,13 @@ export interface TableColumn {
    */
   badgeHideUnmapped?: boolean;
   /**
+   * Icons of a `booleanIcon` column (AB#5623). Default: a check for `true`, an x for `false`.
+   * Set `false: null` to leave `false` cells empty (flag columns); `null` / `undefined` values
+   * always render an empty cell. Colours default to the theme tokens
+   * `--mm-list-boolean-true-color` / `--mm-list-boolean-false-color`.
+   */
+  booleanIcons?: BooleanIconMapping;
+  /**
    * Optional callback that produces the cell's display string.
    * When set, this overrides the default rendering selected by `dataType`.
    * Filter/sort behaviour still follow `dataType` and the underlying `field` value,
@@ -166,6 +178,18 @@ export interface TableColumn {
    * to `*ngComponentOutlet`'s `inputs` map (keyed by the @Input() property name).
    */
   cellInputs?: (item: unknown) => Record<string, unknown>;
+}
+
+/** Icons of a `booleanIcon` column (AB#5623). */
+export interface BooleanIconMapping {
+  /** Icon for `true`. Default: a check icon. */
+  true?: SVGIcon;
+  /** Icon for `false`; `null` = no icon (empty cell). Default: an x icon. */
+  false?: SVGIcon | null;
+  /** CSS colour of the `true` icon. Default: `var(--mm-list-boolean-true-color, var(--kendo-color-success))`. */
+  trueColor?: string;
+  /** CSS colour of the `false` icon. Default: `var(--mm-list-boolean-false-color, var(--kendo-color-subtle))`. */
+  falseColor?: string;
 }
 
 export type ColumnDefinition =
@@ -248,6 +272,12 @@ export interface ListViewMessages {
   noResultsTitle?: string;
   /** Empty state text while a search or filter matches nothing (AB#3444). Default: "Nothing matches the current search or filter." Optional. */
   noResultsText?: string;
+  /** Accessible value of a `booleanIcon` cell that is true (AB#5623). Default: "Yes". Optional. */
+  booleanYes?: string;
+  /** Accessible value of a `booleanIcon` cell that is false (AB#5623). Default: "No". Optional. */
+  booleanNo?: string;
+  /** Accessible name of a `booleanIcon` cell; `{column}` = column name, `{value}` = Yes / No (AB#5623). Default: "{column}: {value}". Optional. */
+  booleanIconLabel?: string;
 }
 
 /**
@@ -310,6 +340,9 @@ export const DEFAULT_LIST_VIEW_MESSAGES: Required<ListViewMessages> = {
   noRecords: 'No records available.',
   noResultsTitle: 'No results',
   noResultsText: 'Nothing matches the current search or filter.',
+  booleanYes: 'Yes',
+  booleanNo: 'No',
+  booleanIconLabel: '{column}: {value}',
 };
 
 /**

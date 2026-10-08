@@ -512,3 +512,15 @@
     box-shadow: var(--theme-focus-ring, 0 0 0 2px #ffffff, 0 0 0 4px #2e8473);
   }
 }
+
+// Boolean as icon (AB#5623): neutral theme tokens, host-overridable.
+.boolean-icon {
+  display: inline-flex;
+  align-items: center;
+  &.boolean-icon--true {
+    color: var(--mm-list-boolean-true-color, var(--kendo-color-success, #2fb37a));
+  }
+  &.boolean-icon--false {
+    color: var(--mm-list-boolean-false-color, var(--kendo-color-subtle, #8a94a0));
+  }
+}

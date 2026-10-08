@@ -63,6 +63,7 @@ class StubEntityListComponent {
   readonly rowActions = input<unknown>();
   readonly rowMenuActions = input<unknown>();
   readonly rowClass = input<unknown>();
+  readonly booleanDisplay = input<unknown>();
   readonly createRequested = output<unknown>();
   readonly openRequested = output<unknown>();
   readonly refresh = vi.fn();
@@ -627,6 +628,26 @@ describe('EntityPageComponent', () => {
         formService.resolve.mockResolvedValue(makeModel());
         await create({ ckTypeId: 'System.Communication/SftpConfiguration' });
         expect(listStub().rowClass()).toBeUndefined();
+      });
+    });
+
+    describe('listBooleanDisplay (AB#5623)', () => {
+      const listStub = (): StubEntityListComponent =>
+        fixture.debugElement.query((d) => d.componentInstance instanceof StubEntityListComponent).componentInstance as StubEntityListComponent;
+
+      it('passes text by default, route data entityListBooleanDisplay, then the input', async () => {
+        formService.resolve.mockResolvedValue(makeModel());
+        await create({ ckTypeId: 'System.Communication/SftpConfiguration', entityListBooleanDisplay: 'icon' });
+        expect(listStub().booleanDisplay()).toBe('icon');
+        fixture.componentRef.setInput('listBooleanDisplay', 'text');
+        fixture.detectChanges();
+        expect(listStub().booleanDisplay()).toBe('text');
+      });
+
+      it('is text without input and route data', async () => {
+        formService.resolve.mockResolvedValue(makeModel());
+        await create({ ckTypeId: 'System.Communication/SftpConfiguration' });
+        expect(listStub().booleanDisplay()).toBe('text');
       });
     });
 

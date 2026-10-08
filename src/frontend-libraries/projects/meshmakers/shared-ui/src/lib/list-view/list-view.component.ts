@@ -23,7 +23,7 @@ import {BadgeMapping, ColumnDefinition, ContextMenuType, ListViewCommand, ListVi
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
-import {fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, slidersIcon, arrowRotateCwIcon} from '@progress/kendo-svg-icons';
+import {checkIcon, fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, slidersIcon, arrowRotateCwIcon, xIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
 import {ButtonComponent, DropDownButtonComponent, SplitButtonComponent} from '@progress/kendo-angular-buttons';
@@ -983,6 +983,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       case 'boolean':
       case 'date':
         return column.dataType;
+      case 'booleanIcon':
+        return 'boolean';
       case 'numericRange':
       case 'progressBar':
         return 'numeric';
@@ -991,6 +993,33 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       default:
         return 'text';
     }
+  }
+
+  /**
+   * State of a `booleanIcon` cell (AB#5623): `'true'` / `'false'` for booleans (also the strings
+   * "true" / "false"), `null` for an empty or non-boolean value (empty cell).
+   */
+  protected booleanIconState(element: Record<string, unknown>, column: TableColumn): 'true' | 'false' | null {
+    const value = this.getValue(element, column);
+    if (value === true || value === 'true') return 'true';
+    if (value === false || value === 'false') return 'false';
+    return null;
+  }
+
+  /** Icon of a `booleanIcon` cell: the column's `booleanIcons`, else check / x; `null` = no icon. */
+  protected booleanIcon(column: TableColumn, state: 'true' | 'false'): SVGIcon | null {
+    const icons = column.booleanIcons;
+    if (state === 'true') {
+      return icons?.true ?? checkIcon;
+    }
+    return icons?.false === null ? null : icons?.false ?? xIcon;
+  }
+
+  /** Accessible name of a `booleanIcon` cell: "<column>: Yes|No" from the messages (AB#5623). */
+  protected booleanIconLabel(column: TableColumn, state: 'true' | 'false'): string {
+    const value = state === 'true' ? this._messages.booleanYes : this._messages.booleanNo;
+    const name = this.getDisplayName(column) ?? '';
+    return name ? this._messages.booleanIconLabel.replace('{column}', name).replace('{value}', value) : value;
   }
 
   /** Input attributes of a read-only boolean cell, cached per column and name (AB#5621). */

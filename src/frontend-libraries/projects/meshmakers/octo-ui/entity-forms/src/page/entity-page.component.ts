@@ -60,6 +60,7 @@ import {
   EntityListComponent,
   EntityListCreateRequest,
   EntityListOpenRequest,
+  EntityListBooleanDisplay,
   EntityListRowClass,
 } from '../list/entity-list.component';
 import {
@@ -228,6 +229,11 @@ export class EntityPageComponent implements HasUnsavedChanges {
    * route data `entityListRowClass`, then `ENTITY_LIST_ROW_CLASS`.
    */
   readonly listRowClass = input<EntityListRowClass | null | undefined>(undefined);
+  /**
+   * How the list renders BOOLEAN columns (AB#5623), passed to `mm-entity-list`'s `booleanDisplay`:
+   * `'text'` (default) or `'icon'`. Falls back to route data `entityListBooleanDisplay`.
+   */
+  readonly listBooleanDisplay = input<EntityListBooleanDisplay | undefined>(undefined);
 
   /** Emitted for every list / create / edit transition. */
   readonly navigate = output<EntityPageNavigateEvent>();
@@ -323,6 +329,11 @@ export class EntityPageComponent implements HasUnsavedChanges {
     }
     const fromData = this.inheritedData('entityListRowClass');
     return typeof fromData === 'function' ? fromData as EntityListRowClass : undefined;
+  });
+  /** Boolean columns of the list: input, else route data `entityListBooleanDisplay`, else text. */
+  protected readonly effectiveListBooleanDisplay = computed<EntityListBooleanDisplay>(() => {
+    this.routeData();
+    return (this.listBooleanDisplay() ?? this.inheritedData('entityListBooleanDisplay')) === 'icon' ? 'icon' : 'text';
   });
   /** The prefill of the current create form (AB#5623), computed when the form opens. */
   protected readonly createInitialValues = signal<EntityFormPrefillValues | null>(null);

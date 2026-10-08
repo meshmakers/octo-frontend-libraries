@@ -384,6 +384,35 @@ describe('EntityListComponent', () => {
       expect(sort()).toEqual([]);
     });
 
+    describe('booleanDisplay (AB#5623)', () => {
+      const flagModel = () => makeModel({
+        listColumns: [
+          { field: 'enabled', label: 'Enabled', display: 'text', kind: 'attribute', valueType: 'BOOLEAN' },
+          { field: 'host', label: 'Host', display: 'text', kind: 'attribute', valueType: 'STRING' },
+        ],
+      });
+      const cols = () => (component as unknown as { columns: () => { field: string; dataType?: string }[] }).columns();
+
+      it('keeps Yes / No text by default', () => {
+        setInputs(flagModel());
+        expect(cols()[0].dataType).toBe('text');
+      });
+
+      it('renders BOOLEAN columns as icons with booleanDisplay icon (other types unchanged)', () => {
+        setInputs(flagModel());
+        fixture.componentRef.setInput('booleanDisplay', 'icon');
+        expect(cols().map((c) => c.dataType)).toEqual(['booleanIcon', 'text']);
+      });
+
+      it('passes the yes / no texts to mm-list-view for the accessible names', () => {
+        setInputs(flagModel());
+        fixture.componentRef.setInput('messages', { toggleOn: 'Ja', toggleOff: 'Nein' });
+        const messages = (component as unknown as { listViewMessages: () => Record<string, string> }).listViewMessages();
+        expect(messages['booleanYes']).toBe('Ja');
+        expect(messages['booleanNo']).toBe('Nein');
+      });
+    });
+
     describe('rowClass', () => {
       interface RowClassApi { listViewRowClass: () => ((c: { dataItem: unknown; index: number }) => unknown) | undefined }
       const rowClassFn = () => (component as unknown as RowClassApi).listViewRowClass();
@@ -488,6 +517,13 @@ describe('entity list helpers', () => {
 
     // Strings keep the plain text column without a formatter.
     expect(toEntityListColumn({ field: 'url', label: 'URL', display: 'text', kind: 'attribute', valueType: 'STRING' }).formatter).toBeUndefined();
+  });
+
+  it('maps display icon of a BOOLEAN column onto a booleanIcon cell; other types stay text (AB#5623)', () => {
+    expect(toEntityListColumn({ field: 'enabled', label: 'Enabled', display: 'icon', kind: 'attribute', valueType: 'BOOLEAN' }).dataType).toBe('booleanIcon');
+    expect(toEntityListColumn({ field: 'name', label: 'Name', display: 'icon', kind: 'attribute', valueType: 'STRING' }).dataType).toBe('text');
+    expect(toEntityListColumn({ field: 'flags', label: 'Flags', display: 'text', kind: 'attribute', valueType: 'BOOLEAN_ARRAY' }, {}, undefined, { booleanDisplay: 'icon' }).dataType).toBe('text');
+    expect(toEntityListColumn({ field: 'enabled', label: 'Enabled', display: 'chip', kind: 'attribute', valueType: 'BOOLEAN' }, {}, undefined, { booleanDisplay: 'icon' }).dataType).toBe('badge');
   });
 
   describe('unset placeholders (AB#5623)', () => {

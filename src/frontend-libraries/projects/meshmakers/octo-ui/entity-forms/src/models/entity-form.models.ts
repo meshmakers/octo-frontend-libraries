@@ -216,7 +216,11 @@ export interface ResolvedListColumn {
   field: string;
   label: string;
   width?: number;
-  display: 'text' | 'chip' | 'date' | 'mono';
+  /**
+   * Cell rendering. `icon` (AB#5623) shows a BOOLEAN column as a check / x icon with an accessible
+   * name (other value types render as `text`).
+   */
+  display: 'text' | 'chip' | 'date' | 'mono' | 'icon';
   kind: 'attribute' | 'system';
   /**
    * CK value type of an attribute column (ENUM, BOOLEAN, DATE_TIME, ...). The list formats the

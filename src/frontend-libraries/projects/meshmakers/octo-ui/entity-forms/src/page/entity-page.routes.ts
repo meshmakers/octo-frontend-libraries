@@ -81,6 +81,11 @@ export interface EntityFormRoutesOptions {
    * key `entityPageEditMode`.
    */
   editMode?: 'page' | 'dialog';
+  /**
+   * `'icon'` renders the list's BOOLEAN columns as check / x icons (AB#5623). Default `'text'`.
+   * Route data key `entityListBooleanDisplay`.
+   */
+  booleanDisplay?: 'text' | 'icon';
   /** Label of the create breadcrumb. Default `New`. */
   newBreadcrumbLabel?: string;
   /** Label of the edit breadcrumb. Default `{{entityName}}`. */
@@ -119,6 +124,7 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     beforeSave,
     rowClass,
     editMode,
+    booleanDisplay,
     data = {},
   } = opts;
 
@@ -136,6 +142,7 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     ...(beforeSave !== undefined && { entityFormBeforeSave: beforeSave }),
     ...(rowClass !== undefined && { entityListRowClass: rowClass }),
     ...(editMode !== undefined && { entityPageEditMode: editMode }),
+    ...(booleanDisplay !== undefined && { entityListBooleanDisplay: booleanDisplay }),
   };
 
   const listCrumb = breadcrumbUrl !== undefined

@@ -118,13 +118,19 @@ export class MyComponent implements HasUnsavedChanges {
 interface TableColumn {
   field: string;
   displayName: string;
-  dataType: 'text' | 'numeric' | 'boolean' | 'date' | 'bytes' | 'statusIcons' | 'cronExpression';
+  dataType: 'text' | 'numeric' | 'boolean' | 'booleanIcon' | 'date' | 'bytes' | 'statusIcons' | 'cronExpression' | ...;
   // ... width, sortable, filterable, hidden, etc.
   formatter?: (value: unknown, item: unknown) => string;
 }
 ```
 
 Status icon columns use `StatusIconMapping` for icon/color/tooltip per value.
+
+`dataType: 'booleanIcon'` (AB#5623) renders a boolean as a check / x icon (`role="img"`,
+`aria-label` = `messages.booleanIconLabel` "{column}: {value}" with `booleanYes` / `booleanNo`),
+filters as boolean, and leaves `null` cells empty. `booleanIcons` overrides the icons / colours
+(`false: null` = no icon for false); theme tokens `--mm-list-boolean-true-color` /
+`--mm-list-boolean-false-color`.
 
 **Responsive column behavior (`minWidth` / `hideBelow`)**
 

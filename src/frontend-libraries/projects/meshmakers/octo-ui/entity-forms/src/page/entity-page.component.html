@@ -41,6 +41,7 @@
           [rowActions]="listRowActions()"
           [rowMenuActions]="listRowMenuActions()"
           [rowClass]="effectiveListRowClass()"
+          [booleanDisplay]="effectiveListBooleanDisplay()"
           (createRequested)="onCreateRequested($event)"
           (openRequested)="onOpenRequested($event)"
         />
