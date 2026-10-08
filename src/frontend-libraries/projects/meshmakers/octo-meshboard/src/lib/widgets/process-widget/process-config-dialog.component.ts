@@ -12,16 +12,14 @@ import {
   FieldFilterOperatorsDto,
   AttributeSelectorService,
   AttributeItem,
-  GetCkTypeAvailableQueryColumnsDtoGQL
+  GetCkTypeAvailableQueryColumnsDtoGQL,
+  RuntimeEntityItem,
+  RuntimeEntitySelectDataSource,
+  RuntimeEntityDialogDataSource
 } from '@meshmakers/octo-services';
 import {
-  EntitySelectInputComponent,
-  EntitySelectDialogDataSource,
-  DialogFetchOptions,
-  DialogFetchResult,
-  ColumnDefinition
+  EntitySelectInputComponent
 } from '@meshmakers/shared-ui';
-import { EntitySelectDataSource, EntitySelectResult } from '@meshmakers/shared-services';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
@@ -36,22 +34,15 @@ import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-tog
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
-import { firstValueFrom, Observable, from, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 /**
  * Diagram source type
  */
 export type DiagramSourceType = 'stored' | 'none';
 
-/**
- * Represents a runtime entity for selection
- */
-export interface RuntimeEntityItem {
-  rtId: string;
-  ckTypeId: string;
-  rtWellKnownName?: string;
-  displayName: string;
-}
+/** Re-exported for host code that imported the dialog's own item type. */
+export type { RuntimeEntityItem };
 
 /**
  * Persistent query item for selection
@@ -90,117 +81,6 @@ export interface ProcessConfigResult extends WidgetConfigResult {
   bindingFilters?: WidgetFilterConfig[];
   // Property mappings
   propertyMappings?: DiagramPropertyMapping[];
-}
-
-/**
- * Data source for entity autocomplete - filters by ckTypeId
- */
-class RuntimeEntitySelectDataSource implements EntitySelectDataSource<RuntimeEntityItem> {
-  constructor(
-    private getEntitiesByCkTypeGQL: GetEntitiesByCkTypeDtoGQL,
-    private ckTypeId: string
-  ) {}
-
-  async onFilter(filter: string, take?: number): Promise<EntitySelectResult<RuntimeEntityItem>> {
-    const result = await firstValueFrom(
-      this.getEntitiesByCkTypeGQL.fetch({
-        variables: {
-          ckTypeId: this.ckTypeId,
-          first: take ?? 10,
-          fieldFilters: filter ? [
-            { attributePath: 'rtId', operator: FieldFilterOperatorsDto.LikeDto, comparisonValue: filter }
-          ] : undefined
-        }
-      })
-    );
-
-    const items = (result.data?.runtime?.runtimeEntities?.items ?? [])
-      .filter((item): item is NonNullable<typeof item> => item !== null)
-      .map(item => ({
-        rtId: item.rtId,
-        ckTypeId: item.ckTypeId,
-        rtWellKnownName: item.rtWellKnownName ?? undefined,
-        displayName: item.rtWellKnownName || item.rtId
-      }));
-
-    return {
-      totalCount: result.data?.runtime?.runtimeEntities?.totalCount ?? 0,
-      items
-    };
-  }
-
-  onDisplayEntity(entity: RuntimeEntityItem): string {
-    return entity.displayName;
-  }
-
-  getIdEntity(entity: RuntimeEntityItem): string {
-    return entity.rtId;
-  }
-}
-
-/**
- * Dialog data source for entity selection grid
- */
-class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<RuntimeEntityItem> {
-  constructor(
-    private getEntitiesByCkTypeGQL: GetEntitiesByCkTypeDtoGQL,
-    private ckTypeId: string
-  ) {}
-
-  getColumns(): ColumnDefinition[] {
-    return [
-      { field: 'rtId', displayName: 'RT-ID' },
-      { field: 'rtWellKnownName', displayName: 'Name' },
-      { field: 'ckTypeId', displayName: 'CK Type' }
-    ];
-  }
-
-  fetchData(options: DialogFetchOptions): Observable<DialogFetchResult<RuntimeEntityItem>> {
-    // Build field filters for text search
-    const fieldFilters: { attributePath: string; operator: FieldFilterOperatorsDto; comparisonValue: string }[] = [];
-    if (options.textSearch && options.textSearch.trim()) {
-      fieldFilters.push({
-        attributePath: 'rtId',
-        operator: FieldFilterOperatorsDto.LikeDto,
-        comparisonValue: options.textSearch.trim()
-      });
-    }
-
-    return from(
-      this.getEntitiesByCkTypeGQL.fetch({
-        variables: {
-          ckTypeId: this.ckTypeId,
-          first: options.take,
-          after: options.skip > 0 ? btoa(`arrayconnection:${options.skip - 1}`) : undefined,
-          fieldFilters: fieldFilters.length > 0 ? fieldFilters : undefined
-        }
-      })
-    ).pipe(
-      map(result => {
-        const items = (result.data?.runtime?.runtimeEntities?.items ?? [])
-          .filter((item): item is NonNullable<typeof item> => item !== null)
-          .map(item => ({
-            rtId: item.rtId,
-            ckTypeId: item.ckTypeId,
-            rtWellKnownName: item.rtWellKnownName ?? undefined,
-            displayName: item.rtWellKnownName || item.rtId
-          }));
-
-        return {
-          data: items,
-          totalCount: result.data?.runtime?.runtimeEntities?.totalCount ?? 0
-        };
-      })
-    );
-  }
-
-  onDisplayEntity(entity: RuntimeEntityItem): string {
-    return entity.displayName;
-  }
-
-  getIdEntity(entity: RuntimeEntityItem): string {
-    return entity.rtId;
-  }
 }
 
 /**
@@ -741,7 +621,6 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
       font-weight: 600;
       font-size: 0.7rem;
       color: var(--kendo-color-subtle, #6c757d);
-      text-transform: uppercase;
     }
 
     .mapping-row {
@@ -769,12 +648,11 @@ class RuntimeEntityDialogDataSource implements EntitySelectDialogDataSource<Runt
       background: var(--kendo-color-surface-alt, #f8f9fa);
       border-radius: 10px;
       text-align: center;
-      text-transform: uppercase;
       color: var(--kendo-color-subtle, #6c757d);
     }
 
     .col-expression kendo-textbox {
-      font-family: 'Consolas', 'Monaco', monospace;
+      font-family: var(--theme-font-mono);
       font-size: 0.8rem;
     }
 
@@ -1158,10 +1036,11 @@ export class ProcessConfigDialogComponent implements OnInit {
 
     // Pre-select entity if provided
     if (this.initialBindingRtId) {
-      // Create a mock entity item - the actual display name will be updated when the combobox loads
+      // Placeholder item labelled by its rtId - the display name arrives when the combobox loads
       this.selectedEntity = {
         rtId: this.initialBindingRtId,
         ckTypeId: this.initialBindingCkTypeId!,
+        rtDisplayName: this.initialBindingRtId,
         displayName: this.initialBindingRtId
       };
     }

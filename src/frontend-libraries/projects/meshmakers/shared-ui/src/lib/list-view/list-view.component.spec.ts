@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { CommandSettingsService } from '@meshmakers/shared-services';
 
 import { ListViewComponent } from './list-view.component';
+import { DEFAULT_LIST_VIEW_MESSAGES, ListViewMessages, resolveListViewMessages } from './list-view.model';
 
 describe('MmTableComponent', () => {
   let component: ListViewComponent;
@@ -40,6 +41,35 @@ describe('MmTableComponent', () => {
     fixture = TestBed.createComponent(ListViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  it('names the row menu button after the row (accessible name and tooltip)', () => {
+    const c = component as unknown as { rowActionsLabel(r: unknown): string; rowLabel(r: unknown): string };
+    expect(c.rowActionsLabel({ name: 'grafana', rtId: 'x1' })).toBe('Actions for grafana');
+    expect(c.rowActionsLabel({ rtWellKnownName: 'wk' })).toBe('Actions for wk');
+    expect(c.rowActionsLabel({})).toBe('Row actions');
+    component.rowLabelField = 'title';
+    expect(c.rowLabel({ title: 'T', name: 'N' })).toBe('T');
+    component.messages = { rowActionsFor: 'Aktionen für {name}' };
+    expect(c.rowActionsLabel({ title: 'T' })).toBe('Aktionen für T');
+  });
+
+  describe('CommandItem.danger (AB#5570)', () => {
+    const edit = { id: 'edit', type: 'link' as const, text: 'Edit' };
+    const del = { id: 'delete', type: 'link' as const, text: 'Delete', danger: true };
+
+    it('marks danger items of the actions column so the row button renders with themeColor error', () => {
+      component.actionCommandItems = [edit, del];
+      const items = (component as unknown as { _actionMenuItems: { data: { danger?: boolean }; cssClass?: string }[] })._actionMenuItems;
+      expect(items.map((i) => !!i.data.danger)).toEqual([false, true]);
+      expect(items.map((i) => i.cssClass)).toEqual([undefined, 'mm-list-view-menu-item--danger']);
+    });
+
+    it('styles danger items of the context / overflow menu', () => {
+      const c = component as unknown as { buildContextMenuItemsWithDisabledState(items: unknown[], row: unknown): { cssClass?: string }[] };
+      const items = c.buildContextMenuItemsWithDisabledState([edit, { id: 'sep', type: 'separator' }, del], { name: 'x' });
+      expect(items.map((i) => i.cssClass)).toEqual([undefined, undefined, 'mm-list-view-menu-item--danger']);
+    });
   });
 
   it('should create', () => {
@@ -332,7 +362,7 @@ describe('MmTableComponent', () => {
 
     beforeEach(() => {
       api()._actionMenuItems = [];
-      api()._contextMenuItems = [];
+      component.contextMenuCommandItems = [];
     });
 
     it('keeps a host width that fits header and buttons', () => {
@@ -351,14 +381,14 @@ describe('MmTableComponent', () => {
       // Three buttons need 140px; 90 fits the header but clipped the third.
       component.actionsColumnWidth = 90;
       api()._actionMenuItems = [{ text: 'Edit' }, { text: 'Disable' }];
-      api()._contextMenuItems = [{}];
+      component.contextMenuCommandItems = [{ id: 'more', type: 'link', text: 'More' }];
       expect(api().effectiveActionsColumnWidth).toBe(fitting(3));
     });
 
     it('counts the context-menu button only when it renders inline', () => {
       component.actionsColumnWidth = 0;
       api()._actionMenuItems = [{ text: 'Edit' }];
-      api()._contextMenuItems = [{}];
+      component.contextMenuCommandItems = [{ id: 'more', type: 'link', text: 'More' }];
 
       component.contextMenuType = 'actionMenu';
       expect(api().effectiveActionsColumnWidth).toBe(Math.max(90, fitting(2)));
@@ -380,6 +410,79 @@ describe('MmTableComponent', () => {
 
     it('leaves the default alone', () => {
       expect(api().effectiveActionsColumnWidth).toBe(220);
+    });
+  });
+
+  describe('messages backward compatibility', () => {
+    /**
+     * The complete message object an app wrote against the 3.3 shape: everything except the
+     * members added later (`resetFilters`, `commands`). It must still type-check as
+     * `ListViewMessages` - this assignment is the compile-time guard - and fall back to the defaults.
+     */
+    const legacyMessages: ListViewMessages = {
+      searchPlaceholder: 'Suchen...',
+      showRowFilter: 'Zeilenfilter',
+      exportToExcel: 'Excel',
+      exportToPdf: 'PDF',
+      refreshData: 'Aktualisieren',
+      actionsColumnTitle: 'Aktionen',
+      pdfPageTemplate: 'Seite {pageNum} von {totalPages}',
+      pagerItemsPerPage: 'pro Seite',
+      pagerOf: 'von',
+      pagerItems: 'Einträge',
+      pagerPage: 'Seite',
+      pagerFirstPage: 'Erste Seite',
+      pagerLastPage: 'Letzte Seite',
+      pagerPreviousPage: 'Vorherige Seite',
+      pagerNextPage: 'Nächste Seite',
+      noRecords: 'Keine Einträge.',
+    };
+
+    it('fills members a legacy complete message object lacks from the defaults', () => {
+      component.messages = legacyMessages;
+
+      expect(component.messages.commands).toBe(DEFAULT_LIST_VIEW_MESSAGES.commands);
+      expect(component.messages.resetFilters).toBe(DEFAULT_LIST_VIEW_MESSAGES.resetFilters);
+      expect(component.messages.noRecords).toBe('Keine Einträge.');
+      expect(component.messages.actionsColumnTitle).toBe('Aktionen');
+    });
+
+    it('keeps the default for members passed as undefined or null', () => {
+      component.messages = {
+        commands: undefined,
+        resetFilters: null as unknown as string,
+        searchPlaceholder: 'Suche',
+      };
+
+      expect(component.messages.commands).toBe('Commands');
+      expect(component.messages.resetFilters).toBe('Reset Filters');
+      expect(component.messages.searchPlaceholder).toBe('Suche');
+      expect(component.messages.noRecords).toBe(DEFAULT_LIST_VIEW_MESSAGES.noRecords);
+    });
+
+    it('uses the defaults when the messages input is cleared', () => {
+      component.messages = { commands: 'Befehle' };
+      component.messages = undefined;
+
+      expect(component.messages).toEqual(DEFAULT_LIST_VIEW_MESSAGES);
+    });
+
+    it('labels the collapsed command menu and the reset command from the defaults for legacy messages', () => {
+      component.messages = legacyMessages;
+      component.hasExternalFilters = true;
+      const api = component as unknown as { toolbarCommands: { id: string; text: string }[] };
+
+      const reset = api.toolbarCommands.find(c => c.id === 'reset');
+      expect(reset?.text).toBe('Reset Filters');
+      expect(api.toolbarCommands.every(c => !!c.text)).toBe(true);
+    });
+
+    it('resolveListViewMessages never mutates the defaults', () => {
+      const resolved = resolveListViewMessages({ commands: 'Befehle' });
+
+      expect(resolved.commands).toBe('Befehle');
+      expect(DEFAULT_LIST_VIEW_MESSAGES.commands).toBe('Commands');
+      expect(resolveListViewMessages(null)).toEqual(DEFAULT_LIST_VIEW_MESSAGES);
     });
   });
 
@@ -427,12 +530,138 @@ describe('MmTableComponent', () => {
       component.rowFilterEnabled = true;
       component.cardModeBelow = 600;
       api().containerWidth.set(400);
+      component.hasExternalFilters = true;
 
       // Cards have no column headers for a filter row to live in, so toggling
       // it would do nothing — but a filter set before the switch must still be
       // clearable.
       expect(ids()).not.toContain('rowFilter');
       expect(ids()).toContain('reset');
+    });
+
+    describe('reset only while something is filtered', () => {
+      interface FilterApi {
+        searchValue: string;
+        dataBindingDirective?: { currentState: { filter?: unknown; sort?: unknown[] } };
+      }
+      const filterApi = () => component as unknown as FilterApi;
+
+      it('hides reset on the default view', () => {
+        expect(ids()).not.toContain('reset');
+        // The remaining commands keep their order with reset gone.
+        expect(ids().slice(-1)).toEqual(['refresh']);
+      });
+
+      it('shows reset while a free-text search is active', () => {
+        filterApi().searchValue = 'pump';
+        expect(ids()).toContain('reset');
+        filterApi().searchValue = '   ';
+        expect(ids()).not.toContain('reset');
+      });
+
+      it('shows reset while the host reports its own filters', () => {
+        component.hasExternalFilters = true;
+        expect(ids()).toContain('reset');
+        component.hasExternalFilters = false;
+        expect(ids()).not.toContain('reset');
+      });
+
+      it('shows reset for a row filter or a column sort in the grid state', () => {
+        filterApi().dataBindingDirective = { currentState: { filter: { logic: 'and', filters: [] }, sort: [] } };
+        expect(ids()).not.toContain('reset');
+
+        filterApi().dataBindingDirective = {
+          currentState: { filter: { logic: 'and', filters: [{ field: 'name', operator: 'contains', value: 'a' }] } }
+        };
+        expect(ids()).toContain('reset');
+
+        filterApi().dataBindingDirective = { currentState: { sort: [{ field: 'name', dir: 'asc' }] } };
+        expect(ids()).toContain('reset');
+
+        // Kendo keeps a descriptor without a direction once a sort is cleared.
+        filterApi().dataBindingDirective = { currentState: { sort: [{ field: 'name' }] } };
+        expect(ids()).not.toContain('reset');
+      });
+    });
+
+    it('shows the on state of the row filter toggle (k-selected + aria-pressed, AB#5623)', () => {
+      fixture.componentRef.setInput('rowFilterEnabled', true);
+      api().containerWidth.set(1200);
+      fixture.detectChanges();
+      const button = (): HTMLButtonElement | null => fixture.nativeElement.querySelector('button[data-command="rowFilter"]');
+      expect(button()).toBeTruthy();
+      expect(button()!.classList.contains('k-selected')).toBe(false);
+      expect(button()!.getAttribute('aria-pressed')).toBe('false');
+
+      button()!.click();
+      fixture.detectChanges();
+      expect(button()!.classList.contains('k-selected')).toBe(true);
+      expect(button()!.getAttribute('aria-pressed')).toBe('true');
+      const refresh = fixture.nativeElement.querySelector('button[data-command="refresh"]') as HTMLButtonElement;
+      expect(refresh.hasAttribute('aria-pressed')).toBe(false);
+    });
+
+    describe('accessible names of the icon-only toolbar buttons (AB#5621)', () => {
+      const el = () => fixture.nativeElement as HTMLElement;
+
+      it('labels every laid-out command button (row filter, exports, refresh) via aria-label', () => {
+        fixture.componentRef.setInput('rowFilterEnabled', true);
+        api().containerWidth.set(1200);
+        fixture.detectChanges();
+        const label = (id: string) =>
+          el().querySelector(`button[data-command="${id}"]`)?.getAttribute('aria-label');
+        expect(label('rowFilter')).toBe('Show Row Filter');
+        expect(label('excel')).toBe('Export to Excel');
+        expect(label('pdf')).toBe('Export to PDF');
+        expect(label('refresh')).toBe('Refresh Data');
+      });
+
+      it('labels the reset button while it is shown', () => {
+        component.hasExternalFilters = true;
+        api().containerWidth.set(1200);
+        fixture.detectChanges();
+        expect(el().querySelector('button[data-command="reset"]')?.getAttribute('aria-label')).toBe('Reset Filters');
+      });
+
+      it('takes the labels from the messages', () => {
+        fixture.componentRef.setInput('messages', {
+          showRowFilter: 'Zeilenfilter', exportToExcel: 'Nach Excel', exportToPdf: 'Als PDF', refreshData: 'Neu laden',
+        });
+        fixture.componentRef.setInput('rowFilterEnabled', true);
+        api().containerWidth.set(1200);
+        fixture.detectChanges();
+        const labels = Array.from(el().querySelectorAll('button[data-command]')).map(b => b.getAttribute('aria-label'));
+        expect(labels).toEqual(['Zeilenfilter', 'Nach Excel', 'Als PDF', 'Neu laden']);
+      });
+
+      it('labels the collapsed command menu with the commands message', () => {
+        fixture.componentRef.setInput('messages', { commands: 'Befehle' });
+        api().containerWidth.set(400);
+        fixture.detectChanges();
+        const menuButton = el().querySelector('kendo-dropdownbutton.mm-toolbar-commands button');
+        expect(menuButton?.getAttribute('aria-label')).toBe('Befehle');
+      });
+
+      it('names an icon-only host action after its tooltip, but leaves a text button alone', () => {
+        component.leftToolbarActions = [
+          { id: 'icon', type: 'link', text: '', tooltip: 'Import', onClick: () => Promise.resolve() },
+          { id: 'text', type: 'link', text: 'New', tooltip: 'Create a new item', onClick: () => Promise.resolve() },
+        ];
+        fixture.detectChanges();
+        const buttons = Array.from(el().querySelectorAll('kendo-grid-toolbar button[kendoButton]:not([data-command])'));
+        expect(buttons[0].getAttribute('aria-label')).toBe('Import');
+        expect(buttons[1].hasAttribute('aria-label')).toBe(false);
+      });
+
+      it('names an icon-only dropdown host action after its tooltip', () => {
+        component.leftToolbarActions = [{
+          id: 'group', type: 'link', text: '', tooltip: 'Add',
+          children: [{ id: 'child', type: 'link', text: 'Child' }],
+        }];
+        fixture.detectChanges();
+        const button = el().querySelector('kendo-dropdownbutton:not(.mm-toolbar-commands) button');
+        expect(button?.getAttribute('aria-label')).toBe('Add');
+      });
     });
 
     it('routes each command to its handler', () => {

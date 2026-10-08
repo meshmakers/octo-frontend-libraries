@@ -1,0 +1,403 @@
+// Assistant panel (wireframe .assistant): 400 px right panel, 340 px on narrow
+// screens, full screen on phones. Violet only on the ✦ and AI affordances.
+:host {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  min-height: 0;
+  border-left: 1px solid var(--theme-border-subtle);
+  background: var(--theme-bg-surface);
+  color: var(--theme-text-primary);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--theme-border-subtle);
+}
+
+.title {
+  flex: none;
+  margin: 0;
+  white-space: nowrap;
+  font-family: var(--theme-font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.sparkle {
+  color: var(--theme-ai);
+}
+
+.chip-neutral {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: var(--theme-radius-xs);
+  background: var(--theme-status-neutral-subtle);
+  color: var(--theme-text-secondary);
+  font-size: 0.71875rem;
+}
+
+.icon-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--theme-bg-hover);
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--theme-accent-subtle);
+    color: var(--theme-text-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.close {
+  margin-left: auto;
+}
+
+.ctx {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 14px;
+  list-style: none;
+  border-bottom: 1px solid var(--theme-border-subtle);
+}
+
+.ctx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  height: 22px;
+  padding: 0 4px 0 8px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-xs);
+  font-size: 0.75rem;
+  color: var(--theme-text-secondary);
+
+  button {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    border: 0;
+    padding: 0 2px;
+    background: none;
+    color: var(--theme-text-muted);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--theme-text-primary);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--theme-focus-ring);
+    }
+  }
+}
+
+.ctx-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.thread {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.unavailable {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  margin: 0 14px var(--theme-space-2);
+  padding: 8px 10px;
+  border: 1px dashed var(--theme-border-default);
+  border-radius: var(--theme-radius-sm);
+  color: var(--theme-text-secondary);
+
+  p {
+    margin: 0;
+  }
+}
+
+@media (max-width: 1180px) {
+  :host {
+    width: 340px;
+  }
+}
+
+// Phones: the panel takes the screen below the 48 px top bar (wireframe,
+// ui-concept §7.5) and acts as a modal dialog.
+@media (max-width: 640px) {
+  :host {
+    position: fixed;
+    inset: 48px 0 0;
+    z-index: 30;
+    width: auto;
+    border-left: 0;
+  }
+}
+
+// --- Optional capabilities (AB#5621) ---
+.head-actions {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  margin-left: auto;
+
+  + .close {
+    margin-left: 0;
+  }
+}
+
+.text-btn {
+  height: 26px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--theme-bg-hover);
+    color: var(--theme-text-primary);
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--theme-accent-subtle);
+    color: var(--theme-text-primary);
+  }
+
+  &:disabled {
+    color: var(--theme-text-muted);
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+
+  &.danger {
+    color: var(--theme-status-error);
+  }
+}
+
+.sessions {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--theme-space-2);
+  min-height: 0;
+  padding: 10px 14px;
+  overflow: auto;
+
+  .back {
+    align-self: flex-start;
+  }
+}
+
+.session-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--theme-radius-sm);
+
+  &.active {
+    background: var(--theme-accent-subtle);
+  }
+}
+
+.session-open {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--theme-bg-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.session-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.session-date {
+  color: var(--theme-text-muted);
+  font-size: 0.71875rem;
+}
+
+.session-confirm {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+}
+
+.confirm-text {
+  flex: 1 1 100%;
+  overflow-wrap: anywhere;
+}
+
+.session-empty {
+  padding: 6px 8px;
+  color: var(--theme-text-secondary);
+}
+
+.starters {
+  display: grid;
+  gap: var(--theme-space-2);
+  padding: 14px 14px 0;
+}
+
+.starters-title {
+  margin: 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.starter-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.starter {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--theme-ai);
+    background: var(--theme-bg-hover);
+  }
+
+  &:disabled {
+    color: var(--theme-text-muted);
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+// --- Layout (AB#5621): resize handle and overlay mode ---
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  z-index: 1;
+  width: 6px;
+  cursor: col-resize;
+  touch-action: none;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 2px;
+    width: 2px;
+    background: transparent;
+    transition: background-color 0.15s;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    background: var(--theme-accent);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+:host(.mm-assistant-resizing) {
+  user-select: none;
+  cursor: col-resize;
+
+  .resize-handle::after {
+    background: var(--theme-accent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resize-handle::after {
+    transition: none;
+  }
+}
+
+// Overlay: floats over the content at the right edge instead of taking a column.
+:host(.mm-assistant-overlay) {
+  position: fixed;
+  top: var(--mm-assistant-overlay-top, 48px);
+  right: 0;
+  bottom: 0;
+  z-index: var(--mm-assistant-overlay-z-index, 20);
+  box-shadow: var(--theme-shadow-panel);
+}

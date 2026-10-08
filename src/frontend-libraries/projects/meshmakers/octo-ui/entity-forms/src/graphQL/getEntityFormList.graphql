@@ -1,0 +1,43 @@
+# Entity list of the entity form list view.
+# SECURITY: $attributeNames is non-null on purpose (omitting it returns every attribute,
+# secrets included). Pass only the non-secret list column attribute names.
+query entityFormGetList(
+  $ckTypeId: String!
+  $first: Int
+  $after: String
+  $searchFilter: SearchFilter
+  $fieldFilters: [FieldFilter]
+  $sort: [Sort]
+  $attributeNames: [String]!
+) {
+  runtime {
+    runtimeEntities(
+      ckId: $ckTypeId
+      first: $first
+      after: $after
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilters
+      sortOrder: $sort
+    ) {
+      totalCount
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      items {
+        rtId
+        ckTypeId
+        rtWellKnownName
+        rtDisplayName
+        rtCreationDateTime
+        rtChangedDateTime
+        attributes(attributeNames: $attributeNames) {
+          items {
+            attributeName
+            value
+          }
+        }
+      }
+    }
+  }
+}

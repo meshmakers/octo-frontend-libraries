@@ -1,0 +1,344 @@
+import { DEFAULT_SECRET_STATUS_LABELS, SecretStatusLabels } from '@meshmakers/octo-services';
+
+/**
+ * UI strings of the entity form components (`mm-entity-form`, `mm-entity-list`,
+ * `mm-entity-page` and their field editors).
+ *
+ * Hosts pass a `Partial<EntityFormsMessages>` through the `messages` input; missing keys fall
+ * back to {@link DEFAULT_ENTITY_FORMS_MESSAGES}. Strings containing `{name}` placeholders are
+ * filled with {@link formatEntityFormsMessage}.
+ */
+export interface EntityFormsMessages {
+  // --- Buttons / actions ---
+  save: string;
+  cancel: string;
+  delete: string;
+  new: string;
+  edit: string;
+  duplicate: string;
+  export: string;
+  close: string;
+  apply: string;
+  refresh: string;
+  back: string;
+  add: string;
+  remove: string;
+  moveUp: string;
+  moveDown: string;
+  select: string;
+  clear: string;
+
+  // --- Secrets ---
+  /** Placeholder of a secret field whose value is set on the server. */
+  secretSetPlaceholder: string;
+  /** Placeholder of a secret field without a value on the server. */
+  secretNotSetPlaceholder: string;
+  /** Badge next to a secret field label. */
+  secretBadge: string;
+  /** Help text explaining write-only secrets. */
+  secretHelp: string;
+  /** Badge of a set secret without a timestamp (legacy value). */
+  secretStatusSet: string;
+  /** Badge of a set secret; `{setAt}` = formatted timestamp. */
+  secretStatusSetAt: string;
+  /** Badge of a secret without a value. */
+  secretStatusNotSet: string;
+  /** Badge of a stored secret whose key is not in this environment's key ring (re-entry needed). */
+  secretStatusKeyMissing: string;
+  /** Badge of a required SECRET without a value (same wording as the secrets inventory). */
+  secretStatusNeedsReEntry: string;
+  /** Badge of a secret whose clear is staged for the next save. */
+  secretStatusClearStaged: string;
+  /** Button: stage clearing an optional secret. */
+  secretClear: string;
+  /** Button: undo a staged clear. */
+  secretUndoClear: string;
+  /** Note shown while a clear is staged. */
+  secretClearStagedNote: string;
+  /** Button: reveal the typed (unsaved) value. */
+  secretShow: string;
+  /** Button: mask the typed value again. */
+  secretHide: string;
+  /** Hint when secrets cannot be written (no key ring configured, Q17). */
+  secretWritesDisabled: string;
+  /**
+   * Why Create is blocked: a required secret cannot be entered without a key ring (Q17).
+   * `{fields}` = the field labels.
+   */
+  secretRequiredWritesDisabled: string;
+  /** Status line of a masked multiline secret (PEM); `{lines}` = number of typed lines. */
+  secretMultilineMasked: string;
+  /** Placeholder of a SECRET record member whose stored value is kept when left empty. */
+  secretRecordMemberKeep: string;
+  /** Grid cell of a SECRET record member with a typed, unsaved value (never the value itself). */
+  secretRecordMemberNewValue: string;
+
+  // --- Sections ---
+  /** Default title of the section holding fields that the form does not list. */
+  furtherAttributes: string;
+
+  // --- Confirmations ---
+  /** @deprecated Deletes use the danger confirmation keys below (AB#5579); no longer shown. */
+  confirmDeleteTitle: string;
+  /** `{name}` = display name of the entity. @deprecated No longer shown (AB#5579). */
+  confirmDeleteMessage: string;
+  /** `{count}` = number of entities. @deprecated No longer shown (AB#5579). */
+  confirmDeleteManyMessage: string;
+  /**
+   * Danger confirmation (AB#5579): title naming the entity, `{name}` = display name.
+   * Optional for hosts that pass a complete message set; missing = English default.
+   */
+  confirmDeleteNamedTitle?: string;
+  /** Danger confirmation title of a multi-delete; `{count}` = number of entities. */
+  confirmDeleteManyTitle?: string;
+  /** Target shown in a multi-delete confirmation; `{count}` = number of entities. */
+  confirmDeleteManyTarget?: string;
+  /** What a single delete loses. */
+  confirmDeleteConsequence?: string;
+  /** What a multi-delete loses; `{count}` = number of entities. */
+  confirmDeleteManyConsequence?: string;
+  /** Confirming button of a single delete (verb + object). */
+  confirmDeleteConfirmText?: string;
+  /** Confirming button of a multi-delete (verb + object). */
+  confirmDeleteManyConfirmText?: string;
+  /** Row name in the accessible names of the records editor's row buttons; `{index}` = 1-based row. */
+  recordRowLabel?: string;
+  unsavedChangesTitle: string;
+  unsavedChangesMessage: string;
+  discardChanges: string;
+  keepEditing: string;
+
+  // --- Notifications ---
+  saveSuccess: string;
+  saveError: string;
+  createSuccess: string;
+  deleteSuccess: string;
+  deleteError: string;
+  loadError: string;
+  noChanges: string;
+  /**
+   * Warning when a host `beforeSave` hook vetoed the save without a message of its own (AB#5623).
+   * Optional so that complete message objects of older hosts keep compiling.
+   */
+  saveVetoed?: string;
+  /**
+   * List cell and form field hint of a non-secret value that holds a host-listed placeholder
+   * (`ENTITY_FORM_UNSET_PLACEHOLDER_VALUES`, AB#5623). Optional for older complete message objects.
+   */
+  notConfigured?: string;
+
+  // --- Empty / not found states ---
+  emptyList: string;
+  emptyRecords: string;
+  emptyReferences: string;
+  entityNotFound: string;
+  formNotFound: string;
+  noFieldsToShow: string;
+  loading: string;
+
+  // --- Validation ---
+  validationRequired: string;
+  /** `{min}` = minimum value. */
+  validationMin: string;
+  /** `{max}` = maximum value. */
+  validationMax: string;
+  /** `{pattern}` = regular expression. */
+  validationPattern: string;
+  validationEmail: string;
+  validationUrl: string;
+  validationJson: string;
+  validationNumber: string;
+  /** `{max}` = maximum number of selected entities. */
+  validationMaxItems: string;
+  formInvalid: string;
+
+  // --- Editors ---
+  unsupportedEditor: string;
+  chipsPlaceholder: string;
+  referencePlaceholder: string;
+  enumPlaceholder: string;
+  toggleOn: string;
+  toggleOff: string;
+  /** Warning on a record field that cannot be saved safely (sub-attribute name collides with a secret). */
+  recordReadOnlyWarning: string;
+  nestedRecordReadOnly: string;
+  recordRowDialogTitleAdd: string;
+  recordRowDialogTitleEdit: string;
+
+  // --- List / page ---
+  columnWellKnownName: string;
+  columnName: string;
+  columnChanged: string;
+  columnCreated: string;
+  columnType: string;
+  columnActions: string;
+  copyId: string;
+  copyRtId: string;
+  copyCkTypeId: string;
+  copyRtCkTypeId: string;
+  copyRtEntityId: string;
+  /** @deprecated No longer shown (AB#5623): both copy actions use {@link copiedId}. */
+  copied: string;
+  /** Tooltip of the Copy ID button in the form header (AB#5623). */
+  copyIdTooltip: string;
+  /** Notification after copying one ID (list menu and form header); `{label}` = RtId, CkTypeId, ... (AB#5623). */
+  copiedId: string;
+  /** Notification when the clipboard is not available (AB#5623). */
+  copyFailed: string;
+  searchPlaceholder: string;
+  /** Header of the optional Type column of the list. */
+  typeColumn: string;
+  selectSubtypeTitle: string;
+  createTitle: string;
+  /** `{name}` = display name of the entity. */
+  editTitle: string;
+  viewTitle: string;
+  readOnlyNotice: string;
+  singletonCreateHint: string;
+}
+
+/** English defaults; hosts may override any key via the `messages` input. */
+export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
+  save: 'Save',
+  cancel: 'Cancel',
+  delete: 'Delete',
+  new: 'New',
+  edit: 'Edit',
+  duplicate: 'Duplicate',
+  export: 'Export',
+  close: 'Close',
+  apply: 'Apply',
+  refresh: 'Refresh',
+  back: 'Back',
+  add: 'Add',
+  remove: 'Remove',
+  moveUp: 'Move up',
+  moveDown: 'Move down',
+  select: 'Select',
+  clear: 'Clear',
+
+  secretSetPlaceholder: 'Leave empty to keep',
+  secretNotSetPlaceholder: 'Not set',
+  secretBadge: 'Secret',
+  secretHelp: 'Write-only. The stored value is never shown; type a new value to replace it.',
+  // One set of status labels for every secret display (octo-services `formatSecretStatus`).
+  secretStatusSet: DEFAULT_SECRET_STATUS_LABELS.set,
+  secretStatusSetAt: DEFAULT_SECRET_STATUS_LABELS.setAt,
+  secretStatusNotSet: DEFAULT_SECRET_STATUS_LABELS.notSet,
+  secretStatusKeyMissing: DEFAULT_SECRET_STATUS_LABELS.keyMissing,
+  secretStatusNeedsReEntry: 'Needs re-entry',
+  secretStatusClearStaged: 'Will be cleared',
+  secretClear: 'Clear',
+  secretUndoClear: 'Undo',
+  secretClearStagedNote: 'The stored value is removed when you save.',
+  secretShow: 'Show',
+  secretHide: 'Hide',
+  secretWritesDisabled: 'Secrets cannot be changed: no encryption key ring is configured for this environment.',
+  secretRequiredWritesDisabled: 'Cannot create: {fields} must be set, but secrets cannot be written without an encryption key ring.',
+  secretMultilineMasked: 'Masked · {lines} line(s) entered. Use Show to check the value.',
+  secretRecordMemberKeep: 'Leave empty to keep the stored value',
+  secretRecordMemberNewValue: 'New value (unsaved)',
+
+  furtherAttributes: 'Further attributes',
+
+  confirmDeleteTitle: 'Delete entity',
+  confirmDeleteMessage: 'Do you really want to delete "{name}"? This cannot be undone.',
+  confirmDeleteManyMessage: 'Do you really want to delete {count} entities? This cannot be undone.',
+  confirmDeleteNamedTitle: 'Delete {name}?',
+  confirmDeleteManyTitle: 'Delete {count} entities?',
+  confirmDeleteManyTarget: '{count} entities',
+  confirmDeleteConsequence: 'The entity and its values are deleted. This cannot be undone.',
+  confirmDeleteManyConsequence: 'The {count} entities and their values are deleted. This cannot be undone.',
+  confirmDeleteConfirmText: 'Delete entity',
+  confirmDeleteManyConfirmText: 'Delete entities',
+  recordRowLabel: 'row {index}',
+  unsavedChangesTitle: 'Unsaved changes',
+  unsavedChangesMessage: 'You have unsaved changes. Do you want to discard them?',
+  discardChanges: 'Discard',
+  keepEditing: 'Keep editing',
+
+  saveSuccess: 'Changes saved.',
+  saveError: 'The changes could not be saved.',
+  createSuccess: 'Entity created.',
+  deleteSuccess: 'Entity deleted.',
+  deleteError: 'The entity could not be deleted.',
+  loadError: 'The data could not be loaded.',
+  noChanges: 'There are no changes to save.',
+  saveVetoed: 'The changes were not saved.',
+  notConfigured: 'Not configured',
+
+  emptyList: 'No entries yet.',
+  emptyRecords: 'No entries.',
+  emptyReferences: 'Nothing selected.',
+  entityNotFound: 'The entity was not found.',
+  formNotFound: 'No form is configured for this type.',
+  noFieldsToShow: 'This form has no fields.',
+  loading: 'Loading…',
+
+  validationRequired: 'This field is required.',
+  validationMin: 'The value must be at least {min}.',
+  validationMax: 'The value must be at most {max}.',
+  validationPattern: 'The value does not match the expected format.',
+  validationEmail: 'Enter a valid email address.',
+  validationUrl: 'Enter a valid URL.',
+  validationJson: 'Enter valid JSON.',
+  validationNumber: 'Enter a valid number.',
+  validationMaxItems: 'Select at most {max} entries.',
+  formInvalid: 'Please correct the highlighted fields.',
+
+  unsupportedEditor: 'This value cannot be edited here.',
+  chipsPlaceholder: 'Type a value and press Enter',
+  referencePlaceholder: 'Search…',
+  enumPlaceholder: 'Select…',
+  toggleOn: 'Yes',
+  toggleOff: 'No',
+  recordReadOnlyWarning: 'This field is read-only here because one of its entries shares a name with a secret attribute.',
+  nestedRecordReadOnly: 'Nested entries cannot be edited here.',
+  recordRowDialogTitleAdd: 'Add entry',
+  recordRowDialogTitleEdit: 'Edit entry',
+
+  columnWellKnownName: 'Well-known name',
+  columnName: 'Name',
+  columnChanged: 'Changed',
+  columnCreated: 'Created',
+  columnType: 'Type',
+  columnActions: 'Actions',
+  copyId: 'Copy ID',
+  copyRtId: 'RtId',
+  copyCkTypeId: 'CkTypeId',
+  copyRtCkTypeId: 'RtCkTypeId',
+  copyRtEntityId: 'RtEntityId',
+  copied: 'Copied to clipboard.',
+  copyIdTooltip: 'Copy Entity ID to clipboard',
+  copiedId: '{label} copied',
+  copyFailed: 'Failed to copy to clipboard',
+  searchPlaceholder: 'Search…',
+  typeColumn: 'Type',
+  selectSubtypeTitle: 'Select the type to create',
+  createTitle: 'New entry',
+  editTitle: 'Edit {name}',
+  viewTitle: 'Details',
+  readOnlyNotice: 'You can view this entry but not change it.',
+  singletonCreateHint: 'This entry does not exist yet. Fill in the form to create it.',
+};
+
+/** Replaces `{key}` placeholders in a message with the given values. */
+export function formatEntityFormsMessage(message: string, values: Record<string, string | number>): string {
+  return message.replace(/\{(\w+)\}/g, (match, key: string) =>
+    Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : match);
+}
+
+/** Merges host overrides over the English defaults. */
+export function mergeEntityFormsMessages(overrides?: Partial<EntityFormsMessages> | null): EntityFormsMessages {
+  return { ...DEFAULT_ENTITY_FORMS_MESSAGES, ...(overrides ?? {}) };
+}
+
+/** The secret status labels of a message set, for octo-services `formatSecretStatus`. */
+export function secretStatusLabelsOf(messages: EntityFormsMessages): SecretStatusLabels {
+  return {
+    set: messages.secretStatusSet,
+    setAt: messages.secretStatusSetAt,
+    notSet: messages.secretStatusNotSet,
+    keyMissing: messages.secretStatusKeyMissing,
+  };
+}

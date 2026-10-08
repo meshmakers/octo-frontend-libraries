@@ -1,0 +1,19 @@
+<mm-list-view
+  mmEntityListDataSource
+  [columns]="columns()"
+  [sortable]="true"
+  [rowFilterEnabled]="true"
+  [searchTextBoxEnabled]="true"
+  [autoPageSize]="true"
+  [selectable]="{ mode: 'single', enabled: true }"
+  [showRowCheckBoxes]="false"
+  [actionsColumnWidth]="actionsColumnWidth()"
+  [actionCommandItems]="actionItems()"
+  [contextMenuCommandItems]="contextMenuItems()"
+  [leftToolbarActions]="toolbarItems()"
+  [listStateKey]="listStateKey()"
+  [messages]="listViewMessages()"
+  [rowClass]="listViewRowClass()"
+  (rowClicked)="onRowClicked($event)"
+>
+</mm-list-view>

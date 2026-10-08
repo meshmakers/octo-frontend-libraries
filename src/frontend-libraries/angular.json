@@ -227,6 +227,10 @@
             "setupFiles": [
               "testing/vitest-setup.ts"
             ],
+            "include": [
+              "**/*.spec.ts",
+              "../**/*.spec.ts"
+            ],
             "runnerConfig": "vitest.config.ts"
           }
         },

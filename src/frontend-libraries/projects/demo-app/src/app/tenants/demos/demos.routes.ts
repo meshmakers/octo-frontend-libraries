@@ -228,6 +228,11 @@ export const routes: Routes = [
       import('./runtime-browser/runtime-browser.routes').then((m) => m.routes),
   },
   {
+    path: 'entity-forms',
+    loadChildren: () =>
+      import('./entity-forms/entity-forms-demo.routes').then((m) => m.routes),
+  },
+  {
     path: 'branding',
     loadComponent: () =>
       import('./branding/branding-demo.component').then(

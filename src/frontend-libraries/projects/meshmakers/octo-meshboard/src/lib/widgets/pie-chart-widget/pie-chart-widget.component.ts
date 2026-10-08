@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, OnDestroy, AfterViewInit, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PieChartWidgetConfig, PersistentQueryDataSource, ConstructionKitQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -11,6 +11,8 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
+import { categoryStatus, humanizeCategory, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
+import { injectChartTheme } from '../../utils/chart-theme';
 
 /**
  * Data item for the pie chart
@@ -18,7 +20,18 @@ import { findCellForField, matchesAttributePath } from '../../utils/widget-data-
 interface ChartDataItem {
   category: string;
   value: number;
+  /** Status colour of a well-known state category (`RESOLVE_FAILED` → error); default series colour otherwise. */
+  color?: string;
 }
+
+/** Plot area options of the pie / donut (stable references, AB#5568). */
+export interface PieChartPlotArea {
+  background: string;
+  margin: { top: number; right: number; bottom: number; left: number };
+}
+
+const PLOT_AREA_WITH_LABELS: PieChartPlotArea = Object.freeze({ background: 'transparent', margin: Object.freeze({ top: 30, right: 30, bottom: 30, left: 30 }) });
+const PLOT_AREA_WITHOUT_LABELS: PieChartPlotArea = Object.freeze({ background: 'transparent', margin: Object.freeze({ top: 4, right: 4, bottom: 4, left: 4 }) });
 
 @Component({
   selector: 'mm-pie-chart-widget',
@@ -41,7 +54,7 @@ interface ChartDataItem {
           <span>{{ error() }}</span>
         </div>
       } @else {
-        <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: plotAreaMargin }">
+        <kendo-chart class="chart-container" [plotArea]="plotArea()">
           <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
           <kendo-chart-series>
             <kendo-chart-series-item
@@ -49,12 +62,14 @@ interface ChartDataItem {
               [data]="chartData()"
               field="value"
               categoryField="category"
+              colorField="color"
               [labels]="labelSettings()">
             </kendo-chart-series-item>
           </kendo-chart-series>
           <kendo-chart-legend
             [visible]="config.showLegend !== false"
-            [position]="config.legendPosition ?? 'right'">
+            [position]="legendPosition()"
+            [labels]="{ font: '12px sans-serif', color: chartTheme().text }">
           </kendo-chart-legend>
           <kendo-chart-tooltip>
             <ng-template kendoChartSeriesTooltipTemplate let-value="value" let-category="category">
@@ -131,8 +146,13 @@ interface ChartDataItem {
     }
   `]
 })
-export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetConfig, ChartDataItem[]>, OnInit, OnChanges {
+export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetConfig, ChartDataItem[]>, OnInit, OnChanges, AfterViewInit, OnDestroy {
   private readonly queryExecutor = inject(QueryExecutorService);
+  private readonly elementRef = inject(ElementRef);
+  private readonly ngZone = inject(NgZone);
+  private resizeObserver?: ResizeObserver;
+  /** Measured widget width (0 until measured). */
+  private readonly width = signal(0);
 
   private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
     'RtSimpleQueryRow',
@@ -148,14 +168,24 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
 
   // Widget state signals
   private readonly _isLoading = signal(false);
-  private readonly _chartData = signal<ChartDataItem[]>([]);
+  /** Raw categories and values as loaded; labels and status colours are derived in `chartData`. */
+  private readonly _rawData = signal<{ category: string; value: number }[]>([]);
+  /**
+   * Text colours of the current theme; changes only on a real theme switch, so status colours,
+   * legend and labels are resolved again then (Kendo keeps the load-time theme otherwise).
+   */
+  protected readonly chartTheme = injectChartTheme();
   private readonly _error = signal<string | null>(null);
 
   readonly isLoading = this._isLoading.asReadonly();
-  readonly chartData = this._chartData.asReadonly();
+  /** Keeps its reference while categories, values and colours are unchanged (AB#5568). */
+  readonly chartData = computed<ChartDataItem[]>(() => {
+    this.chartTheme();
+    return this._rawData().map(item => this.toItem(item.category, item.value));
+  }, { equal: sameChartItems });
   readonly error = this._error.asReadonly();
 
-  readonly data = computed(() => this._chartData());
+  readonly data = computed(() => this.chartData());
 
   /**
    * Check if widget is not configured (needs data source setup).
@@ -178,14 +208,58 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     return true; // Unknown data source type
   }
 
-  /** Extra margin around the plot area so outsideEnd labels are not clipped by the SVG boundary. */
-  readonly plotAreaMargin = { top: 30, right: 30, bottom: 30, left: 30 };
+  /**
+   * Plot area: extra margin so outsideEnd labels are not clipped by the SVG boundary — only while
+   * labels are shown; without labels it would shrink the pie for nothing. Returns one of two
+   * constant objects: a new object per change detection made Kendo redraw (and re-animate) the
+   * chart on every hover (AB#5568).
+   */
+  plotArea(): PieChartPlotArea {
+    return this.config?.showLabels === true ? PLOT_AREA_WITH_LABELS : PLOT_AREA_WITHOUT_LABELS;
+  }
+
+  /** Margin of the plot area (see `plotArea`). */
+  plotAreaMargin(): PieChartPlotArea['margin'] {
+    return this.plotArea().margin;
+  }
+
+  /**
+   * A legend beside a narrow widget (cockpit tiles are ~300 px wide) leaves the pie a dot; it moves
+   * below the chart there. Method, not computed: `config` is a plain @Input.
+   */
+  legendPosition(): 'top' | 'bottom' | 'left' | 'right' {
+    return responsiveLegendPosition(this.config?.legendPosition, this.width());
+  }
+
+  ngAfterViewInit(): void {
+    const host = this.elementRef.nativeElement as HTMLElement;
+    this.width.set(host.clientWidth ?? 0);
+    if (typeof ResizeObserver === 'undefined') return;
+    this.resizeObserver = new ResizeObserver(entries => {
+      const width = Math.round(entries[0]?.contentRect.width ?? 0);
+      if (width !== this.width()) {
+        this.ngZone.run(() => this.width.set(width));
+      }
+    });
+    this.resizeObserver.observe(host);
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
+
+  /** Human label and status colour for a raw category value (exposed for tests). */
+  toItem(rawCategory: string, value: number): ChartDataItem {
+    const status = categoryStatus(rawCategory);
+    return { category: humanizeCategory(rawCategory), value, ...(status ? { color: statusColor(status) } : {}) };
+  }
 
   private readonly _labelSettings = signal<{ visible: boolean; content: (e: { category: string; value: number }) => string }>({
     visible: false,
     content: (e) => e.category
   });
-  readonly labelSettings = this._labelSettings.asReadonly();
+  /** Series label options incl. the theme text colour (new object only when either changes). */
+  readonly labelSettings = computed(() => ({ ...this._labelSettings(), color: this.chartTheme().text }));
 
   private updateLabelSettings(): void {
     this._labelSettings.set({
@@ -272,12 +346,9 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   private async loadCkQueryData(dataSource: ConstructionKitQueryDataSource): Promise<void> {
     const result = await this.dataService.fetchCkQueryData(dataSource);
 
-    const chartData: ChartDataItem[] = result.items.map(item => ({
-      category: item.category,
-      value: item.value
-    }));
+    const chartData = result.items.map(item => ({ category: item.category, value: item.value }));
 
-    this._chartData.set(chartData);
+    this._rawData.set(chartData);
     this._isLoading.set(false);
   }
 
@@ -318,7 +389,7 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
       return;
     }
 
-    const chartData: ChartDataItem[] = result.rows
+    const chartData = result.rows
       .filter(row => PieChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? ''))
       .map(row => {
         // Resolve each field to its best cell (exact match wins over the loose
@@ -338,7 +409,7 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
       })
       .filter(item => item.category !== ''); // Filter out empty categories
 
-    this._chartData.set(chartData);
+    this._rawData.set(chartData);
     this._isLoading.set(false);
   }
 

@@ -39,7 +39,6 @@
   .k-avatar-text {
     font-family: var(--mm-login-font, 'Roboto', sans-serif);
     font-weight: 600;
-    text-transform: uppercase;
   }
 }
 
@@ -72,9 +71,7 @@
     align-items: center;
     font-family: var(--mm-login-font, 'Roboto', sans-serif);
     font-weight: 500;
-    text-transform: uppercase;
     font-size: 0.75rem;
-    letter-spacing: 0.5px;
     padding: 10px 16px;
     border-radius: 4px;
     transition: all 0.2s ease;

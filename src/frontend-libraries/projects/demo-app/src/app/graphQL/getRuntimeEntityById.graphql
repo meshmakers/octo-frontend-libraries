@@ -1,4 +1,5 @@
-query getRuntimeEntityById($ckTypeId: String!) {
+# SECRET-safe (AB#5542): explicit, non-nullable attribute list (see SecretSafeAttributeNamesService).
+query getRuntimeEntityById($ckTypeId: String!, $attributeNames: [String!]!) {
   runtime {
     runtimeEntities(ckId: $ckTypeId, first: 1) {
       items {
@@ -7,7 +8,7 @@ query getRuntimeEntityById($ckTypeId: String!) {
         rtWellKnownName
         rtCreationDateTime
         rtChangedDateTime
-        attributes(resolveEnumValuesToNames: true) {
+        attributes(attributeNames: $attributeNames, resolveEnumValuesToNames: true) {
           items {
             attributeName
             value

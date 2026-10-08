@@ -72,13 +72,13 @@ export interface CkTypeSelectorDialogResult {
               [placeholder]="_messages.typeSearchPlaceholder"
               class="filter-input">
               <ng-template kendoTextBoxSuffixTemplate>
-                <button kendoButton [svgIcon]="searchIcon" fillMode="clear" size="small"></button>
+                <button kendoButton [svgIcon]="searchIcon" fillMode="clear" size="small" title="Search" aria-label="Search"></button>
               </ng-template>
             </kendo-textbox>
           </div>
           <div class="filter-item filter-actions">
             <label>&nbsp;</label>
-            <button kendoButton [svgIcon]="filterClearIcon" (click)="clearFilters()" [title]="_messages.clearFiltersTitle"></button>
+            <button kendoButton [svgIcon]="filterClearIcon" (click)="clearFilters()" [title]="_messages.clearFiltersTitle" [attr.aria-label]="_messages.clearFiltersTitle"></button>
           </div>
         </div>
       </div>
@@ -228,7 +228,6 @@ export interface CkTypeSelectorDialogResult {
       padding: 1px 6px;
       border-radius: 10px;
       margin-left: 8px;
-      text-transform: uppercase;
     }
 
     .type-badge.abstract {

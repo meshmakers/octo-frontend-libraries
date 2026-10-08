@@ -23,7 +23,7 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
   ],
   template: `
     @if (currentTenantId) {
-      <div #badgeEl class="tenant-badge" [class.denied]="isDenied" (click)="onToggle()">
+      <div #badgeEl class="tenant-badge" [class.denied]="isDenied" [title]="currentTenantId" (click)="onToggle()">
         <span class="tenant-icon">{{ isDenied ? '\u26A0' : '\u25C6' }}</span>
         <span class="tenant-name">{{ currentTenantId }}</span>
         @if (isDenied) {
@@ -39,7 +39,7 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
               <span>Switch Tenant</span>
               <button kendoButton fillMode="flat" size="small" class="refresh-btn"
                       [disabled]="isRefreshing"
-                      title="Refresh tenant list"
+                      title="Refresh tenant list" aria-label="Refresh tenant list"
                       (click)="onRefresh($event)">
                 <kendo-svgicon [icon]="refreshIcon" size="small"
                                [class.spinning]="isRefreshing"></kendo-svgicon>
@@ -61,16 +61,20 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
+    /* May shrink inside a flex row (narrow top bars): the name then ends in an ellipsis. */
     :host {
       display: inline-flex;
       align-items: center;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .tenant-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
+      min-width: 0;
+      padding: var(--mm-tenant-switcher-padding, 6px 14px);
       background: var(--mm-tenant-switcher-bg, var(--kendo-color-surface, transparent));
       border: 1px solid var(--mm-tenant-switcher-border, var(--kendo-color-border, #dee2e6));
       border-radius: var(--mm-tenant-switcher-radius, 4px 16px 16px 4px);
@@ -85,18 +89,21 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
     }
 
     .tenant-icon {
+      flex: none;
       font-size: 0.7rem;
       color: var(--mm-tenant-switcher-accent, var(--kendo-color-primary, #ff6358));
       animation: var(--mm-tenant-switcher-icon-animation, none);
     }
 
     .tenant-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       font-family: var(--mm-tenant-switcher-font, inherit);
       font-size: 0.85rem;
       font-weight: 600;
-      letter-spacing: 1px;
       color: var(--mm-tenant-switcher-accent, var(--kendo-color-primary, #ff6358));
-      text-transform: uppercase;
       text-shadow: var(--mm-tenant-switcher-text-shadow, none);
     }
 
@@ -116,7 +123,6 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
       font-family: var(--mm-tenant-switcher-font, inherit);
       font-size: 0.55rem;
       font-weight: 700;
-      letter-spacing: 1px;
       color: var(--mm-tenant-switcher-denied-accent, var(--kendo-color-error, #d9534f));
       background: var(--mm-tenant-switcher-denied-label-bg, color-mix(in srgb, var(--kendo-color-error, #d9534f) 15%, transparent));
       padding: 2px 6px;
@@ -138,8 +144,6 @@ import { arrowRotateCwIcon } from '@progress/kendo-svg-icons';
       padding: 8px 16px;
       font-size: 0.75rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       color: var(--kendo-color-subtle, #666);
       border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
       margin-bottom: 4px;

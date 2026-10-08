@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Directive, OnDestroy, OnInit, inject } from '@angular/core';
 import {DataBindingDirective, DataStateChangeEvent, GridComponent} from '@progress/kendo-angular-grid';
-import {CompositeFilterDescriptor} from '@progress/kendo-data-query';
+import {CompositeFilterDescriptor, State} from '@progress/kendo-data-query';
 import {Observable, of, Subscription} from 'rxjs';
 import {DataSourceBase, FetchAgainOptions} from '../data-sources/data-source-base';
 import {ListStateService} from '../services/list-state.service';
@@ -20,6 +20,15 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
   /** Current loading state */
   public get isLoading(): boolean {
     return this.dataSource?.isLoading ?? false;
+  }
+
+  /**
+   * Read-only view of the grid state (filter, sort, skip, take) Kendo keeps
+   * protected on the base directive. The list view consults it to decide
+   * whether anything is filtered right now.
+   */
+  public get currentState(): State {
+    return this.state;
   }
 
   private _serviceSubscription: Subscription | null;

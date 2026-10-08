@@ -1,6 +1,9 @@
-import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy, ElementRef, NgZone, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
+import { urlWithoutEditParam, wantsEditModeFromUrl } from '../../utils/edit-mode-url';
+import { MESHBOARD_HEADER_MODE_ROUTE_DATA, MeshBoardHeaderMode, resolveMeshBoardHeaderMode } from '../../utils/meshboard-header';
+import { MESHBOARD_CHROME_ROUTE_DATA, MeshBoardChrome, resolveMeshBoardChrome } from '../../utils/meshboard-chrome';
 import { TileLayoutModule, TileLayoutComponent, TileLayoutReorderEvent, TileLayoutResizeEvent } from '@progress/kendo-angular-layout';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { DialogService, DialogModule, WindowService, WindowCloseResult } from '@progress/kendo-angular-dialog';
@@ -14,10 +17,8 @@ import {
   pencilIcon,
   xIcon,
   linkIcon,
-  trashIcon,
   gridLayoutIcon,
   undoIcon,
-  copyIcon,
   infoCircleIcon,
   arrowUpIcon,
   arrowDownIcon
@@ -32,7 +33,7 @@ import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
-import { compactTierForWidth, columnsForTier, placeWidgetsForTier } from '../../utils/compact-layout';
+import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows } from '../../utils/compact-layout';
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
@@ -42,6 +43,7 @@ import {
   EntitySelectorClearEvent
 } from '../../components/entity-selector-toolbar/entity-selector-toolbar.component';
 import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
+import { MeshBoardEmptyStateComponent } from '../../components/meshboard-empty-state/meshboard-empty-state.component';
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
 import { EditWidgetDialogComponent, WidgetPositionUpdate } from '../../dialogs/edit-widget-dialog/edit-widget-dialog.component';
 import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
@@ -55,7 +57,8 @@ import {
   TimeRangeUtils,
   TimeRangeSelection as SharedTimeRangeSelection,
   TimeRangePickerLabels,
-  WindowStateService
+  WindowStateService,
+  MM_ACTION_ICONS
 } from '@meshmakers/shared-ui';
 
 /**
@@ -74,7 +77,8 @@ import {
     SVGIconModule,
     EditWidgetDialogComponent,
     TimeRangePickerComponent,
-    EntitySelectorToolbarComponent
+    EntitySelectorToolbarComponent,
+    MeshBoardEmptyStateComponent
   ],
   hostDirectives: [UnsavedChangesDirective],
   providers: [
@@ -115,10 +119,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly pencilIcon = pencilIcon;
   protected readonly xIcon = xIcon;
   protected readonly linkIcon = linkIcon;
-  protected readonly trashIcon = trashIcon;
+  protected readonly trashIcon = MM_ACTION_ICONS.delete;
   protected readonly gridLayoutIcon = gridLayoutIcon;
   protected readonly undoIcon = undoIcon;
-  protected readonly copyIcon = copyIcon;
+  /** Duplicate widget (canonical duplicate icon, AB#5580). */
+  protected readonly copyIcon = MM_ACTION_ICONS.duplicate;
   protected readonly infoCircleIcon = infoCircleIcon;
   protected readonly arrowUpIcon = arrowUpIcon;
   protected readonly arrowDownIcon = arrowDownIcon;
@@ -155,6 +160,28 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly hideEntitySelectors = this._hideEntitySelectors.asReadonly();
   protected readonly timeRangeLabels = signal<TimeRangePickerLabels>({});
 
+  /**
+   * How much of the header the host shows: `full` (default) with name and description,
+   * `compact` (controls only, aligned right) or `none` (no header row). A host page that
+   * already names the board (e.g. a tab under a greeting) embeds it compact. Overrides the
+   * route data `meshBoardHeaderMode`, which routes loading the view directly use.
+   */
+  readonly headerMode = input<MeshBoardHeaderMode | undefined>(undefined);
+  private readonly routeHeaderMode = signal<unknown>(undefined);
+  protected readonly effectiveHeaderMode = computed(() =>
+    resolveMeshBoardHeaderMode(this.headerMode(), this.routeHeaderMode()));
+
+  /**
+   * Whether the view draws its own outer frame: `framed` (default) paints the view background,
+   * the header bar and the grid padding; `plain` leaves all three to the host page, so the
+   * widgets sit on the host surface and align with its gutter (widget frames and the gap between
+   * widgets unchanged). Overrides the route data `meshBoardChrome`.
+   */
+  readonly chrome = input<MeshBoardChrome | undefined>(undefined);
+  private readonly routeChrome = signal<unknown>(undefined);
+  protected readonly effectiveChrome = computed(() =>
+    resolveMeshBoardChrome(this.chrome(), this.routeChrome()));
+
   // Computed link to MeshBoard page with tenant
   protected readonly meshBoardPageLink = computed(() => {
     // Get tenant from route parameters (synchronously from snapshot)
@@ -166,8 +193,14 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Computed
   protected readonly hasWidgets = computed(() => this.config().widgets.length > 0);
-  protected readonly bannerWidgets = computed(() => this.config().widgets.filter(w => w.zone === 'banner'));
-  protected readonly gridWidgets = computed(() => this.config().widgets.filter(w => w.zone !== 'banner'));
+  /** Widgets shown: outside edit mode those that reported "nothing for this viewer" are collapsed (AB#5558). */
+  private readonly visibleWidgets = computed(() => {
+    const widgets = this.config().widgets;
+    const hidden = this.stateService.hiddenForViewer();
+    return this.isEditMode() || hidden.size === 0 ? widgets : collapseEmptyRows(widgets.filter(w => !hidden.has(w.id)));
+  });
+  protected readonly bannerWidgets = computed(() => this.visibleWidgets().filter(w => w.zone === 'banner'));
+  protected readonly gridWidgets = computed(() => this.visibleWidgets().filter(w => w.zone !== 'banner'));
   protected readonly hasGridWidgets = computed(() => this.gridWidgets().length > 0);
   protected readonly canSave = computed(() => this.isEditMode() && !this.isSaving());
 
@@ -184,8 +217,15 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly displayColumns = computed(() => columnsForTier(this.compactTier(), this.config().columns));
   protected readonly displayAutoFlow = computed(() => this.compactTier() === 'none' ? 'column' as const : 'row' as const);
   protected readonly canEditLayout = computed(() => this.isEditMode() && this.compactTier() === 'none');
-  protected readonly displayGridWidgets = computed(() =>
-    placeWidgetsForTier(this.gridWidgets(), this.compactTier(), this.config().columns));
+  protected readonly displayGridWidgets = computed(() => {
+    const tier = this.compactTier();
+    const config = this.config();
+    // Phone tier only (AB#5558): content-sized widgets grow their tile to fit.
+    const contentSizing = tier === 'phone'
+      ? { heights: this.stateService.widgetContentHeights(), rowHeight: config.rowHeight, gap: config.gap }
+      : undefined;
+    return placeWidgetsForTier(this.gridWidgets(), tier, config.columns, contentSizing);
+  });
 
   // Time Filter computed signals
   protected readonly isTimeFilterEnabled = computed(() => this.stateService.isTimeFilterEnabled());
@@ -335,6 +375,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       this._isReadonly.set(readonly === true);
       const hideEntitySelectors = this.route.snapshot.data['meshBoardHideEntitySelectors'] as boolean | undefined;
       this._hideEntitySelectors.set(hideEntitySelectors === true);
+      this.routeHeaderMode.set(this.route.snapshot.data[MESHBOARD_HEADER_MODE_ROUTE_DATA]);
+      this.routeChrome.set(this.route.snapshot.data[MESHBOARD_CHROME_ROUTE_DATA]);
       const labels = this.route.snapshot.data['timeRangeLabels'] as TimeRangePickerLabels | undefined;
       if (labels) this.timeRangeLabels.set(labels);
 
@@ -365,6 +407,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
       // Mark initial load as complete so the effect can handle subsequent board switches
       this.initialLoadComplete = true;
+
+      // `?edit=1` (e.g. "Edit" in a host's board list) opens the board in edit mode;
+      // ignored on read-only routes.
+      if (wantsEditModeFromUrl(this.route.snapshot.queryParamMap, this.isReadonly(), this.isEditMode())) {
+        this.editModeService.enterEditMode(this.stateService.getConfig());
+        // Consume the request: a reload or a copied link must not re-enter edit mode.
+        const cleaned = urlWithoutEditParam(this.router.url);
+        if (cleaned !== null) {
+          void this.router.navigateByUrl(cleaned, { replaceUrl: true });
+        }
+      }
 
       // The constructor effect skipped the URL sync during the initial load
       // (and already consumed the rtId via lastNavigatedRtId), so sync once
@@ -1412,7 +1465,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // stream-data query by the resolved source rtIds.
       await this.resolveEntitySelectorScopeRtIds(selector, rtId);
 
-      return entity.rtWellKnownName || entity.rtId;
+      // Label the selection the way the pick dialog does: by the engine's
+      // display name (the type's displayNameRule — "2026" for a fiscal year),
+      // not the well-known name, which most entities do not carry. Without it
+      // a board opened on its defaultRtId showed the raw rtId in the toolbar
+      // until the user re-picked the very same entity.
+      return entity.rtDisplayName || entity.rtWellKnownName || entity.rtId;
     } catch (error) {
       console.error(`Error resolving entity selector '${selector.id}':`, error);
       return undefined;

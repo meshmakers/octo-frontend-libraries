@@ -337,7 +337,6 @@ interface RecordArrayItem {
       font-size: 0.75em;
       padding: 2px 6px;
       border-radius: 3px;
-      text-transform: uppercase;
       font-weight: 500;
       background: color-mix(in srgb, var(--kendo-color-on-app-surface, #1d1b20) 12%, transparent);
       color: var(--kendo-color-on-app-surface, #1d1b20);

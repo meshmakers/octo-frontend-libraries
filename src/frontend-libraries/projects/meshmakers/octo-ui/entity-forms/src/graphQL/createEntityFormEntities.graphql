@@ -1,0 +1,11 @@
+# Creates entities from an entity form. Returns ids only (never echoes attributes).
+mutation entityFormCreateEntities($entities: [RtEntityInput]!) {
+  runtime {
+    runtimeEntities {
+      create(entities: $entities) {
+        rtId
+        ckTypeId
+      }
+    }
+  }
+}

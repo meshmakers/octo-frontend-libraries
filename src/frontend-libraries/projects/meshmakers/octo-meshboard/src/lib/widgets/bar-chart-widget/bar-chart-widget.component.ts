@@ -11,6 +11,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField } from '../../utils/widget-data-utils';
 import { isIsoDateTime, formatInstant } from '../../utils/meshboard-datetime';
+import { injectChartTheme } from '../../utils/chart-theme';
 
 /**
  * Series data for the bar chart
@@ -68,6 +69,7 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
               [majorGridLines]="{ visible: false }">
               <kendo-chart-category-axis-item-labels
                 [rotation]="labelRotation()"
+                [color]="chartTheme().muted"
                 [content]="categoryLabelContent">
               </kendo-chart-category-axis-item-labels>
             </kendo-chart-category-axis-item>
@@ -76,7 +78,8 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
           <kendo-chart-value-axis>
             <kendo-chart-value-axis-item
               [line]="{ visible: false }"
-              [majorGridLines]="{ color: 'rgba(255,255,255,0.06)' }">
+              [labels]="{ color: chartTheme().muted }"
+              [majorGridLines]="{ color: chartTheme().grid }">
             </kendo-chart-value-axis-item>
           </kendo-chart-value-axis>
 
@@ -95,6 +98,7 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
                 @if (config.showDataLabels) {
                   <kendo-chart-series-item-labels
                     [visible]="true"
+                    [color]="chartTheme().text"
                     [format]="dataLabelFormat()">
                   </kendo-chart-series-item-labels>
                 }
@@ -104,7 +108,8 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
 
           <kendo-chart-legend
             [visible]="config.showLegend !== false"
-            [position]="config.legendPosition ?? 'right'">
+            [position]="config.legendPosition ?? 'right'"
+            [labels]="{ color: chartTheme().text }">
           </kendo-chart-legend>
 
           <kendo-chart-tooltip>
@@ -185,6 +190,9 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
 })
 export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetConfig, SeriesData[]>, OnInit, OnChanges {
   private readonly queryExecutor = inject(QueryExecutorService);
+  /** Text / grid colours of the current theme, re-resolved on a live theme switch (AB#5568). */
+  protected readonly chartTheme = injectChartTheme();
+
 
   private static readonly SUPPORTED_ROW_TYPES: ReadonlySet<string> = new Set([
     'RtSimpleQueryRow',

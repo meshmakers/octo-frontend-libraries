@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { trashIcon, pencilIcon, plusIcon, arrowLeftIcon, uploadIcon } from '@progress/kendo-svg-icons';
+import { arrowLeftIcon } from '@progress/kendo-svg-icons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { InputsModule, NumericTextBoxModule } from '@progress/kendo-angular-inputs';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
-import { ConfirmationService } from '@meshmakers/shared-ui';
+import { ConfirmationService, MM_ACTION_ICONS, MmAction, RowActionsComponent } from '@meshmakers/shared-ui';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import { BreadCrumbService } from '@meshmakers/shared-services';
 import { SymbolLibraryService } from '../../services/symbol-library.service';
@@ -38,7 +38,8 @@ import { estimatePathBounds, PathPrimitive, offsetPathData } from '../../primiti
     SVGIconModule,
     InputsModule,
     NumericTextBoxModule,
-    DialogsModule
+    DialogsModule,
+    RowActionsComponent
   ],
   templateUrl: './symbol-library-detail.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -55,11 +56,11 @@ export class SymbolLibraryDetailComponent implements OnInit {
   private readonly symbolLibraryService = inject(SymbolLibraryService);
   private readonly svgImportService = inject(SvgImportService);
 
-  protected readonly plusIcon = plusIcon;
-  protected readonly editIcon = pencilIcon;
-  protected readonly deleteIcon = trashIcon;
+  protected readonly plusIcon = MM_ACTION_ICONS.add;
+  protected readonly editIcon = MM_ACTION_ICONS.edit;
+  protected readonly deleteIcon = MM_ACTION_ICONS.delete;
   protected readonly backIcon = arrowLeftIcon;
-  protected readonly uploadIcon = uploadIcon;
+  protected readonly uploadIcon = MM_ACTION_ICONS.import;
 
   protected readonly library = signal<SymbolLibrary | null>(null);
   protected readonly isLoading = signal(true);
@@ -510,11 +511,40 @@ export class SymbolLibraryDetailComponent implements OnInit {
     };
   }
 
+  /** Row actions of a symbol card (AB#5580): Edit, Delete (danger; disabled with reason in read-only libraries). */
+  protected readonly symbolActions = computed<MmAction<'edit' | 'delete'>[]>(() => {
+    const readOnly = !!this.library()?.isReadOnly;
+    return [
+      { id: 'edit', label: 'Edit symbol', icon: this.editIcon },
+      {
+        id: 'delete',
+        label: 'Delete symbol',
+        icon: this.deleteIcon,
+        danger: true,
+        disabledReason: readOnly ? 'The library is read-only' : null,
+      },
+    ];
+  });
+
+  protected onSymbolAction(id: 'edit' | 'delete', symbol: SymbolDefinition): void {
+    if (id === 'edit') {
+      this.editSymbol(symbol);
+    } else {
+      void this.deleteSymbol(symbol);
+    }
+  }
+
   protected async deleteSymbol(symbol: SymbolDefinition): Promise<void> {
-    const confirmed = await this.confirmationService.showYesNoConfirmationDialog(
-      'Delete Symbol',
-      `Are you sure you want to delete symbol "${symbol.name}"?`
-    );
+    if (this.library()?.isReadOnly) {
+      return;
+    }
+    // AB#5580: danger confirmation naming the symbol.
+    const confirmed = await this.confirmationService.showDangerConfirm({
+      title: `Delete symbol ${symbol.name}?`,
+      targetName: symbol.name,
+      consequence: 'The symbol is removed from the library. Diagrams using it can no longer render it. This cannot be undone.',
+      confirmText: 'Delete symbol',
+    });
 
     if (confirmed) {
       try {

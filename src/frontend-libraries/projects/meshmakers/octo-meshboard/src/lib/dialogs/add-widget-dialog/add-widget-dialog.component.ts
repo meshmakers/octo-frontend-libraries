@@ -19,6 +19,11 @@ import {
   clipboardMarkdownIcon,
   gearsIcon,
   chartLineMarkersIcon,
+  warningTriangleIcon,
+  connectorIcon,
+  dataIcon,
+  chartAreaRangeIcon,
+  clockArrowRotateIcon,
   SVGIcon
 } from '@progress/kendo-svg-icons';
 
@@ -111,6 +116,16 @@ export class AddWidgetDialogComponent implements OnInit {
         return clipboardMarkdownIcon;
       case 'process':
         return gearsIcon;
+      case 'attentionList':
+        return warningTriangleIcon;
+      case 'adapterStatus':
+        return connectorIcon;
+      case 'ckModelState':
+        return dataIcon;
+      case 'pipelineExecutions':
+        return chartAreaRangeIcon;
+      case 'recentItems':
+        return clockArrowRotateIcon;
       default:
         return chartLineIcon;
     }
@@ -151,6 +166,16 @@ export class AddWidgetDialogComponent implements OnInit {
         return 'Display formatted text content with Markdown syntax';
       case 'process':
         return 'Display and interact with process diagrams and HMI graphics';
+      case 'attentionList':
+        return 'Health findings (CK models, pools, adapters, features, …) — each only for viewers who may act on it';
+      case 'adapterStatus':
+        return 'Adapters online of the adapters expected to run';
+      case 'ckModelState':
+        return 'Construction Kit models available, ResolveFailed as error';
+      case 'pipelineExecutions':
+        return 'Pipeline executions in the last 24 hours with failures and an hourly sparkline';
+      case 'recentItems':
+        return 'Pages, entities and boards the viewer opened recently — personal, from the host application';
       default:
         return 'Widget for displaying data';
     }

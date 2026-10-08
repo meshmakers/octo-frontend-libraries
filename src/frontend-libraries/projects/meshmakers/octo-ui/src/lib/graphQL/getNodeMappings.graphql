@@ -1,3 +1,4 @@
+# SECRET-safe (AB#5542): explicit attribute list — the mapping fields the coverage tree reads.
 query getNodeMappings(
   $rtId: OctoObjectId!
   $ckTypeId: String!
@@ -20,7 +21,10 @@ query getNodeMappings(
             items {
               rtId
               ckTypeId
-              attributes(resolveEnumValuesToNames: true) {
+              attributes(
+                attributeNames: ["name", "enabled", "sourceAttributePath", "targetAttributePath", "mappingExpression"]
+                resolveEnumValuesToNames: true
+              ) {
                 items {
                   attributeName
                   value

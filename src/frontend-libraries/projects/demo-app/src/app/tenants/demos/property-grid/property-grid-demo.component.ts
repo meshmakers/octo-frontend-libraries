@@ -12,7 +12,8 @@ import {
   PropertyGridConfig,
   PropertyChangeEvent,
   PropertyConverterService,
-  AttributeValueTypeDto
+  AttributeValueTypeDto,
+  SecretSafeAttributeNamesService
 } from '@meshmakers/octo-ui';
 import { firstValueFrom, take } from 'rxjs';
 import {GetRuntimeEntityByIdDtoGQL} from '../../../graphQL/getRuntimeEntityById';
@@ -245,6 +246,7 @@ export class PropertyGridDemoComponent implements OnInit {
 
   private readonly propertyConverter = inject(PropertyConverterService);
   private readonly getRuntimeEntityByIdDtoGQL = inject(GetRuntimeEntityByIdDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   // Component state
   propertyData: PropertyGridItem[] = [];
@@ -384,7 +386,10 @@ export class PropertyGridDemoComponent implements OnInit {
    */
   async loadRuntimeEntity() {
     try {
-      const result = await firstValueFrom(this.getRuntimeEntityByIdDtoGQL.fetch({variables: { ckTypeId: 'Basic/Document' }}));
+      // SECRET-safe (AB#5542): only the type's non-secret attributes are requested.
+      const ckTypeId = 'Basic/Document';
+      const attributeNames = await this.secretSafeNames.forCkType(ckTypeId);
+      const result = await firstValueFrom(this.getRuntimeEntityByIdDtoGQL.fetch({variables: { ckTypeId, attributeNames }}));
       const entities = result.data?.runtime?.runtimeEntities?.items;
 
       if (entities && entities.length > 0) {

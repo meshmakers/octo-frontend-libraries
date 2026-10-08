@@ -1,0 +1,116 @@
+@if (canResize()) {
+  <div class="resize-handle" role="separator" tabindex="0" aria-orientation="vertical" aria-controls="assistant-panel"
+       [attr.aria-label]="m().resizePanel" [title]="m().resizePanel"
+       [attr.aria-valuenow]="currentWidth()" [attr.aria-valuemin]="effectiveMin()" [attr.aria-valuemax]="effectiveMax()"
+       (pointerdown)="startResize($event)" (keydown)="onResizeKey($event)" (dblclick)="resetWidth()"></div>
+}
+
+<header class="head">
+  <span class="sparkle" aria-hidden="true">✦</span>
+  <h2 class="title" id="assistant-panel-title">{{ m().title }}</h2>
+  @if (connected()) {
+    <span class="chip-neutral" [title]="m().readsWithYourPermissions">{{ m().readsWithYourPermissions }}</span>
+  }
+  @if (assistant.sessionsSupported) {
+    <div class="head-actions">
+      <button type="button" class="icon-btn new-chat" [attr.aria-label]="m().newChat" [title]="m().newChat" (click)="newChat()">
+        <kendo-svg-icon [icon]="plusIcon"></kendo-svg-icon>
+      </button>
+      <button type="button" class="icon-btn sessions-toggle" aria-controls="assistant-sessions"
+              [attr.aria-label]="m().sessions" [title]="m().sessions"
+              [attr.aria-expanded]="view() === 'sessions'"
+              (click)="view() === 'sessions' ? backToChat() : showSessions()">
+        <kendo-svg-icon [icon]="historyIcon"></kendo-svg-icon>
+      </button>
+    </div>
+  }
+  <button type="button" class="icon-btn close" [attr.aria-label]="m().closeAssistant" [title]="m().closeAssistant" (click)="assistant.close()">
+    <kendo-svg-icon [icon]="xIcon"></kendo-svg-icon>
+  </button>
+</header>
+
+@if (assistant.contextChips().length) {
+  <ul class="ctx" [attr.aria-label]="m().contextLabel">
+    @for (chip of assistant.contextChips(); track chip.id; let i = $index) {
+      <li class="ctx-chip" [attr.data-kind]="chip.kind" [title]="chip.value">
+        <span class="ctx-label">{{ chip.label }}</span>
+        <button type="button" [attr.aria-label]="format(m().removeContext, { label: chip.label })" [title]="format(m().removeContext, { label: chip.label })" (click)="removeChip(chip.id, i)"><kendo-svg-icon [icon]="xIcon" size="small"></kendo-svg-icon></button>
+      </li>
+    }
+  </ul>
+}
+
+@if (view() === 'sessions') {
+  <section class="sessions" id="assistant-sessions" [attr.aria-label]="m().sessionsLabel">
+    <button type="button" class="text-btn back" (click)="backToChat()">← {{ m().backToChat }}</button>
+    <ul class="session-list">
+      @for (session of assistant.sessions(); track session.id) {
+        <li class="session-row" [attr.data-session-id]="session.id"
+            [class.active]="session.id === assistant.activeSessionId()">
+          @if (confirmingDelete() === session.id) {
+            <div class="session-confirm" role="group" [attr.aria-label]="format(m().deleteSessionConfirm, { title: session.title })">
+              <span class="confirm-text">{{ format(m().deleteSessionConfirm, { title: session.title }) }}</span>
+              <button type="button" class="text-btn danger confirm-delete" [disabled]="busySession() === session.id"
+                      (click)="confirmDelete(session)">{{ m().delete }}</button>
+              <button type="button" class="text-btn cancel-delete" (click)="cancelDelete()">{{ m().cancel }}</button>
+            </div>
+          } @else {
+            <button type="button" class="session-open" [title]="session.title"
+                    [attr.aria-current]="session.id === assistant.activeSessionId() ? 'true' : null"
+                    [disabled]="busySession() === session.id"
+                    (click)="openSession(session)">
+              <span class="session-title">{{ session.title }}</span>
+              @if (sessionDate(session); as date) {
+                <span class="session-date">{{ date }}</span>
+              }
+            </button>
+            @if (assistant.sessionDeleteSupported) {
+              <button type="button" class="icon-btn session-delete"
+                      [attr.aria-label]="format(m().deleteSession, { title: session.title })"
+                      [title]="format(m().deleteSession, { title: session.title })"
+                      [disabled]="busySession() === session.id"
+                      (click)="askDelete(session)">
+                <kendo-svg-icon [icon]="trashIcon" size="small"></kendo-svg-icon>
+              </button>
+            }
+          }
+        </li>
+      } @empty {
+        <li class="session-empty">{{ m().noSessions }}</li>
+      }
+    </ul>
+  </section>
+} @else {
+  @if (showStarters()) {
+    <section class="starters" aria-labelledby="assistant-starters-title">
+      <h3 class="starters-title" id="assistant-starters-title">{{ m().startersTitle }}</h3>
+      <ul class="starter-list">
+        @for (question of assistant.starterQuestions(); track $index) {
+          <li><button type="button" class="starter" [disabled]="!assistant.canSend()" (click)="sendStarter(question)">{{ question }}</button></li>
+        }
+      </ul>
+    </section>
+  }
+
+  <mm-assistant-thread class="thread" [items]="assistant.thread()" [messages]="messages()" (proposalDecision)="onDecision($event)"></mm-assistant-thread>
+
+  @if (!connected() || assistant.transportStatus() === 'error') {
+    <div class="unavailable" role="status">
+      <span class="sparkle" aria-hidden="true">✦</span>
+      <p>{{ assistant.transportMessage() ?? m().notAvailable }}</p>
+    </div>
+  }
+
+  <mm-assistant-composer
+    [messages]="messages()"
+    [text]="assistant.draft()"
+    (textChange)="assistant.setDraft($event)"
+    [attachments]="assistant.attachments"
+    [files]="assistant.draftFiles()"
+    (filesChange)="assistant.setDraftFiles($event)"
+    [canSend]="assistant.canSend()"
+    [sending]="assistant.sending()"
+    (send)="assistant.send($event)"
+    (stop)="assistant.stop()">
+  </mm-assistant-composer>
+}

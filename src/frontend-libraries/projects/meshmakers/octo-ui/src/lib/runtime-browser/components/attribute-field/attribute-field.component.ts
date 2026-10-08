@@ -36,6 +36,8 @@ import { Attribute } from '../../models/attribute';
               (click)="handleUndo()"
               type="button"
               class="undo-button"
+              title="Undo change"
+              aria-label="Undo change"
             ></button>
           }
         </div>

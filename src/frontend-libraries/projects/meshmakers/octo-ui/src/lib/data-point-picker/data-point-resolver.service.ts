@@ -7,6 +7,7 @@ import {
   AttributeItemLike,
   DataPointInfo,
   DEFAULT_DATA_POINT,
+  DATA_POINT_ATTRIBUTE_NAMES,
 } from './data-point-picker.utils';
 
 /**
@@ -46,7 +47,7 @@ export class DataPointResolverService {
       const entity = await firstValueFrom(
         this.getRuntimeEntityByIdGQL
           .fetch({
-            variables: { rtId, ckTypeId },
+            variables: { rtId, ckTypeId, attributeNames: [...DATA_POINT_ATTRIBUTE_NAMES] },
             fetchPolicy: 'network-only',
           })
           .pipe(map(r => r.data?.runtime?.runtimeEntities?.items?.[0] ?? null)),

@@ -1,7 +1,8 @@
 <div>{{data?.message}}</div>
+<!-- Button order (Studio action guideline §2.2, app convention): dismissing buttons first (left),
+     the confirming / primary button last (right) - also for destructive confirmations. -->
 <kendo-dialog-actions>
-  <button kendoButton (click)="onButton1()" themeColor="primary">{{button1Text}}</button>
-  <button kendoButton (click)="onButton2()" *ngIf="button2Text">{{button2Text}}</button>
-  <button kendoButton (click)="onButton3()" *ngIf="button3Text">{{button3Text}}</button>
+  <button kendoButton (click)="onButton3()" *ngIf="button3Text" data-action="cancel">{{button3Text}}</button>
+  <button kendoButton (click)="onButton2()" *ngIf="button2Text" data-action="dismiss">{{button2Text}}</button>
+  <button kendoButton (click)="onButton1()" [themeColor]="data?.danger ? 'error' : 'primary'" [attr.data-danger]="data?.danger ? 'true' : null" data-action="confirm">{{button1Text}}</button>
 </kendo-dialog-actions>
-

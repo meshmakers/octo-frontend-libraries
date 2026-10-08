@@ -1,10 +1,10 @@
 import type { MockedObject } from 'vitest';
 import { computed } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { MeshBoardStateService } from './meshboard-state.service';
+import { MeshBoardStateService, newMeshBoardConfig } from './meshboard-state.service';
 import { MeshBoardPersistenceService, PersistedMeshBoard, PersistedWidget } from './meshboard-persistence.service';
 import { MeshBoardGridService } from './meshboard-grid.service';
-import { CkModelService } from '@meshmakers/octo-services';
+import { CkModelService, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import { AnyWidgetConfig, MeshBoardConfig, MeshBoardVariable } from '../models/meshboard.models';
 
 /**
@@ -643,6 +643,32 @@ describe('MeshBoardStateService', () => {
 
       expect(service.getVariable('published')).toBeUndefined();
     });
+
+    it('records the tenant of the loaded board and clears widgets hidden for the viewer (AB#5558)', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          MeshBoardStateService,
+          { provide: MeshBoardPersistenceService, useValue: mockPersistenceService },
+          { provide: MeshBoardGridService, useValue: mockGridService },
+          { provide: CkModelService, useValue: mockCkModelService },
+          { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve('acme') }
+        ]
+      });
+      const tenantService = TestBed.inject(MeshBoardStateService);
+      tenantService.setWidgetHiddenForViewer('w1', true);
+      mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+        meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
+        widgets: []
+      });
+      mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
+      expect(tenantService.loadedTenantId()).toBeNull();
+
+      await tenantService.switchToMeshBoard('board1');
+
+      expect(tenantService.loadedTenantId()).toBe('acme');
+      expect(tenantService.hiddenForViewer().size).toBe(0);
+    });
   });
 
   describe('Time Filter Management', () => {
@@ -1243,5 +1269,40 @@ describe('MeshBoardStateService', () => {
 
       expect(service.getEntitySelectors()).toEqual(selectors);
     });
+  });
+
+  describe('widgets hidden for the viewer (AB#5558)', () => {
+    it('tracks widgets that report nothing for the viewer, without needless updates', () => {
+      service.setWidgetHiddenForViewer('w1', true);
+      const first = service.hiddenForViewer();
+      expect(first.has('w1')).toBe(true);
+      service.setWidgetHiddenForViewer('w1', true);
+      expect(service.hiddenForViewer()).toBe(first);
+      service.setWidgetHiddenForViewer('w1', false);
+      expect(service.hiddenForViewer().size).toBe(0);
+    });
+  });
+
+  describe('widget content heights (AB#5558)', () => {
+    it('stores rounded heights, ignores sub-pixel changes and removes on null', () => {
+      service.setWidgetContentHeight('w1', 640.2);
+      const first = service.widgetContentHeights();
+      expect(first.get('w1')).toBe(641);
+      service.setWidgetContentHeight('w1', 640.6);
+      expect(service.widgetContentHeights()).toBe(first);
+      service.setWidgetContentHeight('w1', 700);
+      expect(service.widgetContentHeights().get('w1')).toBe(700);
+      service.setWidgetContentHeight('w1', null);
+      expect(service.widgetContentHeights().has('w1')).toBe(false);
+      const empty = service.widgetContentHeights();
+      service.setWidgetContentHeight('w1', null);
+      expect(service.widgetContentHeights()).toBe(empty);
+    });
+  });
+});
+
+describe('newMeshBoardConfig', () => {
+  it('holds the layout defaults of a new, empty board', () => {
+    expect(newMeshBoardConfig('Production')).toEqual({ id: '', name: 'Production', description: '', columns: 6, rowHeight: 200, gap: 16, widgets: [] });
   });
 });

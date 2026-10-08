@@ -18,7 +18,7 @@ import {
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {ListViewFiltersDirective} from './list-view-filters.directive';
-import {BadgeMapping, ColumnDefinition, ContextMenuType, DEFAULT_LIST_VIEW_MESSAGES, ListViewCommand, ListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {BadgeMapping, ColumnDefinition, ContextMenuType, ListViewCommand, ListViewMessages, resolveListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
@@ -34,11 +34,52 @@ import {
   MenuItem
 } from '@progress/kendo-angular-menu';
 import {CommandBaseService, CommandItem, CommandSettingsService} from '@meshmakers/shared-services';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ActionButtonComponent} from '../actions/action-button.component';
+import {MM_ROW_ACTIONS_MAX_INLINE, MmAction, isActionDisabled, isActionVisible} from '../actions/action.model';
+import {
+  MmListRowAction,
+  MmListRowActionEvent,
+  ResolvedListRowAction,
+  resolveListRowAction,
+  sameAction,
+} from './list-view-row-actions';
 import {BytesToSizePipe} from '../pipes/bytes-to-size.pipe';
 import {asyncScheduler, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, observeOn, takeUntil} from 'rxjs/operators';
 import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.service';
+
+/** Context/overflow menu class of `CommandItem.danger` items (AB#5570); styled globally in the list-view SCSS. */
+const DANGER_MENU_ITEM_CLASS = 'mm-list-view-menu-item--danger';
+
+/** Row actions of one row, split for rendering (AB#5572). */
+export interface RowActionsView {
+  inline: ResolvedListRowAction[];
+  menu: ResolvedListRowAction[];
+  /** The "…" button is shown (overflowing actions and/or context menu items). */
+  hasMenu: boolean;
+}
+
+/** Marker on overflow-menu items that came from the row actions (not from `contextMenuCommandItems`). */
+interface OverflowRowActionData {
+  mmRowAction: true;
+  entry: ResolvedListRowAction;
+}
+
+function isOverflowRowActionData(data: unknown): data is OverflowRowActionData {
+  return !!data && (data as OverflowRowActionData).mmRowAction === true;
+}
+
+/** Menu text: `menuLabel` ("Delete…"), plus the disabled reason ("Delete… — The adapter is deployed"). */
+function entryMenuText(action: MmAction): string {
+  const text = action.menuLabel || action.label;
+  return isActionDisabled(action) ? `${text} — ${action.disabledReason!.trim()}` : text;
+}
+
+function sameEntries(a: ResolvedListRowAction[], b: ResolvedListRowAction[]): boolean {
+  return a.length === b.length && a.every((entry, i) =>
+    entry.commandItem === b[i].commandItem && entry.rowAction === b[i].rowAction && sameAction(entry.action, b[i].action));
+}
 
 @Component({
   selector: 'mm-list-view',
@@ -76,7 +117,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
     ItemTemplateDirective,
     NumericTextBoxComponent,
     NgComponentOutlet,
-    NgTemplateOutlet
+    NgTemplateOutlet,
+    ActionButtonComponent
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -100,6 +142,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   private _contextMenuSelectedRow: unknown | null = null;
 
   protected _actionMenuItems: MenuItem[] = [];
+  private _rowActions: readonly MmListRowAction[] = [];
+  /** Per-row resolved actions; identical results keep their identity (no NG0100, no re-render churn). */
+  private rowActionCache = new WeakMap<object, RowActionsView>();
+  private readonly activatedRoute = inject(ActivatedRoute, {optional: true});
+  private readonly routerForActions = inject(Router, {optional: true});
   protected _contextMenuItems: MenuItem[] = [];
   protected _showRowFilter = false;
 
@@ -188,6 +235,29 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this._contextMenuCommandItems = commandItems;
     this._contextMenuItems = this.buildMenuItems(commandItems);
   }
+
+  /**
+   * Row actions from the shared action model (AB#5572) — preferred over `actionCommandItems`.
+   * Rendered after the `actionCommandItems` (which keep working through an adapter); together they
+   * get at most {@link maxInlineRowActions} slots, the rest goes into the row's overflow menu.
+   */
+  @Input() public set rowActions(actions: readonly MmListRowAction[] | null | undefined) {
+    this._rowActions = actions ?? [];
+    this.rowActionCache = new WeakMap();
+  }
+
+  public get rowActions(): readonly MmListRowAction[] {
+    return this._rowActions;
+  }
+
+  /**
+   * Row action slots incl. the overflow ("…") button (guideline §2.2: 3). When the actions do not
+   * fit, the last slot opens the overflow menu with the remaining actions and the context menu items.
+   */
+  @Input() public maxInlineRowActions = MM_ROW_ACTIONS_MAX_INLINE;
+
+  /** An enabled {@link rowActions} action was triggered (inline or from the overflow menu). */
+  @Output() public rowAction = new EventEmitter<MmListRowActionEvent>();
 
   @Input() public excelExportFileName = 'Export.xlsx';
   @Input() public pdfExportFileName = 'Export.pdf';
@@ -284,10 +354,24 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    * case the column has to be wide enough for.
    */
   private get maxActionButtons(): number {
-    const actions = this._actionMenuItems.filter(item => !item.separator).length;
-    const contextButton =
-      this._contextMenuItems.length > 0 && this.contextMenuType === 'actionMenu' ? 1 : 0;
-    return actions + contextButton;
+    const candidates = this._actionMenuItems.filter(item => !item.separator).length +
+      this._rowActions.filter(a => !a.overflow).length;
+    const forcedMenu = this.hasContextMenuButton || this._rowActions.some(a => a.overflow);
+    const slots = Math.max(1, Math.floor(this.maxInlineRowActions));
+    if (!forcedMenu && candidates <= slots) {
+      return candidates;
+    }
+    return Math.min(candidates, slots - 1) + 1;
+  }
+
+  /** The context menu is opened from the row's "…" button (not by right click). */
+  private get hasContextMenuButton(): boolean {
+    return this._contextMenuCommandItems.length > 0 && this.contextMenuType === 'actionMenu';
+  }
+
+  /** The list renders an actions column / card actions at all. */
+  protected get hasRowActions(): boolean {
+    return this._actionMenuItems.length > 0 || this._rowActions.length > 0 || this.hasContextMenuButton;
   }
 
   /**
@@ -356,6 +440,33 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    */
   @Input() public collapseCommandsBelow = 900;
 
+  /**
+   * Tells the list that the host holds filters of its own (quick-view bars,
+   * app-side field filters) that a reset would clear. The toolbar's reset
+   * button only shows while something is filtered, and the list cannot see
+   * those host filters by itself.
+   */
+  @Input() public hasExternalFilters = false;
+
+  /**
+   * Whether anything narrows or reorders the default view right now: a row
+   * filter, a column sort, free-text search, or host-side filters announced
+   * through {@link hasExternalFilters}. Paging is deliberately not counted —
+   * the pager already gets back to page 1.
+   */
+  protected get hasActiveFilters(): boolean {
+    if (this.hasExternalFilters || this.searchValue.trim().length > 0) {
+      return true;
+    }
+    const state = this.dataBindingDirective?.currentState;
+    if (!state) {
+      return false;
+    }
+    const hasRowFilter = (state.filter?.filters?.length ?? 0) > 0;
+    const hasSort = (state.sort ?? []).some(descriptor => !!descriptor.dir);
+    return hasRowFilter || hasSort;
+  }
+
   /** True while the command buttons are collapsed into the overflow menu. */
   protected get commandsCollapsed(): boolean {
     const width = this.containerWidth();
@@ -366,8 +477,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    * The commands available right now, in toolbar order. The row filter is
    * omitted in card mode: cards have no column headers for a filter row to
    * appear in, and the grid already drops `filterable` there — leaving the
-   * button visible offered to toggle something that cannot exist. Reset stays
-   * available, or a filter set before the switch could never be cleared.
+   * button visible offered to toggle something that cannot exist. Reset shows
+   * only while something is actually filtered, sorted or searched (see
+   * {@link hasActiveFilters}); on the default view there is nothing to reset,
+   * so the button would only be noise. It is independent of card mode, so a
+   * filter set before the switch can still be cleared.
    */
   protected get toolbarCommands(): ListViewCommand[] {
     const commands: ListViewCommand[] = [];
@@ -377,9 +491,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     commands.push(
       { id: 'excel', text: this._messages.exportToExcel, svgIcon: this.excelSVG },
       { id: 'pdf', text: this._messages.exportToPdf, svgIcon: this.pdfSVG },
-      { id: 'reset', text: this._messages.resetFilters, svgIcon: this.resetFilterIcon },
-      { id: 'refresh', text: this._messages.refreshData, svgIcon: this.refreshIcon },
     );
+    if (this.hasActiveFilters) {
+      commands.push({ id: 'reset', text: this._messages.resetFilters, svgIcon: this.resetFilterIcon });
+    }
+    commands.push({ id: 'refresh', text: this._messages.refreshData, svgIcon: this.refreshIcon });
     return commands;
   }
 
@@ -437,13 +553,17 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   protected readonly defaultRowClass: RowClassFn = () => ({});
 
-  protected _messages: ListViewMessages = {...DEFAULT_LIST_VIEW_MESSAGES};
+  protected _messages: Required<ListViewMessages> = resolveListViewMessages(undefined);
 
-  @Input() public set messages(value: Partial<ListViewMessages>) {
-    this._messages = {...DEFAULT_LIST_VIEW_MESSAGES, ...value};
+  /**
+   * Translated messages. Partial: members that are not supplied (or are `undefined`) keep the
+   * English default from `DEFAULT_LIST_VIEW_MESSAGES`.
+   */
+  @Input() public set messages(value: Partial<ListViewMessages> | null | undefined) {
+    this._messages = resolveListViewMessages(value);
   }
 
-  public get messages(): ListViewMessages {
+  public get messages(): Required<ListViewMessages> {
     return this._messages;
   }
 
@@ -611,6 +731,36 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this.destroy$.complete();
   }
 
+  /**
+   * CSS class carrying the column's `align` to its header and body cells
+   * (`mm-col-align-right` …); empty for the default start alignment so the
+   * grid's own cell classes stay untouched.
+   */
+  protected alignClass(column: TableColumn): string {
+    return column.align ? `mm-col-align-${column.align}` : '';
+  }
+
+  /**
+   * Below this column width the date and numeric row-filter cells render
+   * compact (see `isCompactFilter`). Kendo's date filter cell is a date picker
+   * plus an operator picker: in a 120px column the calendar toggle (33px) and
+   * the operator (34px) leave the date input 35px — three characters of a
+   * dd.MM.yyyy. The threshold is the width at which the full cell fits.
+   */
+  private static readonly COMPACT_FILTER_BELOW = 180;
+
+  /**
+   * Whether the column's row-filter cell drops its secondary controls — the
+   * calendar toggle of a date filter (Alt+Down still opens the calendar, the
+   * masked input stays), the spinners of a numeric filter — and tightens its
+   * padding, because the column is narrower than `COMPACT_FILTER_BELOW`.
+   * Auto-sized columns without a width are never compact.
+   */
+  protected isCompactFilter(column: TableColumn): boolean {
+    const width = this.getEffectiveWidth(column);
+    return width !== undefined && width < ListViewComponent.COMPACT_FILTER_BELOW;
+  }
+
   /** Whether the column is hidden at the current component width (`hideBelow`). */
   protected isColumnHidden(column: TableColumn): boolean {
     const width = this.containerWidth();
@@ -656,7 +806,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     if (this.showCheckboxColumn()) {
       fixedWidth += this.checkboxColumnWidth;
     }
-    if (this._actionMenuItems.length > 0 || (this._contextMenuItems.length > 0 && this.contextMenuType == 'actionMenu')) {
+    if (this.hasRowActions) {
       fixedWidth += this.effectiveActionsColumnWidth;
     }
 
@@ -693,6 +843,44 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    */
   protected getToolbarItemDisabled(commandItem: CommandItem): boolean {
     return CommandBaseService.getIsDisabled(commandItem, this._selectedRows);
+  }
+
+  /**
+   * Accessible name of a host toolbar action. A button with a visible text is named by that
+   * text; an icon-only one (no text) gets its tooltip as `aria-label`, because `title` alone is
+   * not reliably announced (action guideline §2.2: icon-only = tooltip + aria-label).
+   */
+  protected toolbarItemAriaLabel(commandItem: CommandItem): string | null {
+    if (commandItem.text?.trim()) {
+      return null;
+    }
+    return commandItem.tooltip?.trim() ? commandItem.tooltip : null;
+  }
+
+  private readonly buttonAttributesCache = new Map<string, Record<string, string>>();
+  private static readonly NO_BUTTON_ATTRIBUTES: Record<string, string> = {};
+
+  /**
+   * `buttonAttributes` for Kendo split / dropdown buttons: same rule as
+   * {@link toolbarItemAriaLabel}, cached per label so change detection sees a stable object.
+   */
+  protected toolbarItemButtonAttributes(commandItem: CommandItem): Record<string, string> {
+    const label = this.toolbarItemAriaLabel(commandItem);
+    return label ? this.ariaLabelAttributes(label) : ListViewComponent.NO_BUTTON_ATTRIBUTES;
+  }
+
+  /** `buttonAttributes` of the icon-only menu the commands collapse into. */
+  protected get commandsMenuButtonAttributes(): Record<string, string> {
+    return this.ariaLabelAttributes(this._messages.commands);
+  }
+
+  private ariaLabelAttributes(label: string): Record<string, string> {
+    let attributes = this.buttonAttributesCache.get(label);
+    if (!attributes) {
+      attributes = { 'aria-label': label };
+      this.buttonAttributesCache.set(label, attributes);
+    }
+    return attributes;
   }
 
   protected getValue(element: Record<string, unknown>, column: TableColumn): unknown {
@@ -758,6 +946,25 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       default:
         return 'text';
     }
+  }
+
+  /** Input attributes of a read-only boolean cell, cached per column and name (AB#5621). */
+  private readonly booleanCellAttributeCache = new WeakMap<TableColumn, { name: string; attributes: Record<string, string> }>();
+
+  /**
+   * Input attributes of a `boolean` cell's read-only checkbox: its accessible name is the column's
+   * display name (AB#5621), so a screen reader announces "<column>, checked" instead of an unnamed
+   * checkbox.
+   */
+  protected booleanCellAttributes(column: TableColumn): Record<string, string> {
+    const name = this.getDisplayName(column) ?? '';
+    const cached = this.booleanCellAttributeCache.get(column);
+    if (cached && cached.name === name) {
+      return cached.attributes;
+    }
+    const attributes: Record<string, string> = name ? { 'aria-label': name } : {};
+    this.booleanCellAttributeCache.set(column, { name, attributes });
+    return attributes;
   }
 
   /**
@@ -967,10 +1174,20 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   protected async onContextMenuSelect(_event: ContextMenuSelectEvent): Promise<void> {
 
-    const commandItem = _event.item?.data?.data as CommandItem;
-    if (!commandItem) {
+    const data = _event.item?.data?.data as CommandItem | OverflowRowActionData | undefined;
+    if (!data) {
       return;
     }
+    if (isOverflowRowActionData(data)) {
+      const row = this._actionMenuSelectedRow;
+      if (data.entry.commandItem) {
+        await this.navigateAsync(data.entry.commandItem, row);
+      } else {
+        await this.triggerRowAction(data.entry, row);
+      }
+      return;
+    }
+    const commandItem = data;
 
     if (this._actionMenuSelectedRow) {
       await this.navigateAsync(commandItem, this._actionMenuSelectedRow);
@@ -1031,6 +1248,30 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     await this.navigateAsync(commandItem, dataItem);
   }
 
+  /**
+   * Row field naming a row for assistive technology (row menu "Actions for <name>", action
+   * buttons "<action> <name>"). Falls back to `rtWellKnownName`, then `rtId`.
+   */
+  @Input() public rowLabelField = 'name';
+
+  /** Human name of a row (`rowLabelField`, `rtWellKnownName`, `rtId`), or '' when unknown. */
+  protected rowLabel(dataItem: unknown): string {
+    const row = (dataItem ?? {}) as Record<string, unknown>;
+    for (const key of [this.rowLabelField, 'rtWellKnownName', 'rtId']) {
+      const value = row[key];
+      if (value !== null && value !== undefined && String(value).trim() !== '') {
+        return String(value);
+      }
+    }
+    return '';
+  }
+
+  /** Accessible name and tooltip of the row menu button. */
+  protected rowActionsLabel(dataItem: unknown): string {
+    const name = this.rowLabel(dataItem);
+    return name ? this.messages.rowActionsFor.replace('{name}', name) : this.messages.rowActions;
+  }
+
   protected getMenuItemVisible(menuItem: MenuItem, dataItem: unknown): boolean {
     const commandItem = menuItem.data as CommandItem;
     if (commandItem) {
@@ -1051,7 +1292,19 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this._actionMenuSelectedRow = dataItem;
     // Rebuild context menu items with updated disabled state for the current row.
     // A new array reference is needed so Kendo's kendoMenuHierarchyBinding detects the change.
-    this._contextMenuItems = this.buildContextMenuItemsWithDisabledState(this._contextMenuCommandItems, dataItem);
+    const overflow = this.rowActionsView(dataItem).menu.map((entry): MenuItem => ({
+      text: entryMenuText(entry.action),
+      svgIcon: entry.action.icon as SVGIcon,
+      data: {mmRowAction: true, entry} satisfies OverflowRowActionData,
+      disabled: isActionDisabled(entry.action),
+      cssClass: entry.action.danger ? DANGER_MENU_ITEM_CLASS : undefined,
+    }));
+    const contextItems = this.contextMenuType === 'actionMenu'
+      ? this.buildContextMenuItemsWithDisabledState(this._contextMenuCommandItems, dataItem)
+      : [];
+    this._contextMenuItems = overflow.length && contextItems.length
+      ? [...overflow, {separator: true}, ...contextItems]
+      : [...overflow, ...contextItems];
     this.gridContextMenu?.show({
       left: this.clampContextMenuX(e.pageX),
       top: e.pageY,
@@ -1074,6 +1327,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
           data: commandItem,
           items: childMenuItems,
           disabled: CommandBaseService.getIsDisabled(commandItem, dataItem),
+          cssClass: commandItem.danger ? DANGER_MENU_ITEM_CLASS : undefined,
         });
       }
     }
@@ -1083,6 +1337,102 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected onContextMenuClosed(_event: ContextMenuPopupEvent) {
     this._contextMenuSelectedRow = null;
     this._actionMenuSelectedRow = null;
+    // Back to the static items: `hasContextMenuButton` and the column width rely on them.
+    this._contextMenuItems = this.buildMenuItems(this._contextMenuCommandItems);
+  }
+
+  /**
+   * Row actions of one row (AB#5572): `actionCommandItems` (adapter) followed by `rowActions`,
+   * split into inline buttons and overflow-menu entries (max {@link maxInlineRowActions} slots,
+   * context menu items and `overflow: true` actions force the "…" button).
+   */
+  protected rowActionsView(dataItem: unknown): RowActionsView {
+    const loadingReason = this.isLoading() ? this._messages.rowActionsLoading : null;
+    const resolved: ResolvedListRowAction[] = [];
+    for (const commandItem of this._actionCommandItems) {
+      if (commandItem.type === 'separator' || !CommandBaseService.getIsVisibleSync(commandItem, dataItem)) {
+        continue;
+      }
+      resolved.push({commandItem, action: this.commandItemAction(commandItem, dataItem, loadingReason)});
+    }
+    for (const rowAction of this._rowActions) {
+      const action = resolveListRowAction(rowAction, dataItem);
+      if (!isActionVisible(action)) {
+        continue;
+      }
+      resolved.push({rowAction, action: loadingReason && !isActionDisabled(action) ? {...action, disabledReason: loadingReason} : action});
+    }
+
+    const candidates = resolved.filter(e => !e.action.overflow);
+    const forced = resolved.filter(e => e.action.overflow);
+    const slots = Math.max(1, Math.floor(this.maxInlineRowActions));
+    const needsMenu = forced.length > 0 || candidates.length > slots || this.hasContextMenuButton;
+    const inlineCount = needsMenu ? Math.max(0, slots - 1) : candidates.length;
+    const view: RowActionsView = {
+      inline: candidates.slice(0, inlineCount),
+      menu: [...candidates.slice(inlineCount), ...forced],
+      hasMenu: needsMenu,
+    };
+    return this.stableView(dataItem, view);
+  }
+
+  /** Accessible name of the row action group: "Actions for <row>". */
+  protected rowActionsGroupLabel(dataItem: unknown): string {
+    return this.rowActionsLabel(dataItem);
+  }
+
+  protected async onInlineRowAction(entry: ResolvedListRowAction, dataItem: unknown): Promise<void> {
+    if (entry.commandItem) {
+      // A routerLink-rendered action navigated already; CommandItems never use MmAction.link.
+      await this.navigateAsync(entry.commandItem, dataItem);
+      return;
+    }
+    // Inline link actions navigate via their own routerLink.
+    await this.triggerRowAction(entry, dataItem, !!entry.action.link);
+  }
+
+  private async triggerRowAction(entry: ResolvedListRowAction, row: unknown, navigated = false): Promise<void> {
+    const action = entry.action;
+    if (isActionDisabled(action)) {
+      return;
+    }
+    if (!navigated && action.link && this.routerForActions) {
+      const commands = typeof action.link.commands === 'string' ? [action.link.commands] : [...action.link.commands];
+      void this.routerForActions.navigate(commands, {queryParams: action.link.queryParams, relativeTo: this.activatedRoute ?? undefined});
+    }
+    this.rowAction.emit({id: action.id, action, row});
+    await entry.rowAction?.run?.(row);
+  }
+
+  /** `CommandItem` → `MmAction` adapter (AB#5572): `isDisabled` → reason, `danger`, icon, text. */
+  private commandItemAction(commandItem: CommandItem, dataItem: unknown, loadingReason: string | null): MmAction {
+    let disabledReason: string | null = null;
+    if (CommandBaseService.getIsDisabled(commandItem, dataItem)) {
+      const reason = typeof commandItem.disabledReason === 'function'
+        ? commandItem.disabledReason(dataItem)
+        : commandItem.disabledReason;
+      disabledReason = reason && reason.trim() ? reason : this._messages.rowActionUnavailable;
+    }
+    return {
+      id: commandItem.id,
+      label: commandItem.text || commandItem.tooltip || commandItem.id,
+      icon: commandItem.svgIcon as SVGIcon | undefined,
+      danger: !!commandItem.danger,
+      disabledReason: disabledReason ?? loadingReason,
+    };
+  }
+
+  private stableView(dataItem: unknown, view: RowActionsView): RowActionsView {
+    if (typeof dataItem !== 'object' || dataItem === null) {
+      return view;
+    }
+    const previous = this.rowActionCache.get(dataItem);
+    if (previous && sameEntries(previous.inline, view.inline) && sameEntries(previous.menu, view.menu)
+      && previous.hasMenu === view.hasMenu) {
+      return previous;
+    }
+    this.rowActionCache.set(dataItem, view);
+    return view;
   }
 
 
@@ -1121,7 +1471,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
           text: commandItem.text,
           svgIcon: commandItem.svgIcon,
           data: commandItem,
-          items: childMenuItems
+          items: childMenuItems,
+          cssClass: commandItem.danger ? DANGER_MENU_ITEM_CLASS : undefined,
         });
       }
     }

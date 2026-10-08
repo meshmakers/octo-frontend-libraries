@@ -67,8 +67,18 @@ applies a **presentation-side** remap driven by its own width (ResizeObserver):
 | Container width | Tier | Rendering |
 |---|---|---|
 | ≥ 1100px | `none` | Configured columns, persisted col/row anchors, editing enabled |
-| 700–1099px | `tablet` | `min(columns, 3)` columns, anchors dropped (CSS grid auto-flow `row` in reading order), colSpan clamped |
-| < 700px | `phone` | Single column, widgets stacked in reading order (sorted by row, then col) |
+| 700–1099px | `tablet` | `min(columns, 3)` columns, anchors dropped (CSS grid auto-flow `row` in reading order), colSpan scaled proportionally (`scaleColSpan`: span 2 of 6 → 1 of 3, min 1), so a KPI row stays side by side; widgets starting in one row that would no longer fit share the columns by largest remainder (3 + 3 of 6 → 2 + 1 of 3) |
+| < 700px | `phone` | Single column, widgets stacked in reading order (sorted by row, then col); content-sized widgets grow their tile (below) |
+
+**Content-sized tiles on the phone tier (AB#5558).** Rows have a fixed height, so a list whose
+items stack on a phone (the cockpit "Needs attention" cards) was clipped. Content-sized widgets
+(`attentionList`, `recentItems`, via `cockpit/widgets/content-height.ts`
+`reportCockpitContentHeight`) report the natural height of an unconstrained content wrapper
+(`MeshBoardStateService.setWidgetContentHeight`, cleared on board switch); on the phone tier
+`placeWidgetsForTier(…, contentSizing)` raises their `rowSpan` to
+`rowSpanForContent(height, rowHeight, gap, rowSpan)` (content + `TILE_CHROME_HEIGHT` 64 px, at most
+`MAX_CONTENT_ROWS` 8 — beyond that the widget scrolls). Other tiers keep the configured spans.
+Measure only content whose height does not depend on the tile height, or the tile grows forever.
 
 The persisted board config is **never modified** — the remap lives in
 `utils/compact-layout.ts` (`compactTierForWidth` / `columnsForTier` / `placeWidgetsForTier`,
@@ -370,6 +380,8 @@ interface AggregationQuery {
 | `summaryCard` | Compact data tiles | runtimeEntity, aggregation, persistentQuery (per tile; runtime + stream-data) |
 | `process` | Process diagram (HMI) | runtimeEntity, persistentQuery (runtime + stream-data) |
 | `markdown` | Static markdown content with themed styling | static |
+| `attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions` | Cockpit widgets (AB#5558) — see *Cockpit Widgets* | none (static) |
+| `recentItems` | The viewer's recently opened places from the host (`COCKPIT_RECENT_ITEMS`, AB#5558) — see *Cockpit Widgets* | none (static) |
 | `heatmap` | Day × time-slot density grid (count/sum/avg per slot) | persistentQuery (runtime + stream-data) |
 
 > **Heatmap color modes.** `HeatmapWidgetConfig.colorMode` selects how cells are
@@ -436,20 +448,14 @@ interface MarkdownWidgetConfig extends BaseWidgetConfig {
 
 **Styling Note:** The markdown prose styles should use CSS custom properties with neutral defaults. Host applications can override these to match their theme. Avoid hardcoding theme-specific colors in the library.
 
-**Required Provider:**
-Applications using the Markdown Widget must include `provideMarkdown()` from `ngx-markdown`:
-
-```typescript
-// app.config.ts
-import { provideMarkdown } from 'ngx-markdown';
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    // ... other providers
-    provideMarkdown(),
-  ]
-};
-```
+**Lazy loading (AB#5621):**
+The widget and its config dialog render through `LazyMarkdownComponent` (`mm-lazy-markdown`), which loads
+`ngx-markdown` (and `marked`) with a bare-specifier `import('ngx-markdown')` on first render. Never import
+`ngx-markdown` statically in this library: the widget registry is eager, so a static import would put
+`ngx-markdown`/`marked` into the initial bundle of every host showing a MeshBoard. (A relative dynamic import
+would not help — ng-packagr inlines it into the FESM.) No root `provideMarkdown()` is required; if the host
+provides `MarkdownService` (e.g. `provideMarkdown({...})`), that configuration is used, otherwise the component
+creates its own environment injector with `provideMarkdown()`.
 
 **Example Usage:**
 
@@ -1043,6 +1049,83 @@ The original class names remain for backward compatibility:
 - `@meshmakers/octo-services` - Backend services, DTOs
 - `@meshmakers/octo-ui` - UI components, CK type selector
 - `@meshmakers/shared-ui` - Shared UI utilities
+
+---
+
+## Chart redraw stability (AB#5568)
+
+Kendo charts redraw — and re-run their series animation — whenever a bound input gets a new
+reference. The pie / donut looped (tiny → full size) while hovered: tooltips mutate `<html>`,
+which bumped the theme version, and the inline `[plotArea]="{ … margin: plotAreaMargin() }"`
+literal was a new object on every change detection. Rules:
+
+- `observeThemeChanges` fires only when `themeSignature()` changes (`data-theme`, OS scheme,
+  resolved status colours) — never on bare `class` / `style` mutations of `<html>`.
+- Data `computed`s bound to `[data]` use `{ equal: sameChartItems }` so equal values keep the array.
+- Never bind object literals containing method calls that return new objects to chart inputs;
+  return constant objects (`PieChartWidgetComponent.plotArea()`). A template literal over
+  primitive signal values (`{ color: chartTheme().text }`) is fine: Angular memoizes it on the
+  values, so it only changes when a colour changes.
+- **Live theme switch:** Kendo reads its chart theme from the DOM once per page load, so legend,
+  axis and data labels kept the load-time (e.g. dark) colours after Dark → Light until reload.
+  Every chart widget takes `chartTheme = injectChartTheme()` (`utils/chart-theme.ts`: a signal of
+  `chartThemeColors()` — `text` / `muted` / `grid` from `--theme-text-secondary`,
+  `--theme-text-muted`, `--theme-border-subtle` with Kendo-token and neutral fallbacks) and binds
+  the colours into legend labels, axis labels / titles, grid lines and series labels. The signal
+  emits a new object only when `themeSignature()` (which includes these colours) changes.
+- Pinned in `utils/chart-categories.spec.ts`, `utils/chart-theme.spec.ts` and the pie spec. The
+  cockpit KPI sparkline is plain SVG with CSS variables and needs no theme observer.
+
+---
+
+## Cockpit Widgets (AB#5558)
+
+`src/lib/cockpit/` — the Home cockpit elements of the Refinery Studio (AB#5545) as widget types
+(`attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions`) plus the per-user
+`recentItems` list; catalogue and host setup in the README ("Cockpit Widgets").
+
+```
+cockpit/
+├── cockpit-host.ts                  # COCKPIT_VIEWER_ACCESS / COCKPIT_LINK_RESOLVER / COCKPIT_EXPLAIN_HANDLER / COCKPIT_RECENT_ITEMS, provideCockpitWidgetHost
+├── cockpit-context.service.ts       # tenant, allows(roles, models) (fails closed), resolveLink, explain
+├── cockpit-widget-registrations.ts  # registerCockpitWidgets / provideCockpitWidgets (+ built-in providers)
+├── attention/                       # AttentionProvider contract, CockpitAttentionService, providers/
+├── data/                            # adapter states + CK model counts (10 s per-tenant share)
+├── kpi/                             # pure KPI mapping (adapterKpi, executionKpi, ckModelKpi, sparklineGeometry) + CockpitKpiService
+└── widgets/                         # AttentionListWidget, CockpitKpiWidget (one component for 3 types), RecentItemsWidget, config dialogs, shared styles
+```
+
+- **Shared rules live here now.** `utils/adapter-online.ts` (THE adapter online rule) and
+  `utils/pipeline-executions.ts` (24 h histogram + execution counting) moved from the Studio, which
+  re-exports them; change them here only. Since AB#5583 the backend's `hourlyBuckets` hold every
+  counted execution and `last24Hours*` = the sum of the 24 clock-hour buckets ending with the hour
+  of `lastUpdatedAt`: `buildHourlyHistogram` adds nothing to the current bar (the old numeric
+  seed arguments are ignored) and ends the bars with the hour of `options.anchor`
+  (`lastUpdatedAt`, newest over pipelines via `latestStatisticsUpdate`) when that is less than an
+  hour from now; `countPipelineExecutions` adds a latest execution only when it started after
+  both `lastUpdatedAt` and `lastExecutionAt` (only `lastExecutionAt` when the field is missing).
+- **Gating.** Every provider / KPI checks the roles + CK models needed to open what it links to,
+  before any request. Missing `COCKPIT_VIEWER_ACCESS` = no role = hidden.
+- **Viewer-dependent collapse.** Non-builders get "Not available" (never role text) and the widget
+  calls `MeshBoardStateService.setWidgetHiddenForViewer`; `MeshBoardViewComponent.visibleWidgets`
+  drops such widgets outside edit mode and closes empty rows (`utils/compact-layout.ts`
+  `collapseEmptyRows`, presentation only). The flag set is cleared on board switch.
+- **Recent items** (`recentItems`) is per user: the board stores only `maxItems` (default 8,
+  clamped 1–20); one compact line per entry (label, muted kind, relative time), so eight rows fit
+  a 2-row tile (AB#5558); rows come from the host's `COCKPIT_RECENT_ITEMS` source (`items(limit)`, `open`,
+  optional `revision` signal / `openPalette`). The library never imports host code; the host
+  re-checks visibility and owns navigation (real `href` + `open` on a plain left click). No
+  source = "Not available" + collapsed. It is **not** in `COCKPIT_WIDGET_TYPES` (those are the
+  health widgets hosts use to decide on their fallbacks).
+- **Persistence** is `dataSourceType: 'static'` + small JSON (`providerIds` omitted for "all",
+  never an empty array; unknown provider ids are ignored at run time). The parser tolerates
+  foreign values (wrong types → defaults).
+- **Seed contract.** `cockpit-widget-registrations.spec.ts` holds the TenantCockpit seed rows as
+  a fixture, checks they deserialize/serialize identically and do not overlap, and compares the
+  fixture with the real seed when `../../../octo-platform-services` exists (worktree pair).
+- Tests: `attention.spec.ts`, `providers/attention-providers.spec.ts`, `kpi/cockpit-kpi.spec.ts`,
+  `data/cockpit-data.spec.ts`, `widgets/cockpit-widgets.spec.ts`, `widgets/recent-items-widget.spec.ts`, `cockpit-widget-registrations.spec.ts`,
+  `utils/adapter-online.spec.ts`, `utils/pipeline-executions.spec.ts`.
 
 ---
 

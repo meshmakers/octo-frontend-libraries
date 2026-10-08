@@ -1,3 +1,4 @@
+# SECRET-safe (AB#5542): `$attributeNames` is required and non-nullable (`[]` = rtId only).
 query getAssociationTargets(
   $rtId: OctoObjectId!
   $ckTypeId: String!
@@ -5,7 +6,7 @@ query getAssociationTargets(
   $roleId: String!
   $direction: GraphDirection!
   $first: Int
-  $attributeNames: [String]
+  $attributeNames: [String!]!
 ) {
   runtime {
     runtimeEntities(rtId: $rtId, ckId: $ckTypeId, first: 1) {
@@ -22,6 +23,7 @@ query getAssociationTargets(
               rtId
               ckTypeId
               rtWellKnownName
+              rtDisplayName
               attributes(
                 attributeNames: $attributeNames
                 resolveEnumValuesToNames: true

@@ -7,6 +7,7 @@ import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER } from './tenant-provider';
 import { AddInConfiguration } from '../shared/addInConfiguration';
 import { UserDto } from '../shared/userDto';
+import { UserDirectoryEntryDto } from '../shared/userDirectoryEntryDto';
 import { RoleDto } from '../shared/roleDto';
 import { DataPermissionDto } from '../shared/dataPermissionDto';
 import { ClientDto } from '../shared/clientDto';
@@ -126,6 +127,165 @@ describe('IdentityService', () => {
         mockConfigService.config = null;
         const result = await service.getUsers(0, 10);
         expect(result).toBeNull();
+      });
+    });
+
+    describe('getUserDirectory (AB#5859)', () => {
+      const directoryPage: PagedResultDto<UserDirectoryEntryDto> = {
+        skip: 0,
+        take: 100,
+        totalCount: 1,
+        list: [{ userId: 'user-1', displayName: 'John Doe' }]
+      };
+
+      it('requests users/directory with skip, take and search and returns the page', async () => {
+        const resultPromise = service.getUserDirectory(20, 100, 'Jo');
+        await tick();
+
+        const req = httpMock.expectOne(r => r.url === `${apiPrefix}users/directory`);
+        expect(req.request.method).toBe('GET');
+        expect(req.request.params.get('skip')).toBe('20');
+        expect(req.request.params.get('take')).toBe('100');
+        expect(req.request.params.get('search')).toBe('Jo');
+        req.flush(directoryPage);
+
+        expect(await resultPromise).toEqual(directoryPage);
+      });
+
+      it('URL-encodes the search term', async () => {
+        const resultPromise = service.getUserDirectory(0, 10, 'Müller & Co');
+        await tick();
+
+        const req = httpMock.expectOne(r => r.url === `${apiPrefix}users/directory`);
+        expect(req.request.urlWithParams).toBe(`${apiPrefix}users/directory?skip=0&take=10&search=M%C3%BCller%20%26%20Co`);
+        req.flush(directoryPage);
+        await resultPromise;
+      });
+
+      it.each([
+        [0, '1'],
+        [-5, '1'],
+        [1, '1'],
+        [500, '500'],
+        [501, '500'],
+        [10000, '500'],
+        [12.7, '12'],
+        [Number.NaN, '100']
+      ])('clamps take %p to %s', async (take, expected) => {
+        const resultPromise = service.getUserDirectory(0, take);
+        await tick();
+
+        const req = httpMock.expectOne(r => r.url === `${apiPrefix}users/directory`);
+        expect(req.request.params.get('take')).toBe(expected);
+        req.flush(directoryPage);
+        await resultPromise;
+      });
+
+      it('treats a negative skip as 0', async () => {
+        const resultPromise = service.getUserDirectory(-3, 10);
+        await tick();
+
+        const req = httpMock.expectOne(r => r.url === `${apiPrefix}users/directory`);
+        expect(req.request.params.get('skip')).toBe('0');
+        req.flush(directoryPage);
+        await resultPromise;
+      });
+
+      it.each([undefined, '', '   '])('omits an empty search (%p)', async (search) => {
+        const resultPromise = service.getUserDirectory(0, 10, search);
+        await tick();
+
+        const req = httpMock.expectOne(`${apiPrefix}users/directory?skip=0&take=10`);
+        expect(req.request.params.has('search')).toBe(false);
+        req.flush(directoryPage);
+        await resultPromise;
+      });
+
+      it('propagates a 404 from identity versions without the endpoint', async () => {
+        const resultPromise = service.getUserDirectory(0, 10);
+        await tick();
+
+        httpMock.expectOne(`${apiPrefix}users/directory?skip=0&take=10`)
+          .flush('Not Found', { status: 404, statusText: 'Not Found' });
+
+        await expect(resultPromise).rejects.toMatchObject({ status: 404 });
+      });
+
+      it('returns null when config is not available', async () => {
+        mockConfigService.config = null;
+        expect(await service.getUserDirectory(0, 10)).toBeNull();
+      });
+    });
+
+    describe('getUserDirectoryWithFallback (AB#5859)', () => {
+      const legacyPage: PagedResultDto<UserDto> = {
+        skip: 0,
+        take: 10,
+        totalCount: 3,
+        list: [
+          mockUser,
+          { userId: 'user-2', name: 'jane', firstName: '', lastName: '', email: 'jane@example.com' },
+          { userId: 'user-3', name: 'bob', firstName: ' Bob ', lastName: '', email: 'bob@example.com' }
+        ]
+      };
+
+      it('returns the directory page when the endpoint exists', async () => {
+        const page: PagedResultDto<UserDirectoryEntryDto> = {
+          skip: 0, take: 10, totalCount: 1, list: [{ userId: 'user-1', displayName: 'John Doe' }]
+        };
+        const resultPromise = service.getUserDirectoryWithFallback(0, 10);
+        await tick();
+
+        httpMock.expectOne(`${apiPrefix}users/directory?skip=0&take=10`).flush(page);
+        expect(await resultPromise).toEqual(page);
+      });
+
+      it('falls back to users/getPaged on 404, maps display names and remembers the capability per tenant', async () => {
+        const first = service.getUserDirectoryWithFallback(0, 10);
+        await tick();
+        httpMock.expectOne(`${apiPrefix}users/directory?skip=0&take=10`)
+          .flush('Not Found', { status: 404, statusText: 'Not Found' });
+        await tick();
+        await tick();
+        httpMock.expectOne(`${apiPrefix}users/getPaged?skip=0&take=10`).flush(legacyPage);
+
+        expect(await first).toEqual({
+          skip: 0,
+          take: 10,
+          totalCount: 3,
+          list: [
+            { userId: 'user-1', displayName: 'John Doe' },
+            { userId: 'user-2', displayName: 'jane' },
+            { userId: 'user-3', displayName: 'Bob' }
+          ]
+        });
+
+        // Second call: no directory request any more, straight to getPaged.
+        const second = service.getUserDirectoryWithFallback(0, 10, 'JA');
+        await tick();
+        await tick();
+        httpMock.expectNone(r => r.url === `${apiPrefix}users/directory`);
+        httpMock.expectOne(`${apiPrefix}users/getPaged?skip=0&take=10`).flush(legacyPage);
+
+        const filtered = await second;
+        expect(filtered?.list).toEqual([{ userId: 'user-2', displayName: 'jane' }]);
+        expect(filtered?.totalCount).toBe(1);
+      });
+
+      it('propagates errors other than 404 without falling back', async () => {
+        const resultPromise = service.getUserDirectoryWithFallback(0, 10);
+        await tick();
+
+        httpMock.expectOne(`${apiPrefix}users/directory?skip=0&take=10`)
+          .flush('Forbidden', { status: 403, statusText: 'Forbidden' });
+
+        await expect(resultPromise).rejects.toMatchObject({ status: 403 });
+        httpMock.expectNone(r => r.url === `${apiPrefix}users/getPaged`);
+      });
+
+      it('returns null when config is not available', async () => {
+        mockConfigService.config = null;
+        expect(await service.getUserDirectoryWithFallback(0, 10)).toBeNull();
       });
     });
 

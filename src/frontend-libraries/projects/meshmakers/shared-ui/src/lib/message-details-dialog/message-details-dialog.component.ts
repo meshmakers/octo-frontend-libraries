@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { WindowRef, KENDO_DIALOG } from '@progress/kendo-angular-dialog';
+import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 import { copyIcon, xIcon } from '@progress/kendo-svg-icons';
 import {
@@ -21,16 +21,11 @@ export interface MessageDetailsDialogData {
   standalone: true,
   imports: [
     ButtonModule,
-    KENDO_DIALOG,
   ],
+  // No <kendo-window-messages> here: the titlebar tooltips travel through WindowSettings.messages
+  // (see MessageDetailsDialogService). WindowService builds this content outside the window, so
+  // the directive finds no LocalizationService and the dialog fails to open with NG0201.
   template: `
-    <kendo-window-messages
-      [closeTitle]="messages.closeTitle"
-      [minimizeTitle]="messages.minimizeTitle"
-      [maximizeTitle]="messages.maximizeTitle"
-      [restoreTitle]="messages.restoreTitle"
-    />
-
     <div class="message-details-content">
       @if (!details) {
         <div class="loading-section">

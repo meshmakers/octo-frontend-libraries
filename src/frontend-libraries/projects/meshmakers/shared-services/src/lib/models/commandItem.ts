@@ -33,6 +33,14 @@ export interface CommandItem {
    * In the actions column and context menu a callback receives the row item.
    */
   isDisabled?: boolean | ((data?: unknown) => boolean);
+
+  /*
+   * Why the item is disabled (AB#5572). Shown by the list view on row actions: the button stays
+   * focusable (`aria-disabled`), the reason is announced via `aria-describedby` and shown in the
+   * tooltip / overflow menu ("Delete — The adapter is deployed"). A callback receives the row item.
+   * Only used while `isDisabled` is true; without it the list view uses a generic reason.
+   */
+  disabledReason?: string | ((data?: unknown) => string | null | undefined);
   children?: CommandItem[];
 
   /*
@@ -46,6 +54,15 @@ export interface CommandItem {
    * `text`. Set it on icon-only items (empty `text`) so they stay explained.
    */
   tooltip?: string;
+
+  /*
+   * Destructive action (AB#5570): in the list view the row action button renders with
+   * danger styling (`themeColor="error"`) and the context / overflow menu item in the
+   * error colour. Toolbar controls are not styled (page-level destructive actions belong in
+   * the page header as danger text buttons). The `onClick` handler must still confirm
+   * (danger dialog naming the target). See the Studio action guideline.
+   */
+  danger?: boolean;
 }
 
 

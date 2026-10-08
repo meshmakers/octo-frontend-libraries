@@ -1,0 +1,22 @@
+# Reads every System.UI/EntityForm through the generic runtime API (no typed schema field, so the
+# document validates on tenants without System.UI 2.7.0 too; it only runs after the type probe).
+# Deliberately UNFILTERED attributes: form entities carry no secrets, and an attributeNames filter
+# would also be applied to the record contents (sections, fields, listColumns).
+query entityFormGetEntityForms {
+  runtime {
+    runtimeEntities(ckId: "System.UI/EntityForm", first: 500) {
+      totalCount
+      items {
+        rtId
+        rtWellKnownName
+        ckTypeId
+        attributes {
+          items {
+            attributeName
+            value
+          }
+        }
+      }
+    }
+  }
+}

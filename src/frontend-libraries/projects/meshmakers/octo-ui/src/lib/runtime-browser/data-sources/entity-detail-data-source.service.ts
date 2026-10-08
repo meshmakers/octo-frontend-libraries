@@ -3,27 +3,34 @@ import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GetRuntimeEntityByIdDtoGQL } from '../../graphQL/getRuntimeEntityById';
 import { RtEntityDto } from '@meshmakers/octo-services';
+import { SecretSafeAttributeNamesService } from '../services/secret-safe-attribute-names.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EntityDetailDataSource {
   private readonly getRuntimeEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   /**
-   * Fetches detailed entity information including attributes and associations
+   * Fetches detailed entity information including attributes and associations.
+   * Attributes are restricted to the type's non-secret attributes (SECRET-safe, AB#5542):
+   * credential-like attributes are never sent to the browser. SECRET-typed attributes (AB#5528)
+   * are read for their state only (`value` null, `secretIsSet`) so the property grid shows a badge.
    */
   async fetchEntityDetails(
     rtId: string,
     ckTypeId: string,
   ): Promise<RtEntityDto | null> {
     try {
+      const attributeNames = await this.secretSafeNames.forCkType(ckTypeId, { includeSecretState: true });
       const result = await firstValueFrom(
         this.getRuntimeEntityByIdGQL
           .fetch({
             variables: {
               rtId,
               ckTypeId,
+              attributeNames,
             },
           })
           .pipe(

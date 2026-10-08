@@ -72,7 +72,7 @@ import { formatInstant } from '../../utils/meshboard-datetime';
       padding: 8px 12px;
       border-radius: 6px;
       border-left: 3px solid var(--alert-color, #6b7280);
-      background: var(--mm-alert-list-item-bg, rgba(255, 255, 255, 0.03));
+      background: var(--mm-alert-list-item-bg, var(--theme-bg-hover));
     }
 
     .alert-icon {
@@ -83,8 +83,6 @@ import { formatInstant } from '../../utils/meshboard-datetime';
     .alert-badge {
       font-size: 0.6rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       padding: 2px 6px;
       border-radius: 3px;
       color: #fff;
@@ -180,6 +178,8 @@ export class AlertListWidgetComponent implements DashboardWidget<AlertListWidget
         this.getEntitiesByCkTypeGQL.fetch({
           variables: {
             ckTypeId,
+            // The alert fields this widget reads (SECRET-safe explicit list, AB#5542).
+            attributeNames: ['message', 'level', 'state', 'source'],
             first: this.config?.maxAlerts ?? 50,
             fieldFilters: [
               { attributePath: 'state', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: '0' }

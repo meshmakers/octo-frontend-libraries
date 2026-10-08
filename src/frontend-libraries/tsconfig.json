@@ -34,6 +34,9 @@
       "@meshmakers/shared-ui": [
         "./dist/meshmakers/shared-ui"
       ],
+      "@meshmakers/shared-ui/*": [
+        "./dist/meshmakers/shared-ui/*"
+      ],
       "@meshmakers/shared-ui-legacy": [
         "./dist/meshmakers/shared-ui-legacy"
       ],

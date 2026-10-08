@@ -1,0 +1,321 @@
+:host {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--theme-border-default);
+  background: var(--theme-bg-overlay);
+  color: var(--theme-text-secondary);
+  font-family: var(--theme-font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+
+  &.large {
+    width: 40px;
+    height: 40px;
+    font-size: 0.875rem;
+  }
+
+  &.placeholder {
+    opacity: 0.5;
+  }
+}
+
+.avatar-button,
+.sign-in {
+  padding: 2px;
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover .avatar {
+    border-color: var(--theme-border-strong);
+    color: var(--theme-text-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.sign-in {
+  padding: var(--theme-space-1) var(--theme-space-3);
+  background: var(--theme-accent);
+  color: var(--theme-text-on-accent);
+  font-weight: 500;
+}
+
+.user-panel {
+  position: absolute;
+  top: calc(100% + var(--theme-space-2));
+  right: 0;
+  z-index: 30;
+  display: grid;
+  gap: var(--theme-space-3);
+  width: 280px;
+  padding: var(--theme-space-4);
+  background: var(--theme-bg-overlay);
+  border-radius: var(--theme-radius-lg);
+  box-shadow: var(--theme-shadow-popup);
+  color: var(--theme-text-primary);
+}
+
+.user-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-3);
+}
+
+.user-names {
+  display: grid;
+  min-width: 0;
+}
+
+.user-full-name {
+  font-weight: 500;
+}
+
+.user-login {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--theme-text-secondary);
+  font-family: var(--theme-font-mono);
+  font-size: 0.75rem;
+}
+
+.pref {
+  display: grid;
+  gap: var(--theme-space-1);
+  min-width: 0;
+  margin: 0;
+  padding: var(--theme-space-3) 0 0;
+  border: 0;
+  border-top: 1px solid var(--theme-border-subtle);
+}
+
+.pref-label {
+  padding: 0;
+  color: var(--theme-text-secondary);
+  font-size: 0.75rem;
+}
+
+.pref-value {
+  color: var(--theme-text-primary);
+}
+
+// Native radios, visually replaced: the label carries the look. The input is
+// transparent but covers its whole label (not a clipped 1px box), so it stays the
+// element under the pointer — directly clickable for people, tests and a11y tools —
+// and keeps keyboard and screen-reader behaviour.
+.pref-radio {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-sm);
+}
+
+.segment {
+  flex: 1;
+  position: relative;
+
+  span {
+    display: block;
+    padding: 2px var(--theme-space-2);
+    border-radius: var(--theme-radius-xs);
+    color: var(--theme-text-secondary);
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  input:checked + span {
+    background: var(--theme-bg-elevated);
+    color: var(--theme-text-primary);
+    box-shadow: 0 0 0 1px var(--theme-border-default);
+  }
+
+  input:focus-visible + span {
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.option-list {
+  display: grid;
+}
+
+.option {
+  position: relative;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: var(--theme-space-2);
+    padding: var(--theme-space-1) var(--theme-space-2);
+    border-radius: var(--theme-radius-sm);
+    color: var(--theme-text-secondary);
+    cursor: pointer;
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+    }
+  }
+
+  &:hover span {
+    background: var(--theme-bg-hover);
+    color: var(--theme-text-primary);
+  }
+
+  input:checked + span {
+    color: var(--theme-text-accent);
+
+    &::before {
+      background: currentColor;
+    }
+  }
+
+  input:focus-visible + span {
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+// Host entries (AB#5621): full-width rows above "Manage profile" / "Sign out".
+.user-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: var(--theme-space-2) 0 0;
+  list-style: none;
+  border-top: 1px solid var(--theme-border-subtle);
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--theme-space-1) var(--theme-space-2);
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-primary);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--theme-bg-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.user-item-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--theme-text-secondary);
+}
+
+.user-item-text {
+  flex: 1;
+}
+
+// Projected host content: no box of its own when empty.
+.user-items-slot:empty {
+  display: none;
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--theme-space-2);
+  padding-top: var(--theme-space-3);
+  border-top: 1px solid var(--theme-border-subtle);
+}
+
+.action-link {
+  border-radius: var(--theme-radius-xs);
+  color: var(--theme-text-accent);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.action-button {
+  margin-left: auto;
+  padding: var(--theme-space-1) var(--theme-space-3);
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-sm);
+  background: var(--theme-bg-surface);
+  color: var(--theme-text-primary);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--theme-border-strong);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.user-version {
+  color: var(--theme-text-muted);
+  font-family: var(--theme-font-mono);
+  font-size: 0.6875rem;
+}
+
+// Text for assistive technology only (e.g. "opens in a new tab" after an external link marker).
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

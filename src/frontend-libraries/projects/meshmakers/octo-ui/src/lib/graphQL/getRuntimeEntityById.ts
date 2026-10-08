@@ -6,13 +6,14 @@ import * as Apollo from 'apollo-angular';
 export type GetRuntimeEntityByIdQueryVariablesDto = Types.Exact<{
   rtId: Types.Scalars['OctoObjectId']['input'];
   ckTypeId: Types.Scalars['String']['input'];
+  attributeNames: Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input'];
 }>;
 
 
-export type GetRuntimeEntityByIdQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', definitions?: { __typename?: 'RtAssociationDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null };
+export type GetRuntimeEntityByIdQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null, secretIsSet?: boolean | null, secretKeyMissing?: boolean | null, secretSetAt?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', definitions?: { __typename?: 'RtAssociationDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null };
 
 export const GetRuntimeEntityByIdDocumentDto = gql`
-    query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!) {
+    query getRuntimeEntityById($rtId: OctoObjectId!, $ckTypeId: String!, $attributeNames: [String!]!) {
   runtime {
     runtimeEntities(ckId: $ckTypeId, rtId: $rtId) {
       items {
@@ -23,10 +24,13 @@ export const GetRuntimeEntityByIdDocumentDto = gql`
         rtWellKnownName
         rtCreationDateTime
         rtChangedDateTime
-        attributes(resolveEnumValuesToNames: true) {
+        attributes(attributeNames: $attributeNames, resolveEnumValuesToNames: true) {
           items {
             attributeName
             value
+            secretIsSet
+            secretKeyMissing
+            secretSetAt
           }
         }
         associations {

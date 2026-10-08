@@ -339,6 +339,10 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
                     dataItem.useVariable
                       ? 'Switch to literal value'
                       : 'Use variable'
+                  " [attr.aria-label]="
+                    dataItem.useVariable
+                      ? 'Switch to literal value'
+                      : 'Use variable'
                   "
                   class="variable-toggle"
                 ></button>
@@ -355,7 +359,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
               fillMode="flat"
               themeColor="error"
               (click)="removeFilter(dataItem)"
-              title="Remove this filter"
+              title="Remove this filter" aria-label="Remove this filter"
             ></button>
           </ng-template>
         </kendo-grid-column>

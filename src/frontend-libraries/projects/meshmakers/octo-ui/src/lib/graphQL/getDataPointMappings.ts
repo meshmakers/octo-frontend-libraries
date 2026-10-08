@@ -33,7 +33,10 @@ export const GetDataPointMappingsDocumentDto = gql`
         rtId
         ckTypeId
         rtWellKnownName
-        attributes(resolveEnumValuesToNames: true) {
+        attributes(
+          attributeNames: ["name", "enabled", "sourceAttributePath", "targetAttributePath", "mappingExpression"]
+          resolveEnumValuesToNames: true
+        ) {
           items {
             attributeName
             value

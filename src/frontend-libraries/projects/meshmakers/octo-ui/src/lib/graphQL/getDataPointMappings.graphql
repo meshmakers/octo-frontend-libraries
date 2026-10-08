@@ -1,3 +1,4 @@
+# SECRET-safe (AB#5542): explicit attribute list — the mapping fields the overview reads.
 query getDataPointMappings(
   $ckTypeId: String!
   $after: String
@@ -22,7 +23,10 @@ query getDataPointMappings(
         rtId
         ckTypeId
         rtWellKnownName
-        attributes(resolveEnumValuesToNames: true) {
+        attributes(
+          attributeNames: ["name", "enabled", "sourceAttributePath", "targetAttributePath", "mappingExpression"]
+          resolveEnumValuesToNames: true
+        ) {
           items {
             attributeName
             value

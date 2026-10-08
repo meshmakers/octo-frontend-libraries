@@ -29,6 +29,7 @@ src/lib/
 ├── entity-id-info/               # Entity ID display with copy dropdown
 ├── field-filter-editor/          # Filter editor component
 ├── octo-loader/                  # Animated loading indicator
+├── page/                         # mm-page layout (header slot + content, no footer)
 ├── property-grid/                # Property grid component
 └── tenant-switcher/              # Tenant switching badge with popup
     ├── components/               # Grid and value display components
@@ -59,9 +60,51 @@ include; none of them keeps its own palette any more:
   `--surface-elevated`) are redirected at `--theme-*`, so existing
   `var(--iron-navy)` usages follow the active theme automatically.
 
+**Deep Sea values (AB#5519).** The token values follow the "Deep Sea" palette
+of the Studio concept (`ui-concept-ai-os.md` §6.2–6.4): surfaces close to the
+canvas, neutral hairline borders, mint only as accent, glows `none`, the former
+gradient tokens flat. New tokens: `--theme-bg-sunken/-selected/-hover`,
+`--theme-border-default`, `--theme-focus-ring`, `--theme-accent(-hover/-subtle)`,
+`--theme-accent-2`, `--theme-ai(-subtle)`, `--theme-text-code`,
+`--theme-status-neutral`, `--theme-status-*-subtle`, and the theme-invariant
+`foundation-tokens` mixin: `--theme-font-display/-ui/-mono`,
+`--theme-space-1..8`, `--theme-radius-xs/sm/md/lg`,
+`--theme-motion-fast/-base/-easing` (durations `0ms` under
+`prefers-reduced-motion`). Only `--lcars-font-primary`, `--lcars-font-mono`
+and `--lcars-transition-fast` remain in `_variables.scss` (aliases kept for the
+Meshmakers App, AB#5526 phase 2). Light accent and
+both muted text values deviate from concept §6.2 for contrast (see README). The
+full list is in the README ("Theme tokens").
+
+**LCARS removed (AB#5526).** `styles()` sets
+`body { font-family: var(--theme-font-ui) }` (Roboto); headings, dialog/page
+titles and KPI numbers use `--theme-font-display`. Buttons (`_button.scss` /
+`octo-button`, `_flat-button.scss` / `flat-button`, `.k-button` block) are flat
+primary/base/outline from the tokens; `_field-input.scss` / `field-input` uses
+`--theme-bg-input` + neutral border (the `_lcars-*.scss` files were renamed in
+phase 2; the mixins are internal, not forwarded). No gradients, glows, pulses,
+scanlines, text-shadows or uppercase letter-spaced labels anywhere in
+`styles()` — including the dockview tabs and the process designer palette,
+inspector and sliders (the only uppercase left is the avatar initials) — and
+none in the octo-ui, shared-ui, shared-auth, octo-ai-console and
+octo-process-diagrams component styles; mint survives only as accent (`--theme-accent`,
+`--theme-text-accent`). `light-theme-surface-overrides` is reduced to what
+tokens cannot express; `light-theme-button-overrides` is a no-op (both themes
+share the flat button rules); `theme-overrides()` additionally emits
+`sentence-case-overrides` under `html:root`. The only LCARS classes left are the
+page pattern used by the **Meshmakers App** (`.lcars-page-header`,
+`.page-title`, `.header-content`, `.lcars-content-panel`, plus
+`display: none` for `.lcars-header-accent/-line`, `.panel-accent-*`,
+`.lcars-footer`, `.footer-*`) — kept neutral until that app migrates to
+`<mm-page>`; do not use them in new code.
+`mm-runtime-browser` uses `<mm-page>` (its `titlePrefix` / `badgeLabel` /
+`ready` messages are deprecated and no longer rendered).
+
 **Kendo colour bridge.** `theme()` also declares the `--kendo-color-*` tokens
-(surface, surface-alt, subtle, border, base-on-subtle, and
-secondary/tertiary/info/success/warning/error) against our theme tokens.
+(surface, surface-alt, subtle, border, base-on-subtle, primary/-hover/-active,
+on-primary, and secondary/tertiary/info/success/warning/error) against our
+theme tokens, plus `--kendo-border-radius-*` (from `--theme-radius-*`, capped
+at 8 px; `full` untouched) and `--kendo-font-family` (`--theme-font-ui`).
 
 One rule when extending it: Kendo derives every `*-on-subtle` **ink** from the
 matching `*-subtle` **surface**, assuming that surface is light. So overriding a
@@ -74,8 +117,7 @@ FULL `@progress/kendo-theme-material` itself does not get them and falls back to
 Material's light defaults — which is what made the Meshmakers App's grids,
 toolbars and pagers render white on the dark theme. The `:root` declarations
 cover both entry points and, unlike a compiled `$kendo-colors` merge, follow the
-active theme at runtime. Values resolve to exactly what the slim theme produced,
-so this is a no-op for hosts that were already on it.
+active theme at runtime.
 
 **Ink overlays (`--theme-ink-02` … `--theme-ink-70`).** The dark-only idiom
 `rgba(255,255,255,.03)` — "one step raised off the page" — has no surface-colour
@@ -476,6 +518,44 @@ Source: `src/lib/branding/`. Detailed usage in `src/lib/branding/BRANDING_USAGE.
 The feature couples directly to the `SystemUIBranding` CK runtime type
 (`rtWellKnownName = "Branding"`), which is service-managed and auto-distributed
 to every tenant by `octo-admin-panel`.
+
+## Entity forms (AB#5522)
+
+Secondary entry point `@meshmakers/octo-ui/entity-forms` (`entity-forms/`, usage and route
+contract in `entity-forms/README.md`): form-driven list / create / edit pages driven by
+`System.UI/EntityForm` (System.UI ≥ 2.8.0; 2.7.0 is the plain System 2.5 repin, AB#5528) with a built-in copy of the seeded `form-default` as
+fallback. Public surface: `<mm-entity-page>`, `entityFormRoutes()`, `<mm-entity-list>`,
+`<mm-entity-form>`, `EntityFormService`, `EntityFormDataService`, the pure parser / resolver.
+
+- **Own GraphQL documents** in `entity-forms/src/graphQL/` (own `codegen.yml` block, operation
+  names prefixed `entityForm`). A secondary entry point cannot import `src/lib` internals, so the
+  Runtime Browser classes (`AttributeMapperService`, its GQL classes) are not reused; their value
+  rules are ported into the pure `core/entity-form-value-mapper.ts`. No `schema.graphql` change:
+  everything goes through the generic `runtimeEntities` / `constructionKit` API, and forms are
+  only queried after a CK probe confirms `System.UI/EntityForm` exists.
+- **Secret rule (security, reviewers must enforce):** every document that selects `attributes`
+  declares `$attributeNames: [String]!` and passes an explicit non-secret list. An omitted
+  variable makes the server return **all** attributes including secrets; `[]` returns none
+  (used for "first entity" probes). The filter matches camelCase names only and is also applied
+  inside records, so record sub-attribute names must be listed too. Secret presence is read with
+  an `IS_NOT_NULL` filter (`totalCount`), never by reading the value. A `password` editor is
+  write-only even without `Secret: true`. The update mutation selects no attributes.
+- **Paths:** forms write PascalCase (`Host`), CK attribute names are camelCase (`host`);
+  matching is case-insensitive and the canonical form is the CK name.
+- **List:** `runtimeEntities(ckId)` returns derived types, so the list adds a `ckTypeId EQUALS`
+  filter unless the form includes derived types or the type is abstract. Rows are flattened so a
+  column `field` is the GraphQL attribute path. Copy ID submenu + Delete (`canWrite && CanDelete`).
+- **Page:** inputs `formKey` / `ckTypeId` / `rtId` (`'new'` = create) / `canWrite` / `messages`,
+  bound by `withComponentInputBinding()` or read from `ActivatedRoute` (data inherited from
+  ancestors). The concrete type of a create / derived edit travels in the `?type=` query param
+  (not `ckTypeId`, which input binding would map onto the form-type input). Navigation is
+  relative (`..`, `new`, `:rtId`). Singleton forms skip the list. Implements `HasUnsavedChanges`;
+  routes carry `canDeactivate: [UnsavedChangesGuard]`.
+- **Write permission comes from the host** (`canWrite`); the library knows no role names.
+- **Known backend limits:** CK record attributes always report `isOptional: false` (record
+  sub-fields are treated as optional in the UI); the `attributeNames` filter passes into records.
+- Specs need `npm run build:octo-ui` first (`@meshmakers/octo-ui` resolves to `dist`). Demo:
+  `demo-app` → `demos/entity-forms`.
 
 ## Documentation and Testing Standards
 
@@ -922,7 +1002,7 @@ export class AppComponent {
 
 **Visual behavior:** Badge button showing tenant name + icon. Click opens a Kendo popup listing allowed tenants. Current tenant is highlighted. Clicking a different tenant emits event and closes popup. Escape/outside-click closes popup. The popup header includes a refresh button (spinning arrow icon) that emits `refreshRequested` — host applications use this to refresh the access token and update `allowed_tenants`.
 
-**LCARS theming:** The component uses Kendo CSS variables for theme-neutral styling. Refinery Studio applies LCARS overrides via `::ng-deep mm-tenant-switcher { ... }` in `app.component.scss`.
+**Theming:** The component uses Kendo CSS variables for theme-neutral styling. Host apps can override it via `::ng-deep mm-tenant-switcher { ... }` and the `--mm-tenant-switcher-*` custom properties.
 
 ---
 

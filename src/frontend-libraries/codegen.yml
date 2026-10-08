@@ -99,3 +99,16 @@ generates:
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+
+  # octo-ui/entity-forms feature (AB#5522)
+  projects/meshmakers/octo-ui/entity-forms/src/graphQL/:
+    documents: "projects/meshmakers/octo-ui/entity-forms/src/graphQL/*.graphql"
+    preset: near-operation-file
+    presetConfig:
+      extension: .ts
+      baseTypesPath: ~@meshmakers/octo-services
+    plugins:
+      - "typescript-operations"
+      - "typescript-apollo-angular"
+    config:
+      typesSuffix: Dto

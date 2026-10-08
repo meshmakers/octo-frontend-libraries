@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { defer, firstValueFrom, from, Observable } from 'rxjs';
+import { isSecretAttributeCandidate } from '@meshmakers/octo-services';
 import { Attribute } from '../models/attribute';
 import {
   AttributeEnumOption,
@@ -78,6 +79,9 @@ export class AttributeMapperService {
       enumOptions: this.getEnumOptions(attr),
       value: parsedValue,
     };
+    if (isSecretAttributeCandidate({ attributeName, attributeValueType: type, metaData: attr?.attribute?.metaData })) {
+      attribute.secret = true;
+    }
 
     return attribute;
   }
@@ -164,6 +168,12 @@ export class AttributeMapperService {
     // type is set only when metadata exists, so the non-null assertion is safe inside these branches.
     if (type === 'BINARY_LINKED') {
       return this.mapBinaryLinkedAttribute(key, value, metadata!);
+    }
+
+    // Secrets are write-only (AB#5542): their stored value is never read, so an empty value means
+    // "keep" — omit it instead of sending null/'' that would clear the stored credential.
+    if (metadata?.secret && (value === null || value === undefined || value === '')) {
+      return null;
     }
 
     if (value === null || value === undefined) {

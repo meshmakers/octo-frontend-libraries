@@ -130,6 +130,16 @@ describe('JobManagementService', () => {
       expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith('Duplicate key error: entity already exists', 'Export');
     });
 
+    it('should pass the failure text through an optional formatter (AB#5544)', async () => {
+      botServiceMock.getJobStatus.mockResolvedValue(mockFailedJobDto);
+
+      const result = await service.waitForJob('job-123', 'Test Operation', 'Import', d => `${d}\n\nexplained`);
+
+      expect(result).toBe(false);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledWith(
+        'Duplicate key error: entity already exists\n\nexplained', 'Import');
+    });
+
     it('should show reason when errorMessage is null', async () => {
       const failedWithReasonOnly: JobDto = { ...mockFailedJobDto, errorMessage: null };
       botServiceMock.getJobStatus.mockResolvedValue(failedWithReasonOnly);

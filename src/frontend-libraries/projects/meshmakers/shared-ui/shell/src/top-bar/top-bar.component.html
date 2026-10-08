@@ -1,0 +1,73 @@
+<header class="top-bar" [class.production]="isProduction()">
+  <div class="brand">
+    @if (brandMarkSrc(); as markSrc) {
+      <img [src]="markSrc" class="brand-mark" alt="" aria-hidden="true" />
+    }
+    <span class="brand-name">{{ brandName() }}</span>
+  </div>
+
+  @if (tenantId()) {
+    <span class="separator" aria-hidden="true"></span>
+    <div class="tenant">
+      <ng-content select="[shellTenant]"></ng-content>
+      @if (showEnvironment() && environment(); as env) {
+        <span class="env-chip" [class]="'env-chip status-' + env.status" [title]="env.label">
+          <span class="env-label">{{ env.label }}</span>
+          <span class="env-short" aria-hidden="true">{{ env.short }}</span>
+        </span>
+      }
+    </div>
+  }
+
+  @if (showModeSwitch()) {
+    <div class="mode-switch" role="group" [attr.aria-label]="m().modeSwitch">
+      @for (option of modes(); track option.id) {
+        <button type="button"
+                [attr.aria-pressed]="currentMode() === option.id"
+                [title]="option.description ?? ''"
+                (click)="selectMode(option.id)">{{ option.label }}</button>
+      }
+    </div>
+  }
+
+  <button type="button" class="search" [attr.aria-label]="m().searchAriaLabel" (click)="requestSearch()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+    <span class="search-label">{{ m().search }}</span>
+    <kbd class="search-shortcut">{{ shortcutLabel }}</kbd>
+  </button>
+
+  <div class="top-actions">
+    @if (showAssistant()) {
+      <button type="button" class="ai-btn" data-assistant-toggle
+              [attr.aria-expanded]="assistantOpen()"
+              [attr.aria-controls]="assistantOpen() ? assistantPanelId() : null"
+              [attr.aria-keyshortcuts]="assistantKeyShortcut"
+              (click)="toggleAssistant()">
+        <span class="ai-sparkle" aria-hidden="true">✦</span>
+        <span class="ai-label">{{ m().assistant }}</span>
+        <kbd class="ai-shortcut" aria-hidden="true">{{ assistantShortcutLabel }}</kbd>
+      </button>
+    }
+    <mm-shell-user-menu
+      [user]="user()"
+      [sessionLoading]="sessionLoading()"
+      [theme]="theme()"
+      [densityOptions]="densityOptions()"
+      [density]="density()"
+      [languages]="languages()"
+      [language]="language()"
+      [version]="version()"
+      [items]="userMenuItems()"
+      [messages]="messages()"
+      (signIn)="signIn.emit()"
+      (signOut)="signOut.emit()"
+      (themeChange)="themeChange.emit($event)"
+      (densityChange)="densityChange.emit($event)"
+      (languageChange)="languageChange.emit($event)"
+      (itemSelected)="userMenuItemSelected.emit($event)">
+      <ng-container ngProjectAs="[shellUserMenuItems]">
+        <ng-content select="[shellUserMenuItems]"></ng-content>
+      </ng-container>
+    </mm-shell-user-menu>
+  </div>
+</header>

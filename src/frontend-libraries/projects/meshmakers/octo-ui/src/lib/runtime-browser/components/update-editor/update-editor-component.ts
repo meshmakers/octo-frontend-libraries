@@ -27,6 +27,8 @@ import {
 import { AttributeCoordinatorService } from '../../services/attribute-coordinator.service';
 import { AttributeDataService } from '../../services/attribute-data.service';
 import { AttributeMapperService } from '../../services/attribute-mapper.service';
+import { SecretSafeAttributeNamesService } from '../../services/secret-safe-attribute-names.service';
+import { planSecretSafeUpdate } from '../../services/secret-safe-update';
 import { AttributesGroupComponent } from '../attributes-group/attributes-group.component';
 import { SharedEditor } from '../shared-editor/shared-editor';
 
@@ -91,6 +93,7 @@ import { SharedEditor } from '../shared-editor/shared-editor';
             [ckId]="updateInput().rtCkTypeId"
             [parentFormGroup]="form()!"
             [initialValues]="$safeNavigationMigration(entityData()?.initial)"
+            [secretsWriteOnly]="true"
             [isRecord]="false"
             [messages]="resolvedMessages()"
           />
@@ -157,6 +160,7 @@ export class UpdateEditorComponent {
   private readonly mapperService = inject(AttributeMapperService);
   private readonly coordinatorService = inject(AttributeCoordinatorService);
   private readonly sharedEditor = inject(SharedEditor);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   private dataLoaded = computed(() => !!this.entityData());
 
@@ -270,12 +274,30 @@ export class UpdateEditorComponent {
 
     try {
       const attributesMetadata = await this.fetchAttributesMetadata(rtCkTypeId);
-      const mappedAttributes = await firstValueFrom(
-        this.mapFormToAttributes$(
-          currentForm.getRawValue(),
-          attributesMetadata,
-        ),
+      const formValue = currentForm.getRawValue();
+      const mapped = await firstValueFrom(
+        this.mapFormToAttributes$(formValue, attributesMetadata),
       );
+      const analysis = await this.secretSafeNames.analyse(input.ckTypeId);
+      const plan = planSecretSafeUpdate(
+        mapped,
+        attributesMetadata,
+        analysis,
+        formValue,
+        this.initialValue(),
+      );
+      if (plan.blockedChanged) {
+        this.sharedEditor.showErrorNotification(
+          this.resolvedMessages().recordWithSecretNotSaved ??
+            DEFAULT_RUNTIME_BROWSER_MESSAGES.recordWithSecretNotSaved ??
+            '',
+        );
+      }
+      if (!plan.otherChanged) {
+        // Nothing that may be written back changed — skip the call (one message, AB#5542).
+        return;
+      }
+      const mappedAttributes = plan.attributes;
 
       if (!this.hasValidMappedAttributes(mappedAttributes)) {
         this.sharedEditor.showErrorNotification(

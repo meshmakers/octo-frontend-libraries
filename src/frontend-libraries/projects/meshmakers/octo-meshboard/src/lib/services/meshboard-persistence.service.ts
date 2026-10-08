@@ -7,7 +7,8 @@ import { CreateDashboardWidgetDtoGQL } from '../graphQL/createDashboardWidget';
 import { UpdateDashboardWidgetDtoGQL } from '../graphQL/updateDashboardWidget';
 import { DeleteEntitiesDtoGQL } from '../graphQL/deleteEntities';
 import { GetDashboardWithWidgetsDtoGQL } from '../graphQL/getDashboardWithWidgets';
-import { MeshBoardConfig, AnyWidgetConfig, MeshBoardVariable, MeshBoardTimeFilterConfig, MeshBoardTimeZoneMode, EntitySelectorConfig } from '../models/meshboard.models';
+import { MeshBoardConfig, AnyWidgetConfig, MeshBoardVariable, MeshBoardTimeFilterConfig, MeshBoardTimeZoneMode, EntitySelectorConfig, MeshBoardNavigationConfig } from '../models/meshboard.models';
+import { MESHBOARD_DESCRIPTION_MARKER, normalizeNavigation, withMeshBoardNavigation } from '../utils/meshboard-description-codec';
 import { AssociationModOptionsDto, DeleteStrategiesDto, RtAssociationInputDto, SystemUiDashboardWidgetInputDto } from '@meshmakers/octo-services';
 import { WidgetRegistryService, PersistedWidgetData } from './widget-registry.service';
 
@@ -81,7 +82,7 @@ export class MeshBoardPersistenceService {
    * The marker is detected without relying on surrounding newlines because
    * the backend may trim leading/trailing whitespace from the description field.
    */
-  private readonly VARIABLES_MARKER = '---MESHBOARD_VARIABLES---';
+  private readonly VARIABLES_MARKER = MESHBOARD_DESCRIPTION_MARKER;
 
   /**
    * Fetches all available MeshBoards
@@ -162,7 +163,8 @@ export class MeshBoardPersistenceService {
       config.timeFilter,
       config.entitySelectors,
       config.autoRefreshSeconds,
-      config.timeZoneMode
+      config.timeZoneMode,
+      config.navigation
     );
 
     const dashboardInput: Record<string, unknown> = {
@@ -216,7 +218,8 @@ export class MeshBoardPersistenceService {
       config.timeFilter,
       config.entitySelectors,
       config.autoRefreshSeconds,
-      config.timeZoneMode
+      config.timeZoneMode,
+      config.navigation
     );
 
     const dashboardItem: Record<string, unknown> = {
@@ -299,7 +302,7 @@ export class MeshBoardPersistenceService {
   toMeshBoardConfig(meshBoard: PersistedMeshBoard, widgets: PersistedWidget[]): MeshBoardConfig {
     // Decode variables, timeFilter, entitySelectors, and autoRefresh from description field
     // (temporary until backend adds first-class config field)
-    const { description, variables, timeFilter, entitySelectors, autoRefreshSeconds, timeZoneMode } = this.decodeVariablesFromDescription(meshBoard.description);
+    const { description, variables, timeFilter, entitySelectors, autoRefreshSeconds, timeZoneMode, navigation } = this.decodeVariablesFromDescription(meshBoard.description);
 
     return {
       id: meshBoard.rtId,
@@ -314,6 +317,7 @@ export class MeshBoardPersistenceService {
       timeZoneMode,
       entitySelectors,
       autoRefreshSeconds,
+      navigation,
       widgets: widgets.map(w => this.toWidgetConfig(w))
     };
   }
@@ -443,6 +447,30 @@ export class MeshBoardPersistenceService {
     );
   }
 
+  /**
+   * Pins or unpins a MeshBoard for the host app's end-user navigation.
+   * Only the description is written: the navigation entry lives in the encoded
+   * blob, and every other encoded setting (variables, time filter, …) is kept.
+   * Returns the description as it was stored.
+   */
+  async setMeshBoardPinned(meshBoard: PersistedMeshBoard, pinned: boolean): Promise<string> {
+    const description = withMeshBoardNavigation(
+      meshBoard.description,
+      pinned ? { pinned: true } : undefined
+    );
+    await firstValueFrom(
+      this.updateDashboardGQL.mutate({
+        variables: {
+          entities: [{
+            rtId: meshBoard.rtId,
+            item: { description }
+          }]
+        }
+      })
+    );
+    return description;
+  }
+
   // ============================================================================
   // Variable Persistence Helpers
   // ============================================================================
@@ -460,7 +488,8 @@ export class MeshBoardPersistenceService {
     timeFilter?: MeshBoardTimeFilterConfig,
     entitySelectors?: EntitySelectorConfig[],
     autoRefreshSeconds?: number,
-    timeZoneMode?: MeshBoardTimeZoneMode
+    timeZoneMode?: MeshBoardTimeZoneMode,
+    navigation?: MeshBoardNavigationConfig
   ): string {
     // Filter out timeFilter and entitySelector variables (they are derived, not persisted directly)
     const staticVariables = variables?.filter(v => v.source !== 'timeFilter' && v.source !== 'entitySelector');
@@ -470,9 +499,10 @@ export class MeshBoardPersistenceService {
     const hasEntitySelectors = entitySelectors && entitySelectors.length > 0;
     const hasAutoRefresh = !!autoRefreshSeconds && autoRefreshSeconds > 0;
     const hasTimeZoneMode = !!timeZoneMode && timeZoneMode !== 'local';
+    const storedNavigation = normalizeNavigation(navigation);
     if (
       (!staticVariables || staticVariables.length === 0) &&
-      !timeFilter?.enabled && !hasEntitySelectors && !hasAutoRefresh && !hasTimeZoneMode
+      !timeFilter?.enabled && !hasEntitySelectors && !hasAutoRefresh && !hasTimeZoneMode && !storedNavigation
     ) {
       return description;
     }
@@ -484,6 +514,7 @@ export class MeshBoardPersistenceService {
         timeZoneMode?: MeshBoardTimeZoneMode;
         entitySelectors?: EntitySelectorConfig[];
         autoRefreshSeconds?: number;
+        navigation?: MeshBoardNavigationConfig;
       } = {};
 
       if (staticVariables && staticVariables.length > 0) {
@@ -500,6 +531,10 @@ export class MeshBoardPersistenceService {
 
       if (hasAutoRefresh) {
         data.autoRefreshSeconds = autoRefreshSeconds;
+      }
+
+      if (storedNavigation) {
+        data.navigation = storedNavigation;
       }
 
       if (hasEntitySelectors) {
@@ -540,6 +575,7 @@ export class MeshBoardPersistenceService {
     timeZoneMode?: MeshBoardTimeZoneMode;
     entitySelectors?: EntitySelectorConfig[];
     autoRefreshSeconds?: number;
+    navigation?: MeshBoardNavigationConfig;
   } {
     // Use the marker without newlines for detection, since the backend may trim
     // leading whitespace (removing the \n before the marker when description is empty).
@@ -569,7 +605,8 @@ export class MeshBoardPersistenceService {
         timeFilter: parsed.timeFilter,
         timeZoneMode: typeof parsed.timeZoneMode === 'string' && parsed.timeZoneMode !== 'local' ? parsed.timeZoneMode : undefined,
         entitySelectors: parsed.entitySelectors,
-        autoRefreshSeconds: typeof parsed.autoRefreshSeconds === 'number' ? parsed.autoRefreshSeconds : undefined
+        autoRefreshSeconds: typeof parsed.autoRefreshSeconds === 'number' ? parsed.autoRefreshSeconds : undefined,
+        navigation: normalizeNavigation(parsed.navigation)
       };
     } catch (error) {
       console.error('Failed to decode MeshBoard config data:', error);

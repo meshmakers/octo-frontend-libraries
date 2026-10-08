@@ -20,6 +20,40 @@ export {
   RuntimeEntityDialogDataSource
 } from './lib/utils/runtime-entity-data-sources';
 
+// Description codec: the encoded settings blob (variables, time filter,
+// navigation pin, …) that MeshBoards persist in their description field
+export {
+  MESHBOARD_DESCRIPTION_MARKER,
+  splitEncodedDescription,
+  joinEncodedDescription,
+  readMeshBoardNavigation,
+  withMeshBoardNavigation,
+  normalizeNavigation,
+  compareMeshBoardNavigation
+} from './lib/utils/meshboard-description-codec';
+export type { EncodedDescription } from './lib/utils/meshboard-description-codec';
+
+// Status table of well-known state names, labels and theme colours shared by charts and hosts
+// (e.g. the Refinery Studio Data Explorer enum chips)
+export {
+  STATE_STATUS_BY_KEY,
+  categoryStatus,
+  humanizeCategory,
+  statusColor,
+  observeThemeChanges
+} from './lib/utils/chart-categories';
+export type { CategoryStatus } from './lib/utils/chart-categories';
+
+// `?edit=1` opens a board in edit mode
+export { MESHBOARD_EDIT_QUERY_PARAM } from './lib/utils/edit-mode-url';
+
+// Header mode of an embedded board (input `headerMode` / route data `meshBoardHeaderMode`)
+export type { MeshBoardHeaderMode } from './lib/utils/meshboard-header';
+export { MESHBOARD_HEADER_MODE_ROUTE_DATA, isMeshBoardHeaderMode, resolveMeshBoardHeaderMode } from './lib/utils/meshboard-header';
+// Outer frame of an embedded board (input `chrome` / route data `meshBoardChrome`)
+export type { MeshBoardChrome } from './lib/utils/meshboard-chrome';
+export { MESHBOARD_CHROME_ROUTE_DATA, isMeshBoardChrome, resolveMeshBoardChrome } from './lib/utils/meshboard-chrome';
+
 // Query family classification (runtime vs stream-data persistent queries)
 export type { QueryFamily, QueryKind, QueryClassification } from './lib/utils/query-family';
 export { classifyQuery, queryFamily } from './lib/utils/query-family';
@@ -100,6 +134,7 @@ export type { WidgetGroupConfigResult } from './lib/widgets/widget-group/widget-
 export { MarkdownWidgetComponent } from './lib/widgets/markdown-widget/markdown-widget.component';
 export { MarkdownConfigDialogComponent } from './lib/widgets/markdown-widget/markdown-config-dialog.component';
 export type { MarkdownConfigResult } from './lib/widgets/markdown-widget/markdown-config-dialog.component';
+export { LazyMarkdownComponent, loadNgxMarkdown } from './lib/components/lazy-markdown/lazy-markdown.component';
 
 export { StatusListWidgetComponent } from './lib/widgets/status-list-widget/status-list-widget.component';
 export { StatusListConfigDialogComponent } from './lib/widgets/status-list-widget/status-list-config-dialog.component';
@@ -157,3 +192,44 @@ export { AddWidgetDialogComponent } from './lib/dialogs/add-widget-dialog/add-wi
 export { MeshBoardManagerDialogComponent } from './lib/dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
 export { EditWidgetDialogComponent } from './lib/dialogs/edit-widget-dialog/edit-widget-dialog.component';
 export type { WidgetPositionUpdate } from './lib/dialogs/edit-widget-dialog/edit-widget-dialog.component';
+
+// Cockpit widgets (AB#5558): attention list + platform KPIs, host services and shared rules
+export * from './lib/cockpit/cockpit-host';
+export { COCKPIT_WIDGET_MESSAGES, DEFAULT_COCKPIT_WIDGET_MESSAGES, resolveCockpitWidgetMessages, formatCockpitMessage } from './lib/cockpit/cockpit-messages';
+export type { CockpitWidgetMessages, CockpitWidgetMessagesSource } from './lib/cockpit/cockpit-messages';
+export { CockpitContextService } from './lib/cockpit/cockpit-context.service';
+export * from './lib/cockpit/attention/attention.models';
+export { CockpitAttentionService, selectProviders } from './lib/cockpit/attention/attention.service';
+export type { AttentionProviderInfo, AttentionState } from './lib/cockpit/attention/attention.service';
+export { CkModelsResolveFailedAttentionProvider } from './lib/cockpit/attention/providers/ck-models-resolve-failed.provider';
+export { AdaptersAttentionProvider } from './lib/cockpit/attention/providers/adapters.provider';
+export { UnregisteredPoolsAttentionProvider } from './lib/cockpit/attention/providers/unregistered-pools.provider';
+export {
+  FailedExecutionsAttentionProvider, COCKPIT_FAILED_EXECUTIONS_OPTIONS, DEFAULT_FAILED_EXECUTIONS_OPTIONS, failedExecutionsSeverity
+} from './lib/cockpit/attention/providers/failed-executions.provider';
+export type { FailedExecutionsAttentionOptions } from './lib/cockpit/attention/providers/failed-executions.provider';
+export { FeaturesNotInstalledAttentionProvider, enabledButNotInstalled, isServiceConfigured } from './lib/cockpit/attention/providers/features-not-installed.provider';
+export {
+  CockpitAdapterStatesService, COCKPIT_ADAPTER_LIMIT, ADAPTER_OFFLINE_GRACE_MS, adaptersInError, adaptersOffline
+} from './lib/cockpit/data/cockpit-adapter-states.service';
+export type { CockpitAdapterState, CockpitAdapterStates } from './lib/cockpit/data/cockpit-adapter-states.service';
+export { CockpitCkModelStatesService } from './lib/cockpit/data/cockpit-ck-model-states.service';
+export { CockpitDataFlowExecutionsService, countFlowExecutions } from './lib/cockpit/data/cockpit-data-flow-executions.service';
+export type { CockpitDataFlowExecutions, CockpitExecutionCounts } from './lib/cockpit/data/cockpit-data-flow-executions.service';
+export * from './lib/cockpit/kpi/cockpit-kpi';
+export { CockpitKpiService, COCKPIT_KPI_GATES, COCKPIT_DATA_FLOW_LIMIT, KPI_ERROR_TEXT } from './lib/cockpit/kpi/cockpit-kpi.service';
+export type { CockpitKpiKind, CockpitKpiResult } from './lib/cockpit/kpi/cockpit-kpi.service';
+export { AttentionListWidgetComponent, DEFAULT_ATTENTION_MAX_ITEMS } from './lib/cockpit/widgets/attention-list-widget.component';
+export { AttentionListConfigDialogComponent } from './lib/cockpit/widgets/attention-list-config-dialog.component';
+export type { AttentionListConfigResult } from './lib/cockpit/widgets/attention-list-config-dialog.component';
+export { CockpitKpiWidgetComponent, kpiKindOf, NOT_AVAILABLE_TEXT } from './lib/cockpit/widgets/cockpit-kpi-widget.component';
+export { CockpitKpiConfigDialogComponent } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
+export type { CockpitKpiConfigResult } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
+export { RecentItemsWidgetComponent, DEFAULT_RECENT_ITEMS_MAX, MAX_RECENT_ITEMS, recentRelativeTime } from './lib/cockpit/widgets/recent-items-widget.component';
+export { RecentItemsConfigDialogComponent } from './lib/cockpit/widgets/recent-items-config-dialog.component';
+export type { RecentItemsConfigResult } from './lib/cockpit/widgets/recent-items-config-dialog.component';
+export { provideCockpitWidgets, registerCockpitWidgets, BUILT_IN_ATTENTION_PROVIDERS } from './lib/cockpit/cockpit-widget-registrations';
+
+// Shared rules, also used by the Refinery Studio (one implementation)
+export * from './lib/utils/adapter-online';
+export * from './lib/utils/pipeline-executions';

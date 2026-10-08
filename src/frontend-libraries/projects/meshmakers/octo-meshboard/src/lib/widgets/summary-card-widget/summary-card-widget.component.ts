@@ -11,6 +11,7 @@ import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/qu
 import { extractPersistentQueryCellValue } from '../../utils/persistent-query-cell';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 
 interface TileValue {
   id: string;
@@ -73,7 +74,7 @@ interface TileValue {
       text-align: center;
       padding: 12px 8px;
       border-radius: 6px;
-      background: var(--mm-summary-tile-bg, rgba(255, 255, 255, 0.03));
+      background: var(--mm-summary-tile-bg, var(--theme-bg-hover));
     }
 
     .tile-value {
@@ -84,8 +85,6 @@ interface TileValue {
 
     .tile-label {
       font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       margin-top: 4px;
       opacity: 0.6;
     }
@@ -106,6 +105,7 @@ interface TileValue {
 })
 export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWidgetConfig, TileValue[]>, OnInit, OnChanges {
   private readonly entityGQL = inject(GetDashboardEntityDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
   private readonly dataService = inject(DashboardDataService);
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
@@ -228,9 +228,11 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
   }
 
   private async fetchEntityAttributes(rtId: string, ckTypeId: string): Promise<Map<string, unknown>> {
+    // All non-secret attributes of the type (SECRET-safe, AB#5542); tiles pick by path.
+    const attributeNames = await this.secretSafeNames.forCkType(ckTypeId);
     const result = await firstValueFrom(
       this.entityGQL.fetch({
-        variables: { rtId, ckTypeId }
+        variables: { rtId, ckTypeId, attributeNames }
       })
     );
 

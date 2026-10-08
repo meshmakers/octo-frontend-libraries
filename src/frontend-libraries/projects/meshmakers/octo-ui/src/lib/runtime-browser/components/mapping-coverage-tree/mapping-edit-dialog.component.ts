@@ -108,7 +108,7 @@ export type MappingEditDialogResult =
             [svgIcon]="icons.regenerate"
             [disabled]="!canGenerateName()"
             (click)="generateName()"
-            title="Generate name from source + target"></button>
+            title="Generate name from source + target" aria-label="Generate name from source + target"></button>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ export type MappingEditDialogResult =
             [svgIcon]="icons.browse"
             [disabled]="!effectiveTargetCkTypeId()"
             (click)="browseTargetAttribute()"
-            title="Browse all attributes (incl. navigation properties)"></button>
+            title="Browse all attributes (incl. navigation properties)" aria-label="Browse all attributes (incl. navigation properties)"></button>
         </div>
         <span class="hint">
           @if (effectiveTargetCkTypeId(); as t) {
@@ -292,8 +292,6 @@ export type MappingEditDialogResult =
       label {
         font-size: 0.72rem;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
         color: var(--theme-text-secondary, var(--kendo-color-subtle, #6c757d));
       }
 
@@ -412,7 +410,6 @@ export type MappingEditDialogResult =
         var(--kendo-color-info, #0dcaf0) 18%, transparent);
       color: var(--kendo-color-info, #0dcaf0);
       text-transform: none;
-      letter-spacing: 0;
       font-style: italic;
     }
 

@@ -708,4 +708,26 @@ describe('PropertyConverterService', () => {
       expect(result.every(p => p.type === AttributeValueTypeDto.StringDto)).toBe(true);
     });
   });
+
+  describe('SECRET value type (AB#5528)', () => {
+    it('shows a SECRET attribute as a read-only state, never as a value', async () => {
+      ckTypeAttributeServiceMock.getCkTypeAttributes.mockReturnValue(of([
+        { attributeName: 'password', attributeValueType: 'SECRET' },
+        { attributeName: 'apiKey', attributeValueType: 'SECRET' },
+      ]));
+      const result = await new Promise<import('../models/property-grid.models').PropertyGridItem[]>((resolve) =>
+        service.convertRtEntityAttributes([
+          { attributeName: 'password', value: null, secretIsSet: true },
+          { attributeName: 'apiKey', value: null },
+        ], 'Test/Type').subscribe(resolve));
+      expect(result[0]).toMatchObject({ type: AttributeValueTypeDto.SecretDto, readOnly: true, value: { isSet: true, keyMissing: false, setAt: null } });
+      expect(result[1]).toMatchObject({ type: AttributeValueTypeDto.SecretDto, value: { isSet: false } });
+    });
+
+    it('treats any attribute with a secretIsSet flag as secret', async () => {
+      const result = await new Promise<import('../models/property-grid.models').PropertyGridItem[]>((resolve) =>
+        service.convertRtEntityAttributes([{ attributeName: 'name', value: null, secretIsSet: false, secretKeyMissing: true }], 'Test/Type').subscribe(resolve));
+      expect(result[0]).toMatchObject({ type: AttributeValueTypeDto.SecretDto, value: { isSet: false, keyMissing: true } });
+    });
+  });
 });

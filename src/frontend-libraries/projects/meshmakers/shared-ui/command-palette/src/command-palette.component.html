@@ -1,0 +1,109 @@
+<div class="cp-scrim" (mousedown)="onScrimMouseDown($event)">
+  <div class="cp-dialog" role="dialog" aria-modal="true" [attr.aria-label]="m().dialogLabel" (keydown)="onKeydown($event)" (mousedown)="onDialogMouseDown($event)">
+    <div class="cp-input-row">
+      <svg class="cp-search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input
+        #input
+        class="cp-input"
+        type="text"
+        role="combobox"
+        [attr.aria-label]="m().inputLabel"
+        [attr.aria-expanded]="expanded()"
+        aria-autocomplete="list"
+        [attr.aria-controls]="actionsFor() ? 'cp-actions' : 'cp-listbox'"
+        [attr.aria-activedescendant]="activeDescendant()"
+        autocomplete="off"
+        spellcheck="false"
+        [placeholder]="m().placeholder"
+        [value]="query()"
+        (input)="onInput($event)" />
+      <kbd class="cp-esc" aria-hidden="true">esc</kbd>
+      <!-- Phones: full-screen palette without scrim and Esc key — an explicit way out. -->
+      <button type="button" class="cp-close" (click)="close()">{{ m().cancel }}</button>
+    </div>
+
+    @if (actionsFor(); as target) {
+      <div class="cp-list" id="cp-actions" role="listbox" [attr.aria-label]="format(m().actionsFor, { label: target.label })">
+        <div class="cp-group-header" role="presentation">{{ format(m().actionsHeader, { label: target.label }) }}</div>
+        @for (action of target.actions ?? []; track action.id; let i = $index) {
+          <div
+            class="cp-option"
+            role="option"
+            [id]="'cp-action-' + i"
+            [attr.aria-selected]="i === activeActionIndex()"
+            (mousedown)="$event.preventDefault()"
+            (mousemove)="activeActionIndex.set(i)"
+            (click)="runAction(action)">
+            <span class="cp-icon" aria-hidden="true">▸</span>
+            <span class="cp-label">{{ action.label }}</span>
+            <span class="cp-side"></span>
+            <span class="cp-tab-col">
+              @if (action.hint) {
+                <kbd aria-hidden="true">{{ action.hint }}</kbd>
+              }
+            </span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="cp-list" id="cp-listbox" role="listbox" [attr.aria-label]="m().results">
+        @for (section of sections(); track section.group) {
+          <div class="cp-section" [class.cp-section-ai]="section.group === 'ai'" role="group" [attr.aria-labelledby]="'cp-group-' + section.group">
+            <div class="cp-group-header" role="presentation" [id]="'cp-group-' + section.group">{{ section.label }}</div>
+            @for (row of section.rows; track row.result.id) {
+              <div
+                class="cp-option"
+                role="option"
+                [class.cp-ai]="row.result.group === 'ai'"
+                [id]="'cp-option-' + row.index"
+                [attr.aria-selected]="row.index === activeIndex()"
+                (mousedown)="$event.preventDefault()"
+                (mousemove)="onOptionHover(row.result)"
+                (click)="onOptionClick(row.result, $event)">
+                <span class="cp-icon" aria-hidden="true">
+                  @if (row.result.icon) {
+                    <kendo-svgicon [icon]="row.result.icon" size="small"></kendo-svgicon>
+                  } @else {
+                    {{ row.result.glyph ?? '·' }}
+                  }
+                </span>
+                <!-- One line on purpose: whitespace between the segments would show as gaps in the label. -->
+                <span class="cp-label">@for (segment of row.segments; track $index) {@if (segment.match) {<mark>{{ segment.text }}</mark>}@else{<span>{{ segment.text }}</span>}}</span>
+                <span class="cp-side">
+                  @if (row.side) {
+                    <span class="cp-description" [title]="row.side">{{ row.side }}</span>
+                  }
+                  @if (row.result.typeHint) {
+                    <code class="cp-hint">{{ row.result.typeHint }}</code>
+                  }
+                </span>
+                <!-- Own grid column, so the Tab key lines up on every row. -->
+                <span class="cp-tab-col" aria-hidden="true">
+                  @if (row.result.actions?.length) {
+                    <kbd class="cp-tab-hint" [title]="m().tabForActions">⇥</kbd>
+                  }
+                </span>
+              </div>
+            }
+          </div>
+        } @empty {
+          <div class="cp-empty" role="presentation">{{ emptyText() }}</div>
+        }
+      </div>
+    }
+
+    <div class="cp-footer" aria-hidden="true">
+      <span><kbd>↑</kbd><kbd>↓</kbd> {{ m().footerMove }}</span>
+      <span><kbd>↵</kbd> {{ m().footerOpen }}</span>
+      <span><kbd>{{ modifierLabel }}↵</kbd> {{ m().footerNewTab }}</span>
+      <span><kbd>⇥</kbd> {{ m().footerActions }}</span>
+      <span class="cp-prefixes">
+        <span class="cp-prefix"><kbd>&gt;</kbd> {{ m().prefixActions }}</span>
+        <span class="cp-prefix"><kbd>&#64;</kbd> {{ m().prefixEntities }}</span>
+        <span class="cp-prefix"><kbd>#</kbd> {{ m().prefixBoards }}</span>
+        <span class="cp-prefix"><kbd>/</kbd> {{ m().prefixTenants }}</span>
+      </span>
+    </div>
+    <div class="cp-status" role="status" aria-live="polite">{{ statusText() }}</div>
+  </div>
+</div>

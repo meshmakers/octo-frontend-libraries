@@ -1,0 +1,13 @@
+# "Set / not set" for a secret attribute without reading its value:
+# fieldFilters = [{ attributePath: "<secret>", operator: IS_NOT_NULL }] -> totalCount 1 or 0.
+query entityFormGetAttributePresence(
+  $ckTypeId: String!
+  $rtId: OctoObjectId!
+  $fieldFilters: [FieldFilter]!
+) {
+  runtime {
+    runtimeEntities(ckId: $ckTypeId, rtId: $rtId, fieldFilter: $fieldFilters, first: 1) {
+      totalCount
+    }
+  }
+}

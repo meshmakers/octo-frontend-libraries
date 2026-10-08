@@ -1,0 +1,30 @@
+# Fallback for getEntityFormAssociationTargets when the role's other end has no collection root
+# (e.g. System/Entity: `targets(ckId: "System/Entity")` fails with "has no defining collection
+# root"). Returns only the association edges (ids and types), never attributes.
+query entityFormGetAssociationDefinitions(
+  $ckTypeId: String!
+  $rtId: OctoObjectId!
+  $roleId: String!
+  $direction: GraphDirection!
+  $first: Int
+) {
+  runtime {
+    runtimeEntities(ckId: $ckTypeId, rtId: $rtId, first: 1) {
+      items {
+        rtId
+        associations {
+          definitions(direction: $direction, roleId: $roleId, first: $first) {
+            totalCount
+            items {
+              originRtId
+              originCkTypeId
+              targetRtId
+              targetCkTypeId
+              ckAssociationRoleId
+            }
+          }
+        }
+      }
+    }
+  }
+}

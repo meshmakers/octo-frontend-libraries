@@ -27,6 +27,8 @@ export interface ConfirmationWindowData {
   dialogType: DialogType;
   buttonLabels?: ConfirmationButtonLabels;
   messages?: Partial<ConfirmationWindowMessages>;
+  /** Destructive confirmation: the confirming (right-most) button is styled as danger (`themeColor="error"`). */
+  danger?: boolean;
 }
 
 export class ConfirmationWindowResult {

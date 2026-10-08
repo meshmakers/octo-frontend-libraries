@@ -31,7 +31,10 @@ export const GetLatestValidationExecutionDocumentDto = gql`
             items {
               rtId
               ckTypeId
-              attributes(resolveEnumValuesToNames: true) {
+              attributes(
+                attributeNames: ["outputData", "completedAt"]
+                resolveEnumValuesToNames: true
+              ) {
                 items {
                   attributeName
                   value

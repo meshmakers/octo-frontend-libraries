@@ -137,6 +137,8 @@ Configurable data grid with Kendo Grid integration.
 
 **Features:** Pagination, sorting, filtering, row selection, search, context menus, action menus, Excel/PDF export, toolbar actions, column types (text, numeric, boolean, date, bytes, status icons, cron expressions).
 
+The toolbar's "Reset Filters" button only appears while something narrows the default view: a row filter, a column sort, a free-text search, or host-side filters. Hosts with their own quick-view/bar filters announce them via `[hasExternalFilters]="myBarFilterIsSet"` so the button shows (and `(resetFilters)` lets them clear those filters when it is clicked).
+
 ```html
 <mm-list-view
   appMyDataSource
@@ -182,6 +184,18 @@ Hierarchical tree view with Kendo TreeView, drag-drop support, and expandable no
 
 Display text with a one-click copy-to-clipboard button.
 
+### Actions (`mm-row-actions`, `mm-action-button`)
+
+Row, toolbar and page actions from one shared `MmAction` definition (id, label, icon, danger,
+disabled reason, visible): icon buttons with tooltip and a row-specific accessible name, max. 3
+inline slots with a "More actions" menu, focusable disabled actions that announce their reason,
+and a canonical verb→icon map (`MM_ACTION_ICONS`). See [Actions](docs/actions.md).
+
+```html
+<mm-row-actions [actions]="actionsFor(row)" [rowLabel]="row.name" (triggered)="onAction($event, row)" />
+<mm-action-button [action]="refresh" context="toolbar" (triggered)="reload()" />
+```
+
 ### EntitySelectInputComponent (`mm-entity-select-input`)
 
 Autocomplete input for entity selection with dialog fallback.
@@ -196,6 +210,9 @@ All complex dialogs are opened via injected services:
 | | `showYesNoCancelConfirmationDialog()` | Yes/No/Cancel with result |
 | | `showOkCancelConfirmationDialog()` | Ok/Cancel confirmation |
 | | `showOkDialog()` | Ok-only information dialog |
+| | `showDestructiveConfirmationDialog(title, message, confirmLabel, cancelLabel = 'Cancel')` | Destructive action: verb labels (e.g. Rotate / Cancel), confirming button styled as danger |
+
+All confirmation dialogs are `min(320px, 100vw − 32px)` to `min(560px, 100vw − 32px)` wide, so a long message wraps instead of stretching the dialog across the viewport.
 | `InputService` | — | Text input dialog |
 | `FileUploadService` | — | File upload dialog |
 | `ProgressWindowService` | `showDeterminateProgress()` | Progress bar with percentage |
@@ -205,6 +222,18 @@ All complex dialogs are opened via injected services:
 | `SaveAsDialogService` | — | Save-as dialog with path navigation |
 | `ImportStrategyDialogService` | — | Import strategy selection |
 | `MessageDetailsDialogService` | — | Detailed message/error display |
+
+Toast stacking is configurable with `NOTIFICATION_DISPLAY_OPTIONS`: identical visible toasts (same
+type, text and details) are never stacked twice (`dedupe`, default on); `errorHideAfter` /
+`warningHideAfter` (ms, default 0 = until interaction or navigation) auto-hide non-critical errors
+and warnings — a caller passing `hideAfter: 0` still gets a sticky one, and `stickyWithDetails`
+keeps every error/warning that has details; a timed toast pauses while hovered or focused;
+`maxVisible` (default 0 = unlimited) hides the oldest toast of the lowest severity, so an error or
+warning is never dropped for a success or info.
+
+```typescript
+{ provide: NOTIFICATION_DISPLAY_OPTIONS, useValue: { errorHideAfter: 10000, warningHideAfter: 8000, stickyWithDetails: true, maxVisible: 3 } }
+```
 
 See [Progress Window Usage](src/lib/progress-window/USAGE.md) for progress dialog examples.
 
@@ -266,6 +295,7 @@ Data binding directive for `ListViewComponent`, managing data source and paginat
 
 ## Detailed Documentation
 
+- [Actions](docs/actions.md) — `mm-row-actions`, `mm-action-button`, `MmAction`, canonical icons
 - [Time Range Picker](docs/time-range-picker.md) — Full API reference, configuration, examples
 - [Unsaved Changes Guard](docs/unsaved-changes-guard.md) — Implementation guide with checklists
 - [Progress Window Usage](src/lib/progress-window/USAGE.md) — Progress dialog examples, migration from Angular Material

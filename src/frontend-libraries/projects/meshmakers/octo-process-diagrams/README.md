@@ -139,7 +139,7 @@ octo-process-diagrams/
 │       │   └── expression-evaluator.service.ts    # Expression evaluation for bindings
 │       ├── graphQL/                               # Auto-generated GraphQL services
 │       ├── styles/
-│       │   └── _dockview-lcars-theme.scss         # Optional LCARS theme mixin
+│       │   └── _dockview-theme.scss              # Optional Deep Sea dockview theme mixin
 │       └── docs/
 │           └── SVG-IMPORT.md                      # SVG import documentation
 ```
@@ -212,12 +212,14 @@ mm-symbol-editor {
 }
 ```
 
-An optional LCARS theme mixin is available:
+An optional token-driven theme mixin is available (Deep Sea, AB#5526):
 
 ```scss
-@use '@meshmakers/octo-process-diagrams/styles/dockview-lcars-theme' as dockview;
-@include dockview.lcars-theme();
+@use '@meshmakers/octo-process-diagrams/styles/dockview-theme' as dockview;
+@include dockview.dockview-theme();
 ```
+
+The former `styles/dockview-lcars-theme` alias (`lcars-theme()`) was removed in AB#5526.
 
 ## Dependencies
 

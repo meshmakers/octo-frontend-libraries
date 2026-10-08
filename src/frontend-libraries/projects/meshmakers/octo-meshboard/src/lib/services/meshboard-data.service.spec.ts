@@ -1,12 +1,14 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import { MeshBoardDataService } from './meshboard-data.service';
 import { MeshBoardStateService } from './meshboard-state.service';
 import { MeshBoardVariableService } from './meshboard-variable.service';
 import { GetDashboardEntityDtoGQL } from '../graphQL/getDashboardEntity';
 import { GetCkModelsWithStateDtoGQL } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
+import { GetAssociationTargetsDtoGQL } from '../graphQL/getAssociationTargets';
 import { QueryExecutorService, QueryExecutionResult } from './query-executor.service';
 import { Apollo } from 'apollo-angular';
 import { RuntimeEntityDataSource, StaticDataSource, PersistentQueryDataSource, AggregationQuery, ConstructionKitQueryDataSource, RepeaterQueryDataSource, MeshBoardVariable, RuntimeEntityData } from '../models/meshboard.models';
@@ -81,6 +83,8 @@ describe('MeshBoardDataService', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        // SECRET-safe attribute lists (AB#5542): the type's non-secret attributes.
+        { provide: SecretSafeAttributeNamesService, useValue: { forCkType: vi.fn().mockResolvedValue(['name', 'value', 'groupKey']), restrict: vi.fn((_t: string, names: string[]) => Promise.resolve(names.filter((n) => !/password|secret/i.test(n)))) } },
         MeshBoardDataService,
         { provide: GetDashboardEntityDtoGQL, useValue: getDashboardEntityGQLSpy },
         { provide: GetCkModelsWithStateDtoGQL, useValue: getCkModelsWithStateGQLSpy },
@@ -143,6 +147,7 @@ describe('MeshBoardDataService', () => {
               items: [{
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
+                rtDisplayName: 'Test Entity',
                 attributes: { items: [] },
                 associations: { definitions: { items: [] } }
               }]
@@ -234,6 +239,7 @@ describe('MeshBoardDataService', () => {
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
                 rtWellKnownName: 'test-name',
+                rtDisplayName: 'Test Entity',
                 rtCreationDateTime: '2024-01-01T00:00:00Z',
                 rtChangedDateTime: '2024-01-02T00:00:00Z',
                 attributes: {
@@ -289,6 +295,7 @@ describe('MeshBoardDataService', () => {
               items: [{
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
+                rtDisplayName: 'Test Entity',
                 attributes: {
                   items: [
                     null,
@@ -326,6 +333,7 @@ describe('MeshBoardDataService', () => {
               items: [{
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
+                rtDisplayName: 'Test Entity',
                 attributes: { items: [] },
                 associations: {
                   definitions: {
@@ -361,7 +369,30 @@ describe('MeshBoardDataService', () => {
   // fetchEntityWithAssociations Tests
   // ========================================================================
 
+  describe('fetchAssociationTargets (AB#5542)', () => {
+    it('requests only the type-aware safe subset of the configured attribute names', async () => {
+      const gql = TestBed.inject(GetAssociationTargetsDtoGQL);
+      const fetch = vi.spyOn(gql, 'fetch').mockReturnValue(of({ data: { runtime: { runtimeEntities: { items: [] } } } }) as never);
+
+      await firstValueFrom(service.fetchAssociationTargets('r1', 'Src/Type', 'Tgt/Type', 'Role', 'out', ['name', 'password']));
+
+      expect(fetch.mock.lastCall![0]!.variables!.attributeNames).toEqual(['name']);
+    });
+  });
+
   describe('fetchEntityWithAssociations', () => {
+    it('requests only the secret-safe attribute names of the type (AB#5542)', async () => {
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
+        data: { runtime: { runtimeEntities: { items: [] } } }, loading: false, networkStatus: 7
+      }));
+
+      await firstValueFrom(service.fetchEntityWithAssociations('entity-1', 'EntityType'));
+
+      expect(getDashboardEntityGQLSpy.fetch).toHaveBeenCalledWith({
+        variables: { rtId: 'entity-1', ckTypeId: 'EntityType', attributeNames: ['name', 'value', 'groupKey'] }
+      });
+    });
+
     it('should fetch entity by rtId and ckTypeId', () => new Promise<void>((done) => {
       getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
         data: {
@@ -370,6 +401,7 @@ describe('MeshBoardDataService', () => {
               items: [{
                 rtId: 'entity-1',
                 ckTypeId: 'EntityType',
+                rtDisplayName: 'Test Entity',
                 attributes: { items: [] },
                 associations: { definitions: { items: [] } }
               }]
@@ -1037,6 +1069,7 @@ describe('MeshBoardDataService', () => {
                     rtId: 'machine-1',
                     ckTypeId: 'OctoSdk/Machine',
                     rtWellKnownName: 'Machine Alpha',
+                    rtDisplayName: 'Test Entity',
                     attributes: {
                       items: [
                         { attributeName: 'status', value: 'Running' },
@@ -1258,6 +1291,7 @@ describe('MeshBoardDataService', () => {
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
                 rtWellKnownName: null,
+                rtDisplayName: 'Test Entity',
                 attributes: { items: [] },
                 associations: { definitions: { items: [] } }
               }]
@@ -1270,6 +1304,32 @@ describe('MeshBoardDataService', () => {
 
       service.fetchRuntimeEntity(dataSource).subscribe(result => {
         expect(result?.rtWellKnownName).toBeUndefined();
+        done();
+      });
+    }));
+
+    it('maps rtDisplayName — the label the entity selector shows for a default selection', () => new Promise<void>((done) => {
+      getDashboardEntityGQLSpy.fetch.mockReturnValue(of({
+        data: {
+          runtime: {
+            runtimeEntities: {
+              items: [{
+                rtId: 'fy-2026',
+                ckTypeId: 'Meshmakers.Accounting/FiscalYear',
+                rtWellKnownName: null,
+                rtDisplayName: '2026',
+                attributes: { items: [] },
+                associations: { definitions: { items: [] } }
+              }]
+            }
+          }
+        },
+        loading: false,
+        networkStatus: 7
+      }));
+
+      service.fetchRuntimeEntity({ type: 'runtimeEntity', rtId: 'fy-2026', ckTypeId: 'Meshmakers.Accounting/FiscalYear' }).subscribe(result => {
+        expect(result?.rtDisplayName).toBe('2026');
         done();
       });
     }));

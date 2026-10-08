@@ -539,19 +539,18 @@ export class PipelineComponent {
 |--------|---------|-------------|
 | `deployAdapterConfigurationUpdate(tenantId, adapterRtId, adapterCkTypeId)` | `Promise<void>` | Deploy adapter config update |
 
-**Pool-Level Adapter Management:**
+**Deployment Sites and Workloads (System.Communication 4.x):**
+
+The CK type `System.Communication/Pool` became `System.Communication/DeploymentSite` in
+System.Communication 4.x. The methods keep their names; the routes are the controller's
+`DeploymentSiteController` contract (AB#5842).
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `deployAllAdaptersOfPool(tenantId, poolRtId)` | `Promise<void>` | Deploy all adapters of a pool |
-| `undeployAllAdaptersOfPool(tenantId, poolRtId)` | `Promise<void>` | Undeploy all adapters of a pool |
-
-**Individual Adapter Management:**
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| `deployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | `Promise<void>` | Deploy single adapter |
-| `undeployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | `Promise<void>` | Undeploy single adapter |
+| `deployPool(tenantId, poolRtId)` | `Promise<void>` | Deploy a deployment site — `POST {tenantId}/v1/deploymentsite/deploy?deploymentSiteRtId=…` |
+| `undeployPool(tenantId, poolRtId)` | `Promise<void>` | Undeploy a deployment site — `POST {tenantId}/v1/deploymentsite/undeploy?deploymentSiteRtId=…` |
+| `deployWorkload(tenantId, workloadRtId)` | `Promise<void>` | Deploy one workload (Adapter, Application, AdapterPool) — `POST {tenantId}/v1/deploymentsite/workloads/deploy?workloadRtId=…` |
+| `undeployWorkload(tenantId, workloadRtId)` | `Promise<void>` | Undeploy one workload — `POST {tenantId}/v1/deploymentsite/workloads/undeploy?workloadRtId=…` |
 
 **Pipeline Execution:**
 

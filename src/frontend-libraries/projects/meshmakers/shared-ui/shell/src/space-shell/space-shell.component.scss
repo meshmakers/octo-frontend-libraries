@@ -1,0 +1,335 @@
+// Space header (wireframe .space-head): crumbs, title row, tab strip with the
+// accent underline on the active tab. No LCARS decoration.
+
+:host {
+  display: block;
+}
+
+.space-head {
+  padding: var(--theme-space-3) var(--theme-space-6) 0;
+  background: var(--theme-bg-app);
+  border-bottom: 1px solid var(--theme-border-subtle);
+
+  &.no-area {
+    padding-bottom: var(--theme-space-2);
+  }
+
+  // Object detail page (AB#5547): one line — back link, crumbs, actions. The page's
+  // object header directly below carries the title, chips, actions and tabs, so this
+  // part has no border of its own (the two read as one header).
+  &.object-detail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--theme-space-2) var(--theme-space-4);
+    padding-bottom: 0;
+    border-bottom: 0;
+
+    .space-crumbs {
+      display: flex;
+      align-items: center;
+      gap: var(--theme-space-3);
+      flex: 1 1 auto;
+      min-width: 0;
+
+      // The projected Kendo breadcrumb is `flex: 0 1 auto` by default and measured too narrow,
+      // so it collapsed the middle crumb ("Integration › › Mesh Adapter", visual check 2026-10-06).
+      ::ng-deep kendo-breadcrumb {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+    }
+
+    .space-title-row {
+      margin-top: 0;
+    }
+  }
+}
+
+.space-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid var(--theme-border-default);
+  border-radius: var(--theme-radius-xs);
+  background: none;
+  color: var(--theme-text-secondary);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--theme-bg-hover);
+    color: var(--theme-text-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+.space-crumbs {
+  min-height: 20px;
+  font-size: 0.75rem;
+  color: var(--theme-text-muted);
+
+  // No breadcrumbs (AB#5621): the line takes no height. Not `display: none` — a projected
+  // breadcrumb that measures its width must keep it for when its items arrive.
+  &.is-empty {
+    min-height: 0;
+    height: 0;
+    overflow: hidden;
+  }
+}
+
+.space-head.no-crumbs:not(.object-detail) .space-title-row {
+  margin-top: 0;
+}
+
+.space-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--theme-space-2) var(--theme-space-4);
+  margin-top: var(--theme-space-1);
+}
+
+.space-title {
+  margin: 0;
+  font-family: var(--theme-font-display);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+// Meta line right of the title (Home: "Tenant meshmakers").
+.space-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--theme-space-3);
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--theme-text-secondary);
+}
+
+.space-meta-value {
+  font-family: var(--theme-font-mono);
+  color: var(--theme-text-primary);
+}
+
+.space-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--theme-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// Status chip: dot + label (status is never colour alone).
+.space-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--theme-radius-xs);
+  font-size: 0.71875rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &.status-success { color: var(--theme-status-success); background: var(--theme-status-success-subtle); }
+  &.status-warning { color: var(--theme-status-warning); background: var(--theme-status-warning-subtle); }
+  &.status-error { color: var(--theme-status-error); background: var(--theme-status-error-subtle); }
+  &.status-info { color: var(--theme-status-info); background: var(--theme-status-info-subtle); }
+  &.status-neutral { color: var(--theme-status-neutral); background: var(--theme-status-neutral-subtle); }
+}
+
+.space-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  margin-left: auto;
+}
+
+.space-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  margin-top: var(--theme-space-3);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.tab-wrapper {
+  position: relative;
+  display: flex;
+}
+
+.space-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--theme-space-1);
+  padding: var(--theme-space-2) var(--theme-space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--theme-text-secondary);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--theme-text-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+    border-radius: var(--theme-radius-sm);
+  }
+
+  &[aria-current='page'] {
+    color: var(--theme-text-primary);
+    font-weight: 500;
+    border-bottom-color: var(--theme-accent);
+  }
+}
+
+.tab-separator {
+  align-self: center;
+  width: 1px;
+  height: 16px;
+  margin-inline: var(--theme-space-2);
+  background: var(--theme-border-default);
+}
+
+.tab-external,
+.tab-caret {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+// Positioned fixed from the tab button's bounding box (top/left bound in the
+// template), so the horizontally scrolling tab strip does not clip it.
+.tab-menu {
+  position: fixed;
+  z-index: 20;
+  min-width: 200px;
+  margin: 0;
+  padding: var(--theme-space-1);
+  list-style: none;
+  background: var(--theme-bg-overlay);
+  border-radius: var(--theme-radius-lg);
+  box-shadow: var(--theme-shadow-popup);
+}
+
+.tab-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  width: 100%;
+  padding: var(--theme-space-1) var(--theme-space-2);
+  border: 0;
+  border-radius: var(--theme-radius-sm);
+  background: none;
+  color: var(--theme-text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--theme-bg-hover);
+    color: var(--theme-text-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring);
+  }
+}
+
+// Phone (ui-concept §7.5): a compact header — crumbs, then ONE line with title, chips
+// (scroll sideways) and actions, then the tab strip scrolling sideways without a bar.
+@media (max-width: 640px) {
+  .space-head {
+    padding: var(--theme-space-2) var(--theme-space-4) 0;
+  }
+
+  .space-crumbs {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .space-title-row {
+    flex-wrap: nowrap;
+    gap: var(--theme-space-2);
+  }
+
+  .space-title {
+    flex: none;
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
+  }
+
+  // The top bar names the tenant already; the title row has no room on phones.
+  .space-meta {
+    display: none;
+  }
+
+  .space-chips {
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .space-actions {
+    flex: none;
+    margin-left: auto;
+  }
+
+  .space-tabs {
+    margin-top: var(--theme-space-1);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .space-tab {
+    padding: var(--theme-space-2);
+  }
+
+  .space-head.object-detail {
+    flex-wrap: nowrap;
+  }
+}
+
+// Text for assistive technology only (e.g. "opens in a new tab" after an external link marker).
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

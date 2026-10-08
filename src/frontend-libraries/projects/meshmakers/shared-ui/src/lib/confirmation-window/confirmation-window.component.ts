@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ButtonTypes, ConfirmationWindowData, ConfirmationWindowResult, DialogType} from '../models/confirmation';
 import {DialogActionsComponent, DialogContentBase, DialogRef} from '@progress/kendo-angular-dialog';
 import {NgIf} from '@angular/common';
@@ -80,6 +80,22 @@ export class ConfirmationWindowComponent extends DialogContentBase implements On
         this.button2Text = noLabel;
         this.button2Result = ButtonTypes.No;
       }
+    }
+  }
+
+  private readonly host = inject(ElementRef<HTMLElement>);
+
+  /**
+   * Destructive confirmations start with the focus on the dismissing button (AB#5578): Enter must
+   * never confirm a delete. Backs up the service's `autoFocusedElement`.
+   */
+  override ngAfterViewInit(): void {
+    super.ngAfterViewInit();
+    if (this.data?.danger) {
+      setTimeout(() => {
+        const root = this.host.nativeElement.closest('.k-dialog') ?? this.host.nativeElement;
+        (root.querySelector('[data-action="dismiss"], [data-action="cancel"]') as HTMLElement | null)?.focus();
+      });
     }
   }
 

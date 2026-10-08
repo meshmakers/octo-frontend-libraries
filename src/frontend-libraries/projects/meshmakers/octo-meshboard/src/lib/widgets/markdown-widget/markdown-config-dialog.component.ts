@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
-import { MarkdownModule } from 'ngx-markdown';
+import { LazyMarkdownComponent } from '../../components/lazy-markdown/lazy-markdown.component';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MarkdownTextAlign } from '../../models/meshboard.models';
 
@@ -26,7 +26,7 @@ export interface MarkdownConfigResult extends WidgetConfigResult {
     FormsModule,
     ButtonsModule,
     InputsModule,
-    MarkdownModule
+    LazyMarkdownComponent
   ],
   template: `
     <div class="config-container">
@@ -76,7 +76,7 @@ Variables: $variableName or \${variableName}">
             </textarea>
           } @else {
             <div class="markdown-preview mm-prose">
-              <markdown [data]="content"></markdown>
+              <mm-lazy-markdown [data]="content"></mm-lazy-markdown>
             </div>
           }
         </div>

@@ -1,9 +1,10 @@
 import {Injectable, inject} from '@angular/core';
 import {HttpClient, HttpErrorResponse, HttpHeaders, HttpParams} from '@angular/common/http';
 import {firstValueFrom, of, throwError} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import {catchError, map} from 'rxjs/operators';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {
+  AdapterMetricsResultDto,
   AdapterMetricsSampleDto,
   DeploymentResultDto,
   PipelineExecutionDataDto,
@@ -50,7 +51,7 @@ export class CommunicationService {
   /**
    * Enables the Communication feature for a tenant. Installs the
    * `System.Communication` CK model and provisions the required runtime wiring
-   * for adapters/pools. Errors propagate to the caller.
+   * for adapters/deployment sites. Errors propagate to the caller.
    */
   async enableCommunication(tenantId: string): Promise<void> {
     if (!this.communicationServicesUrl) {
@@ -65,7 +66,7 @@ export class CommunicationService {
   /**
    * Disables the Communication feature for a tenant. Reversible flag flip that
    * removes the trigger schedules and unloads the tenant from the controller;
-   * nothing is undeployed. Refused with 409 while pools or workloads of the
+   * nothing is undeployed. Refused with 409 while deployment sites or workloads of the
    * tenant are still deployed (AB#4255) — the error body names them. The UI
    * must confirm before calling. Errors propagate to the caller.
    */
@@ -139,8 +140,22 @@ export class CommunicationService {
     adapterCkTypeId: string,
     since?: Date
   ): Promise<AdapterMetricsSampleDto[]> {
+    return (await this.getAdapterMetricsResult(tenantId, adapterRtId, adapterCkTypeId, since)).samples;
+  }
+
+  /**
+   * Like {@link getAdapterMetrics}, but reports a 404 (adapter not connected / unknown to the
+   * controller) as `notFound: true` instead of hiding it, so pollers can back off (AB#5546).
+   * Other errors are rethrown.
+   */
+  async getAdapterMetricsResult(
+    tenantId: string,
+    adapterRtId: string,
+    adapterCkTypeId: string,
+    since?: Date
+  ): Promise<AdapterMetricsResultDto> {
     if (!this.communicationServicesUrl) {
-      return [];
+      return {samples: [], notFound: false};
     }
 
     const rtEntityId = encodeURIComponent(`${adapterCkTypeId}@${adapterRtId}`);
@@ -154,12 +169,13 @@ export class CommunicationService {
       this.httpClient
         .get<AdapterMetricsSampleDto[]>(uri, {params, headers: this.noCacheHeaders})
         .pipe(
+          map((samples): AdapterMetricsResultDto => ({samples: samples ?? [], notFound: false})),
           catchError((err: HttpErrorResponse) => {
             // 404 = adapter not connected yet / unknown to the controller;
             // surface as "no samples" so the UI can render an empty state
             // instead of a toast.
             if (err.status === 404) {
-              return of([] as AdapterMetricsSampleDto[]);
+              return of({samples: [] as AdapterMetricsSampleDto[], notFound: true});
             }
             return throwError(() => err);
           })
@@ -168,24 +184,26 @@ export class CommunicationService {
   }
 
   // ============================================================================
-  // Pool-Level Adapter Deployment
+  // Deployment-Site-Level Deployment (System.Communication 4.x)
   // ============================================================================
 
   /**
-   * Deploys a pool. For Cloud-environment pools, this triggers the central
-   * Communication Operator to provision the corresponding DeploymentSite CR and
-   * broker secret. Edge-environment sites transition state without any operator
-   * notification.
+   * Deploys a deployment site (`System.Communication/DeploymentSite`, the CK type that was
+   * `Pool` before System.Communication 4.x). For Cloud-environment sites, this triggers the
+   * central Communication Operator to provision the corresponding `CommunicationPool` CR and
+   * broker secret. Edge-environment sites transition state without any operator notification.
    *
-   * 🔴 The route is `/v1/deploymentsite/...`, NOT `/v1/pool/...`. The AB#4924 rename was
-   * documented as leaving the REST route alone — and then renamed the controller CLASS, which
-   * moves `[controller]` and therefore the route with it. These four URIs were the last consumers
-   * left on the old spelling: the .NET SDK had already moved, so nothing but the Studio 404'd, and
-   * the note saying the route "stays" is what stopped anyone from looking.
+   * The method keeps its name (`deployPool`) so callers stay source compatible; the wire contract
+   * is the controller's `DeploymentSiteController`:
+   * `POST {communicationServices}{tenantId}/v1/deploymentsite/deploy?deploymentSiteRtId=…`.
+   * These route and parameter literals are the server's contract, not a naming preference — check
+   * any change against the controller's `[Route]` / `[FromQuery]` (AB#5271, AB#5842).
+   *
+   * @param poolRtId runtime id of the deployment site
    */
   async deployPool(tenantId: string, poolRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
-      const params = new HttpParams().set('poolRtId', poolRtId);
+      const params = new HttpParams().set('deploymentSiteRtId', poolRtId);
       const uri = `${this.communicationServicesUrl}${tenantId}/v1/deploymentsite/deploy`;
 
       await firstValueFrom(
@@ -195,13 +213,17 @@ export class CommunicationService {
   }
 
   /**
-   * Undeploys a deployment site. For Cloud-environment sites, this notifies the
-   * central Communication Operator to remove the DeploymentSite CR and broker
-   * secret.
+   * Undeploys a deployment site. For Cloud-environment sites, this notifies the central
+   * Communication Operator to remove the `CommunicationPool` CR and broker secret.
+   *
+   * Wire contract: `POST {communicationServices}{tenantId}/v1/deploymentsite/undeploy?deploymentSiteRtId=…`
+   * (see {@link deployPool}).
+   *
+   * @param poolRtId runtime id of the deployment site
    */
   async undeployPool(tenantId: string, poolRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
-      const params = new HttpParams().set('poolRtId', poolRtId);
+      const params = new HttpParams().set('deploymentSiteRtId', poolRtId);
       const uri = `${this.communicationServicesUrl}${tenantId}/v1/deploymentsite/undeploy`;
 
       await firstValueFrom(
@@ -211,12 +233,11 @@ export class CommunicationService {
   }
 
   /**
-   * Deploys a single workload via its parent deployment site. Independent of the
-   * site's own deploy — the site must already be deployed, but only this
-   * workload's helm-install fires.
+   * Deploys a single workload (Adapter, Application or AdapterPool) via the deployment site that
+   * hosts it. Independent of the site's own deploy — the site must already be deployed, but only
+   * this workload's helm-install fires.
    *
-   * Typed on `RtDeployableWorkload` server-side, so it serves Adapters,
-   * Applications AND AdapterPools (AB#5271).
+   * Wire contract: `POST {communicationServices}{tenantId}/v1/deploymentsite/workloads/deploy?workloadRtId=…`.
    */
   async deployWorkload(tenantId: string, workloadRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
@@ -266,8 +287,10 @@ export class CommunicationService {
   }
 
   /**
-   * Undeploys a single workload (Adapter or Application). Triggers a
-   * helm-uninstall for the workload only; the pool itself stays deployed.
+   * Undeploys a single workload (Adapter, Application or AdapterPool). Triggers a helm-uninstall
+   * for the workload only; the hosting deployment site stays deployed.
+   *
+   * Wire contract: `POST {communicationServices}{tenantId}/v1/deploymentsite/workloads/undeploy?workloadRtId=…`.
    */
   async undeployWorkload(tenantId: string, workloadRtId: string): Promise<void> {
     if (this.communicationServicesUrl) {
@@ -443,6 +466,32 @@ export class CommunicationService {
       throw new Error('Communication services URL is not configured');
     }
     const uri = `${this.communicationServicesUrl}${tenantId}/v1/adapter/${adapterRtId}/serviceAccount/rotateSecret`;
+    return await firstValueFrom(
+      this.httpClient.post<RotateServiceAccountSecretResultDto>(uri, null)
+    );
+  }
+
+  /**
+   * Rotates the client secret of a `ServiceAccountConfiguration` (`POST
+   * /serviceAccount/{configurationRtId}/rotateSecret`, OctoMesh AB#5111) — the
+   * configuration-bound variant of {@link rotateAdapterServiceAccountSecret} with the same core
+   * logic and result: an adapter-owned configuration is rotated through its adapter server-side,
+   * a standalone (declared) one directly. Roles are never touched.
+   *
+   * Same contract as the adapter-bound call: the result carries **no secret**, the old secret is
+   * invalid once this resolves, and the pipelines / data flows using the account keep presenting
+   * it until they are redeployed (`requiresPipelineRedeploy`, `message`). Throws when the
+   * communication services URL is missing or the controller refuses (the error text says that
+   * the previous secret remains in effect).
+   */
+  async rotateServiceAccountConfigurationSecret(
+    tenantId: string,
+    configurationRtId: string
+  ): Promise<RotateServiceAccountSecretResultDto> {
+    if (!this.communicationServicesUrl) {
+      throw new Error('Communication services URL is not configured');
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/serviceAccount/${configurationRtId}/rotateSecret`;
     return await firstValueFrom(
       this.httpClient.post<RotateServiceAccountSecretResultDto>(uri, null)
     );

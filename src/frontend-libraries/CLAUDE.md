@@ -60,8 +60,8 @@ The full command reference is in [Testing (Vitest)](#testing-vitest) below.
 - New shared components should have:
   - Developer documentation in the component folder
   - Demo page in demo-app with usage examples
-- **All library components must use neutral/theme-agnostic styling** — no LCARS-specific colors, fonts, or design language. Use CSS custom properties (variables) with neutral defaults so host applications can apply their own theme.
-- Theme-specific styling (e.g., LCARS) is the responsibility of the consuming host application (via `styles.scss` or CSS variable overrides)
+- **All library components must use neutral/theme-agnostic styling** — no app-specific colors, fonts, or design language. Use CSS custom properties (variables) with neutral defaults so host applications can apply their own theme.
+- Theme-specific styling (e.g., the Deep Sea theme) is the responsibility of the consuming host application (via `styles.scss` or CSS variable overrides)
 
 ## Testing (REQUIRED)
 
@@ -326,6 +326,21 @@ Common lint issues:
 ```bash
 npm run build:octo-ui      # or whichever library was modified
 ```
+
+## CI Pipeline (`azure-pipelines.yml` at the repo root)
+
+- **Build job** runs `npm ci --prefer-offline --no-audit --no-fund` once, then lint, the
+  tiered library builds, the library tests **and the demo-app / legacy-demo-app tests**, and
+  publishes the `dist` + `docker-context` artifacts. The demo-app tests used to run in a
+  separate `verify_apps` job that repeated `npm ci` (~8 min); they moved into Build in
+  AB#5721. Consequence: a failing demo-app test now stops the Publish stage, so no npm
+  packages or demo-app image are published from that build.
+- **Publish stage** has two parallel jobs: `npm_publish` (10 packages) and `docker_build`
+  (`Dockerfile.prebuilt`, demo-app image via the shared `build-and-push-docker.yml`).
+- The CI trigger only fires for changes under `src/` or to `azure-pipelines.yml`, and
+  ignores `**/*.md` and `.claude/` — documentation-only commits build nothing.
+- Shared steps come from `octo-pipeline-templates` pinned at `tpl-v0.6.5` (registry layer
+  cache plus the reused buildx builder for the demo-app image).
 
 ## Pre-Commit Checklist (MANDATORY)
 
@@ -622,6 +637,171 @@ external package turns into a lazily initialised namespace object under the vite
 (`externalPackages: true`) and fails at the first enum access, and a second copy produces
 nominally different enum types (see the refinery-studio CLAUDE.md, "GraphQL types come from
 the package", for the full history).
+
+### Adding a schema field ahead of the server rollout
+
+`schema.graphql` is an **introspection snapshot** of the local `meshtest` tenant, not a
+generated artifact. When a CK model adds attributes that the snapshot does not carry yet,
+add those fields to `schema.graphql` **surgically** — the field on the object type and, if
+the UI writes it, the same field on the `*Input` type — and then run `npm run codegen`. A
+full re-introspection instead mixes tens of thousands of lines of unrelated drift into the
+feature (same rationale as AB#4967/AB#5053 in refinery-studio). The generated base types in
+`globalTypes.ts` are then real codegen output, so a consuming app never has to cast an input
+object to smuggle a field past the type system.
+
+Nullability follows the CK attribute: `isOptional: true` becomes a nullable field
+(`Boolean`, like `rtBlueprintLocked`), a required attribute keeps the `!`. CK attribute
+`description`s are **not** projected into the GraphQL schema — do not invent doc comments
+that a real introspection would not produce. Fields are in alphabetical order; keep them
+there, or the next real refresh shows a phantom diff.
+
+### Refreshing one CK domain from another tenant (`scripts/merge-schema-domain.mjs`)
+
+When a whole CK model moves ahead (System.Communication 3.x → 4.x, AB#5842), surgical edits do
+not scale and a full re-introspection loses models the source tenant does not carry (System.UI
+EntityForm, System.Ai, ...). `scripts/merge-schema-domain.mjs` swaps exactly one domain, matched
+by type-name prefix, from an introspected SDL into `schema.graphql`:
+
+```bash
+node scripts/merge-schema-domain.mjs --base schema.graphql \
+     --source /path/to/introspected.graphql --out schema.graphql   # --prefix SystemCommunication (default)
+npm run codegen
+```
+
+- Takes every `SystemCommunication*` definition from the source and removes prefixed definitions the
+  source no longer has (`SystemCommunicationPool*` → gone, `SystemCommunicationDeploymentSite*` → added).
+- On shared, non-prefixed types it replaces only the domain's fields (`systemCommunication*` root
+  fields on `RuntimeModelQuery` / `Runtime` / `OctoSubscriptions`, navigation fields typed with a
+  prefixed type) and the prefixed members of runtime unions (`SystemEntity_RelatesToUnion`, ...).
+- **SECRET overlay** (default on): a base field typed `OctoSecretState` wins over the source's plain
+  `String`, plus the ValueOverride SECRET companions — the source tenant (Communication 4.5.0) predates
+  AB#5537. Pass `--no-secret-overlay` once the source declares the credentials as SECRET itself.
+- Validates the result and prints it lexicographically sorted with the generated header, exactly
+  like the snapshot: merging the schema with itself is byte-identical and re-runs are idempotent.
+  `--check` reports without writing. The Refinery Studio (S0b) runs the same script against its
+  own schema file.
+
+The System.Communication 4.x merge (AB#5842) used the test-2-dev `meshdev` introspection with
+System.Communication 4.5.0.
+
+**Watch `possibleTypes.ts` on the way out.** The committed file is ahead of the committed
+`schema.graphql` (it carries union members the snapshot lacks), so any `codegen` run deletes
+those entries as collateral. Revert that file unless the change actually touches unions —
+adding scalar fields never does.
+
+### SECRET-safe documents (AB#5542) — REQUIRED
+
+The backend has the **SECRET value type** (AB#5528; `schema.graphql` refreshed 2026-10-06 from the
+local SECRET backend, contract `octo-construction-kit-engine/docs/secret-frontend-handover.md`
+01fda94e): SECRET values are encrypted at rest and never projected — typed fields are
+`OctoSecretState { isSet }`, generic attributes return `value: null` + `secretIsSet` (also for the
+members inside a generic record value; typed record members are `{ isSet }` — echoing a marker back
+means "unchanged", omitting the member carries it over by the record key), update inputs (`<Type>InputUpdate`,
+`RtEntityUpdate`) take `clearSecretAttributes`. `keyMissing` / `setAt` (`secretKeyMissing` /
+`secretSetAt`) are served since the SECRET round-2 schema (2026-10-06) and selected by every secret
+document; the octo-services helpers
+(`secret-state.ts`: `SecretState`, `secretStateFromAttribute`, `toSecretState`, `secretStatusOf`,
+`isSecretPresent`, `isSecretStateObject`, `formatSecretStatus` + `DEFAULT_SECRET_STATUS_LABELS`,
+`secretInputValue`, `SECRET_VALUE_TYPE`, `isSecretValueType`) treat them as optional. These are the
+ONLY definitions of the secret state, the SECRET type check and the status wording — hosts (Studio)
+and the entity forms (`EntityFormSecretFieldState` is an alias of `SecretState`, badge labels via
+`secretStatusLabelsOf(messages)`) must not redefine them.
+Credentials of models that have not switched to SECRET still come back in clear text, so the
+generic `attributes` field (`RtEntityAttributeDtoConnection`) can still return passwords, client
+secrets, API keys when `attributeNames` is omitted:
+
+- Every generic `attributes` selection passes `attributeNames` as a literal list or a
+  **non-nullable** variable: `$attributeNames: [String!]!` (required — octo-services and
+  octo-meshboard `getEntitiesByCkType`, meshboard `getDashboardEntity` / `getAssociationTargets`,
+  octo-ui `getRuntimeEntityById`). Callers that read only rt* fields pass `[]`. The guard
+  accepts a default (`= []`) but prefer required so a forgotten list fails loudly.
+- Callers pass explicit camelCase lists. Fixed lists live next to the reader
+  (`DATA_POINT_ATTRIBUTE_NAMES`, `DATA_POINT_MAPPING_ATTRIBUTE_NAMES`); screens that show "all
+  attributes" of an arbitrary type use octo-ui `SecretSafeAttributeNamesService.forCkType(rtCkTypeId)`
+  (CK attributes + record sub-attributes, minus secret candidates; a CK lookup failure yields `[]`).
+- ONE credential rule, in octo-services `secret-safe-attributes.ts` — `isSecretAttributeCandidate`:
+  the SECRET value type first (always a secret, no opt-out), then the FALLBACK for non-SECRET
+  attributes: explicit decision (`secret: true|false`; entity forms: `Secret: true|false`, editor `password`)
+  → CK metadata `secret: true|false` (entity forms carry it as `CkAttributeInfo.metaSecret`) →
+  otherwise a TEXTUAL attribute (`STRING`, `STRING_ARRAY`, unknown) whose name ends in password,
+  passphrase, secret, secretKey, privateKey, apiKey, token, connectionString, credential(s) or
+  encryptedValue. Non-textual attributes (`isSecret: BOOLEAN`, a `credentials` RECORD) are never
+  secrets by name. Entity forms (`entity-form-resolver.ts`), the runtime browser, MeshBoard and the
+  Studio Data Explorer all use it; concept §5.3 documents it. Never add another pattern.
+- Lists that feed an EDITOR must be type-aware (`SecretSafeAttributeNamesService`,
+  `toUniqueCamelCaseNames`); configured field lists go through
+  `SecretSafeAttributeNamesService.restrict(rtCkTypeId, names)` (MeshBoard status list, association
+  targets). `toAttributeNameFilter` (name-only drop) is unused in this workspace and only for
+  read-only callers that have no type information at all. Anything excluded from the load is
+  never written back: `analyse().blockedAttributes` + `planSecretSafeUpdate` (records carrying a
+  secret or an excluded sub-attribute, name collisions, attributes missing from the loaded list).
+  The record graph is analysed as a whole (fixpoint), so cycles cannot hide a secret.
+- SECRET attributes are safe to READ for their state: `SecretSafeAttributeNamesService.analyse()`
+  lists them as `secretStateNames` (`forCkType(id, { includeSecretState: true })` appends them;
+  the document must select `secretIsSet`). Records whose only secrets are SECRET members are not
+  blocked (record-key carry-over). Entity forms read SECRET fields with the values
+  (`secretStateFields`); the runtime browser property grid shows a badge (`AttributeValueTypeDto.SecretDto`,
+  record member markers via `isSecretMarker`).
+- Typed queries select a SECRET field as `{ isSet }` (guard rule); fallback credential String fields
+  are never selected — their presence is a count (`fieldFilter: [{ attributePath: "<secret>",
+  operator: IS_NOT_NULL }]` → `totalCount`). Never use any other filter on a SECRET.
+- Mutations return only `rtId` (and `ckTypeId`, at most `{ isSet }`) unless the caller really reads more.
+- The runtime-browser edit form treats secret candidates as write-only (`secretsWriteOnly` on
+  `mm-attributes-group`: empty, not required, password input; an empty value is omitted from the
+  payload = keep). Blocked attributes are not written by the update editor; a change to one is
+  reported once, and the call is skipped when nothing else changed.
+- Column pickers (`AttributeSelectorService`) never offer credential columns (`isSecretQueryColumn`).
+
+**Guard:** the rule is `findSecretUnsafeSelections` / `extractGraphQlDocuments` in the TEST-ONLY
+secondary entry `@meshmakers/octo-services/testing` (`octo-services/testing/src/`, not part of the
+runtime API; unit-tested in `octo-services/src/lib/graphql-secret-guard-rule.spec.ts`). `projects/meshmakers/octo-services/src/lib/graphql-secret-guard.spec.ts`
+(runs with `npm run test:octo-services`) scans every `.graphql` under `projects/` and inline `gql`
+documents against `schema.graphql`; the Studio guard imports the same functions from
+`@meshmakers/octo-services/testing` (its `tsconfig.spec.json` maps that entry to the sources). It fails on a generic `attributes` without a non-nullable
+`attributeNames`, a credential-like name in it (list or single string), a typed
+credential-like String field (fallback models), or a SECRET field (`OctoSecretState`) selected
+without `isSet`.
+Justified exceptions go into its `ALLOW_LIST` with a reason; today it holds only entity-forms
+`getEntityForms` (System.UI/EntityForm carries no secret-capable attributes, and a filter would
+cut the record contents the parser reads). A stale entry fails the test.
+- Meshboard widgets that show arbitrary attributes (entity card/detail, table, repeater,
+  summary card) use `SecretSafeAttributeNamesService.forCkType`; widgets with configured fields
+  (status list, alerts, series labels/groups) send only those names.
+
+**Remaining exposure (not fixable by document rules):** runtime query results —
+`executeRuntimeQuery`, `getTransient*RuntimeQuery` and persistent-query row `cells` — project the
+values of whatever columns a user picked, credentials included. The shared picker
+(`AttributeSelectorService`: attribute selector / sort / field-filter dialogs, mapping dialogs,
+MeshBoard KPI/gauge/process/widget-group dialogs that use it) hides credential columns, but stored
+queries that already contain one still return it. Direct `getCkTypeAvailableQueryColumns` reads that
+are NOT filtered: MeshBoard `table-config-dialog` (column picker), `widget-group-config-dialog`
+(column picker), `process-config-dialog` (filter-attribute picker — filters can probe values with
+EQUALS/LIKE); Studio query builder (`query-editor` filter/sort attribute list,
+`aggregation-column-selector-dialog` column picker, `query-results-page` column metadata),
+`archive-data-view` (column TYPE metadata only, no picker) and `ck-type-details-inline`
+(CK model browser listing, metadata only). The fix is the
+backend refusal of SECRET attributes as query columns (`SecretAttributeNotQueryable`, AB#5528 phase 3).
+
+**SECRET status (AB#5542 / AB#5544 item 4, 2026-10-06):** done — codegen with the SECRET schema,
+SECRET in the shared rule, property grid / runtime browser badge, entity forms (automatic
+write-only field, badge incl. key missing / set at, staged Clear → `clearSecretAttributes`, Show
+for the typed value, multiline PEM editor masked by transparent text + line count (works in
+Firefox), `ENTITY_FORM_SECRET_KEY_RING_CONFIGURED` for Q17 — reactive to late status changes, create
+blocked with `saveBlockedReason()` when a required secret cannot be entered — and SECRET record
+members with badge + write-only input in the record row editor, omitted on save when kept), IdP
+DTO (`clientSecretIsSet` / `clientSecretKeyMissing` / `clientSecretSetAt`, `clientSecret`
+write-only), bot `BotSecretsService` (status incl. `warnings` — `SECRET_STATUS_WARNING_NO_KEY_RING`,
+`SECRET_STATUS_WARNING_NO_LEGACY_V1_KEY`, `SECRET_STATUS_WARNING_DUMP_KEY_MISSING`, `requiredKeyIds` (handover §14);
+legacy pseudo key id `SECRET_LEGACY_V1_KEY_ID` — sweeps, runs
+(`SecretSweepRunDto.totals` = forms as found, `totalsAfter` = after the run, `encryptedCount`,
+`valuesRewritten`, `skippedConcurrentlyModified` > 0 ⇒ `CompletedWithFailures`; all optional for older bots),
+dumps — delete, and restore via `restoreSecretSweepDump(tenantId, runId, confirm)` → `SecretSweepDumpRestoreResult`
+(200 / 400 / 403 / 404 / 409 `DumpDeleted` / 409 `DumpKeyMissing` mapped, all caller-handled); the sweep-run read marks 403 as caller-handled with shared-services `MM_CALLER_HANDLED_STATUSES`,
+an `HttpContextToken` that keeps `MmHttpErrorInterceptor` from toasting statuses the caller explains
+itself) and the `SecretManagement` role. Entity forms show "Needs re-entry" for a required SECRET
+without a value (same rule as the secrets inventory).
+`keyMissing` / `setAt` are selected (round-2 schema). Open: the runtime-browser update editor
+still has no Clear (use the entity form).
 
 ### GraphQL Queries
 

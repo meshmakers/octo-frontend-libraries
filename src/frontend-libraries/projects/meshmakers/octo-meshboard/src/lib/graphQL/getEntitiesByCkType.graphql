@@ -1,5 +1,9 @@
+# Generic runtime selection — SECRET-safe (AB#5542): `$attributeNames` is required and
+# non-nullable — `[]` for rt* fields only, a fixed camelCase list, or
+# `SecretSafeAttributeNamesService.forCkType()` (octo-ui) for "all non-secret attributes".
 query getEntitiesByCkType(
   $ckTypeId: String!
+  $attributeNames: [String!]!
   $rtId: OctoObjectId
   $after: String
   $first: Int
@@ -26,7 +30,7 @@ query getEntitiesByCkType(
         rtDisplayDescription
         rtCreationDateTime
         rtChangedDateTime
-        attributes(resolveEnumValuesToNames: true) {
+        attributes(attributeNames: $attributeNames, resolveEnumValuesToNames: true) {
           items {
             attributeName
             value

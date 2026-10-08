@@ -6,7 +6,9 @@
   } @else {
     @switch (column.dataType) {
       @case ('boolean') {
-        <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(element, column))" [disabled]="true" />
+        <!-- Read-only marker: named after its column so a screen reader says what is checked (AB#5621). -->
+        <kendo-checkbox type="checkbox" [checkedState]="$any(getValue(element, column))" [disabled]="true"
+                        [inputAttributes]="booleanCellAttributes(column)" />
       }
       @case ('iso8601') {
         {{ $any(getValue(element, column)) | date:column.format }}
@@ -18,9 +20,12 @@
         <span class="status-icons-cell">
           @for (fieldConfig of getStatusFields(column); track fieldConfig.field) {
             @if (getStatusIconMapping(element, fieldConfig); as mapping) {
+              <!-- Icon-only status: the mapping's tooltip is also its accessible name (AB#5621). -->
               <span
                 class="status-icon"
+                role="img"
                 [title]="mapping.tooltip"
+                [attr.aria-label]="mapping.tooltip || null"
                 [style.color]="mapping.color">
                 <kendo-svg-icon [icon]="mapping.icon"></kendo-svg-icon>
               </span>
@@ -71,23 +76,27 @@
   }
 </ng-template>
 
-<!-- Row actions (AB#4930): shared by the actions column and the card header. -->
+<!-- Row actions (AB#4930, AB#5572): shared by the actions column and the card header. One MmAction
+     per action (CommandItems via adapter): neutral icon buttons, danger colour only for destructive
+     actions, max `maxInlineRowActions` slots, the rest (and the context menu) behind "…". Disabled
+     actions stay focusable and announce their reason (mm-action-button). -->
 <ng-template #rowActions let-dataItem="dataItem">
-  @if (_actionMenuItems.length > 0) {
-    @for (menuItem of _actionMenuItems; track menuItem.text) {
-      @if (!menuItem.separator && getMenuItemVisible(menuItem, dataItem)) {
-        <button kendoButton themeColor="primary" fillMode="flat"
-          [svgIcon]="menuItem.svgIcon!"
-          [title]="menuItem.text ?? ''"
-          [disabled]="getMenuItemDisabled(menuItem, dataItem) || isLoading()"
-          (click)="onSelectOptionActionItem($event, dataItem, menuItem)">
-        </button>
+  @let view = rowActionsView(dataItem);
+  @if (view.inline.length > 0 || view.hasMenu) {
+    <span class="mm-list-view-row-actions" role="group" [attr.aria-label]="rowActionsGroupLabel(dataItem)">
+      @for (entry of view.inline; track entry.action.id) {
+        <!-- Clicks never reach the grid (no row selection / row navigation from an action). -->
+        <mm-action-button [action]="entry.action" [targetLabel]="rowLabel(dataItem)" context="row" display="icon"
+                          (click)="$event.stopPropagation()"
+                          (triggered)="onInlineRowAction(entry, dataItem)" />
       }
-    }
-  }
-
-  @if (_contextMenuItems.length > 0 && contextMenuType == 'actionMenu') {
-    <button kendoButton themeColor="primary" fillMode="flat" [svgIcon]="moreVerticalIcon" [disabled]="isLoading()" (click)="onContextMenu(dataItem, $event)"></button>
+      @if (view.hasMenu) {
+        <button kendoButton themeColor="base" fillMode="flat" size="small" class="mm-list-view-row-actions__more"
+          [svgIcon]="moreVerticalIcon" data-action="more"
+          [title]="rowActionsLabel(dataItem)" [attr.aria-label]="rowActionsLabel(dataItem)" aria-haspopup="menu"
+          [disabled]="isLoading()" (click)="$event.stopPropagation(); onContextMenu(dataItem, $event)"></button>
+      }
+    </span>
   }
 </ng-template>
 
@@ -128,6 +137,7 @@
                 themeColor="primary"
                 [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                 [title]="commandItem.tooltip ?? commandItem.text"
+                [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (buttonClick)="onToolbarCommand(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
@@ -141,6 +151,7 @@
                 themeColor="primary"
                 [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                 [title]="commandItem.tooltip ?? commandItem.text"
+                [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
               </kendo-dropdownbutton>
@@ -148,6 +159,7 @@
               <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon"
                       [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                       [title]="commandItem.tooltip ?? commandItem.text"
+                      [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
                       [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -155,6 +167,7 @@
               <button kendoTooltip kendoButton themeColor="primary"
                       [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                       [title]="commandItem.tooltip ?? commandItem.text"
+                      [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
                       [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -205,6 +218,7 @@
                 themeColor="primary"
                 [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                 [title]="commandItem.tooltip ?? commandItem.text"
+                [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (buttonClick)="onToolbarCommand(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
@@ -218,6 +232,7 @@
                 themeColor="primary"
                 [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                 [title]="commandItem.tooltip ?? commandItem.text"
+                [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
               </kendo-dropdownbutton>
@@ -225,6 +240,7 @@
               <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon"
                       [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                       [title]="commandItem.tooltip ?? commandItem.text"
+                      [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
                       [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -232,6 +248,7 @@
               <button kendoTooltip kendoButton themeColor="primary"
                       [fillMode]="$any(commandItem.fillMode ?? 'solid')"
                       [title]="commandItem.tooltip ?? commandItem.text"
+                      [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
                       [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                       (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
@@ -251,22 +268,29 @@
       <kendo-dropdownbutton class="mm-toolbar-commands" [data]="toolbarCommands" textField="text" [svgIcon]="commandsIcon"
                             fillMode="flat" themeColor="primary" [disabled]="isLoading()"
                             [title]="_messages.commands"
+                            [buttonAttributes]="commandsMenuButtonAttributes"
                             (itemClick)="onCommand($any($event).id)"></kendo-dropdownbutton>
     } @else {
       @for (command of toolbarCommands; track command.id) {
         @switch (command.id) {
           @case ('excel') {
             <button kendoTooltip kendoGridExcelCommand themeColor="primary" fillMode="flat"
-                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"></button>
+                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"
+                    [attr.aria-label]="command.text" [attr.data-command]="command.id"></button>
           }
           @case ('pdf') {
             <button kendoTooltip kendoGridPDFCommand themeColor="primary" fillMode="flat"
-                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"></button>
+                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"
+                    [attr.aria-label]="command.text" [attr.data-command]="command.id"></button>
           }
           @default {
+            <!-- The row filter is a toggle: its on state is shown (k-selected) and announced. -->
             <button kendoTooltip kendoButton themeColor="primary" fillMode="flat"
                     [svgIcon]="command.svgIcon" (click)="onCommand(command.id)"
-                    [disabled]="isLoading()" [title]="command.text"></button>
+                    [class.k-selected]="command.id === 'rowFilter' && _showRowFilter"
+                    [attr.aria-pressed]="command.id === 'rowFilter' ? _showRowFilter : null"
+                    [attr.data-command]="command.id"
+                    [disabled]="isLoading()" [title]="command.text" [attr.aria-label]="command.text"></button>
           }
         }
       }
@@ -287,6 +311,8 @@
                        [hidden]="isColumnHidden(column)"
                        [sortable]="column.sortable !== false"
                        [filterable]="column.filterable !== false"
+                       [class]="alignClass(column)"
+                       [headerClass]="alignClass(column)"
                        [title]="getDisplayName(column) | pascalCase">
       <ng-template kendoGridFilterCellTemplate let-filter let-gridColumn="column">
         @if (hasFilterOptions(column)) {
@@ -304,7 +330,8 @@
             <ng-template kendoDropDownListValueTemplate let-dataItem>
               @if (dataItem?.value && column.statusMapping?.[dataItem.value]; as mapping) {
                 <span class="filter-status-item">
-                  <span [style.color]="mapping.color">
+                  <span role="img" [attr.aria-label]="dataItem.text || mapping.tooltip || null" [title]="dataItem.text || mapping.tooltip"
+                        [style.color]="mapping.color">
                     <kendo-svg-icon [icon]="mapping.icon" [size]="'small'"></kendo-svg-icon>
                   </span>
                 </span>
@@ -348,13 +375,15 @@
         } @else {
           @switch (getFilterType(column)) {
             @case ('numeric') {
-              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"></kendo-grid-numeric-filter-cell>
+              <kendo-grid-numeric-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"
+                                              [spinners]="!isCompactFilter(column)" [class.mm-filter-compact]="isCompactFilter(column)"></kendo-grid-numeric-filter-cell>
             }
             @case ('boolean') {
               <kendo-grid-boolean-filter-cell [column]="gridColumn" [filter]="filter"></kendo-grid-boolean-filter-cell>
             }
             @case ('date') {
-              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"></kendo-grid-date-filter-cell>
+              <kendo-grid-date-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="true" [operator]="column.filterOperator || 'eq'"
+                                           [class.mm-filter-compact]="isCompactFilter(column)"></kendo-grid-date-filter-cell>
             }
             @default {
               <kendo-grid-string-filter-cell [column]="gridColumn" [filter]="filter" [showOperators]="false"></kendo-grid-string-filter-cell>
@@ -375,7 +404,7 @@
     </kendo-grid-column>
   }
 
-  @if (_actionMenuItems.length > 0 || (_contextMenuItems.length > 0 &&  contextMenuType == 'actionMenu')) {
+  @if (hasRowActions) {
     <kendo-grid-command-column [title]="_messages.actionsColumnTitle" [width]="effectiveActionsColumnWidth">
       <ng-template kendoGridCellTemplate let-dataItem>
         <ng-container
@@ -462,6 +491,7 @@
   svgIconField="svgIcon"
   separatorField="separator"
   disabledField="disabled"
+  cssClassField="cssClass"
   (popupClose)="onContextMenuClosed($event)"
   (select)="onContextMenuSelect($event)"
 ></kendo-contextmenu>

@@ -20,7 +20,7 @@
       {id: 'new', type:'link', text: 'New Library', svgIcon: plusIcon, onClick: onNewLibrary}
     ]"
     [contextMenuCommandItems]="[
-      {id: 'delete', type:'link', text: 'Delete', onClick: onDeleteClick, svgIcon: deleteIcon}
+      {id: 'delete', type:'link', text: 'Delete', danger: true, onClick: onDeleteClick, svgIcon: deleteIcon}
     ]"
     (rowClicked)="onRowClick($event)">
   </mm-list-view>

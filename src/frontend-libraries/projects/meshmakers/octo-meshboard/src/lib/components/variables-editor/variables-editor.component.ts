@@ -6,7 +6,8 @@ import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { InputsModule, NumericTextBoxModule, TextBoxModule, CheckBoxModule } from '@progress/kendo-angular-inputs';
 import { DatePickerModule, DateTimePickerModule } from '@progress/kendo-angular-dateinputs';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
-import { plusIcon, trashIcon } from '@progress/kendo-svg-icons';
+import { plusIcon } from '@progress/kendo-svg-icons';
+import { MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { MeshBoardVariable, MeshBoardVariableType } from '../../models/meshboard.models';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 
@@ -46,7 +47,7 @@ export class VariablesEditorComponent {
   @Output() variablesChange = new EventEmitter<MeshBoardVariable[]>();
 
   protected readonly plusIcon = plusIcon;
-  protected readonly trashIcon = trashIcon;
+  protected readonly trashIcon = MM_ACTION_ICONS.delete;
 
   protected readonly typeOptions: VariableTypeOption[] = [
     { value: 'string', label: 'String' },

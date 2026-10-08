@@ -5,6 +5,8 @@ import { Subject } from 'rxjs';
 
 import { ConfirmationService } from './confirmation.service';
 import { ButtonTypes, ConfirmationWindowResult, DialogType } from '../models/confirmation';
+import { DangerConfirmationResult, DangerConfirmationWindowComponent } from '../danger-confirmation/danger-confirmation-window.component';
+import { DANGER_CONFIRM_ENVIRONMENT, DangerConfirmEnvironment, DangerConfirmationOptions } from '../danger-confirmation/danger-confirmation.model';
 
 describe('ConfirmationService', () => {
   let service: ConfirmationService;
@@ -41,6 +43,114 @@ describe('ConfirmationService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('showDangerConfirm (AB#5578)', () => {
+    it('opens the danger window with the options, focuses Cancel and resolves true only on confirm', async () => {
+      const set = vi.fn();
+      (dialogRefMock.content.instance as unknown as { options: { set: typeof set } }).options = { set };
+      service.defaultDangerMessages = { cancel: 'Abbrechen' };
+      const promise = service.showDangerConfirm({ title: 'Delete adapter A?', targetName: 'A', consequence: 'Gone.', confirmText: 'Delete adapter' });
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({
+        title: 'Delete adapter A?', content: DangerConfirmationWindowComponent, autoFocusedElement: '[data-action="cancel"]',
+      }));
+      expect(set).toHaveBeenCalledWith(expect.objectContaining({ targetName: 'A', messages: { cancel: 'Abbrechen' } }));
+      resultSubject.next(new DangerConfirmationResult(true));
+      resultSubject.complete();
+      expect(await promise).toBe(true);
+    });
+
+    it('focuses the type-to-confirm input when typing is required; false on cancel', async () => {
+      (dialogRefMock.content.instance as unknown as { options: { set: () => void } }).options = { set: vi.fn() };
+      const promise = service.showDangerConfirm({ title: 't', targetName: 'A', consequence: 'c', confirmText: 'Delete', requireTypingName: true });
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({ autoFocusedElement: '[data-type-to-confirm]' }));
+      resultSubject.next(new DangerConfirmationResult(false));
+      resultSubject.complete();
+      expect(await promise).toBe(false);
+    });
+  });
+
+  it('focuses the dismissing button first in destructive and production-check dialogs (AB#5578)', () => {
+    void service.showDestructiveConfirmationDialog('Delete user x?', 'Sure?', 'Delete user');
+    expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="dismiss"], [data-action="cancel"]' }));
+    void service.showYesNoConfirmationDialog('PRODUCTION Environment', 'Sure?', 'mm-dialog-danger');
+    expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="dismiss"], [data-action="cancel"]' }));
+    void service.showYesNoConfirmationDialog('Plain', 'Sure?');
+    expect(dialogServiceMock.open.mock.lastCall?.[0]).not.toHaveProperty('autoFocusedElement');
+  });
+
+  /** Global environment hook (AB#5578 review fix 1): library dialogs follow the app's production rule. */
+  describe('showDangerConfirm with DANGER_CONFIRM_ENVIRONMENT', () => {
+    const libraryOptions: DangerConfirmationOptions = { title: 'Delete diagram D?', targetName: 'D', consequence: 'Gone.', confirmText: 'Delete diagram' };
+    let environment: DangerConfirmEnvironment;
+    let instance: { options: { set: ReturnType<typeof vi.fn> } };
+
+    function setup(provide: boolean): ConfirmationService {
+      TestBed.resetTestingModule();
+      instance = { options: { set: vi.fn() } };
+      dialogServiceMock.open.mockReturnValue({ ...dialogRefMock, content: { instance } } as unknown as DialogRef);
+      TestBed.configureTestingModule({
+        providers: [
+          ConfirmationService,
+          { provide: DialogService, useValue: dialogServiceMock },
+          ...(provide ? [{ provide: DANGER_CONFIRM_ENVIRONMENT, useValue: () => environment }] : []),
+        ],
+      });
+      return TestBed.inject(ConfirmationService);
+    }
+
+    it('without the token: options are passed unchanged', () => {
+      void setup(false).showDangerConfirm(libraryOptions);
+      expect(instance.options.set).toHaveBeenCalledWith({ ...libraryOptions, messages: {} });
+      expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="cancel"]' }));
+    });
+
+    it('production: a library dialog without explicit options requires typing and shows the notice', () => {
+      environment = { requireTypingName: true, environmentLabel: 'PRODUCTION' };
+      void setup(true).showDangerConfirm(libraryOptions);
+      expect(instance.options.set).toHaveBeenCalledWith(expect.objectContaining({ requireTypingName: true, environmentLabel: 'PRODUCTION' }));
+      expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-type-to-confirm]' }));
+    });
+
+    it('reads the environment each time a dialog opens', () => {
+      environment = { requireTypingName: false, environmentLabel: 'STAGING' };
+      const svc = setup(true);
+      void svc.showDangerConfirm(libraryOptions);
+      expect(instance.options.set).toHaveBeenLastCalledWith(expect.objectContaining({ requireTypingName: false, environmentLabel: 'STAGING' }));
+      environment = { requireTypingName: false };
+      void svc.showDangerConfirm(libraryOptions);
+      expect(instance.options.set).toHaveBeenLastCalledWith(expect.objectContaining({ requireTypingName: false, environmentLabel: null }));
+    });
+
+    it('explicit caller options win over the environment', () => {
+      environment = { requireTypingName: true, environmentLabel: 'PRODUCTION' };
+      void setup(true).showDangerConfirm({ ...libraryOptions, requireTypingName: false, environmentLabel: null });
+      expect(instance.options.set).toHaveBeenCalledWith(expect.objectContaining({ requireTypingName: false, environmentLabel: null }));
+      expect(dialogServiceMock.open).toHaveBeenLastCalledWith(expect.objectContaining({ autoFocusedElement: '[data-action="cancel"]' }));
+    });
+  });
+
+  describe('showDestructiveConfirmationDialog', () => {
+    it('labels the buttons with the verbs, marks the dialog as danger and caps its width', async () => {
+      const resultPromise = service.showDestructiveConfirmationDialog('Rotate secret', 'Sure?', 'Rotate');
+      expect(dialogServiceMock.open).toHaveBeenCalledWith(expect.objectContaining({ minWidth: 'min(320px, calc(100vw - 32px))', maxWidth: 'min(560px, calc(100vw - 32px))' }));
+      expect(dialogRefMock.content.instance.data).toEqual(expect.objectContaining({
+        dialogType: DialogType.YesNo,
+        buttonLabels: { yes: 'Rotate', no: 'Cancel' },
+        danger: true,
+      }));
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.Yes));
+      resultSubject.complete();
+      expect(await resultPromise).toBe(true);
+    });
+
+    it('resolves false on cancel', async () => {
+      const resultPromise = service.showDestructiveConfirmationDialog('Rotate secret', 'Sure?', 'Rotate', 'Keep');
+      expect(dialogRefMock.content.instance.data).toEqual(expect.objectContaining({ buttonLabels: { yes: 'Rotate', no: 'Keep' } }));
+      resultSubject.next(new ConfirmationWindowResult(ButtonTypes.No));
+      resultSubject.complete();
+      expect(await resultPromise).toBe(false);
+    });
   });
 
   describe('showYesNoConfirmationDialog', () => {

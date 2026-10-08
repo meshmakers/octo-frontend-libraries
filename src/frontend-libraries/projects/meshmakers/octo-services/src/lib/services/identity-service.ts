@@ -1,10 +1,11 @@
 import { DataPermissionDto, DataPolicyDto } from '../shared/dataPermissionDto';
 import {inject, Injectable} from '@angular/core';
 import {firstValueFrom} from 'rxjs';
-import {HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpParams, HttpHeaders } from '@angular/common/http';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {DiagnosticsModel} from '../shared/diagnosticsModel';
 import {UserDto} from '../shared/userDto';
+import {UserDirectoryEntryDto} from '../shared/userDirectoryEntryDto';
 import {RoleDto} from '../shared/roleDto';
 import {PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
@@ -72,6 +73,115 @@ export class IdentityService {
       return response.body;
     }
     return null;
+  }
+
+  /**
+   * Reads one page of the slim user directory of the current tenant
+   * (`GET {tenant}/v1/users/directory?skip=&take=&search=`, AB#5859): id and display name only.
+   *
+   * Unlike {@link getUsers} (`users/getPaged`, which requires the `UserManagement` role once the
+   * identity service enforces tenant roles), the directory is available to any signed-in user of
+   * the own tenant — the token's tenant must equal the route tenant. It is meant for pickers
+   * (group members, assignees, ...) that need nothing but a user id and a name.
+   *
+   * Availability: introduced on the identity branch `feat/gerald/identity-rest-role-authz`, not yet
+   * released. Identity versions without the endpoint answer **404**; the error is propagated as
+   * `HttpErrorResponse`. Use {@link getUserDirectoryWithFallback} to transparently fall back to
+   * `users/getPaged` on such versions.
+   *
+   * @param skip Number of entries to skip (negative values are treated as 0).
+   * @param take Page size; clamped to 1..500 (the server limit). Non-finite values use 100.
+   * @param search Optional case-insensitive substring of the display name; omitted when empty.
+   *   The server never matches user names or e-mail addresses.
+   * @returns The page (sorted by display name, then id), or `null` when no identity URL is configured.
+   */
+  async getUserDirectory(skip: number, take: number, search?: string): Promise<PagedResultDto<UserDirectoryEntryDto> | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (!baseUrl) {
+      return null;
+    }
+    return this.fetchUserDirectory(baseUrl, skip, take, search);
+  }
+
+  /**
+   * Like {@link getUserDirectory}, but falls back to `users/getPaged` when the identity service does
+   * not know the directory endpoint yet (404). The missing capability is remembered per tenant for
+   * the lifetime of this (root) service, so the 404 is hit at most once per tenant and session.
+   *
+   * The fallback maps {@link UserDto} to {@link UserDirectoryEntryDto} with the server's display
+   * name rule ("First Last", else the user name) and applies `search` to the returned page only —
+   * it is a best-effort bridge for old identity versions, and it still needs `UserManagement`
+   * wherever `getPaged` requires it. Errors other than the 404 (401, 403, 5xx, ...) are propagated.
+   */
+  async getUserDirectoryWithFallback(skip: number, take: number, search?: string): Promise<PagedResultDto<UserDirectoryEntryDto> | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (!baseUrl) {
+      return null;
+    }
+
+    if (!this.tenantsWithoutUserDirectory.has(baseUrl)) {
+      try {
+        return await this.fetchUserDirectory(baseUrl, skip, take, search);
+      } catch (error) {
+        if (!(error instanceof HttpErrorResponse) || error.status !== 404) {
+          throw error;
+        }
+        this.tenantsWithoutUserDirectory.add(baseUrl);
+      }
+    }
+
+    const page = await this.getUsers(Math.max(0, Math.trunc(skip) || 0), IdentityService.clampDirectoryTake(take));
+    if (!page) {
+      return null;
+    }
+    const term = search?.trim().toLowerCase() ?? '';
+    const list = (page.list ?? [])
+      .map(user => IdentityService.toUserDirectoryEntry(user))
+      .filter(entry => !term || entry.displayName.toLowerCase().includes(term));
+    return {
+      skip: page.skip,
+      take: page.take,
+      totalCount: term ? list.length : page.totalCount,
+      list
+    };
+  }
+
+  /** Base URLs (= tenants) whose identity service answered 404 for `users/directory`. */
+  private readonly tenantsWithoutUserDirectory = new Set<string>();
+
+  private static readonly maxUserDirectoryPageSize = 500;
+
+  private static clampDirectoryTake(take: number): number {
+    if (!Number.isFinite(take)) {
+      return 100;
+    }
+    return Math.min(IdentityService.maxUserDirectoryPageSize, Math.max(1, Math.trunc(take)));
+  }
+
+  private static toUserDirectoryEntry(user: UserDto): UserDirectoryEntryDto {
+    const fullName = [user.firstName, user.lastName]
+      .filter(n => !!n && n.trim().length > 0)
+      .map(n => n.trim())
+      .join(' ');
+    return { userId: user.userId, displayName: fullName.length > 0 ? fullName : (user.name ?? '') };
+  }
+
+  private async fetchUserDirectory(baseUrl: string, skip: number, take: number, search?: string): Promise<PagedResultDto<UserDirectoryEntryDto> | null> {
+    let params = new HttpParams()
+      .set('skip', Math.max(0, Math.trunc(skip) || 0).toString())
+      .set('take', IdentityService.clampDirectoryTake(take).toString());
+    const term = search?.trim();
+    if (term) {
+      // HttpParams URL-encodes the value.
+      params = params.set('search', term);
+    }
+    const response = await firstValueFrom(
+      this.httpClient.get<PagedResultDto<UserDirectoryEntryDto> | null>(baseUrl + 'users/directory', {
+        params,
+        observe: 'response'
+      })
+    );
+    return response.body;
   }
 
   async getUserDetails(userName: string): Promise<UserDto | null> {

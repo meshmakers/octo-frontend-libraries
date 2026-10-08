@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { HttpContextToken, HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { inject, Injectable, InjectionToken } from '@angular/core';
@@ -24,6 +24,18 @@ import { ApiErrorDto } from '../models/apiErrorDto';
  * ```
  */
 export const ON_CONNECTION_LOST = new InjectionToken<() => void>('ON_CONNECTION_LOST');
+
+/**
+ * HTTP statuses the CALLER handles itself for one request: the interceptor does not report them
+ * (no global toast) and the caller shows its own, more specific message. Example: a 403 of an
+ * optional admin read that the page explains in place instead of a generic "Access denied".
+ *
+ * @example
+ * ```typescript
+ * http.get(url, { context: new HttpContext().set(MM_CALLER_HANDLED_STATUSES, [403]) });
+ * ```
+ */
+export const MM_CALLER_HANDLED_STATUSES = new HttpContextToken<readonly number[]>(() => []);
 
 /**
  * How the interceptor reports a failed response to the user. `null` means it stays silent and the
@@ -69,6 +81,10 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       retry(0),
       catchError((error: HttpErrorResponse) => {
+
+        if (request.context.get(MM_CALLER_HANDLED_STATUSES).includes(error.status)) {
+          return throwError(() => error);
+        }
 
         switch (MmHttpErrorInterceptor.classify(error, request.url)) {
           case 'connection-lost':

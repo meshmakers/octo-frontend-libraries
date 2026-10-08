@@ -273,7 +273,6 @@ import { ExpressionEvaluatorService } from '../services/expression-evaluator.ser
       font-size: 11px;
       font-weight: 500;
       color: var(--editor-text-muted);
-      letter-spacing: 0.5px;
     }
 
     mm-simulation-panel {

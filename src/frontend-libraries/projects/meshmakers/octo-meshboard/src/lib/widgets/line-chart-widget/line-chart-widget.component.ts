@@ -11,6 +11,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { CkRollupFunctionDto, FieldFilterDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
+import { injectChartTheme } from '../../utils/chart-theme';
 
 /** Series colours so a series' min/max band and its avg line share one hue. */
 const SERIES_PALETTE = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
@@ -96,6 +97,7 @@ interface ValueAxisConfig {
               <kendo-chart-category-axis-item-labels
                 [rotation]="labelRotation()"
                 [step]="labelStep()"
+                [color]="chartTheme().muted"
                 [content]="categoryLabelContent">
               </kendo-chart-category-axis-item-labels>
             </kendo-chart-category-axis-item>
@@ -106,9 +108,10 @@ interface ValueAxisConfig {
               @for (axis of valueAxes(); track axis.name) {
                 <kendo-chart-value-axis-item
                   [name]="axis.name"
-                  [title]="{ text: axis.unit }"
+                  [title]="{ text: axis.unit, color: chartTheme().muted }"
                   [line]="{ visible: false }"
-                  [majorGridLines]="{ color: 'rgba(255,255,255,0.06)' }"
+                  [labels]="{ color: chartTheme().muted }"
+                  [majorGridLines]="{ color: chartTheme().grid }"
                   [plotBands]="plotBands()">
                 </kendo-chart-value-axis-item>
               }
@@ -119,9 +122,10 @@ interface ValueAxisConfig {
             <kendo-chart-value-axis>
               <kendo-chart-value-axis-item
                 [name]="''"
-                [title]="{ text: config.valueAxisTitle ?? '' }"
+                [title]="{ text: config.valueAxisTitle ?? '', color: chartTheme().muted }"
                 [line]="{ visible: false }"
-                [majorGridLines]="{ color: 'rgba(255,255,255,0.06)' }"
+                [labels]="{ color: chartTheme().muted }"
+                [majorGridLines]="{ color: chartTheme().grid }"
                 [plotBands]="plotBands()">
               </kendo-chart-value-axis-item>
             </kendo-chart-value-axis>
@@ -158,7 +162,8 @@ interface ValueAxisConfig {
 
           <kendo-chart-legend
             [visible]="config.showLegend !== false"
-            [position]="config.legendPosition ?? 'right'">
+            [position]="config.legendPosition ?? 'right'"
+            [labels]="{ color: chartTheme().text }">
           </kendo-chart-legend>
 
           <!--
@@ -322,6 +327,9 @@ interface ValueAxisConfig {
 })
 export class LineChartWidgetComponent implements DashboardWidget<LineChartWidgetConfig, LineSeriesData[]>, AfterViewInit, OnChanges, OnDestroy {
   private readonly queryExecutor = inject(QueryExecutorService);
+  /** Text / grid colours of the current theme, re-resolved on a live theme switch (AB#5568). */
+  protected readonly chartTheme = injectChartTheme();
+
   private readonly elementRef = inject(ElementRef);
   private readonly ngZone = inject(NgZone);
 

@@ -5,7 +5,8 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { GridModule, PageChangeEvent, CellClickEvent } from '@progress/kendo-angular-grid';
 import { BadgeModule } from '@progress/kendo-angular-indicators';
 import { SwitchModule } from '@progress/kendo-angular-inputs';
-import { arrowRotateCwIcon, checkCircleIcon, exclamationCircleIcon, trashIcon, xCircleIcon } from '@progress/kendo-svg-icons';
+import { arrowRotateCwIcon, checkCircleIcon, exclamationCircleIcon, xCircleIcon } from '@progress/kendo-svg-icons';
+import { ConfirmationService, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { GetDataPointMappingsDtoGQL } from '../../../graphQL/getDataPointMappings';
 import { GetRuntimeEntityByIdDtoGQL } from '../../../graphQL/getRuntimeEntityById';
@@ -132,8 +133,9 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
 
         <kendo-grid-column title="" [width]="50" [sortable]="false">
           <ng-template kendoGridCellTemplate let-dataItem>
-            <button kendoButton fillMode="flat" size="small" [svgIcon]="deleteIcon"
-              (click)="onDeleteMapping(dataItem); $event.stopPropagation()">
+            <button kendoButton fillMode="flat" size="small" themeColor="error" [svgIcon]="deleteIcon"
+              title="Delete mapping" [attr.aria-label]="'Delete mapping ' + (dataItem.name || dataItem.rtId)"
+              data-action="delete" (click)="onDeleteMapping(dataItem); $event.stopPropagation()">
             </button>
           </ng-template>
         </kendo-grid-column>
@@ -231,8 +233,6 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
 
     .summary-label {
       font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       color: var(--kendo-color-subtle, #6c757d);
     }
 
@@ -300,8 +300,6 @@ const DATA_POINT_MAPPING_CK_TYPE = 'System.Communication/DataPointMapping';
     .detail-row label {
       font-size: 0.75rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       color: var(--kendo-color-subtle, #6c757d);
       padding-top: 2px;
     }
@@ -343,6 +341,7 @@ export class DataMappingOverviewComponent implements OnInit {
   private readonly getEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
   private readonly updateEntitiesGQL = inject(UpdateRuntimeEntitiesDtoGQL);
   private readonly deleteEntitiesGQL = inject(DeleteEntitiesDtoGQL);
+  private readonly confirmation = inject(ConfirmationService);
 
   @Output() navigateToEntity = new EventEmitter<{ rtId: string; ckTypeId: string }>();
 
@@ -374,7 +373,7 @@ export class DataMappingOverviewComponent implements OnInit {
   protected readonly checkIcon = checkCircleIcon;
   protected readonly warnIcon = exclamationCircleIcon;
   protected readonly errorIcon = xCircleIcon;
-  protected readonly deleteIcon = trashIcon;
+  protected readonly deleteIcon = MM_ACTION_ICONS.delete;
 
   ngOnInit(): void {
     this.loadMappings();
@@ -444,6 +443,16 @@ export class DataMappingOverviewComponent implements OnInit {
   }
 
   async onDeleteMapping(item: DataPointMappingOverviewItem): Promise<void> {
+    // Danger confirmation naming the mapping (AB#5579): the mapping entity is erased.
+    const name = item.name || item.rtId;
+    if (!await this.confirmation.showDangerConfirm({
+      title: `Delete mapping ${name}?`,
+      targetName: name,
+      consequence: 'The data point mapping is erased. This cannot be undone.',
+      confirmText: 'Delete mapping',
+    })) {
+      return;
+    }
     try {
       await firstValueFrom(
         this.deleteEntitiesGQL.mutate({
@@ -472,13 +481,14 @@ export class DataMappingOverviewComponent implements OnInit {
     const attrs = entity.attributes?.items ?? [];
     const assocs = entity.associations?.definitions?.items ?? [];
 
-    const getAttr = (name: string): string =>
-      (attrs.find(a => a?.attributeName === name)?.value as string) ?? '';
+    // The server returns camelCase attribute names; compare case-insensitively.
+    const findAttr = (name: string) => attrs.find(a => a?.attributeName?.toLowerCase() === name.toLowerCase());
+    const getAttr = (name: string): string => (findAttr(name)?.value as string) ?? '';
 
     const mapsFrom = assocs.find(a => a && String(a.ckAssociationRoleId).includes('MapsFrom'));
     const mapsTo = assocs.find(a => a && String(a.ckAssociationRoleId).includes('MapsTo'));
 
-    const enabledRaw = attrs.find(a => a?.attributeName === 'Enabled')?.value;
+    const enabledRaw = findAttr('Enabled')?.value;
     const enabled = enabledRaw === true || enabledRaw === 'true' || enabledRaw === 'True';
 
     return {
@@ -559,13 +569,14 @@ export class DataMappingOverviewComponent implements OnInit {
       try {
         const result = await firstValueFrom(
           this.getEntityByIdGQL.fetch({
-            variables: { rtId: ref.rtId, ckTypeId: ref.ckTypeId },
+            // Only the display name is needed (SECRET-safe explicit list, AB#5542).
+            variables: { rtId: ref.rtId, ckTypeId: ref.ckTypeId, attributeNames: ['name'] },
           })
         );
         const entity = result.data?.runtime?.runtimeEntities?.items?.[0];
         if (entity) {
           const nameAttr = entity.attributes?.items?.find(
-            a => a?.attributeName === 'Name'
+            a => a?.attributeName?.toLowerCase() === 'name'
           );
           const name = nameAttr?.value as string
             ?? entity.rtWellKnownName

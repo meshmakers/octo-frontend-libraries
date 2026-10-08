@@ -1,0 +1,13 @@
+# Number of entities of a type (Settings counts). Selects no items and therefore no attributes:
+# the list document with `attributeNames: []` still resolved `attributes` per item, which fails
+# with CK_CACHE for an item whose CK type the tenant cannot resolve (AB#5523).
+query entityFormGetCount(
+  $ckTypeId: String!
+  $fieldFilters: [FieldFilter]
+) {
+  runtime {
+    runtimeEntities(ckId: $ckTypeId, first: 1, fieldFilter: $fieldFilters) {
+      totalCount
+    }
+  }
+}

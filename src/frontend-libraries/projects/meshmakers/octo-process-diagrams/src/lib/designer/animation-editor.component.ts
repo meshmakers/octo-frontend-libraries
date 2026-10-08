@@ -121,12 +121,15 @@ interface PresetGroup {
                 <div class="item-actions">
                   <button kendoButton look="flat" size="small"
                           [svgIcon]="pencilIcon"
-                          title="Edit"
+                          title="Edit animation"
+                          [attr.aria-label]="'Edit animation ' + (anim.name || getAnimationTypeName(anim))"
                           (click)="onEditClick($event, anim)">
                   </button>
                   <button kendoButton look="flat" size="small"
                           [svgIcon]="trashIcon"
-                          title="Delete"
+                          themeColor="error"
+                          title="Delete animation"
+                          [attr.aria-label]="'Delete animation ' + (anim.name || getAnimationTypeName(anim))"
                           (click)="onDeleteClick($event, i)">
                   </button>
                 </div>
@@ -330,6 +333,7 @@ interface PresetGroup {
                           <button class="anchor-point"
                                   [class.selected]="(anim.anchor ?? 'center') === anchor"
                                   [title]="getAnchorLabel(anchor)"
+                                  [attr.aria-label]="getAnchorLabel(anchor)"
                                   (click)="updateAnimationField(i, 'anchor', anchor)">
                             <span class="anchor-dot"></span>
                           </button>
@@ -612,7 +616,6 @@ interface PresetGroup {
 
     .group-name {
       font-size: 10px;
-      text-transform: uppercase;
       color: #666;
       margin-bottom: 0.25rem;
     }

@@ -1,0 +1,235 @@
+// Theme-agnostic: only --theme-* tokens (octo-ui runtime-browser/styles/_theme.scss) with
+// neutral fallbacks, no host-specific design language.
+
+:host {
+  display: block;
+}
+
+.mm-entity-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mm-ef-section {
+  border: 1px solid var(--theme-border-subtle, rgba(0, 0, 0, 0.12));
+  border-radius: 6px;
+  background: var(--theme-ink-02, transparent);
+  padding: 12px 16px 16px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    margin: 0 0 12px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--theme-text-primary, inherit);
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--theme-text-accent, currentColor);
+      outline-offset: 2px;
+    }
+  }
+
+  &--collapsed &__header {
+    margin-bottom: 0;
+  }
+
+  &__description {
+    margin: -6px 0 12px;
+    color: var(--theme-text-secondary, inherit);
+    font-size: 0.9em;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px 16px;
+
+    &--two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+// Field shell (mm-entity-form-field host + children; styled here so the shell stays template-only).
+:host ::ng-deep .mm-ef-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  grid-column: 1 / -1;
+
+  &--half {
+    grid-column: auto;
+  }
+
+  .mm-ef-field__label-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mm-ef-field__label {
+    color: var(--theme-text-secondary, inherit);
+    font-size: 0.875em;
+    font-weight: 500;
+  }
+
+  .mm-ef-field__required {
+    color: var(--theme-status-error, currentColor);
+    margin-left: 2px;
+  }
+
+  .mm-ef-field__badge {
+    padding: 0 6px;
+    border-radius: 999px;
+    border: 1px solid var(--theme-border-strong, currentColor);
+    color: var(--theme-text-muted, inherit);
+    font-size: 0.75em;
+    line-height: 1.6;
+
+    &--set {
+      border-color: var(--theme-status-success, currentColor);
+      color: var(--theme-status-success, inherit);
+    }
+
+    &--not-set {
+      border-style: dashed;
+    }
+
+    &--key-missing {
+      border-color: var(--theme-status-warning, currentColor);
+      color: var(--theme-status-warning, inherit);
+    }
+
+    &--clear-staged {
+      border-style: dashed;
+      border-color: var(--theme-status-error, currentColor);
+      color: var(--theme-status-error, inherit);
+    }
+  }
+
+  .mm-ef-field__help {
+    color: var(--theme-text-muted, inherit);
+    font-size: 0.8em;
+  }
+
+  .mm-ef-field__error {
+    color: var(--theme-status-error, inherit);
+    font-size: 0.8em;
+  }
+
+  &--readonly .mm-ef-field__editor {
+    opacity: 0.85;
+  }
+}
+
+:host ::ng-deep .mm-ef-mono,
+:host ::ng-deep .mm-ef-mono textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875em;
+}
+
+.mm-ef-unsupported {
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: var(--theme-ink-04, transparent);
+  color: var(--theme-text-secondary, inherit);
+  overflow-wrap: anywhere;
+}
+
+.mm-ef-empty {
+  color: var(--theme-text-muted, inherit);
+}
+
+// Narrow screens: two-column sections stack.
+@media (max-width: 720px) {
+  .mm-ef-section__grid--two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  :host ::ng-deep .mm-ef-field--half {
+    grid-column: 1 / -1;
+  }
+}
+
+// Create blocked: a required secret cannot be entered without a key ring (Q17).
+.mm-ef-blocked {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--theme-status-warning, currentColor);
+  background: color-mix(in srgb, var(--theme-status-warning, #f0ad4e) 10%, transparent);
+  font-size: 0.875em;
+}
+
+// Write-only secret editor (AB#5542 / AB#5544 item 4).
+:host ::ng-deep .mm-ef-secret {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .mm-ef-secret__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .mm-ef-secret__input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  // Multiline secrets (PEM) stay masked until "Show" (typed value only): the text is transparent in
+  // every browser (Firefox has no reliable -webkit-text-security); caret, selection highlight and
+  // placeholder stay visible, the status line below reports the line count.
+  .mm-ef-secret__input--masked textarea {
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    caret-color: var(--theme-text-primary, CanvasText);
+
+    &::selection {
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+    &::placeholder {
+      color: var(--theme-text-muted, GrayText);
+      -webkit-text-fill-color: var(--theme-text-muted, GrayText);
+      opacity: 1;
+    }
+  }
+
+  // Disabled Show / Clear must look disabled in every theme (visual check 2026-10-06).
+  [data-secret-show]:disabled,
+  [data-secret-clear]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .mm-ef-secret__masked {
+    color: var(--theme-text-muted, inherit);
+    font-size: 0.8em;
+  }
+
+  .mm-ef-secret__staged {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--theme-text-muted, inherit);
+    font-size: 0.875em;
+  }
+
+  .mm-ef-secret__hint {
+    color: var(--theme-status-warning, inherit);
+    font-size: 0.8em;
+  }
+}

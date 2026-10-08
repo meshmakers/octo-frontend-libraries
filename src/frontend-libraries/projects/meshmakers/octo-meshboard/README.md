@@ -72,6 +72,76 @@ To set a Well-Known Name for a MeshBoard:
 
 The Well-Known Name should be lowercase with hyphens, similar to URL slugs.
 
+### Open in edit mode (`?edit=1`)
+
+A `?edit=1` query parameter opens the board in edit mode once it has loaded (e.g. the "Edit"
+action of a host's board list: `/ui/meshboards/<rtId>?edit=1`, constant
+`MESHBOARD_EDIT_QUERY_PARAM`). It is ignored on routes with `meshBoardReadonly: true`. After
+entering edit mode the view removes the parameter from the URL (`replaceUrl`), so a reload or a
+copied link does not re-enter edit mode. Hosts creating boards use `newMeshBoardConfig(name)`
+for the layout defaults (the same `MeshBoardStateService.createNewMeshBoard` uses).
+
+### Header mode (`headerMode` / `meshBoardHeaderMode`)
+
+How much of its header the view shows is decided by the **host page**, not by the board: the
+same board appears with its name in a board designer list and without it on a page that
+already names it (e.g. a Home tab under a greeting).
+
+| Mode | Shows |
+|------|-------|
+| `full` (default) | Board name, description and the controls |
+| `compact` | Only the controls (time filter, entity selectors, refresh; on editable boards also manager, settings, edit, add widget, save) in a slim row aligned right, without its own bar background |
+| `none` | No header row — for hosts that offer their own controls |
+
+Hints (unselected entity selectors, variable resolution errors) and the "MeshBoard Not Found" /
+"MeshBoard Not Available" help are shown in every mode.
+
+Bind the input when embedding the view in a template, or set the route data key when a route
+loads the view directly (the bound input wins; unknown values fall back to `full`):
+
+```html
+<mm-meshboard-view headerMode="compact"></mm-meshboard-view>
+```
+
+```typescript
+{
+  path: "boards/:rtId",
+  loadComponent: () =>
+    import('@meshmakers/octo-meshboard').then(m => m.MeshBoardViewComponent),
+  data: { meshBoardReadonly: true, meshBoardHeaderMode: 'compact' }
+}
+```
+
+There is deliberately no per-board setting: a board stored with "no header" would lose its
+name in the designer, where the name is the only orientation. Exported helpers:
+`MeshBoardHeaderMode`, `MESHBOARD_HEADER_MODE_ROUTE_DATA`, `resolveMeshBoardHeaderMode`.
+
+### Chrome (`chrome` / `meshBoardChrome`)
+
+Whether the view draws its own **outer frame** is also decided by the host page:
+
+| Chrome | Draws |
+|--------|-------|
+| `framed` (default) | The view background, the header bar (background and bottom border) and the padding around the widget grid — for a page that is only the board |
+| `plain` | None of these: the widgets sit directly on the host surface and line up with the host page's gutter. For hosts that already provide the surface and the gutter (e.g. a Home tab), so there is no frame inside the page and no double gutter |
+
+The widget frames (tile border, background, shadow, header) and the gap between the widgets are
+the same in both. Like the header mode, bind the input or set the route data key (the bound
+input wins; unknown values fall back to `framed`). Plain usually goes together with a compact
+header:
+
+```html
+<mm-meshboard-view headerMode="compact" chrome="plain"></mm-meshboard-view>
+```
+
+```typescript
+data: { meshBoardReadonly: true, meshBoardHeaderMode: 'compact', meshBoardChrome: 'plain' }
+```
+
+With `plain` the host is responsible for the gutter: a route that loads the view directly into
+an unpadded outlet should wrap it in a padded page instead. Exported helpers: `MeshBoardChrome`,
+`MESHBOARD_CHROME_ROUTE_DATA`, `resolveMeshBoardChrome`.
+
 ### URL Sync (`meshBoardSyncUrl`)
 
 After the initial load and after every post-init board switch (e.g. via the
@@ -101,6 +171,29 @@ Without the flag, embedded boards (e.g. readonly `meshBoardWellKnownName`
 routes) never rewrite the URL. Appending an rtId to a route without an
 `:rtId` variant would fall through to the app's `'**'` wildcard route (bouncing
 the user back to home) or fail with a `NavigationError` (AB#4457).
+
+### Pinning MeshBoards to the host navigation
+
+The MeshBoard manager dialog offers a pin toggle per board. A pinned board is
+meant to appear in the host application's end-user navigation (the Refinery
+Studio Home mode lists pinned boards next to its Cockpit).
+Pinning does not change who may *open* a board — the host's routes decide that.
+
+The flag is stored with the other encoded board settings in the description
+blob (`navigation: { pinned: true, order?: number }`), so no CK change is
+needed. Host apps read it from a board's raw description:
+
+```typescript
+import { readMeshBoardNavigation, compareMeshBoardNavigation } from '@meshmakers/octo-meshboard';
+
+const pinned = boards
+  .map(b => ({ ...b, navigation: readMeshBoardNavigation(b.description) }))
+  .filter(b => b.navigation?.pinned)
+  .sort(compareMeshBoardNavigation);
+```
+
+`MeshBoardStateService.setMeshBoardPinned(rtId, pinned)` toggles the flag and
+keeps every other encoded setting (variables, time filter, auto-refresh, …).
 
 ## Architecture
 
@@ -201,6 +294,15 @@ interface PieChartWidgetConfig {
 }
 ```
 
+Display rules (`utils/chart-categories.ts`): enum-style categories read as words (`RESOLVE_FAILED` →
+"Resolve failed"); well-known state categories get the theme status colours (`--theme-status-*`,
+then `--kendo-color-*`; e.g. Resolve failed / Error → error, Available / Online → success,
+Pending → warning); a `left` / `right` legend moves below the chart while the widget is narrower
+than 420 px; the 30 px plot margin is only reserved while labels are shown; legend text is 12 px.
+The status table (`STATE_STATUS_BY_KEY`, `categoryStatus`, `humanizeCategory`, `statusColor`) is
+exported for hosts so enum chips elsewhere read the same; the colours are resolved again on every
+theme switch (`observeThemeChanges`: `<html data-theme|class|style>`, OS colour scheme).
+
 ### Bar Chart Widget
 Displays data as column, bar, or stacked charts.
 
@@ -268,7 +370,8 @@ interface MarkdownWidgetConfig {
 }
 ```
 
-Requires `provideMarkdown()` from `ngx-markdown` in the application providers.
+`ngx-markdown`/`marked` are loaded lazily on first render (`LazyMarkdownComponent`), so they stay out of the
+initial bundle. No root `provideMarkdown()` is needed; if the application provides one, its configuration is used.
 
 ### Entity Card Widget
 Displays a single runtime entity in a UML-style card.
@@ -291,6 +394,96 @@ interface EntityWithAssociationsWidgetConfig {
   includeAssociations?: boolean;
 }
 ```
+
+### Cockpit Widgets (AB#5558)
+
+Platform health widgets that used to be hard-wired on the Refinery Studio's Home cockpit. They
+have **no configurable data source** (persisted as `dataSourceType: 'static'`); they read fixed
+platform data and run every check only for viewers with the roles / CK models it needs.
+Registered separately — not by `provideMeshBoard()` — because they need host services:
+
+```typescript
+providers: [
+  provideMeshBoard(),
+  provideCockpitWidgets(),                       // registers the 5 types + built-in checks
+  provideCockpitWidgetHost({
+    access: () => { const auth = inject(AuthorizeService); return { isInRole: r => auth.isInRole(r) }; },
+    links: () => myLinkResolver,                 // CockpitLinkTarget -> app URL (or null)
+    explain: () => myAssistantBridge,            // optional "✦ Explain"
+    recents: () => myRecentItemsSource,          // optional, feeds "Recent items"
+    messages: () => myCockpitTexts               // optional translations (object or signal), AB#5622
+  }),
+  // optional host checks
+  { provide: COCKPIT_ATTENTION_PROVIDERS, useClass: MyCheck, multi: true }
+]
+```
+
+| Type | Label | Shows | Gate (per check / KPI) | Persisted `config` |
+|------|-------|-------|------------------------|--------------------|
+| `attentionList` | Attention List | Findings, errors first: CK models in ResolveFailed, adapters in error / offline > 10 min, failed pipeline executions in 24 h above a threshold, deployment sites not registered (provider id `pools-unregistered`, kept stable for persisted `providerIds`), features enabled but not installed, plus host checks (Refinery Studio: secrets needing re-entry) | each provider: AdminPanelManagement / CommunicationManagement + `System.Communication` / TenantManagement | `{ "providerIds"?: string[], "maxItems"?: number, "showExplain"?: boolean }` — no `providerIds` = all checks, including ones added later |
+| `adapterStatus` | Adapter Status | Adapters online / expected to run (shared rule `utils/adapter-online.ts`) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean }` |
+| `ckModelState` | CK Model State | CK models available / all; ResolveFailed = error, importing = warning | AdminPanelManagement | `{ "showDetail"?: boolean }` |
+| `recentItems` | Recent Items | The viewer's recently opened pages, entities and boards (most recent first, glyph, kind, relative time as `<time>`), real links; optional "⌘K shows the same list" | none — per user, from the host's `COCKPIT_RECENT_ITEMS`; without it "Not available" + collapsed | `{ "maxItems"?: number }` (default 8, 1–20) |
+| `pipelineExecutions` | Pipeline Executions 24 h | Executions of all data flows, failed count, hourly sparkline (same counting as the Studio's Data Flows list) | CommunicationManagement + `System.Communication` | `{ "showDetail"?: boolean, "showSparkline"?: boolean }` |
+
+- **Role abstraction.** The library never imports the host's auth: `COCKPIT_VIEWER_ACCESS`
+  (`isInRole(role)`) answers role checks, `CkModelService.isModelAvailable` the CK models.
+  Without the token every gated check fails closed (hidden). A KPI the viewer may not see sends no
+  request. **Builders** (`CockpitViewerAccess.isBuilder()`, host-defined) see *why* ("Needs the
+  CommunicationManagement role…" / "No health checks are available for your role"); **other
+  viewers** see a neutral "Not available" without role details, and the widget reports
+  `setWidgetHiddenForViewer(id, true)` so the board collapses it outside edit mode (empty rows
+  close up, `collapseEmptyRows`). An attention list never claims "All clear" without visible checks.
+- **Errors** never show raw messages: tiles say "The figure could not be loaded." (details in the console).
+- **Links.** Findings and KPI tiles carry semantic `CockpitLinkTarget`s (`adapter`, `adapters`,
+  `deployment-site`, `deployment-sites`, `dataFlows`, `ckModels`, `tenantSettings`, `secretsReEntry`;
+  `pool` / `pools` are the deprecated pre-System.Communication-4.x aliases); the host's
+  `COCKPIT_LINK_RESOLVER` maps them to URLs, `null` drops the chip. When the resolver answers `null`
+  for a deployment-site kind, the context asks once more with the legacy alias
+  (`legacyCockpitLinkTarget`), so hosts that only map `pool` / `pools` keep their links (AB#5842). Host providers may also link
+  straight to their own pages (AB#5622): `{ kind: 'route', path, queryParams? }` — `path` is a URL
+  path or router commands (`['/', tenantId, 'documents']`), navigated with `routerLink` +
+  `queryParams`; relative paths resolve against the route that renders the board. The resolver
+  sees route targets too and may return a rewritten path (e.g. with the tenant/language prefix);
+  `null` keeps `path`. Route targets stay in the app: a `path` with a URL scheme or a
+  protocol-relative start (`//host`) is dropped. `CockpitContextService.resolveLinkTarget()` returns `{ path, queryParams }`
+  for custom renderings; `resolveLink()` a URL string with the query appended.
+- **Counts.** `AttentionFinding.count?: number` (AB#5622) renders a badge next to the title
+  (formatted in `numberLocale`); without it nothing changes. Of the built-in checks only "Failed
+  pipeline executions" sets it — the others name the count in their titles.
+- **Texts (i18n, AB#5622).** Every widget text (severity chips, empty / loading / unavailable
+  states, KPI labels, statuses and details, recent-items wording and relative times) comes from
+  `CockpitWidgetMessages` with English defaults (`DEFAULT_COCKPIT_WIDGET_MESSAGES`). Provide a
+  `Partial<CockpitWidgetMessages>` — or a `Signal` of one to follow a runtime language switch —
+  on `COCKPIT_WIDGET_MESSAGES` (or `provideCockpitWidgetHost({ messages })`); a widget used on its
+  own also takes a `messages` input. `{count}`-style placeholders; missing members keep English;
+  `numberLocale` (default `en-US`) formats the figures. `CockpitKpiService.kpi(kind, messages?)`
+  builds KPI texts the same way. Not covered: the config dialogs and the findings of the built-in
+  OctoMesh checks except "Failed pipeline executions" (`attentionFailedExecutions*`, optional
+  members); a host's own providers bring their own translated titles and texts. Nothing of
+  this is persisted — the board JSON is unchanged.
+- **Adding a check.** Implement `AttentionProvider` (`id` — persisted, never rename — `label`,
+  `description`, `isVisible` via `CockpitContextService.allows(roles, models)`, `load` = exactly one
+  query emitting findings once) and register it on `COCKPIT_ATTENTION_PROVIDERS`.
+- **Failed pipeline executions** (`pipeline-executions-failed`, AB#5622). Same request and
+  counting as the "Pipeline executions 24 h" KPI. Warning from `minFailed` failures (default 10),
+  error from `errorFailed` failures (default 1,000) or a failure share of `errorRatio` (default
+  0.2); `null` disables an error rule. Override with `{ provide: COCKPIT_FAILED_EXECUTIONS_OPTIONS,
+  useValue: { minFailed: 50 } }`. Links to `dataFlows` (the list has no "failed only" filter).
+- **Data.** Lean documents with explicit fields in `graphQL/cockpit*.graphql`; the adapter states
+  and the data flow executions are shared per tenant for 10 s between the KPI and the attention
+  list (`CockpitAdapterStatesService`, `CockpitDataFlowExecutionsService`).
+- **Recent items source.** `CockpitRecentItemsSource` = `items(limit)` (most recent first, only
+  entries the viewer may still open, each with a real `href`), `open(item)` for plain left clicks
+  (modified clicks stay with the browser), optional `revision` signal (re-read on change),
+  `openPalette()` + `paletteShortcut`. The Refinery Studio feeds it from the same history as the
+  empty Cmd+K palette. `recentItems` is not one of `COCKPIT_WIDGET_TYPES` (the health widgets).
+- **Seeded board.** octo-platform-services' `System.UI.TenantCockpit` blueprint (≥ 1.1.0) seeds the
+  four health widgets on every tenant's `cockpit` board, since 1.3.0 also "Recently opened"
+  (`recentItems`, 3 columns) next to the CK-model pie (3 columns); `cockpit-widget-registrations.spec.ts` pins the
+  seed's encoding against `toPersistedConfig`.
+- **Theming.** Neutral defaults via `--mm-cockpit-*` custom properties (text, text-muted, surface,
+  border, border-strong, success, warning, error, info, neutral, accent, ai) falling back to Kendo colours.
 
 ### Process Widget
 Provides HMI-style (Human-Machine Interface) process visualization with tanks, pipes, valves, pumps, and other process elements. Includes a visual drag-and-drop designer.

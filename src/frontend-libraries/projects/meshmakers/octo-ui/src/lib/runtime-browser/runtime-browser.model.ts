@@ -48,6 +48,10 @@ export interface RuntimeBrowserMessages {
   longitudeHint?: string;
   /** Hint for GEO latitude input. */
   latitudeHint?: string;
+  /** Hint under a write-only secret field in the edit form (AB#5542). */
+  secretWriteOnlyHint?: string;
+  /** Warning when an edited field could not be saved because its value is not fully loaded (secret inside, AB#5542). */
+  recordWithSecretNotSaved?: string;
 
   /**
    * Drag-and-drop messages for the binary attribute drop zone
@@ -95,8 +99,11 @@ export interface RuntimeBrowserMessages {
   };
 
   title: string;
+  /** @deprecated No longer rendered since the page uses `mm-page` (AB#5526). */
   badgeLabel: string;
+  /** @deprecated No longer rendered since the page uses `mm-page` (AB#5526). */
   titlePrefix: string;
+  /** @deprecated No longer rendered — the LCARS "READY" footer was removed (AB#5526). */
   ready: string;
   selectItem: string;
   noPropertiesAvailable: string;
@@ -141,6 +148,12 @@ export interface RuntimeBrowserMessages {
   create: string;
   edit: string;
   delete: string;
+  /** Danger confirmation of the toolbar Delete (AB#5579); `{name}` = entity name. Missing = English default. */
+  confirmDeleteEntityTitle?: string;
+  /** What the toolbar Delete loses. */
+  confirmDeleteEntityConsequence?: string;
+  /** Confirming button of the toolbar Delete (verb + object). */
+  confirmDeleteEntityConfirmText?: string;
   createEntity: string;
   updateEntity: string;
   name: string;
@@ -194,6 +207,8 @@ export interface RuntimeBrowserMessages {
 
   /** Card header prefix for each mapping card: "MAPPING N". Default: "MAPPING" */
   mappingHeader?: string;
+  /** Tooltip / accessible name of a mapping card's remove button (AB#5579). */
+  mappingRemove?: string;
   /** Label for the source data point row. Default: "Source Data Point" */
   mappingSourceDataPoint?: string;
   /** Label for the "Add Mapping" toolbar button. Default: "+ Add Mapping" */
@@ -229,6 +244,9 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
     'The longitude of the point on the Earth surface (-180 to 180 degrees).',
   latitudeHint:
     'The latitude of the point on the Earth surface (-90 to 90 degrees).',
+  secretWriteOnlyHint: 'Write-only. The stored value is never shown; leave empty to keep it.',
+  recordWithSecretNotSaved:
+    'Some changed fields contain secret values that are never loaded here; those changes were not saved.',
   title: 'Runtime Browser',
   badgeLabel: 'Entities & Data',
   titlePrefix: 'REPOSITORY',
@@ -277,6 +295,9 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   create: 'Create',
   edit: 'Edit',
   delete: 'Delete',
+  confirmDeleteEntityTitle: 'Delete {name}?',
+  confirmDeleteEntityConsequence: 'The entity and all its child entities are erased. This cannot be undone.',
+  confirmDeleteEntityConfirmText: 'Delete entity',
   createEntity: 'Create Entity',
   updateEntity: 'Update Entity',
   name: 'Name',
@@ -327,6 +348,7 @@ export const DEFAULT_RUNTIME_BROWSER_MESSAGES: RuntimeBrowserMessages = {
   treeMoveToRootUnsupported: 'Moving item to the root of the tree is not supported',
   treeMoveOnRootUnsupported: 'Moving item on the root of the tree is not supported',
   mappingHeader: 'MAPPING',
+  mappingRemove: 'Remove mapping',
   mappingSourceDataPoint: 'Source Data Point',
   mappingAddMapping: '+ Add Mapping',
   mappingSaveAll: 'Save All Mappings',

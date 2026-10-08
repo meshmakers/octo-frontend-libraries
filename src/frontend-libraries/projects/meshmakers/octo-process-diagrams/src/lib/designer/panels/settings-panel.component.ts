@@ -108,10 +108,8 @@ import { SymbolSettings } from '../process-designer.component';
     .settings-section h4 {
       font-size: 11px;
       font-weight: 600;
-      text-transform: uppercase;
       color: #666;
       margin: 0 0 0.5rem;
-      letter-spacing: 0.5px;
     }
 
     .form-group {

@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { CkModelService } from '@meshmakers/octo-services';
+import { CkModelService, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import { TimeRange, TimeRangeSelection as SharedTimeRangeSelection, TimeRangeUtils } from '@meshmakers/shared-ui';
 import { MeshBoardPersistenceService, PersistedMeshBoard } from './meshboard-persistence.service';
 import { MeshBoardGridService } from './meshboard-grid.service';
@@ -31,6 +31,7 @@ export class MeshBoardStateService {
   private readonly ckModelService = inject(CkModelService);
   private readonly persistenceService = inject(MeshBoardPersistenceService);
   private readonly gridService = inject(MeshBoardGridService);
+  private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
 
   // Reactive state signals
   private readonly _meshBoardConfig = signal<MeshBoardConfig>(this.createDefaultConfig());
@@ -54,6 +55,26 @@ export class MeshBoardStateService {
    * no dirty state. Cleared on every board switch.
    */
   private readonly _widgetVariables = signal<MeshBoardVariable[]>([]);
+  /**
+   * Widgets that reported "nothing for this viewer" (AB#5558, e.g. a cockpit KPI an end user may not
+   * use). Transient, per board load; the view leaves them out outside edit mode.
+   */
+  private readonly _hiddenForViewer = signal<ReadonlySet<string>>(new Set());
+  readonly hiddenForViewer = this._hiddenForViewer.asReadonly();
+  /**
+   * Natural content height (px) reported by content-sized widgets (AB#5558: the cockpit attention
+   * and recent-items lists). On the phone tier the view grows their tiles to fit instead of
+   * clipping; other tiers ignore it. Transient, cleared on board switch.
+   */
+  private readonly _widgetContentHeights = signal<ReadonlyMap<string, number>>(new Map());
+  readonly widgetContentHeights = this._widgetContentHeights.asReadonly();
+  /**
+   * Tenant the loaded board belongs to (from `TENANT_ID_PROVIDER` at load time; `null` when the host
+   * provides none). The service is a singleton across tenant switches, so a host comparing
+   * well-known names (e.g. the Studio's `cockpit`) must also compare this (AB#5558).
+   */
+  private readonly _loadedTenantId = signal<string | null>(null);
+  readonly loadedTenantId = this._loadedTenantId.asReadonly();
 
   // Public computed signals
   readonly meshBoardConfig = computed(() => this._meshBoardConfig());
@@ -156,6 +177,7 @@ export class MeshBoardStateService {
 
       if (result) {
         const config = this.persistenceService.toMeshBoardConfig(result.meshBoard, result.widgets);
+        const tenantId = await this.currentTenantId();
 
         // Fix any overlapping widgets from backend data
         const movedWidgets = this.gridService.resolveOverlaps(config.widgets, config.columns);
@@ -164,6 +186,9 @@ export class MeshBoardStateService {
         }
 
         this._widgetVariables.set([]);
+        this._hiddenForViewer.set(new Set());
+        this._widgetContentHeights.set(new Map());
+        this._loadedTenantId.set(tenantId);
         this._meshBoardConfig.set(config);
         this._persistedMeshBoardId.set(result.meshBoard.rtId);
         this._existingWidgetRtIds.set(result.widgets.map(w => w.rtId));
@@ -437,17 +462,7 @@ export class MeshBoardStateService {
    * Creates a new MeshBoard and switches to it.
    */
   async createNewMeshBoard(name: string, description: string): Promise<string> {
-    const config: MeshBoardConfig = {
-      id: '',
-      name,
-      description,
-      columns: 6,
-      rowHeight: 200,
-      gap: 16,
-      widgets: []
-    };
-
-    const rtId = await this.persistenceService.createMeshBoard(config);
+    const rtId = await this.persistenceService.createMeshBoard(newMeshBoardConfig(name, description));
     await this.refreshMeshBoardList();
     await this.switchToMeshBoard(rtId);
 
@@ -475,6 +490,24 @@ export class MeshBoardStateService {
   /** @deprecated Use renameMeshBoard instead */
   async renameDashboard(rtId: string, name: string, description: string): Promise<void> {
     return this.renameMeshBoard(rtId, name, description);
+  }
+
+  /**
+   * Pins or unpins the specified MeshBoard for the host app's end-user
+   * navigation and refreshes the list. The active board's config follows, so
+   * a later save does not revert the change.
+   */
+  async setMeshBoardPinned(rtId: string, pinned: boolean): Promise<void> {
+    const meshBoard = this._availableMeshBoards().find(m => m.rtId === rtId);
+    if (!meshBoard) {
+      return;
+    }
+    await this.persistenceService.setMeshBoardPinned(meshBoard, pinned);
+    await this.refreshMeshBoardList();
+
+    if (this._persistedMeshBoardId() === rtId) {
+      this.updateConfig(c => ({ ...c, navigation: pinned ? { pinned: true, order: c.navigation?.order } : undefined }));
+    }
   }
 
   /**
@@ -570,6 +603,56 @@ export class MeshBoardStateService {
       widgetId
     };
     this._widgetVariables.set([...current.filter(v => v.widgetId !== widgetId), variable]);
+  }
+
+  private async currentTenantId(): Promise<string | null> {
+    try {
+      return (await this.tenantIdProvider?.()) ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * A content-sized widget reports the natural height of its content in px (`null` removes it).
+   * Must be measured on content whose height does not depend on the tile height, or a growing
+   * tile would grow again. Changes below 1 px are ignored.
+   */
+  setWidgetContentHeight(widgetId: string, height: number | null): void {
+    const current = this._widgetContentHeights();
+    const previous = current.get(widgetId);
+    if (height === null || !(height > 0)) {
+      if (previous === undefined) {
+        return;
+      }
+      const next = new Map(current);
+      next.delete(widgetId);
+      this._widgetContentHeights.set(next);
+      return;
+    }
+    const rounded = Math.ceil(height);
+    if (previous !== undefined && Math.abs(previous - rounded) < 1) {
+      return;
+    }
+    this._widgetContentHeights.set(new Map(current).set(widgetId, rounded));
+  }
+
+  /**
+   * A widget reports that it has nothing for the current viewer (`hidden: true`) or has again.
+   * The view collapses such widgets outside edit mode; the flag is cleared on board switch.
+   */
+  setWidgetHiddenForViewer(widgetId: string, hidden: boolean): void {
+    const current = this._hiddenForViewer();
+    if (current.has(widgetId) === hidden) {
+      return;
+    }
+    const next = new Set(current);
+    if (hidden) {
+      next.add(widgetId);
+    } else {
+      next.delete(widgetId);
+    }
+    this._hiddenForViewer.set(next);
   }
 
   /**
@@ -893,4 +976,12 @@ export class MeshBoardStateService {
     );
     this.updateVariables(currentVars);
   }
+}
+
+/**
+ * Layout defaults of a new, empty MeshBoard (6 columns, 200 px rows, 16 px gap). Shared by
+ * `createNewMeshBoard` and hosts that create boards themselves (e.g. a board list page).
+ */
+export function newMeshBoardConfig(name: string, description = ''): MeshBoardConfig {
+  return { id: '', name, description, columns: 6, rowHeight: 200, gap: 16, widgets: [] };
 }

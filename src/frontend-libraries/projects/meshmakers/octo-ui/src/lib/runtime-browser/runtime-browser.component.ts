@@ -13,18 +13,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommandItem, TreeItemDataTyped } from '@meshmakers/shared-services';
 import {
   BaseTreeDetailComponent,
+  ConfirmationService,
   InputService,
+  MM_ACTION_ICONS,
   NodeDroppedEvent,
 } from '@meshmakers/shared-ui';
 import { NotificationService } from '@progress/kendo-angular-notification';
-import {
-  arrowRotateCwIcon,
-  locationsIcon,
-  pencilIcon,
-  plusIcon,
-  SVGIcon,
-  xIcon,
-} from '@progress/kendo-svg-icons';
+import { locationsIcon, SVGIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
 import {
   CkModelDto,
@@ -51,6 +46,7 @@ import {
   RuntimeBrowserStateService,
 } from './services/runtime-browser-state.service';
 import { TypeHelperService } from './services/type-helper.service';
+import { PageComponent } from '../page/page.component';
 
 // Extended type to handle both Runtime Entities and CK Models/Types
 type BrowserItem =
@@ -62,37 +58,14 @@ type BrowserItem =
 @Component({
   selector: 'mm-runtime-browser',
   imports: [
+    PageComponent,
     BaseTreeDetailComponent,
     RuntimeBrowserDetailsComponent,
     PerspectiveSwitcherComponent,
   ],
   template: `
-    <div class="runtime-browser-container kendo-theme-provider">
-      <!-- LCARS Header -->
-      <div class="lcars-page-header">
-        <div class="lcars-header-accent"></div>
-        <div class="header-content">
-          <h1 class="page-title">
-            <span class="title-prefix">{{
-              resolvedMessages().titlePrefix
-            }}</span>
-            <span class="title-main">{{ resolvedMessages().title }}</span>
-          </h1>
-          <div class="header-stats">
-            <div class="stat-badge">
-              <span class="badge-icon">&#9632;</span>
-              <span class="badge-label">{{
-                resolvedMessages().badgeLabel
-              }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="lcars-header-line"></div>
-      </div>
-
-      <!-- Main Content -->
-      <div class="lcars-content-panel">
-        <div class="panel-accent-top"></div>
+    <mm-page class="runtime-browser-container kendo-theme-provider" [pageTitle]="resolvedMessages().title">
+      <div class="runtime-browser-panel">
         <mm-perspective-switcher
           [perspectives]="perspectives()"
           [activeKey]="activePerspectiveKey()"
@@ -119,21 +92,8 @@ type BrowserItem =
           >
           </mm-runtime-browser-details>
         </mm-base-tree-detail>
-        <div class="panel-accent-bottom"></div>
       </div>
-
-      <!-- LCARS Footer -->
-      <div class="lcars-footer">
-        <div class="footer-bar bar-1"></div>
-        <div class="footer-bar bar-2"></div>
-        <div class="footer-bar bar-3"></div>
-        <div class="footer-spacer"></div>
-        <div class="footer-indicator">
-          <span class="indicator-dot"></span>
-          <span class="indicator-text">{{ resolvedMessages().ready }}</span>
-        </div>
-      </div>
-    </div>
+    </mm-page>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./runtime-browser.component.scss'],
@@ -143,6 +103,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
   protected readonly dataSource = inject(RuntimeBrowserDataSource);
   private readonly getRuntimeEntityByIdGQL = inject(GetRuntimeEntityByIdDtoGQL);
   private readonly inputService = inject(InputService);
+  private readonly confirmation = inject(ConfirmationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly stateService = inject(RuntimeBrowserStateService);
@@ -217,7 +178,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         id: 'refresh',
         type: 'link',
         text: messages.refresh,
-        svgIcon: arrowRotateCwIcon,
+        svgIcon: MM_ACTION_ICONS.refresh,
         onClick: async () => await this.onRefresh(),
         isDisabled: () => !this.isRefreshButtonEnabled,
       },
@@ -225,7 +186,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         id: 'create',
         type: 'link',
         text: messages.create,
-        svgIcon: plusIcon,
+        svgIcon: MM_ACTION_ICONS.add,
         onClick: async () => await this.onCreate(),
         isDisabled: () => !this.isCreateButtonEnabled,
       },
@@ -233,7 +194,7 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         id: 'edit',
         type: 'link',
         text: messages.edit,
-        svgIcon: pencilIcon,
+        svgIcon: MM_ACTION_ICONS.edit,
         onClick: async () => await this.onEdit(),
         isDisabled: () => !this.isEditButtonEnabled,
       },
@@ -241,7 +202,8 @@ export class RuntimeBrowserComponent implements AfterViewInit {
         id: 'delete',
         type: 'link',
         text: messages.delete,
-        svgIcon: xIcon,
+        svgIcon: MM_ACTION_ICONS.delete,
+        danger: true,
         onClick: async () => await this.onDelete(),
         isDisabled: () => !this.isDeleteButtonEnabled,
       },
@@ -713,19 +675,32 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       return;
     }
 
+    if (!this.isSelectedItemAnRtEntity) {
+      console.warn(
+        'Selected item is not a runtime entity, cannot delete.',
+        this.selectedItem,
+      );
+      return;
+    }
+
+    // Danger confirmation naming the entity (AB#5579): the entity and its children are erased.
+    const selected = this.selectedItem;
+    const runtimeEntity = selected.item as RtEntityDto;
+    const m = this.resolvedMessages();
+    const name = selected.text || runtimeEntity.rtWellKnownName || runtimeEntity.rtId;
+    const confirmed = await this.confirmation.showDangerConfirm({
+      title: (m.confirmDeleteEntityTitle ?? DEFAULT_RUNTIME_BROWSER_MESSAGES.confirmDeleteEntityTitle!).replace('{name}', name),
+      targetName: name,
+      consequence: m.confirmDeleteEntityConsequence ?? DEFAULT_RUNTIME_BROWSER_MESSAGES.confirmDeleteEntityConsequence!,
+      confirmText: m.confirmDeleteEntityConfirmText ?? DEFAULT_RUNTIME_BROWSER_MESSAGES.confirmDeleteEntityConfirmText!,
+    });
+    if (!confirmed || this.selectedItem !== selected) {
+      return;
+    }
+
     try {
       this.isLoading = true;
       this.treeDetail.setEnabledState(false);
-
-      if (!this.isSelectedItemAnRtEntity) {
-        console.warn(
-          'Selected item is not a runtime entity, cannot delete.',
-          this.selectedItem,
-        );
-        return;
-      }
-
-      const runtimeEntity = this.selectedItem.item as RtEntityDto;
 
       const parentIdPair = await this.dataSource.getRuntimeEntityParentData(
         runtimeEntity.ckTypeId,
@@ -791,6 +766,8 @@ export class RuntimeBrowserComponent implements AfterViewInit {
           variables: {
             ckTypeId: ckTypeId,
             rtId: rtId,
+            // Existence check only — no attributes (SECRET-safe, AB#5542).
+            attributeNames: [],
           },
         }),
       );

@@ -75,6 +75,59 @@
   }
 }
 
+// Column alignment (`TableColumn.align`). The header cell is a flex row
+// (.k-cell-inner > .k-link, title + sort indicator), so text-align alone
+// does nothing there — the link has to justify its content. Right-aligned
+// columns are amounts in practice, hence the tabular digits on the cells.
+:host ::ng-deep .k-grid {
+  td.mm-col-align-right {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  td.mm-col-align-center {
+    text-align: center;
+  }
+
+  th.mm-col-align-right .k-cell-inner > .k-link {
+    justify-content: flex-end;
+  }
+
+  th.mm-col-align-center .k-cell-inner > .k-link {
+    justify-content: center;
+  }
+}
+
+// Compact row-filter cells (`isCompactFilter`, columns narrower than 180px):
+// the calendar toggle goes (the masked date input stays, Alt+Down still opens
+// the calendar), the operator picker shrinks to its icon and the input gives
+// up its side padding — otherwise a 120px date column shows three characters
+// of its filter value. Kendo renders these internals, hence ::ng-deep.
+:host ::ng-deep .k-filter-row .mm-filter-compact {
+  .k-filtercell-wrapper {
+    gap: 2px;
+  }
+
+  .k-datepicker > .k-input-button {
+    display: none;
+  }
+
+  .k-input-inner {
+    padding-left: 4px;
+    padding-right: 4px;
+    font-size: 12px;
+  }
+
+  .k-filtercell-operator .k-dropdown-operator {
+    width: 26px;
+    min-width: 0;
+
+    .k-input-button {
+      padding: 2px;
+    }
+  }
+}
+
 // Single-line, ellipsised cell text. Pairs with the cell's native `title` tooltip so the
 // full value stays reachable on hover — used by columns flagged `truncate: true` (typically
 // long error messages or log lines that would otherwise wrap and bloat the row height).
@@ -169,8 +222,6 @@
   padding: 2px 10px;
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
   border-radius: 12px;
   border: 1px solid var(--mm-badge-default-border, transparent);
   background: var(--mm-badge-default-bg, rgba(127, 127, 127, 0.15));
@@ -307,7 +358,6 @@
     border-radius: 0 !important;
     text-transform: none !important;
     font-weight: inherit !important;
-    letter-spacing: 0 !important;
     font-size: inherit !important;
   }
 }
@@ -440,4 +490,25 @@
   border-left: 1px solid var(--theme-border-subtle, rgba(0, 0, 0, 0.16));
   border-top: none;
   width: 0;
+}
+
+// Destructive context/overflow menu items (CommandItem.danger, AB#5570). The Kendo context menu
+// renders its popup outside the host, hence the unscoped ::ng-deep.
+::ng-deep .k-menu-group .mm-list-view-menu-item--danger > .k-link,
+::ng-deep .k-menu-group .mm-list-view-menu-item--danger > .k-menu-link {
+  color: var(--theme-status-error, #c0385f);
+}
+
+// Row actions (AB#5572): mm-action-button hosts + the "…" button side by side, one line.
+.mm-list-view-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  vertical-align: middle;
+
+  .mm-list-view-row-actions__more:focus-visible {
+    outline: none;
+    box-shadow: var(--theme-focus-ring, 0 0 0 2px #ffffff, 0 0 0 4px #2e8473);
+  }
 }

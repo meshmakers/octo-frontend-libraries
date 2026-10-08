@@ -5,6 +5,7 @@ import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { firstValueFrom } from 'rxjs';
+import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 
 interface StatusListItem {
   label: string;
@@ -69,7 +70,7 @@ interface StatusListItem {
       justify-content: space-between;
       padding: 10px 14px;
       border-radius: 6px;
-      background: var(--mm-status-list-item-bg, rgba(255, 255, 255, 0.04));
+      background: var(--mm-status-list-item-bg, var(--theme-bg-hover));
       border: 1px solid var(--mm-status-list-item-border, rgba(255, 255, 255, 0.06));
     }
 
@@ -82,8 +83,6 @@ interface StatusListItem {
     .item-badge {
       font-size: 0.7rem;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       padding: 4px 10px;
       border-radius: 4px;
       color: #fff;
@@ -106,6 +105,7 @@ interface StatusListItem {
 })
 export class StatusListWidgetComponent implements DashboardWidget<StatusListWidgetConfig, StatusListItem[]>, OnInit, OnChanges {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
+  private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
 
   @Input() config!: StatusListWidgetConfig;
 
@@ -143,10 +143,13 @@ export class StatusListWidgetComponent implements DashboardWidget<StatusListWidg
     this._error.set(null);
 
     try {
+      // Only the configured label and status fields, type-aware (SECRET-safe, AB#5542).
+      const attributeNames = await this.secretSafeNames.restrict(this.config.ckTypeId, [this.config.labelField, this.config.statusField]);
       const result = await firstValueFrom(
         this.getEntitiesByCkTypeGQL.fetch({
           variables: {
             ckTypeId: this.config.ckTypeId,
+            attributeNames,
             first: 50
           }
         })

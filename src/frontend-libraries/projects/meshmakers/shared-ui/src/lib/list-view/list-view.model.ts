@@ -77,6 +77,14 @@ export interface TableColumn {
    */
   hideBelow?: number;
   /**
+   * Horizontal alignment of the column's header and cells. Defaults to the
+   * grid's start alignment. Amount and quantity columns should be `'right'`:
+   * right-aligned figures line up on the decimal separator so magnitudes can
+   * be compared down the column, and the cell additionally renders with
+   * tabular (fixed-width) digits so the digits themselves line up too.
+   */
+  align?: 'left' | 'center' | 'right';
+  /**
    * Status mapping for single-field statusIcons columns.
    * Use this when the column displays icons for a single field.
    */
@@ -183,6 +191,11 @@ export type RowClassFn = (context: { dataItem: unknown; index: number }) => stri
 /**
  * Translatable messages for the ListViewComponent.
  * Pass translated strings to override the English defaults.
+ *
+ * Members added after the interface was first published are optional, so an app that builds a
+ * complete `ListViewMessages` object for an older library version keeps compiling; a member that
+ * is missing (or `undefined`) falls back to {@link DEFAULT_LIST_VIEW_MESSAGES}. New members must
+ * be added as optional for the same reason.
  */
 export interface ListViewMessages {
   /** Search input placeholder. Default: "Search in all columns..." */
@@ -195,12 +208,20 @@ export interface ListViewMessages {
   exportToPdf: string;
   /** Tooltip for "Refresh Data" button. Default: "Refresh Data" */
   refreshData: string;
-  /** Tooltip for the "Reset Filters" button. Default: "Reset Filters" */
-  resetFilters: string;
-  /** Tooltip for the collapsed command menu. Default: "Commands" */
-  commands: string;
+  /** Tooltip for the "Reset Filters" button. Default: "Reset Filters". Optional (added in 3.4). */
+  resetFilters?: string;
+  /** Tooltip for the collapsed command menu. Default: "Commands". Optional (added in 3.4). */
+  commands?: string;
   /** Title for the actions command column. Default: "Actions" */
   actionsColumnTitle: string;
+  /** Accessible name of a row's menu button; `{name}` = the row's name. Default: "Actions for {name}" */
+  rowActionsFor?: string;
+  /** Accessible name of a row's menu button when the row has no name. Default: "Row actions" */
+  rowActions?: string;
+  /** Disabled reason of a row action whose `CommandItem` has no `disabledReason` (AB#5572). Default: "Not available for this row" */
+  rowActionUnavailable?: string;
+  /** Disabled reason of every row action while the list loads (AB#5572). Default: "The list is loading" */
+  rowActionsLoading?: string;
   /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
   pdfPageTemplate: string;
 
@@ -237,9 +258,10 @@ export interface ListViewCommand {
 }
 
 /**
- * Default English messages for the ListViewComponent.
+ * Default English messages for the ListViewComponent. Complete: every member, including the
+ * optional ones, has a value.
  */
-export const DEFAULT_LIST_VIEW_MESSAGES: ListViewMessages = {
+export const DEFAULT_LIST_VIEW_MESSAGES: Required<ListViewMessages> = {
   searchPlaceholder: 'Search in all columns...',
   showRowFilter: 'Show Row Filter',
   exportToExcel: 'Export to Excel',
@@ -248,6 +270,10 @@ export const DEFAULT_LIST_VIEW_MESSAGES: ListViewMessages = {
   resetFilters: 'Reset Filters',
   commands: 'Commands',
   actionsColumnTitle: 'Actions',
+  rowActionsFor: 'Actions for {name}',
+  rowActions: 'Row actions',
+  rowActionUnavailable: 'Not available for this row',
+  rowActionsLoading: 'The list is loading',
   pdfPageTemplate: 'Page {pageNum} of {totalPages}',
   pagerItemsPerPage: 'items per page',
   pagerOf: 'of',
@@ -259,3 +285,24 @@ export const DEFAULT_LIST_VIEW_MESSAGES: ListViewMessages = {
   pagerNextPage: 'Go to the next page',
   noRecords: 'No records available.',
 };
+
+/**
+ * Merges app-supplied list-view messages over {@link DEFAULT_LIST_VIEW_MESSAGES}. Members that
+ * are missing, `undefined` or `null` keep their default, so an app compiled against an older
+ * `ListViewMessages` shape (or one that leaves a translation unset) never renders an empty label.
+ */
+export function resolveListViewMessages(
+  messages: Partial<ListViewMessages> | null | undefined
+): Required<ListViewMessages> {
+  const resolved: Required<ListViewMessages> = { ...DEFAULT_LIST_VIEW_MESSAGES };
+  if (!messages) {
+    return resolved;
+  }
+  for (const key of Object.keys(messages) as (keyof ListViewMessages)[]) {
+    const value = messages[key];
+    if (value !== undefined && value !== null) {
+      resolved[key] = value;
+    }
+  }
+  return resolved;
+}

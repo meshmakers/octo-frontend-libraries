@@ -1,0 +1,106 @@
+// Settings side navigation (concept §5.6): the category list left of every Settings page.
+:host {
+  display: block;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--theme-space-4) var(--theme-space-3) var(--theme-space-4) var(--theme-space-6);
+}
+
+.side-nav__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--theme-space-2);
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--theme-text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--theme-bg-elevated);
+    color: var(--theme-text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--theme-accent);
+    outline-offset: -2px;
+  }
+
+  &[aria-current='page'] {
+    background: var(--theme-bg-elevated);
+    color: var(--theme-text-accent);
+    font-weight: 600;
+  }
+}
+
+.side-nav__count {
+  font-size: 0.75rem;
+  color: var(--theme-text-muted);
+
+  // Open re-entry tasks: the warning badge of the Settings cards.
+  &.is-attention {
+    min-width: 18px;
+    padding: 0 5px;
+    border-radius: var(--theme-radius-xs);
+    background: var(--theme-status-warning-subtle);
+    color: var(--theme-status-warning);
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+  }
+}
+
+// Group (AB#5621): a heading over its categories.
+.side-nav__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--theme-space-3);
+}
+
+.side-nav__group-label {
+  padding: 0 12px var(--theme-space-1);
+  color: var(--theme-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+// Phone: the category list becomes a horizontally scrolling row above the page.
+@media (max-width: 640px) {
+  .side-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: var(--theme-space-2) var(--theme-space-4);
+  }
+
+  // One scrolling row: the groups dissolve into it, their headings stay for screen readers.
+  .side-nav__group {
+    display: contents;
+  }
+
+  .side-nav__group-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .side-nav__item {
+    width: auto;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}

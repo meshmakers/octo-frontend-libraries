@@ -137,6 +137,7 @@ export class CustomerDataSourceDirective extends OctoGraphQlDataSource<CustomerD
 | `FieldFilterEditorComponent` | Visual filter editor for queries |
 | `EntityIdInfoComponent` | Entity ID display with copy-to-clipboard dropdown |
 | `OctoLoaderComponent` | Animated OctoMesh logo loading indicator |
+| `PageComponent` (`MM_PAGE`) | `<mm-page>` page layout: optional header (title, subtitle, actions) + scrolling content, no footer |
 
 ## Available Services
 
@@ -206,6 +207,113 @@ bind your header/footer chrome to the CSS vars the library writes:
 See [`src/lib/branding/BRANDING_USAGE.md`](./src/lib/branding/BRANDING_USAGE.md)
 for the full list of CSS variables the library updates and the host-app
 contract for the surface ladder.
+
+## Page layout (`mm-page`)
+
+`<mm-page>` (`PageComponent`) is the token-based page frame that replaces the
+LCARS header / content panel / footer triple: an optional header (title,
+subtitle, `[mmPageActions]`) and a scrolling content area, no footer. Import
+`MM_PAGE` (component + slot directives); the title defaults to heading level 2
+and the header is a plain `<div>`. See
+[`src/lib/page/README.md`](./src/lib/page/README.md).
+
+```html
+<mm-page pageTitle="Adapters" pageSubtitle="12 registered">
+  <div mmPageActions><button kendoButton themeColor="primary">New adapter</button></div>
+  <mm-list-view …></mm-list-view>
+</mm-page>
+```
+
+## Theme tokens (overridable CSS variables)
+
+`@include octo.theme()` emits the "Deep Sea" token set on `:root` (dark
+default, light via `prefers-color-scheme` or `data-theme="light"`); source:
+`src/lib/runtime-browser/styles/_theme.scss`. Hosts may override any of these
+custom properties after the include. All `--theme-*` names of the former
+theme are kept; tokens marked *new* were added in AB#5519.
+
+| Group | Tokens |
+|---|---|
+| Surfaces | `--theme-bg-app`, `--theme-bg-app-end`, `--theme-bg-surface`, `--theme-bg-elevated`, `--theme-bg-overlay`, `--theme-bg-input`, *new:* `--theme-bg-sunken`, `--theme-bg-selected`, `--theme-bg-hover` |
+| Text | `--theme-text-primary`, `--theme-text-secondary`, `--theme-text-muted`, `--theme-text-on-accent`, `--theme-text-accent`, *new:* `--theme-text-code` |
+| Borders | `--theme-border-subtle`, `--theme-border-strong`, `--theme-border-divider` (= subtle), *new:* `--theme-border-default`, `--theme-focus-ring` (a `box-shadow` value) |
+| Accent / AI (*new*) | `--theme-accent`, `--theme-accent-hover`, `--theme-accent-subtle`, `--theme-accent-2`, `--theme-ai`, `--theme-ai-subtle` |
+| Status | `--theme-status-success`, `-warning`, `-error`, `-info`, *new:* `--theme-status-neutral`, `--theme-status-{success,warning,error,info,neutral}-subtle` |
+| Effects | `--theme-shadow-panel`, `--theme-shadow-popup`; `--theme-glow-primary`, `--theme-glow-accent` (both `none`); `--theme-gradient-page`, `--theme-gradient-header`, `--theme-accent-bar`, `--theme-accent-line`, `--theme-panel-rule` (now flat colours) |
+| Charts | `--theme-chart-1` … `--theme-chart-8` |
+| Ink overlays | `--theme-ink-02` … `--theme-ink-70` (text colour at n % — flips with the theme) |
+| Typography (*new*, theme-invariant) | `--theme-font-display` (Montserrat), `--theme-font-ui` (Roboto), `--theme-font-mono` (Roboto Mono) |
+| Spacing (*new*) | `--theme-space-1` … `--theme-space-8` (4 px grid: 4, 8, 12, 16, 20, 24, 28, 32 px) |
+| Radius (*new*) | `--theme-radius-xs` 2 px (chips), `-sm` 4 px (buttons, inputs), `-md` 6 px (cards, panels), `-lg` 8 px (dialogs, popovers) |
+| Motion (*new*) | `--theme-motion-fast` 120 ms, `--theme-motion-base` 200 ms, `--theme-motion-easing`; both durations become `0ms` under `prefers-reduced-motion: reduce` |
+
+Legacy aliases (AB#5526 phase 2): only `--lcars-font-primary` →
+`--theme-font-display`, `--lcars-font-mono` → `--theme-font-mono` and
+`--lcars-transition-fast` → `--theme-motion-fast` + easing remain, kept for the
+Meshmakers App until it migrates. All other `--lcars-*` variables (glows,
+button bases, input focus, radii, panel tokens, `--lcars-transition-normal`)
+were deleted — use the `--theme-*` tokens.
+
+Body text: `octo.styles()` sets `body { font-family: var(--theme-font-ui) }`
+(Roboto) since AB#5526; `h1`–`h3`, page and dialog titles, `mm-page` titles and
+KPI numbers use `--theme-font-display` (Montserrat 600).
+
+### Component styling in `octo.styles()` (Deep Sea, AB#5526)
+
+- **Buttons are flat**: primary = `--theme-accent` with `--theme-text-on-accent`
+  (hover `--theme-accent-hover`), base = `--theme-bg-elevated` with a
+  `--theme-border-default` hairline (hover `--theme-bg-hover` +
+  `--theme-border-strong`), outline/flat variants transparent; error =
+  `--theme-status-error`. Sentence case, `--theme-font-ui`, `--theme-radius-sm`,
+  keyboard focus `--theme-focus-ring`. Both themes use the same rules, so the
+  former light-only button overrides are no-ops.
+- **No decoration**: no gradients (sliders included), glows, pulses, scanlines
+  or text-shadows; grid headers, tabs (Kendo and dockview), process designer
+  palette/inspector headers, dialog titles and context menus are sentence case
+  in `--theme-font-ui` (the only uppercase left is the avatar initials); popups,
+  dialogs and menus use `--theme-bg-overlay` + `--theme-border-default` +
+  `--theme-shadow-popup`; the drawer is flat `--theme-bg-elevated`.
+- **`theme-overrides()`**: `light-theme-surface-overrides` was reduced to what
+  the tokens cannot express (the old light card, `#d7ebe5` table band, drawer
+  and app-bar treatments are gone — both themes agree now). It also emits a
+  sentence-case rule (`html:root .k-label, kendo-label, .section-title`) that
+  outranks host component styles in both themes.
+- **Legacy LCARS page classes — kept only for the Meshmakers App** (AB#5526
+  phase 2; the Refinery Studio no longer uses them): `.lcars-page-header`,
+  `.page-title` / `.title-prefix` / `.title-main`, `.header-content` and
+  `.lcars-content-panel` (surface card, with its `.k-grid` rule) keep a neutral
+  Deep Sea definition; `.lcars-header-accent`, `.lcars-header-line`,
+  `.panel-accent-top/-bottom`, `.lcars-footer` and `.footer-*` render nothing
+  (`display: none`). Everything else was deleted: `.header-stats`,
+  `.stat-badge`, `.lcars-panel`, `.lcars-panel-asymmetric`, `.lcars-header-bar`,
+  `.lcars-divider`, `.lcars-text-*`, `.lcars-bg-*`, `.lcars-border-mint`, the
+  glow/scanline/pulse utilities, and the `_lcars-button.scss`,
+  `_lcars-flat-btn.scss` and `_lcars-input.scss` mixin files (now the internal
+  `_button.scss` / `octo-button`, `_flat-button.scss` / `flat-button` and
+  `_field-input.scss` / `field-input`). New pages use `<mm-page>`.
+
+Deviations from concept §6.2 (contrast-driven): light `--theme-text-accent` /
+`--theme-accent` `#2c7d6d` (concept `#2e8473`, 4.16:1 on the light canvas →
+4.55:1), light `--theme-accent-hover` `#24685a` (concept `#266f61`),
+`--theme-text-muted` dark `#77869c` (concept `#687890`) and light `#657189`
+(concept `#75829a`), both ≥ 4.5:1 on `--theme-bg-input`. The Kendo bridge points `--kendo-color-primary`,
+`--kendo-color-surface(-alt)`, `--kendo-color-border`, `--kendo-color-base*`,
+`--kendo-border-radius-*` and `--kendo-font-family` at these tokens.
+
+Fonts are not bundled: the host loads Montserrat, Roboto and Roboto Mono
+(the Refinery Studio does so via Google Fonts in `index.html`).
+
+## Secondary Entry Points
+
+Heavy admin editors live in their own entry points so apps that do not use them keep the
+primary bundle small. Each one imports only the public API of `@meshmakers/octo-ui`.
+
+| Entry point | Contents |
+|-------------|----------|
+| `@meshmakers/octo-ui/branding` | Branding services, `provideOctoBranding`, theme switcher |
+| `@meshmakers/octo-ui/branding-settings` | Branding settings page (`BRANDING_ROUTES`) |
+| `@meshmakers/octo-ui/tree-navigation-settings` | Editor for `System.UI/TreeNavigationConfiguration` |
+| `@meshmakers/octo-ui/entity-forms` | Form-driven entity list / create / edit pages (`<mm-entity-page>`, `<mm-entity-list>`, `<mm-entity-form>`, `entityFormRoutes()`), driven by `System.UI/EntityForm` — see [`entity-forms/README.md`](./entity-forms/README.md) |
 
 ## Build
 

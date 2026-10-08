@@ -1,0 +1,96 @@
+<nav class="rail" [attr.aria-label]="m().railLabel">
+  <ul class="rail-list" role="list">
+    @for (area of areas(); track area.id) {
+      <ng-container *ngTemplateOutlet="entry; context: { $implicit: area }"></ng-container>
+    }
+  </ul>
+  @if (bottomAreas().length > 0) {
+    <ul class="rail-list rail-bottom" role="list">
+      @for (area of bottomAreas(); track area.id) {
+        <ng-container *ngTemplateOutlet="entry; context: { $implicit: area }"></ng-container>
+      }
+    </ul>
+  }
+</nav>
+
+<ng-template #entry let-area>
+  <li class="rail-entry"
+      [attr.data-entry-id]="area.id"
+      [class.open]="openId() === area.id"
+      [class.pinned]="pinned() && openId() === area.id"
+      (mouseenter)="onPointerEnter(area)"
+      (mouseleave)="onPointerLeave(area)"
+      (focusout)="onEntryFocusOut(area, $event)">
+    <button type="button"
+            class="rail-item"
+            [attr.data-area-id]="area.id"
+            [attr.aria-label]="areaLabel(area)"
+            [attr.aria-current]="area.id === activeAreaId() ? 'true' : null"
+            [attr.aria-expanded]="hasFlyout(area) ? openId() === area.id : null"
+            [attr.aria-controls]="hasFlyout(area) ? flyoutId(area) : null"
+            [tabindex]="tabStopId() === area.id ? 0 : -1"
+            (focus)="onAreaFocus(area)"
+            (keydown)="onAreaKeydown(area, $event)"
+            (click)="onAreaClick(area, $event)">
+      @if (area.svgIcon) {
+        <kendo-svgicon class="rail-icon" [icon]="area.svgIcon"></kendo-svgicon>
+      }
+      @if (badgeOf(area); as badge) {
+        <span class="rail-badge" [class.attention]="badge.attention" [attr.data-badge]="area.id" aria-hidden="true">{{ badgeText(badge) }}</span>
+      }
+    </button>
+    @if (hasFlyout(area)) {
+      <!-- The host starts right at the icon's edge; its transparent padding bridges the gap to the panel. -->
+      <div class="rail-flyout-host">
+        <div class="rail-flyout" [id]="flyoutId(area)">
+          <div class="flyout-title" aria-hidden="true">{{ area.text }}</div>
+          <ul class="flyout-list" [attr.aria-label]="area.text">
+            @for (child of area.children; track child.id) {
+              @if (child.separator) {
+                <li class="flyout-separator" aria-hidden="true"></li>
+              } @else {
+                <li>
+                  <button type="button"
+                          class="flyout-item"
+                          [class.active]="child.active"
+                          [attr.aria-current]="child.selected ? 'page' : null"
+                          [title]="child.tooltip ?? ''"
+                          (keydown)="onFlyoutKeydown(area, $event)"
+                          (click)="onItemClick(area, child)">
+                    <span class="flyout-text">{{ child.text }}</span>
+                    @if (badgeOf(child); as badge) {
+                      <span class="flyout-badge" [class.attention]="badge.attention" [attr.data-badge]="child.id" aria-hidden="true">{{ badgeText(badge) }}</span><span class="visually-hidden">, {{ badgeLabel(badge) }}</span>
+                    }
+                    @if (child.external) {
+                      <span class="flyout-external" aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span>
+                    }
+                  </button>
+                </li>
+                @for (nested of child.children; track nested.id) {
+                  @if (!nested.separator) {
+                    <li>
+                      <button type="button"
+                              class="flyout-item nested"
+                              [class.active]="nested.active"
+                              [attr.aria-current]="nested.selected ? 'page' : null"
+                              (keydown)="onFlyoutKeydown(area, $event)"
+                              (click)="onItemClick(area, nested)">
+                        <span class="flyout-text">{{ nested.text }}</span>
+                        @if (badgeOf(nested); as badge) {
+                          <span class="flyout-badge" [class.attention]="badge.attention" [attr.data-badge]="nested.id" aria-hidden="true">{{ badgeText(badge) }}</span><span class="visually-hidden">, {{ badgeLabel(badge) }}</span>
+                        }
+                        @if (nested.external) {
+                          <span class="flyout-external" aria-hidden="true">↗</span><span class="visually-hidden">{{ m().opensInNewTab }}</span>
+                        }
+                      </button>
+                    </li>
+                  }
+                }
+              }
+            }
+          </ul>
+        </div>
+      </div>
+    }
+  </li>
+</ng-template>

@@ -8,12 +8,6 @@ import { AddInConfiguration } from '../shared/addInConfiguration';
 import { DeploymentState } from '../shared/communicationDtos';
 
 describe('CommunicationService', () => {
-  // 🔴 These URL literals are the CONTROLLER's routes, not our naming preference. The AB#4924
-  // rename was documented as leaving the REST route alone and then renamed the controller CLASS,
-  // which moves `[controller]` and the route with it: /v1/pool/... became /v1/deploymentsite/... .
-  // This suite asserted the old spelling and stayed green while every Deploy/Undeploy in the
-  // Studio answered 404 — the .NET SDK had already moved, so nothing else noticed. Check a change
-  // here against DeploymentSiteController's [Route], never against what reads nicer.
   let service: CommunicationService;
   let httpMock: HttpTestingController;
   let mockConfigService: MockedObject<IConfigurationService>;
@@ -130,38 +124,54 @@ describe('CommunicationService', () => {
     });
   });
 
+  // These URL and query-parameter literals are the CONTROLLER's contract (DeploymentSiteController
+  // on System.Communication 4.x), not our naming preference: the method names keep "Pool" for
+  // source compatibility, the wire does not. AB#5271 shipped a 404 because this suite asserted the
+  // old spelling and stayed green — check a change here against the controller's [Route] and
+  // [FromQuery] names, never against what reads nicer (AB#5842).
   describe('deployPool', () => {
-    it('should call the correct endpoint with poolRtId param', async () => {
-      const poolRtId = 'pool-123';
+    it('posts to the deployment-site route with deploymentSiteRtId', async () => {
+      const siteRtId = 'site-123';
 
-      const promise = service.deployPool(tenantId, poolRtId);
+      const promise = service.deployPool(tenantId, siteRtId);
 
-      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/deploy` &&
-                request.params.get('poolRtId') === poolRtId);
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/deploy`);
       expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('deploymentSiteRtId')).toBe(siteRtId);
+      expect(req.request.params.has('poolRtId')).toBe(false);
+      expect(req.request.params.keys()).toEqual(['deploymentSiteRtId']);
       req.flush(null);
 
       await promise;
+    });
+
+    it('does not call the server without a communication services URL', async () => {
+      (mockConfigService as unknown as { config: AddInConfiguration }).config = { ...mockConfig, communicationServices: '' };
+
+      await service.deployPool(tenantId, 'site-123');
+
+      httpMock.expectNone(() => true);
     });
   });
 
   describe('undeployPool', () => {
-    it('should call the correct endpoint with poolRtId param', async () => {
-      const poolRtId = 'pool-123';
+    it('posts to the deployment-site route with deploymentSiteRtId', async () => {
+      const siteRtId = 'site-123';
 
-      const promise = service.undeployPool(tenantId, poolRtId);
+      const promise = service.undeployPool(tenantId, siteRtId);
 
-      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/undeploy` &&
-                request.params.get('poolRtId') === poolRtId);
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/undeploy`);
       expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('deploymentSiteRtId')).toBe(siteRtId);
+      expect(req.request.params.keys()).toEqual(['deploymentSiteRtId']);
       req.flush(null);
 
       await promise;
     });
   });
 
-  // 🔴 These two had NO coverage at all, which is why the route drift reached a user: every
-  // Deploy/Undeploy of an adapter, application or adapter pool in the Studio goes through them.
   describe('deployWorkload', () => {
     it('posts to the deployment-site workload route with workloadRtId', async () => {
       const workloadRtId = 'workload-123';
@@ -169,9 +179,10 @@ describe('CommunicationService', () => {
       const promise = service.deployWorkload(tenantId, workloadRtId);
 
       const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/workloads/deploy` &&
-        request.params.get('workloadRtId') === workloadRtId);
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/workloads/deploy`);
       expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('workloadRtId')).toBe(workloadRtId);
+      expect(req.request.params.keys()).toEqual(['workloadRtId']);
       req.flush(null);
 
       await promise;
@@ -185,9 +196,10 @@ describe('CommunicationService', () => {
       const promise = service.undeployWorkload(tenantId, workloadRtId);
 
       const req = httpMock.expectOne(request =>
-        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/workloads/undeploy` &&
-        request.params.get('workloadRtId') === workloadRtId);
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/workloads/undeploy`);
       expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('workloadRtId')).toBe(workloadRtId);
+      expect(req.request.params.keys()).toEqual(['workloadRtId']);
       req.flush(null);
 
       await promise;
@@ -249,6 +261,42 @@ describe('CommunicationService', () => {
         .flush('Wake timed out', { status: 400, statusText: 'Bad Request' });
 
       await expect(promise).rejects.toThrow();
+    });
+  });
+
+  describe('rotateServiceAccountConfigurationSecret', () => {
+    const configurationRtId = '65d5c447b420da3fb12381cd';
+    const rotateUri =
+      `${mockConfig.communicationServices}${tenantId}/v1/serviceAccount/${configurationRtId}/rotateSecret`;
+
+    it('POSTs the configuration-bound route (AB#5111) and returns the controller result', async () => {
+      const promise = service.rotateServiceAccountConfigurationSecret(tenantId, configurationRtId);
+
+      const req = httpMock.expectOne(rotateUri);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toBeNull();
+      req.flush({
+        clientId: 'pipeline-svc-standalone',
+        configurationWellKnownName: 'ReportingSA',
+        wasCreated: false,
+        requiresPipelineRedeploy: true,
+        message: 'The client secret ... was rotated. Redeploy the pipelines / data flows.'
+      });
+
+      const result = await promise;
+      expect(result.clientId).toBe('pipeline-svc-standalone');
+      expect(result.requiresPipelineRedeploy).toBe(true);
+    });
+
+    it('rejects when the controller refuses the rotation', async () => {
+      const promise = service.rotateServiceAccountConfigurationSecret(tenantId, configurationRtId);
+
+      httpMock.expectOne(rotateUri).flush(
+        { errorMessage: 'Rotating the pipeline service account secret failed: x. The previous secret remains in effect.' },
+        { status: 400, statusText: 'Bad Request' }
+      );
+
+      await expect(promise).rejects.toBeTruthy();
     });
   });
 
@@ -583,6 +631,24 @@ describe('CommunicationService', () => {
 
       const result = await promise;
       expect(result).toEqual([]);
+    });
+
+    it('getAdapterMetricsResult reports a 404 as notFound so pollers can back off (AB#5546)', async () => {
+      const promise = service.getAdapterMetricsResult(tenantId, adapterRtId, adapterCkTypeId);
+      httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`)
+        .flush({ errorMessage: 'Adapter not loaded' }, { status: 404, statusText: 'Not Found' });
+      expect(await promise).toEqual({ samples: [], notFound: true });
+
+      const ok = service.getAdapterMetricsResult(tenantId, adapterRtId, adapterCkTypeId);
+      httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`).flush([]);
+      expect(await ok).toEqual({ samples: [], notFound: false });
+    });
+
+    it('getAdapterMetricsResult rethrows other errors', async () => {
+      const promise = service.getAdapterMetricsResult(tenantId, adapterRtId, adapterCkTypeId);
+      httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/adapter/${expectedRtEntityId}/metrics`)
+        .flush('boom', { status: 500, statusText: 'Server Error' });
+      await expect(promise).rejects.toBeTruthy();
     });
 
     it('returns empty array when the communication services URL is not configured', async () => {
