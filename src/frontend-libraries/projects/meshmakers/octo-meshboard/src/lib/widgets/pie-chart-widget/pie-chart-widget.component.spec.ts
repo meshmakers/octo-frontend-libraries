@@ -137,6 +137,14 @@ describe('PieChartWidgetComponent colours and labels (AB#5622)', () => {
     expect(component.toItem('RESOLVE_FAILED', 1).color).toBe(statusColor('warning'));
   });
 
+  it('ignores inherited object members and non-string values in category colours', () => {
+    const component = create({ categoryColors: { PAID: 42 as unknown as string } });
+    expect(() => component.toItem('constructor', 1, 0)).not.toThrow();
+    expect(() => component.toItem('toString', 1, 0)).not.toThrow();
+    expect(() => component.toItem('PAID', 1, 0)).not.toThrow();
+    expect(component.toItem('PAID', 1, 0).color).toBe(component.toItem('X', 1, 0).color);
+  });
+
   it('keeps the default label settings without a label position (unchanged)', () => {
     const labels = create().labelSettings();
     expect(labels.visible).toBe(true);

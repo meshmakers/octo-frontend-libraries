@@ -213,6 +213,16 @@ describe('Default widget registrations — pie chart presentation (AB#5622)', ()
     expect(restored.labelPosition).toBeUndefined();
   });
 
+  it('drops non-string category colours from a hand-edited board', () => {
+    const data = registry.serializeWidget(pie());
+    const restored = registry.deserializeWidget({
+      rtId: 'pie-1', ckTypeId: 'System.UI/DashboardWidget', name: 'Pie', type: 'pieChart', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSourceType: 'systemQuery', dataSourceCkTypeId: null, dataSourceRtId: 'q1',
+      config: JSON.stringify({ ...data.config, categoryColors: { PAID: '#2fb37a', OPEN: 42, CLOSED: { c: 1 } } })
+    }) as PieChartWidgetConfig;
+    expect(restored.categoryColors).toEqual({ PAID: '#2fb37a' });
+  });
+
   it('carries the settings through the config dialog result', () => {
     const initial = registry.getInitialConfig(pie({ categoryColors: { PAID: 'success' }, labelPosition: 'inside' })) as Record<string, unknown>;
     expect(initial['initialCategoryColors']).toEqual({ PAID: 'success' });

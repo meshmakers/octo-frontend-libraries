@@ -171,7 +171,8 @@ export function chartSeriesColors(doc: Document | null = typeof document !== 'un
  * `rgb(…)`) used as it is. Returns `undefined` when it cannot be resolved (the default colour applies).
  */
 export function resolveChartColor(token: string | null | undefined, doc: Document | null = typeof document !== 'undefined' ? document : null): string | undefined {
-  const text = token?.trim();
+  // Board JSON is not type-checked: a non-string value (number, object) is no colour.
+  const text = typeof token === 'string' ? token.trim() : '';
   if (!text) {
     return undefined;
   }

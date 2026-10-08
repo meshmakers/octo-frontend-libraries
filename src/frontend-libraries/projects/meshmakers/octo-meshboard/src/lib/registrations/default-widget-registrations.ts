@@ -2417,13 +2417,18 @@ function pieChartPresentationConfig(widget: PieChartWidgetConfig): Record<string
   };
 }
 
+/** The string-valued entries of a JSON object (non-string colour values are dropped). */
+function stringEntries(record: Record<string, unknown>): Record<string, string> {
+  return Object.fromEntries(Object.entries(record).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
+}
+
 /** Reads {@link pieChartPresentationConfig} back; unknown or missing values are left out. */
 function readPieChartPresentationConfig(config: Record<string, unknown>): Partial<PieChartWidgetConfig> {
   const colors = config['categoryColors'];
   const position = config['labelPosition'];
   const minPercent = config['hideLabelsBelowPercent'];
   return {
-    ...(colors && typeof colors === 'object' && !Array.isArray(colors) ? { categoryColors: colors as Record<string, string> } : {}),
+    ...(colors && typeof colors === 'object' && !Array.isArray(colors) ? { categoryColors: stringEntries(colors as Record<string, unknown>) } : {}),
     ...(position === 'inside' || position === 'outside' || position === 'none' ? { labelPosition: position } : {}),
     ...(typeof minPercent === 'number' && minPercent > 0 ? { hideLabelsBelowPercent: minPercent } : {})
   };

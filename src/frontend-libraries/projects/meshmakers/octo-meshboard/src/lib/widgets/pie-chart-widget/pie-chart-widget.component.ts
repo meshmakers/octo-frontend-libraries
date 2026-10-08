@@ -299,8 +299,10 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
       return undefined;
     }
     const lower = rawCategory.toLowerCase();
-    const key = rawCategory in colors ? rawCategory
-      : Object.keys(colors).find(k => k.toLowerCase() === lower) ?? (label in colors ? label : undefined);
+    // Own keys only: `in` would also match inherited members (`constructor`, `toString`, ...).
+    const own = (k: string): boolean => Object.prototype.hasOwnProperty.call(colors, k);
+    const key = own(rawCategory) ? rawCategory
+      : Object.keys(colors).find(k => k.toLowerCase() === lower) ?? (own(label) ? label : undefined);
     return key !== undefined ? resolveChartColor(colors[key]) : undefined;
   }
 
