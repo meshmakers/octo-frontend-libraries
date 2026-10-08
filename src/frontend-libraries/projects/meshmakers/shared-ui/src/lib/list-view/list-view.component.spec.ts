@@ -686,6 +686,11 @@ describe('MmTableComponent', () => {
     const root = (): HTMLElement => fixture.nativeElement as HTMLElement;
     const noRecords = (): HTMLElement | null => root().querySelector('.k-grid-norecords');
 
+    // The loading state arrives one macrotask late (asyncScheduler); the empty state waits for it.
+    beforeEach(async () => {
+      await new Promise(resolve => setTimeout(resolve));
+    });
+
     it('keeps the plain "No records available." line without an emptyState', () => {
       expect(noRecords()?.textContent).toContain('No records available.');
       expect(root().querySelector('mm-empty-state')).toBeNull();

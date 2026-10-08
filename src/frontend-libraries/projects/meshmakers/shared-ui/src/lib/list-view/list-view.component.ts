@@ -158,6 +158,13 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected isLoading = signal(false);
 
   /**
+   * Whether the data source reported "not loading" at least once (AB#3444). {@link isLoading}
+   * follows the data source one macrotask late (asyncScheduler), so the first render would
+   * otherwise show the empty state while the first fetch is already in flight.
+   */
+  protected readonly loadSettled = signal(false);
+
+  /**
    * The component's own width in pixels, kept current via ResizeObserver.
    * `null` until the first measurement (before that, all columns render visible
    * and auto-sized). Drives `hideBelow` column hiding and `minWidth` pinning.
@@ -457,7 +464,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    * `mm-empty-state` — one OctoBot `idle` with {@link MmListEmptyState.title} / `text` — instead
    * of the plain "No records available." line; while a search, row filter or host filter
    * ({@link hasExternalFilters}) is active it shows OctoBot `look` with the "no results" texts.
-   * Nothing is shown while the list loads. The figure appears once per list, never in rows.
+   * Nothing is shown while the list loads (including before the first fetch answered). The figure appears once per list, never in rows.
    */
   @Input() public emptyState: MmListEmptyState | null = null;
 
@@ -662,6 +669,9 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
         takeUntil(this.destroy$)
       ).subscribe(loading => {
         this.isLoading.set(loading);
+        if (!loading) {
+          this.loadSettled.set(true);
+        }
         // Measure the fit-to-height page size only ONCE, when data first
         // renders (initial default → fitted). After that, page-size changes come
         // solely from the ResizeObserver (genuine viewport/density changes).

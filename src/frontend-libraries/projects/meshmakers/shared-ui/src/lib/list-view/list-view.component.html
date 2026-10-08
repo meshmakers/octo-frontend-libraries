@@ -127,7 +127,7 @@
     @if (emptyTemplate) {
       <ng-container *ngTemplateOutlet="emptyTemplate; context: emptyContext"></ng-container>
     } @else if (emptyState) {
-      @if (!isLoading()) {
+      @if (loadSettled() && !isLoading()) {
         @if (isFiltered) {
           <mm-empty-state class="mm-list-view-empty" variant="no-results"
                           [heading]="emptyState.filteredTitle || _messages.noResultsTitle"
