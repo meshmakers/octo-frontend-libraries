@@ -164,8 +164,12 @@ export class OctoBotComponent {
     if (!isPlatformBrowser(inject(PLATFORM_ID)) || typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return;
     }
-    const query = window.matchMedia(REDUCED_MOTION_QUERY);
-    this.prefersReducedMotion.set(query.matches);
+    const query = window.matchMedia(REDUCED_MOTION_QUERY) as MediaQueryList | undefined;
+    if (!query) {
+      // Stubbed or partial matchMedia (tests, embedded webviews): keep the animation, no live updates.
+      return;
+    }
+    this.prefersReducedMotion.set(!!query.matches);
     const listener = (event: MediaQueryListEvent): void => this.prefersReducedMotion.set(event.matches);
     query.addEventListener?.('change', listener);
     destroyRef.onDestroy(() => query.removeEventListener?.('change', listener));

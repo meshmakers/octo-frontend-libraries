@@ -81,6 +81,14 @@ describe('OctoBotComponent (AB#3444)', () => {
       expect(img(fixture).getAttribute('src')).toBe(`assets/octobot/${size}/octo_wave.webp`);
     });
 
+  it('keeps animating when a stubbed matchMedia returns nothing', () => {
+    Object.defineProperty(window, 'matchMedia', { configurable: true, writable: true, value: vi.fn().mockReturnValue(undefined) });
+    TestBed.configureTestingModule({ imports: [HostComponent] });
+    const fixture = TestBed.createComponent(HostComponent);
+    expect(() => fixture.detectChanges()).not.toThrow();
+    expect(img(fixture).getAttribute('src')).toContain('.webp');
+  });
+
   it('is decorative without a label', () => {
     const fixture = setup();
     expect(img(fixture).getAttribute('alt')).toBe('');
