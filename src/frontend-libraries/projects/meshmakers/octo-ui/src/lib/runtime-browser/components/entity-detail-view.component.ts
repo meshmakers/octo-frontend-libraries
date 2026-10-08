@@ -30,10 +30,14 @@ import {
   hyperlinkOpenIcon,
   infoCircleIcon,
 } from '@progress/kendo-svg-icons';
-import { firstValueFrom, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
-import { GetBinaryInfoDtoGQL } from '../../graphQL/getBinaryInfo';
-import { GraphDirectionDto, RtEntityDto } from '@meshmakers/octo-services';
+import {
+  BinaryDownloadUnavailableError,
+  FileDownloadService,
+  GraphDirectionDto,
+  RtEntityDto,
+} from '@meshmakers/octo-services';
 import {
   BinaryDownloadEvent,
   PropertyChangeEvent,
@@ -358,7 +362,7 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   private readonly notificationService = inject(NotificationService);
   private readonly propertyConverter = inject(PropertyConverterService);
-  private readonly getBinaryInfoGQL = inject(GetBinaryInfoDtoGQL);
+  private readonly fileDownloadService = inject(FileDownloadService);
   protected _messages: RuntimeBrowserMessages = {
     ...DEFAULT_RUNTIME_BROWSER_MESSAGES,
   };
@@ -632,29 +636,19 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
 
   /**
    * Handle binary download request from property grid.
-   * Loads the full binary info including downloadUri and opens the download.
+   *
+   * Downloads the clicked attribute's own value — whatever CK type owns it (Basic File,
+   * System.Communication binaries, FileSystemItem, …) and whether or not the tenant has
+   * System.Reporting. The value is the stored binary info `{ binaryId, filename, contentType, size }`
+   * (plus `downloadUri` when a typed query supplied one); `FileDownloadService` fetches it with the
+   * user's bearer and saves it under its real file name (AB#6179, decision D9).
    */
-  protected async onBinaryDownload(_event: BinaryDownloadEvent): Promise<void> {
-    if (!this.entity?.rtId) {
-      console.warn('Cannot download: no entity rtId available');
-      return;
-    }
-
+  protected async onBinaryDownload(event: BinaryDownloadEvent): Promise<void> {
     try {
-      // Load binary info with downloadUri using the entity's rtId
-      const result = await firstValueFrom(
-        this.getBinaryInfoGQL.fetch({
-          variables: { rtId: this.entity.rtId },
-        }),
-      );
-
-      const item =
-        result.data?.runtime?.systemReportingFileSystemItem?.items?.[0];
-      if (item?.content?.downloadUri) {
-        // Open download in new tab
-        window.open(item.content.downloadUri, '_blank', 'noopener,noreferrer');
-      } else {
-        console.warn('No downloadUri found for binary');
+      await this.fileDownloadService.downloadBinary(event);
+    } catch (error) {
+      if (error instanceof BinaryDownloadUnavailableError) {
+        console.warn('Binary download not available:', error.message);
         this.notificationService.show({
           content: this._messages.downloadNotAvailable,
           type: { style: 'warning', icon: true },
@@ -662,9 +656,10 @@ export class EntityDetailViewComponent implements OnChanges, OnDestroy {
           hideAfter: 3000,
           animation: { type: 'fade', duration: 400 },
         });
+        return;
       }
-    } catch (error) {
-      console.error('Failed to load binary info:', error);
+
+      console.error('Binary download failed:', error);
       this.notificationService.show({
         content: this._messages.failedToLoadDownloadInfo,
         type: { style: 'error', icon: true },
