@@ -361,12 +361,17 @@
 
 // --- Layout (AB#5621): resize handle and overlay mode ---
 .resize-handle {
+  // Hit area 8 px (col-resize everywhere) ▸ line ▸ centred grip; hover/focus/drag tint both with
+  // the accent — same affordance as the Studio pane splitters.
+  --mm-resize-line: transparent;
+  --mm-resize-grip: var(--theme-border-default, var(--theme-border-subtle, rgba(128, 128, 128, 0.5)));
+
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -3px;
+  left: -4px;
   z-index: 1;
-  width: 6px;
+  width: 8px;
   cursor: col-resize;
   touch-action: none;
 
@@ -375,15 +380,30 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 2px;
+    left: 3px;
     width: 2px;
-    background: transparent;
+    background: var(--mm-resize-line);
     transition: background-color 0.15s;
   }
 
-  &:hover::after,
-  &:focus-visible::after {
-    background: var(--theme-accent);
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 2px;
+    z-index: 1;
+    width: 4px;
+    height: 32px;
+    margin-top: -16px;
+    border-radius: 2px;
+    background: var(--mm-resize-grip);
+    transition: background-color 0.15s;
+  }
+
+  &:hover,
+  &:focus-visible {
+    --mm-resize-line: var(--theme-accent);
+    --mm-resize-grip: var(--theme-accent);
   }
 
   &:focus-visible {
@@ -395,13 +415,15 @@
   user-select: none;
   cursor: col-resize;
 
-  .resize-handle::after {
-    background: var(--theme-accent);
+  .resize-handle {
+    --mm-resize-line: var(--theme-accent);
+    --mm-resize-grip: var(--theme-accent);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .resize-handle::after {
+  .resize-handle::after,
+  .resize-handle::before {
     transition: none;
   }
 }
