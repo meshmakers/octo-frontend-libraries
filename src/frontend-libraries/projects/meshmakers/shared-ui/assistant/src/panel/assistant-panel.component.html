@@ -81,6 +81,12 @@
     </ul>
   </section>
 } @else {
+  @if (showGreeting()) {
+    <div class="greeting" data-testid="assistant-greeting">
+      <mm-octobot animation="wave" size="md" playOnce />
+      <p class="greeting-text">{{ m().greeting }}</p>
+    </div>
+  }
   @if (showStarters()) {
     <section class="starters" aria-labelledby="assistant-starters-title">
       <h3 class="starters-title" id="assistant-starters-title">{{ m().startersTitle }}</h3>

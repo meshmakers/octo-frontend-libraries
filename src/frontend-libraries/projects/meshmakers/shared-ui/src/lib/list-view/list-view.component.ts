@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ContentChild, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ContentChild, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, TemplateRef, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
   BooleanFilterCellComponent,
   CellClickEvent,
@@ -9,6 +9,7 @@ import {
   FilterCellTemplateDirective,
   GridComponent,
   GridSpacerComponent,
+  NoRecordsTemplateDirective,
   NumericFilterCellComponent,
   PageChangeEvent,
   PagerSettings, PDFModule, SelectableSettings, SelectionEvent,
@@ -18,7 +19,7 @@ import {
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {ListViewFiltersDirective} from './list-view-filters.directive';
-import {BadgeMapping, ColumnDefinition, ContextMenuType, ListViewCommand, ListViewMessages, resolveListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
+import {BadgeMapping, ColumnDefinition, ContextMenuType, ListViewCommand, ListViewMessages, MmListEmptyContext, MmListEmptyState, resolveListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
@@ -48,6 +49,7 @@ import {BytesToSizePipe} from '../pipes/bytes-to-size.pipe';
 import {asyncScheduler, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, observeOn, takeUntil} from 'rxjs/operators';
 import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.service';
+import {EmptyStateComponent} from '../empty-state/empty-state.component';
 
 /** Context/overflow menu class of `CommandItem.danger` items (AB#5570); styled globally in the list-view SCSS. */
 const DANGER_MENU_ITEM_CLASS = 'mm-list-view-menu-item--danger';
@@ -118,7 +120,9 @@ function sameEntries(a: ResolvedListRowAction[], b: ResolvedListRowAction[]): bo
     NumericTextBoxComponent,
     NgComponentOutlet,
     NgTemplateOutlet,
-    ActionButtonComponent
+    ActionButtonComponent,
+    NoRecordsTemplateDirective,
+    EmptyStateComponent
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -152,6 +156,13 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   /** Indicates if the data source is currently loading data */
   protected isLoading = signal(false);
+
+  /**
+   * Whether the data source reported "not loading" at least once (AB#3444). {@link isLoading}
+   * follows the data source one macrotask late (asyncScheduler), so the first render would
+   * otherwise show the empty state while the first fetch is already in flight.
+   */
+  protected readonly loadSettled = signal(false);
 
   /**
    * The component's own width in pixels, kept current via ResizeObserver.
@@ -449,6 +460,37 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public hasExternalFilters = false;
 
   /**
+   * Empty state of the list (AB#3444): when set, a list without records shows the shared
+   * `mm-empty-state` — one OctoBot `idle` with {@link MmListEmptyState.title} / `text` — instead
+   * of the plain "No records available." line; while a search, row filter or host filter
+   * ({@link hasExternalFilters}) is active it shows OctoBot `look` with the "no results" texts.
+   * Nothing is shown while the list loads (including before the first fetch answered). The figure appears once per list, never in rows.
+   */
+  @Input() public emptyState: MmListEmptyState | null = null;
+
+  /**
+   * Fully custom empty state (wins over {@link emptyState}). Context: `$implicit` / `filtered`
+   * is `true` while a search or filter is active.
+   */
+  @Input() public emptyTemplate: TemplateRef<MmListEmptyContext> | null = null;
+
+  /**
+   * Whether a search, row filter or host filter narrows the rows right now (sorting does not),
+   * i.e. an empty list means "no results" rather than "no records yet".
+   */
+  protected get isFiltered(): boolean {
+    if (this.hasExternalFilters || this.searchValue.trim().length > 0) {
+      return true;
+    }
+    return (this.dataBindingDirective?.currentState?.filter?.filters?.length ?? 0) > 0;
+  }
+
+  protected get emptyContext(): MmListEmptyContext {
+    const filtered = this.isFiltered;
+    return { $implicit: filtered, filtered };
+  }
+
+  /**
    * Whether anything narrows or reorders the default view right now: a row
    * filter, a column sort, free-text search, or host-side filters announced
    * through {@link hasExternalFilters}. Paging is deliberately not counted —
@@ -627,6 +669,9 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
         takeUntil(this.destroy$)
       ).subscribe(loading => {
         this.isLoading.set(loading);
+        if (!loading) {
+          this.loadSettled.set(true);
+        }
         // Measure the fit-to-height page size only ONCE, when data first
         // renders (initial default → fitted). After that, page-size changes come
         // solely from the ResizeObserver (genuine viewport/density changes).

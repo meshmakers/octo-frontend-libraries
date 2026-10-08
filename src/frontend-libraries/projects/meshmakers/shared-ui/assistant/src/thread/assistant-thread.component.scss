@@ -69,20 +69,18 @@
   }
 }
 
+// Thinking indicator (AB#3444): the OctoBot replaces the pulsing dot; mm-octobot itself
+// switches to its still frame under prefers-reduced-motion.
 .streaming {
-  color: var(--theme-ai);
-  font-size: 0.5rem;
-  animation: assistant-pulse 1s ease-in-out infinite;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--theme-space-2);
+  color: var(--theme-text-secondary);
+  font-size: 0.8125rem;
 }
 
-@keyframes assistant-pulse {
-  50% { opacity: 0.3; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .streaming {
-    animation: none;
-  }
+.settled {
+  opacity: 0.85;
 }
 
 .error {

@@ -24,7 +24,8 @@ const deleteDump: MmAction<'delete-dump'> = {
 
 `MM_ACTION_ICONS` maps verbs to Kendo SVG icons: `add`, `edit`, `view`, `open`, `delete`,
 `clear`, `copy`, `duplicate`, `refresh`, `deploy`, `undeploy`, `run`, `stop`, `export`,
-`import`, `download`, `report`, `restore`. Use it instead of importing icons ad hoc.
+`import`, `download`, `report`, `restore`, `pin`, `unpin`, `merge`, `resetPassword`, `backfill`,
+`recompute`. Use it instead of importing icons ad hoc.
 
 ## `mm-row-actions`
 
@@ -127,3 +128,11 @@ throws when an icon-only button (icon, no visible text) lacks an accessible name
 `aria-labelledby`) or a tooltip (`title`; opt out with `requireTooltip: false`). Kendo widget
 internals are skipped (`includeKendoInternals: true` checks them); `ignore` takes a selector.
 `findInaccessibleIconButtons` returns the problems instead of throwing.
+
+## No OctoBot in actions (AB#3444)
+
+Buttons, row actions, toolbar actions and toasts never contain the animated OctoBot
+(`mm-octobot`). The figure belongs to a few page-level places only — empty states (once per
+page), page loading, the assistant panel, 404 / turned-off pages and onboarding. A list row,
+table cell, cockpit tile or button that repeats must not animate; this is the host's
+responsibility. See [OctoBot](octobot.md) for the placement rules.

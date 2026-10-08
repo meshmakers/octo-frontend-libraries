@@ -297,6 +297,20 @@
   color: var(--theme-text-secondary);
 }
 
+.greeting {
+  display: grid;
+  justify-items: center;
+  gap: var(--theme-space-2);
+  padding: 20px 14px 0;
+  text-align: center;
+}
+
+.greeting-text {
+  margin: 0;
+  color: var(--theme-text-primary);
+  font-weight: 600;
+}
+
 .starters {
   display: grid;
   gap: var(--theme-space-2);

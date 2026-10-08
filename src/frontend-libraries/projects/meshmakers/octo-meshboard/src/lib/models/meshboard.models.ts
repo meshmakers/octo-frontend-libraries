@@ -1104,10 +1104,14 @@ export interface AiInsightsWidgetConfig extends WidgetConfig {
  * of a configurable data source, gate every check on the viewer's roles and the tenant's CK models
  * (`COCKPIT_VIEWER_ACCESS`) and are registered with `provideCockpitWidgets()`.
  */
-export type CockpitWidgetType = 'attentionList' | 'adapterStatus' | 'ckModelState' | 'pipelineExecutions';
+export type CockpitWidgetType = 'attentionList' | 'adapterStatus' | 'ckModelState' | 'pipelineExecutions'
+  | 'tenantCount' | 'blueprintUpdates' | 'servicesHealth' | 'versionInfo';
 
 /** The cockpit widget types (e.g. to tell whether a board already shows them). */
-export const COCKPIT_WIDGET_TYPES: readonly CockpitWidgetType[] = ['attentionList', 'adapterStatus', 'ckModelState', 'pipelineExecutions'];
+export const COCKPIT_WIDGET_TYPES: readonly CockpitWidgetType[] = [
+  'attentionList', 'adapterStatus', 'ckModelState', 'pipelineExecutions',
+  'tenantCount', 'blueprintUpdates', 'servicesHealth', 'versionInfo'
+];
 
 /** True for the cockpit widget types. */
 export function isCockpitWidgetType(type: string | null | undefined): type is CockpitWidgetType {
@@ -1152,8 +1156,29 @@ export interface PipelineExecutionsWidgetConfig extends WidgetConfig, CockpitKpi
   showSparkline?: boolean;
 }
 
+/** "Tenants" (system cockpit, AB#5558) — child tenants of the current tenant. */
+export interface TenantCountWidgetConfig extends WidgetConfig, CockpitKpiWidgetOptions {
+  type: 'tenantCount';
+}
+
+/** "Blueprint updates" (system cockpit, AB#5558) — installed blueprints with a newer catalog version. */
+export interface BlueprintUpdatesWidgetConfig extends WidgetConfig, CockpitKpiWidgetOptions {
+  type: 'blueprintUpdates';
+}
+
+/** "Services healthy" (system cockpit, AB#5558) — platform services whose health check is Healthy. */
+export interface ServicesHealthWidgetConfig extends WidgetConfig, CockpitKpiWidgetOptions {
+  type: 'servicesHealth';
+}
+
+/** "Version" (system cockpit, AB#5558) — the host application's versions (`COCKPIT_VERSION_SOURCE`). */
+export interface VersionInfoWidgetConfig extends WidgetConfig, CockpitKpiWidgetOptions {
+  type: 'versionInfo';
+}
+
 /** Any cockpit KPI widget. */
-export type CockpitKpiWidgetConfig = AdapterStatusWidgetConfig | CkModelStateWidgetConfig | PipelineExecutionsWidgetConfig;
+export type CockpitKpiWidgetConfig = AdapterStatusWidgetConfig | CkModelStateWidgetConfig | PipelineExecutionsWidgetConfig
+  | TenantCountWidgetConfig | BlueprintUpdatesWidgetConfig | ServicesHealthWidgetConfig | VersionInfoWidgetConfig;
 
 /**
  * "Recent items" (AB#5558) — the viewer's recently opened pages, entities and boards, from the
@@ -1198,6 +1223,10 @@ export type AnyWidgetConfig =
   | AdapterStatusWidgetConfig
   | CkModelStateWidgetConfig
   | PipelineExecutionsWidgetConfig
+  | TenantCountWidgetConfig
+  | BlueprintUpdatesWidgetConfig
+  | ServicesHealthWidgetConfig
+  | VersionInfoWidgetConfig
   | RecentItemsWidgetConfig;
 
 // ============================================================================

@@ -122,6 +122,25 @@
     [pagerNextPage]="_messages.pagerNextPage"
     [noRecords]="_messages.noRecords"
   ></kendo-grid-messages>
+  <!-- Empty state (AB#3444): one block per list, never per row. -->
+  <ng-template kendoGridNoRecordsTemplate>
+    @if (emptyTemplate) {
+      <ng-container *ngTemplateOutlet="emptyTemplate; context: emptyContext"></ng-container>
+    } @else if (emptyState) {
+      @if (loadSettled() && !isLoading()) {
+        @if (isFiltered) {
+          <mm-empty-state class="mm-list-view-empty" variant="no-results"
+                          [heading]="emptyState.filteredTitle || _messages.noResultsTitle"
+                          [text]="emptyState.filteredText || _messages.noResultsText"></mm-empty-state>
+        } @else {
+          <mm-empty-state class="mm-list-view-empty" variant="empty"
+                          [heading]="emptyState.title" [text]="emptyState.text"></mm-empty-state>
+        }
+      }
+    } @else {
+      {{ _messages.noRecords }}
+    }
+  </ng-template>
   <ng-template kendoGridToolbarTemplate>
 
     @for (commandItem of leftToolbarActions; track commandItem.id) {

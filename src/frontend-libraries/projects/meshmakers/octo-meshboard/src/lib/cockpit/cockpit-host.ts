@@ -79,6 +79,12 @@ export type CockpitLinkTarget =
   | { kind: 'ckModels' }
   | { kind: 'tenantSettings' }
   | { kind: 'secretsReEntry' }
+  /** The tenant's child tenants (system cockpit, AB#5558). */
+  | { kind: 'tenants' }
+  /** Blueprints installed on the tenant (system cockpit, AB#5558). */
+  | { kind: 'blueprints' }
+  /** Health detail of one platform service (`identity`, `asset-repository`, `bot`, `communication-controller`). */
+  | { kind: 'serviceHealth'; service: string }
   | CockpitRouteLinkTarget;
 
 /**
@@ -177,12 +183,32 @@ export interface CockpitRecentItemsSource {
 /** The host's recent items; without it the "Recent items" widget says "Not available" and collapses. */
 export const COCKPIT_RECENT_ITEMS = new InjectionToken<CockpitRecentItemsSource>('COCKPIT_RECENT_ITEMS');
 
+/** One entry of the "Version" tile, e.g. `{ label: 'Refinery Studio', version: '3.4.120' }`. */
+export interface CockpitVersionEntry {
+  label: string;
+  version: string;
+}
+
+/**
+ * Versions the host knows (AB#5558, system cockpit): its own build and whatever else it can tell.
+ * The backend services expose no version endpoint, so the library has nothing of its own to add.
+ */
+export interface CockpitVersionSource {
+  /** Most important first: the first entry is the tile's value. */
+  entries(): CockpitVersionEntry[] | Promise<CockpitVersionEntry[]>;
+}
+
+/** The host's versions; without it the "Version" tile says "Not available" and collapses. */
+export const COCKPIT_VERSION_SOURCE = new InjectionToken<CockpitVersionSource>('COCKPIT_VERSION_SOURCE');
+
 /** The host services in one call (`providers: [...provideCockpitWidgetHost({...})]`). */
 export interface CockpitWidgetHost {
   access?: () => CockpitViewerAccess;
   links?: () => CockpitLinkResolver;
   explain?: () => CockpitExplainHandler;
   recents?: () => CockpitRecentItemsSource;
+  /** Versions for the "Version" tile (AB#5558). */
+  versions?: () => CockpitVersionSource;
   /** Translated widget texts (AB#5622), fixed or as a signal that follows the language. */
   messages?: () => CockpitWidgetMessagesSource;
 }
@@ -211,6 +237,9 @@ export function provideCockpitWidgetHost(host: CockpitWidgetHost): Provider[] {
   }
   if (host.recents) {
     providers.push({ provide: COCKPIT_RECENT_ITEMS, useFactory: host.recents });
+  }
+  if (host.versions) {
+    providers.push({ provide: COCKPIT_VERSION_SOURCE, useFactory: host.versions });
   }
   if (host.messages) {
     providers.push({ provide: COCKPIT_WIDGET_MESSAGES, useFactory: host.messages });

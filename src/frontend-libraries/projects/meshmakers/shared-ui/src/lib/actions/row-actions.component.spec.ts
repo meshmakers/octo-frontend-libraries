@@ -4,6 +4,7 @@ import {ActivatedRoute, Router, provideRouter} from '@angular/router';
 import {RowActionsComponent} from './row-actions.component';
 import {MM_ACTION_ICONS, MmAction, MmActionEvent} from './action.model';
 import {expectIconButtonsAccessible} from '../../../testing/src/public-api';
+import {MM_ROW_ACTIONS_MESSAGES, RowActionsMessages, resolveRowActionsMessages} from './row-actions.messages';
 
 @Component({
   standalone: true,
@@ -120,5 +121,71 @@ describe('RowActionsComponent', () => {
     const hostEl: HTMLElement = fixture.nativeElement.querySelector('mm-row-actions');
     expect(hostEl.getAttribute('role')).toBeNull();
     expect(hostEl.getAttribute('aria-label')).toBeNull();
+  });
+
+  describe('messages (G16)', () => {
+    const overflowActions: MmAction[] = [
+      {id: 'edit', label: 'Bearbeiten', icon: MM_ACTION_ICONS.edit},
+      {id: 'copy', label: 'Id kopieren', icon: MM_ACTION_ICONS.copy},
+      {id: 'deploy', label: 'Bereitstellen', icon: MM_ACTION_ICONS.deploy},
+      {id: 'delete', label: 'Löschen', icon: MM_ACTION_ICONS.delete, danger: true},
+    ];
+
+    it('takes app-wide translations from MM_ROW_ACTIONS_MESSAGES', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [HostComponent],
+        providers: [provideRouter([]), {
+          provide: MM_ROW_ACTIONS_MESSAGES,
+          useValue: {actionsFor: 'Aktionen für {name}', moreActionsFor: 'Weitere Aktionen für {name}'},
+        }],
+      }).compileComponents();
+      fixture = TestBed.createComponent(HostComponent);
+      host = fixture.componentInstance;
+      set(overflowActions);
+      expect(fixture.nativeElement.querySelector('mm-row-actions').getAttribute('aria-label')).toBe('Aktionen für Mesh Adapter');
+      expect(moreButton()!.getAttribute('aria-label')).toBe('Weitere Aktionen für Mesh Adapter');
+      expect(moreButton()!.getAttribute('title')).toBe('Weitere Aktionen für Mesh Adapter');
+      expectIconButtonsAccessible(fixture);
+    });
+
+    it('lets the messages input win over the token and falls back for an empty row label', async () => {
+      @Component({
+        standalone: true,
+        imports: [RowActionsComponent],
+        template: `<mm-row-actions [actions]="actions" [rowLabel]="label()" [messages]="messages" />`,
+      })
+      class InputHostComponent {
+        readonly actions = overflowActions;
+        readonly label = signal('Pool A');
+        readonly messages: Partial<RowActionsMessages> = {actionsFor: 'Zeile {name}', actions: 'Zeilenaktionen', moreActions: 'Mehr'};
+      }
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [InputHostComponent],
+        providers: [provideRouter([]), {provide: MM_ROW_ACTIONS_MESSAGES, useValue: {actionsFor: 'Token {name}'}}],
+      }).compileComponents();
+      const inputFixture = TestBed.createComponent(InputHostComponent);
+      inputFixture.detectChanges();
+      const el: HTMLElement = inputFixture.nativeElement.querySelector('mm-row-actions');
+      expect(el.getAttribute('aria-label')).toBe('Zeile Pool A');
+      // Not overridden anywhere: English default.
+      expect(inputFixture.nativeElement.querySelector('kendo-dropdownbutton button').getAttribute('aria-label'))
+        .toBe('More actions for Pool A');
+
+      inputFixture.componentInstance.label.set('  ');
+      inputFixture.detectChanges();
+      expect(el.getAttribute('aria-label')).toBe('Zeilenaktionen');
+      expect(inputFixture.nativeElement.querySelector('kendo-dropdownbutton button').getAttribute('aria-label')).toBe('Mehr');
+    });
+
+    it('resolves overrides over the English defaults, ignoring null/undefined members', () => {
+      expect(resolveRowActionsMessages(null, {actions: undefined, moreActions: 'Mehr'}, undefined)).toEqual({
+        actionsFor: 'Actions for {name}',
+        actions: 'Actions',
+        moreActionsFor: 'More actions for {name}',
+        moreActions: 'Mehr',
+      });
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { defer, from, Observable, of } from 'rxjs';
 import { catchError, map, startWith, switchMap, take } from 'rxjs/operators';
 import { CockpitContextService } from '../cockpit-context.service';
@@ -7,15 +7,22 @@ import { COCKPIT_WIDGET_MESSAGES, CockpitWidgetMessages, readCockpitMessagesSour
 import { CockpitAdapterStatesService } from '../data/cockpit-adapter-states.service';
 import { CockpitCkModelStatesService } from '../data/cockpit-ck-model-states.service';
 import { CockpitDataFlowExecutionsService } from '../data/cockpit-data-flow-executions.service';
-import { adapterKpi, ckModelKpi, CockpitKpi, executionKpi } from './cockpit-kpi';
+import { CockpitBlueprintStatusService } from '../data/cockpit-blueprint-status.service';
+import { CockpitChildTenantsService } from '../data/cockpit-child-tenants.service';
+import { CockpitServiceHealthService } from '../data/cockpit-service-health.service';
+import { COCKPIT_VERSION_SOURCE } from '../cockpit-host';
+import { adapterKpi, blueprintUpdatesKpi, ckModelKpi, CockpitKpi, executionKpi, servicesHealthKpi, tenantCountKpi, versionKpi } from './cockpit-kpi';
 
 export { COCKPIT_DATA_FLOW_LIMIT } from '../data/cockpit-data-flow-executions.service';
 
 /** What a tile shows when its query failed (details are logged, never shown). */
 export const KPI_ERROR_TEXT = 'The figure could not be loaded.';
 
-/** The cockpit KPIs. */
-export type CockpitKpiKind = 'adapterStatus' | 'ckModelState' | 'pipelineExecutions';
+/**
+ * The cockpit KPIs. The last four are the system cockpit's (AB#5558): child tenants, blueprint
+ * updates, platform service health and the host's version.
+ */
+export type CockpitKpiKind = 'adapterStatus' | 'ckModelState' | 'pipelineExecutions' | 'tenantCount' | 'blueprintUpdates' | 'servicesHealth' | 'versionInfo';
 
 /** State of one KPI widget. */
 export type CockpitKpiResult =
@@ -34,7 +41,7 @@ interface KpiGate {
   /** English reason (the default of {@link reasonMessage}). */
   reason: string;
   /** Message member of the reason (AB#5622). */
-  reasonMessage: 'kpiNeedsCommunication' | 'kpiNeedsAdminPanel';
+  reasonMessage: 'kpiNeedsCommunication' | 'kpiNeedsAdminPanel' | 'kpiNeedsTenantManagement' | 'notAvailable';
 }
 
 const COMMUNICATION_GATE: KpiGate = {
@@ -48,7 +55,14 @@ const COMMUNICATION_GATE: KpiGate = {
 export const COCKPIT_KPI_GATES: Record<CockpitKpiKind, KpiGate> = {
   adapterStatus: COMMUNICATION_GATE,
   pipelineExecutions: COMMUNICATION_GATE,
-  ckModelState: { roles: [COCKPIT_ROLES.AdminPanelManagement], models: [], reason: 'Needs the AdminPanelManagement role.', reasonMessage: 'kpiNeedsAdminPanel' }
+  ckModelState: { roles: [COCKPIT_ROLES.AdminPanelManagement], models: [], reason: 'Needs the AdminPanelManagement role.', reasonMessage: 'kpiNeedsAdminPanel' },
+  // Same role as the Child Tenants page.
+  tenantCount: { roles: [COCKPIT_ROLES.TenantManagement], models: [], reason: 'Needs the TenantManagement role.', reasonMessage: 'kpiNeedsTenantManagement' },
+  // Same role as the Blueprints pages.
+  blueprintUpdates: { roles: [COCKPIT_ROLES.AdminPanelManagement], models: [], reason: 'Needs the AdminPanelManagement role.', reasonMessage: 'kpiNeedsAdminPanel' },
+  // The health endpoints and the health detail page are open to every signed-in user.
+  servicesHealth: { roles: [], models: [], reason: '', reasonMessage: 'notAvailable' },
+  versionInfo: { roles: [], models: [], reason: '', reasonMessage: 'notAvailable' }
 };
 
 /**
@@ -61,6 +75,9 @@ export class CockpitKpiService {
   private readonly adapterStates = inject(CockpitAdapterStatesService);
   private readonly ckModelStates = inject(CockpitCkModelStatesService);
   private readonly dataFlowExecutions = inject(CockpitDataFlowExecutionsService);
+  /** The system cockpit's data services are resolved on first use, so hosts without them need no providers. */
+  private readonly injector = inject(Injector);
+  private readonly versions = inject(COCKPIT_VERSION_SOURCE, { optional: true });
   private readonly messagesSource = inject(COCKPIT_WIDGET_MESSAGES, { optional: true });
 
   /**
@@ -70,7 +87,7 @@ export class CockpitKpiService {
   kpi(kind: CockpitKpiKind, messages?: CockpitWidgetMessages): Observable<CockpitKpiResult> {
     const gate = COCKPIT_KPI_GATES[kind];
     return defer(() => {
-      const texts = messages ?? resolveCockpitWidgetMessages(readCockpitMessagesSource(this.messagesSource));
+      const texts = resolveCockpitWidgetMessages(messages ?? readCockpitMessagesSource(this.messagesSource));
       return from(this.resolve(gate)).pipe(
         switchMap(access => {
           if (access.kind === 'noTenant') {
@@ -78,6 +95,10 @@ export class CockpitKpiService {
           }
           if (access.kind === 'denied') {
             return of<CockpitKpiResult>({ state: 'unavailable', reason: texts[gate.reasonMessage], forBuilder: access.builder });
+          }
+          if (kind === 'versionInfo' && !this.versions) {
+            // Nothing to show without the host's versions: a quiet tile that collapses for non-builders.
+            return of<CockpitKpiResult>({ state: 'unavailable', reason: texts.notAvailable, forBuilder: false });
           }
           return this.load(kind, access.tenantId, texts).pipe(take(1), map((kpi): CockpitKpiResult => ({ state: 'ready', kpi })));
         }),
@@ -111,6 +132,14 @@ export class CockpitKpiService {
         return this.ckModelStates.counts(tenantId).pipe(map(counts => ckModelKpi(counts, texts)));
       case 'pipelineExecutions':
         return this.dataFlowExecutions.executions(tenantId).pipe(map(({ flows, totalCount }) => executionKpi(flows, totalCount, texts)));
+      case 'tenantCount':
+        return this.injector.get(CockpitChildTenantsService).childTenants().pipe(map(tenants => tenantCountKpi(tenants, texts)));
+      case 'blueprintUpdates':
+        return this.injector.get(CockpitBlueprintStatusService).status(tenantId).pipe(map(status => blueprintUpdatesKpi(status, texts)));
+      case 'servicesHealth':
+        return this.injector.get(CockpitServiceHealthService).services().pipe(map(services => servicesHealthKpi(services, texts)));
+      case 'versionInfo':
+        return defer(() => from(Promise.resolve(this.versions?.entries() ?? []))).pipe(map(entries => versionKpi(entries, texts)));
     }
   }
 }

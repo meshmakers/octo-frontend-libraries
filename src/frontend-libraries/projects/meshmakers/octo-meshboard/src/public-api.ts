@@ -209,6 +209,16 @@ export {
 } from './lib/cockpit/attention/providers/failed-executions.provider';
 export type { FailedExecutionsAttentionOptions } from './lib/cockpit/attention/providers/failed-executions.provider';
 export { FeaturesNotInstalledAttentionProvider, enabledButNotInstalled, isServiceConfigured } from './lib/cockpit/attention/providers/features-not-installed.provider';
+export { ServicesHealthAttentionProvider } from './lib/cockpit/attention/providers/services-health.provider';
+export { BlueprintUpdatesAttentionProvider } from './lib/cockpit/attention/providers/blueprint-updates.provider';
+export {
+  CockpitBlueprintStatusService, COCKPIT_BLUEPRINT_CATALOG_LIMIT, SERVICE_MANAGED_BLUEPRINT_PREFIX, compareBlueprintVersions, splitBlueprintId, toBlueprintStatus
+} from './lib/cockpit/data/cockpit-blueprint-status.service';
+export type { CockpitBlueprintStatus, CockpitBlueprintUpdate } from './lib/cockpit/data/cockpit-blueprint-status.service';
+export { CockpitChildTenantsService, COCKPIT_CHILD_TENANT_IDS } from './lib/cockpit/data/cockpit-child-tenants.service';
+export type { CockpitChildTenants } from './lib/cockpit/data/cockpit-child-tenants.service';
+export { CockpitServiceHealthService, COCKPIT_SERVICE_NAMES, toServiceHealthStatus } from './lib/cockpit/data/cockpit-service-health.service';
+export type { CockpitServiceHealth, CockpitServiceHealthStatus, CockpitServiceKey } from './lib/cockpit/data/cockpit-service-health.service';
 export {
   CockpitAdapterStatesService, COCKPIT_ADAPTER_LIMIT, ADAPTER_OFFLINE_GRACE_MS, adaptersInError, adaptersOffline
 } from './lib/cockpit/data/cockpit-adapter-states.service';

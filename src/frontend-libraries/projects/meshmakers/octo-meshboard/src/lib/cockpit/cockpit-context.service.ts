@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { CkModelService, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
+import { CkModelService, CONFIGURATION_SERVICE, TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import {
   COCKPIT_EXPLAIN_HANDLER,
   COCKPIT_LINK_RESOLVER,
@@ -23,6 +23,7 @@ export class CockpitContextService {
   private readonly links = inject(COCKPIT_LINK_RESOLVER, { optional: true });
   private readonly explainHandler = inject(COCKPIT_EXPLAIN_HANDLER, { optional: true });
   private readonly ckModelService = inject(CkModelService);
+  private readonly configuration = inject(CONFIGURATION_SERVICE, { optional: true });
 
   /** The current tenant, or `null` when the host provides none. */
   async tenantId(): Promise<string | null> {
@@ -50,6 +51,21 @@ export class CockpitContextService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Whether `tenantId` is the installation's system tenant (`systemTenantId` of the platform
+   * configuration, `octosystem` when the host has none). Checks about the whole installation
+   * (service health, AB#5558) run only there.
+   */
+  isSystemTenant(tenantId: string): boolean {
+    let systemTenantId: string | undefined;
+    try {
+      systemTenantId = this.configuration?.config?.systemTenantId;
+    } catch {
+      systemTenantId = undefined;
+    }
+    return tenantId.toLowerCase() === (systemTenantId || 'octosystem').toLowerCase();
   }
 
   /** Whether the viewer is a builder (`CockpitViewerAccess.isBuilder`); fails closed. */
