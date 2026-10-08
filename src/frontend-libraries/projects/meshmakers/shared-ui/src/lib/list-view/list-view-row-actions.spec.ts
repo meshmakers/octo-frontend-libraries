@@ -272,4 +272,10 @@ describe('resolveListRowLabel (AB#5623)', () => {
     expect(resolveListRowLabel({ name: { a: 1 }, rtId: 'x' }, 'name')).toBe('x');
     expect(resolveListRowLabel({ rtId: 'x' }, 'name', [])).toBe('');
   });
+
+  it('never names a row after inherited Object members (constructor, __proto__, toString)', () => {
+    expect(resolveListRowLabel({ rtId: 'x' }, 'constructor')).toBe('x');
+    expect(resolveListRowLabel({ rtId: 'x' }, '__proto__')).toBe('x');
+    expect(resolveListRowLabel({ contact: {}, rtId: 'x' }, 'contact.toString')).toBe('x');
+  });
 });

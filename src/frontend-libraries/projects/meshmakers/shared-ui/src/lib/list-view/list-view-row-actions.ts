@@ -66,7 +66,7 @@ export function resolveListRowLabel(
   const record = (row ?? {}) as Record<string, unknown>;
   for (const key of field ? [field, ...fallbacks] : fallbacks) {
     const value = readRowPath(record, key);
-    if (value !== null && value !== undefined && typeof value !== 'object' && String(value).trim() !== '') {
+    if (value !== null && value !== undefined && typeof value !== 'object' && typeof value !== 'function' && String(value).trim() !== '') {
       return String(value);
     }
   }
