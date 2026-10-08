@@ -323,13 +323,13 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | Method | Description |
 |--------|-------------|
 | `enableCommunication(tenantId)` | Enable Communication feature (AB#4215) — `POST {communicationServices}{tenantId}/v1/communication/enable` |
-| `disableCommunication(tenantId)` | Disable Communication feature (reversible flag flip; refused with 409 while pools or workloads are still deployed, AB#4255) — `POST {communicationServices}{tenantId}/v1/communication/disable` |
+| `disableCommunication(tenantId)` | Disable Communication feature (reversible flag flip; refused with 409 while deployment sites or workloads are still deployed, AB#4255) — `POST {communicationServices}{tenantId}/v1/communication/disable` |
 | `deployTrigger(tenantId)` | Deploy all data pipeline triggers |
 | `deployAdapterConfigurationUpdate(tenantId, adapterRtId, adapterCkTypeId)` | Deploy adapter config update |
-| `deployAllAdaptersOfPool(tenantId, poolRtId)` | Deploy all adapters of a pool |
-| `undeployAllAdaptersOfPool(tenantId, poolRtId)` | Undeploy all adapters of a pool |
-| `deployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Deploy single adapter |
-| `undeployAdapter(tenantId, poolRtId, adapterRtId, adapterCkTypeId)` | Undeploy single adapter |
+| `deployPool(tenantId, poolRtId)` | Deploy a deployment site (`System.Communication/DeploymentSite`, formerly `Pool`) — `POST {communicationServices}{tenantId}/v1/deploymentsite/deploy?deploymentSiteRtId=…` (System.Communication 4.x, AB#5842; method name kept) |
+| `undeployPool(tenantId, poolRtId)` | Undeploy a deployment site — `POST …/v1/deploymentsite/undeploy?deploymentSiteRtId=…` |
+| `deployWorkload(tenantId, workloadRtId)` | Deploy one workload (Adapter, Application, AdapterPool) on its hosting site — `POST …/v1/deploymentsite/workloads/deploy?workloadRtId=…` |
+| `undeployWorkload(tenantId, workloadRtId)` | Undeploy one workload — `POST …/v1/deploymentsite/workloads/undeploy?workloadRtId=…` |
 | `executePipeline(tenantId, pipelineRtId)` | Execute pipeline manually |
 | `deployPipelineDefinition(tenantId, adapterRtId, adapterCkTypeId, pipelineRtId, pipelineCkTypeId, definition)` | Deploy pipeline definition (NB: force-enables debug) |
 | `setPipelineDebugging(tenantId, pipelineRtId, enabled)` | Toggle pipeline debug capture via `PATCH /pipeline/{id}/debug` — persists the flag exactly + re-pushes the adapter without force-enabling (use this, not a redeploy, to enable/disable debug) |

@@ -124,30 +124,82 @@ describe('CommunicationService', () => {
     });
   });
 
+  // These URL and query-parameter literals are the CONTROLLER's contract (DeploymentSiteController
+  // on System.Communication 4.x), not our naming preference: the method names keep "Pool" for
+  // source compatibility, the wire does not. AB#5271 shipped a 404 because this suite asserted the
+  // old spelling and stayed green — check a change here against the controller's [Route] and
+  // [FromQuery] names, never against what reads nicer (AB#5842).
   describe('deployPool', () => {
-    it('should call the correct endpoint with poolRtId param', async () => {
-      const poolRtId = 'pool-123';
+    it('posts to the deployment-site route with deploymentSiteRtId', async () => {
+      const siteRtId = 'site-123';
 
-      const promise = service.deployPool(tenantId, poolRtId);
+      const promise = service.deployPool(tenantId, siteRtId);
 
-      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/deploy` &&
-                request.params.get('poolRtId') === poolRtId);
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/deploy`);
       expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('deploymentSiteRtId')).toBe(siteRtId);
+      expect(req.request.params.has('poolRtId')).toBe(false);
+      expect(req.request.params.keys()).toEqual(['deploymentSiteRtId']);
+      req.flush(null);
+
+      await promise;
+    });
+
+    it('does not call the server without a communication services URL', async () => {
+      (mockConfigService as unknown as { config: AddInConfiguration }).config = { ...mockConfig, communicationServices: '' };
+
+      await service.deployPool(tenantId, 'site-123');
+
+      httpMock.expectNone(() => true);
+    });
+  });
+
+  describe('undeployPool', () => {
+    it('posts to the deployment-site route with deploymentSiteRtId', async () => {
+      const siteRtId = 'site-123';
+
+      const promise = service.undeployPool(tenantId, siteRtId);
+
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/undeploy`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('deploymentSiteRtId')).toBe(siteRtId);
+      expect(req.request.params.keys()).toEqual(['deploymentSiteRtId']);
       req.flush(null);
 
       await promise;
     });
   });
 
-  describe('undeployPool', () => {
-    it('should call the correct endpoint with poolRtId param', async () => {
-      const poolRtId = 'pool-123';
+  describe('deployWorkload', () => {
+    it('posts to the deployment-site workload route with workloadRtId', async () => {
+      const workloadRtId = 'workload-123';
 
-      const promise = service.undeployPool(tenantId, poolRtId);
+      const promise = service.deployWorkload(tenantId, workloadRtId);
 
-      const req = httpMock.expectOne(request => request.url === `${mockConfig.communicationServices}${tenantId}/v1/pool/undeploy` &&
-                request.params.get('poolRtId') === poolRtId);
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/workloads/deploy`);
       expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('workloadRtId')).toBe(workloadRtId);
+      expect(req.request.params.keys()).toEqual(['workloadRtId']);
+      req.flush(null);
+
+      await promise;
+    });
+  });
+
+  describe('undeployWorkload', () => {
+    it('posts to the deployment-site workload route with workloadRtId', async () => {
+      const workloadRtId = 'workload-123';
+
+      const promise = service.undeployWorkload(tenantId, workloadRtId);
+
+      const req = httpMock.expectOne(request =>
+        request.url === `${mockConfig.communicationServices}${tenantId}/v1/deploymentsite/workloads/undeploy`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.params.get('workloadRtId')).toBe(workloadRtId);
+      expect(req.request.params.keys()).toEqual(['workloadRtId']);
       req.flush(null);
 
       await promise;
