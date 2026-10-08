@@ -34339,7 +34339,7 @@ export type SystemCommunicationAdapter_PipelineServiceAccountOfUnionEdgeDto = {
 export type SystemCommunicationAiConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationAiConfiguration';
   aiModel: Scalars['String']['output'];
-  apiKey: OctoSecretStateDto;
+  apiKey: Scalars['String']['output'];
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
   ckTypeId: Scalars['RtCkTypeId']['output'];
   configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
@@ -36437,7 +36437,7 @@ export enum SystemCommunicationDeploymentStateDto {
 export type SystemCommunicationDiscordConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationDiscordConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
-  botToken: OctoSecretStateDto;
+  botToken: Scalars['String']['output'];
   ckTypeId: Scalars['RtCkTypeId']['output'];
   configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
   constructionKitType?: Maybe<CkTypeDto>;
@@ -36670,7 +36670,7 @@ export type SystemCommunicationEMailReceiverConfigurationDto = SystemConfigurati
   isSslEnabled: Scalars['Boolean']['output'];
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  password: OctoSecretStateDto;
+  password: Scalars['String']['output'];
   port: Scalars['Int']['output'];
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -36902,7 +36902,7 @@ export type SystemCommunicationEMailSenderConfigurationDto = SystemConfiguration
   isSslEnabled: Scalars['Boolean']['output'];
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  password: OctoSecretStateDto;
+  password: Scalars['String']['output'];
   port: Scalars['Int']['output'];
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -37635,13 +37635,13 @@ export type SystemCommunicationFinApiConfigurationDto = SystemConfigurationInter
   baseUrl: Scalars['String']['output'];
   ckTypeId: Scalars['RtCkTypeId']['output'];
   clientId: Scalars['String']['output'];
-  clientSecret: OctoSecretStateDto;
+  clientSecret: Scalars['String']['output'];
   configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
   constructionKitType?: Maybe<CkTypeDto>;
   isSandbox?: Maybe<Scalars['Boolean']['output']>;
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  password: OctoSecretStateDto;
+  password: Scalars['String']['output'];
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
   rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -37864,7 +37864,7 @@ export type SystemCommunicationFinApiConfigurationUpdateMessageDto = {
 /** Runtime entities of construction kit type 'System.Communication-4.5.0/GrafanaConfiguration-1' */
 export type SystemCommunicationGrafanaConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationGrafanaConfiguration';
-  adminPassword: OctoSecretStateDto;
+  adminPassword: Scalars['String']['output'];
   adminUser: Scalars['String']['output'];
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
   ckTypeId: Scalars['RtCkTypeId']['output'];
@@ -38111,7 +38111,7 @@ export type SystemCommunicationHelmRepositoryConfigurationDto = SystemConfigurat
   helmRepositoryUsedBy?: Maybe<SystemCommunicationDeployableWorkload_HelmRepositoryUsedByUnionConnectionDto>;
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  password?: Maybe<OctoSecretStateDto>;
+  password?: Maybe<Scalars['String']['output']>;
   purpose?: Maybe<SystemCommunicationHelmRepositoryPurposeDto>;
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
@@ -38687,7 +38687,7 @@ export type SystemCommunicationLoxoneConfigurationDto = SystemConfigurationInter
   mappingTargets?: Maybe<Array<SystemCommunicationMappingTargetDto>>;
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  password: OctoSecretStateDto;
+  password: Scalars['String']['output'];
   pollIntervalSeconds?: Maybe<Scalars['Int']['output']>;
   port: Scalars['Int']['output'];
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
@@ -38932,7 +38932,7 @@ export type SystemCommunicationMicrosoftGraphConfigurationDto = SystemConfigurat
   azureTenantId: Scalars['String']['output'];
   ckTypeId: Scalars['RtCkTypeId']['output'];
   clientId: Scalars['String']['output'];
-  clientSecret: OctoSecretStateDto;
+  clientSecret: Scalars['String']['output'];
   configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
   constructionKitType?: Maybe<CkTypeDto>;
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
@@ -40704,7 +40704,7 @@ export type SystemCommunicationSapConfigurationDto = SystemConfigurationInterfac
   language: Scalars['String']['output'];
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
-  password: OctoSecretStateDto;
+  password: Scalars['String']['output'];
   programId?: Maybe<Scalars['String']['output']>;
   registrationCount?: Maybe<Scalars['Int']['output']>;
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
@@ -40943,7 +40943,7 @@ export type SystemCommunicationServiceAccountConfigurationDto = SystemConfigurat
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
   ckTypeId: Scalars['RtCkTypeId']['output'];
   clientId: Scalars['String']['output'];
-  clientSecret?: Maybe<OctoSecretStateDto>;
+  clientSecret?: Maybe<Scalars['String']['output']>;
   configuredBy?: Maybe<SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnectionDto>;
   constructionKitType?: Maybe<CkTypeDto>;
   issuerUri?: Maybe<Scalars['String']['output']>;
@@ -41269,10 +41269,10 @@ export type SystemCommunicationSftpConfigurationDto = SystemConfigurationInterfa
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   maxConcurrentConnections?: Maybe<Scalars['Int']['output']>;
-  password?: Maybe<OctoSecretStateDto>;
+  password?: Maybe<Scalars['String']['output']>;
   port: Scalars['Int']['output'];
-  privateKey?: Maybe<OctoSecretStateDto>;
-  privateKeyPassphrase?: Maybe<OctoSecretStateDto>;
+  privateKey?: Maybe<Scalars['String']['output']>;
+  privateKeyPassphrase?: Maybe<Scalars['String']['output']>;
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
   rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -42042,21 +42042,19 @@ export type SystemCommunicationValueOverrideDto = {
   constructionKitType?: Maybe<CkTypeDto>;
   isSecret: Scalars['Boolean']['output'];
   path: Scalars['String']['output'];
-  secretValue?: Maybe<OctoSecretStateDto>;
-  value?: Maybe<Scalars['String']['output']>;
+  value: Scalars['String']['output'];
 };
 
 export type SystemCommunicationValueOverrideInputDto = {
   isSecret?: InputMaybe<Scalars['Boolean']['input']>;
   path?: InputMaybe<Scalars['String']['input']>;
-  secretValue?: InputMaybe<Scalars['String']['input']>;
   value?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Runtime entities of construction kit type 'System.Communication-4.5.0/WeClappConfiguration-1' */
 export type SystemCommunicationWeClappConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemCommunicationWeClappConfiguration';
-  apiKey: OctoSecretStateDto;
+  apiKey: Scalars['String']['output'];
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
   baseUrl: Scalars['String']['output'];
   ckTypeId: Scalars['RtCkTypeId']['output'];

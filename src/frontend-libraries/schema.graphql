@@ -57309,7 +57309,7 @@ Runtime entities of construction kit type 'System.Communication-4.5.0/AiConfigur
 """
 type SystemCommunicationAiConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   aiModel: String!
-  apiKey: OctoSecretState!
+  apiKey: String!
   associations(
     """Only return edges after the specified cursor."""
     after: String
@@ -60963,7 +60963,7 @@ type SystemCommunicationDiscordConfiguration implements SystemConfigurationInter
     """Sort order for items"""
     sortOrder: [Sort]
   ): RtEntityGenericDtoConnection
-  botToken: OctoSecretState!
+  botToken: String!
   ckTypeId: RtCkTypeId!
   configuredBy(
     """Only return edges after the specified cursor."""
@@ -61464,7 +61464,7 @@ type SystemCommunicationEMailReceiverConfiguration implements SystemConfiguratio
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
-  password: OctoSecretState!
+  password: String!
   port: Int!
   relatesFrom(
     """Only return edges after the specified cursor."""
@@ -61865,7 +61865,7 @@ type SystemCommunicationEMailSenderConfiguration implements SystemConfigurationI
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
-  password: OctoSecretState!
+  password: String!
   port: Int!
   relatesFrom(
     """Only return edges after the specified cursor."""
@@ -63004,7 +63004,7 @@ type SystemCommunicationFinApiConfiguration implements SystemConfigurationInterf
   baseUrl: String!
   ckTypeId: RtCkTypeId!
   clientId: String!
-  clientSecret: OctoSecretState!
+  clientSecret: String!
   configuredBy(
     """Only return edges after the specified cursor."""
     after: String
@@ -63109,7 +63109,7 @@ type SystemCommunicationFinApiConfiguration implements SystemConfigurationInterf
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
-  password: OctoSecretState!
+  password: String!
   relatesFrom(
     """Only return edges after the specified cursor."""
     after: String
@@ -63364,7 +63364,7 @@ type SystemCommunicationFinApiConfigurationUpdateMessage {
 Runtime entities of construction kit type 'System.Communication-4.5.0/GrafanaConfiguration-1'
 """
 type SystemCommunicationGrafanaConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
-  adminPassword: OctoSecretState!
+  adminPassword: String!
   adminUser: String!
   associations(
     """Only return edges after the specified cursor."""
@@ -63950,7 +63950,7 @@ type SystemCommunicationHelmRepositoryConfiguration implements SystemConfigurati
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
-  password: OctoSecretState
+  password: String
   purpose: SystemCommunicationHelmRepositoryPurpose
   relatesFrom(
     """Only return edges after the specified cursor."""
@@ -64879,7 +64879,7 @@ type SystemCommunicationLoxoneConfiguration implements SystemConfigurationInterf
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
-  password: OctoSecretState!
+  password: String!
   pollIntervalSeconds: Int
   port: Int!
   relatesFrom(
@@ -65193,7 +65193,7 @@ type SystemCommunicationMicrosoftGraphConfiguration implements SystemConfigurati
   azureTenantId: String!
   ckTypeId: RtCkTypeId!
   clientId: String!
-  clientSecret: OctoSecretState!
+  clientSecret: String!
   configuredBy(
     """Only return edges after the specified cursor."""
     after: String
@@ -68227,7 +68227,7 @@ type SystemCommunicationSapConfiguration implements SystemConfigurationInterface
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
-  password: OctoSecretState!
+  password: String!
   programId: String
   registrationCount: Int
   relatesFrom(
@@ -68532,7 +68532,7 @@ type SystemCommunicationServiceAccountConfiguration implements SystemConfigurati
   ): RtEntityGenericDtoConnection
   ckTypeId: RtCkTypeId!
   clientId: String!
-  clientSecret: OctoSecretState
+  clientSecret: String
   configuredBy(
     """Only return edges after the specified cursor."""
     after: String
@@ -69192,10 +69192,10 @@ type SystemCommunicationSftpConfiguration implements SystemConfigurationInterfac
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
   maxConcurrentConnections: Int
-  password: OctoSecretState
+  password: String
   port: Int!
-  privateKey: OctoSecretState
-  privateKeyPassphrase: OctoSecretState
+  privateKey: String
+  privateKeyPassphrase: String
   relatesFrom(
     """Only return edges after the specified cursor."""
     after: String
@@ -70345,14 +70345,12 @@ type SystemCommunicationValueOverride {
   constructionKitType: CkType
   isSecret: Boolean!
   path: String!
-  secretValue: OctoSecretState
-  value: String
+  value: String!
 }
 
 input SystemCommunicationValueOverrideInput {
   isSecret: Boolean
   path: String
-  secretValue: String
   value: String
 }
 
@@ -70360,7 +70358,7 @@ input SystemCommunicationValueOverrideInput {
 Runtime entities of construction kit type 'System.Communication-4.5.0/WeClappConfiguration-1'
 """
 type SystemCommunicationWeClappConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
-  apiKey: OctoSecretState!
+  apiKey: String!
   associations(
     """Only return edges after the specified cursor."""
     after: String
