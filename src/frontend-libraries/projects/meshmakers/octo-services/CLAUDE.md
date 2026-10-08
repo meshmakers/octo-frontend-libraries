@@ -316,6 +316,30 @@ High-level job management with progress UI.
 | `downloadJobResult(tenantId, jobId, fileName)` | Download and save job result |
 | `waitForJob(jobId, title, operation)` | Wait for job with progress dialog |
 
+### FileDownloadService
+
+Authenticated browser downloads (AB#6179, epic AB#6171 decision D9). Fetches through `HttpClient`, so the
+host's `authorizeInterceptor` attaches the bearer (it covers every URL under the configured service URIs,
+e.g. `config.assetServices`), then saves the `Blob` through a temporary anchor. Never `window.open(rawUrl)`:
+a new tab carries no token and the asset repository answers 403 (AB#5268), and popup blockers swallow it.
+
+| Member | Description |
+|--------|-------------|
+| `downloadBinary(ref, { tenantId?, fallbackFileName? })` | Download a `BinaryReference` (`BINARY_LINKED` value / `LargeBinaryInfo`). Uses `downloadUri`, else builds `{assetServices}{tenant}/v1/largeBinaries?largeBinaryId={binaryId}` (tenant from `TENANT_ID_PROVIDER` unless given). Throws `BinaryDownloadUnavailableError` when no URL can be built. Owner-agnostic: no lookup of the owning CK type. |
+| `downloadUrl(url, fallbackFileName?, contentType?)` | Download any authenticated URL |
+| `fetchBlob(url)` | `HttpResponse<Blob>` for previews |
+| `saveBlob(blob, fileName)` | Hand a blob to the browser as a download |
+| `buildLargeBinaryUri(binaryId, tenantId?)` | The asset repository download URL, or `null` |
+| `parseContentDispositionFileName(header)` (function) | RFC 6266/5987 file name, `filename*` wins |
+
+File name order: `Content-Disposition` (only visible cross-origin when the server lists it in
+`Access-Control-Expose-Headers`) → the reference's stored `filename` → `fallbackFileName` → `download`.
+A response typed `application/octet-stream` is re-typed with the stored `contentType`.
+
+Note the two value shapes: typed GraphQL fields (`content { … downloadUri }`) carry `downloadUri`; the generic
+`attributes { value }` projection serialises the stored `EntityBinaryInfo` as `{ binaryId, filename,
+contentType, size }` without a link — hence the `binaryId` fallback.
+
 ### CommunicationService
 
 Manages adapter deployment, pipeline execution, and pipeline debugging.

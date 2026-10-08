@@ -13,6 +13,7 @@ Angular library providing services for interacting with OctoMesh backend APIs. I
   - [IdentityService](#identityservice)
   - [BotService](#botservice)
   - [JobManagementService](#jobmanagementservice)
+  - [FileDownloadService](#filedownloadservice)
   - [CommunicationService](#communicationservice)
   - [TusUploadService](#tusuploadservice)
 - [GraphQL Services](#graphql-services)
@@ -498,6 +499,32 @@ export class ExportComponent {
 | `downloadJobResult(tenantId, jobId, fileName)` | `tenantId: string, jobId: string, fileName: string` | `Promise<void>` | Download and save file |
 
 ---
+
+### FileDownloadService
+
+Authenticated file downloads with the user's bearer token (AB#6179). Use it instead of
+`window.open(downloadUri)`, which sends no token (the asset repository answers 403).
+
+```typescript
+import { FileDownloadService, BinaryDownloadUnavailableError } from '@meshmakers/octo-services';
+
+const downloads = inject(FileDownloadService);
+
+// A BINARY_LINKED attribute value: { binaryId, filename, contentType, size, downloadUri? }
+try {
+  await downloads.downloadBinary(attributeValue);
+} catch (e) {
+  if (e instanceof BinaryDownloadUnavailableError) { /* no binaryId/downloadUri or no tenant */ }
+  else { /* HttpErrorResponse: 403/404/... */ }
+}
+
+// Any authenticated URL
+await downloads.downloadUrl(url, 'fallback-name.pdf');
+```
+
+The bearer comes from `authorizeInterceptor` (register it with `provideHttpClient(withInterceptors([authorizeInterceptor]))`).
+The file name is taken from `Content-Disposition` when present, else from the reference's `filename`.
+Building a URL from `binaryId` needs `CONFIGURATION_SERVICE` (`assetServices`) and `TENANT_ID_PROVIDER`.
 
 ### CommunicationService
 
