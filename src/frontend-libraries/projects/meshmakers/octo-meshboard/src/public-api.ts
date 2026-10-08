@@ -181,6 +181,9 @@ export type { MeshBoardOptions, WidgetRegistration, TenantIdProvider } from './l
 // Host translations of the widget texts (AB#5622)
 export { MESHBOARD_MESSAGES, DEFAULT_MESHBOARD_MESSAGES, resolveMeshBoardMessages } from './lib/utils/meshboard-messages';
 export type { MeshBoardMessages, MeshBoardMessagesSource } from './lib/utils/meshboard-messages';
+// Host translation of enum values in tables and chart categories (AB#5622)
+export { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from './lib/utils/meshboard-labels';
+export type { MeshBoardLabelKind, MeshBoardLabelRequest, MeshBoardLabelResolver } from './lib/utils/meshboard-labels';
 
 // Entity Selector Components
 export { EntitySelectorEditorComponent } from './lib/components/entity-selector-editor/entity-selector-editor.component';

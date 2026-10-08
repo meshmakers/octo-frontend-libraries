@@ -13,6 +13,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
 import { categoryStatus, humanizeCategory, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
 import { injectChartTheme } from '../../utils/chart-theme';
+import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
 
 /**
  * Data item for the pie chart
@@ -163,6 +164,8 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   private readonly dataService = inject(MeshBoardDataService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+  /** Host translation of category names (`MESHBOARD_LABEL_RESOLVER`, AB#5622): slices, legend and tooltips. */
+  private readonly labelResolver = inject(MESHBOARD_LABEL_RESOLVER, { optional: true });
 
   @Input() config!: PieChartWidgetConfig;
 
@@ -248,10 +251,26 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     this.resizeObserver?.disconnect();
   }
 
-  /** Human label and status colour for a raw category value (exposed for tests). */
+  /**
+   * Human label and status colour for a raw category value (exposed for tests). The label is the
+   * host resolver's text (AB#5622), else the humanized category; the colour still follows the raw value.
+   */
   toItem(rawCategory: string, value: number): ChartDataItem {
     const status = categoryStatus(rawCategory);
-    return { category: humanizeCategory(rawCategory), value, ...(status ? { color: statusColor(status) } : {}) };
+    return { category: this.categoryLabel(rawCategory), value, ...(status ? { color: statusColor(status) } : {}) };
+  }
+
+  /** Display name of a raw category: the host label resolver, else `humanizeCategory`. */
+  private categoryLabel(rawCategory: string): string {
+    const defaultText = humanizeCategory(rawCategory);
+    if (!this.labelResolver) {
+      return defaultText;
+    }
+    const dataSource = this.config?.dataSource;
+    const attribute = dataSource?.type === 'constructionKitQuery'
+      ? (dataSource as ConstructionKitQueryDataSource).groupBy ?? this.config?.categoryField ?? ''
+      : this.config?.categoryField ?? '';
+    return resolveMeshBoardLabel(this.labelResolver, { kind: 'chartCategory', attribute, value: rawCategory, defaultText });
   }
 
   private readonly _labelSettings = signal<{ visible: boolean; content: (e: { category: string; value: number }) => string }>({

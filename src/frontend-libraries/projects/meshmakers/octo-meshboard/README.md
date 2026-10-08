@@ -292,6 +292,15 @@ providers: [
 
 `tableNotConfigured` translates the placeholder of an unconfigured table.
 
+**Enum labels (AB#5622).** `MESHBOARD_LABEL_RESOLVER` (same pattern as the entity forms'
+`ENTITY_FORM_LABEL_RESOLVER`) translates enum values: `(request) => string | null | undefined`
+with `request = { kind: 'tableCell' | 'chartCategory', ckTypeId?, attribute, value, valueType?,
+defaultText }`; `null` / `undefined` / `''` keep `defaultText` (today's text), a throwing resolver
+is logged once and ignored. Tables offer string cells of text columns (persistent-query columns
+only when their value type is `ENUM`); pie / donut charts offer every category — the resolved text
+is the slice name in data labels, legend and tooltips, the status colour still follows the raw
+value. A resolver that reads a signal re-labels the charts when it changes.
+
 ### Pie Chart Widget
 Displays data as pie or donut chart.
 

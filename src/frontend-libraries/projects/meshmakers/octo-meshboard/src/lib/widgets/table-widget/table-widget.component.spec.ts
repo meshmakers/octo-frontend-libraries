@@ -72,3 +72,51 @@ describe('TableWidgetComponent — host messages (AB#5622)', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Tabelle nicht konfiguriert');
   });
 });
+
+describe('TableWidgetComponent — enum labels (AB#5622)', () => {
+  async function create(config: Partial<TableWidgetConfig>, resolver?: (r: unknown) => string | null) {
+    const { MESHBOARD_LABEL_RESOLVER } = await import('../../utils/meshboard-labels');
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MeshBoardStateService, useValue: { timeZoneMode: signal('local') } },
+        ...(resolver ? [{ provide: MESHBOARD_LABEL_RESOLVER, useValue: resolver }] : [])
+      ]
+    });
+    const cmp = TestBed.runInInjectionContext(() => new TableWidgetComponent());
+    cmp.config = {
+      id: 'w1', type: 'table', title: 'Test', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: { type: 'runtimeEntity', ckTypeId: 'Shop/Invoice' },
+      columns: [],
+      ...config
+    } as TableWidgetConfig;
+    return cmp;
+  }
+
+  it('leaves cell texts unchanged without a resolver', async () => {
+    const cmp = await create({ columns: [{ field: 'state', title: 'State' }] });
+    expect(cmp.listViewColumns()[0].formatter!('PAID', {})).toBe('PAID');
+  });
+
+  it('translates string cells of text columns through the host resolver', async () => {
+    const resolver = vi.fn((r: unknown) => (r as { value: string }).value === 'PAID' ? 'Bezahlt' : null);
+    const cmp = await create({ columns: [{ field: 'state', title: 'State' }, { field: 'total', title: 'Total', dataType: 'numeric' }] }, resolver);
+    const [state, total] = cmp.listViewColumns();
+    expect(state.formatter!('PAID', {})).toBe('Bezahlt');
+    expect(state.formatter!('OPEN', {})).toBe('OPEN');
+    expect(total.formatter).toBeUndefined();
+    expect(resolver).toHaveBeenCalledWith({ kind: 'tableCell', ckTypeId: 'Shop/Invoice', attribute: 'state', value: 'PAID', defaultText: 'PAID' });
+  });
+
+  it('only offers ENUM columns of a persistent query to the resolver', async () => {
+    const resolver = vi.fn(() => 'translated');
+    const cmp = await create({ dataSource: { type: 'persistentQuery', queryRtId: 'q1' } as never }, resolver);
+    cmp.onQueryColumnsLoaded([
+      { attributePath: 'state', attributeValueType: 'ENUM' },
+      { attributePath: 'name', attributeValueType: 'STRING' }
+    ]);
+    const [state, name] = cmp.listViewColumns();
+    expect(state.formatter!('PAID', {})).toBe('translated');
+    expect(name.formatter!('PAID', {})).toBe('PAID');
+    expect(resolver).toHaveBeenCalledWith(expect.objectContaining({ valueType: 'ENUM', attribute: 'state' }));
+  });
+});

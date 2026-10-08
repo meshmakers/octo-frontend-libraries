@@ -1,12 +1,13 @@
 import { Component, Input, OnChanges, SimpleChanges, ViewChild, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TableWidgetConfig, PersistentQueryDataSource, TableColumnStatusIconMapping } from '../../models/meshboard.models';
+import { TableWidgetConfig, PersistentQueryDataSource, RuntimeEntityDataSource, TableColumnStatusIconMapping } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { ListViewComponent, TableColumn as ListViewTableColumn, StatusMapping } from '@meshmakers/shared-ui';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { formatTableCellValue } from '../../utils/meshboard-datetime';
 import { TableWidgetDataSourceDirective, QueryColumn } from './table-widget-data-source.directive';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
+import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
 import { SVGIcon, checkCircleIcon, xCircleIcon, exclamationCircleIcon, questionCircleIcon, minusCircleIcon, warningTriangleIcon, circleIcon } from '@progress/kendo-svg-icons';
 
 const ICON_MAP: Record<string, SVGIcon> = {
@@ -97,6 +98,10 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   private readonly stateService = inject(MeshBoardStateService);
   /** Host texts (`MESHBOARD_MESSAGES`, AB#5622): list texts (empty state, pager, toolbar) and the placeholder. */
   protected readonly texts = injectMeshBoardMessages();
+  /** Host translation of enum cell values (`MESHBOARD_LABEL_RESOLVER`, AB#5622); absent = raw text. */
+  private readonly labelResolver = inject(MESHBOARD_LABEL_RESOLVER, { optional: true });
+  /** CK value type per derived column field (persistent queries), for the label resolver. */
+  private readonly _queryColumnValueTypes = signal<ReadonlyMap<string, string>>(new Map());
 
   // Widget state signals
   private readonly _isLoading = signal(false);
@@ -116,6 +121,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
    */
   onQueryColumnsLoaded(columns: QueryColumn[]): void {
     if (columns.length > 0) {
+      this._queryColumnValueTypes.set(new Map(columns.map(col => [col.attributePath, col.attributeValueType])));
       this._queryColumnsForView.set(columns.map(col => ({
         field: col.attributePath,
         displayName: this.formatColumnTitle(col.attributePath),
@@ -138,12 +144,41 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     // explicitly typed ('date', 'numeric', 'iso8601', …) keep their own
     // rendering, and any value that is not an ISO-8601 date-time passes through
     // unchanged. Derived stream-data columns are all 'text', so they're covered.
+    //
+    // With a host label resolver (AB#5622) string cells of those columns are offered to it as
+    // well (enum values such as `PAID` → "Bezahlt"); columns whose query value type is known and
+    // not an enum are skipped. Without a resolver the formatter is unchanged.
+    const resolver = this.labelResolver;
+    const dataSource = this.config?.dataSource;
+    const ckTypeId = dataSource?.type === 'runtimeEntity' ? (dataSource as RuntimeEntityDataSource).ckTypeId || undefined : undefined;
+    const valueTypes = this._queryColumnValueTypes();
     const withDateFormatter = (column: ListViewTableColumn): ListViewTableColumn => {
       const isPlainText = !column.dataType || column.dataType === 'text';
       if (!isPlainText || column.formatter) {
         return column;
       }
-      return { ...column, formatter: (value: unknown) => formatTableCellValue(value, mode) };
+      const valueType = valueTypes.get(column.field) || undefined;
+      const translate = !!resolver && (!valueType || /ENUM/i.test(valueType));
+      if (!translate) {
+        return { ...column, formatter: (value: unknown) => formatTableCellValue(value, mode) };
+      }
+      return {
+        ...column,
+        formatter: (value: unknown) => {
+          const text = formatTableCellValue(value, mode);
+          if (typeof value !== 'string' || value === '') {
+            return text;
+          }
+          return resolveMeshBoardLabel(resolver, {
+            kind: 'tableCell',
+            ...(ckTypeId ? { ckTypeId } : {}),
+            attribute: column.field,
+            value,
+            ...(valueType ? { valueType } : {}),
+            defaultText: text
+          });
+        }
+      };
     };
 
     // If explicit columns are configured, use them (works for both data source types)
@@ -219,6 +254,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
       // Clear cached query columns when config changes (for persistent queries)
       if (this.config?.dataSource?.type === 'persistentQuery') {
         this._queryColumnsForView.set([]);
+        this._queryColumnValueTypes.set(new Map());
       }
       // Defer refresh to next microtask to allow Angular to propagate config to directive
       Promise.resolve().then(() => this.refresh());
