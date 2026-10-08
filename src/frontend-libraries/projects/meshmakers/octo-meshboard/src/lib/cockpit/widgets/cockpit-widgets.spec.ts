@@ -14,7 +14,7 @@ import { CockpitKpiResult, CockpitKpiService } from '../kpi/cockpit-kpi.service'
 import { AttentionListConfigDialogComponent } from './attention-list-config-dialog.component';
 import { AttentionListWidgetComponent } from './attention-list-widget.component';
 import { CockpitKpiConfigDialogComponent } from './cockpit-kpi-config-dialog.component';
-import { CockpitKpiWidgetComponent, kpiKindOf } from './cockpit-kpi-widget.component';
+import { COCKPIT_KPI_SLOW_LOADING_MS, CockpitKpiWidgetComponent, kpiKindOf } from './cockpit-kpi-widget.component';
 
 const base = { id: 'w1', title: 'Needs attention', col: 1, row: 1, colSpan: 6, rowSpan: 1, dataSource: { type: 'static' as const } };
 
@@ -321,6 +321,54 @@ describe('cockpit widgets', () => {
       TestBed.tick();
       expect(kpiService.kpi).toHaveBeenCalledTimes(2);
       expect(kpiService.kpi).toHaveBeenLastCalledWith('adapterStatus', expect.objectContaining({ kpiAdaptersLabel: 'Adaptateurs en ligne' }));
+    });
+
+    describe('slow loading (AB#5622)', () => {
+      afterEach(() => vi.useRealTimers());
+
+      function renderNow(type: CockpitKpiWidgetConfig['type']) {
+        const fixture = TestBed.createComponent(CockpitKpiWidgetComponent);
+        fixture.componentRef.setInput('config', { ...base, type });
+        fixture.detectChanges();
+        return fixture;
+      }
+      const loadingText = (fixture: { nativeElement: HTMLElement }) =>
+        fixture.nativeElement.querySelector('[data-state="loading"]')?.textContent?.trim();
+
+      it('says "Scanning catalogs…" once the blueprint scan takes longer than a second', () => {
+        vi.useFakeTimers();
+        const fixture = renderNow('blueprintUpdates');
+        expect(loadingText(fixture)).toBe('Loading…');
+        vi.advanceTimersByTime(COCKPIT_KPI_SLOW_LOADING_MS - 1);
+        fixture.detectChanges();
+        expect(loadingText(fixture)).toBe('Loading…');
+        vi.advanceTimersByTime(1);
+        fixture.detectChanges();
+        expect(loadingText(fixture)).toBe('Scanning catalogs…');
+        expect(fixture.nativeElement.querySelector('[data-state="loading"]').getAttribute('role')).toBe('status');
+        // The figure still replaces the message as soon as it arrives.
+        kpi$.next({ state: 'ready', kpi: { id: 'blueprint-updates', label: 'Blueprint updates', value: '2', status: 'warning', statusLabel: '2 available' } });
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('[data-state="loading"]')).toBeNull();
+        expect(fixture.nativeElement.querySelector('[data-kpi="blueprint-updates"]').textContent).toContain('2 available');
+      });
+
+      it('keeps "Loading…" for the other KPIs and when the scan is fast', () => {
+        vi.useFakeTimers();
+        const other = renderNow('adapterStatus');
+        vi.advanceTimersByTime(COCKPIT_KPI_SLOW_LOADING_MS * 3);
+        other.detectChanges();
+        expect(loadingText(other)).toBe('Loading…');
+      });
+
+      it('uses the host translation of the scanning text', () => {
+        vi.useFakeTimers();
+        TestBed.configureTestingModule({ providers: [{ provide: COCKPIT_WIDGET_MESSAGES, useValue: { kpiBlueprintsScanning: 'Kataloge werden durchsucht…' } }] });
+        const fixture = renderNow('blueprintUpdates');
+        vi.advanceTimersByTime(COCKPIT_KPI_SLOW_LOADING_MS);
+        fixture.detectChanges();
+        expect(loadingText(fixture)).toBe('Kataloge werden durchsucht…');
+      });
     });
 
     it('shows end users "Not available" without role details and collapses the tile', async () => {

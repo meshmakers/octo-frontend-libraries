@@ -153,6 +153,11 @@ export interface CockpitWidgetMessages {
   kpiBlueprintsServiceManaged?: string;
   /** Capped catalog read. Default: "based on the first {read} of {total} catalog entries" */
   kpiBlueprintsTruncated?: string;
+  /**
+   * Shown instead of `loading` once the catalog scan of the "Blueprint updates" tile takes longer
+   * than {@link COCKPIT_KPI_SLOW_LOADING_MS}. Default: "Scanning catalogs…"
+   */
+  kpiBlueprintsScanning?: string;
   /** Default: "Services healthy" */
   kpiServicesLabel?: string;
   /** Default: "All healthy" */
@@ -276,6 +281,7 @@ export const DEFAULT_COCKPIT_WIDGET_MESSAGES: Readonly<Required<CockpitWidgetMes
   kpiBlueprintsInstalled: '{count} installed',
   kpiBlueprintsServiceManaged: '{count} service-managed pending',
   kpiBlueprintsTruncated: 'based on the first {read} of {total} catalog entries',
+  kpiBlueprintsScanning: 'Scanning catalogs…',
   kpiServicesLabel: 'Services healthy',
   kpiServicesAllHealthy: 'All healthy',
   kpiServicesUnhealthy: '{count} unhealthy',

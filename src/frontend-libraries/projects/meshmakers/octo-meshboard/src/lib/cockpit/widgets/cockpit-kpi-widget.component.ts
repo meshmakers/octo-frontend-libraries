@@ -63,7 +63,7 @@ import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
         <p class="cw-message cw-error-text" role="status" data-state="error">{{ reason() }}</p>
       }
       @default {
-        <p class="cw-message" role="status" data-state="loading">{{ texts().loading }}</p>
+        <p class="cw-message" role="status" data-state="loading" aria-live="polite">{{ loadingText() }}</p>
       }
     }
   `,
@@ -126,6 +126,10 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
   private readonly tenantId = signal<string | null>(null);
   private readonly options = signal<{ showDetail: boolean; showSparkline: boolean }>({ showDetail: true, showSparkline: true });
   private subscription: Subscription | null = null;
+  /** Set once a load has been running for {@link COCKPIT_KPI_SLOW_LOADING_MS}. */
+  private readonly slowLoading = signal(false);
+  private slowTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly kind = signal<CockpitKpiKind>('adapterStatus');
 
   readonly result = this._result.asReadonly();
   readonly isLoading = computed(() => this._result().state === 'loading');
@@ -139,6 +143,14 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
   });
 
   protected readonly kpi = this.data;
+  /** "Loading…", or what a slow KPI is doing (blueprint catalog scan) after a second. */
+  protected readonly loadingText = computed(() => {
+    const texts = this.texts();
+    if (this.slowLoading() && this.kind() === 'blueprintUpdates') {
+      return texts.kpiBlueprintsScanning ?? texts.loading;
+    }
+    return texts.loading;
+  });
   protected readonly showDetail = computed(() => this.options().showDetail);
   /** Role requirements only for builders; other viewers get a neutral "Not available" (AB#5558 review). */
   protected readonly reason = computed(() => {
@@ -181,6 +193,7 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+    this.clearSlowTimer();
   }
 
   refresh(): void {
@@ -196,8 +209,20 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
     });
     void this.context.tenantId().then(tenantId => this.tenantId.set(tenantId));
     const previous = this._result();
+    const kind = kpiKindOf(config);
+    this.kind.set(kind);
+    this.clearSlowTimer();
+    this.slowLoading.set(false);
+    // Timer only — the subscription below stays untouched, so a slow scan never blocks the tile.
+    this.slowTimer = setTimeout(() => {
+      this.slowTimer = null;
+      this.slowLoading.set(true);
+    }, COCKPIT_KPI_SLOW_LOADING_MS);
     this.loadedTexts = untracked(() => this.texts());
-    this.subscription = this.kpiService.kpi(kpiKindOf(config), this.loadedTexts).subscribe(result => {
+    this.subscription = this.kpiService.kpi(kind, this.loadedTexts).subscribe(result => {
+      if (result.state !== 'loading') {
+        this.clearSlowTimer();
+      }
       // A refresh keeps the last figure until the new one arrives (no flicker).
       if (result.state === 'loading' && previous.state === 'ready') {
         return;
@@ -209,7 +234,20 @@ export class CockpitKpiWidgetComponent implements DashboardWidget<CockpitKpiWidg
       }
     });
   }
+
+  private clearSlowTimer(): void {
+    if (this.slowTimer !== null) {
+      clearTimeout(this.slowTimer);
+      this.slowTimer = null;
+    }
+  }
 }
+
+/**
+ * After this long still loading, a slow KPI says what it is doing instead of "Loading…"
+ * (AB#5622: the "Blueprint updates" tile scans every catalog, which can take several seconds).
+ */
+export const COCKPIT_KPI_SLOW_LOADING_MS = 1000;
 
 /** What viewers without builder roles see instead of role requirements. */
 export const NOT_AVAILABLE_TEXT = 'Not available';

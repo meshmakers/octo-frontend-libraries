@@ -242,7 +242,7 @@ export type { CockpitKpiKind, CockpitKpiResult } from './lib/cockpit/kpi/cockpit
 export { AttentionListWidgetComponent, DEFAULT_ATTENTION_MAX_ITEMS } from './lib/cockpit/widgets/attention-list-widget.component';
 export { AttentionListConfigDialogComponent } from './lib/cockpit/widgets/attention-list-config-dialog.component';
 export type { AttentionListConfigResult } from './lib/cockpit/widgets/attention-list-config-dialog.component';
-export { CockpitKpiWidgetComponent, kpiKindOf, NOT_AVAILABLE_TEXT } from './lib/cockpit/widgets/cockpit-kpi-widget.component';
+export { CockpitKpiWidgetComponent, kpiKindOf, NOT_AVAILABLE_TEXT, COCKPIT_KPI_SLOW_LOADING_MS } from './lib/cockpit/widgets/cockpit-kpi-widget.component';
 export { CockpitKpiConfigDialogComponent } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
 export type { CockpitKpiConfigResult } from './lib/cockpit/widgets/cockpit-kpi-config-dialog.component';
 export { RecentItemsWidgetComponent, DEFAULT_RECENT_ITEMS_MAX, MAX_RECENT_ITEMS, recentRelativeTime } from './lib/cockpit/widgets/recent-items-widget.component';
