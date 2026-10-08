@@ -1603,6 +1603,9 @@
       &:active:not(:disabled) {
         background: var(--theme-accent-hover, var(--octo-mint));
       }
+
+      // Icons follow: the block above paints them with --theme-text-on-accent explicitly.
+      @include octo-button-primary-disabled($icons: true);
     }
 
     &.k-button-solid-secondary {
@@ -1754,6 +1757,24 @@
           background: var(--theme-bg-hover, var(--ash-blue-15));
           color: var(--theme-text-primary, var(--octo-mint));
         }
+      }
+    }
+
+    // Focusable disabled-with-reason buttons (`aria-disabled="true"`, mm-action-button, AB#3444):
+    // they are not natively disabled, so the `:not(:disabled)` hover rules above would still
+    // light them up. Keep them still and show the not-allowed cursor.
+    &[aria-disabled="true"] {
+      cursor: not-allowed;
+
+      &.k-button-flat:not(.k-button-flat-error):not(.k-button-flat-primary):hover,
+      &.k-button-outline-base:hover {
+        background: transparent;
+        color: var(--theme-text-secondary, var(--ash-blue));
+      }
+
+      &.k-button-solid-base:hover {
+        background: var(--theme-bg-elevated, transparent);
+        border-color: var(--theme-border-default, var(--octo-mint-30));
       }
     }
   }

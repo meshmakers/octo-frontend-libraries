@@ -1,5 +1,36 @@
 @use "variables" as *;
 
+// Disabled solid primary (AB#3444): a muted, neutral surface with muted text — not the accent at
+// reduced opacity, which still read as a clickable primary on the dark canvas. Covers native
+// `disabled`, Kendo's `.k-disabled` and the focusable disabled-with-reason pattern
+// (`aria-disabled="true"`, mm-action-button), and pins the look on hover/active so nothing
+// reacts. Pointer events stay on (Kendo sets none on disabled buttons) so the not-allowed cursor
+// shows; a natively disabled button still fires no clicks, a disabled link is rendered as a
+// button by mm-action-button and aria-disabled buttons swallow their clicks themselves.
+@mixin octo-button-primary-disabled($icons: false) {
+  // One compact selector on purpose: this mixin is included under long parent selector lists,
+  // and nested selector lists multiply with them. `[class]` (always present on a Kendo button)
+  // lifts the rule by one attribute so it also beats the `:hover:not(:disabled)` rules declared
+  // before it — an aria-disabled button is not `:disabled`, so those would otherwise match.
+  // No box-shadow here: the focus ring of a focusable disabled button must stay visible.
+  &:is(:disabled, .k-disabled, [aria-disabled="true"])[class] {
+    opacity: 1;
+    filter: none;
+    background: color-mix(in srgb, var(--theme-text-muted, #77869c) 16%, transparent);
+    border-color: var(--theme-border-default, rgba(128, 128, 128, 0.2));
+    color: var(--theme-text-muted, #77869c);
+    cursor: not-allowed;
+    pointer-events: auto;
+
+    @if $icons {
+      :is(.k-svg-icon, .k-icon, svg) {
+        fill: var(--theme-text-muted, #77869c);
+        color: var(--theme-text-muted, #77869c);
+      }
+    }
+  }
+}
+
 // Deep Sea button (AB#5526): flat base/outline style with a flat primary
 // variant. No gradients, no glows, sentence case. Internal to octo.styles():
 // toolbars, dialogs and widget configs in _styles.scss include it (renamed
@@ -68,6 +99,11 @@
       border-color: var(--theme-accent-hover, var(--octo-mint));
       box-shadow: none;
     }
+  }
+
+  // One `:is()` instead of nesting in the list above: keeps the output small (AB#3444).
+  &:is(.k-button-solid-primary, .k-button-primary, [themecolor="primary"]) {
+    @include octo-button-primary-disabled;
   }
 
   // Selected FLAT toggles (e.g. the list view's row-filter command, `themeColor="primary"
