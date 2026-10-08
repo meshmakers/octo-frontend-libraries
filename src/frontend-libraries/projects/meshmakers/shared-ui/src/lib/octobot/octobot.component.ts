@@ -97,11 +97,11 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
   selector: 'mm-octobot',
   template: `<img
     class="mm-octobot__img"
+    [attr.loading]="loading()"
     [src]="src()"
     [attr.width]="px()"
     [attr.height]="px()"
     alt=""
-    [attr.loading]="loading()"
     decoding="async"
     draggable="false" />`,
   styles: [`
