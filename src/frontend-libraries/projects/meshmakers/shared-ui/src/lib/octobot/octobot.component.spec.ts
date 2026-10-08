@@ -6,18 +6,20 @@ import {
   OCTOBOT_LOOP_MS,
   OctoBotAnimation,
   OctoBotComponent,
+  OctoBotLoading,
   OctoBotSize
 } from './octobot.component';
 
 @Component({
   imports: [OctoBotComponent],
-  template: `<mm-octobot [animation]="animation()" [size]="size()" [label]="label()" [still]="still()" />`
+  template: `<mm-octobot [animation]="animation()" [size]="size()" [label]="label()" [still]="still()" [loading]="loading()" />`
 })
 class HostComponent {
   readonly animation = signal<OctoBotAnimation>('idle');
   readonly size = signal<OctoBotSize>('md');
   readonly label = signal<string | null>(null);
   readonly still = signal(false);
+  readonly loading = signal<OctoBotLoading>('lazy');
 }
 
 interface FakeMediaQueryList {
@@ -68,6 +70,13 @@ describe('OctoBotComponent (AB#3444)', () => {
     expect(image.getAttribute('src')).toBe('assets/octobot/md/octo_idle.webp');
     expect(image.getAttribute('loading')).toBe('lazy');
     expect(image.getAttribute('decoding')).toBe('async');
+  });
+
+  it('loads eagerly when loading="eager" (figure visible right away)', () => {
+    const fixture = setup();
+    fixture.componentInstance.loading.set('eager');
+    fixture.detectChanges();
+    expect(img(fixture).getAttribute('loading')).toBe('eager');
   });
 
   it.each<[OctoBotSize, string]>([['sm', '60'], ['md', '120'], ['lg', '240']])(

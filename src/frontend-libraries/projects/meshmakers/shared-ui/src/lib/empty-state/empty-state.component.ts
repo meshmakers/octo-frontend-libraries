@@ -30,7 +30,7 @@ export const DEFAULT_EMPTY_STATE_RETRY_LABEL = 'Try again';
   imports: [OctoBotComponent, ButtonComponent],
   template: `
     @if (figure(); as animation) {
-      <mm-octobot class="mm-empty-state__figure" [animation]="animation" [size]="size()" />
+      <mm-octobot class="mm-empty-state__figure" [animation]="animation" [size]="size()" loading="eager" />
     }
     <p class="mm-empty-state__title" [attr.role]="variant() === 'error' ? 'alert' : null">{{ heading() }}</p>
     @if (text()) {

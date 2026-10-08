@@ -16,6 +16,13 @@ import { isPlatformBrowser } from '@angular/common';
 /** The OctoBot animations shipped with shared-ui (AB#3444). */
 export type OctoBotAnimation = 'idle' | 'blink' | 'look' | 'swim' | 'thinking' | 'wave';
 
+/**
+ * Image loading strategy (`loading` attribute): `lazy` (default) defers the request until the
+ * figure nears the viewport; `eager` loads it right away — for places where the figure is visible
+ * immediately (empty states, 404 / turned-off pages), so it does not pop in late.
+ */
+export type OctoBotLoading = 'lazy' | 'eager';
+
 /** Rendered sizes: `sm` 60 px, `md` 120 px, `lg` 240 px (square). */
 export type OctoBotSize = 'sm' | 'md' | 'lg';
 
@@ -61,7 +68,8 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 /**
  * `mm-octobot` — the meshmakers OctoBot mascot as a small animated pixel-art image (AB#3444).
  *
- * Renders one `<img>` with a fixed width and height (no layout shift), `loading="lazy"`,
+ * Renders one `<img>` with a fixed width and height (no layout shift), `loading="lazy"` (or
+ * `eager` via the `loading` input),
  * `decoding="async"` and `image-rendering: pixelated`. The image is an 8-frame animated WebP
  * loaded by URL from {@link OCTOBOT_ASSET_BASE_URL} — nothing lands in the JS bundle.
  *
@@ -93,7 +101,7 @@ const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
     [attr.width]="px()"
     [attr.height]="px()"
     alt=""
-    loading="lazy"
+    [attr.loading]="loading()"
     decoding="async"
     draggable="false" />`,
   styles: [`
@@ -130,6 +138,8 @@ export class OctoBotComponent {
   readonly size = input<OctoBotSize>('md');
   /** Accessible name; when empty the figure is decorative. */
   readonly label = input<string | null | undefined>(null);
+  /** Image loading strategy; `eager` where the figure is visible right away. Default `lazy`. */
+  readonly loading = input<OctoBotLoading>('lazy');
   /** Show the still frame instead of the animation (e.g. after the assistant finished). */
   readonly still = input(false, { transform: booleanAttribute });
   /**

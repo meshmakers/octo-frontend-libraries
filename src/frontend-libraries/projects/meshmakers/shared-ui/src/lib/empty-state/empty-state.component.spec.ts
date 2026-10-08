@@ -29,6 +29,8 @@ describe('EmptyStateComponent (AB#3444)', () => {
     const bots = root.querySelectorAll('mm-octobot');
     expect(bots.length).toBe(1);
     expect(bots[0].getAttribute('data-animation')).toBe('idle');
+    // The figure is visible right away: no lazy pop-in.
+    expect(bots[0].querySelector('img')?.getAttribute('loading')).toBe('eager');
     expect(root.querySelector('.mm-empty-state__title')?.textContent).toBe('Nothing here');
     expect(root.querySelector('.mm-empty-state__text')?.textContent).toBe('Create one to start.');
     expect(root.querySelector('[role="alert"]')).toBeNull();
