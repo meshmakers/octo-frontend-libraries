@@ -85,6 +85,7 @@ export * from './lib/services/bot-secrets.service';
 export * from './lib/services/health.service';
 export * from './lib/services/identity-service';
 export * from './lib/services/job-management.service';
+export * from './lib/services/file-download.service';
 export * from './lib/services/communication.service';
 export * from './lib/services/reporting.service';
 export * from './lib/services/ai.service';
