@@ -3,7 +3,9 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 
 /**
  * Reports the natural content height of a cockpit list widget to the board (AB#5558), so the
- * phone tier grows the tile instead of clipping it (`MeshBoardStateService.setWidgetContentHeight`).
+ * phone tier grows the tile instead of clipping it (`MeshBoardStateService.setWidgetContentHeight`)
+ * and, on the desktop tier outside edit mode, the attention list shrinks to its content within its
+ * configured rows (AB#5622, `DESKTOP_CONTENT_FIT_TYPES`).
  *
  * `content` must wrap the widget's whole content without any height constraint (no `height` /
  * `min-height` relative to the tile), otherwise a growing tile would report a growing height.

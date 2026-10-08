@@ -73,7 +73,18 @@ export function rowSpanForContent(contentHeight: number, rowHeight: number, gap:
   return Math.max(minRows, Math.min(MAX_CONTENT_ROWS, rows));
 }
 
-/** Content heights for {@link placeWidgetsForTier}: only used on the phone tier. */
+/**
+ * Widget types whose tile shrinks to its content on the native (desktop) tier (AB#5622): the
+ * cockpit "Needs attention" list, which otherwise leaves a large empty tile with few findings.
+ */
+export const DESKTOP_CONTENT_FIT_TYPES: ReadonlySet<string> = new Set(['attentionList']);
+
+/**
+ * Content heights for {@link placeWidgetsForTier}: on the phone tier content-sized widgets grow
+ * (up to {@link MAX_CONTENT_ROWS}); on the native tier {@link DESKTOP_CONTENT_FIT_TYPES} shrink
+ * to their content (at least 1 row, at most the configured rows). Hosts pass it on the native
+ * tier only outside edit mode, so drag/resize always works on the stored spans.
+ */
 export interface ContentSizing {
   /** Natural content height per widget id (`MeshBoardStateService.widgetContentHeights`). */
   heights: ReadonlyMap<string, number>;
@@ -88,13 +99,14 @@ export function placeWidgetsForTier(
   contentSizing?: ContentSizing
 ): WidgetPlacement[] {
   if (tier === 'none') {
-    return widgets.map(widget => ({
+    const placements = widgets.map(widget => ({
       widget,
       col: widget.col,
       row: widget.row,
       colSpan: widget.colSpan,
       rowSpan: widget.rowSpan
     }));
+    return contentSizing ? fitDesktopTilesToContent(placements, contentSizing) : placements;
   }
 
   const columns = columnsForTier(tier, configuredColumns);
@@ -117,6 +129,55 @@ export function placeWidgetsForTier(
     }
   }
   return placements;
+}
+
+/**
+ * Native tier (AB#5622): {@link DESKTOP_CONTENT_FIT_TYPES} tiles take only the rows their content
+ * needs — between 1 and the configured `rowSpan`, never more, so neighbours never overlap. Rows
+ * that only the shrunk tiles occupied are then removed and the widgets below move up; rows that
+ * were already empty in the stored layout stay as designed. Presentation only: the configs (and
+ * thus the persisted row spans) are untouched. Mutates and returns `placements`.
+ */
+function fitDesktopTilesToContent(placements: WidgetPlacement[], sizing: ContentSizing): WidgetPlacement[] {
+  const occupiedBefore = occupiedRows(placements);
+  let changed = false;
+  for (const placement of placements) {
+    const height = sizing.heights.get(placement.widget.id);
+    if (height === undefined || !DESKTOP_CONTENT_FIT_TYPES.has(placement.widget.type)) {
+      continue;
+    }
+    const rows = Math.min(placement.widget.rowSpan, rowSpanForContent(height, sizing.rowHeight, sizing.gap, 1));
+    if (rows < placement.rowSpan) {
+      placement.rowSpan = rows;
+      changed = true;
+    }
+  }
+  if (!changed) {
+    return placements;
+  }
+  const occupiedAfter = occupiedRows(placements);
+  const freed = [...occupiedBefore].filter(row => !occupiedAfter.has(row));
+  if (freed.length > 0) {
+    for (const placement of placements) {
+      const row = placement.row ?? 1;
+      const shift = freed.filter(freedRow => freedRow < row).length;
+      if (shift > 0) {
+        placement.row = row - shift;
+      }
+    }
+  }
+  return placements;
+}
+
+function occupiedRows(placements: readonly WidgetPlacement[]): Set<number> {
+  const rows = new Set<number>();
+  for (const placement of placements) {
+    const start = placement.row ?? 1;
+    for (let row = start; row < start + Math.max(1, placement.rowSpan); row++) {
+      rows.add(row);
+    }
+  }
+  return rows;
 }
 
 /**

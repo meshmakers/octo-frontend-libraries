@@ -220,8 +220,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly displayGridWidgets = computed(() => {
     const tier = this.compactTier();
     const config = this.config();
-    // Phone tier only (AB#5558): content-sized widgets grow their tile to fit.
-    const contentSizing = tier === 'phone'
+    // Phone tier (AB#5558): content-sized widgets grow their tile to fit. Native tier outside edit
+    // mode (AB#5622): the attention list shrinks to its content, at most its stored rows — edit
+    // mode keeps the stored spans so drag/resize never persists a content-fitted size.
+    const contentSizing = tier === 'phone' || (tier === 'none' && !this.isEditMode())
       ? { heights: this.stateService.widgetContentHeights(), rowHeight: config.rowHeight, gap: config.gap }
       : undefined;
     return placeWidgetsForTier(this.gridWidgets(), tier, config.columns, contentSizing);

@@ -101,6 +101,42 @@ describe('compact-layout', () => {
       expect(widgets[0].rowSpan).toBe(2);
     });
 
+    describe('native tier content fit (AB#5622)', () => {
+      const attention = (id: string, col: number, row: number, colSpan: number, rowSpan: number): AnyWidgetConfig =>
+        ({ ...widget(id, col, row, colSpan, rowSpan), type: 'attentionList' } as AnyWidgetConfig);
+      const sizing = (height: number) => ({ heights: new Map([['attention', height]]), rowHeight: 200, gap: 16 });
+
+      it('shrinks the attention list to its content and moves the widgets below up', () => {
+        const widgets = [attention('attention', 1, 1, 6, 3), widget('kpi', 1, 4, 2, 1)];
+        const placed = placeWidgetsForTier(widgets, 'none', 6, sizing(120));
+        expect(placed[0]).toMatchObject({ row: 1, rowSpan: 1 });
+        expect(placed[1]).toMatchObject({ row: 2, rowSpan: 1 });
+        // Persisted config untouched.
+        expect(widgets[0].rowSpan).toBe(3);
+        expect(widgets[1].row).toBe(4);
+      });
+
+      it('never grows beyond the configured rows', () => {
+        const placed = placeWidgetsForTier([attention('attention', 1, 1, 6, 2)], 'none', 6, sizing(5000));
+        expect(placed[0].rowSpan).toBe(2);
+      });
+
+      it('keeps rows a neighbour still occupies and rows that were empty by design', () => {
+        const widgets = [attention('attention', 1, 1, 4, 3), widget('side', 5, 1, 2, 3), widget('low', 1, 6, 6, 1)];
+        const placed = placeWidgetsForTier(widgets, 'none', 6, sizing(120));
+        expect(placed[0].rowSpan).toBe(1);
+        expect(placed[1]).toMatchObject({ row: 1, rowSpan: 3 });
+        // Rows 4–5 were empty in the stored layout: kept.
+        expect(placed[2].row).toBe(6);
+      });
+
+      it('leaves other content-sized widgets and unmeasured tiles alone', () => {
+        const widgets = [widget('attention', 1, 1, 6, 3)];
+        expect(placeWidgetsForTier(widgets, 'none', 6, sizing(120))[0].rowSpan).toBe(3);
+        expect(placeWidgetsForTier([attention('other', 1, 1, 6, 3)], 'none', 6, sizing(120))[0].rowSpan).toBe(3);
+      });
+    });
+
     it('does not mutate the input widget configs', () => {
       const original = widget('a', 5, 1, 6, 1);
       placeWidgetsForTier([original], 'phone', 6);
