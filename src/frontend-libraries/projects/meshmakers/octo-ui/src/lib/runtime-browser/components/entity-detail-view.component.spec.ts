@@ -88,7 +88,7 @@ describe('EntityDetailViewComponent', () => {
     };
 
     it.each([
-      ['Basic/File'],
+      ['Test/Document'],
       ['System.Communication/Adapter'],
       ['System.Reporting/FileSystemItem'],
     ])('downloads the clicked value itself for a %s owner', async (ckTypeId) => {
