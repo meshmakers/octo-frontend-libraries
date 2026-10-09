@@ -6,6 +6,7 @@ import { lastValueFrom, toArray } from 'rxjs';
 import {
   FileEntry,
   FILES_LINKED_COUNTS_MAX,
+  FILES_UNAVAILABLE_TTL_MS,
   FILES_RESERVED_ROOT_NAMES,
   FilesClientService,
   filesGraphQlErrorCode,
@@ -423,6 +424,32 @@ describe('FilesClientService', () => {
 
     it('refuses an empty root', async () => {
       await expect(client.folderStats('')).rejects.toThrow(FilesPathError);
+    });
+  });
+
+  describe('capability TTL and stats cancellation', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('asks again after the TTL when the answer was "not available"', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      const first = client.detectCapabilities();
+      (await expectOne(`${base}/capabilities`)).flush('', { status: 404, statusText: 'x' });
+      expect((await first).available).toBe(false);
+      expect((await client.detectCapabilities()).available).toBe(false);
+      http.expectNone(`${base}/capabilities`);
+      vi.setSystemTime(Date.now() + FILES_UNAVAILABLE_TTL_MS + 1);
+      const again = client.detectCapabilities();
+      (await expectOne(`${base}/capabilities`)).flush({});
+      expect((await again).available).toBe(true);
+    });
+
+    it('cancels the stats request when the signal aborts', async () => {
+      const controller = new AbortController();
+      const result = client.folderStatsById('6a0000000000000000000001', null, controller.signal);
+      const req = await expectOne(`${base}/items/6a0000000000000000000001/stats`);
+      controller.abort();
+      await expect(result).rejects.toSatisfy((e: unknown) => (e as Error).name === 'AbortError');
+      expect(req.cancelled).toBe(true);
     });
   });
 
