@@ -350,15 +350,15 @@ delete, linked entities — is generic GraphQL against `System.Files` (decision 
 
 | Member | Endpoint / behaviour |
 |--------|-------------|
-| `detectCapabilities(tenantId?)` | `GET capabilities` once per tenant → `FilesCapabilities { available, apiVersion, maxUploadBytes, zipDownload, zipMaxFiles, zipMaxBytes, previewMaxBytes, recursiveDelete, folderStats, reservedRootNames }`. 404/405/501 = `{ available: false }` silently (cached); transient errors are not cached. Missing feature flags default to `false`, missing `reservedRootNames` to `FILES_RESERVED_ROOT_NAMES` (`capabilities`, `items`, `stats`, `zip`) |
+| `detectCapabilities(tenantId?)` | `GET capabilities` once per tenant → `FilesCapabilities { available, apiVersion, maxUploadBytes, zipDownload, zipMaxFiles, zipMaxBytes, previewMaxBytes, recursiveDelete, folderStats, reservedRootNames }`. 404/405/501 and 403 (token without the API scope) = `{ available: false }` silently (cached); transient errors are not cached. Missing feature flags default to `false`, missing `reservedRootNames` to `FILES_RESERVED_ROOT_NAMES` (`capabilities`, `items`, `stats`, `zip`) |
 | `upload(root, folderPath, file, conflict \| { conflict?, createFolders?, name? }, tenantId?)` | `PUT {root}/{path…}/{name}?conflict=fail\|replace\|keepBoth[&createFolders=true]` (raw body, `Content-Type` = file type). Emits `{ type: 'progress' }` then `{ type: 'done', item: FileEntry }`; unsubscribe cancels. Without `createFolders` a missing folder is 404 PATH_NOT_FOUND |
 | `uploadToFolder(folderRtId, file, { conflict?, name?, tenantId? })` | `POST items/{rtId}/content?name=&conflict=` (the Studio works with rtIds) |
 | `replaceContent(fileRtId, blob, tenantId?)` | `PUT items/{rtId}/content` — new content, rtId and links stay |
 | `download(root, path, fileName?, contentType?, tenantId?)` / `downloadById(rtId, …)` | `GET {root}/{path…}` / `GET items/{rtId}/content` as blob, saved under the `Content-Disposition` name |
-| `fetchContent(root, path, tenantId?)` / `fetchContentById(rtId, tenantId?)` | Blob for previews, sent with `?inline=true` (active content such as SVG/HTML still comes as attachment + sandbox CSP). Honour `previewMaxBytes` |
+| `fetchContent(root, path, tenantId?)` / `fetchContentById(rtId, tenantId?)` | Blob for previews, sent with `?inline=true`. Inline is a server allow-list (images except SVG, audio, video, PDF, text/plain, CSV, JSON); everything else comes as attachment + sandbox CSP. Honour `previewMaxBytes` |
 | `downloadZip(items[] \| { items?, rtIds? }, fileName?, tenantId?)` | `POST zip` with body `{ items, rtIds?, fileName? }`; folders recursive. Saved under the server's `Content-Disposition` name → `fileName` → `files.zip`. Limits are checked before the first byte (413 LIMIT_EXCEEDED) |
 | `folderStats(root, path?, tenantId?)` / `folderStatsById(rtId, tenantId?)` | `GET stats?root=&path=` / `GET items/{rtId}/stats` → `FolderStats { folders, files, bytes, linkedFiles, hiddenEntries, complete, linkedSamples[{ rtId, name, path, entities[{ rtId, ckTypeId, displayName }] }] }` — deep, as visible to the caller; `hiddenEntries` = entries a delete would include but the caller cannot see |
-| `itemUrl(root, path)` / `itemContentUrl(rtId)` | URLs; segments encoded one by one; `.`/`..` segments, an empty root or a path-like rtId throw `FilesPathError` |
+| `itemUrl(root, path)` / `itemContentUrl(rtId)` | URLs; segments encoded one by one; `.`/`..` segments, an empty root, a root named `capabilities`/`items`/`stats`/`zip` (case-insensitive) or a path-like rtId throw `FilesPathError`; so does an upload `name` with `/` |
 | `parseFilesProblem(error)` (function) | `HttpErrorResponse` → `FilesProblem { status, code, detail }`; `code` from problem details (`code`, else an UPPER_CASE `title`); a bare 403/413 (e.g. the ingress body limit) → `FORBIDDEN`/`LIMIT_EXCEEDED` |
 | `filesGraphQlErrorCode(error)` (function) | `extensions.code` of a `System.Files` GraphQL mutation error (Apollo 4 `CombinedGraphQLErrors.errors` or a raw array) |
 
@@ -366,7 +366,14 @@ delete, linked entities — is generic GraphQL against `System.Files` (decision 
 binaryId?, createdAt?, changedAt?, createdBy?, replaced }` (dates as ISO strings). Error codes (`FilesErrorCode`):
 REST ROOT_NOT_FOUND / PATH_NOT_FOUND (404, also for entries hidden by data permissions), AMBIGUOUS_PATH (409,
 legacy duplicate names — address by rtId), NAME_CONFLICT, NOT_A_FOLDER, NOT_A_FILE (409), LIMIT_EXCEEDED (413),
-FORBIDDEN (403), INVALID_NAME / INVALID_REQUEST (400); GraphQL only RESERVED_NAME, PROTECTED_ROOT, MOVE_INTO_ITSELF.
+FORBIDDEN (403), INVALID_NAME / INVALID_REQUEST (400). GraphQL (`extensions.code`) answers NAME_CONFLICT, INVALID_NAME,
+FORBIDDEN (also root creation without `FileManagement`), INVALID_REQUEST (e.g. single-parent rule: a move must DELETE
+the current parent together with the CREATE), LIMIT_EXCEEDED (delete cap `MaxDeleteEntries`, default 2,000 entries per
+mutation) and only there RESERVED_NAME (`capabilities`, `items`, `stats`, `zip`, `ReportingAssets_*` on root
+creation), PROTECTED_ROOT, MOVE_INTO_ITSELF. Root lookup by well-known name is case-insensitive on the server.
+
+Downloads, previews and zips are received as **in-memory blobs** before they are saved (D9: bearer download, no
+`window.open`) — the UI must respect `previewMaxBytes` and `zipMaxBytes` instead of relying on the browser to stream.
 
 400/403/404/409/413 are marked `MM_CALLER_HANDLED_STATUSES`: the global error toast stays quiet, the caller shows
 them (read the reason with `parseFilesProblem`). Blob requests (download, preview, zip) deliver their error body as
