@@ -23,13 +23,17 @@ import { FileDownloadService, parseContentDispositionFileName } from './file-dow
  * | GET  | `items/{rtId}/content` | download by rtId, `?inline=true` for previews |
  * | GET  | `stats?root=&path=`, `items/{rtId}/stats` | {@link FolderStats} |
  * | POST | `zip` | `{ items, rtIds?, fileName? }` → streamed `application/zip` |
+ * | POST | `linked-counts` | `{ rtIds }` (≤ 500) → `{ counts: { rtId: n } }` |
  *
  * Path segments are URL-encoded one by one; `root` is the folder root's well-known name. Errors are
  * problem details `{ status, title, detail, code }` (see {@link parseFilesProblem}).
  */
 
 /** Well-known names a folder root cannot use because they are routes of the file API. */
-export const FILES_RESERVED_ROOT_NAMES: readonly string[] = ['capabilities', 'items', 'stats', 'zip'];
+export const FILES_RESERVED_ROOT_NAMES: readonly string[] = ['capabilities', 'items', 'linked-counts', 'stats', 'zip'];
+
+/** Most rtIds one `POST linked-counts` request may carry (server limit). */
+export const FILES_LINKED_COUNTS_MAX = 500;
 
 /** What the server reports about the file API (`GET /capabilities`). */
 export interface FilesCapabilities {
@@ -51,6 +55,8 @@ export interface FilesCapabilities {
   recursiveDelete?: boolean;
   /** {@link FilesClientService.folderStats} is available. */
   folderStats?: boolean;
+  /** {@link FilesClientService.linkedCounts} (`POST linked-counts`) is available. */
+  linkedCounts?: boolean;
   /** Well-known names a new folder root cannot use (lower case). */
   reservedRootNames?: string[];
   /**
@@ -388,6 +394,27 @@ export class FilesClientService {
     return normalizeStats(await firstValueFrom(this.http.get<Partial<FolderStats>>(url, { context: callerHandled() })));
   }
 
+  /**
+   * Links per entry (every association except the folder tree, any role, any direction):
+   * `POST linked-counts { rtIds }` → `{ counts }`. Sends at most {@link FILES_LINKED_COUNTS_MAX} rtIds per
+   * request (more are split). Entries the caller cannot see are omitted from the answer. Only call it
+   * when the capabilities report `linkedCounts`.
+   */
+  async linkedCounts(rtIds: readonly string[], tenantId?: string | null): Promise<Record<string, number>> {
+    const unique = [...new Set(rtIds.filter((id) => !!id))];
+    const counts: Record<string, number> = {};
+    if (unique.length === 0) {
+      return counts;
+    }
+    const url = await this.url(tenantId, 'linked-counts');
+    for (let i = 0; i < unique.length; i += FILES_LINKED_COUNTS_MAX) {
+      const chunk = unique.slice(i, i + FILES_LINKED_COUNTS_MAX);
+      const body = await firstValueFrom(this.http.post<{ counts?: Record<string, number> }>(url, { rtIds: chunk }, { context: callerHandled() }));
+      Object.assign(counts, body?.counts ?? {});
+    }
+    return counts;
+  }
+
   // ---------------------------------------------------------------------------------- URLs
 
   /**
@@ -534,6 +561,7 @@ function normalizeCapabilities(body: Partial<Omit<FilesCapabilities, 'available'
     zipDownload: b.zipDownload === true,
     recursiveDelete: b.recursiveDelete === true,
     folderStats: b.folderStats === true,
+    linkedCounts: b.linkedCounts === true,
     reservedRootNames: (Array.isArray(b.reservedRootNames) && b.reservedRootNames.length > 0 ? b.reservedRootNames : FILES_RESERVED_ROOT_NAMES)
       .map((n) => n.toLowerCase()),
   };
