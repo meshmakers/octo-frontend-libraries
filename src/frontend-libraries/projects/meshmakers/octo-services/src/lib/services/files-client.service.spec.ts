@@ -5,6 +5,7 @@ import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
 import { lastValueFrom, toArray } from 'rxjs';
 import {
   FileEntry,
+  FILES_LINKED_COUNTS_BATCH,
   FILES_RESERVED_ROOT_NAMES,
   FilesClientService,
   filesGraphQlErrorCode,
@@ -96,26 +97,33 @@ describe('FilesClientService', () => {
     it('parses the full capability shape', async () => {
       const result = client.detectCapabilities('t1');
       (await expectOne(`${base}/capabilities`)).flush({
+        available: true,
+        reason: null,
         apiVersion: 1,
         maxUploadBytes: 104857600,
         zipDownload: true,
         zipMaxFiles: 1000,
         zipMaxBytes: 524288000,
         previewMaxBytes: 20971520,
+        maxDeleteEntries: 2000,
         recursiveDelete: true,
         folderStats: true,
+        linkedCounts: true,
         reservedRootNames: ['capabilities', 'items', 'stats', 'zip'],
       });
       expect(await result).toEqual({
         available: true,
+        reason: null,
         apiVersion: 1,
         maxUploadBytes: 104857600,
         zipDownload: true,
         zipMaxFiles: 1000,
         zipMaxBytes: 524288000,
         previewMaxBytes: 20971520,
+        maxDeleteEntries: 2000,
         recursiveDelete: true,
         folderStats: true,
+        linkedCounts: true,
         reservedRootNames: ['capabilities', 'items', 'stats', 'zip'],
       });
     });
@@ -130,8 +138,19 @@ describe('FilesClientService', () => {
         zipDownload: false,
         recursiveDelete: false,
         folderStats: false,
+        linkedCounts: false,
         reservedRootNames: [...FILES_RESERVED_ROOT_NAMES],
       });
+    });
+
+    it('takes available:false and the reason from a 200 answer (tenant without System.Files)', async () => {
+      const result = client.detectCapabilities();
+      (await expectOne(`${base}/capabilities`)).flush({ available: false, reason: 'SYSTEM_FILES_MISSING', apiVersion: 1, maxUploadBytes: 1 });
+      const caps = await result;
+      expect(caps.available).toBe(false);
+      expect(caps.reason).toBe('SYSTEM_FILES_MISSING');
+      expect(await client.detectCapabilities()).toBe(caps);
+      http.expectNone(`${base}/capabilities`);
     });
 
     it('caches per tenant', async () => {
@@ -414,6 +433,42 @@ describe('FilesClientService', () => {
 
     it('refuses an empty root', async () => {
       await expect(client.folderStats('')).rejects.toThrow(FilesPathError);
+    });
+  });
+
+  describe('linked counts', () => {
+    it('posts the deduplicated rtIds and returns the counts map', async () => {
+      const result = client.linkedCounts([rtId, rtId, '65f0a1b2c3d4e5f6a7b8c9d1']);
+      const req = await expectOne(`${base}/linked-counts`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ rtIds: [rtId, '65f0a1b2c3d4e5f6a7b8c9d1'] });
+      expect(handled(req.request.context)).toEqual(expect.arrayContaining([400, 403, 404]));
+      req.flush({ counts: { [rtId]: 2 } });
+      expect(await result).toEqual({ [rtId]: 2 });
+    });
+
+    it('answers {} for an empty list without a request', async () => {
+      expect(await client.linkedCounts([])).toEqual({});
+      http.expectNone(`${base}/linked-counts`);
+    });
+
+    it('splits lists above the batch size and merges the answers', async () => {
+      const ids = Array.from({ length: FILES_LINKED_COUNTS_BATCH + 1 }, (_, i) => i.toString(16).padStart(24, '0'));
+      const result = client.linkedCounts(ids);
+      let reqs: ReturnType<HttpTestingController['match']> = [];
+      await vi.waitFor(() => {
+        reqs = http.match(`${base}/linked-counts`);
+        expect(reqs.length).toBe(2);
+      });
+      expect((reqs[0].request.body as { rtIds: string[] }).rtIds.length).toBe(FILES_LINKED_COUNTS_BATCH);
+      expect((reqs[1].request.body as { rtIds: string[] }).rtIds).toEqual([ids[FILES_LINKED_COUNTS_BATCH]]);
+      reqs[0].flush({ counts: { [ids[0]]: 1 } });
+      reqs[1].flush({ counts: { [ids[FILES_LINKED_COUNTS_BATCH]]: 3 } });
+      expect(await result).toEqual({ [ids[0]]: 1, [ids[FILES_LINKED_COUNTS_BATCH]]: 3 });
+    });
+
+    it('refuses an invalid rtId', async () => {
+      await expect(client.linkedCounts(['a/b'])).rejects.toThrow(FilesPathError);
     });
   });
 

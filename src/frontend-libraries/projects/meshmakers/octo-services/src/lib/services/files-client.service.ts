@@ -33,8 +33,17 @@ export const FILES_RESERVED_ROOT_NAMES: readonly string[] = ['capabilities', 'it
 
 /** What the server reports about the file API (`GET /capabilities`). */
 export interface FilesCapabilities {
-  /** The file bytes API is deployed for the tenant. */
+  /**
+   * The file system is usable for the tenant: the bytes API is deployed (no 404/405/501/403) and the server
+   * reports `available` (it answers `false` with HTTP 200 when the tenant lacks System.Files).
+   */
   available: boolean;
+  /** Why the file system is not available, e.g. `SYSTEM_FILES_MISSING`; absent when it is. */
+  reason?: string | null;
+  /** Largest number of entries one delete of a folder or root may remove (else GraphQL LIMIT_EXCEEDED). */
+  maxDeleteEntries?: number;
+  /** {@link FilesClientService.linkedCounts} is available. */
+  linkedCounts?: boolean;
   /** Version of the file API contract (1). */
   apiVersion?: number;
   /** Largest file one upload may carry (bytes). */
@@ -172,7 +181,7 @@ export type FilesErrorCode =
   | 'NOT_A_FILE'
   /** REST: upload or zip limit. GraphQL: a delete would remove more than `MaxDeleteEntries` (default 2,000) entries in one mutation. */
   | 'LIMIT_EXCEEDED'
-  /** REST: data-permission write denial. GraphQL: also root creation without the `FileManagement` role. */
+  /** REST + GraphQL: data-permission write denial (create/update/delete of System.Files); GraphQL also root creation without the `FileManagement` role. */
   | 'FORBIDDEN'
   /** REST + GraphQL: empty, too long, slash or backslash, control characters, `.` / `..`, leading/trailing whitespace. */
   | 'INVALID_NAME'
@@ -194,6 +203,9 @@ export interface FilesProblem {
   detail: string | null;
 }
 
+/** Most rtIds one `linked-counts` request may carry; {@link FilesClientService.linkedCounts} splits larger lists. */
+export const FILES_LINKED_COUNTS_BATCH = 500;
+
 /** Statuses the callers of this client handle themselves (no global error toast). */
 const CALLER_HANDLED = [400, 403, 404, 409, 413];
 
@@ -209,7 +221,7 @@ const CALLER_HANDLED = [400, 403, 404, 409, 413];
  *   belongs. Blob requests (download, preview, zip) rethrow their error with the parsed problem as body.
  * - {@link detectCapabilities} asks `GET /capabilities` once per tenant; a 404/405/501 (file API not
  *   deployed) or 403 (token without the API scope) answers `{ available: false }` silently, so hosts can
- *   probe safely.
+ *   probe safely; a tenant without System.Files answers HTTP 200 with `available: false` and a `reason`.
  * - Downloads, previews and zips are in-memory blobs (D9); respect `previewMaxBytes` / `zipMaxBytes`.
  *
  * @example
@@ -378,6 +390,27 @@ export class FilesClientService {
     return normalizeStats(await firstValueFrom(this.http.get<Partial<FolderStats>>(url, { context: callerHandled() })));
   }
 
+  /**
+   * Number of links per entry: every association except the folder tree (`System/ParentChild`), any role,
+   * any direction — `POST linked-counts` with `{ rtIds }`. Entries not visible to the caller are missing
+   * from the result. Duplicates are dropped; lists above {@link FILES_LINKED_COUNTS_BATCH} are sent in
+   * several requests. Use it for the "used by" column instead of per-item association queries.
+   */
+  async linkedCounts(rtIds: readonly string[], tenantId?: string | null): Promise<Record<string, number>> {
+    const ids = [...new Set(rtIds.map(checkRtId))];
+    if (ids.length === 0) {
+      return {};
+    }
+    const url = await this.url(tenantId, 'linked-counts');
+    const batches: string[][] = [];
+    for (let i = 0; i < ids.length; i += FILES_LINKED_COUNTS_BATCH) {
+      batches.push(ids.slice(i, i + FILES_LINKED_COUNTS_BATCH));
+    }
+    const answers = await Promise.all(batches.map((batch) =>
+      firstValueFrom(this.http.post<{ counts?: Record<string, number> | null }>(url, { rtIds: batch }, { context: callerHandled() }))));
+    return Object.assign({}, ...answers.map((a) => a?.counts ?? {}));
+  }
+
   // ---------------------------------------------------------------------------------- URLs
 
   /**
@@ -432,7 +465,7 @@ export class FilesClientService {
   private async fetchCapabilities(tenant: string): Promise<FilesCapabilities> {
     const url = await this.url(tenant, 'capabilities');
     try {
-      const body = await firstValueFrom(this.http.get<Omit<FilesCapabilities, 'available'>>(url, { context: callerHandled([403, 404, 405, 501]) }));
+      const body = await firstValueFrom(this.http.get<Partial<FilesCapabilities>>(url, { context: callerHandled([403, 404, 405, 501]) }));
       return normalizeCapabilities(body);
     } catch (error) {
       const status = (error as { status?: number })?.status;
@@ -514,15 +547,16 @@ export function filesGraphQlErrorCode(error: unknown): string | null {
   return null;
 }
 
-function normalizeCapabilities(body: Partial<Omit<FilesCapabilities, 'available'>> | null): FilesCapabilities {
+function normalizeCapabilities(body: Partial<FilesCapabilities> | null): FilesCapabilities {
   const b = body ?? {};
   return {
     ...b,
-    available: true,
+    available: b.available !== false,
     apiVersion: typeof b.apiVersion === 'number' ? b.apiVersion : 1,
     zipDownload: b.zipDownload === true,
     recursiveDelete: b.recursiveDelete === true,
     folderStats: b.folderStats === true,
+    linkedCounts: b.linkedCounts === true,
     reservedRootNames: (Array.isArray(b.reservedRootNames) && b.reservedRootNames.length > 0 ? b.reservedRootNames : FILES_RESERVED_ROOT_NAMES)
       .map((n) => n.toLowerCase()),
   };
