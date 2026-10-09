@@ -6,17 +6,24 @@
 //      look like a CK id (`Model/Type`, `Model.Sub-1.2.3/Type`) must reference an allowlisted
 //      model. Synthetic models (`Test`, `TestModel`) are allowed only in spec/testing paths.
 //      Matches in comments are warnings (errors with --strict).
-//   2. *.graphql documents: every named type and every field directly under `runtime`
-//      (queries and mutations) or a subscription root must not resolve to a non-System CK type.
-//      Types unknown to the schema are errors as well.
-//   3. schema.graphql: no type definition may belong to a non-System CK type.
+//   2. GraphQL documents (*.graphql and `gql` tagged templates in *.ts): every named type and
+//      every field under `runtime` (queries and mutations, also through inline fragments, fragment
+//      spreads and fragments on the runtime/subscription root types) or a subscription root must
+//      not resolve to a non-System CK type. *.graphql documents are also validated against the
+//      schema (unknown types and fields), so they fail once the schema is System-only (AB#6204).
+//      `gql` templates with substitutions are only word-scanned for non-System GraphQL type names.
+//   3. schema.graphql and generated GraphQL TypeScript: no non-System CK type.
 //   4. Optional import boundaries (e.g. libraries must not import demo apps).
+//
+// Limits: CK ids built at runtime (`Basic/${name}`, 'Basic' + '/Tree', ids read from data) are
+// not detected; a literal is only checked as a whole token.
 //
 // Configuration lives next to this script:
 //   system-ck-allowlist.json   allowed models, file scopes, schema location, import boundaries
-//   system-ck-exceptions.json  [{ path, pattern?, reason, workItem, expires? }]
+//   system-ck-exceptions.json  [{ path, pattern?, maxCount?, reason, workItem, expires? }]
+//                              Non-generated files need `pattern` and `maxCount`.
 //
-// Usage: node scripts/check-system-ck-only.mjs [--strict] [--verbose]
+// Usage: node scripts/check-system-ck-only.mjs [--strict] [--verbose] [--json]
 // Exit code 1 on errors. Dependencies: `graphql` and `typescript`, resolved from the
 // npm package directory configured in the allowlist (`packageDir`).
 
@@ -89,12 +96,16 @@ const matchesAny = (file, globs = []) => globs.some((g) => globToRegExp(g).test(
 // ---------------------------------------------------------------------------------------------
 const CK_ID = /(?<![\w./-])([A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)*)(?:-\d+(?:\.\d+)*)?\/[A-Z][A-Za-z0-9]+/g;
 const ignoreTokens = new Set(config.ignoreTokens ?? []);
+const modelPrefixes = (config.modelPrefixes ?? []).map((p) => (p.endsWith('.') ? p : p + '.'));
+const isGeneratedFile = (file) => file === config.schema || matchesAny(file, config.generatedGraphQlFiles);
 
 function modelAllowed(model, file) {
   const scope = scopesFor(file);
-  const models = [...config.models, ...(config.platformModels ?? []), ...scope.flatMap((s) => s.models ?? [])];
+  const models = [...config.models, ...scope.flatMap((s) => s.models ?? [])];
   if (models.includes(model)) return true;
-  if ((config.modelPrefixes ?? []).some((p) => model.startsWith(p))) return true;
+  // `System.` allows every System.* model; the prefix must end with a dot so that e.g.
+  // `SystemAir/Fan` is not mistaken for a System model.
+  if (modelPrefixes.some((p) => model.startsWith(p))) return true;
   if (isSynthetic(model)) return matchesAny(file, config.syntheticPaths);
   return false;
 }
@@ -106,7 +117,7 @@ function scopesFor(file) {
 }
 function allowedGraphQlPrefixes(file) {
   const models = [...config.models, ...scopesFor(file).flatMap((s) => s.models ?? [])];
-  return [...models, ...(config.modelPrefixes ?? []).map((p) => p.replace(/\.$/, ''))].map((m) => m.replace(/\./g, ''));
+  return [...models, ...modelPrefixes.map((p) => p.replace(/\.$/, ''))].map((m) => m.replace(/\./g, ''));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -126,10 +137,28 @@ const exceptionState = exceptions.map((e, i) => {
   if (!e.path) problems.push('missing "path"');
   if (!e.reason || !String(e.reason).trim()) problems.push('missing "reason"');
   if (!/^AB#\d+$/.test(e.workItem ?? '')) problems.push('missing or invalid "workItem" (expected "AB#1234")');
-  return { ...e, index: i, problems, used: 0, patternRe: e.pattern ? new RegExp(e.pattern) : null };
+  let patternRe = null;
+  if (e.pattern) {
+    try {
+      patternRe = new RegExp(e.pattern);
+    } catch (err) {
+      problems.push(`invalid "pattern": ${err.message}`);
+    }
+  }
+  if (e.path && !isGeneratedPath(e.path)) {
+    if (!e.pattern) problems.push('"pattern" is required for non-generated files');
+    if (!Number.isInteger(e.maxCount) || e.maxCount < 1) problems.push('"maxCount" (positive integer) is required for non-generated files');
+  }
+  return { ...e, index: i, problems, used: 0, patternRe };
 });
-function exceptionFor(finding) {
-  return exceptionState.find(
+// An exception path counts as generated when it only covers the schema / generated GraphQL files
+function isGeneratedPath(glob) {
+  if (glob === config.schema) return true;
+  return (config.generatedGraphQlFiles ?? []).some((g) => g === glob || globToRegExp(g).test(glob.replace(/\{([^,}]+)[^}]*\}/g, '$1')));
+}
+// Every matching exception counts the finding (overlapping entries are not reported as stale)
+function exceptionsFor(finding) {
+  return exceptionState.filter(
     (e) => e.problems.length === 0 && !(e.expires && e.expires < today) && globToRegExp(e.path).test(finding.file) && (!e.patternRe || e.patternRe.test(finding.token)),
   );
 }
@@ -192,8 +221,7 @@ function scanText(file, text, ranges /* [{start,end,kind:'code'|'comment'}] or n
   }
 }
 
-function tsLiteralRanges(file, text) {
-  const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, false, file.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+function tsLiteralRanges(file, text, sf) {
   const ranges = [];
   const seenComments = new Set();
   const addComments = (list) => {
@@ -333,69 +361,152 @@ function pascal(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function checkGraphQlDocument(file, text) {
-  let doc;
-  try {
-    doc = graphql.parse(text);
-  } catch (e) {
-    report(file, text, 0, file, `GraphQL parse error: ${e.message}`, 'error');
-    return;
+// Fragment definitions of all *.graphql documents (spreads may cross files, like in codegen)
+const allFragments = new Map();
+let validationSchema;
+function getValidationSchema() {
+  if (validationSchema !== undefined) return validationSchema;
+  const { doc } = loadSchema();
+  validationSchema = null;
+  if (doc) {
+    try {
+      validationSchema = graphql.buildASTSchema(doc, { assumeValidSDL: true });
+    } catch (e) {
+      console.log(`${config.schema}: warning: schema could not be built for validation: ${e.message}`);
+    }
   }
+  return validationSchema;
+}
+
+function parseGraphQl(file, fullText, docText, base) {
+  try {
+    return graphql.parse(docText);
+  } catch (e) {
+    report(file, fullText, base, file, `GraphQL parse error: ${e.message}`, 'error');
+    return null;
+  }
+}
+
+// docText is the GraphQL source; it starts at offset `base` inside fullText (for `gql` templates)
+function checkGraphQlDocument(file, fullText, doc, base = 0, { validate = false } = {}) {
   const schema = loadSchema();
-  const offsetOf = (node) => node.loc?.start ?? 0;
+  const offsetOf = (node) => base + (node.loc?.start ?? 0);
+  const fragments = new Map(allFragments);
+  const local = new Set();
+  for (const def of doc.definitions) {
+    if (def.kind === 'FragmentDefinition') {
+      fragments.set(def.name.value, def);
+      local.add(def);
+    }
+  }
 
   graphql.visit(doc, {
     NamedType(node) {
       const name = node.name.value;
       const entity = foreignCkType(name, file);
       if (entity) {
-        report(file, text, offsetOf(node), name, `type '${name}' belongs to non-System CK type '${entity}'`, 'error');
+        report(file, fullText, offsetOf(node), name, `type '${name}' belongs to non-System CK type '${entity}'`, 'error');
       } else if (schema.types.size > 0 && !schema.types.has(name) && !builtinScalars.has(name)) {
-        report(file, text, offsetOf(node), name, `type '${name}' is not defined in ${config.schema} (only System CK types are available)`, 'error');
+        report(file, fullText, offsetOf(node), name, `type '${name}' is not defined in ${config.schema} (only System CK types are available)`, 'error');
       }
     },
     StringValue(node) {
-      scanText(file, text, [{ start: node.loc.start, end: node.loc.end, kind: 'code' }]);
+      scanText(file, fullText, [{ start: offsetOf(node), end: base + node.loc.end, kind: 'code' }]);
     },
   });
 
-  const checkFieldNames = (selectionSet) => {
+  // Fields of a runtime / subscription root selection, through inline fragments and spreads
+  const reported = new Set();
+  // `via` = spread of a fragment from another file: findings are reported at that spread
+  const checkRootSelection = (selectionSet, visited, via) => {
     for (const sel of selectionSet?.selections ?? []) {
-      if (sel.kind !== 'Field') continue;
-      const name = sel.name.value;
-      const entity = foreignCkType(pascal(name), file);
-      if (entity) report(file, text, offsetOf(sel), name, `field '${name}' resolves to non-System CK type '${entity}'`, 'error');
+      if (sel.kind === 'Field') {
+        const name = sel.name.value;
+        const entity = foreignCkType(pascal(name), file);
+        if (entity && !reported.has(sel)) {
+          reported.add(sel);
+          const at = via ?? sel;
+          const where = via ? ` (via fragment '${via.name.value}')` : '';
+          report(file, fullText, offsetOf(at), name, `field '${name}' resolves to non-System CK type '${entity}'${where}`, 'error');
+        }
+      } else if (sel.kind === 'InlineFragment') {
+        checkRootSelection(sel.selectionSet, visited, via);
+      } else if (sel.kind === 'FragmentSpread') {
+        const frag = fragments.get(sel.name.value);
+        if (frag && !visited.has(frag)) checkRootSelection(frag.selectionSet, new Set(visited).add(frag), via ?? (local.has(frag) ? undefined : sel));
+      }
     }
   };
-  const walk = (selectionSet, depth) => {
+  // Find `runtime` fields anywhere, following inline fragments and spreads
+  const walk = (selectionSet, visited, via) => {
     for (const sel of selectionSet?.selections ?? []) {
-      if (sel.kind === 'Field' && sel.name.value === 'runtime') checkFieldNames(sel.selectionSet);
-      if (sel.selectionSet && depth < 3) walk(sel.selectionSet, depth + 1);
+      if (sel.kind === 'Field' && sel.name.value === 'runtime') checkRootSelection(sel.selectionSet, visited, via);
+      if (sel.kind === 'FragmentSpread') {
+        const frag = fragments.get(sel.name.value);
+        if (frag && !visited.has(frag)) walk(frag.selectionSet, new Set(visited).add(frag), via ?? (local.has(frag) ? undefined : sel));
+      } else if (sel.selectionSet) {
+        walk(sel.selectionSet, visited, via);
+      }
     }
   };
+  const rootTypes = new Set([...schema.runtimeTypes, schema.subscriptionType].filter(Boolean));
   for (const def of doc.definitions) {
     if (def.kind === 'OperationDefinition') {
-      if (def.operation === 'subscription') checkFieldNames(def.selectionSet);
-      walk(def.selectionSet, 0);
+      if (def.operation === 'subscription') checkRootSelection(def.selectionSet, new Set());
+      walk(def.selectionSet, new Set());
     } else if (def.kind === 'FragmentDefinition') {
-      walk(def.selectionSet, 0);
+      if (rootTypes.has(def.typeCondition.name.value)) checkRootSelection(def.selectionSet, new Set([def]));
+      walk(def.selectionSet, new Set([def]));
+    }
+  }
+
+  // Unknown types and fields (relevant once the schema is System-only, AB#6204)
+  const vSchema = validate ? getValidationSchema() : null;
+  if (vSchema) {
+    const errors = graphql.validate(vSchema, doc, [graphql.FieldsOnCorrectTypeRule, graphql.KnownTypeNamesRule]);
+    for (const err of errors) {
+      if (/^Unknown type/.test(err.message)) continue; // already reported above
+      const loc = err.nodes?.[0]?.loc?.start ?? 0;
+      report(file, fullText, base + loc, err.message, `GraphQL validation: ${err.message}`, 'error');
     }
   }
 }
 
+// `gql` tagged templates in hand-written TypeScript
+function checkGqlTemplates(file, text, sf) {
+  const visit = (node) => {
+    if (ts.isTaggedTemplateExpression(node) && ts.isIdentifier(node.tag) && (node.tag.text === 'gql' || node.tag.text === 'graphql')) {
+      const tpl = node.template;
+      if (ts.isNoSubstitutionTemplateLiteral(tpl)) {
+        const base = tpl.getStart(sf) + 1;
+        const doc = parseGraphQl(file, text, tpl.text, base);
+        if (doc) checkGraphQlDocument(file, text, doc, base);
+      } else {
+        scanGraphQlTypeNames(file, text, tpl.getStart(sf), tpl.end, 'GraphQL template references');
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+}
+
 // Generated GraphQL TypeScript (possibleTypes, operation types): type names of non-System CK types
-function checkGeneratedGraphQlTs(file, text) {
+function scanGraphQlTypeNames(file, text, start, end, what) {
   const seen = new Set();
-  const WORD = /\b[A-Z][A-Za-z0-9_]*\b/g;
+  const WORD = /\b[A-Za-z][A-Za-z0-9_]*\b/g;
+  const slice = text.slice(start, end);
   let m;
-  while ((m = WORD.exec(text))) {
+  while ((m = WORD.exec(slice))) {
     const name = m[0];
     if (seen.has(name)) continue;
-    const entity = foreignCkType(name, file);
+    const entity = foreignCkType(pascal(name), file);
     if (!entity) continue;
     seen.add(name);
-    report(file, text, m.index, name, `generated code references '${name}' of non-System CK type '${entity}'`, 'error');
+    report(file, text, start + m.index, name, `${what} '${name}' of non-System CK type '${entity}'`, 'error');
   }
+}
+function checkGeneratedGraphQlTs(file, text) {
+  scanGraphQlTypeNames(file, text, 0, text.length, 'generated code references');
 }
 
 function checkSchema(file) {
@@ -429,6 +540,20 @@ function checkImports(file, text) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// The script exists once per repo; warn when a checked-out sibling copy differs
+// ---------------------------------------------------------------------------------------------
+function checkSiblingCopies() {
+  const own = readFileSync(fileURLToPath(import.meta.url));
+  for (const rel of config.siblingCopies ?? []) {
+    const other = path.resolve(repoRoot, rel);
+    if (!existsSync(other)) continue;
+    if (!own.equals(readFileSync(other))) {
+      findings.push({ file: path.relative(repoRoot, fileURLToPath(import.meta.url)), line: 1, column: 1, token: rel, message: `differs from the sibling copy ${rel} - keep both in sync`, severity: 'warning' });
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------------------------
 const files = execFileSync('git', ['ls-files', '-co', '--exclude-standard'], { cwd: repoRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
@@ -437,29 +562,48 @@ const files = execFileSync('git', ['ls-files', '-co', '--exclude-standard'], { c
   .filter((f) => matchesAny(f, config.include) && !matchesAny(f, config.exclude));
 
 const QUICK = /[A-Z][A-Za-z0-9.]*(?:-\d[\d.]*)?\/[A-Z]/;
-let scanned = 0;
+const GQL_TAG = /\b(?:gql|graphql)\s*`/;
+const sources = [];
 for (const file of files) {
   const abs = path.join(repoRoot, file);
   if (!existsSync(abs)) continue; // deleted but not yet staged
-  const text = readFileSync(abs, 'utf8');
-  scanned++;
+  sources.push({ file, text: readFileSync(abs, 'utf8') });
+}
+// Pass 1: parse *.graphql documents and collect their fragments
+for (const src of sources) {
+  if (src.file === config.schema || path.extname(src.file) !== '.graphql') continue;
+  src.doc = parseGraphQl(src.file, src.text, src.text, 0);
+  for (const def of src.doc?.definitions ?? []) if (def.kind === 'FragmentDefinition') allFragments.set(def.name.value, def);
+}
+// Pass 2: rules
+for (const { file, text, doc } of sources) {
   if (config.schema && file === config.schema) {
     checkSchema(file);
     continue;
   }
   const ext = path.extname(file);
   if (ext === '.graphql') {
-    checkGraphQlDocument(file, text);
+    if (doc) checkGraphQlDocument(file, text, doc, 0, { validate: true });
     if (QUICK.test(text)) scanText(file, text, graphQlCommentRanges(text).filter((r) => r.kind === 'comment'));
     continue;
   }
-  if (ext === '.ts') checkImports(file, text);
-  if (ext === '.ts' && matchesAny(file, config.generatedGraphQlFiles)) checkGeneratedGraphQlTs(file, text);
+  if (ext === '.ts') {
+    checkImports(file, text);
+    const generated = matchesAny(file, config.generatedGraphQlFiles);
+    if (generated) checkGeneratedGraphQlTs(file, text);
+    const needsLiterals = QUICK.test(text);
+    const needsGql = !generated && GQL_TAG.test(text);
+    if (!needsLiterals && !needsGql) continue;
+    const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    if (needsLiterals) scanText(file, text, tsLiteralRanges(file, text, sf));
+    if (needsGql) checkGqlTemplates(file, text, sf);
+    continue;
+  }
   if (!QUICK.test(text)) continue;
-  if (ext === '.ts') scanText(file, text, tsLiteralRanges(file, text));
-  else if (ext === '.html') scanText(file, text, markupCommentRanges(text, '<!--', '-->'));
+  if (ext === '.html') scanText(file, text, markupCommentRanges(text, '<!--', '-->'));
   else scanText(file, text, null);
 }
+checkSiblingCopies();
 
 // Apply exceptions
 let errors = 0;
@@ -467,9 +611,9 @@ let warnings = 0;
 let excepted = 0;
 const out = [];
 for (const f of findings) {
-  const ex = f.severity === 'info' ? null : exceptionFor(f);
-  if (ex) {
-    ex.used++;
+  const matching = f.severity === 'info' ? [] : exceptionsFor(f);
+  if (matching.length) {
+    for (const ex of matching) ex.used++;
     excepted++;
     continue;
   }
@@ -488,15 +632,27 @@ for (const e of exceptionState) {
   } else if (e.used === 0) {
     warnings++;
     out.push(`${label}: warning: stale exception, nothing matches any more - remove it (${e.workItem})`);
+  } else if (e.maxCount && e.used > e.maxCount) {
+    errors++;
+    out.push(`${label}: error: ${e.used} findings exceed maxCount ${e.maxCount} - fix the new ones instead of raising the limit (${e.workItem})`);
+  } else if (e.maxCount && e.used < e.maxCount) {
+    warnings++;
+    out.push(`${label}: warning: only ${e.used} of maxCount ${e.maxCount} findings left - lower maxCount (${e.workItem})`);
   }
 }
 
+// --json: machine-readable list of the findings not covered by an exception (for baseline updates)
+if (args.has('--json')) {
+  const open = findings.filter((f) => f.severity !== 'info' && exceptionsFor(f).length === 0);
+  console.log(JSON.stringify(open, null, 2));
+  process.exit(errors > 0 ? 1 : 0);
+}
 if (out.length) console.log(out.join('\n'));
 if (verbose) {
   const byException = exceptionState.filter((e) => e.used).map((e) => `  ${e.used.toString().padStart(5)}  ${e.workItem}  ${e.path}${e.pattern ? ` /${e.pattern}/` : ''}`);
   if (byException.length) console.log('Excepted findings:\n' + byException.join('\n'));
 }
 console.log(
-  `check-system-ck-only: ${scanned} files, ${errors} error(s), ${warnings} warning(s), ${excepted} excepted by ${exceptions.length} exception(s), ${weakMatches} prose match(es) ignored in ${Date.now() - started} ms`,
+  `check-system-ck-only: ${sources.length} files, ${errors} error(s), ${warnings} warning(s), ${excepted} excepted by ${exceptions.length} exception(s), ${weakMatches} prose match(es) ignored in ${Date.now() - started} ms`,
 );
 process.exitCode = errors > 0 ? 1 : 0;

@@ -12,9 +12,6 @@
     "System.StreamData",
     "System.UI"
   ],
-  "platformModels": [
-    "ConstructionKit"
-  ],
   "modelPrefixes": [
     "System."
   ],
@@ -25,7 +22,7 @@
   "syntheticPaths": [
     "**/*.spec.ts",
     "**/testing/**",
-    "**/*.md"
+    "**/docs/**/*.md"
   ],
   "knownForeignModels": [
     "Basic",
@@ -64,7 +61,13 @@
   "ignoreTokens": [
     "TreeNavigationConfiguration.Roles/Perspectives",
     "Meat/Poultry",
-    "Grains/Cereals"
+    "Grains/Cereals",
+    "ConstructionKit/CkModel",
+    "ConstructionKit/CkType",
+    "ConstructionKit/CkAttribute",
+    "ConstructionKit/CkAssociationRole",
+    "ConstructionKit/CkEnum",
+    "ConstructionKit/CkRecord"
   ],
   "packageDir": "src/frontend-libraries",
   "schema": "src/frontend-libraries/schema.graphql",
@@ -112,5 +115,8 @@
       ],
       "reason": "libraries must not depend on the demo apps (AB#6208)"
     }
+  ],
+  "siblingCopies": [
+    "../octo-frontend-refinery-studio/scripts/check-system-ck-only.mjs"
   ]
 }

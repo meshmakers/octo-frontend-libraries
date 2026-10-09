@@ -16,11 +16,15 @@
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/graphQL/getOrphanCandidates.graphql",
+    "pattern": "^(?:Basic/TreeNode|Loxone/Category|Loxone/Miniserver|Loxone/Room)$",
+    "maxCount": 4,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/graphQL/getTrees.graphql",
+    "pattern": "^(?:Basic/TreeNode)$",
+    "maxCount": 1,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
@@ -31,6 +35,8 @@
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/graphQL/updateTreeNodes.graphql",
+    "pattern": "^(?:BasicTreeNodeInputUpdate|basicTreeNodes)$",
+    "maxCount": 2,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
@@ -41,366 +47,512 @@
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/NAVIGATION_USAGE.md",
+    "pattern": "^(?:Basic/Asset|Basic/Tree|Basic/TreeNode)$",
+    "maxCount": 4,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/create-editor/create-editor-component.ts",
+    "pattern": "^(?:Basic/Tree|Basic/TreeNode)$",
+    "maxCount": 4,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/data-mapping-overview/data-mapping-overview.models.ts",
+    "pattern": "^(?:EnergyIQ/Space|Loxone/Control)$",
+    "maxCount": 2,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/entity-detail-view.component.spec.ts",
+    "pattern": "^(?:TestNamespace/TestType)$",
+    "maxCount": 2,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree-data-source.spec.ts",
+    "pattern": "^(?:EnergyIQ/HumiditySensor|EnergyIQ/Sensor|EnergyIQ/Space|EnergyIQ/SpaceSensors|EnergyIQ/TemperatureSensor)$",
+    "maxCount": 32,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree-data-source.ts",
+    "pattern": "^(?:EnergyIQ/SpaceSensors|EnergyIQ/SystemMembers)$",
+    "maxCount": 2,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree.component.spec.ts",
+    "pattern": "^(?:EnergyIQ/DistributionSystem|EnergyIQ/Space|EnergyIQ/SystemMembers|Loxone/Category|Loxone/Control|Loxone/Room|MQTT/Topic)$",
+    "maxCount": 27,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree.component.ts",
+    "pattern": "^(?:Basic/Tree|Basic/TreeNode|Loxone/Category|Loxone/Room)$",
+    "maxCount": 8,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree.models.ts",
+    "pattern": "^(?:Basic/Tree|Basic/TreeNode|EnergyIQ/SpaceSensors|Loxone/Control|MQTT/Topic|OpcUa/Node)$",
+    "maxCount": 12,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/runtime-browser-details.component.ts",
+    "pattern": "^(?:Basic/Tree|Basic/TreeNode)$",
+    "maxCount": 2,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/shared-editor/shared-editor.spec.ts",
+    "pattern": "^(?:Foo/Bar)$",
+    "maxCount": 5,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/data-sources/entity-detail-data-source.service.spec.ts",
+    "pattern": "^(?:Custom/Type)$",
+    "maxCount": 4,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/data-sources/runtime-browser-data-source.service.spec.ts",
+    "pattern": "^(?:Basic/Asset|Basic/AssetTypeA|Basic/AssetTypeB|Basic/Entity|Basic/NamedEntity|Basic/PlantTree|Basic/RelatedClassification|Basic/Tree|Basic/TreeNode|Child/Type|EnergyIQ/DistributionSystem|EnergyIQ/HeatPump|EnergyIQ/Noise|EnergyIQ/Space|EnergyIQ/SystemMembers|EnergyIQ/SystemSpaces|EnergyIQ/Thing|Industry\\.Basic/Machine|Parent/Type|Self/Type)$",
+    "maxCount": 102,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/data-sources/runtime-browser-data-source.service.ts",
+    "pattern": "^(?:Basic/Asset|Basic/Tree|Basic/TreeNode|EnergyIQ/DistributionSystem|EnergyIQ/StoreyElements)$",
+    "maxCount": 11,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/runtime-browser.component.ts",
+    "pattern": "^(?:Basic/Tree|Basic/TreeNode)$",
+    "maxCount": 10,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/association-validation.service.spec.ts",
+    "pattern": "^(?:Basic-2\\.0\\.2/RelatedClassification|Basic-2\\.0\\.2/Tree|Basic-2\\.0\\.2/TreeNode|Basic/RelatedClassification|Basic/Tree|Basic/TreeNode|Custom/Sensor|Custom/UnrelatedType|Industry\\.Basic/Machine|Unknown/Type)$",
+    "maxCount": 36,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/attribute-mapper.service.spec.ts",
+    "pattern": "^(?:Basic/Address|Basic/NamePlate|Basic/OrderLine|Basic/Tag)$",
+    "maxCount": 9,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/attribute-metadata-resolver.service.spec.ts",
+    "pattern": "^(?:Basic/Address|Foo/Bar)$",
+    "maxCount": 5,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/mapping-coverage-config.service.spec.ts",
+    "pattern": "^(?:Loxone/Control|MQTT/Topic)$",
+    "maxCount": 7,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/runtime-browser-state.service.spec.ts",
+    "pattern": "^(?:Basic/Entity|Custom/Type)$",
+    "maxCount": 6,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/secret-safe-attribute-names.service.spec.ts",
+    "pattern": "^(?:Basic/State)$",
+    "maxCount": 2,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/secret-safe-attribute-names.service.ts",
+    "pattern": "^(?:Basic/TreeNode)$",
+    "maxCount": 1,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/tree-navigation-config.service.spec.ts",
+    "pattern": "^(?:EnergyIQ/Building|EnergyIQ/DistributionSystem|EnergyIQ/Sensor|EnergyIQ/Space|EnergyIQ/SpaceSensors|EnergyIQ/SystemMembers|EnergyIQ/SystemSpaces|Other/Role)$",
+    "maxCount": 26,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/tree-navigation-config.service.ts",
+    "pattern": "^(?:Basic/Tree|EnergyIQ/SpaceSensors)$",
+    "maxCount": 2,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/type-helper.service.spec.ts",
+    "pattern": "^(?:Basic/Tree|Basic/TreeNode)$",
+    "maxCount": 2,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/tree-navigation-settings/src/tree-navigation-settings.component.spec.ts",
+    "pattern": "^(?:EnergyIQ/Space|EnergyIQ/SpaceSensors)$",
+    "maxCount": 4,
     "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
     "workItem": "AB#6205"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/CLAUDE.md",
+    "pattern": "^(?:OctoSdk/Customer)$",
+    "maxCount": 2,
     "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/docs/process-widget.md",
+    "pattern": "^(?:Industry/Tank)$",
+    "maxCount": 2,
     "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/docs/stream-data-query-result-shape.md",
+    "pattern": "^(?:Basic\\.Energy/EnergyMeasurement)$",
+    "maxCount": 1,
     "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/components/entity-selector-editor/entity-selector-editor.component.spec.ts",
+    "pattern": "^(?:Energy/MeteringPoint)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/components/query-selector/persistent-query-data-sources.ts",
+    "pattern": "^(?:Basic\\.Energy/EnergyMeasurement)$",
+    "maxCount": 1,
     "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/services/meshboard-data.service.spec.ts",
+    "pattern": "^(?:ConstructionKit/Unknown|Meshmakers\\.Accounting/FiscalYear|OctoSdk/Customer|OctoSdk/Machine|Src/Type|Tgt/Type)$",
+    "maxCount": 23,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/services/meshboard-state.service.spec.ts",
+    "pattern": "^(?:Energy/MP|Energy/MeteringPoint|Energy/Plant)$",
+    "maxCount": 8,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/services/query-executor.service.spec.ts",
+    "pattern": "^(?:Basic\\.Energy/EnergyMeasurement|OctoSdk/Customer)$",
+    "maxCount": 9,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/utils/runtime-entity-data-sources.ts",
+    "pattern": "^(?:Basic\\.Energy/EnergyMeasurement)$",
+    "maxCount": 1,
     "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/entity-card-widget/entity-card-widget.component.spec.ts",
+    "pattern": "^(?:Energy/MeteringPoint|Energy/MeteringPointBase)$",
+    "maxCount": 11,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/line-chart-widget/line-chart-widget.component.spec.ts",
+    "pattern": "^(?:Basic/TemperatureSensor)$",
+    "maxCount": 2,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/process-widget/services/process-data.service.spec.ts",
+    "pattern": "^(?:OctoSdk/Thing)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/status-list-widget/status-list-config-dialog.component.ts",
+    "pattern": "^(?:Environment/ComplianceRecord)$",
+    "maxCount": 1,
     "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/table-widget/table-widget.component.spec.ts",
+    "pattern": "^(?:Shop/Invoice)$",
+    "maxCount": 2,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-process-diagrams/src/lib/process-widget.models.ts",
+    "pattern": "^(?:Industry/Tank)$",
+    "maxCount": 1,
     "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-services/CLAUDE.md",
+    "pattern": "^(?:OctoSdkDemo-1\\.0\\.0/Customer|OctoSdkDemo-1\\.0\\.0/StatusRecord|OctoSdkDemo-1/Customer|OctoSdkDemo/BaseEntity|OctoSdkDemo/Customer|OctoSdkDemo/MyRecord)$",
+    "maxCount": 9,
     "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-services/docs/README.md",
+    "pattern": "^(?:MyModel/MyPipeline|OctoSdkDemo-1\\.0\\.0/Customer|OctoSdkDemo/Customer)$",
+    "maxCount": 3,
     "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/attribute-selector.service.spec.ts",
+    "pattern": "^(?:NonExistent/Type)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/ck-type-attribute.service.spec.ts",
+    "pattern": "^(?:NonExistent/Record|NonExistent/Type)$",
+    "maxCount": 2,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/ck-type-selector.service.spec.ts",
+    "pattern": "^(?:NonExistent/Type)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/ck-type-selector.service.ts",
+    "pattern": "^(?:Basic/TreeNode|OctoSdkDemo-1\\.0\\.0/Customer)$",
+    "maxCount": 4,
     "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/identity-service.spec.ts",
+    "pattern": "^(?:Meshmakers\\.Accounting/UploadedDocument)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/CLAUDE.md",
+    "pattern": "^(?:Basic/Tree|EnergyIQ/DistributionSystem|EnergyIQ/SpaceSensors|Loxone/Control|OctoSdkDemo/Customer)$",
+    "maxCount": 10,
     "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/before-save.spec.ts",
+    "pattern": "^(?:Meshmakers\\.Accounting/Contact)$",
+    "maxCount": 2,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/change-set-builder.spec.ts",
+    "pattern": "^(?:T/Owner)$",
+    "maxCount": 2,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/ck-type-name.spec.ts",
+    "pattern": "^(?:Energy\\.Community/EdaConfiguration|Meshmakers\\.Accounting/FinApiConfiguration|Meshmakers\\.Accounting/WeClappConfiguration|X/Aidan|X/MailBox)$",
+    "maxCount": 5,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-catalog.spec.ts",
+    "pattern": "^(?:Meshmakers\\.Accounting/FinApiConfiguration)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-labels.spec.ts",
+    "pattern": "^(?:Basic\\.Accounting/BankAccount|Basic\\.Accounting/CategorizationRule|X/Line)$",
+    "maxCount": 6,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-labels.ts",
+    "pattern": "^(?:Basic\\.Accounting/BankAccount)$",
+    "maxCount": 1,
     "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-prefill.spec.ts",
+    "pattern": "^(?:Basic/Contact)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-resolver.spec.ts",
+    "pattern": "^(?:Basic\\.Accounting/CategorizationRule|Foo/Bar|Foo/Base|Other/Type|T-1\\.0\\.0/Cred|T-1\\.0\\.0/Endpoint|T-1\\.0\\.0/Ep|T/Employee|T/Mixed|T/Nope|T/Owner|T/Person|T/Rec|T/Sec|T/Src|T/Stateful|T/Thing)$",
+    "maxCount": 51,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/testing/live-fixtures.ts",
+    "pattern": "^(?:EnergyIQ/Space)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/form/records/entity-form-record-row-dialog.component.spec.ts",
+    "pattern": "^(?:X/Child)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/form/records/entity-form-record-row.spec.ts",
+    "pattern": "^(?:X/Child)$",
+    "maxCount": 1,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/form/reference/entity-reference-data-source.spec.ts",
+    "pattern": "^(?:Basic/Tree)$",
+    "maxCount": 6,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/services/entity-form-data.service.spec.ts",
+    "pattern": "^(?:T/Owner)$",
+    "maxCount": 3,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/services/entity-form.service.spec.ts",
+    "pattern": "^(?:Nope/Nope)$",
+    "maxCount": 2,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/attribute-selector-dialog/attribute-selector-dialog.component.spec.ts",
+    "pattern": "^(?:Custom/Type|TestType/Entity)$",
+    "maxCount": 28,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/attribute-selector-dialog/attribute-selector-dialog.service.spec.ts",
+    "pattern": "^(?:TestType/Entity)$",
+    "maxCount": 17,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/attribute-sort-selector-dialog/attribute-sort-selector-dialog.service.spec.ts",
+    "pattern": "^(?:TestType/Entity)$",
+    "maxCount": 18,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/ck-type-selector-dialog/ck-type-selector-dialog.component.spec.ts",
+    "pattern": "^(?:OctoSdkDemo-1\\.0\\.0/Customer|OctoSdkDemo-1\\.0\\.0/Entity|OctoSdkDemo-1\\.0\\.0/Order|OctoSdkDemo/Customer|OctoSdkDemo/Entity|OctoSdkDemo/Order)$",
+    "maxCount": 19,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/ck-type-selector-input/ck-type-selector-input.component.spec.ts",
+    "pattern": "^(?:NonExistent/Type|OctoSdkDemo-1\\.0\\.0/Customer|OctoSdkDemo-1\\.0\\.0/Entity|OctoSdkDemo-1\\.0\\.0/Order|OctoSdkDemo/Customer|OctoSdkDemo/Entity|OctoSdkDemo/Order)$",
+    "maxCount": 19,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/entity-selector-dialog/entity-selector-dialog.component.spec.ts",
+    "pattern": "^(?:Basic/TreeNode)$",
+    "maxCount": 2,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/property-grid/services/property-converter.service.spec.ts",
+    "pattern": "^(?:OctoSdkDemo/Customer|OctoSdkDemo/NestedRecord|OctoSdkDemo/TestRecord)$",
+    "maxCount": 12,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/octo-ui/tree-navigation-settings/src/tree-navigation-settings.messages.ts",
+    "pattern": "^(?:EnergyIQ/SpaceSensors)$",
+    "maxCount": 1,
     "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/meshmakers/shared-ui/shell/src/shell-notifications.spec.ts",
+    "pattern": "^(?:Meshmakers\\.Accounting/AccountingDocument|Meshmakers\\.Accounting/CostCategory|Meshmakers\\.Accounting/FiscalYear)$",
+    "maxCount": 3,
     "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
     "workItem": "AB#6207"
   },
   {
     "path": "src/frontend-libraries/projects/demo-app/src/app/graphQL/getTrees.graphql",
+    "pattern": "^(?:Basic/TreeNode)$",
+    "maxCount": 1,
     "reason": "Demo app still uses Basic tree types; demo apps get their own OctoSdkDemo schema/codegen (decision 2026-10-09).",
     "workItem": "AB#6208"
   },
@@ -411,11 +563,15 @@
   },
   {
     "path": "src/frontend-libraries/projects/demo-app/src/app/tenants/demos/data-sources/tree-demo-data-source.service.ts",
+    "pattern": "^(?:Basic/Asset|Basic/RelatedClassification|Basic/Tree|Basic/TreeNode)$",
+    "maxCount": 13,
     "reason": "Demo app still uses Basic tree types; demo apps get their own OctoSdkDemo schema/codegen (decision 2026-10-09).",
     "workItem": "AB#6208"
   },
   {
     "path": "src/frontend-libraries/projects/demo-app/src/app/tenants/demos/property-grid/property-grid-demo.component.ts",
+    "pattern": "^(?:Basic/Document)$",
+    "maxCount": 1,
     "reason": "Demo app still uses Basic tree types; demo apps get their own OctoSdkDemo schema/codegen (decision 2026-10-09).",
     "workItem": "AB#6208"
   }
