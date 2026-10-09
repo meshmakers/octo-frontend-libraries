@@ -386,7 +386,10 @@ export class NotificationDisplayService implements OnDestroy {
           detailsBtn.className = 'k-button k-button-sm k-button-flat k-button-flat-base notification-details-btn';
           detailsBtn.style.cssText = 'flex-shrink: 0; width: 32px; height: 32px; padding: 8px; display: flex; align-items: center; justify-content: center;';
           detailsBtn.innerHTML = this.createSvgIcon();
+          // Icon-only: tooltip and accessible name (AB#6222, action guideline §2.2).
+          detailsBtn.type = 'button';
           detailsBtn.title = this.messages.showDetails;
+          detailsBtn.setAttribute('aria-label', this.messages.showDetails);
           detailsBtn.onclick = (event) => {
             event.stopPropagation();
             this.messageDetailsDialogService.showDetailsDialog({

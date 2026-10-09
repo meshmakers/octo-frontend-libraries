@@ -3,5 +3,5 @@ export interface NotificationDisplayMessages {
 }
 
 export const DEFAULT_NOTIFICATION_DISPLAY_MESSAGES: NotificationDisplayMessages = {
-  showDetails: 'Show Details',
+  showDetails: 'Show details',
 };

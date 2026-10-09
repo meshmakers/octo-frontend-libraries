@@ -40,6 +40,24 @@ describe('NotificationDisplayService', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
+  it('names the icon-only details button of an error toast (AB#6222)', () => {
+    const service = create();
+    const host = document.createElement('div');
+    host.className = 'notification-n1';
+    host.innerHTML = '<div class="k-notification-content"></div>';
+    document.body.appendChild(host);
+    try {
+      (service as unknown as { addDetailsButton(id: string, t: string, d: string, l: 'error'): void })
+        .addDetailsButton('n1', 'Cannot query field', 'stack trace', 'error');
+      const button = host.querySelector<HTMLButtonElement>('.notification-details-btn')!;
+      expect(button.getAttribute('aria-label')).toBe('Show details');
+      expect(button.title).toBe('Show details');
+      expect(button.type).toBe('button');
+    } finally {
+      host.remove();
+    }
+  });
+
   it('shows an identical message only once and restarts its timer', () => {
     const service = create({ errorHideAfter: 10_000 });
     service.showError('Type not found');
