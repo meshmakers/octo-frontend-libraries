@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpContext, provideHttpClient } from '@angular/common/http';
 import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
 import { lastValueFrom, toArray } from 'rxjs';
-import { FilesClientService } from './files-client.service';
+import { FilesClientService, FilesPathError } from './files-client.service';
 import { FileDownloadService } from './file-download.service';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER } from './tenant-provider';
@@ -79,9 +79,44 @@ describe('FilesClientService', () => {
     expect(all[all.length - 1]).toEqual({ type: 'done', item: { rtId: 'x', name: 'a b.pdf' } });
   });
 
-  it('downloads through FileDownloadService under the real name (D9)', async () => {
+  it('downloads through FileDownloadService under the real name (D9), caller-handled statuses', async () => {
     await client.download('Files', 'Q4/r 1.pdf', 'r 1.pdf', 'application/pdf');
-    expect(downloads.downloadUrl).toHaveBeenCalledWith(`${base}/Files/Q4/r%201.pdf`, 'r 1.pdf', 'application/pdf');
+    expect(downloads.downloadUrl).toHaveBeenCalledWith(`${base}/Files/Q4/r%201.pdf`, 'r 1.pdf', 'application/pdf', expect.anything());
+    const context = downloads.downloadUrl.mock.calls[0][3] as HttpContext;
+    expect(context.get(MM_CALLER_HANDLED_STATUSES)).toEqual(expect.arrayContaining([403, 404]));
+  });
+
+  it('fetches preview content as a blob without the global toast for 403 / 404', async () => {
+    const blob = new Blob(['%PDF'], { type: 'application/pdf' });
+    downloads.fetchBlob.mockResolvedValue({ body: blob });
+    expect(await client.fetchContent('Files', 'Q4/a.pdf')).toBe(blob);
+    const [url, context] = downloads.fetchBlob.mock.calls[0] as [string, HttpContext];
+    expect(url).toBe(`${base}/Files/Q4/a.pdf`);
+    expect(context.get(MM_CALLER_HANDLED_STATUSES)).toEqual(expect.arrayContaining([403, 404]));
+  });
+
+  it('answers an empty blob when the response has no body', async () => {
+    downloads.fetchBlob.mockResolvedValue({ body: null });
+    expect((await client.fetchContent('Files', 'a.pdf')).size).toBe(0);
+  });
+
+  it('aborts the upload request when the subscriber unsubscribes', async () => {
+    const file = new File(['abc'], 'a.pdf', { type: 'application/pdf' });
+    const subscription = client.upload('Files', '', file, 'fail').subscribe();
+    const req = await expectOne(`${base}/Files/a.pdf`);
+    subscription.unsubscribe();
+    expect(req.cancelled).toBe(true);
+  });
+
+  it('refuses dot segments and an empty root instead of building a URL', async () => {
+    await expect(client.itemUrl('Files', 'Q4/../secret.pdf')).rejects.toThrow(FilesPathError);
+    await expect(client.itemUrl('..', 'a.pdf')).rejects.toThrow(FilesPathError);
+    await expect(client.itemUrl('', 'a.pdf')).rejects.toThrow(FilesPathError);
+    await expect(client.fetchContent('Files', './a.pdf')).rejects.toThrow(FilesPathError);
+    expect(downloads.fetchBlob).not.toHaveBeenCalled();
+    const error = await lastValueFrom(client.upload('Files', '..', new File(['x'], 'a.pdf'), 'fail').pipe(toArray())).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(FilesPathError);
+    expect(await client.itemUrl('Files', 'a..b/c.pdf')).toBe(`${base}/Files/a..b/c.pdf`);
   });
 
   it('posts the zip request and saves the blob', async () => {

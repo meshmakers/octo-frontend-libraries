@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER } from './tenant-provider';
@@ -161,9 +161,10 @@ export class FileDownloadService {
   /**
    * Fetches any authenticated URL as a blob and saves it. The file name comes from
    * `Content-Disposition` when exposed, else from `fallbackFileName`, else `download`.
+   * `context` is passed to the request (see {@link fetchBlob}).
    */
-  async downloadUrl(url: string, fallbackFileName?: string | null, contentType?: string | null): Promise<void> {
-    const response = await this.fetchBlob(url);
+  async downloadUrl(url: string, fallbackFileName?: string | null, contentType?: string | null, context?: HttpContext): Promise<void> {
+    const response = await this.fetchBlob(url, context);
     const blob = this.withContentType(response.body ?? new Blob(), contentType);
     const fileName = parseContentDispositionFileName(response.headers.get('Content-Disposition'))
       || fallbackFileName
@@ -173,10 +174,11 @@ export class FileDownloadService {
 
   /**
    * Fetches an authenticated URL as a blob response, e.g. for an inline preview.
-   * The bearer is attached by the host's `authorizeInterceptor`.
+   * The bearer is attached by the host's `authorizeInterceptor`. `context` lets the caller mark
+   * statuses it handles itself (`MM_CALLER_HANDLED_STATUSES`), so no global error toast shows.
    */
-  fetchBlob(url: string): Promise<HttpResponse<Blob>> {
-    return firstValueFrom(this.httpClient.get(url, { responseType: 'blob', observe: 'response' }));
+  fetchBlob(url: string, context?: HttpContext): Promise<HttpResponse<Blob>> {
+    return firstValueFrom(this.httpClient.get(url, { responseType: 'blob', observe: 'response', context }));
   }
 
   /**
