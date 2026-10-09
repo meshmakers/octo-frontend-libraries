@@ -14,6 +14,7 @@ Angular library providing services for interacting with OctoMesh backend APIs. I
   - [BotService](#botservice)
   - [JobManagementService](#jobmanagementservice)
   - [FileDownloadService](#filedownloadservice)
+  - [FilesClientService](#filesclientservice)
   - [CommunicationService](#communicationservice)
   - [TusUploadService](#tusuploadservice)
 - [GraphQL Services](#graphql-services)
@@ -525,6 +526,24 @@ await downloads.downloadUrl(url, 'fallback-name.pdf');
 The bearer comes from `authorizeInterceptor` (register it with `provideHttpClient(withInterceptors([authorizeInterceptor]))`).
 The file name is taken from `Content-Disposition` when present, else from the reference's `filename`.
 Building a URL from `binaryId` needs `CONFIGURATION_SERVICE` (`assetServices`) and `TENANT_ID_PROVIDER`.
+
+### FilesClientService
+
+Bytes of the platform file system (AB#6178, PLANNED contract): upload with progress, bearer blob download under
+the real name, server-side zip, and capability detection. Metadata goes through GraphQL (`System.Files`).
+
+```typescript
+import { FilesClientService } from '@meshmakers/octo-services';
+
+const files = inject(FilesClientService);
+const caps = await files.detectCapabilities();   // { available: false } while the API is not deployed
+if (caps.available) {
+  files.upload('Files', 'Receipts 2026', file, 'keepBoth').subscribe((e) => {
+    if (e.type === 'progress') { /* e.loaded / e.total */ } else { /* e.item */ }
+  });
+  await files.download('Files', 'Receipts 2026/receipt.pdf', 'receipt.pdf');
+}
+```
 
 ### CommunicationService
 
