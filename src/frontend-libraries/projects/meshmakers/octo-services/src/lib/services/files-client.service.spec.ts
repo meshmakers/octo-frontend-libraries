@@ -5,6 +5,7 @@ import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
 import { lastValueFrom, toArray } from 'rxjs';
 import {
   FileEntry,
+  FILES_LINKED_COUNTS_MAX,
   FILES_RESERVED_ROOT_NAMES,
   FilesClientService,
   filesGraphQlErrorCode,
@@ -122,6 +123,7 @@ describe('FilesClientService', () => {
         previewMaxBytes: 20971520,
         recursiveDelete: true,
         folderStats: true,
+        linkedCounts: false,
         reservedRootNames: ['capabilities', 'items', 'stats', 'zip'],
       });
     });
@@ -136,6 +138,7 @@ describe('FilesClientService', () => {
         zipDownload: false,
         recursiveDelete: false,
         folderStats: false,
+        linkedCounts: false,
         reservedRootNames: [...FILES_RESERVED_ROOT_NAMES],
       });
     });
@@ -420,6 +423,32 @@ describe('FilesClientService', () => {
 
     it('refuses an empty root', async () => {
       await expect(client.folderStats('')).rejects.toThrow(FilesPathError);
+    });
+  });
+
+  describe('linked counts', () => {
+    it('asks POST linked-counts in chunks of at most 500 unique rtIds and merges the answers', async () => {
+      const ids = Array.from({ length: 501 }, (_, i) => `6a${String(i).padStart(22, '0')}`);
+      const result = client.linkedCounts([...ids, ids[0], '']);
+      const first = await expectOne(`${base}/linked-counts`);
+      expect(first.request.method).toBe('POST');
+      expect(first.request.body.rtIds.length).toBe(FILES_LINKED_COUNTS_MAX);
+      expect(first.request.context.get(MM_CALLER_HANDLED_STATUSES)).toContain(403);
+      first.flush({ counts: { [ids[0]]: 2 } });
+      const second = await expectOne(`${base}/linked-counts`);
+      expect(second.request.body).toEqual({ rtIds: [ids[500]] });
+      second.flush({ counts: { [ids[500]]: 1 } });
+      expect(await result).toEqual({ [ids[0]]: 2, [ids[500]]: 1 });
+    });
+
+    it('sends nothing for an empty list', async () => {
+      expect(await client.linkedCounts([])).toEqual({});
+    });
+
+    it('reads the linkedCounts capability', async () => {
+      const result = client.detectCapabilities();
+      (await expectOne(`${base}/capabilities`)).flush({ linkedCounts: true });
+      expect((await result).linkedCounts).toBe(true);
     });
   });
 
