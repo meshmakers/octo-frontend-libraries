@@ -58,7 +58,7 @@ export interface TreeNavigationSettingsMessages {
 /** English defaults; hosts may override via the `messages` input. */
 export const DEFAULT_TREE_NAVIGATION_SETTINGS_MESSAGES: TreeNavigationSettingsMessages =
   {
-    title: 'Tree Navigation',
+    title: 'Tree navigation',
     description:
       'Per-tenant overrides for the entity trees (repository browser and data-mappings). Rules are applied on top of auto-discovered associations. Without any rule a role is shown with its default name, grouped (except System/ParentChild which is flattened).',
     notInstalled:
