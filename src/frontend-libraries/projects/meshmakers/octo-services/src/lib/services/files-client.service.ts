@@ -136,12 +136,12 @@ export class FilesClientService {
 
   /** Downloads a file with the user's bearer and saves it under its real name (D9). */
   async download(root: string, path: string, fileName?: string | null, contentType?: string | null, tenantId?: string | null): Promise<void> {
-    await this.downloads.downloadUrl(await this.itemUrl(root, path, tenantId), fileName, contentType);
+    await this.downloads.downloadUrl(await this.itemUrl(root, path, tenantId), fileName, contentType, callerHandled());
   }
 
   /** Fetches a file's content as a blob (inline preview). */
   async fetchContent(root: string, path: string, tenantId?: string | null): Promise<Blob> {
-    const response = await this.downloads.fetchBlob(await this.itemUrl(root, path, tenantId));
+    const response = await this.downloads.fetchBlob(await this.itemUrl(root, path, tenantId), callerHandled());
     return response.body ?? new Blob();
   }
 
@@ -152,9 +152,18 @@ export class FilesClientService {
     this.downloads.saveBlob(response.body ?? new Blob(), fileName);
   }
 
-  /** `{assetServices}{tenant}/v1/files/{root}/{seg}/…` with every segment URL-encoded. */
+  /**
+   * `{assetServices}{tenant}/v1/files/{root}/{seg}/…` with every segment URL-encoded.
+   *
+   * @throws FilesPathError for an empty root or a `.` / `..` segment: browsers and proxies resolve
+   *   dot segments even when percent-encoded, so such a URL would address a different resource.
+   */
   async itemUrl(root: string, path: string, tenantId?: string | null): Promise<string> {
-    return this.url(tenantId, root, ...path.split('/').filter((s) => s.length > 0));
+    const segments = path.split('/').filter((s) => s.length > 0);
+    if (!root || [root, ...segments].some(isDotSegment)) {
+      throw new FilesPathError(`Invalid file path: ${root}/${path}`);
+    }
+    return this.url(tenantId, root, ...segments);
   }
 
   private async fetchCapabilities(tenant: string): Promise<FilesCapabilities> {
@@ -181,6 +190,18 @@ export class FilesClientService {
   private async tenant(tenantId?: string | null): Promise<string | null> {
     return tenantId ?? (this.tenantIdProvider ? await this.tenantIdProvider() : null);
   }
+}
+
+/** Thrown for a path the bytes API cannot address (empty root, `.` or `..` segments). */
+export class FilesPathError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'FilesPathError';
+  }
+}
+
+function isDotSegment(segment: string): boolean {
+  return segment === '.' || segment === '..';
 }
 
 function callerHandled(statuses: readonly number[] = CALLER_HANDLED): HttpContext {
