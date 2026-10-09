@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpContext, HttpErrorResponse, HttpEvent, HttpEventType, HttpParams } from '@angular/common/http';
 import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
-import { filter, firstValueFrom, from, map, Observable, switchMap } from 'rxjs';
+import { filter, firstValueFrom, from, map, Observable, switchMap, throwError } from 'rxjs';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER } from './tenant-provider';
 import { FileDownloadService, parseContentDispositionFileName } from './file-download.service';
@@ -158,17 +158,27 @@ export interface FolderStats {
  * guards (create/rename/move/delete of `System.Files` entities) as `extensions.code`.
  */
 export type FilesErrorCode =
+  /** REST: the folder root does not exist or is not visible. */
   | 'ROOT_NOT_FOUND'
+  /** REST: the path or rtId does not exist or is hidden by data permissions. */
   | 'PATH_NOT_FOUND'
+  /** REST: a segment matches several legacy entries with the same name; address it by rtId. */
   | 'AMBIGUOUS_PATH'
+  /** REST + GraphQL: the name is taken in the target folder (case-insensitive). */
   | 'NAME_CONFLICT'
+  /** REST: the rtId is no folder or root. */
   | 'NOT_A_FOLDER'
+  /** REST: the entry is no file. */
   | 'NOT_A_FILE'
+  /** REST: upload or zip limit. GraphQL: a delete would remove more than `MaxDeleteEntries` (default 2,000) entries in one mutation. */
   | 'LIMIT_EXCEEDED'
+  /** REST: data-permission write denial. GraphQL: also root creation without the `FileManagement` role. */
   | 'FORBIDDEN'
+  /** REST + GraphQL: empty, too long, slash or backslash, control characters, `.` / `..`, leading/trailing whitespace. */
   | 'INVALID_NAME'
+  /** REST: malformed request. GraphQL: e.g. a move that CREATEs a new parent without DELETEing the current one (single-parent rule). */
   | 'INVALID_REQUEST'
-  /** GraphQL only: reserved root well-known name. */
+  /** GraphQL only: root well-known name reserved (`capabilities`, `items`, `stats`, `zip`, `ReportingAssets_*`). */
   | 'RESERVED_NAME'
   /** GraphQL only: rename/delete of `Files`, `ReportingAssets_*` or a blueprint root. */
   | 'PROTECTED_ROOT'
@@ -198,7 +208,9 @@ const CALLER_HANDLED = [400, 403, 404, 409, 413];
  *   via `MM_CALLER_HANDLED_STATUSES`; read the reason with {@link parseFilesProblem} and show it where it
  *   belongs. Blob requests (download, preview, zip) rethrow their error with the parsed problem as body.
  * - {@link detectCapabilities} asks `GET /capabilities` once per tenant; a 404/405/501 (file API not
- *   deployed) answers `{ available: false }` silently, so hosts can probe safely.
+ *   deployed) or 403 (token without the API scope) answers `{ available: false }` silently, so hosts can
+ *   probe safely.
+ * - Downloads, previews and zips are in-memory blobs (D9); respect `previewMaxBytes` / `zipMaxBytes`.
  *
  * @example
  * ```typescript
@@ -257,6 +269,9 @@ export class FilesClientService {
    */
   upload<TItem = FileEntry>(root: string, folderPath: string, file: File, conflict: FilesConflictMode | FilesUploadOptions = {}, tenantId?: string | null): Observable<FilesUploadEvent<TItem>> {
     const options: FilesUploadOptions = typeof conflict === 'string' ? { conflict } : conflict;
+    if (options.name !== undefined && (!options.name || options.name.includes('/'))) {
+      return throwError(() => new FilesPathError(`Invalid file name: ${options.name}`));
+    }
     let params = new HttpParams().set('conflict', options.conflict ?? 'fail');
     if (options.createFolders) {
       params = params.set('createFolders', 'true');
@@ -302,8 +317,9 @@ export class FilesClientService {
   }
 
   /**
-   * Fetches a file's content by path as a blob for an inline preview (`?inline=true`; the server still
-   * delivers active content such as SVG/HTML as an attachment with a sandbox CSP). Check
+   * Fetches a file's content by path as a blob for an inline preview (`?inline=true`). Inline delivery is
+   * an allow-list on the server (images except SVG, audio, video, PDF, text/plain, CSV, JSON); everything
+   * else stays an attachment with a sandbox CSP. The whole file is held in memory — check
    * `previewMaxBytes` before previewing large files.
    */
   async fetchContent(root: string, path: string, tenantId?: string | null): Promise<Blob> {
@@ -319,7 +335,8 @@ export class FilesClientService {
    * Server-side streamed zip (AB#6225) of entries by path and/or rtId; folders are included recursively.
    * Body `{ items, rtIds?, fileName? }`. Saved under the server's `Content-Disposition` name, else
    * `fileName`, else `files.zip`. Limits are checked before the first byte (413 LIMIT_EXCEEDED); a
-   * selected entry that is missing or hidden answers 404.
+   * selected entry that is missing or hidden answers 404. The zip is received as an in-memory blob before
+   * it is saved (D9: bearer download, no `window.open`), so the UI must respect `zipMaxBytes`.
    */
   async downloadZip(selection: FilesItemRef[] | FilesZipSelection, fileName?: string | null, tenantId?: string | null): Promise<void> {
     const { items = [], rtIds = [] } = Array.isArray(selection) ? { items: selection } : selection;
@@ -366,13 +383,17 @@ export class FilesClientService {
   /**
    * `{assetServices}{tenant}/v1/files/{root}/{seg}/…` with every segment URL-encoded.
    *
-   * @throws FilesPathError for an empty root or a `.` / `..` segment: browsers and proxies resolve
-   *   dot segments even when percent-encoded, so such a URL would address a different resource.
+   * @throws FilesPathError for an empty root or a `.` / `..` segment (browsers and proxies resolve
+   *   dot segments even when percent-encoded, so such a URL would address a different resource), and for
+   *   a root named like a route of the file API (`capabilities`, `items`, `stats`, `zip`, case-insensitive).
    */
   async itemUrl(root: string, path: string, tenantId?: string | null): Promise<string> {
     const segments = path.split('/').filter((s) => s.length > 0);
     if (!root || [root, ...segments].some(isDotSegment)) {
       throw new FilesPathError(`Invalid file path: ${root}/${path}`);
+    }
+    if (FILES_RESERVED_ROOT_NAMES.includes(root.toLowerCase())) {
+      throw new FilesPathError(`Reserved root name: ${root}`);
     }
     return this.url(tenantId, root, ...segments);
   }
@@ -411,11 +432,11 @@ export class FilesClientService {
   private async fetchCapabilities(tenant: string): Promise<FilesCapabilities> {
     const url = await this.url(tenant, 'capabilities');
     try {
-      const body = await firstValueFrom(this.http.get<Omit<FilesCapabilities, 'available'>>(url, { context: callerHandled([404, 405, 501]) }));
+      const body = await firstValueFrom(this.http.get<Omit<FilesCapabilities, 'available'>>(url, { context: callerHandled([403, 404, 405, 501]) }));
       return normalizeCapabilities(body);
     } catch (error) {
       const status = (error as { status?: number })?.status;
-      if (status === 404 || status === 405 || status === 501) {
+      if (status === 403 || status === 404 || status === 405 || status === 501) {
         return { available: false };
       }
       throw error;

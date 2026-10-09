@@ -85,9 +85,11 @@ describe('FilesClientService', () => {
       http.expectNone(`${base}/capabilities`);
     });
 
-    it.each([405, 501])('treats %s as "not available"', async (status) => {
+    it.each([403, 405, 501])('treats %s as "not available" without a toast', async (status) => {
       const result = client.detectCapabilities();
-      (await expectOne(`${base}/capabilities`)).flush('', { status, statusText: 'x' });
+      const req = await expectOne(`${base}/capabilities`);
+      expect(handled(req.request.context)).toContain(status);
+      req.flush('', { status, statusText: 'x' });
       expect(await result).toEqual({ available: false });
     });
 
@@ -194,6 +196,14 @@ describe('FilesClientService', () => {
       const req = await expectOne(`${base}/Files/a.pdf`);
       subscription.unsubscribe();
       expect(req.cancelled).toBe(true);
+    });
+
+    it('refuses a name with a slash or an empty name without a request', async () => {
+      for (const name of ['a/b.pdf', '']) {
+        const error = await lastValueFrom(client.upload('Files', 'A', new File(['x'], 'a.pdf'), { name })).catch((e: unknown) => e);
+        expect(error).toBeInstanceOf(FilesPathError);
+      }
+      http.expectNone(() => true);
     });
 
     it('surfaces 409 NAME_CONFLICT as problem details', async () => {
@@ -309,6 +319,15 @@ describe('FilesClientService', () => {
       const error = await lastValueFrom(client.upload('Files', '..', new File(['x'], 'a.pdf'), 'fail').pipe(toArray())).catch((e: unknown) => e);
       expect(error).toBeInstanceOf(FilesPathError);
       expect(await client.itemUrl('Files', 'a..b/c.pdf')).toBe(`${base}/Files/a..b/c.pdf`);
+    });
+
+    it('refuses root names that are routes of the file API (case-insensitive)', async () => {
+      for (const root of ['capabilities', 'Items', 'STATS', 'zip']) {
+        await expect(client.itemUrl(root, 'a.pdf')).rejects.toThrow(FilesPathError);
+      }
+      await expect(client.download('Zip', 'a.pdf')).rejects.toThrow(FilesPathError);
+      expect(downloads.downloadUrl).not.toHaveBeenCalled();
+      expect(await client.itemUrl('ReportingAssets_Q4', 'a.pdf')).toBe(`${base}/ReportingAssets_Q4/a.pdf`);
     });
   });
 

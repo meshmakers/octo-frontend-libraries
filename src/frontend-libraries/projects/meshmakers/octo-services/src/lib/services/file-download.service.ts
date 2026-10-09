@@ -109,7 +109,7 @@ function sanitizeFileName(name: string): string {
  * // generic attribute value { binaryId, filename, contentType, size }
  * await downloads.downloadBinary(attributeValue);
  * // any authenticated URL
- * await downloads.downloadUrl(`${assetServices}${tenantId}/v1/files/content?path=…`, 'report.pdf');
+ * await downloads.downloadUrl(`${assetServices}${tenantId}/v1/files/Files/Reports/report.pdf`, 'report.pdf');
  * ```
  */
 @Injectable({
