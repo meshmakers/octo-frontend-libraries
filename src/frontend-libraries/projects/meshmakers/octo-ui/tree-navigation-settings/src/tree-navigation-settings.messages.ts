@@ -23,6 +23,7 @@ export interface TreeNavigationSettingsMessages {
   addRule: string;
   removeRule: string;
   save: string;
+  /** Tooltip and accessible name of the icon-only reload button (AB#6216): says what is reloaded. */
   reload: string;
   export: string;
   import: string;
@@ -81,7 +82,7 @@ export const DEFAULT_TREE_NAVIGATION_SETTINGS_MESSAGES: TreeNavigationSettingsMe
     addRule: 'Add rule',
     removeRule: 'Remove',
     save: 'Save',
-    reload: 'Reload',
+    reload: 'Reload tree navigation rules',
     export: 'Export',
     import: 'Import',
     empty: 'No rules yet — every association uses its defaults.',

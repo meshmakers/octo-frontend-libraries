@@ -37,15 +37,17 @@
         (change)="onFileSelected($event)"
       />
       <span class="toolbar-spacer"></span>
+      <!-- Icon-only utility (AB#6216, action guideline §2.2): tooltip + accessible name. -->
       <button
         kendoButton
         [svgIcon]="reloadIcon"
         fillMode="flat"
+        data-action="reload"
+        [title]="messages().reload"
+        [attr.aria-label]="messages().reload"
         [disabled]="saving()"
         (click)="reload()"
-      >
-        {{ messages().reload }}
-      </button>
+      ></button>
       <button
         kendoButton
         themeColor="primary"

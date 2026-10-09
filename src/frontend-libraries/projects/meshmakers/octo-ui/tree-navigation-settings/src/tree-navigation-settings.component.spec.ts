@@ -6,6 +6,8 @@ import { TreeNavigationConfigService } from '@meshmakers/octo-ui';
 import { AssetRepoService, CkTypeSelectorService, ImportStrategyDto, JobManagementService, } from '@meshmakers/octo-services';
 import { ImportStrategyDialogService } from '@meshmakers/shared-ui';
 import { MessageService } from '@meshmakers/shared-services';
+import { expectIconButtonsAccessible } from '@meshmakers/shared-ui/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { TreeNavigationSettingsComponent } from './tree-navigation-settings.component';
 
@@ -79,6 +81,7 @@ describe('TreeNavigationSettingsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [TreeNavigationSettingsComponent],
       providers: [
+        provideNoopAnimations(),
         { provide: TreeNavigationConfigService, useValue: configSpy },
         { provide: MessageService, useValue: messageSpy },
         { provide: CkTypeSelectorService, useValue: ckTypeSpy },
@@ -109,6 +112,17 @@ describe('TreeNavigationSettingsComponent', () => {
     expect(row.roleId).toBe('EnergyIQ/SpaceSensors');
     expect(row.displayName).toBe('Sensoren');
     expect(row.visible).toBe('hide');
+  });
+
+  it('renders Reload as an icon-only action naming what it reloads (AB#6216 guard)', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const reload = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('[data-action="reload"]')!;
+    expect(reload.textContent?.trim()).toBe('');
+    expect(reload.getAttribute('aria-label')).toBe('Reload tree navigation rules');
+    expect(reload.title).toBe('Reload tree navigation rules');
+    expectIconButtonsAccessible(fixture);
   });
 
   it('flags when the CK type is not installed', async () => {
