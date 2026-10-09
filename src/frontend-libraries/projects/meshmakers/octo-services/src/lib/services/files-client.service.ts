@@ -53,6 +53,16 @@ export interface FilesCapabilities {
   folderStats?: boolean;
   /** Well-known names a new folder root cannot use (lower case). */
   reservedRootNames?: string[];
+  /**
+   * Most entries one delete of a folder or root may remove (server `MaxDeleteEntries`, default 2,000).
+   * Announced by the backend; absent until the server sends it.
+   */
+  maxDeleteEntries?: number;
+  /**
+   * Why the file API is not available for this tenant (tenant-aware capabilities answer
+   * `available: false` + `reason`, e.g. System.Files not imported). Announced by the backend.
+   */
+  reason?: string;
 }
 
 /** How an upload treats an existing file with the same name. Skipping is a client decision, not a mode. */
@@ -518,7 +528,8 @@ function normalizeCapabilities(body: Partial<Omit<FilesCapabilities, 'available'
   const b = body ?? {};
   return {
     ...b,
-    available: true,
+    // A tenant-aware server may answer available:false (+ reason) with 200; keep it.
+    available: (b as { available?: unknown }).available !== false,
     apiVersion: typeof b.apiVersion === 'number' ? b.apiVersion : 1,
     zipDownload: b.zipDownload === true,
     recursiveDelete: b.recursiveDelete === true,
