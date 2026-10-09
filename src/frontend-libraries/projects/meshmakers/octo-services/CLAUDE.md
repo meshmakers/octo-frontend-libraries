@@ -340,6 +340,24 @@ Note the two value shapes: typed GraphQL fields (`content { … downloadUri }`) 
 `attributes { value }` projection serialises the stored `EntityBinaryInfo` as `{ binaryId, filename,
 contentType, size }` without a link — hence the `binaryId` fallback.
 
+### FilesClientService
+
+Bytes client of the platform file system (AB#6178, epic AB#6171). **PLANNED contract** — asset-repo S2
+(AB#6174) and the zip endpoint (AB#6225) do not exist yet; verify before go-live. Only file bytes go through
+REST (`{assetServices}{tenant}/v1/files`); metadata, folders, roots, links, rename/move/delete are GraphQL
+against `System.Files` (Studio PO decision 2026-10-09). Builds on `FileDownloadService` for the bearer blob save.
+
+| Member | Description |
+|--------|-------------|
+| `detectCapabilities(tenantId?)` | `GET /capabilities` once per tenant → `{ available, maxUploadBytes?, zipDownload?, zipMaxFiles?, zipMaxBytes? }`; 404/405/501 = `{ available: false }` silently (cached), transient errors are not cached |
+| `upload(root, folderPath, file, conflict)` | `PUT /{root}/{path…}/{name}?conflict=fail\|replace\|keepBoth`, emits `{ type: 'progress' }` then `{ type: 'done', item }`; unsubscribe cancels |
+| `download(root, path, fileName?, contentType?)` | `GET /{root}/{path…}` as blob, saved under the `Content-Disposition` name |
+| `fetchContent(root, path)` | Blob for previews |
+| `downloadZip(items, fileName)` | `POST /zip` (AB#6225) |
+| `itemUrl(root, path)` | Path-addressed URL, segments encoded one by one |
+
+403/404/409/413 are marked `MM_CALLER_HANDLED_STATUSES`: the global error toast stays quiet, the caller shows them.
+
 ### CommunicationService
 
 Manages adapter deployment, pipeline execution, and pipeline debugging.
