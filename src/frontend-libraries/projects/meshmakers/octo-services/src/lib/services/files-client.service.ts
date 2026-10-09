@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpContext, HttpErrorResponse, HttpEvent, HttpEventType, HttpParams } from '@angular/common/http';
 import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
-import { filter, firstValueFrom, from, map, Observable, switchMap, throwError } from 'rxjs';
+import { filter, firstValueFrom, from, fromEvent, map, Observable, switchMap, takeUntil, throwError } from 'rxjs';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER } from './tenant-provider';
 import { FileDownloadService, parseContentDispositionFileName } from './file-download.service';
@@ -31,6 +31,9 @@ import { FileDownloadService, parseContentDispositionFileName } from './file-dow
 
 /** Well-known names a folder root cannot use because they are routes of the file API. */
 export const FILES_RESERVED_ROOT_NAMES: readonly string[] = ['capabilities', 'items', 'linked-counts', 'stats', 'zip'];
+
+/** How long a "not available" answer of the capabilities is reused before asking again (ms). */
+export const FILES_UNAVAILABLE_TTL_MS = 60_000;
 
 /** Most rtIds one `POST linked-counts` request may carry (server limit). */
 export const FILES_LINKED_COUNTS_MAX = 500;
@@ -244,7 +247,7 @@ export class FilesClientService {
   private readonly configuration = inject(CONFIGURATION_SERVICE, { optional: true });
   private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
   private readonly downloads = inject(FileDownloadService);
-  private readonly capabilityCache = new Map<string, Promise<FilesCapabilities>>();
+  private readonly capabilityCache = new Map<string, { answer: Promise<FilesCapabilities>; at: number }>();
 
   // ---------------------------------------------------------------------------------- capabilities
 
@@ -259,15 +262,24 @@ export class FilesClientService {
     }
     let cached = this.capabilityCache.get(tenant);
     if (!cached) {
-      cached = this.fetchCapabilities(tenant);
+      const answer = this.fetchCapabilities(tenant);
+      cached = { answer, at: Date.now() };
       this.capabilityCache.set(tenant, cached);
-      cached.catch(() => this.capabilityCache.delete(tenant));
+      answer.catch(() => this.capabilityCache.delete(tenant));
     }
+    let result: FilesCapabilities;
     try {
-      return await cached;
+      result = await cached.answer;
     } catch {
       return { available: false };
     }
+    // "Not available" is kept only briefly: the file API may be deployed or System.Files imported
+    // meanwhile (tenant setup), so a later call after the TTL asks again.
+    if (!result.available && Date.now() - cached.at > FILES_UNAVAILABLE_TTL_MS && this.capabilityCache.get(tenant) === cached) {
+      this.capabilityCache.delete(tenant);
+      return this.detectCapabilities(tenant);
+    }
+    return result;
   }
 
   /** Forgets the detected capabilities (tests, tenant switch). */
@@ -388,10 +400,19 @@ export class FilesClientService {
     return normalizeStats(await firstValueFrom(this.http.get<Partial<FolderStats>>(url, { params, context: callerHandled() })));
   }
 
-  /** Deep statistics of a root or folder by rtId: `GET items/{rtId}/stats`. */
-  async folderStatsById(rtId: string, tenantId?: string | null): Promise<FolderStats> {
+  /**
+   * Deep statistics of a root or folder by rtId: `GET items/{rtId}/stats`. An aborted `signal` cancels
+   * the request (the walk on the server is expensive) and rejects with an `AbortError`.
+   */
+  async folderStatsById(rtId: string, tenantId?: string | null, signal?: AbortSignal): Promise<FolderStats> {
+    signal?.throwIfAborted();
     const url = await this.url(tenantId, 'items', checkRtId(rtId), 'stats');
-    return normalizeStats(await firstValueFrom(this.http.get<Partial<FolderStats>>(url, { context: callerHandled() })));
+    const request = this.http.get<Partial<FolderStats>>(url, { context: callerHandled() });
+    return normalizeStats(await firstValueFrom(signal ? request.pipe(takeUntil(abortOf(signal))) : request, { defaultValue: null })
+      .then((body) => {
+        signal?.throwIfAborted();
+        return body;
+      }));
   }
 
   /**
@@ -614,6 +635,11 @@ async function readBlobBody(blob: Blob): Promise<unknown> {
   } catch {
     return text;
   }
+}
+
+/** Emits once the signal aborts (also when it is already aborted). */
+function abortOf(signal: AbortSignal): Observable<unknown> {
+  return signal.aborted ? from([true]) : fromEvent(signal, 'abort');
 }
 
 function checkRtId(rtId: string): string {
