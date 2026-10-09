@@ -66,6 +66,7 @@ class StubEntityListComponent {
   readonly booleanDisplay = input<unknown>();
   readonly rowLabelField = input<unknown>();
   readonly showCreateAction = input<unknown>();
+  readonly openAction = input<unknown>();
   readonly createRequested = output<unknown>();
   readonly openRequested = output<unknown>();
   readonly refresh = vi.fn();

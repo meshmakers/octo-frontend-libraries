@@ -57,7 +57,7 @@ import { EntityPageActionsContext, EntityPageActionsDirective } from './entity-p
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
 import { entityListIncludesDerivedTypes } from '../list/entity-list-data-source.directive';
-import { entityListCreateLabel } from '../list/entity-list.component';
+import { EntityListOpenAction, entityListCreateLabel } from '../list/entity-list.component';
 import {
   EntityListComponent,
   EntityListCreateRequest,
@@ -345,6 +345,11 @@ export class EntityPageComponent implements HasUnsavedChanges {
     this.routeData();
     const bound = this.listRowLabelField() ?? this.inheritedData('entityListRowLabelField');
     return typeof bound === 'string' && bound.trim() ? bound.trim() : undefined;
+  });
+  /** Row open action of the list (AB#6222): route data `entityListOpenAction` (`'edit'`), else auto. */
+  protected readonly effectiveListOpenAction = computed<EntityListOpenAction>(() => {
+    this.routeData();
+    return this.inheritedData('entityListOpenAction') === 'edit' ? 'edit' : 'auto';
   });
   /** Boolean columns of the list: input, else route data `entityListBooleanDisplay`, else text. */
   protected readonly effectiveListBooleanDisplay = computed<EntityListBooleanDisplay>(() => {

@@ -91,6 +91,12 @@ export interface EntityFormRoutesOptions {
    * delete confirmations. Route data key `entityListRowLabelField`.
    */
   rowLabelField?: string;
+  /**
+   * `'edit'`: the list's row action always reads "Edit" (pencil), for rows that open a
+   * host-written editor while the generic form stays read-only (AB#6222). Route data key
+   * `entityListOpenAction`.
+   */
+  openAction?: 'auto' | 'edit';
   /** Label of the create breadcrumb. Default `New`. */
   newBreadcrumbLabel?: string;
   /** Label of the edit breadcrumb. Default `{{entityName}}`. */
@@ -131,6 +137,7 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     editMode,
     booleanDisplay,
     rowLabelField,
+    openAction,
     data = {},
   } = opts;
 
@@ -150,6 +157,7 @@ export function entityFormRoutes(opts: EntityFormRoutesOptions = {}): Routes {
     ...(editMode !== undefined && { entityPageEditMode: editMode }),
     ...(booleanDisplay !== undefined && { entityListBooleanDisplay: booleanDisplay }),
     ...(rowLabelField !== undefined && { entityListRowLabelField: rowLabelField }),
+    ...(openAction !== undefined && { entityListOpenAction: openAction }),
   };
 
   const listCrumb = breadcrumbUrl !== undefined

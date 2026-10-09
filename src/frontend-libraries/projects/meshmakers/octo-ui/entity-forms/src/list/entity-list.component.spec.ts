@@ -331,6 +331,19 @@ describe('EntityListComponent', () => {
     expect(column.formatter!(true, {})).toBe('Ja');
   });
 
+  describe('open action (AB#6222)', () => {
+    it('reads "Edit" for a read-only form when openAction is edit (host-written editor)', () => {
+      setInputs(makeModel({
+        capabilities: { canCreate: true, canEdit: false, canDelete: true, canDuplicate: false, canExport: false, createRequiresSubtype: false },
+      }));
+      expect(component.actionItems()[0].text).toBe('Details');
+      fixture.componentRef.setInput('openAction', 'edit');
+      expect(component.actionItems()[0].text).toBe('Edit');
+      setInputs(makeModel(), false);
+      expect(component.actionItems()[0].text).toBe('Details');
+    });
+  });
+
   describe('create action (AB#6211)', () => {
     it('names the create action after the form ("New {title}"), "New" without a title', () => {
       setInputs(makeModel({ title: 'Discord configuration' }));

@@ -218,6 +218,9 @@ export function toEntityListColumn(
   }
 }
 
+/** Row "open" action of `mm-entity-list` (AB#6222). */
+export type EntityListOpenAction = 'auto' | 'edit';
+
 /**
  * Label of a list's create action (AB#6211): `newEntity` with the form title ("New Discord
  * configuration"), or `new` when the form has no title.
@@ -298,6 +301,12 @@ export class EntityListComponent {
    */
   readonly showCreateAction = input<boolean>(true);
   /**
+   * The row "open" action (AB#6222): `'auto'` (default) = Edit with write permission and an
+   * editable form, else View; `'edit'` = always Edit (pencil) for lists whose rows open a
+   * host-written editor although the generic form is read-only (Studio service accounts).
+   */
+  readonly openAction = input<EntityListOpenAction>('auto');
+  /**
    * Host row actions (AB#5623): icon buttons in the actions column after Edit / View. Set
    * `svgIcon` and `text` (tooltip / aria-label); `onClick` gets the row as `e.data`.
    */
@@ -366,6 +375,8 @@ export class EntityListComponent {
   protected readonly canCreate = computed(() => this.canWrite() && this.model().capabilities.canCreate);
   protected readonly canDelete = computed(() => this.canWrite() && this.model().capabilities.canDelete);
   protected readonly editable = computed(() => this.canWrite() && this.model().capabilities.canEdit);
+  /** Whether the row action reads "Edit" (see {@link openAction}). */
+  protected readonly opensForEdit = computed(() => this.openAction() === 'edit' ? this.canWrite() : this.editable());
 
   /** Copy ID submenu (Studio convention, see the refinery-studio CLAUDE.md). */
   readonly copyIdMenuItem = computed<CommandItem>(() => {
@@ -411,8 +422,8 @@ export class EntityListComponent {
     {
       id: 'open',
       type: 'link',
-      text: this.editable() ? this.msgs().edit : this.msgs().viewTitle,
-      svgIcon: this.editable() ? MM_ACTION_ICONS.edit : MM_ACTION_ICONS.view,
+      text: this.opensForEdit() ? this.msgs().edit : this.msgs().viewTitle,
+      svgIcon: this.opensForEdit() ? MM_ACTION_ICONS.edit : MM_ACTION_ICONS.view,
       onClick: async (e) => this.open(e.data as EntityListRow | undefined),
     },
     ...this.rowActions(),
