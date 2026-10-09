@@ -74,6 +74,12 @@ describe('FilesClientService', () => {
   }
 
   describe('capabilities', () => {
+    it('keeps a tenant-aware available:false with its reason and the delete limit', async () => {
+      const result = client.detectCapabilities();
+      (await expectOne(`${base}/capabilities`)).flush({ available: false, reason: 'System.Files is not imported', maxDeleteEntries: 2000 });
+      expect(await result).toEqual(expect.objectContaining({ available: false, reason: 'System.Files is not imported', maxDeleteEntries: 2000 }));
+    });
+
     it('detects the file API once per tenant, silently answering "not available" on 404', async () => {
       const first = client.detectCapabilities();
       const req = await expectOne(`${base}/capabilities`);
