@@ -1,5 +1,6 @@
 import type { Mock } from 'vitest';
-import { Component } from '@angular/core';
+import { Component, ElementRef } from '@angular/core';
+import { POPUP_CONTAINER } from '@progress/kendo-angular-popup';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
@@ -34,7 +35,8 @@ describe('MmTableComponent', () => {
       providers: [
         provideNoopAnimations(),
         { provide: Router, useValue: mockRouter },
-        { provide: CommandSettingsService, useValue: mockCommandSettingsService }
+        { provide: CommandSettingsService, useValue: mockCommandSettingsService },
+        { provide: POPUP_CONTAINER, useFactory: () => new ElementRef(document.body) }
       ]
     })
       .compileComponents();
@@ -404,6 +406,31 @@ describe('MmTableComponent', () => {
       splitMain.click();
       await fixture.whenStable();
       expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('shows the disabled reason on keyboard focus in a popup outside the grid; blur and Escape close it (AB#6211)', () => {
+      component.leftToolbarActions = [{ id: 'run', type: 'link', text: 'Run scripts', isDisabled: true, disabledReason: 'No fixup scripts to run' }];
+      fixture.detectChanges();
+      const button = el().querySelector('kendo-grid-toolbar button[data-toolbar-action="run"]') as HTMLButtonElement;
+      const hint = () => document.querySelector('[data-toolbar-hint]');
+
+      button.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      fixture.detectChanges();
+      expect(hint()?.textContent?.trim()).toBe('No fixup scripts to run');
+      expect(hint()?.closest('.k-grid')).toBeNull();
+
+      button.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      expect(hint()).toBeNull();
+
+      button.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      expect(hint()).not.toBeNull();
+      button.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+      expect(hint()).toBeNull();
+
+      // Pointer focus (click) shows no hint, like :focus-visible.
+      button.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      button.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      expect(hint()).toBeNull();
     });
 
     it('gives every toolbar disabled reason a unique id (band + position), even for repeated item ids', () => {

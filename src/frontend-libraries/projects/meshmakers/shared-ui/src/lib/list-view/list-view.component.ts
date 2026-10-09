@@ -1,3 +1,4 @@
+import { PopupRef, PopupService } from '@progress/kendo-angular-popup';
 import { ChangeDetectionStrategy, Component, ContentChild, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, TemplateRef, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
 import {
   BooleanFilterCellComponent,
@@ -135,6 +136,7 @@ function sameEntries(a: ResolvedListRowAction[], b: ResolvedListRowAction[]): bo
 export class ListViewComponent extends CommandBaseService implements OnDestroy, AfterViewInit {
 
   private readonly cronHumanizer = inject(CronHumanizerService);
+  private readonly popupService = inject(PopupService);
 
   protected _columns: TableColumn[] = [];
   private _actionCommandItems: CommandItem[] = [];
@@ -775,6 +777,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   ngOnDestroy(): void {
+    this.closeToolbarHint();
     this.resizeObserver?.disconnect();
     this.destroy$.next();
     this.destroy$.complete();
@@ -938,6 +941,48 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected toolbarItemTitle(commandItem: CommandItem, reason: string | null): string {
     const label = commandItem.tooltip ?? commandItem.text ?? '';
     return reason ? `${label} — ${reason}` : label;
+  }
+
+  @ViewChild('toolbarHint', {static: true}) private toolbarHintTemplate?: TemplateRef<unknown>;
+  /** Text of the open focus hint (read by the hint template). */
+  protected readonly toolbarHintText = signal('');
+  private toolbarHintRef: PopupRef | null = null;
+  private toolbarPointerFocus = false;
+
+  /** A pointer press precedes the focus: no hint (keyboard focus only, like :focus-visible). */
+  protected onToolbarPointerDown(): void {
+    this.toolbarPointerFocus = true;
+  }
+
+  /**
+   * Keyboard focus on a toolbar action disabled with a reason (AB#6211, guideline §2.5): shows the
+   * reason as a hint below the control. Rendered through the PopupService under the application
+   * root (not inside the grid, whose toolbar clips overflow); closed on blur and Escape.
+   */
+  protected onToolbarFocusIn(event: FocusEvent, reason: string | null): void {
+    const pointer = this.toolbarPointerFocus;
+    this.toolbarPointerFocus = false;
+    this.closeToolbarHint();
+    const anchor = event.target as HTMLElement | null;
+    if (!reason || pointer || !anchor || !this.toolbarHintTemplate) {
+      return;
+    }
+    this.toolbarHintText.set(reason);
+    this.toolbarHintRef = this.popupService.open({
+      anchor,
+      content: this.toolbarHintTemplate,
+      anchorAlign: {horizontal: 'left', vertical: 'bottom'},
+      popupAlign: {horizontal: 'left', vertical: 'top'},
+      margin: {horizontal: 0, vertical: 4},
+      popupClass: 'mm-list-view-toolbar-hint-popup',
+      animate: false,
+    });
+  }
+
+  /** Closes the focus hint (blur, Escape, destroy). */
+  protected closeToolbarHint(): void {
+    this.toolbarHintRef?.close();
+    this.toolbarHintRef = null;
   }
 
   /**

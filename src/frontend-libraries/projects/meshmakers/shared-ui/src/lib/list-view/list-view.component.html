@@ -127,7 +127,11 @@
       @case ('link') {
         @let reason = toolbarItemDisabledReason(commandItem);
         @let reasonId = toolbarReasonId(side, index);
-        <span class="mm-list-view-toolbar-action" [class.mm-list-view-toolbar-action--disabled]="!!reason">
+        <span class="mm-list-view-toolbar-action" [class.mm-list-view-toolbar-action--disabled]="!!reason"
+              (pointerdown)="onToolbarPointerDown()"
+              (focusin)="onToolbarFocusIn($event, reason)"
+              (focusout)="closeToolbarHint()"
+              (keydown.escape)="closeToolbarHint()">
           @if (commandItem.children && commandItem.children.length > 0 && commandItem.onClick) {
             <kendo-splitbutton
               [data]="commandItem.children"
@@ -182,6 +186,12 @@
       }
     }
   }
+</ng-template>
+
+<!-- Disabled reason shown on keyboard focus (AB#6211): opened with the Kendo PopupService under the
+     application root, so the grid / toolbar overflow cannot clip it. -->
+<ng-template #toolbarHint>
+  <div class="mm-list-view-toolbar-hint" data-toolbar-hint>{{ toolbarHintText() }}</div>
 </ng-template>
 
 <kendo-grid

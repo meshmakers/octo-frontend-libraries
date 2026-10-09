@@ -16,6 +16,7 @@
     "@progress/kendo-angular-label": "^24.1.0",
     "@progress/kendo-angular-layout": "^24.1.0",
     "@progress/kendo-angular-notification": "^24.1.0",
+    "@progress/kendo-angular-popup": "^24.1.0",
     "@progress/kendo-angular-treeview": "^24.1.0",
     "@progress/kendo-data-query": "^1.7.3",
     "@progress/kendo-svg-icons": "^4.8.0",

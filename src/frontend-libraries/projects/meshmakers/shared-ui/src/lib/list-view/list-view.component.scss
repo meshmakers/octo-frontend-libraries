@@ -18,8 +18,8 @@
 }
 
 // Host toolbar action (AB#6211). Disabled with a reason (guideline §2.5): stays focusable, looks
-// disabled, the reason is announced via aria-describedby, shown in the tooltip on hover and as a
-// hint bubble while the control has keyboard focus (same pattern as mm-action-button).
+// disabled, the reason is announced via aria-describedby (visually hidden element below), shown in
+// the tooltip on hover and in a popup hint while the control has keyboard focus.
 .mm-list-view-toolbar-action {
   position: relative;
   display: inline-flex;
@@ -43,18 +43,10 @@
   border: 0;
 }
 
-:host ::ng-deep .mm-list-view-toolbar-action--disabled:has(.k-button:focus-visible) .mm-list-view-toolbar-reason {
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 20;
-  width: max-content;
+// Focus hint (rendered by the PopupService under the application root, outside the grid).
+.mm-list-view-toolbar-hint {
   max-width: 280px;
-  height: auto;
-  margin: 0;
-  overflow: visible;
-  clip: auto;
   padding: var(--theme-space-1, 4px) var(--theme-space-2, 8px);
-  white-space: normal;
   font-size: 0.75rem;
   line-height: 1.4;
   color: var(--theme-text-primary, #0f1c2e);
