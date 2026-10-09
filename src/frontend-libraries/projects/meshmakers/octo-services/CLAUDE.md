@@ -342,21 +342,45 @@ contentType, size }` without a link — hence the `binaryId` fallback.
 
 ### FilesClientService
 
-Bytes client of the platform file system (AB#6178, epic AB#6171). **PLANNED contract** — asset-repo S2
-(AB#6174) and the zip endpoint (AB#6225) do not exist yet; verify before go-live. Only file bytes go through
-REST (`{assetServices}{tenant}/v1/files`); metadata, folders, roots, links, rename/move/delete are GraphQL
-against `System.Files` (Studio PO decision 2026-10-09). Builds on `FileDownloadService` for the bearer blob save.
+Bytes client of the platform file system (AB#6178, aligned with the asset-repo contract as built in AB#6230;
+backend S2 AB#6174, zip AB#6225; epic AB#6171). Only file bytes go through REST
+(`{assetServices}{tenant}/v1/files`); metadata — roots, folder listings, create root/folder, rename, move,
+delete, linked entities — is generic GraphQL against `System.Files` (decision Q1). Builds on
+`FileDownloadService` for the bearer blob save.
 
-| Member | Description |
+| Member | Endpoint / behaviour |
 |--------|-------------|
-| `detectCapabilities(tenantId?)` | `GET /capabilities` once per tenant → `{ available, maxUploadBytes?, zipDownload?, zipMaxFiles?, zipMaxBytes? }`; 404/405/501 = `{ available: false }` silently (cached), transient errors are not cached |
-| `upload(root, folderPath, file, conflict)` | `PUT /{root}/{path…}/{name}?conflict=fail\|replace\|keepBoth`, emits `{ type: 'progress' }` then `{ type: 'done', item }`; unsubscribe cancels |
-| `download(root, path, fileName?, contentType?)` | `GET /{root}/{path…}` as blob, saved under the `Content-Disposition` name |
-| `fetchContent(root, path)` | Blob for previews |
-| `downloadZip(items, fileName)` | `POST /zip` (AB#6225) |
-| `itemUrl(root, path)` | Path-addressed URL, segments encoded one by one |
+| `detectCapabilities(tenantId?)` | `GET capabilities` once per tenant → `FilesCapabilities { available, apiVersion, maxUploadBytes, zipDownload, zipMaxFiles, zipMaxBytes, previewMaxBytes, recursiveDelete, folderStats, reservedRootNames }`. 404/405/501 = `{ available: false }` silently (cached); transient errors are not cached. Missing feature flags default to `false`, missing `reservedRootNames` to `FILES_RESERVED_ROOT_NAMES` (`capabilities`, `items`, `stats`, `zip`) |
+| `upload(root, folderPath, file, conflict \| { conflict?, createFolders?, name? }, tenantId?)` | `PUT {root}/{path…}/{name}?conflict=fail\|replace\|keepBoth[&createFolders=true]` (raw body, `Content-Type` = file type). Emits `{ type: 'progress' }` then `{ type: 'done', item: FileEntry }`; unsubscribe cancels. Without `createFolders` a missing folder is 404 PATH_NOT_FOUND |
+| `uploadToFolder(folderRtId, file, { conflict?, name?, tenantId? })` | `POST items/{rtId}/content?name=&conflict=` (the Studio works with rtIds) |
+| `replaceContent(fileRtId, blob, tenantId?)` | `PUT items/{rtId}/content` — new content, rtId and links stay |
+| `download(root, path, fileName?, contentType?, tenantId?)` / `downloadById(rtId, …)` | `GET {root}/{path…}` / `GET items/{rtId}/content` as blob, saved under the `Content-Disposition` name |
+| `fetchContent(root, path, tenantId?)` / `fetchContentById(rtId, tenantId?)` | Blob for previews, sent with `?inline=true` (active content such as SVG/HTML still comes as attachment + sandbox CSP). Honour `previewMaxBytes` |
+| `downloadZip(items[] \| { items?, rtIds? }, fileName?, tenantId?)` | `POST zip` with body `{ items, rtIds?, fileName? }`; folders recursive. Saved under the server's `Content-Disposition` name → `fileName` → `files.zip`. Limits are checked before the first byte (413 LIMIT_EXCEEDED) |
+| `folderStats(root, path?, tenantId?)` / `folderStatsById(rtId, tenantId?)` | `GET stats?root=&path=` / `GET items/{rtId}/stats` → `FolderStats { folders, files, bytes, linkedFiles, hiddenEntries, complete, linkedSamples[{ rtId, name, path, entities[{ rtId, ckTypeId, displayName }] }] }` — deep, as visible to the caller; `hiddenEntries` = entries a delete would include but the caller cannot see |
+| `itemUrl(root, path)` / `itemContentUrl(rtId)` | URLs; segments encoded one by one; `.`/`..` segments, an empty root or a path-like rtId throw `FilesPathError` |
+| `parseFilesProblem(error)` (function) | `HttpErrorResponse` → `FilesProblem { status, code, detail }`; `code` from problem details (`code`, else an UPPER_CASE `title`); a bare 403/413 (e.g. the ingress body limit) → `FORBIDDEN`/`LIMIT_EXCEEDED` |
+| `filesGraphQlErrorCode(error)` (function) | `extensions.code` of a `System.Files` GraphQL mutation error (Apollo 4 `CombinedGraphQLErrors.errors` or a raw array) |
 
-403/404/409/413 are marked `MM_CALLER_HANDLED_STATUSES`: the global error toast stays quiet, the caller shows them.
+`FileEntry` = `{ rtId, ckTypeId, kind: 'file'|'folder'|'root', name, root?, path?, parentRtId?, size?, contentType?,
+binaryId?, createdAt?, changedAt?, createdBy?, replaced }` (dates as ISO strings). Error codes (`FilesErrorCode`):
+REST ROOT_NOT_FOUND / PATH_NOT_FOUND (404, also for entries hidden by data permissions), AMBIGUOUS_PATH (409,
+legacy duplicate names — address by rtId), NAME_CONFLICT, NOT_A_FOLDER, NOT_A_FILE (409), LIMIT_EXCEEDED (413),
+FORBIDDEN (403), INVALID_NAME / INVALID_REQUEST (400); GraphQL only RESERVED_NAME, PROTECTED_ROOT, MOVE_INTO_ITSELF.
+
+400/403/404/409/413 are marked `MM_CALLER_HANDLED_STATUSES`: the global error toast stays quiet, the caller shows
+them (read the reason with `parseFilesProblem`). Blob requests (download, preview, zip) deliver their error body as
+a `Blob`; the client rethrows the `HttpErrorResponse` with the parsed problem as body, so the helper works there too.
+
+**Not in this library (gap, AB#6230):** typed GraphQL documents for `System.Files` (roots, children, create,
+rename, move, delete). The `schema.graphql` snapshot carries no `SystemFiles*` types yet, and the SECRET guard
+spec validates inline `gql` documents against it, so they would need a schema-domain merge
+(`scripts/merge-schema-domain.mjs --prefix SystemFiles`) from a tenant with System.Files 1.0.0 first — do it
+together with the Refinery Studio schema (same tenant, same pass). Until then the Studio owns those documents.
+Rules for them: page children by cursor and `pageInfo.hasNextPage` (not `totalCount`); nested counts use
+`children(first: 1) { totalCount }` — `first: 0` hits an engine `$slice` bug; delete of a root/folder is
+recursive on the server (`runtimeEntities.delete`), no client walk; move = update `parent` with DELETE old +
+CREATE new.
 
 ### CommunicationService
 
