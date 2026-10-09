@@ -331,6 +331,26 @@ describe('EntityListComponent', () => {
     expect(column.formatter!(true, {})).toBe('Ja');
   });
 
+  describe('create action (AB#6211)', () => {
+    it('names the create action after the form ("New {title}"), "New" without a title', () => {
+      setInputs(makeModel({ title: 'Discord configuration' }));
+      expect(component.toolbarItems().find((i) => i.id === 'new')?.text).toBe('New Discord configuration');
+      setInputs(makeModel({ title: '' }));
+      expect(component.toolbarItems().find((i) => i.id === 'new')?.text).toBe('New');
+    });
+
+    it('drops the create action with showCreateAction false (mm-entity-page shows it in its header)', () => {
+      setInputs(makeModel());
+      fixture.componentRef.setInput('showCreateAction', false);
+      expect(ids(component.toolbarItems())).toEqual([]);
+    });
+
+    it('never flags the toolbar create action as solid primary', () => {
+      setInputs(makeModel());
+      expect(component.toolbarItems().some((i) => i.primary)).toBe(false);
+    });
+  });
+
   describe('host extensions (AB#5623)', () => {
     const noop = async () => undefined;
 

@@ -139,6 +139,8 @@ Configurable data grid with Kendo Grid integration.
 
 Empty state (AB#3444): `[emptyState]="{ title, text }"` shows the shared `mm-empty-state` (OctoBot `idle`) for a list without records and the "no results" variant (OctoBot `look`) while a search or filter is active; `[emptyTemplate]` replaces it. Without either the list keeps the plain "No records available." line.
 
+Toolbar actions (`leftToolbarActions` / `rightToolbarActions`, AB#6211) render **flat and neutral** by default: a page has exactly one solid primary action and it sits in the page header (`[mmPageActions]`, Studio action guideline §9). Set `primary: true` on a `CommandItem` only for a list without a page header (the list is the page). A toolbar action with `isDisabled` + `disabledReason` stays focusable (`aria-disabled`) and announces the reason ("Run scripts — No fixup scripts to run"); a `disabledReason` callback receives the current selection.
+
 The toolbar's "Reset Filters" button only appears while something narrows the default view: a row filter, a column sort, a free-text search, or host-side filters. Hosts with their own quick-view/bar filters announce them via `[hasExternalFilters]="myBarFilterIsSet"` so the button shows (and `(resetFilters)` lets them clear those filters when it is clicked).
 
 ```html

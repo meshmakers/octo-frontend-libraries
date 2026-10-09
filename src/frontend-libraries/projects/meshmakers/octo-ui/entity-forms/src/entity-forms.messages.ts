@@ -14,6 +14,11 @@ export interface EntityFormsMessages {
   cancel: string;
   delete: string;
   new: string;
+  /**
+   * Create action of a list, named after the form (AB#6211): `{title}` = form title
+   * ("New Discord configuration"). Falls back to {@link new} when the form has no title.
+   */
+  newEntity: string;
   edit: string;
   duplicate: string;
   export: string;
@@ -203,6 +208,7 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   cancel: 'Cancel',
   delete: 'Delete',
   new: 'New',
+  newEntity: 'New {title}',
   edit: 'Edit',
   duplicate: 'Duplicate',
   export: 'Export',

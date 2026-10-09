@@ -57,6 +57,7 @@ import { EntityPageActionsContext, EntityPageActionsDirective } from './entity-p
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
 import { entityListIncludesDerivedTypes } from '../list/entity-list-data-source.directive';
+import { entityListCreateLabel } from '../list/entity-list.component';
 import {
   EntityListComponent,
   EntityListCreateRequest,
@@ -214,7 +215,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
    * route data `entityFormBeforeSave` and `ENTITY_FORM_BEFORE_SAVE`. See {@link EntityFormBeforeSaveHook}.
    */
   readonly beforeSave = input<EntityFormBeforeSaveHook | null | undefined>(undefined);
-  /** Host toolbar actions of the list, after "New" (AB#5623). */
+  /** Host toolbar actions of the list (AB#5623); "New {form title}" sits in the page header (AB#6211). */
   readonly listToolbarActions = input<readonly CommandItem[]>([]);
   /** Host row actions of the list (icon buttons after Edit / View, AB#5623). */
   readonly listRowActions = input<readonly CommandItem[]>([]);
@@ -285,6 +286,7 @@ export class EntityPageComponent implements HasUnsavedChanges {
   protected readonly saveIcon = saveIcon;
   protected readonly backIcon = arrowLeftIcon;
   protected readonly deleteIcon = MM_ACTION_ICONS.delete;
+  protected readonly addIcon = MM_ACTION_ICONS.add;
 
   protected readonly msgs = computed(() =>
     mergeEntityFormsMessages(this.messages() ?? (this.inheritedData('messages') as Partial<EntityFormsMessages> | undefined)),
@@ -398,6 +400,20 @@ export class EntityPageComponent implements HasUnsavedChanges {
   }
 
   protected readonly isSingleton = computed(() => !!this.baseModel()?.singleton);
+  /**
+   * The list's create action sits in the page header as the page's one solid primary (AB#6211,
+   * Studio action guideline §9): only with write permission and a creatable form.
+   */
+  protected readonly canCreateFromList = computed(() =>
+    this.effectiveCanWrite() && !!this.baseModel()?.capabilities.canCreate);
+  /** "New {form title}" (AB#6211), e.g. "New Discord configuration". */
+  protected readonly createLabel = computed(() =>
+    entityListCreateLabel(this.msgs(), this.localizedBase()?.title));
+
+  /** Header create action: same flow as the list's former toolbar "New" (subtype picker, dialog mode). */
+  protected onCreateFromHeader(): void {
+    void this.list()?.requestCreate();
+  }
   /** Host heading override (`entityListTitle` route data), else the resolved form title. */
   protected readonly listTitle = computed(() => {
     this.routeData();

@@ -4,7 +4,7 @@
     #dir="mmProcessDiagramDataSource"
     [sortable]="true"
     [searchTextBoxEnabled]="true"
-    [emptyState]="{title: 'No process diagrams yet', text: 'Create your first diagram with New Diagram.'}"
+    [emptyState]="{title: 'No process diagrams yet', text: 'Create your first diagram with New diagram.'}"
     [selectable]="{mode: 'multiple', enabled: true}"
     [pageable]="{buttonCount: 3, pageSizes: [10, 20, 50, 100]}"
     [pageSize]="20"
@@ -19,7 +19,7 @@
       {id: 'edit', type:'link', text: 'Edit', svgIcon: editIcon, onClick: onEditClick}
     ]"
     [leftToolbarActions]="[
-      {id: 'new', type:'link', text: 'New Diagram', svgIcon: plusIcon, onClick: onNewDiagram}
+      {id: 'new', type:'link', text: 'New diagram', svgIcon: plusIcon, primary: true, onClick: onNewDiagram}
     ]"
     [contextMenuCommandItems]="[
       {id: 'delete', type:'link', text: 'Delete', danger: true, onClick: onDeleteClick, svgIcon: deleteIcon}

@@ -39,15 +39,25 @@ export interface CommandItem {
    * focusable (`aria-disabled`), the reason is announced via `aria-describedby` and shown in the
    * tooltip / overflow menu ("Delete — The adapter is deployed"). A callback receives the row item.
    * Only used while `isDisabled` is true; without it the list view uses a generic reason.
+   * Toolbar actions (AB#6211): with a reason the button stays focusable and announces it ("Run
+   * scripts — No fixup scripts to run"); a callback receives the current selection.
    */
   disabledReason?: string | ((data?: unknown) => string | null | undefined);
   children?: CommandItem[];
 
   /*
-   * Fill mode of the rendered toolbar control (default 'solid'). Use 'flat'
-   * for low-emphasis controls such as an icon-only overflow ("…") menu.
+   * Fill mode of the rendered toolbar control. Default: 'solid' for a `primary` item,
+   * otherwise 'flat' (AB#6211).
    */
   fillMode?: 'solid' | 'flat' | 'outline' | 'link' | 'clear';
+
+  /*
+   * Solid primary emphasis in the list-view toolbar (AB#6211, Studio action guideline §9).
+   * Toolbar actions are flat and neutral by default; a page has exactly one solid primary
+   * action and it belongs in the page header (`[mmPageActions]`). Set this only on a list
+   * that has no page header (the list is the page).
+   */
+  primary?: boolean;
 
   /*
    * Tooltip (title attribute) of the rendered toolbar control; falls back to

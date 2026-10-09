@@ -4,7 +4,7 @@
     #dir="mmSymbolLibraryDataSource"
     [sortable]="true"
     [searchTextBoxEnabled]="true"
-    [emptyState]="{title: 'No symbol libraries yet', text: 'Create your first library with New Library.'}"
+    [emptyState]="{title: 'No symbol libraries yet', text: 'Create your first library with New library.'}"
     [selectable]="{mode: 'multiple', enabled: true}"
     [pageable]="{buttonCount: 3, pageSizes: [10, 20, 50, 100]}"
     [pageSize]="20"
@@ -15,10 +15,10 @@
       {field: 'isReadOnly', displayName: 'Read Only', dataType: 'boolean'}
     ]"
     [actionCommandItems]="[
-      {id: 'view', type:'link', text: 'View Symbols', svgIcon: viewIcon, onClick: onViewClick}
+      {id: 'view', type:'link', text: 'View symbols', svgIcon: viewIcon, onClick: onViewClick}
     ]"
     [leftToolbarActions]="[
-      {id: 'new', type:'link', text: 'New Library', svgIcon: plusIcon, onClick: onNewLibrary}
+      {id: 'new', type:'link', text: 'New library', svgIcon: plusIcon, primary: true, onClick: onNewLibrary}
     ]"
     [contextMenuCommandItems]="[
       {id: 'delete', type:'link', text: 'Delete', danger: true, onClick: onDeleteClick, svgIcon: deleteIcon}

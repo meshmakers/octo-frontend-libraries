@@ -30,7 +30,7 @@ import {
   mergeEntityFormsMessages,
 } from '../entity-forms.messages';
 import { CkAttributeInfo, EntityListSortDescriptor, ResolvedEntityForm, ResolvedListColumn } from '../models/entity-form.models';
-import { ENTITY_FORM_LABEL_RESOLVER, EntityFormLabelResolver, localizeEntityListColumns } from '../core/entity-form-labels';
+import { ENTITY_FORM_LABEL_RESOLVER, EntityFormLabelResolver, localizeEntityFormTitle, localizeEntityListColumns } from '../core/entity-form-labels';
 import { formatReferenceDisplayValue } from '../form/reference/reference-display-format';
 import { EntityFormDataService } from '../services/entity-form-data.service';
 import { EntityFormService } from '../services/entity-form.service';
@@ -219,6 +219,15 @@ export function toEntityListColumn(
 }
 
 /**
+ * Label of a list's create action (AB#6211): `newEntity` with the form title ("New Discord
+ * configuration"), or `new` when the form has no title.
+ */
+export function entityListCreateLabel(messages: EntityFormsMessages, formTitle: string | null | undefined): string {
+  const title = formTitle?.trim();
+  return title ? formatEntityFormsMessage(messages.newEntity, { title }) : messages.new;
+}
+
+/**
  * `<mm-entity-list>` — the list view of a resolved entity form.
  *
  * Columns come from the form's `ListColumns` (secret columns are never listed or queried).
@@ -282,6 +291,12 @@ export class EntityListComponent {
   readonly labelResolver = input<EntityFormLabelResolver | null | undefined>(undefined);
   /** Host toolbar actions, shown after "New" (AB#5623). */
   readonly toolbarActions = input<readonly CommandItem[]>([]);
+  /**
+   * Whether the list's toolbar carries the create action ("New {form title}", AB#6211). Default
+   * `true`. `<mm-entity-page>` sets `false` and shows the action as the page's one solid primary
+   * in its header instead (Studio action guideline §9). In the toolbar it renders flat.
+   */
+  readonly showCreateAction = input<boolean>(true);
   /**
    * Host row actions (AB#5623): icon buttons in the actions column after Edit / View. Set
    * `svgIcon` and `text` (tooltip / aria-label); `onClick` gets the row as `e.data`.
@@ -410,10 +425,17 @@ export class EntityListComponent {
   /** Width of the actions column: Edit/View + the row menu, plus one icon button per host row action. */
   protected readonly actionsColumnWidth = computed(() => 80 + 40 * this.rowActions().length);
 
-  /** Toolbar: New (only with `canCreate && canWrite`), then the host's `toolbarActions`. */
+  /** Label of the create action: "New {form title}" (AB#6211), "New" without a title. */
+  readonly createLabel = computed(() =>
+    entityListCreateLabel(this.msgs(), localizeEntityFormTitle(this.model(), this.labelResolver() ?? this.injectedLabelResolver)));
+
+  /**
+   * Toolbar: New (only with `canCreate && canWrite` and `showCreateAction`), then the host's
+   * `toolbarActions`.
+   */
   readonly toolbarItems = computed<CommandItem[]>(() => [
-    ...(this.canCreate()
-      ? [{ id: 'new', type: 'link', text: this.msgs().new, svgIcon: MM_ACTION_ICONS.add, onClick: async () => this.requestCreate() } as CommandItem]
+    ...(this.canCreate() && this.showCreateAction()
+      ? [{ id: 'new', type: 'link', text: this.createLabel(), svgIcon: MM_ACTION_ICONS.add, onClick: async () => this.requestCreate() } as CommandItem]
       : []),
     ...this.toolbarActions(),
   ]);

@@ -17,6 +17,25 @@
   width: 165px;
 }
 
+// Toolbar action disabled with a reason (AB#6211, guideline §2.5): stays focusable, looks disabled,
+// the reason is announced via aria-describedby and shown in the tooltip.
+.mm-list-view-toolbar-action--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mm-list-view-toolbar-reason {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 // The checkbox column holds a widget, not text — never render an ellipsis for
 // it. Defensive companion to the 48px column width: should a future density
 // tier outgrow the column again, the checkbox clips instead of gaining a "…".

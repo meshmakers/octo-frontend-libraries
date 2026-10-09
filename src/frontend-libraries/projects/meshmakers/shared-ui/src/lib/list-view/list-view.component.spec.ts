@@ -331,6 +331,55 @@ describe('MmTableComponent', () => {
       expect(button.title).toBe('More actions');
     });
 
+    // AB#6211 guard (action guideline §9): one solid primary per page, in the page header. The list
+    // toolbar never renders a host action as solid primary unless the item is explicitly flagged.
+    it('renders every toolbar action flat and neutral unless it is flagged primary (AB#6211 guard)', () => {
+      component.leftToolbarActions = [
+        { id: 'new', type: 'link', text: 'New item', onClick: () => Promise.resolve() },
+        { id: 'import', type: 'link', text: 'Import data', svgIcon: { name: 'import', content: '', viewBox: '0 0 24 24' }, onClick: () => Promise.resolve() },
+        { id: 'menu', type: 'link', text: 'More', children: [{ id: 'child', type: 'link', text: 'Child' }] },
+        { id: 'split', type: 'link', text: 'Split', onClick: () => Promise.resolve(), children: [{ id: 'variant', type: 'link', text: 'Variant' }] },
+      ];
+      component.rightToolbarActions = [{ id: 'right', type: 'link', text: 'Right', onClick: () => Promise.resolve() }];
+      fixture.detectChanges();
+      const buttons = Array.from(el().querySelectorAll('kendo-grid-toolbar button')) as HTMLElement[];
+      expect(buttons.length).toBeGreaterThan(0);
+      for (const button of buttons) {
+        expect(button.classList.contains('k-button-solid') && button.classList.contains('k-button-primary'), button.outerHTML).toBe(false);
+      }
+    });
+
+    it('renders an item flagged primary as the solid primary button (AB#6211)', () => {
+      component.leftToolbarActions = [
+        { id: 'new', type: 'link', text: 'New item', primary: true, onClick: () => Promise.resolve() },
+        { id: 'import', type: 'link', text: 'Import data', onClick: () => Promise.resolve() },
+      ];
+      fixture.detectChanges();
+      const [primary, other] = Array.from(el().querySelectorAll('kendo-grid-toolbar button[data-toolbar-action]')) as HTMLElement[];
+      expect(primary.classList).toContain('k-button-solid');
+      expect(primary.classList).toContain('k-button-primary');
+      expect(other.classList).toContain('k-button-flat');
+      expect(other.classList).not.toContain('k-button-primary');
+    });
+
+    it('keeps a toolbar action with a disabled reason focusable and announces the reason (AB#6211)', async () => {
+      const onClick = vi.fn().mockResolvedValue(undefined);
+      component.leftToolbarActions = [{
+        id: 'run', type: 'link', text: 'Run scripts', onClick,
+        isDisabled: true, disabledReason: 'No fixup scripts to run',
+      }];
+      fixture.detectChanges();
+      const button = el().querySelector('kendo-grid-toolbar button[data-toolbar-action="run"]') as HTMLButtonElement;
+      expect(button.disabled).toBe(false);
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      expect(button.title).toBe('Run scripts — No fixup scripts to run');
+      const reason = el().querySelector(`#${button.getAttribute('aria-describedby')}`);
+      expect(reason?.textContent?.trim()).toBe('No fixup scripts to run');
+      button.click();
+      await fixture.whenStable();
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
     it('passes the current selection (always an array) to a toolbar isDisabled callback', () => {
       const seen: unknown[] = [];
       const item = {

@@ -22,9 +22,18 @@
               <p class="mm-entity-page__description">{{ description }}</p>
             }
           </div>
-          @if (pageActions(); as actions) {
-            <div class="mm-entity-page__actions" data-entity-page-host-actions>
-              <ng-container *ngTemplateOutlet="actions.templateRef; context: actionsContext()" />
+          @if (pageActions() || canCreateFromList()) {
+            <div class="mm-entity-page__actions">
+              @if (pageActions(); as actions) {
+                <div class="mm-entity-page__actions" data-entity-page-host-actions>
+                  <ng-container *ngTemplateOutlet="actions.templateRef; context: actionsContext()" />
+                </div>
+              }
+              <!-- The page's one solid primary action (AB#6211, action guideline §9). -->
+              @if (canCreateFromList()) {
+                <button kendoButton type="button" themeColor="primary" [svgIcon]="addIcon"
+                        data-entity-page-create (click)="onCreateFromHeader()">{{ createLabel() }}</button>
+              }
             </div>
           }
         </header>
@@ -37,6 +46,7 @@
           [showTypeColumn]="showTypeColumn()"
           [defaultSort]="effectiveDefaultSort()"
           [labelResolver]="effectiveLabelResolver()"
+          [showCreateAction]="false"
           [toolbarActions]="listToolbarActions()"
           [rowActions]="listRowActions()"
           [rowMenuActions]="listRowMenuActions()"

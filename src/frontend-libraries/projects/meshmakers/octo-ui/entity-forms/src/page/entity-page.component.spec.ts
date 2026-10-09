@@ -65,9 +65,11 @@ class StubEntityListComponent {
   readonly rowClass = input<unknown>();
   readonly booleanDisplay = input<unknown>();
   readonly rowLabelField = input<unknown>();
+  readonly showCreateAction = input<unknown>();
   readonly createRequested = output<unknown>();
   readonly openRequested = output<unknown>();
   readonly refresh = vi.fn();
+  readonly requestCreate = vi.fn().mockResolvedValue(undefined);
 }
 
 function makeModel(overrides: Partial<ResolvedEntityForm> = {}): ResolvedEntityForm {
@@ -444,6 +446,36 @@ describe('EntityPageComponent', () => {
     formService.resolveByFormKey.mockResolvedValue(null);
     await create({ formKey: 'unknown' });
     expect(api.view()).toBe('error');
+  });
+
+  describe('create action in the page header (AB#6211)', () => {
+    function el(): HTMLElement {
+      return fixture.nativeElement as HTMLElement;
+    }
+    function stubList(): StubEntityListComponent {
+      return fixture.debugElement.query((d) => d.componentInstance instanceof StubEntityListComponent).componentInstance as StubEntityListComponent;
+    }
+
+    it('shows "New {form title}" as the one solid primary in the header and hides it in the list toolbar', async () => {
+      formService.resolve.mockResolvedValue(makeModel({ title: 'Discord configuration' }));
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' });
+      const button = el().querySelector('header [data-entity-page-create]') as HTMLButtonElement;
+      expect(button.textContent?.trim()).toBe('New Discord configuration');
+      // The spec replaces the page's imports with stubs, so the Kendo classes are not applied here.
+      expect(button.getAttribute('themeColor')).toBe('primary');
+      expect(el().querySelectorAll('[themeColor="primary"]').length).toBe(1);
+      expect(stubList().showCreateAction()).toBe(false);
+      button.click();
+      expect(stubList().requestCreate).toHaveBeenCalled();
+    });
+
+    it('has no create action without write permission or when the form cannot create', async () => {
+      formService.resolve.mockResolvedValue(makeModel({
+        capabilities: { canCreate: false, canEdit: true, canDelete: true, canDuplicate: false, canExport: false, createRequiresSubtype: false },
+      }));
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' });
+      expect(el().querySelector('[data-entity-page-create]')).toBeNull();
+    });
   });
 
   describe('host extensions (AB#5623)', () => {

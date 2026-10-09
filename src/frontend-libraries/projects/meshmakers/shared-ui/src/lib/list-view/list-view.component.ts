@@ -79,6 +79,9 @@ function entryMenuText(action: MmAction): string {
   return isActionDisabled(action) ? `${text} — ${action.disabledReason!.trim()}` : text;
 }
 
+/** Per-instance prefix of the toolbar disabled-reason ids. */
+let nextListViewId = 0;
+
 function sameEntries(a: ResolvedListRowAction[], b: ResolvedListRowAction[]): boolean {
   return a.length === b.length && a.every((entry, i) =>
     entry.commandItem === b[i].commandItem && entry.rowAction === b[i].rowAction && sameAction(entry.action, b[i].action));
@@ -889,6 +892,43 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    */
   protected getToolbarItemDisabled(commandItem: CommandItem): boolean {
     return CommandBaseService.getIsDisabled(commandItem, this._selectedRows);
+  }
+
+  /**
+   * Toolbar emphasis (AB#6211, action guideline §9): host toolbar actions are flat and neutral;
+   * only an item flagged `primary` renders as the solid primary button. The page's one primary
+   * action belongs in the page header, so the flag is for lists without one.
+   */
+  protected toolbarItemThemeColor(commandItem: CommandItem): 'primary' | 'base' {
+    return commandItem.primary ? 'primary' : 'base';
+  }
+
+  /** Fill mode of a host toolbar action: the item's own `fillMode`, else solid for `primary`, flat otherwise. */
+  protected toolbarItemFillMode(commandItem: CommandItem): NonNullable<CommandItem['fillMode']> {
+    return commandItem.fillMode ?? (commandItem.primary ? 'solid' : 'flat');
+  }
+
+  /**
+   * Why a disabled toolbar action cannot run (AB#6211, guideline §2.5), or `null`. Only for items
+   * with a `disabledReason` (a callback receives the current selection); such a button stays
+   * focusable (`aria-disabled`) and announces the reason. Without a reason the button is plainly
+   * `disabled` as before.
+   */
+  protected toolbarItemDisabledReason(commandItem: CommandItem): string | null {
+    if (!commandItem.disabledReason || !this.getToolbarItemDisabled(commandItem)) {
+      return null;
+    }
+    const reason = typeof commandItem.disabledReason === 'function'
+      ? commandItem.disabledReason(this._selectedRows)
+      : commandItem.disabledReason;
+    return reason?.trim() ? reason.trim() : null;
+  }
+
+  private readonly toolbarReasonPrefix = `mm-list-view-toolbar-reason-${nextListViewId++}`;
+
+  /** Id of the visually hidden element carrying a toolbar action's disabled reason. */
+  protected toolbarReasonId(commandItem: CommandItem): string {
+    return `${this.toolbarReasonPrefix}-${commandItem.id}`;
   }
 
   /**

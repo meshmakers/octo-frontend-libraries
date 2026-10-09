@@ -170,8 +170,8 @@
                 [svgIcon]="$any(commandItem.svgIcon)"
                 [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                 [textField]="'text'"
-                themeColor="primary"
-                [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                [themeColor]="toolbarItemThemeColor(commandItem)"
+                [fillMode]="$any(toolbarItemFillMode(commandItem))"
                 [title]="commandItem.tooltip ?? commandItem.text"
                 [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (buttonClick)="onToolbarCommand(commandItem)"
@@ -184,29 +184,47 @@
                 [svgIcon]="$any(commandItem.svgIcon)"
                 [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                 [textField]="'text'"
-                themeColor="primary"
-                [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                [themeColor]="toolbarItemThemeColor(commandItem)"
+                [fillMode]="$any(toolbarItemFillMode(commandItem))"
                 [title]="commandItem.tooltip ?? commandItem.text"
                 [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
               </kendo-dropdownbutton>
             } @else if (commandItem.svgIcon) {
-              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon"
-                      [fillMode]="$any(commandItem.fillMode ?? 'solid')"
-                      [title]="commandItem.tooltip ?? commandItem.text"
+              @let reason = toolbarItemDisabledReason(commandItem);
+              <button kendoTooltip kendoButton [svgIcon]="commandItem.svgIcon"
+                      [themeColor]="toolbarItemThemeColor(commandItem)"
+                      [fillMode]="$any(toolbarItemFillMode(commandItem))"
+                      [class.mm-list-view-toolbar-action--disabled]="!!reason"
+                      [attr.data-toolbar-action]="commandItem.id"
+                      [title]="reason ? (commandItem.tooltip ?? commandItem.text) + ' — ' + reason : (commandItem.tooltip ?? commandItem.text)"
                       [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
-                      [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
-                      (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
+                      [attr.aria-disabled]="reason ? 'true' : null"
+                      [attr.aria-describedby]="reason ? toolbarReasonId(commandItem) : null"
+                      [disabled]="(getToolbarItemDisabled(commandItem) && !reason) || isLoading()"
+                      (click)="reason ? $event.preventDefault() : onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
+              @if (reason) {
+                <span class="mm-list-view-toolbar-reason" [id]="toolbarReasonId(commandItem)">{{ reason }}</span>
+              }
             } @else {
-              <button kendoTooltip kendoButton themeColor="primary"
-                      [fillMode]="$any(commandItem.fillMode ?? 'solid')"
-                      [title]="commandItem.tooltip ?? commandItem.text"
+              @let reason = toolbarItemDisabledReason(commandItem);
+              <button kendoTooltip kendoButton
+                      [themeColor]="toolbarItemThemeColor(commandItem)"
+                      [fillMode]="$any(toolbarItemFillMode(commandItem))"
+                      [class.mm-list-view-toolbar-action--disabled]="!!reason"
+                      [attr.data-toolbar-action]="commandItem.id"
+                      [title]="reason ? (commandItem.tooltip ?? commandItem.text) + ' — ' + reason : (commandItem.tooltip ?? commandItem.text)"
                       [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
-                      [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
-                      (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
+                      [attr.aria-disabled]="reason ? 'true' : null"
+                      [attr.aria-describedby]="reason ? toolbarReasonId(commandItem) : null"
+                      [disabled]="(getToolbarItemDisabled(commandItem) && !reason) || isLoading()"
+                      (click)="reason ? $event.preventDefault() : onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
+              @if (reason) {
+                <span class="mm-list-view-toolbar-reason" [id]="toolbarReasonId(commandItem)">{{ reason }}</span>
+              }
             }
           }
           @case ('separator'){
@@ -251,8 +269,8 @@
                 [svgIcon]="$any(commandItem.svgIcon)"
                 [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                 [textField]="'text'"
-                themeColor="primary"
-                [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                [themeColor]="toolbarItemThemeColor(commandItem)"
+                [fillMode]="$any(toolbarItemFillMode(commandItem))"
                 [title]="commandItem.tooltip ?? commandItem.text"
                 [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (buttonClick)="onToolbarCommand(commandItem)"
@@ -265,29 +283,47 @@
                 [svgIcon]="$any(commandItem.svgIcon)"
                 [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
                 [textField]="'text'"
-                themeColor="primary"
-                [fillMode]="$any(commandItem.fillMode ?? 'solid')"
+                [themeColor]="toolbarItemThemeColor(commandItem)"
+                [fillMode]="$any(toolbarItemFillMode(commandItem))"
                 [title]="commandItem.tooltip ?? commandItem.text"
                 [buttonAttributes]="toolbarItemButtonAttributes(commandItem)"
                 (itemClick)="onToolbarDropdownItemClick($event)">
                 {{ commandItem.text }}
               </kendo-dropdownbutton>
             } @else if (commandItem.svgIcon) {
-              <button kendoTooltip kendoButton themeColor="primary" [svgIcon]="commandItem.svgIcon"
-                      [fillMode]="$any(commandItem.fillMode ?? 'solid')"
-                      [title]="commandItem.tooltip ?? commandItem.text"
+              @let reason = toolbarItemDisabledReason(commandItem);
+              <button kendoTooltip kendoButton [svgIcon]="commandItem.svgIcon"
+                      [themeColor]="toolbarItemThemeColor(commandItem)"
+                      [fillMode]="$any(toolbarItemFillMode(commandItem))"
+                      [class.mm-list-view-toolbar-action--disabled]="!!reason"
+                      [attr.data-toolbar-action]="commandItem.id"
+                      [title]="reason ? (commandItem.tooltip ?? commandItem.text) + ' — ' + reason : (commandItem.tooltip ?? commandItem.text)"
                       [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
-                      [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
-                      (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
+                      [attr.aria-disabled]="reason ? 'true' : null"
+                      [attr.aria-describedby]="reason ? toolbarReasonId(commandItem) : null"
+                      [disabled]="(getToolbarItemDisabled(commandItem) && !reason) || isLoading()"
+                      (click)="reason ? $event.preventDefault() : onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
+              @if (reason) {
+                <span class="mm-list-view-toolbar-reason" [id]="toolbarReasonId(commandItem)">{{ reason }}</span>
+              }
             } @else {
-              <button kendoTooltip kendoButton themeColor="primary"
-                      [fillMode]="$any(commandItem.fillMode ?? 'solid')"
-                      [title]="commandItem.tooltip ?? commandItem.text"
+              @let reason = toolbarItemDisabledReason(commandItem);
+              <button kendoTooltip kendoButton
+                      [themeColor]="toolbarItemThemeColor(commandItem)"
+                      [fillMode]="$any(toolbarItemFillMode(commandItem))"
+                      [class.mm-list-view-toolbar-action--disabled]="!!reason"
+                      [attr.data-toolbar-action]="commandItem.id"
+                      [title]="reason ? (commandItem.tooltip ?? commandItem.text) + ' — ' + reason : (commandItem.tooltip ?? commandItem.text)"
                       [attr.aria-label]="toolbarItemAriaLabel(commandItem)"
-                      [disabled]="getToolbarItemDisabled(commandItem) || isLoading()"
-                      (click)="onToolbarCommand(commandItem)">{{ commandItem.text }}
+                      [attr.aria-disabled]="reason ? 'true' : null"
+                      [attr.aria-describedby]="reason ? toolbarReasonId(commandItem) : null"
+                      [disabled]="(getToolbarItemDisabled(commandItem) && !reason) || isLoading()"
+                      (click)="reason ? $event.preventDefault() : onToolbarCommand(commandItem)">{{ commandItem.text }}
               </button>
+              @if (reason) {
+                <span class="mm-list-view-toolbar-reason" [id]="toolbarReasonId(commandItem)">{{ reason }}</span>
+              }
             }
           }
           @case ('separator'){
