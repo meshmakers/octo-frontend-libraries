@@ -135,6 +135,8 @@ stages:
                     exit 1
                   fi
                 }
+                echo "=== System CK guard (AB#6203) ==="
+                npm run check:system-ck
                 echo "=== Linting all projects in parallel ==="
                 npx ng lint @meshmakers/shared-services & pid1=$!
                 npx ng lint @meshmakers/shared-auth & pid2=$!

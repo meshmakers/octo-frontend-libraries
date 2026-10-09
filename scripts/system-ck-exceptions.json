@@ -1,0 +1,422 @@
+[
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/graphQL/globalTypes.ts",
+    "reason": "Generated from the full meshtest tenant schema; removed once codegen uses a System-only schema.",
+    "workItem": "AB#6204"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/graphQL/possibleTypes.ts",
+    "reason": "Generated from the full meshtest tenant schema; removed once codegen uses a System-only schema.",
+    "workItem": "AB#6204"
+  },
+  {
+    "path": "src/frontend-libraries/schema.graphql",
+    "reason": "Generated from the full meshtest tenant schema; removed once codegen uses a System-only schema.",
+    "workItem": "AB#6204"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/graphQL/getOrphanCandidates.graphql",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/graphQL/getTrees.graphql",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/graphQL/getTrees.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/graphQL/updateTreeNodes.graphql",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/graphQL/updateTreeNodes.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/NAVIGATION_USAGE.md",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/create-editor/create-editor-component.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/data-mapping-overview/data-mapping-overview.models.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/entity-detail-view.component.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree-data-source.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree-data-source.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree.component.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree.component.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/mapping-coverage-tree/mapping-coverage-tree.models.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/runtime-browser-details.component.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/components/shared-editor/shared-editor.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/data-sources/entity-detail-data-source.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/data-sources/runtime-browser-data-source.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/data-sources/runtime-browser-data-source.service.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/runtime-browser.component.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/association-validation.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/attribute-mapper.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/attribute-metadata-resolver.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/mapping-coverage-config.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/runtime-browser-state.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/secret-safe-attribute-names.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/secret-safe-attribute-names.service.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/tree-navigation-config.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/tree-navigation-config.service.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/runtime-browser/services/type-helper.service.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/tree-navigation-settings/src/tree-navigation-settings.component.spec.ts",
+    "reason": "Runtime browser / mapping coverage tree hard-wire Basic/Tree and Basic/TreeNode.",
+    "workItem": "AB#6205"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/CLAUDE.md",
+    "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/docs/process-widget.md",
+    "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/docs/stream-data-query-result-shape.md",
+    "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/components/entity-selector-editor/entity-selector-editor.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/components/query-selector/persistent-query-data-sources.ts",
+    "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/services/meshboard-data.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/services/meshboard-state.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/services/query-executor.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/utils/runtime-entity-data-sources.ts",
+    "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/entity-card-widget/entity-card-widget.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/line-chart-widget/line-chart-widget.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/process-widget/services/process-data.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/status-list-widget/status-list-config-dialog.component.ts",
+    "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-meshboard/src/lib/widgets/table-widget/table-widget.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-process-diagrams/src/lib/process-widget.models.ts",
+    "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/CLAUDE.md",
+    "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/docs/README.md",
+    "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/attribute-selector.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/ck-type-attribute.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/ck-type-selector.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/ck-type-selector.service.ts",
+    "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-services/src/lib/services/identity-service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/CLAUDE.md",
+    "reason": "Doc examples still use domain CK ids; replace with Test/* or System examples.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/before-save.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/change-set-builder.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/ck-type-name.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-catalog.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-labels.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-labels.ts",
+    "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-prefill.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/entity-form-resolver.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/core/testing/live-fixtures.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/form/records/entity-form-record-row-dialog.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/form/records/entity-form-record-row.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/form/reference/entity-reference-data-source.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/services/entity-form-data.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/entity-forms/src/services/entity-form.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/attribute-selector-dialog/attribute-selector-dialog.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/attribute-selector-dialog/attribute-selector-dialog.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/attribute-sort-selector-dialog/attribute-sort-selector-dialog.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/ck-type-selector-dialog/ck-type-selector-dialog.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/ck-type-selector-input/ck-type-selector-input.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/entity-selector-dialog/entity-selector-dialog.component.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/src/lib/property-grid/services/property-converter.service.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/octo-ui/tree-navigation-settings/src/tree-navigation-settings.messages.ts",
+    "reason": "UI hint or JSDoc example uses a domain CK id; replace with neutral wording or a System example.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/shared-ui/shell/src/shell-notifications.spec.ts",
+    "reason": "Spec fixtures still use domain CK ids; replace with synthetic Test/* ids.",
+    "workItem": "AB#6207"
+  },
+  {
+    "path": "src/frontend-libraries/projects/demo-app/src/app/graphQL/getTrees.graphql",
+    "reason": "Demo app still uses Basic tree types; demo apps get their own OctoSdkDemo schema/codegen (decision 2026-10-09).",
+    "workItem": "AB#6208"
+  },
+  {
+    "path": "src/frontend-libraries/projects/demo-app/src/app/graphQL/getTrees.ts",
+    "reason": "Demo app still uses Basic tree types; demo apps get their own OctoSdkDemo schema/codegen (decision 2026-10-09).",
+    "workItem": "AB#6208"
+  },
+  {
+    "path": "src/frontend-libraries/projects/demo-app/src/app/tenants/demos/data-sources/tree-demo-data-source.service.ts",
+    "reason": "Demo app still uses Basic tree types; demo apps get their own OctoSdkDemo schema/codegen (decision 2026-10-09).",
+    "workItem": "AB#6208"
+  },
+  {
+    "path": "src/frontend-libraries/projects/demo-app/src/app/tenants/demos/property-grid/property-grid-demo.component.ts",
+    "reason": "Demo app still uses Basic tree types; demo apps get their own OctoSdkDemo schema/codegen (decision 2026-10-09).",
+    "workItem": "AB#6208"
+  }
+]

@@ -1,0 +1,116 @@
+{
+  "$comment": "System CK allowlist for check-system-ck-only.mjs (AB#6203). Library projects may reference System CK models only; demo apps may additionally use OctoSdkDemo (AB#6208). See README 'System CK guard'.",
+  "models": [
+    "System",
+    "System.Ai",
+    "System.Bot",
+    "System.Communication",
+    "System.Identity",
+    "System.Notification",
+    "System.Reporting",
+    "System.Sdk",
+    "System.StreamData",
+    "System.UI"
+  ],
+  "platformModels": [
+    "ConstructionKit"
+  ],
+  "modelPrefixes": [
+    "System."
+  ],
+  "synthetic": [
+    "Test",
+    "TestModel"
+  ],
+  "syntheticPaths": [
+    "**/*.spec.ts",
+    "**/testing/**",
+    "**/*.md"
+  ],
+  "knownForeignModels": [
+    "Basic",
+    "Basic.Energy",
+    "Industry",
+    "IndustryEnergy",
+    "EnergyCommunity",
+    "Energy",
+    "EnergyIQ",
+    "Environment",
+    "Meshmakers",
+    "MeshmakersAccounting",
+    "Accounting",
+    "Demo",
+    "OctoSdkDemo",
+    "OctoBasic",
+    "Loxone",
+    "FdaSeen"
+  ],
+  "ignoreModels": [
+    "Africa",
+    "America",
+    "Antarctica",
+    "Arctic",
+    "Asia",
+    "Atlantic",
+    "Australia",
+    "Europe",
+    "Indian",
+    "Pacific",
+    "Etc",
+    "Pipeline",
+    "Model",
+    "Namespace"
+  ],
+  "ignoreTokens": [
+    "TreeNavigationConfiguration.Roles/Perspectives",
+    "Meat/Poultry",
+    "Grains/Cereals"
+  ],
+  "packageDir": "src/frontend-libraries",
+  "schema": "src/frontend-libraries/schema.graphql",
+  "include": [
+    "src/frontend-libraries/projects/**/*.{ts,html,graphql,json,md}",
+    "src/frontend-libraries/schema.graphql"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/package-lock.json",
+    "scripts/system-ck-*.json",
+    ".idea/**"
+  ],
+  "genericGraphQlPrefixes": [
+    "Rt",
+    "Ck"
+  ],
+  "generatedGraphQlFiles": [
+    "src/frontend-libraries/projects/**/graphQL/*.ts"
+  ],
+  "scopes": [
+    {
+      "paths": [
+        "src/frontend-libraries/projects/demo-app/**",
+        "src/frontend-libraries/projects/legacy-demo-app/**"
+      ],
+      "models": [
+        "OctoSdkDemo"
+      ]
+    }
+  ],
+  "importBoundaries": [
+    {
+      "paths": [
+        "src/frontend-libraries/projects/meshmakers/**"
+      ],
+      "forbidden": [
+        "src/frontend-libraries/projects/demo-app/**",
+        "src/frontend-libraries/projects/legacy-demo-app/**",
+        "demo-app",
+        "demo-app/**",
+        "legacy-demo-app",
+        "legacy-demo-app/**"
+      ],
+      "reason": "libraries must not depend on the demo apps (AB#6208)"
+    }
+  ]
+}
