@@ -12,6 +12,15 @@ starts a new empty "Unreleased" section.
 
 ### shared-ui / shared-services
 
+- New i18n hook for host-translated library texts (no framework dependency): optional tokens
+  `MM_TRANSLATE` (`(key, params?) => string | undefined`), `MM_LANGUAGE` (`Signal<string>`),
+  `MM_TRANSLATE_DEFAULTS` (+ `provideMmTranslateDefaults`), the `mmT` pipe, `injectMmT()`,
+  `injectMmLanguage()`, and the `liveMessages()` / `messagesFromTranslate()` bridges for the
+  existing `*_MESSAGES` tokens (moved from the meshmakers-app). Apps that provide nothing keep the
+  English defaults. `shared-ui` now ships `i18n/en.json` + `de.json` (skeletons, namespace
+  `MM.SHARED_UI`) as a package asset; `npm run i18n:check` checks the library translations.
+  (AB#6163)
+
 - **BREAKING (visual)**: `mm-list-view` toolbar commands (`leftToolbarActions` /
   `rightToolbarActions`) are flat and neutral by default. The rule: a page has exactly one solid
   primary button — its main action (usually "New …"), placed in the page header; every other

@@ -9,6 +9,11 @@
       "input": "assets/octobot",
       "glob": "**/*.{webp,png}",
       "output": "assets/octobot"
+    },
+    {
+      "input": "i18n",
+      "glob": "*.json",
+      "output": "i18n"
     }
   ]
 }

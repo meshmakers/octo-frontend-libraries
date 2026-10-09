@@ -137,6 +137,8 @@ stages:
                 }
                 echo "=== System CK guard (AB#6203) ==="
                 npm run check:system-ck
+                echo "=== i18n check: en/de parity of the library translations (AB#6163) ==="
+                npm run i18n:check
                 echo "=== Linting all projects in parallel ==="
                 npx ng lint @meshmakers/shared-services & pid1=$!
                 npx ng lint @meshmakers/shared-auth & pid2=$!

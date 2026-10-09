@@ -414,9 +414,15 @@ two guards:
 3. **Data source abstraction** — `DataSourceBase` handles pagination/filtering/sorting for list views
 4. **Environment providers** — `provideMmSharedUi()` registers all services at app level
 5. **Command pattern** — ListViewComponent uses `CommandItem` for toolbar/context menu actions
+6. **i18n without a framework** — library texts are English defaults; hosts translate them through
+   the optional `MM_TRANSLATE` / `MM_LANGUAGE` tokens (`mmT` pipe, `injectMmT()`) or fill the
+   existing `*_MESSAGES` tokens with `liveMessages()`. Never add an ngx-translate dependency to a
+   library. Library translations live in `i18n/en.json` + `de.json` (namespace `MM.<LIB>.*`),
+   checked by `npm run i18n:check` (AB#6163, [docs/i18n.md](docs/i18n.md))
 
 ## Detailed Documentation
 
 - [Time Range Picker](docs/time-range-picker.md) — Full API, configuration, examples
+- [i18n hook](docs/i18n.md) — `MM_TRANSLATE`, `MM_LANGUAGE`, `mmT`, `liveMessages`, library JSON files
 - [Unsaved Changes Guard](docs/unsaved-changes-guard.md) — Implementation guide with checklists
 - [Progress Window Usage](src/lib/progress-window/USAGE.md) — Examples, migration guide
