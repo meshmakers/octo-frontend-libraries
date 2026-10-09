@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpContext, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
 import { AuthorizeService, authorizeInterceptor } from '@meshmakers/shared-auth';
 import {
   BinaryDownloadUnavailableError,
@@ -178,6 +179,18 @@ describe('FileDownloadService', () => {
       await assertion;
 
       expect(saveSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('fetchBlob / downloadUrl context', () => {
+    it('passes the caller\'s HttpContext to the request', async () => {
+      const context = new HttpContext().set(MM_CALLER_HANDLED_STATUSES, [403, 404]);
+      const done = service.downloadUrl('https://asset.example.com/meshtest/v1/files/Files/a.pdf', 'a.pdf', null, context);
+      const req = httpMock.expectOne('https://asset.example.com/meshtest/v1/files/Files/a.pdf');
+      expect(req.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403, 404]);
+      req.flush(new Blob(['%PDF']));
+      await done;
+      expect(saveSpy.mock.calls[0][1]).toBe('a.pdf');
     });
   });
 
