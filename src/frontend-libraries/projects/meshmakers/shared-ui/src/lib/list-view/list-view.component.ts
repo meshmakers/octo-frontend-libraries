@@ -926,9 +926,18 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   private readonly toolbarReasonPrefix = `mm-list-view-toolbar-reason-${nextListViewId++}`;
 
-  /** Id of the visually hidden element carrying a toolbar action's disabled reason. */
-  protected toolbarReasonId(commandItem: CommandItem): string {
-    return `${this.toolbarReasonPrefix}-${commandItem.id}`;
+  /**
+   * Id of the element carrying a toolbar action's disabled reason: unique per list instance,
+   * toolbar band and position (ids of host items may repeat between the bands).
+   */
+  protected toolbarReasonId(side: 'left' | 'right', index: number): string {
+    return `${this.toolbarReasonPrefix}-${side}-${index}`;
+  }
+
+  /** Tooltip of a host toolbar action: `tooltip` or `text`, plus " — reason" while disabled with a reason. */
+  protected toolbarItemTitle(commandItem: CommandItem, reason: string | null): string {
+    const label = commandItem.tooltip ?? commandItem.text ?? '';
+    return reason ? `${label} — ${reason}` : label;
   }
 
   /**
@@ -947,12 +956,22 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   private static readonly NO_BUTTON_ATTRIBUTES: Record<string, string> = {};
 
   /**
-   * `buttonAttributes` for Kendo split / dropdown buttons: same rule as
-   * {@link toolbarItemAriaLabel}, cached per label so change detection sees a stable object.
+   * `buttonAttributes` for Kendo split / dropdown buttons: the accessible name (same rule as
+   * {@link toolbarItemAriaLabel}) and, while disabled with a reason, `aria-disabled` +
+   * `aria-describedby`. Cached per combination so change detection sees a stable object.
    */
-  protected toolbarItemButtonAttributes(commandItem: CommandItem): Record<string, string> {
+  protected toolbarItemButtonAttributes(commandItem: CommandItem, reasonId: string | null = null): Record<string, string> {
     const label = this.toolbarItemAriaLabel(commandItem);
-    return label ? this.ariaLabelAttributes(label) : ListViewComponent.NO_BUTTON_ATTRIBUTES;
+    if (!reasonId) {
+      return label ? this.ariaLabelAttributes(label) : ListViewComponent.NO_BUTTON_ATTRIBUTES;
+    }
+    const key = `${label ?? ''}\u0000${reasonId}`;
+    let attributes = this.buttonAttributesCache.get(key);
+    if (!attributes) {
+      attributes = { ...(label ? { 'aria-label': label } : {}), 'aria-disabled': 'true', 'aria-describedby': reasonId };
+      this.buttonAttributesCache.set(key, attributes);
+    }
+    return attributes;
   }
 
   /** `buttonAttributes` of the icon-only menu the commands collapse into. */

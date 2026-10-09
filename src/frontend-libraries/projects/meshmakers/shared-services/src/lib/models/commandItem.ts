@@ -39,8 +39,9 @@ export interface CommandItem {
    * focusable (`aria-disabled`), the reason is announced via `aria-describedby` and shown in the
    * tooltip / overflow menu ("Delete — The adapter is deployed"). A callback receives the row item.
    * Only used while `isDisabled` is true; without it the list view uses a generic reason.
-   * Toolbar actions (AB#6211): with a reason the button stays focusable and announces it ("Run
-   * scripts — No fixup scripts to run"); a callback receives the current selection.
+   * Toolbar actions (AB#6211): with a reason the button (also split / dropdown buttons) stays
+   * focusable, announces it and shows it on keyboard focus ("Run scripts — No fixup scripts to
+   * run"); a callback receives the current selection.
    */
   disabledReason?: string | ((data?: unknown) => string | null | undefined);
   children?: CommandItem[];

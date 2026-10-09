@@ -129,7 +129,8 @@ Toolbar actions (`CommandItem`s in `leftToolbarActions` / `rightToolbarActions`,
 and neutral; only `primary: true` makes one the solid primary — for a list that has no page header.
 Lists inside a page put their create action into `[mmPageActions]` as
 `<mm-action-button context="page" display="icon-text" primary>`. A disabled toolbar action with a
-`disabledReason` stays focusable and announces the reason, like the row actions.
+`disabledReason` (plain, split or dropdown button) stays focusable, announces the reason, shows it in
+the tooltip and as a hint bubble on keyboard focus, like `mm-action-button`; the menu does not open.
 
 ## Spec guard (AB#5581)
 

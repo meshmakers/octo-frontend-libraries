@@ -23,7 +23,7 @@
             }
           </div>
           @if (pageActions() || canCreateFromList()) {
-            <div class="mm-entity-page__actions">
+            <div class="mm-entity-page__header-actions">
               @if (pageActions(); as actions) {
                 <div class="mm-entity-page__actions" data-entity-page-host-actions>
                   <ng-container *ngTemplateOutlet="actions.templateRef; context: actionsContext()" />

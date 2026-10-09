@@ -44,7 +44,8 @@
   opacity: 0.85;
 }
 
-.mm-entity-page__actions {
+.mm-entity-page__actions,
+.mm-entity-page__header-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;

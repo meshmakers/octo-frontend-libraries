@@ -380,6 +380,42 @@ describe('MmTableComponent', () => {
       expect(onClick).not.toHaveBeenCalled();
     });
 
+    it('applies the disabled reason to dropdown and split buttons too: focusable, announced, menu stays closed (AB#6211)', async () => {
+      const onClick = vi.fn().mockResolvedValue(undefined);
+      component.leftToolbarActions = [
+        { id: 'menu', type: 'link', text: 'Export', isDisabled: true, disabledReason: 'Nothing to export',
+          children: [{ id: 'csv', type: 'link', text: 'CSV' }] },
+        { id: 'split', type: 'link', text: 'Run', onClick, isDisabled: true, disabledReason: 'Nothing to run',
+          children: [{ id: 'all', type: 'link', text: 'Run all' }] },
+      ];
+      fixture.detectChanges();
+      const dropdown = el().querySelector('kendo-dropdownbutton[data-toolbar-action="menu"] button') as HTMLButtonElement;
+      expect(dropdown.disabled).toBe(false);
+      expect(dropdown.getAttribute('aria-disabled')).toBe('true');
+      expect(el().querySelector(`#${dropdown.getAttribute('aria-describedby')}`)?.textContent?.trim()).toBe('Nothing to export');
+      dropdown.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(document.querySelector('.k-popup')).toBeNull();
+
+      const splitMain = el().querySelector('kendo-splitbutton[data-toolbar-action="split"] button') as HTMLButtonElement;
+      expect(splitMain.getAttribute('aria-disabled')).toBe('true');
+      expect(el().querySelector(`#${splitMain.getAttribute('aria-describedby')}`)?.textContent?.trim()).toBe('Nothing to run');
+      splitMain.click();
+      await fixture.whenStable();
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('gives every toolbar disabled reason a unique id (band + position), even for repeated item ids', () => {
+      const item = { id: 'same', type: 'link' as const, text: 'Same', isDisabled: true, disabledReason: 'Not now' };
+      component.leftToolbarActions = [item];
+      component.rightToolbarActions = [{ ...item }];
+      fixture.detectChanges();
+      const ids = Array.from(el().querySelectorAll('.mm-list-view-toolbar-reason')).map(r => r.id);
+      expect(ids.length).toBe(2);
+      expect(new Set(ids).size).toBe(2);
+    });
+
     it('passes the current selection (always an array) to a toolbar isDisabled callback', () => {
       const seen: unknown[] = [];
       const item = {
