@@ -71,6 +71,9 @@
   ],
   "packageDir": "src/frontend-libraries",
   "schema": "src/frontend-libraries/schema.graphql",
+  "codegenConfigs": [
+    "src/frontend-libraries/codegen.yml"
+  ],
   "include": [
     "src/frontend-libraries/projects/**/*.{ts,html,graphql,json,md}",
     "src/frontend-libraries/schema.graphql"

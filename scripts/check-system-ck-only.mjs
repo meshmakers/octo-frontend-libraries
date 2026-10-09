@@ -96,8 +96,8 @@ const matchesAny = (file, globs = []) => globs.some((g) => globToRegExp(g).test(
 // ---------------------------------------------------------------------------------------------
 const CK_ID = /(?<![\w./-])([A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)*)(?:-\d+(?:\.\d+)*)?\/[A-Z][A-Za-z0-9]+/g;
 const ignoreTokens = new Set(config.ignoreTokens ?? []);
+let schemaFileList = null; // see schemaFiles()
 const modelPrefixes = (config.modelPrefixes ?? []).map((p) => (p.endsWith('.') ? p : p + '.'));
-const isGeneratedFile = (file) => file === config.schema || matchesAny(file, config.generatedGraphQlFiles);
 
 function modelAllowed(model, file) {
   const scope = scopesFor(file);
@@ -153,7 +153,7 @@ const exceptionState = exceptions.map((e, i) => {
 });
 // An exception path counts as generated when it only covers the schema / generated GraphQL files
 function isGeneratedPath(glob) {
-  if (glob === config.schema) return true;
+  if (schemaFiles().includes(glob)) return true;
   return (config.generatedGraphQlFiles ?? []).some((g) => g === glob || globToRegExp(g).test(glob.replace(/\{([^,}]+)[^}]*\}/g, '$1')));
 }
 // Every matching exception counts the finding (overlapping entries are not reported as stale)
@@ -286,21 +286,71 @@ function graphQlCommentRanges(text) {
 // ---------------------------------------------------------------------------------------------
 const builtinScalars = new Set(['String', 'Int', 'Float', 'Boolean', 'ID']);
 let schemaInfo = null;
+
+// Schema sources: `schema` of the allowlist (string or array) plus every file listed under `schema:`
+// in the codegen configs (`codegenConfigs`), e.g. local `extend type ...` files. They are merged,
+// checked with rule 3 and never treated as documents.
+function schemaFiles() {
+  if (schemaFileList) return schemaFileList;
+  const list = [].concat(config.schema ?? []);
+  for (const cfg of config.codegenConfigs ?? []) {
+    const abs = path.join(repoRoot, cfg);
+    if (!existsSync(abs)) continue;
+    for (const entry of codegenSchemaEntries(readFileSync(abs, 'utf8'))) {
+      if (/^[a-z]+:\/\//i.test(entry)) continue; // introspection URL
+      const rel = path.posix.normalize(path.posix.join(path.posix.dirname(cfg), entry));
+      if (!list.includes(rel)) list.push(rel);
+    }
+  }
+  schemaFileList = list;
+  return list;
+}
+// Minimal YAML reading of the top-level `schema:` key (string or list of strings)
+function codegenSchemaEntries(yaml) {
+  const lines = yaml.split(/\r?\n/);
+  const i = lines.findIndex((l) => /^schema\s*:/.test(l));
+  if (i < 0) return [];
+  const inline = lines[i].replace(/^schema\s*:\s*/, '').replace(/\s+#.*$/, '').trim();
+  if (inline) return [inline.replace(/^['"]|['"]$/g, '')];
+  const entries = [];
+  for (const l of lines.slice(i + 1)) {
+    if (/^\s*(#.*)?$/.test(l)) continue;
+    const m = /^\s+-\s*(['"]?)([^'"#]+?)\1\s*(#.*)?$/.exec(l);
+    if (!m) break;
+    entries.push(m[2]);
+  }
+  return entries;
+}
+const isSchemaFile = (file) => schemaFiles().includes(file);
+
 function loadSchema() {
   if (schemaInfo) return schemaInfo;
-  schemaInfo = { types: new Map(), entityNames: [], entitySet: new Set(), bySegment: new Map(), runtimeTypes: new Set(), subscriptionType: null, text: '', doc: null };
-  if (!config.schema) return schemaInfo;
-  const schemaFile = path.join(repoRoot, config.schema);
-  if (!existsSync(schemaFile)) return schemaInfo;
-  const text = readFileSync(schemaFile, 'utf8');
-  const doc = graphql.parse(text, { noLocation: false });
-  schemaInfo.text = text;
-  schemaInfo.doc = doc;
-  for (const def of doc.definitions) {
-    if (def.name) schemaInfo.types.set(def.name.value, def);
+  schemaInfo = { types: new Map(), fields: new Map(), entityNames: [], entitySet: new Set(), bySegment: new Map(), runtimeTypes: new Set(), subscriptionType: null, sources: [], doc: null };
+  const definitions = [];
+  for (const file of schemaFiles()) {
+    const abs = path.join(repoRoot, file);
+    if (!existsSync(abs)) continue;
+    const text = readFileSync(abs, 'utf8');
+    let doc;
+    try {
+      doc = graphql.parse(text);
+    } catch (e) {
+      findings.push({ file, line: 1, column: 1, token: file, message: `GraphQL schema parse error: ${e.message}`, severity: 'error' });
+      continue;
+    }
+    schemaInfo.sources.push({ file, text, doc });
+    definitions.push(...doc.definitions);
+  }
+  if (!definitions.length) return schemaInfo;
+  schemaInfo.doc = { kind: 'Document', definitions };
+  for (const def of definitions) {
+    if (!def.name) continue;
+    const name = def.name.value;
+    if (!/Extension$/.test(def.kind)) schemaInfo.types.set(name, def);
+    if (def.fields) schemaInfo.fields.set(name, [...(schemaInfo.fields.get(name) ?? []), ...def.fields]);
   }
   const roots = { query: 'Query', mutation: 'Mutation', subscription: 'Subscription' };
-  for (const def of doc.definitions) {
+  for (const def of definitions) {
     if (def.kind === 'SchemaDefinition') {
       for (const op of def.operationTypes) roots[op.operation] = op.type.name.value;
     }
@@ -308,21 +358,20 @@ function loadSchema() {
   schemaInfo.subscriptionType = roots.subscription;
   // `runtime` fields of the query and mutation roots lead to the per-CK-type fields
   for (const root of [roots.query, roots.mutation]) {
-    const rootDef = schemaInfo.types.get(root);
-    for (const f of rootDef?.fields ?? []) {
+    for (const f of schemaInfo.fields.get(root) ?? []) {
       if (f.name.value === 'runtime') schemaInfo.runtimeTypes.add(namedTypeOf(f.type));
     }
   }
   // CK entity names = types reachable through the runtime fields (XConnection / XMutations)
   const names = new Set();
   for (const rt of schemaInfo.runtimeTypes) {
-    for (const f of schemaInfo.types.get(rt)?.fields ?? []) {
+    for (const f of schemaInfo.fields.get(rt) ?? []) {
       const t = namedTypeOf(f.type);
       const base = t.replace(/(Connection|Mutations)$/, '');
       if (base !== t && schemaInfo.types.has(base) && !isGenericGraphQlType(base)) names.add(base);
     }
   }
-  for (const f of schemaInfo.types.get(roots.subscription)?.fields ?? []) {
+  for (const f of schemaInfo.fields.get(roots.subscription) ?? []) {
     const t = namedTypeOf(f.type);
     const base = t.replace(/(UpdateMessage|Update)$/, '');
     if (base !== t && schemaInfo.types.has(base) && !isGenericGraphQlType(base)) names.add(base);
@@ -372,7 +421,7 @@ function getValidationSchema() {
     try {
       validationSchema = graphql.buildASTSchema(doc, { assumeValidSDL: true });
     } catch (e) {
-      console.log(`${config.schema}: warning: schema could not be built for validation: ${e.message}`);
+      console.log(`${schemaFiles().join(', ')}: warning: schema could not be built for validation: ${e.message}`);
     }
   }
   return validationSchema;
@@ -407,7 +456,7 @@ function checkGraphQlDocument(file, fullText, doc, base = 0, { validate = false 
       if (entity) {
         report(file, fullText, offsetOf(node), name, `type '${name}' belongs to non-System CK type '${entity}'`, 'error');
       } else if (schema.types.size > 0 && !schema.types.has(name) && !builtinScalars.has(name)) {
-        report(file, fullText, offsetOf(node), name, `type '${name}' is not defined in ${config.schema} (only System CK types are available)`, 'error');
+        report(file, fullText, offsetOf(node), name, `type '${name}' is not defined in the schema (${schemaFiles().join(', ')}; only System CK types are available)`, 'error');
       }
     },
     StringValue(node) {
@@ -509,14 +558,28 @@ function checkGeneratedGraphQlTs(file, text) {
   scanGraphQlTypeNames(file, text, 0, text.length, 'generated code references');
 }
 
+// Rule 3. The primary (introspected) schema also holds generic platform types, so it is checked
+// against the CK entity types; additional local sources may only define System-prefixed or
+// generic (Rt*/Ck*) types, and may only extend existing types.
 function checkSchema(file) {
   const schema = loadSchema();
-  if (!schema.doc) return;
-  for (const def of schema.doc.definitions) {
+  const src = schema.sources.find((x) => x.file === file);
+  if (!src) return;
+  const primary = schemaFiles()[0] === file;
+  const allowed = allowedGraphQlPrefixes(file);
+  for (const def of src.doc.definitions) {
     if (!def.name) continue;
     const name = def.name.value;
     const entity = foreignCkType(name, file);
-    if (entity) report(file, schema.text, def.name.loc.start, name, `schema defines '${name}' of non-System CK type '${entity}'`, 'error');
+    if (entity) {
+      report(file, src.text, def.name.loc.start, name, `schema defines '${name}' of non-System CK type '${entity}'`, 'error');
+    } else if (!primary && !/Extension$/.test(def.kind) && !allowed.some((p) => name.startsWith(p)) && !isGenericGraphQlType(name)) {
+      report(file, src.text, def.name.loc.start, name, `local schema source defines '${name}', which is neither a System type nor a generic Rt*/Ck* type`, 'error');
+    }
+    for (const f of def.fields ?? []) {
+      const fe = /Extension$/.test(def.kind) ? foreignCkType(pascal(f.name.value), file) : null;
+      if (fe) report(file, src.text, f.name.loc.start, f.name.value, `schema extension adds field '${f.name.value}' of non-System CK type '${fe}'`, 'error');
+    }
   }
 }
 
@@ -571,13 +634,13 @@ for (const file of files) {
 }
 // Pass 1: parse *.graphql documents and collect their fragments
 for (const src of sources) {
-  if (src.file === config.schema || path.extname(src.file) !== '.graphql') continue;
+  if (isSchemaFile(src.file) || path.extname(src.file) !== '.graphql') continue;
   src.doc = parseGraphQl(src.file, src.text, src.text, 0);
   for (const def of src.doc?.definitions ?? []) if (def.kind === 'FragmentDefinition') allFragments.set(def.name.value, def);
 }
 // Pass 2: rules
 for (const { file, text, doc } of sources) {
-  if (config.schema && file === config.schema) {
+  if (isSchemaFile(file)) {
     checkSchema(file);
     continue;
   }

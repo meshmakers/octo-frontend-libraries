@@ -34,6 +34,10 @@ The demo apps may additionally use the demo model `OctoSdkDemo` (decision in AB#
 entry of the allowlist. The CK meta-model pseudo ids used by the Meshboard (`ConstructionKit/CkModel`,
 `ConstructionKit/CkType`, ...) are listed in `ignoreTokens`.
 
+Schema sources are the allowlist's `schema` plus every file listed under `schema:` in the codegen config
+(`codegenConfigs`), e.g. a local `extend type ...` file. They are merged for the document checks and never
+checked as documents; local sources may only define System-prefixed or generic `Rt*`/`Ck*` types.
+
 Limits: ids built at runtime (`` `Basic/${name}` ``, string concatenation, ids read from data) are not detected.
 
 Files:
