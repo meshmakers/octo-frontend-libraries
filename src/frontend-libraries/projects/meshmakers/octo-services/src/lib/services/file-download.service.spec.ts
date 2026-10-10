@@ -34,6 +34,13 @@ describe('parseContentDispositionFileName', () => {
       'attachment; filename="Gruesse.txt"; filename*=UTF-8\'\'Gr%C3%BC%C3%9Fe.txt')).toBe('Grüße.txt');
   });
 
+  it('returns null for an empty, "." or ".." name so the caller falls back', () => {
+    expect(parseContentDispositionFileName('attachment; filename=".."')).toBeNull();
+    expect(parseContentDispositionFileName('attachment; filename="."')).toBeNull();
+    expect(parseContentDispositionFileName('attachment; filename="foo/"')).toBeNull();
+    expect(parseContentDispositionFileName('attachment; filename*=UTF-8\'\'..; filename="ok.bin"')).toBe('ok.bin');
+  });
+
   it('falls back to filename when filename* is malformed', () => {
     expect(parseContentDispositionFileName('attachment; filename*=UTF-8\'\'%E0%A4%A; filename="ok.bin"')).toBe('ok.bin');
   });

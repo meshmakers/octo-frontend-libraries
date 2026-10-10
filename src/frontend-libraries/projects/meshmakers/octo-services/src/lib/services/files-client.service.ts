@@ -502,9 +502,17 @@ export class FilesClientService {
   }
 
   private async url(tenantId: string | null | undefined, ...segments: string[]): Promise<string> {
-    const assetServices = this.configuration?.config?.assetServices ?? '';
+    // Without both a tenant and the asset service address the URL would point at the wrong resource (a
+    // tenant-less path, or the host origin); fail with a clear client error instead of a misleading 404.
+    const assetServices = this.configuration?.config?.assetServices;
+    if (!assetServices) {
+      throw new Error('FilesClientService: assetServices is not configured (CONFIGURATION_SERVICE)');
+    }
+    const tenant = await this.tenant(tenantId);
+    if (!tenant) {
+      throw new Error('FilesClientService: no tenant (pass tenantId or provide TENANT_ID_PROVIDER)');
+    }
     const base = assetServices.endsWith('/') ? assetServices : `${assetServices}/`;
-    const tenant = (await this.tenant(tenantId)) ?? '';
     return `${base}${encodeURIComponent(tenant)}/v1/files/${segments.map(encodeURIComponent).join('/')}`;
   }
 

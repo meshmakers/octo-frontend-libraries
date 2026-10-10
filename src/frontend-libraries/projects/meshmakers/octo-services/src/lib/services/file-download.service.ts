@@ -64,8 +64,9 @@ export function parseContentDispositionFileName(header: string | null | undefine
     const encoded = parts ? parts[2] : raw;
     try {
       const decoded = decodeURIComponent(encoded);
-      if (decoded) {
-        return sanitizeFileName(decoded);
+      const name = decoded ? sanitizeFileName(decoded) : null;
+      if (name) {
+        return name;
       }
     } catch {
       // Malformed percent-encoding: fall through to the plain parameter.
@@ -83,10 +84,13 @@ export function parseContentDispositionFileName(header: string | null | undefine
   return null;
 }
 
-/** Strips any path a server might send along with the name; the browser would refuse it anyway. */
-function sanitizeFileName(name: string): string {
-  const base = name.split(/[\\/]/).pop() ?? name;
-  return base.trim();
+/**
+ * Strips any path a server might send along with the name; the browser would refuse it anyway. An empty name,
+ * `.` or `..` is no file name: `null`, so the caller falls back to the reference's own name.
+ */
+function sanitizeFileName(name: string): string | null {
+  const base = (name.split(/[\\/]/).pop() ?? name).trim();
+  return base === '' || base === '.' || base === '..' ? null : base;
 }
 
 /**

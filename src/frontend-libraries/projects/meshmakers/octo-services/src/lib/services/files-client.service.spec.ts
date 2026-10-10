@@ -75,6 +75,40 @@ describe('FilesClientService', () => {
     });
   }
 
+  describe('addressing', () => {
+    it('rejects a call without a tenant instead of building a tenant-less URL', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: CONFIGURATION_SERVICE, useValue: { config: { assetServices: 'https://asset.example.com' } } },
+          { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(null) },
+          { provide: FileDownloadService, useValue: downloads },
+        ],
+      });
+      const noTenant = TestBed.inject(FilesClientService);
+      http = TestBed.inject(HttpTestingController);
+      await expect(noTenant.folderStatsById(rtId)).rejects.toThrow(/no tenant/);
+    });
+
+    it('rejects a call without assetServices instead of calling the host origin', async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: CONFIGURATION_SERVICE, useValue: { config: {} } },
+          { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve('t1') },
+          { provide: FileDownloadService, useValue: downloads },
+        ],
+      });
+      const noBase = TestBed.inject(FilesClientService);
+      http = TestBed.inject(HttpTestingController);
+      await expect(noBase.folderStatsById(rtId)).rejects.toThrow(/assetServices/);
+    });
+  });
+
   describe('capabilities', () => {
     it('keeps a tenant-aware available:false with its reason and the delete limit', async () => {
       const result = client.detectCapabilities();

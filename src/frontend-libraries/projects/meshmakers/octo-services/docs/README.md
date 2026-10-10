@@ -529,14 +529,15 @@ Building a URL from `binaryId` needs `CONFIGURATION_SERVICE` (`assetServices`) a
 
 ### FilesClientService
 
-Bytes of the platform file system (AB#6178, PLANNED contract): upload with progress, bearer blob download under
-the real name, server-side zip, and capability detection. Metadata goes through GraphQL (`System.Files`).
+Bytes of the platform file system (AB#6171): upload with progress, bearer blob download under the real name,
+server-side zip, and capability detection. Metadata goes through GraphQL (`System.Files`). Every call needs a
+tenant (argument or `TENANT_ID_PROVIDER`) and `assetServices` in `CONFIGURATION_SERVICE`; without them it throws.
 
 ```typescript
 import { FilesClientService } from '@meshmakers/octo-services';
 
 const files = inject(FilesClientService);
-const caps = await files.detectCapabilities();   // { available: false } while the API is not deployed
+const caps = await files.detectCapabilities();   // { available: false, reason } when the tenant has no file API
 if (caps.available) {
   files.upload('Files', 'Receipts 2026', file, 'keepBoth').subscribe((e) => {
     if (e.type === 'progress') { /* e.loaded / e.total */ } else { /* e.item */ }
