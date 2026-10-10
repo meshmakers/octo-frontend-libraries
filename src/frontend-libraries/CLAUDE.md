@@ -339,7 +339,7 @@ npm run build:octo-ui      # or whichever library was modified
   (`Dockerfile.prebuilt`, demo-app image via the shared `build-and-push-docker.yml`).
 - The CI trigger only fires for changes under `src/` or to `azure-pipelines.yml`, and
   ignores `**/*.md` and `.claude/` — documentation-only commits build nothing.
-- Shared steps come from `octo-pipeline-templates` pinned at `tpl-v0.6.5` (registry layer
+- Shared steps come from `octo-pipeline-templates` pinned at `tpl-v1.3.1` (registry layer cache since `tpl-v0.6.5`) (registry layer
   cache plus the reused buildx builder for the demo-app image).
 
 ## Pre-Commit Checklist (MANDATORY)
