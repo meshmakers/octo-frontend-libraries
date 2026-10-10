@@ -316,6 +316,79 @@ High-level job management with progress UI.
 | `downloadJobResult(tenantId, jobId, fileName)` | Download and save job result |
 | `waitForJob(jobId, title, operation)` | Wait for job with progress dialog |
 
+### FileDownloadService
+
+Authenticated browser downloads (AB#6179, epic AB#6171 decision D9). Fetches through `HttpClient`, so the
+host's `authorizeInterceptor` attaches the bearer (it covers every URL under the configured service URIs,
+e.g. `config.assetServices`), then saves the `Blob` through a temporary anchor. Never `window.open(rawUrl)`:
+a new tab carries no token and the asset repository answers 403 (AB#5268), and popup blockers swallow it.
+
+| Member | Description |
+|--------|-------------|
+| `downloadBinary(ref, { tenantId?, fallbackFileName? })` | Download a `BinaryReference` (`BINARY_LINKED` value / `LargeBinaryInfo`). Uses `downloadUri`, else builds `{assetServices}{tenant}/v1/largeBinaries?largeBinaryId={binaryId}` (tenant from `TENANT_ID_PROVIDER` unless given). Throws `BinaryDownloadUnavailableError` when no URL can be built. Owner-agnostic: no lookup of the owning CK type. |
+| `downloadUrl(url, fallbackFileName?, contentType?)` | Download any authenticated URL |
+| `fetchBlob(url)` | `HttpResponse<Blob>` for previews |
+| `saveBlob(blob, fileName)` | Hand a blob to the browser as a download |
+| `buildLargeBinaryUri(binaryId, tenantId?)` | The asset repository download URL, or `null` |
+| `parseContentDispositionFileName(header)` (function) | RFC 6266/5987 file name, `filename*` wins |
+
+File name order: `Content-Disposition` (only visible cross-origin when the server lists it in
+`Access-Control-Expose-Headers`) → the reference's stored `filename` → `fallbackFileName` → `download`.
+A response typed `application/octet-stream` is re-typed with the stored `contentType`.
+
+Note the two value shapes: typed GraphQL fields (`content { … downloadUri }`) carry `downloadUri`; the generic
+`attributes { value }` projection serialises the stored `EntityBinaryInfo` as `{ binaryId, filename,
+contentType, size }` without a link — hence the `binaryId` fallback.
+
+### FilesClientService
+
+Bytes client of the platform file system (AB#6178, aligned with the asset-repo contract as built in AB#6230;
+backend S2 AB#6174, zip AB#6225; epic AB#6171). Only file bytes go through REST
+(`{assetServices}{tenant}/v1/files`); metadata — roots, folder listings, create root/folder, rename, move,
+delete, linked entities — is generic GraphQL against `System.Files` (decision Q1). Builds on
+`FileDownloadService` for the bearer blob save.
+
+| Member | Endpoint / behaviour |
+|--------|-------------|
+| `detectCapabilities(tenantId?)` | `GET capabilities` once per tenant → `FilesCapabilities { available, apiVersion, maxUploadBytes, zipDownload, zipMaxFiles, zipMaxBytes, previewMaxBytes, recursiveDelete, folderStats, reservedRootNames }`. 404/405/501 and 403 (token without the API scope) = `{ available: false }` silently (cached); transient errors are not cached. Missing feature flags default to `false`, missing `reservedRootNames` to `FILES_RESERVED_ROOT_NAMES` (`capabilities`, `items`, `stats`, `zip`) |
+| `upload(root, folderPath, file, conflict \| { conflict?, createFolders?, name? }, tenantId?)` | `PUT {root}/{path…}/{name}?conflict=fail\|replace\|keepBoth[&createFolders=true]` (raw body, `Content-Type` = file type). Emits `{ type: 'progress' }` then `{ type: 'done', item: FileEntry }`; unsubscribe cancels. Without `createFolders` a missing folder is 404 PATH_NOT_FOUND |
+| `uploadToFolder(folderRtId, file, { conflict?, name?, tenantId? })` | `POST items/{rtId}/content?name=&conflict=` (the Studio works with rtIds) |
+| `replaceContent(fileRtId, blob, tenantId?)` | `PUT items/{rtId}/content` — new content, rtId and links stay |
+| `download(root, path, fileName?, contentType?, tenantId?)` / `downloadById(rtId, …)` | `GET {root}/{path…}` / `GET items/{rtId}/content` as blob, saved under the `Content-Disposition` name |
+| `fetchContent(root, path, tenantId?)` / `fetchContentById(rtId, tenantId?)` | Blob for previews, sent with `?inline=true`. Inline is a server allow-list (images except SVG, audio, video, PDF, text/plain, CSV, JSON); everything else comes as attachment + sandbox CSP. Honour `previewMaxBytes` |
+| `downloadZip(items[] \| { items?, rtIds? }, fileName?, tenantId?)` | `POST zip` with body `{ items, rtIds?, fileName? }`; folders recursive. Saved under the server's `Content-Disposition` name → `fileName` → `files.zip`. Limits are checked before the first byte (413 LIMIT_EXCEEDED) |
+| `folderStats(root, path?, tenantId?)` / `folderStatsById(rtId, tenantId?)` | `GET stats?root=&path=` / `GET items/{rtId}/stats` → `FolderStats { folders, files, bytes, linkedFiles, hiddenEntries, complete, linkedSamples[{ rtId, name, path, entities[{ rtId, ckTypeId, displayName }] }] }` — deep, as visible to the caller; `hiddenEntries` = entries a delete would include but the caller cannot see |
+| `itemUrl(root, path)` / `itemContentUrl(rtId)` | URLs; segments encoded one by one; `.`/`..` segments, an empty root, a root named `capabilities`/`items`/`stats`/`zip` (case-insensitive) or a path-like rtId throw `FilesPathError`; so does an upload `name` with `/` |
+| `parseFilesProblem(error)` (function) | `HttpErrorResponse` → `FilesProblem { status, code, detail }`; `code` from problem details (`code`, else an UPPER_CASE `title`); a bare 403/413 (e.g. the ingress body limit) → `FORBIDDEN`/`LIMIT_EXCEEDED` |
+| `filesGraphQlErrorCode(error)` (function) | `extensions.code` of a `System.Files` GraphQL mutation error (Apollo 4 `CombinedGraphQLErrors.errors` or a raw array) |
+
+`FileEntry` = `{ rtId, ckTypeId, kind: 'file'|'folder'|'root', name, root?, path?, parentRtId?, size?, contentType?,
+binaryId?, createdAt?, changedAt?, createdBy?, replaced }` (dates as ISO strings). Error codes (`FilesErrorCode`):
+REST ROOT_NOT_FOUND / PATH_NOT_FOUND (404, also for entries hidden by data permissions), AMBIGUOUS_PATH (409,
+legacy duplicate names — address by rtId), NAME_CONFLICT, NOT_A_FOLDER, NOT_A_FILE (409), LIMIT_EXCEEDED (413),
+FORBIDDEN (403), INVALID_NAME / INVALID_REQUEST (400). GraphQL (`extensions.code`) answers NAME_CONFLICT, INVALID_NAME,
+FORBIDDEN (also root creation without `FileManagement`), INVALID_REQUEST (e.g. single-parent rule: a move must DELETE
+the current parent together with the CREATE), LIMIT_EXCEEDED (delete cap `MaxDeleteEntries`, default 2,000 entries per
+mutation) and only there RESERVED_NAME (`capabilities`, `items`, `stats`, `zip`, `ReportingAssets_*` on root
+creation), PROTECTED_ROOT, MOVE_INTO_ITSELF. Root lookup by well-known name is case-insensitive on the server.
+
+Downloads, previews and zips are received as **in-memory blobs** before they are saved (D9: bearer download, no
+`window.open`) — the UI must respect `previewMaxBytes` and `zipMaxBytes` instead of relying on the browser to stream.
+
+400/403/404/409/413 are marked `MM_CALLER_HANDLED_STATUSES`: the global error toast stays quiet, the caller shows
+them (read the reason with `parseFilesProblem`). Blob requests (download, preview, zip) deliver their error body as
+a `Blob`; the client rethrows the `HttpErrorResponse` with the parsed problem as body, so the helper works there too.
+
+**Not in this library (gap, AB#6230):** typed GraphQL documents for `System.Files` (roots, children, create,
+rename, move, delete). The `schema.graphql` snapshot carries no `SystemFiles*` types yet, and the SECRET guard
+spec validates inline `gql` documents against it, so they would need a schema-domain merge
+(`scripts/merge-schema-domain.mjs --prefix SystemFiles`) from a tenant with System.Files 1.0.0 first — do it
+together with the Refinery Studio schema (same tenant, same pass). Until then the Studio owns those documents.
+Rules for them: page children by cursor and `pageInfo.hasNextPage` (not `totalCount`); nested counts use
+`children(first: 1) { totalCount }` — `first: 0` hits an engine `$slice` bug; delete of a root/folder is
+recursive on the server (`runtimeEntities.delete`), no client walk; move = update `parent` with DELETE old +
+CREATE new.
+
 ### CommunicationService
 
 Manages adapter deployment, pipeline execution, and pipeline debugging.

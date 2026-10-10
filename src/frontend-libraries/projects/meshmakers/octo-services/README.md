@@ -63,6 +63,8 @@ octo-services/
 | `IdentityService` | User, role, and OAuth client management |
 | `BotService` | Background job execution (fixup scripts, dump/restore) |
 | `JobManagementService` | Job progress tracking with UI dialogs |
+| `FileDownloadService` | Authenticated blob downloads (bearer via `authorizeInterceptor`, real file name) for any `BINARY_LINKED` value or URL |
+| `FilesClientService` | File bytes API of the platform file system (AB#6178/AB#6230): upload by path or folder rtId with progress, replace content, download/preview by path or rtId, zip, folder statistics, capabilities, problem-details codes |
 | `CommunicationService` | Adapter deployment, pipeline execution, and debugging |
 | `TusUploadService` | Resumable file uploads via TUS protocol |
 

@@ -104,15 +104,17 @@ export enum DefaultPropertyCategory {
 }
 
 /**
- * Event data for binary download requests
+ * Event data for binary download requests: the clicked `BINARY_LINKED` value itself.
+ * Structurally a `BinaryReference` of `@meshmakers/octo-services`, so a host can pass it straight to
+ * `FileDownloadService.downloadBinary()` — no owner-type lookup needed (AB#6179).
  */
 export interface BinaryDownloadEvent {
-  /** The binary ID to download */
-  binaryId: string;
+  /** The binary ID to download. Absent only when the value carries just a `downloadUri`. */
+  binaryId?: string;
   /** Optional filename for the download */
   filename?: string;
   /** Optional content type */
   contentType?: string;
-  /** Optional download URI if already available */
+  /** Download URI if the value carries one (typed `LargeBinaryInfo` fields do, the generic attribute projection does not) */
   downloadUri?: string;
 }

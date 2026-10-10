@@ -229,6 +229,11 @@ if (authorizeService.isInRole(Roles.AdminPanelManagement)) {
 }
 ```
 
+`Roles.FileViewer` / `Roles.FileManagement` gate the platform file system (browse+download / manage),
+next to `Roles.ReportingViewer` / `Roles.ReportingManagement` (AB#6171 decision D5). They are seeded by
+`System.Identity.Bootstrap`; a one-off identity migration grants them to every holder of the matching
+Reporting role.
+
 ## Detailed Documentation
 
 See [docs/README.md](docs/README.md) for complete API reference with usage examples.

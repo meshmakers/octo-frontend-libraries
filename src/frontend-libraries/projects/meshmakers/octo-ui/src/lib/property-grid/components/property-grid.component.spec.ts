@@ -2,7 +2,8 @@ import type { Mock } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-import { SimpleChange } from '@angular/core';
+import { Injector, SimpleChange } from '@angular/core';
+import { FileDownloadService } from '@meshmakers/octo-services';
 import { PropertyGridComponent } from './property-grid.component';
 import { PropertyGridItem, AttributeValueTypeDto, BinaryDownloadEvent } from '../models/property-grid.models';
 import { fileIcon, folderIcon, calendarIcon, checkboxCheckedIcon, listUnorderedIcon } from '@progress/kendo-svg-icons';
@@ -567,40 +568,58 @@ describe('PropertyGridComponent', () => {
   // =========================================================================
 
   describe('onBinaryDownload', () => {
-    it('should emit binaryDownload event', () => {
-      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
-      const event: BinaryDownloadEvent = {
-        binaryId: 'binary-123',
-        filename: 'document.pdf',
-        contentType: 'application/pdf'
-      };
+    describe('with a host listening on (binaryDownload)', () => {
+      let received: BinaryDownloadEvent[];
 
-      component.onBinaryDownload(event);
+      beforeEach(() => {
+        received = [];
+        component.binaryDownload.subscribe(e => received.push(e));
+      });
 
-      expect(component.binaryDownload.emit).toHaveBeenCalledWith(event);
+      it('should emit binaryDownload event', () => {
+        const event: BinaryDownloadEvent = {
+          binaryId: 'binary-123',
+          filename: 'document.pdf',
+          contentType: 'application/pdf'
+        };
+
+        component.onBinaryDownload(event);
+
+        expect(received).toEqual([event]);
+      });
+
+      it('should emit binaryDownload with minimal data', () => {
+        const event: BinaryDownloadEvent = { binaryId: 'binary-456' };
+
+        component.onBinaryDownload(event);
+
+        expect(received).toEqual([event]);
+      });
+
+      it('should include downloadUri when provided', () => {
+        const event: BinaryDownloadEvent = {
+          binaryId: 'binary-789',
+          downloadUri: 'https://example.com/download/binary-789'
+        };
+
+        component.onBinaryDownload(event);
+
+        expect(received).toEqual([event]);
+      });
     });
 
-    it('should emit binaryDownload with minimal data', () => {
-      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
-      const event: BinaryDownloadEvent = {
-        binaryId: 'binary-456'
-      };
+    describe('without a listener (AB#6179)', () => {
+      it('downloads the value itself through FileDownloadService', () => {
+        const downloads = { downloadBinary: vi.fn().mockResolvedValue(undefined) };
+        const injector = (component as unknown as { injector: Injector }).injector;
+        const getSpy = vi.spyOn(injector, 'get').mockReturnValue(downloads);
+        const event: BinaryDownloadEvent = { binaryId: 'binary-1', filename: 'a.pdf' };
 
-      component.onBinaryDownload(event);
+        component.onBinaryDownload(event);
 
-      expect(component.binaryDownload.emit).toHaveBeenCalledWith(event);
-    });
-
-    it('should include downloadUri when provided', () => {
-      vi.spyOn(component.binaryDownload, 'emit').mockReturnValue(undefined);
-      const event: BinaryDownloadEvent = {
-        binaryId: 'binary-789',
-        downloadUri: 'https://example.com/download/binary-789'
-      };
-
-      component.onBinaryDownload(event);
-
-      expect(component.binaryDownload.emit).toHaveBeenCalledWith(event);
+        expect(getSpy).toHaveBeenCalledWith(FileDownloadService);
+        expect(downloads.downloadBinary).toHaveBeenCalledWith(event);
+      });
     });
   });
 

@@ -13,6 +13,8 @@ Angular library providing services for interacting with OctoMesh backend APIs. I
   - [IdentityService](#identityservice)
   - [BotService](#botservice)
   - [JobManagementService](#jobmanagementservice)
+  - [FileDownloadService](#filedownloadservice)
+  - [FilesClientService](#filesclientservice)
   - [CommunicationService](#communicationservice)
   - [TusUploadService](#tusuploadservice)
 - [GraphQL Services](#graphql-services)
@@ -498,6 +500,51 @@ export class ExportComponent {
 | `downloadJobResult(tenantId, jobId, fileName)` | `tenantId: string, jobId: string, fileName: string` | `Promise<void>` | Download and save file |
 
 ---
+
+### FileDownloadService
+
+Authenticated file downloads with the user's bearer token (AB#6179). Use it instead of
+`window.open(downloadUri)`, which sends no token (the asset repository answers 403).
+
+```typescript
+import { FileDownloadService, BinaryDownloadUnavailableError } from '@meshmakers/octo-services';
+
+const downloads = inject(FileDownloadService);
+
+// A BINARY_LINKED attribute value: { binaryId, filename, contentType, size, downloadUri? }
+try {
+  await downloads.downloadBinary(attributeValue);
+} catch (e) {
+  if (e instanceof BinaryDownloadUnavailableError) { /* no binaryId/downloadUri or no tenant */ }
+  else { /* HttpErrorResponse: 403/404/... */ }
+}
+
+// Any authenticated URL
+await downloads.downloadUrl(url, 'fallback-name.pdf');
+```
+
+The bearer comes from `authorizeInterceptor` (register it with `provideHttpClient(withInterceptors([authorizeInterceptor]))`).
+The file name is taken from `Content-Disposition` when present, else from the reference's `filename`.
+Building a URL from `binaryId` needs `CONFIGURATION_SERVICE` (`assetServices`) and `TENANT_ID_PROVIDER`.
+
+### FilesClientService
+
+Bytes of the platform file system (AB#6171): upload with progress, bearer blob download under the real name,
+server-side zip, and capability detection. Metadata goes through GraphQL (`System.Files`). Every call needs a
+tenant (argument or `TENANT_ID_PROVIDER`) and `assetServices` in `CONFIGURATION_SERVICE`; without them it throws.
+
+```typescript
+import { FilesClientService } from '@meshmakers/octo-services';
+
+const files = inject(FilesClientService);
+const caps = await files.detectCapabilities();   // { available: false, reason } when the tenant has no file API
+if (caps.available) {
+  files.upload('Files', 'Receipts 2026', file, 'keepBoth').subscribe((e) => {
+    if (e.type === 'progress') { /* e.loaded / e.total */ } else { /* e.item */ }
+  });
+  await files.download('Files', 'Receipts 2026/receipt.pdf', 'receipt.pdf');
+}
+```
 
 ### CommunicationService
 
