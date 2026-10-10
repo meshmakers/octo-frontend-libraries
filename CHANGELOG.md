@@ -10,6 +10,21 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services / shared-auth / octo-ui (platform files)
+
+- New `FilesClientService` (`@meshmakers/octo-services`): the typed client of the asset-repo file API
+  (`{tenant}/v1/files`) — capability detection (`available`, `reason`, limits; re-checked for tenants
+  that are not available), upload with per-file progress and conflict mode (`fail|replace|keepBoth`),
+  download and inline preview by rtId with the user's bearer and the real file name, linked counts per
+  entry, folder statistics, streamed zip and error mapping by the stable server `code`. Metadata
+  (roots, folders, files) stays on the tenant GraphQL endpoint (System.Files). (AB#6178, AB#6230)
+- New `FileDownloadService` (`@meshmakers/octo-services`): downloads a binary with the user's bearer
+  instead of opening the raw `downloadUri`. `mm-property-grid` and `mm-entity-detail-view` use it for
+  binary values when the host does not listen on `binaryDownload`; the owner-specific
+  `getBinaryInfo` query is gone. (AB#6179)
+- New roles `Roles.FileViewer` (read) and `Roles.FileManagement` (write) in `@meshmakers/shared-auth`;
+  holders of `ReportingViewer` / `ReportingManagement` receive them by an identity migration. (AB#6179)
+
 ### shared-ui / shared-services
 
 - New i18n hook for host-translated library texts (no framework dependency): optional tokens
