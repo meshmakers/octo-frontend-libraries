@@ -307,7 +307,6 @@ export interface TableConfigResult {
   styles: [`
     :host { display: block; height: 100%; }
     .config-container { display: flex; flex-direction: column; height: 100%; }
-    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
 
     .config-form {
       display: flex;

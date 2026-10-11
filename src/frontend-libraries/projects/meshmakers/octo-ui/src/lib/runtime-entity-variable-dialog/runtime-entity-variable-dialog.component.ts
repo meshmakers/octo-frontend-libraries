@@ -121,7 +121,7 @@ interface CkTypeSelectorItem {
         </div>
       }
 
-      <div class="dialog-actions">
+      <div class="mm-dialog-actions">
         <button kendoButton (click)="onCancel()" fillMode="outline">Cancel</button>
         <button kendoButton (click)="onOk()" themeColor="primary" [disabled]="!isValid()">OK</button>
       </div>
@@ -202,13 +202,6 @@ interface CkTypeSelectorItem {
       color: var(--kendo-color-error, #f44336);
     }
 
-    .dialog-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      padding-top: 8px;
-      border-top: 1px solid var(--kendo-color-border, #e0e0e0);
-    }
   `]
 })
 export class RuntimeEntityVariableDialogComponent {

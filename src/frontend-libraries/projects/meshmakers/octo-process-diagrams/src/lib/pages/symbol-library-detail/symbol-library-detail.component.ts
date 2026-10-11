@@ -7,7 +7,7 @@ import { arrowLeftIcon } from '@progress/kendo-svg-icons';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { InputsModule, NumericTextBoxModule } from '@progress/kendo-angular-inputs';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
-import { ConfirmationService, MM_ACTION_ICONS, MmAction, RowActionsComponent } from '@meshmakers/shared-ui';
+import { ConfirmationService, MM_ACTION_ICONS, MmAction, RowActionsComponent, MmDialogActionsDirective } from '@meshmakers/shared-ui';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import { BreadCrumbService } from '@meshmakers/shared-services';
 import { SymbolLibraryService } from '../../services/symbol-library.service';
@@ -32,6 +32,7 @@ import { estimatePathBounds, PathPrimitive, offsetPathData } from '../../primiti
   selector: 'mm-symbol-library-detail',
   standalone: true,
   imports: [
+    MmDialogActionsDirective,
     CommonModule,
     FormsModule,
     ButtonsModule,

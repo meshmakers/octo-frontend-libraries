@@ -241,7 +241,7 @@ interface ValueTypeFilterOption {
       </div>
 
       <!-- Action Bar -->
-      <div class="action-bar">
+      <div class="mm-dialog-actions">
         <button kendoButton (click)="onCancel()">Cancel</button>
         <button kendoButton themeColor="primary" (click)="onOk()">Apply</button>
       </div>
@@ -352,14 +352,6 @@ interface ValueTypeFilterOption {
         color: var(--kendo-color-primary, #ff6358);
       }
 
-      .action-bar {
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        flex-shrink: 0;
-        padding-top: 8px;
-        border-top: 1px solid var(--kendo-color-border, #dee2e6);
-      }
     `,
   ],
 })

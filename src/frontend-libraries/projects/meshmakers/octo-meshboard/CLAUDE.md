@@ -984,6 +984,13 @@ The MeshBoard library uses **neutral, theme-agnostic defaults**. Host applicatio
 
 These classes are present on **every** dialog and toolbar in the library, providing a single CSS hook for consistent theming.
 
+`mm-dialog-actions` is also the **layout** hook (AB#6464): the dialog footer look - right-aligned, 34 px
+buttons, `--theme-space-2` gap, divider and padding, danger fill for `themeColor="error"` - is defined once
+in the octo-ui styles (`dialog-actions` mixin, included by `octo.styles()`). Dialog components write
+`<div class="mm-dialog-actions">` (or `<kendo-dialog-actions>` with `MmDialogActionsDirective` from
+`@meshmakers/shared-ui`) and **no footer CSS of their own**; a guard spec in shared-ui
+(`dialog-actions.guard.spec.ts`) fails the build otherwise.
+
 ### Button Patterns
 
 All MeshBoard buttons follow these Kendo conventions:

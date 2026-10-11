@@ -35,6 +35,7 @@ import { PrimitiveBase } from '../primitives';
 import { SymbolInstance, SymbolDefinition } from '../primitives/models/symbol.model';
 import { AnimationDefinition } from '../primitives/models/animation.models';
 import { ExpressionEvaluatorService } from '../services/expression-evaluator.service';
+import { MmDialogActionsDirective } from '@meshmakers/shared-ui';
 
 /**
  * Target element option for the dropdown
@@ -51,7 +52,7 @@ interface TargetOption {
 @Component({
   selector: 'mm-binding-editor-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonsModule, InputsModule, DropDownsModule, DialogsModule],
+  imports: [MmDialogActionsDirective, CommonModule, FormsModule, ButtonsModule, InputsModule, DropDownsModule, DialogsModule],
   template: `
     @if (visible()) {
       <kendo-dialog title="Bindings for: {{ currentProperty()?.name }}"

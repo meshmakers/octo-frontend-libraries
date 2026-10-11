@@ -55,6 +55,7 @@ export * from './lib/list-view/list-view.model';
 export * from './lib/list-view/list-view-row-actions';
 export * from './lib/danger-confirmation/danger-confirmation.model';
 export * from './lib/danger-confirmation/danger-confirmation-window.component';
+export * from './lib/dialog-actions/dialog-actions.directive';
 export * from './lib/guards/unsaved-changes.interface';
 export * from './lib/guards/unsaved-changes.guard';
 export * from './lib/guards/unsaved-changes.directive';

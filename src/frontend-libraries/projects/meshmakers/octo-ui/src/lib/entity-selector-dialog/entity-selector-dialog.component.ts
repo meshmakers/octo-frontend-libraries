@@ -65,7 +65,7 @@ import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-s
         }
       </div>
 
-      <div class="dialog-actions">
+      <div class="mm-dialog-actions">
         <button kendoButton (click)="onCancel()">Cancel</button>
         <button kendoButton themeColor="primary" [disabled]="!selectedEntity" (click)="onConfirm()">
           Select
@@ -153,15 +153,6 @@ import { EntitySelectorDialogData, EntitySelectorDialogResult } from './entity-s
       flex-shrink: 0;
     }
 
-    .dialog-actions {
-      flex: 0 0 auto;
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      padding: 10px 14px;
-      border-top: 1px solid var(--kendo-color-border, #dee2e6);
-      background: var(--kendo-color-surface, transparent);
-    }
   `],
 })
 export class EntitySelectorDialogComponent implements OnInit {

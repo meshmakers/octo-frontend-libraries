@@ -7,10 +7,12 @@ import {
   ConfirmationWindowMessages,
   DEFAULT_CONFIRMATION_WINDOW_MESSAGES,
 } from './confirmation-window.messages';
+import { MmDialogActionsDirective } from '../dialog-actions/dialog-actions.directive';
 
 @Component({
   selector: 'mm-confirmation-window',
   imports: [
+    MmDialogActionsDirective,
     DialogActionsComponent,
     NgIf,
     ButtonComponent

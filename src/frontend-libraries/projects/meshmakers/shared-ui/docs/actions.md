@@ -105,6 +105,47 @@ never on the destructive button — `showDestructiveConfirmationDialog` and Yes/
 counts, warnings) may still use an own `kendo-dialog` with the same rules. Apps add environment
 knowledge in a thin wrapper (the Studio: `DangerConfirmService`, production = typing required).
 
+## Dialog actions (AB#6464)
+
+Every dialog footer has ONE layout (Studio action guideline §2.2 / §2.4), defined once:
+
+| | |
+|---|---|
+| Alignment | right (`end`); Kendo's default `stretched` layout (every button as wide as the dialog) is gone |
+| Order | dismissing buttons first (Cancel), the confirming action last, labelled verb + object ("Delete adapter", never "Yes"/"OK" for destructive actions) |
+| Size | buttons keep their natural width at `--theme-control-height-md` (34 px) |
+| Gap | `--theme-space-2` |
+| Narrow (390 px) | the row wraps to a second line, nothing is clipped |
+| Destructive confirm | `themeColor="error"` renders as an error fill (outline / flat error keep the error border and text) - it differs from Cancel without reading the label |
+
+**`kendo-dialog-actions`**: import `MmDialogActionsDirective` (`@meshmakers/shared-ui`) into the
+component. It matches every `<kendo-dialog-actions>` of the template, sets the layout to `end` (a
+`layout` attribute in the template is ignored) and adds the class `mm-dialog-actions`.
+
+```ts
+@Component({ imports: [DialogActionsComponent, MmDialogActionsDirective, ButtonComponent], ... })
+```
+
+```html
+<kendo-dialog-actions>
+  <button kendoButton (click)="cancel()">Cancel</button>
+  <button kendoButton themeColor="error" (click)="remove()">Delete adapter</button>
+</kendo-dialog-actions>
+```
+
+**Hand-made footers** (a `div` inside a window or a dialog body): give the container the class
+`mm-dialog-actions` (`MM_DIALOG_ACTIONS_CLASS`) and write no CSS for it - the shared rule adds the
+divider and padding.
+
+The look itself lives in the octo-ui styles (`runtime-browser/styles/_dialog-actions.scss`, included
+by `octo.styles()`; the error fill is part of the `octo-button` mixin, the 34 px comes from the token
+`--theme-control-height-md` of `octo.theme()`). Hosts that include `octo.styles()` need nothing else.
+
+**Guard:** `dialog-actions.guard.spec.ts` (shared-ui) scans all library sources and fails when a
+`<kendo-dialog-actions>` is used without the directive in its component, asks for another layout, or
+a component stylesheet / inline `styles` re-declares a footer class (`.mm-dialog-actions`,
+`.action-bar`, `.dialog-actions`, `.edit-actions`, `.mm-efr-actions`).
+
 ## List view (AB#5572)
 
 `mm-list-view` row actions follow the same rules as `mm-row-actions`: neutral icon buttons

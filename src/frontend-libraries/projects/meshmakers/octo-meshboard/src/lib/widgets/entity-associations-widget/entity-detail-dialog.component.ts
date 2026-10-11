@@ -5,6 +5,7 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { PropertyGridComponent, PropertyGridItem, PropertyGridConfig, AttributeValueTypeDto, SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { GetDashboardEntityDtoGQL } from '../../graphQL/getDashboardEntity';
 import { firstValueFrom } from 'rxjs';
+import { MmDialogActionsDirective } from '@meshmakers/shared-ui';
 
 /**
  * Dialog component for displaying entity details using property grid.
@@ -14,6 +15,7 @@ import { firstValueFrom } from 'rxjs';
   selector: 'mm-entity-detail-dialog',
   standalone: true,
   imports: [
+    MmDialogActionsDirective,
     CommonModule,
     DialogsModule,
     ButtonsModule,

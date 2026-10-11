@@ -89,13 +89,4 @@
     }
   }
 
-  .dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--kendo-color-border, #e0e0e0);
-    flex-shrink: 0;
-    background-color: var(--kendo-color-surface-alt, white);
-  }
 }

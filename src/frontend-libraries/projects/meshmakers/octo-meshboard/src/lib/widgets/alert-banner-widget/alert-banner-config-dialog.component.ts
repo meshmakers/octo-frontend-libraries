@@ -44,7 +44,6 @@ export interface AlertBannerConfigResult {
   styles: [`
     .config-form { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .mm-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
   `]
 })
 export class AlertBannerConfigDialogComponent {

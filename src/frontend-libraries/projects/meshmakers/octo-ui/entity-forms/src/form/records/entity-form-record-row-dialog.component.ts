@@ -89,7 +89,7 @@ import {
           }
         </div>
       }
-      <div class="mm-efr-actions">
+      <div class="mm-dialog-actions">
         <button kendoButton type="button" (click)="onCancel()">{{ msg().cancel }}</button>
         @if (!readOnly()) {
           <button kendoButton type="submit" themeColor="primary">{{ msg().apply }}</button>
@@ -108,7 +108,6 @@ import {
     .mm-efr-secret { display: flex; flex-direction: column; gap: 4px; }
     .mm-efr-secret-badge { align-self: flex-start; font-size: 0.8em; padding: 0 8px; border-radius: 8px;
       background: var(--theme-bg-subtle, rgba(127, 127, 127, 0.15)); color: var(--theme-text-secondary, inherit); }
-    .mm-efr-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
   `]
 })
 export class EntityFormRecordRowDialogComponent {

@@ -106,6 +106,27 @@
     @include octo-button-primary-disabled;
   }
 
+  // Destructive solid button (`themeColor="error"`, AB#6464): error fill, so a delete confirm differs
+  // from Cancel without reading the label (action guideline §2.4). The reset above would otherwise
+  // paint it like any other base button.
+  &:is(.k-button-solid-error, .k-button-error, [themecolor="error"]) {
+    background: var(--theme-status-error, var(--bubblegum));
+    border-color: var(--theme-status-error, var(--bubblegum));
+    color: var(--theme-text-on-accent, var(--deep-sea));
+
+    .k-svg-icon,
+    .k-icon,
+    svg {
+      fill: var(--theme-text-on-accent, var(--deep-sea));
+      color: var(--theme-text-on-accent, var(--deep-sea));
+    }
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--theme-status-error, var(--bubblegum)) 88%, var(--theme-text-primary, white));
+      border-color: color-mix(in srgb, var(--theme-status-error, var(--bubblegum)) 88%, var(--theme-text-primary, white));
+    }
+  }
+
   // Selected FLAT toggles (e.g. the list view's row-filter command, `themeColor="primary"
   // fillMode="flat"`): the primary branch above has the same specificity as `.k-selected` and
   // comes later, so it would paint selected and unselected alike. This rule is more specific and

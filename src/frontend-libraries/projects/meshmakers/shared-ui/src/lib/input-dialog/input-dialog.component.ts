@@ -9,10 +9,12 @@ import {
   InputDialogMessages,
   DEFAULT_INPUT_DIALOG_MESSAGES,
 } from './input-dialog.messages';
+import { MmDialogActionsDirective } from '../dialog-actions/dialog-actions.directive';
 
 @Component({
   selector: 'mm-input-dialog',
   imports: [
+    MmDialogActionsDirective,
     DialogActionsComponent,
     ButtonComponent,
     FormsModule,

@@ -102,7 +102,6 @@ interface EditableTile {
     :host { display: block; height: 100%; }
     .config-container { display: flex; flex-direction: column; height: 100%; }
     .config-form { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .action-bar { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
     .form-field { display: flex; flex-direction: column; gap: 6px; }
     .form-field label { font-weight: 600; font-size: 0.9rem; }
     h4 { margin: 8px 0 4px; font-size: 0.95rem; }

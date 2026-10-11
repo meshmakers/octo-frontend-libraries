@@ -44,7 +44,6 @@ export interface RecentItemsConfigResult extends WidgetConfigResult {
     .config-form { flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 16px; overflow-y: auto; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .hint { display: block; opacity: 0.75; margin: 0; font-size: 0.85em; }
-    .mm-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
   `]
 })
 export class RecentItemsConfigDialogComponent implements OnInit {

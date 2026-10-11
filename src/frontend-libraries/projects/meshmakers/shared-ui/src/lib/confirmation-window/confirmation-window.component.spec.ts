@@ -45,6 +45,16 @@ describe('ConfirmationWindowComponent', () => {
     expect(buttons[0].className).not.toMatch(/error|primary/);
   });
 
+  it('right-aligns the action row instead of stretching the buttons (AB#6464)', () => {
+    const danger = TestBed.createComponent(ConfirmationWindowComponent);
+    danger.componentInstance.data = { title: 't', message: 'm', dialogType: DialogType.YesNo, danger: true };
+    danger.detectChanges();
+    const actions = (danger.nativeElement as HTMLElement).querySelector('kendo-dialog-actions')!;
+    expect(actions.classList).toContain('k-actions-end');
+    expect(actions.classList).not.toContain('k-actions-stretched');
+    expect(actions.classList).toContain('mm-dialog-actions');
+  });
+
   it('focuses the dismissing button first in a destructive confirmation, never the danger button (AB#5578)', async () => {
     vi.useFakeTimers();
     try {

@@ -35,20 +35,20 @@ export interface MessageDetailsDialogData {
         <pre class="details-pre">{{ details }}</pre>
       }
 
-      <div class="dialog-actions">
-        <button
-          kendoButton
-          [svgIcon]="copyIcon"
-          themeColor="primary"
-          (click)="copyToClipboard()">
-          {{ copyLabel }}
-        </button>
+      <div class="mm-dialog-actions">
         <button
           kendoButton
           [svgIcon]="xIcon"
           themeColor="base"
           (click)="onClose()">
           {{ closeLabel }}
+        </button>
+        <button
+          kendoButton
+          [svgIcon]="copyIcon"
+          themeColor="primary"
+          (click)="copyToClipboard()">
+          {{ copyLabel }}
         </button>
       </div>
     </div>
@@ -105,16 +105,6 @@ export interface MessageDetailsDialogData {
       background: #999;
     }
 
-    .dialog-actions {
-      flex-shrink: 0;
-      padding-top: 16px;
-      margin-top: 16px;
-      border-top: 1px solid var(--kendo-color-border);
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      gap: 12px;
-    }
   `]
 })
 export class MessageDetailsDialogComponent implements OnInit {

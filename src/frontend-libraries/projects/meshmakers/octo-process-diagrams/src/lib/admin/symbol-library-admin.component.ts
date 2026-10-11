@@ -33,6 +33,7 @@ import { LinePrimitive } from '../primitives/models/line.model';
 import { TextPrimitive } from '../primitives/models/text.model';
 import { PolygonPrimitive, PolylinePrimitive } from '../primitives/models/polygon.model';
 import { SymbolEditorComponent } from './symbol-editor.component';
+import { MmDialogActionsDirective } from '@meshmakers/shared-ui';
 
 /**
  * Symbol Library Admin Component
@@ -43,6 +44,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
   selector: 'mm-symbol-library-admin',
   standalone: true,
   imports: [
+    MmDialogActionsDirective,
     CommonModule,
     FormsModule,
     ButtonsModule,
@@ -530,7 +532,7 @@ import { SymbolEditorComponent } from './symbol-editor.component';
           <kendo-dialog-actions>
             <button kendoButton (click)="closeDeleteDialog()">Cancel</button>
             <button kendoButton themeColor="error" (click)="deleteSymbol()" [disabled]="isDeleting()">
-              {{ isDeleting() ? 'Deleting...' : 'Delete' }}
+              {{ isDeleting() ? 'Deleting...' : 'Delete symbol' }}
             </button>
           </kendo-dialog-actions>
         </kendo-dialog>

@@ -10,6 +10,7 @@ Theme styles for the runtime-browser and related components. Token values follow
 | `_theme.scss` | Semantic `--theme-*` tokens (Deep Sea, dark + light), `foundation-tokens` (fonts, spacing, radius, motion), Kendo bridge; `theme()` / `theme-overrides()` entry points. |
 | `_flat-button.scss` | `flat-button` mixin: flat outline button in dialog action rows. |
 | `_field-input.scss` | `field-input` mixin: token-driven inputs (text, number, select). |
+| `_dialog-actions.scss` | `dialog-actions` mixin: the one dialog footer layout (`.mm-dialog-actions`: right-aligned, 34 px buttons, `--theme-space-2` gap, wraps instead of clipping; AB#6464). Included by `styles()`. |
 | `_button.scss` | `octo-button` mixin: flat Deep Sea button used by toolbars and dialogs. |
 | `_styles.scss` | Main `styles` mixin – dockview, panels, Kendo overrides. Uses the button/input mixins. |
 | `_index.scss` | Entry point. Forwards `variables` and `styles`. No Kendo imports. |

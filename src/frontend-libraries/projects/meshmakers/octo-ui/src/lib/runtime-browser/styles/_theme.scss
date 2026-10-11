@@ -48,6 +48,9 @@
   --theme-space-7: 28px;
   --theme-space-8: 32px;
 
+  // Control height (new, AB#6464): buttons in dialog action rows and other compact controls.
+  --theme-control-height-md: 34px;
+
   // Radius — symmetric edges, no pills (new).
   --theme-radius-xs: 2px; // chips
   --theme-radius-sm: 4px; // buttons, inputs, tabs
