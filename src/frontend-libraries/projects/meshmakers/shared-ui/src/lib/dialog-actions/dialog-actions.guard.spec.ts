@@ -7,7 +7,7 @@
  *
  *  1. a template uses `<kendo-dialog-actions>` but its component does not import
  *     `MmDialogActionsDirective` (Kendo would fall back to the stretched layout),
- *  2. a `<kendo-dialog-actions>` asks for a layout other than `end` explicitly,
+ *  2. a `<kendo-dialog-actions>` asks for a layout other than `end` (static attribute) or binds `[layout]`,
  *  3. a component stylesheet or inline `styles` re-declares a dialog footer class
  *     (`.mm-dialog-actions`, `.action-bar`, `.dialog-actions`, `.edit-actions`, `.mm-efr-actions`) - the look is
  *     defined once in octo-ui `runtime-browser/styles/_dialog-actions.scss`.
@@ -22,7 +22,9 @@ export interface DialogActionsViolation {
 }
 
 const FOOTER_CLASS_RULE = /(^|[\s,}>+~])\.(mm-dialog-actions|action-bar|dialog-actions|edit-actions|mm-efr-actions)\s*[{,]/m;
-const FOREIGN_LAYOUT = /<kendo-dialog-actions\b[^>]*\blayout\s*=\s*["'](?!end["'])[^"']*["']/;
+// A static `layout="..."` other than end, or ANY `[layout]` / `[attr.layout]` binding (bindings are
+// applied after the directive's constructor and would win over it).
+const FOREIGN_LAYOUT = /<kendo-dialog-actions\b[^>]*(?:\[(?:attr\.)?layout\]|\blayout\s*=\s*["'](?!end["'])[^"']*["'])/;
 
 /** Rules 2 and 3 on one source text; rule 1 needs the component file, see `findViolations`. */
 export function scanSource(file: string, source: string): DialogActionsViolation[] {
@@ -108,6 +110,10 @@ describe('Dialog action layout guard (AB#6464)', () => {
         ['a/a.component.ts', 'imports: [MmDialogActionsDirective]'],
         ['a/a.component.html', '<kendo-dialog-actions layout="stretched"></kendo-dialog-actions>'],
       ]);
+      expect(findViolations(files).map((v) => v.rule)).toEqual(['foreign-layout']);
+      files.set('a/a.component.html', '<kendo-dialog-actions [layout]="actionsLayout"></kendo-dialog-actions>');
+      expect(findViolations(files).map((v) => v.rule)).toEqual(['foreign-layout']);
+      files.set('a/a.component.html', '<kendo-dialog-actions\n  [attr.layout]="x">\n</kendo-dialog-actions>');
       expect(findViolations(files).map((v) => v.rule)).toEqual(['foreign-layout']);
       files.set('a/a.component.html', '<kendo-dialog-actions layout="end"></kendo-dialog-actions>');
       expect(findViolations(files)).toEqual([]);

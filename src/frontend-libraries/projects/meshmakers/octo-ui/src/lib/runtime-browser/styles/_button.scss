@@ -106,10 +106,11 @@
     @include octo-button-primary-disabled;
   }
 
-  // Destructive solid button (`themeColor="error"`, AB#6464): error fill, so a delete confirm differs
-  // from Cancel without reading the label (action guideline §2.4). The reset above would otherwise
-  // paint it like any other base button.
-  &:is(.k-button-solid-error, .k-button-error, [themecolor="error"]) {
+  // Destructive SOLID button (`themeColor="error"` + default fill, AB#6464): error fill, so a delete
+  // confirm differs from Cancel without reading the label (action guideline §2.4). Only the solid fill
+  // class matches: a flat / outline error button (e.g. a danger text action in a toolbar) stays flat
+  // (guideline §2.2 / §9) - this mixin is also used by the list, grid and page toolbars.
+  &.k-button-solid-error {
     background: var(--theme-status-error, var(--bubblegum));
     border-color: var(--theme-status-error, var(--bubblegum));
     color: var(--theme-text-on-accent, var(--deep-sea));
