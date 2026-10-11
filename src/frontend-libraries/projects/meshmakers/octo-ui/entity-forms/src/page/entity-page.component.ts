@@ -25,6 +25,7 @@ import {
   NotificationDisplayService,
   resolveListRowLabel,
   UnsavedChangesMessages,
+  MmDialogActionsDirective,
 } from '@meshmakers/shared-ui';
 import { ButtonComponent } from '@progress/kendo-angular-buttons';
 import { KENDO_DIALOG } from '@progress/kendo-angular-dialog';
@@ -166,7 +167,7 @@ interface PageContext {
 @Component({
   selector: 'mm-entity-page',
   standalone: true,
-  imports: [EntityListComponent, EntityFormComponent, EntityIdInfoComponent, ButtonComponent, NgTemplateOutlet, KENDO_DIALOG],
+  imports: [MmDialogActionsDirective, EntityListComponent, EntityFormComponent, EntityIdInfoComponent, ButtonComponent, NgTemplateOutlet, KENDO_DIALOG],
   providers: [{ provide: HAS_UNSAVED_CHANGES, useExisting: EntityPageComponent }],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './entity-page.component.html',

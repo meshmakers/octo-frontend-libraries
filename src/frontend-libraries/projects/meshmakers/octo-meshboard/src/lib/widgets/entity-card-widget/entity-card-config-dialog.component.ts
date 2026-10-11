@@ -292,13 +292,6 @@ export interface EntityCardConfigResult {
       font-size: 0.78rem;
     }
 
-    .action-bar {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      padding: 8px 16px;
-      border-top: 1px solid var(--kendo-color-border, #dee2e6);
-    }
   `]
 })
 export class EntityCardConfigDialogComponent implements OnInit {

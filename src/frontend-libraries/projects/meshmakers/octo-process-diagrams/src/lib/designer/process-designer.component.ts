@@ -71,7 +71,7 @@ import {
   PrimitiveTypeValue
 } from '../primitives';
 import { PrimitiveRendererRegistry, SymbolRenderer } from '../primitives';
-import { SaveAsDialogService } from '@meshmakers/shared-ui';
+import { SaveAsDialogService, MmDialogActionsDirective } from '@meshmakers/shared-ui';
 import {
   SymbolInstance,
   SymbolDefinition,
@@ -211,6 +211,7 @@ interface ResizeState {
   selector: 'mm-process-designer',
   standalone: true,
   imports: [
+    MmDialogActionsDirective,
     CommonModule,
     FormsModule,
     ButtonsModule,

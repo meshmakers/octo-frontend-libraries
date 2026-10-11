@@ -134,7 +134,7 @@ export interface CkTypeSelectorDialogResult {
         <strong>{{ _messages.selectedLabel }}</strong> {{ selectedType.rtCkTypeId }}
       </div>
 
-      <div class="dialog-actions">
+      <div class="mm-dialog-actions">
         <button kendoButton (click)="onCancel()">{{ _messages.cancel }}</button>
         <button kendoButton themeColor="primary" [disabled]="!selectedType || (selectedType.isAbstract && !allowAbstract)" (click)="onConfirm()">{{ _messages.ok }}</button>
       </div>
@@ -252,13 +252,6 @@ export interface CkTypeSelectorDialogResult {
       flex-shrink: 0;
     }
 
-    .dialog-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      padding: 8px 20px 0 20px;
-      flex-shrink: 0;
-    }
   `]
 })
 export class CkTypeSelectorDialogComponent implements OnInit, OnDestroy {

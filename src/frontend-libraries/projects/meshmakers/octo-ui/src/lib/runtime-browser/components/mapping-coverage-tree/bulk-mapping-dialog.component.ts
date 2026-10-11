@@ -176,7 +176,7 @@ export type BulkMappingDialogResult =
           </div>
         </div>
       </div>
-      <div class="dialog-actions">
+      <div class="mm-dialog-actions">
         <button kendoButton (click)="onCancel()">Cancel</button>
         <button kendoButton themeColor="primary" (click)="onSave()"
           [disabled]="!isValid()">Create {{ sources().length }} mappings</button>
@@ -354,19 +354,6 @@ export type BulkMappingDialogResult =
       }
     }
 
-    .dialog-actions {
-      flex: 0 0 auto;
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      padding: 10px 18px;
-      border-top: 1px solid var(--theme-border-subtle,
-        var(--kendo-color-border, #dee2e6));
-      background: color-mix(in srgb,
-        var(--theme-bg-elevated,
-          var(--kendo-color-surface-alt, #f8f9fa)) 70%,
-        transparent);
-    }
   `],
 })
 export class BulkMappingDialogComponent {

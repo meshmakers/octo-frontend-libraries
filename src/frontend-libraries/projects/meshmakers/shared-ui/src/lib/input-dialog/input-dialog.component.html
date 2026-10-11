@@ -2,6 +2,6 @@
 <kendo-textbox id="input" [placeholder]="placeholder" [(ngModel)]="inputValue" ></kendo-textbox>
 </kendo-label>
 <kendo-dialog-actions>
-  <button kendoButton (click)="onOk()" themeColor="primary" [disabled]="!inputValue">{{buttonOkText}}</button>
   <button kendoButton (click)="onCancel()">{{ _messages.cancel }}</button>
+  <button kendoButton (click)="onOk()" themeColor="primary" [disabled]="!inputValue">{{buttonOkText}}</button>
 </kendo-dialog-actions>

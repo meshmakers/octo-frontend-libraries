@@ -8,6 +8,7 @@ import {
   dangerConfirmNameMatches,
   dangerConfirmTypingToken,
 } from './danger-confirmation.model';
+import { MmDialogActionsDirective } from '../dialog-actions/dialog-actions.directive';
 
 let nextId = 0;
 
@@ -28,7 +29,7 @@ export class DangerConfirmationResult {
 @Component({
   selector: 'mm-danger-confirmation-window',
   standalone: true,
-  imports: [DialogActionsComponent, ButtonComponent],
+  imports: [MmDialogActionsDirective, DialogActionsComponent, ButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let o = options();

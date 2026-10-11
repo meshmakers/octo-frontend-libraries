@@ -89,7 +89,7 @@
                   [initialValues]="createInitialValues()"
                 />
               </div>
-              <kendo-dialog-actions layout="end">
+              <kendo-dialog-actions>
                 @if (pageActions(); as actions) {
                   <ng-container *ngTemplateOutlet="actions.templateRef; context: dialogActionsContext()" />
                 }

@@ -10,10 +10,12 @@ import {NgIf} from '@angular/common';
 import {SVGIconComponent} from '@progress/kendo-angular-icons';
 import {deleteIcon, upload} from '../svg-icons';
 import {FileUploadResult} from '../models/confirmation';
+import { MmDialogActionsDirective } from '../dialog-actions/dialog-actions.directive';
 
 @Component({
   selector: 'mm-upload-file-dialog',
   imports: [
+    MmDialogActionsDirective,
     ButtonComponent,
     DialogActionsComponent,
     NgIf,

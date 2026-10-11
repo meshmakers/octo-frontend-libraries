@@ -10,6 +10,25 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui / octo-ui / octo-meshboard / octo-process-diagrams (dialog actions)
+
+- **Visual change, apps must react to nothing:** every dialog footer in the libraries now shows the
+  one action layout - right-aligned, buttons at the 34 px control height (new token
+  `--theme-control-height-md`), gap `--theme-space-2`, wrapping instead of clipping at 390 px - and a
+  destructive confirm (`themeColor="error"`) is an error fill instead of looking like Cancel. Defined
+  once: new `MmDialogActionsDirective` (`@meshmakers/shared-ui`, matches `kendo-dialog-actions`, fixes
+  the layout to `end`, adds `mm-dialog-actions`) plus the `dialog-actions` styles mixin in octo-ui
+  (`octo.styles()`) and an error branch in the `octo-button` mixin. Hosts that include
+  `octo.styles()` / `octo.theme()` get it automatically; Studio dialogs follow in AB#6462 / AB#6465.
+- Migrated: the shared-ui dialogs (confirmation, danger confirmation, input, save as, progress, import
+  strategy, upload, entity select, message details), the MeshBoard dialogs and ~30 widget config
+  dialogs (the copy-pasted `.action-bar` / `.dialog-actions` CSS with hard-coded `#dee2e6` / 8 px is
+  gone), the process-diagram dialogs and the octo-ui selector / mapping / variable / entity-form
+  dialogs. Button order is now Cancel first, confirming action last in input, upload, import strategy
+  and message details dialogs; the process-diagram "Delete" is "Delete symbol". (AB#6464)
+- Guard: `dialog-actions.guard.spec.ts` fails the shared-ui tests when a dialog footer uses another
+  layout or re-declares footer CSS. (AB#6464)
+
 ### octo-services / shared-auth / octo-ui (platform files)
 
 - New `FilesClientService` (`@meshmakers/octo-services`): the typed client of the asset-repo file API

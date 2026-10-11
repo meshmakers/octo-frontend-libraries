@@ -1084,7 +1084,7 @@ All components in this library MUST be theme-independent. This ensures they work
 
 Dialog components should:
 - Extend `DialogContentBase` from Kendo
-- Not override `kendo-dialog-actions` styles
+- Not override `kendo-dialog-actions` styles; import `MmDialogActionsDirective` from `@meshmakers/shared-ui` instead (right-aligned 34 px actions, danger-styled `themeColor="error"` confirm; AB#6464). Hand-made footers use the class `mm-dialog-actions` and no CSS of their own
 - Let the Kendo theme handle all color-related styling
 - Only define layout and structural styles
 

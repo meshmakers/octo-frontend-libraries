@@ -55,6 +55,16 @@ describe('DangerConfirmationWindowComponent (AB#5578)', () => {
     expect(close).toHaveBeenCalledWith(new DangerConfirmationResult(true));
   });
 
+  it('right-aligns the action row; only the confirm carries the danger colour (AB#6464)', async () => {
+    const el = await render();
+    const actions = el.querySelector('kendo-dialog-actions')!;
+    expect(actions.classList).toContain('k-actions-end');
+    expect(actions.classList).not.toContain('k-actions-stretched');
+    expect(actions.classList).toContain('mm-dialog-actions');
+    expect(button(el, 'cancel').classList).not.toContain('k-button-error');
+    expect(button(el, 'confirm').classList).toContain('k-button-error');
+  });
+
   it('resolves false on Cancel', async () => {
     const el = await render();
     button(el, 'cancel').click();

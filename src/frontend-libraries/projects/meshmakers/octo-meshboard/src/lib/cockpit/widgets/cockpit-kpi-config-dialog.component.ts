@@ -51,7 +51,6 @@ export interface CockpitKpiConfigResult extends WidgetConfigResult {
     .config-form { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 16px; overflow-y: auto; }
     .choice { display: flex; align-items: center; gap: 8px; cursor: pointer; }
     .hint { opacity: 0.75; margin: 0; }
-    .mm-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
   `]
 })
 export class CockpitKpiConfigDialogComponent implements OnInit {

@@ -106,6 +106,28 @@
     @include octo-button-primary-disabled;
   }
 
+  // Destructive SOLID button (`themeColor="error"` + default fill, AB#6464): error fill, so a delete
+  // confirm differs from Cancel without reading the label (action guideline §2.4). Only the solid fill
+  // class matches: a flat / outline error button (e.g. a danger text action in a toolbar) stays flat
+  // (guideline §2.2 / §9) - this mixin is also used by the list, grid and page toolbars.
+  &.k-button-solid-error {
+    background: var(--theme-status-error, var(--bubblegum));
+    border-color: var(--theme-status-error, var(--bubblegum));
+    color: var(--theme-text-on-accent, var(--deep-sea));
+
+    .k-svg-icon,
+    .k-icon,
+    svg {
+      fill: var(--theme-text-on-accent, var(--deep-sea));
+      color: var(--theme-text-on-accent, var(--deep-sea));
+    }
+
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--theme-status-error, var(--bubblegum)) 88%, var(--theme-text-primary, white));
+      border-color: color-mix(in srgb, var(--theme-status-error, var(--bubblegum)) 88%, var(--theme-text-primary, white));
+    }
+  }
+
   // Selected FLAT toggles (e.g. the list view's row-filter command, `themeColor="primary"
   // fillMode="flat"`): the primary branch above has the same specificity as `.k-selected` and
   // comes later, so it would paint selected and unselected alike. This rule is more specific and

@@ -1,0 +1,51 @@
+// Dialog action rows - THE one definition (AB#6464, Studio action guideline §2.2 / §2.4).
+//
+// Every dialog footer carries the class `mm-dialog-actions`:
+//   * `<kendo-dialog-actions>` gets it from `MmDialogActionsDirective` (@meshmakers/shared-ui),
+//     which also switches Kendo's default `stretched` layout to `end`;
+//   * hand-made footers (`<div class="mm-dialog-actions">`, e.g. the MeshBoard config dialogs)
+//     write the class themselves and need no CSS of their own.
+//
+// The look: right-aligned, buttons keep their natural width at the control height (34 px), gap
+// from the spacing token, a wrapped second row instead of clipping at 390 px, and a destructive
+// confirm (`themeColor="error"`) that reads as danger without reading the label.
+// Only tokens - no hard-coded colour or pixel values (fallbacks mirror `_theme.scss`).
+@mixin dialog-actions {
+  .mm-dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--theme-space-2, 8px);
+    flex-shrink: 0;
+
+    .k-button {
+      flex: 0 0 auto;
+      width: auto;
+      // Kendo's medium button is 39 px; the action rows use the 34 px control height.
+      height: var(--theme-control-height-md, 34px);
+      min-height: var(--theme-control-height-md, 34px);
+      padding-block: 0;
+      box-sizing: border-box;
+    }
+
+    // Outline / flat destructive confirms (e.g. the entity page's Delete): the generic action-row
+    // rules force a neutral border and text colour with !important, so restate the danger look.
+    .k-button:is(.k-button-outline-error, .k-button-flat-error) {
+      color: var(--theme-status-error, var(--bubblegum)) !important;
+      border-color: var(--theme-status-error, var(--bubblegum)) !important;
+
+      &:hover:not(:disabled) {
+        background: var(--theme-status-error-subtle, transparent) !important;
+        border-color: var(--theme-status-error, var(--bubblegum)) !important;
+      }
+    }
+  }
+
+  // Hand-made footers have no Kendo chrome: give them the divider and the padding that
+  // `kendo-dialog-actions` brings along.
+  div.mm-dialog-actions {
+    padding: var(--theme-space-2, 8px) var(--theme-space-4, 16px);
+    border-top: 1px solid var(--theme-border-subtle, var(--octo-mint-20));
+  }
+}

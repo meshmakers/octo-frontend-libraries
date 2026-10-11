@@ -18,11 +18,13 @@ import {
   SaveAsDialogMessages,
   DEFAULT_SAVE_AS_DIALOG_MESSAGES,
 } from './save-as-dialog.messages';
+import { MmDialogActionsDirective } from '../dialog-actions/dialog-actions.directive';
 
 @Component({
   selector: 'mm-save-as-dialog',
   standalone: true,
   imports: [
+    MmDialogActionsDirective,
     CommonModule,
     ReactiveFormsModule,
     DialogModule,

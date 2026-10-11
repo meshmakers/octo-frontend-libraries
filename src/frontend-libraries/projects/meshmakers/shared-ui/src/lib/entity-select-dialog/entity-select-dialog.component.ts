@@ -89,7 +89,7 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
         {{ selectedEntities.length }} {{ _messages.selectedSuffix }}
       </div>
 
-      <div class="dialog-actions">
+      <div class="mm-dialog-actions">
         <button kendoButton (click)="onCancel()">{{ _messages.cancelButton }}</button>
         <button kendoButton
                 themeColor="primary"
@@ -135,12 +135,6 @@ import { PascalCasePipe } from '../pipes/pascal-case.pipe';
       flex-shrink: 0;
     }
 
-    .dialog-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      flex-shrink: 0;
-    }
   `]
 })
 export class EntitySelectDialogComponent<T> implements OnInit, OnDestroy {

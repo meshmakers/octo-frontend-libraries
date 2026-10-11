@@ -7,6 +7,7 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AnyWidgetConfig, WidgetZone } from '../../models/meshboard.models';
+import { MmDialogActionsDirective } from '@meshmakers/shared-ui';
 
 export interface WidgetPositionUpdate {
   id: string;
@@ -28,6 +29,7 @@ interface ZoneOption {
   selector: 'mm-edit-widget-dialog',
   standalone: true,
   imports: [
+    MmDialogActionsDirective,
     CommonModule,
     FormsModule,
     DialogModule,

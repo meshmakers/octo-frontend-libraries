@@ -3,6 +3,7 @@
 @use "flat-button" as *;
 @use "field-input" as *;
 @use "button" as *;
+@use "dialog-actions" as *;
 
 @mixin styles {
   // Direct dockview element overrides - needed because ViewEncapsulation blocks global styles
@@ -2260,6 +2261,9 @@
       }
     }
   }
+
+  // Dialog action rows: right-aligned 34 px buttons, token gap, danger confirm (AB#6464)
+  @include dialog-actions;
 
   // Dialog Danger variant - for production/staging confirmation dialogs
   .mm-dialog-danger .k-dialog {

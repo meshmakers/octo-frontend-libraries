@@ -89,7 +89,6 @@ export interface AttentionListConfigResult extends WidgetConfigResult {
     .provider-label { display: block; }
     .hint { display: block; opacity: 0.7; font-size: 0.8em; margin: 0; }
     .validation { color: var(--kendo-color-error, #c62828); margin: 0; font-size: 0.85em; }
-    .mm-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--kendo-color-border, #dee2e6); }
   `]
 })
 export class AttentionListConfigDialogComponent implements OnInit {

@@ -13,6 +13,7 @@ import {
   ProgressWindowMessages,
   DEFAULT_PROGRESS_WINDOW_MESSAGES,
 } from './progress-window.messages';
+import { MmDialogActionsDirective } from '../dialog-actions/dialog-actions.directive';
 
 export interface ProgressWindowData {
   title: string;
@@ -28,6 +29,7 @@ export type ProgressWindowResult = object;
   selector: 'mm-progress-window',
   standalone: true,
   imports: [
+    MmDialogActionsDirective,
     CommonModule,
     ButtonComponent,
     DialogActionsComponent,

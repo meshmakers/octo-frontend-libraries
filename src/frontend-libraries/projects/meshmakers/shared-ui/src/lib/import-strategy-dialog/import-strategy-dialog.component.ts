@@ -3,6 +3,7 @@ import {DialogActionsComponent, DialogContentBase, DialogRef} from '@progress/ke
 import {ButtonComponent} from '@progress/kendo-angular-buttons';
 import {FormsModule} from '@angular/forms';
 import {ImportStrategyDto} from '../models/importStrategyDto';
+import { MmDialogActionsDirective } from '../dialog-actions/dialog-actions.directive';
 
 export class ImportStrategyDialogResult {
   constructor(public strategy: ImportStrategyDto) {}
@@ -11,6 +12,7 @@ export class ImportStrategyDialogResult {
 @Component({
   selector: 'mm-import-strategy-dialog',
   imports: [
+    MmDialogActionsDirective,
     DialogActionsComponent,
     ButtonComponent,
     FormsModule

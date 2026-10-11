@@ -61,7 +61,6 @@ export interface AiInsightsConfigResult {
     .config-form { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-row { display: flex; gap: 16px; .form-group { flex: 1; } }
-    .mm-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
     .hint { font-size: 0.75rem; opacity: 0.6; }
   `]
 })
