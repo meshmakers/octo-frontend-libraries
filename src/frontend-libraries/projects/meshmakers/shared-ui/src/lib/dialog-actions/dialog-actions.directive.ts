@@ -1,4 +1,4 @@
-import { Directive, inject } from '@angular/core';
+import { Directive, OnInit, inject } from '@angular/core';
 import { DialogActionsComponent } from '@progress/kendo-angular-dialog';
 
 /**
@@ -37,10 +37,16 @@ export const MM_DIALOG_ACTIONS_CLASS = 'mm-dialog-actions';
   selector: 'kendo-dialog-actions',
   host: { class: MM_DIALOG_ACTIONS_CLASS },
 })
-export class MmDialogActionsDirective {
+export class MmDialogActionsDirective implements OnInit {
+  private readonly actions = inject(DialogActionsComponent, { self: true });
+
   constructor() {
-    // The layout is fixed Studio-wide: the host component exists before the directive is created, so
-    // this wins over Kendo's `stretched` default and over a `layout` attribute in the template.
-    inject(DialogActionsComponent, { self: true }).layout = 'end';
+    this.actions.layout = 'end';
+  }
+
+  ngOnInit(): void {
+    // The layout is fixed Studio-wide. Inputs (a `layout` attribute or binding in the template) are
+    // applied after construction and before this hook, so enforce it again here.
+    this.actions.layout = 'end';
   }
 }

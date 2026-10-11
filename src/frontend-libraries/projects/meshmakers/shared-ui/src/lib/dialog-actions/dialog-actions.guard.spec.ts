@@ -21,7 +21,8 @@ export interface DialogActionsViolation {
   readonly detail: string;
 }
 
-const FOOTER_CLASS_RULE = /(^|[\s,}>+~])\.(mm-dialog-actions|action-bar|dialog-actions|edit-actions|mm-efr-actions)\s*[{,]/m;
+// The footer class anywhere in a selector (also `.mm-dialog-actions .k-button { ... }`).
+const FOOTER_CLASS_RULE = /(^|[\s,}>+~])\.(mm-dialog-actions|action-bar|dialog-actions|edit-actions|mm-efr-actions)(?![\w-])[^{};]*[{,]/m;
 // A static `layout="..."` other than end, or ANY `[layout]` / `[attr.layout]` binding (bindings are
 // applied after the directive's constructor and would win over it).
 const FOREIGN_LAYOUT = /<kendo-dialog-actions\b[^>]*(?:\[(?:attr\.)?layout\]|\blayout\s*=\s*["'](?!end["'])[^"']*["'])/;
@@ -52,7 +53,7 @@ export function findViolations(files: ReadonlyMap<string, string>): DialogAction
     if (source.includes('<kendo-dialog-actions')) {
       const component = file.endsWith('.html') ? file.replace(/\.html$/, '.ts') : file;
       const componentSource = files.get(component) ?? '';
-      if (!componentSource.includes('MmDialogActionsDirective')) {
+      if (!/imports\s*:\s*\[[^\]]*\bMmDialogActionsDirective\b/.test(componentSource)) {
         violations.push({ file, rule: 'directive-not-imported', detail: `${component} must import MmDialogActionsDirective from @meshmakers/shared-ui` });
       }
     }
@@ -125,6 +126,15 @@ describe('Dialog action layout guard (AB#6464)', () => {
       expect(findViolations(sample('b/b.component.scss', '.host {\n  .dialog-actions {\n    gap: 1rem;\n  }\n}')).map((v) => v.rule))
         .toEqual(['copied-footer-css']);
       expect(findViolations(sample('b/b.component.scss', '.mm-dialog-actions { gap: 1rem }')).map((v) => v.rule)).toEqual(['copied-footer-css']);
+    });
+
+    it('fails descendant selectors of the footer class and a directive that is imported but not registered', () => {
+      expect(findViolations(sample('b/b.component.scss', '.mm-dialog-actions .k-button { width: 100%; }')).map((v) => v.rule)).toEqual(['copied-footer-css']);
+      const files = new Map([
+        ['a/a.component.ts', "import { MmDialogActionsDirective } from 'x'; @Component({ imports: [] })"],
+        ['a/a.component.html', '<kendo-dialog-actions></kendo-dialog-actions>'],
+      ]);
+      expect(findViolations(files).map((v) => v.rule)).toEqual(['directive-not-imported']);
     });
 
     it('allows the class in a template and the shared definition itself', () => {
