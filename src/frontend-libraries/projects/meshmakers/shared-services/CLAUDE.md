@@ -119,7 +119,8 @@ Routes define context menus via `data.navigationMenu`:
 ### HTTP Error Interceptor
 
 `MmHttpErrorInterceptor` handles:
-- **Status 0**: Network connectivity errors
+- **Status 0**: Network connectivity errors (host callback `ON_CONNECTION_LOST`, else a toast).
+  Exempt: URLs ending in `/health` and requests marked **optional** (below)
 - **Status 403**: Access-denied toast. When the body carries a string `message` — the tenant
   authorization middleware names its denial reason that way since AB#5227 (e.g. "tenant does not
   exist any more, re-create it first" on a restore into a deleted tenant) — that message is shown
@@ -145,6 +146,24 @@ must therefore ask `MmHttpErrorInterceptor.reportsToUser(error)` first and stay 
 returns `true` — otherwise the user gets the same reason twice, in two Kendo position groups that
 overlap instead of stacking (the 409 of the capability disable guards made this visible, AB#4255).
 The predicate and `intercept` share one private classification, so they cannot drift apart.
+
+#### Optional requests (`MM_OPTIONAL_REQUEST`, AB#6619)
+
+Status 0 means "no HTTP answer at all" — a CORS rejection or a blocked preflight looks exactly like
+a dead backend. A probe or widget read the page can do without (e.g. Signal channel detection on the
+tenant start page) must not take the whole app down with the connection-lost overlay. Mark such a
+request:
+
+```ts
+http.get(url, { context: new HttpContext().set(MM_OPTIONAL_REQUEST, true) });
+```
+
+A status-0 failure of a marked request is neither reported to `ON_CONNECTION_LOST` nor toasted; it is
+rethrown (the caller degrades locally) and logged once with `console.debug`. Real HTTP answers (403,
+400, 409) are still reported as usual, and a 404 never was. Only mark calls that are clearly optional:
+the host's main calls (configuration, health, GraphQL) stay unmarked so a real outage still raises the
+overlay. Do not send `Pragma` on requests — `Cache-Control: no-cache, no-store` is enough, and every
+extra request header must be in the ingress's static CORS allow-list.
 
 ### Stale-Chunk Recovery (`provideStaleChunkRecovery()`)
 
