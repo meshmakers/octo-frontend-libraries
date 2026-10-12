@@ -2,7 +2,7 @@ import type { Mock, MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpContext, HttpRequest, HttpHandler, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { MM_CALLER_HANDLED_STATUSES, MmHttpErrorInterceptor, ON_CONNECTION_LOST } from './mm-http-error-interceptor.service';
+import { MM_CALLER_HANDLED_STATUSES, MM_OPTIONAL_REQUEST, MmHttpErrorInterceptor, ON_CONNECTION_LOST } from './mm-http-error-interceptor.service';
 import { MessageService } from '../services/message.service';
 import { ApiErrorDto } from '../models/apiErrorDto';
 
@@ -572,6 +572,66 @@ describe('MmHttpErrorInterceptor', () => {
           expect(connectionLostHandler).toHaveBeenCalled();
           expect(messageServiceMock.showError).not.toHaveBeenCalled();
           expect(err).toBe(error);
+          done();
+        }
+      });
+    }));
+
+    function optionalRequest(): HttpRequest<unknown> {
+      return new HttpRequest('GET', '/api/optional', { context: new HttpContext().set(MM_OPTIONAL_REQUEST, true) });
+    }
+
+    it('AB#6619: does not call ON_CONNECTION_LOST for an optional request failing at network level, and rethrows', () => new Promise<void>((done) => {
+      const error = new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' });
+      httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+      interceptor.intercept(optionalRequest(), httpHandlerMock).subscribe({
+        error: (err) => {
+          expect(connectionLostHandler).not.toHaveBeenCalled();
+          expect(messageServiceMock.showError).not.toHaveBeenCalled();
+          expect(err).toBe(error);
+          done();
+        }
+      });
+    }));
+
+    it('AB#6619: a non-optional request failing at network level still raises the connection loss (real outage)', () => new Promise<void>((done) => {
+      const error = new HttpErrorResponse({ status: 0, statusText: 'Unknown Error' });
+      httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+      interceptor.intercept(new HttpRequest('GET', '/api/data', { context: new HttpContext().set(MM_OPTIONAL_REQUEST, false) }), httpHandlerMock).subscribe({
+        error: () => {
+          expect(connectionLostHandler).toHaveBeenCalledTimes(1);
+          done();
+        }
+      });
+    }));
+
+    it('AB#6619: a 404 with an errorMessage is not a connection loss and not reported', () => new Promise<void>((done) => {
+      const error = new HttpErrorResponse({
+        status: 404, statusText: 'Not Found',
+        error: { errorMessage: "No Signal channel is defined for tenant 'eg-urstein'." }
+      });
+      httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+      interceptor.intercept(optionalRequest(), httpHandlerMock).subscribe({
+        error: (err) => {
+          expect(connectionLostHandler).not.toHaveBeenCalled();
+          expect(messageServiceMock.showError).not.toHaveBeenCalled();
+          expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
+          expect(MmHttpErrorInterceptor.reportsToUser(err)).toBe(false);
+          done();
+        }
+      });
+    }));
+
+    it('AB#6619: an optional request still reports a 403 like any other request', () => new Promise<void>((done) => {
+      const error = new HttpErrorResponse({ status: 403, statusText: 'Forbidden' });
+      httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+      interceptor.intercept(optionalRequest(), httpHandlerMock).subscribe({
+        error: () => {
+          expect(messageServiceMock.showError).toHaveBeenCalled();
           done();
         }
       });
