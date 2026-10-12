@@ -76,6 +76,13 @@ function isHttpErrorResponse(error: unknown): error is HttpErrorLike {
 @Injectable()
 export class MmHttpErrorInterceptor implements HttpInterceptor {
 
+  /**
+   * Status-0 errors of `MM_OPTIONAL_REQUEST` requests the interceptor deliberately stayed silent
+   * about (AB#6619). `reportsToUser` only receives the error, not the request context, so it
+   * recognises these by identity — the interceptor rethrows the very same object.
+   */
+  private static readonly silencedOptionalErrors = new WeakSet<object>();
+
   private readonly messageService = inject(MessageService);
   private readonly onConnectionLost = inject(ON_CONNECTION_LOST, { optional: true });
 
@@ -89,6 +96,7 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
    */
   public static reportsToUser(error: unknown): boolean {
     return isHttpErrorResponse(error)
+      && !MmHttpErrorInterceptor.silencedOptionalErrors.has(error)
       && MmHttpErrorInterceptor.classify(error, error.url) !== null;
   }
 
@@ -102,6 +110,7 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
         }
 
         if (error.status === 0 && request.context.get(MM_OPTIONAL_REQUEST)) {
+          MmHttpErrorInterceptor.silencedOptionalErrors.add(error);
           console.debug('Optional request failed at network level, not treated as connection loss', request.url);
           return throwError(() => error);
         }

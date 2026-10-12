@@ -590,6 +590,8 @@ describe('MmHttpErrorInterceptor', () => {
           expect(connectionLostHandler).not.toHaveBeenCalled();
           expect(messageServiceMock.showError).not.toHaveBeenCalled();
           expect(err).toBe(error);
+          // reportsToUser must agree with what the interceptor did (no double message by callers).
+          expect(MmHttpErrorInterceptor.reportsToUser(err)).toBe(false);
           done();
         }
       });
