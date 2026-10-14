@@ -461,6 +461,10 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
     ).subscribe(result => {
       this.isLoading = false;
 
+      if ((this.searchFormControl.value ?? '').length < this.minSearchLength) {
+        return;
+      }
+
       if (this.prefix && result.items.length === 1) {
         // Auto-select if exactly one match in prefix mode
         this.selectEntity(result.items[0]);

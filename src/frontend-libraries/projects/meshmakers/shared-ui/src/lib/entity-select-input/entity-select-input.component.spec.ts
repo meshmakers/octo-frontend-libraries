@@ -82,4 +82,47 @@ describe('EntitySelectInputComponent', () => {
     expect(cleared).toHaveBeenCalledTimes(1);
     expect(control.value).toBeNull();
   });
+
+  it('drops a search result that arrives after the input was emptied', async () => {
+    vi.useFakeTimers();
+    try {
+      let resolveSearch!: (result: { totalCount: number; items: Entity[] }) => void;
+      vi.mocked(dataSource.onFilter).mockReturnValueOnce(new Promise(resolve => resolveSearch = resolve));
+      component.autocomplete = { closeActionSheet: vi.fn() } as unknown as EntitySelectInputComponent['autocomplete'];
+      component.ngOnInit();
+
+      component.searchFormControl.setValue('pipeline_ec_pod', { emitEvent: false });
+      component.onFilterChange('pipeline_ec_pod');
+      await vi.advanceTimersByTimeAsync(component.debounceMs);
+
+      component.searchFormControl.setValue('', { emitEvent: false });
+      component.onSelectionChange('');
+      component.onFilterChange('');
+      resolveSearch({ totalCount: 1, items: [query] });
+      await vi.advanceTimersByTimeAsync(0);
+      component.onBlur();
+
+      expect(component.filteredEntities).toEqual([]);
+      expect(component.selectedEntity).toBeNull();
+      expect(control.value).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps a search result while the input still holds the searched text', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(dataSource.onFilter).mockResolvedValueOnce({ totalCount: 1, items: [query] });
+      component.ngOnInit();
+
+      component.searchFormControl.setValue('pipeline_ec_pod', { emitEvent: false });
+      component.onFilterChange('pipeline_ec_pod');
+      await vi.advanceTimersByTimeAsync(component.debounceMs);
+
+      expect(component.filteredEntities).toEqual([query.name]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

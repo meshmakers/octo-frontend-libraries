@@ -46,7 +46,9 @@ npm run test:shared-ui
 `mm-entity-select-input` is a CVA whose value is the selected entity. An empty `valueChange` - Kendo's
 built-in clear button (`[clearButton]="true"`) or a field emptied by hand - resets the value to `null`
 and emits `entityCleared` once. Typing other text over a selected entity does not clear it; the value
-changes only when another entity is picked. Pinned by `entity-select-input.component.spec.ts`.
+changes only when another entity is picked. A search result that arrives after the field was emptied
+(below `minSearchLength`) is dropped, so a search still pending from before cannot refill the list and
+let `onBlur()` auto-select its single match. Pinned by `entity-select-input.component.spec.ts`.
 
 ### Dialog Services Pattern
 
