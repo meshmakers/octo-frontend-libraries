@@ -169,6 +169,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -536,6 +539,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -1019,6 +1025,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemPersistentQuery",
@@ -1200,6 +1209,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -1375,6 +1387,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -1550,6 +1565,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -1725,6 +1743,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -1900,6 +1921,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -2075,6 +2099,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -2160,6 +2187,27 @@
     "SystemIdentityVerifiedExternalIdentifier_VerifiedExternalIdentifiersUnion": [
       "SystemIdentityVerifiedExternalIdentifier"
     ],
+    "SystemNotificationNotificationDeliveryState_DeliveryStateUnion": [
+      "SystemNotificationNotificationDeliveryState"
+    ],
+    "SystemNotificationNotificationPreference_PreferenceUnion": [
+      "SystemNotificationNotificationPreference"
+    ],
+    "SystemNotificationNotificationPreference_PreferencesUnion": [
+      "SystemNotificationNotificationPreference"
+    ],
+    "SystemNotificationNotificationSubscription_NotificationSubscriptionsUnion": [
+      "SystemNotificationNotificationSubscription"
+    ],
+    "SystemNotificationNotificationSubscription_SubscriptionUnion": [
+      "SystemNotificationNotificationSubscription"
+    ],
+    "SystemNotificationNotificationSubscription_SubscriptionsUnion": [
+      "SystemNotificationNotificationSubscription"
+    ],
+    "SystemNotificationNotificationTemplate_TemplateUnion": [
+      "SystemNotificationNotificationTemplate"
+    ],
     "SystemPersistentQueryInterface": [
       "SystemAggregationRtQuery",
       "SystemAggregationSdQuery",
@@ -2169,6 +2217,15 @@
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
       "SystemStreamDataQuery"
+    ],
+    "SystemPersistentQuery_QueryUnion": [
+      "SystemAggregationRtQuery",
+      "SystemAggregationSdQuery",
+      "SystemDownsamplingSdQuery",
+      "SystemGroupingAggregationRtQuery",
+      "SystemGroupingAggregationSdQuery",
+      "SystemSimpleRtQuery",
+      "SystemSimpleSdQuery"
     ],
     "SystemReportingFileSystemContainerInterface": [
       "SystemReportingFileSystemItem",
@@ -2394,6 +2451,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -2761,6 +2821,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -3244,6 +3307,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemPersistentQuery",
@@ -3425,6 +3491,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -3600,6 +3669,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -3775,6 +3847,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -3950,6 +4025,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -4125,6 +4203,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -4300,6 +4381,9 @@
       "SystemNotificationCssTemplateConfiguration",
       "SystemNotificationEvent",
       "SystemNotificationMailNotificationConfiguration",
+      "SystemNotificationNotificationDeliveryState",
+      "SystemNotificationNotificationPreference",
+      "SystemNotificationNotificationSubscription",
       "SystemNotificationNotificationTemplate",
       "SystemNotificationStatefulEvent",
       "SystemReportingConnectionInfo",
@@ -4385,6 +4469,27 @@
     "SystemIdentityVerifiedExternalIdentifier_VerifiedExternalIdentifiersUnion": [
       "SystemIdentityVerifiedExternalIdentifier"
     ],
+    "SystemNotificationNotificationDeliveryState_DeliveryStateUnion": [
+      "SystemNotificationNotificationDeliveryState"
+    ],
+    "SystemNotificationNotificationPreference_PreferenceUnion": [
+      "SystemNotificationNotificationPreference"
+    ],
+    "SystemNotificationNotificationPreference_PreferencesUnion": [
+      "SystemNotificationNotificationPreference"
+    ],
+    "SystemNotificationNotificationSubscription_NotificationSubscriptionsUnion": [
+      "SystemNotificationNotificationSubscription"
+    ],
+    "SystemNotificationNotificationSubscription_SubscriptionUnion": [
+      "SystemNotificationNotificationSubscription"
+    ],
+    "SystemNotificationNotificationSubscription_SubscriptionsUnion": [
+      "SystemNotificationNotificationSubscription"
+    ],
+    "SystemNotificationNotificationTemplate_TemplateUnion": [
+      "SystemNotificationNotificationTemplate"
+    ],
     "SystemPersistentQueryInterface": [
       "SystemAggregationRtQuery",
       "SystemAggregationSdQuery",
@@ -4394,6 +4499,15 @@
       "SystemSimpleRtQuery",
       "SystemSimpleSdQuery",
       "SystemStreamDataQuery"
+    ],
+    "SystemPersistentQuery_QueryUnion": [
+      "SystemAggregationRtQuery",
+      "SystemAggregationSdQuery",
+      "SystemDownsamplingSdQuery",
+      "SystemGroupingAggregationRtQuery",
+      "SystemGroupingAggregationSdQuery",
+      "SystemSimpleRtQuery",
+      "SystemSimpleSdQuery"
     ],
     "SystemReportingFileSystemContainerInterface": [
       "SystemReportingFileSystemItem",

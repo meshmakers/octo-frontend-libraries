@@ -96,6 +96,53 @@ describe('CommunicationService', () => {
     });
   });
 
+  describe('notification subscriptions', () => {
+    const subscriptionRtId = '670000000000000000009000';
+
+    it('should POST the subscription deploy endpoint', async () => {
+      const promise = service.deployNotificationSubscription(tenantId, subscriptionRtId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/notifications/subscriptions/${subscriptionRtId}/deploy`);
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+
+    it('should POST the subscription undeploy endpoint', async () => {
+      const promise = service.undeployNotificationSubscription(tenantId, subscriptionRtId);
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/notifications/subscriptions/${subscriptionRtId}/undeploy`);
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+
+    it('should POST the schedule sync endpoint', async () => {
+      const promise = service.syncNotificationSchedule(tenantId);
+
+      const req = httpMock.expectOne(`${mockConfig.communicationServices}${tenantId}/v1/notifications/schedule/sync`);
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+
+    it('should sync only one preference when its rtId is given', async () => {
+      const promise = service.syncNotificationSchedule(tenantId, 'pref-1');
+
+      const req = httpMock.expectOne(
+        `${mockConfig.communicationServices}${tenantId}/v1/notifications/schedule/sync?preferenceRtId=pref-1`);
+      expect(req.request.method).toBe('POST');
+      req.flush(null);
+
+      await promise;
+    });
+  });
+
   describe('deployTrigger', () => {
     it('should call the correct endpoint', async () => {
       const promise = service.deployTrigger(tenantId);
@@ -496,6 +543,21 @@ describe('CommunicationService', () => {
     it('getPipelineExecutions should return empty array', async () => {
       const result = await service.getPipelineExecutions(tenantId, 'p1', 'type', 0, 10);
       expect(result).toEqual([]);
+      httpMock.expectNone(() => true);
+    });
+
+    it('deployNotificationSubscription should not make HTTP call', async () => {
+      await service.deployNotificationSubscription(tenantId, 'sub-1');
+      httpMock.expectNone(() => true);
+    });
+
+    it('undeployNotificationSubscription should not make HTTP call', async () => {
+      await service.undeployNotificationSubscription(tenantId, 'sub-1');
+      httpMock.expectNone(() => true);
+    });
+
+    it('syncNotificationSchedule should not make HTTP call', async () => {
+      await service.syncNotificationSchedule(tenantId);
       httpMock.expectNone(() => true);
     });
   });

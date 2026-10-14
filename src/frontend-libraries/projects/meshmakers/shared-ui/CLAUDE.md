@@ -41,6 +41,13 @@ npm run test:shared-ui
 | `OctoBotComponent` | `mm-octobot` | Animated mascot `<img>` from library assets (`OCTOBOT_ASSET_BASE_URL`), still under reduced motion; never in rows/tiles/buttons/toasts (AB#3444, `docs/octobot.md`) |
 | `EmptyStateComponent` | `mm-empty-state` | Empty (`idle`) / no-results (`look`) / error (no figure, "Try again") block; `mm-list-view [emptyState]` renders it once per list |
 
+### EntitySelectInput: emptying the input clears the value
+
+`mm-entity-select-input` is a CVA whose value is the selected entity. An empty `valueChange` - Kendo's
+built-in clear button (`[clearButton]="true"`) or a field emptied by hand - resets the value to `null`
+and emits `entityCleared` once. Typing other text over a selected entity does not clear it; the value
+changes only when another entity is picked. Pinned by `entity-select-input.component.spec.ts`.
+
 ### Dialog Services Pattern
 
 All complex dialogs use the service pattern — inject the service, call `show*()` method, get back a `DialogRef` or `Promise`:

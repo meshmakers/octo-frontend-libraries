@@ -549,6 +549,42 @@ export class CommunicationService {
   }
 
   /**
+   * Deploys a notification subscription: its recipients start getting mails on their
+   * schedules, and the notification engine is deployed if it is not yet.
+   */
+  async deployNotificationSubscription(tenantId: string, subscriptionRtId: string): Promise<void> {
+    if (!this.communicationServicesUrl) {
+      return;
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/notifications/subscriptions/${subscriptionRtId}/deploy`;
+    await firstValueFrom(this.httpClient.post<void>(uri, null));
+  }
+
+  /**
+   * Undeploys a notification subscription; its preferences are kept.
+   */
+  async undeployNotificationSubscription(tenantId: string, subscriptionRtId: string): Promise<void> {
+    if (!this.communicationServicesUrl) {
+      return;
+    }
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/notifications/subscriptions/${subscriptionRtId}/undeploy`;
+    await firstValueFrom(this.httpClient.post<void>(uri, null));
+  }
+
+  /**
+   * Brings the notification schedule in line after a preference was saved or deleted: only that
+   * preference when its rtId is given, otherwise the whole tenant schedule.
+   */
+  async syncNotificationSchedule(tenantId: string, preferenceRtId?: string): Promise<void> {
+    if (!this.communicationServicesUrl) {
+      return;
+    }
+    const params = preferenceRtId ? new HttpParams().set('preferenceRtId', preferenceRtId) : undefined;
+    const uri = `${this.communicationServicesUrl}${tenantId}/v1/notifications/schedule/sync`;
+    await firstValueFrom(this.httpClient.post<void>(uri, null, { params }));
+  }
+
+  /**
    * Gets the deployment status of a pipeline.
    */
   async getPipelineStatus(

@@ -364,12 +364,16 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   }
 
   onSelectionChange(value: string): void {
-    if (value && typeof value === 'string') {
-      // Find the entity that matches the selected display text
-      const entity = this.entityMap.get(value);
-      if (entity) {
-        this.selectEntity(entity);
+    if (!value) {
+      if (this.selectedEntity) {
+        this.clearSelection();
       }
+      return;
+    }
+    // Find the entity that matches the selected display text
+    const entity = this.entityMap.get(value);
+    if (entity) {
+      this.selectEntity(entity);
     }
   }
 
@@ -396,12 +400,10 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
 
   // Public methods
   public clear(): void {
-    this.selectedEntity = null;
     this.filteredEntities = [];
     this.entityMap.clear();
     this.searchFormControl.setValue('', {emitEvent: false});
-    this.onChange(null);
-    this.entityCleared.emit();
+    this.clearSelection();
     this.autocomplete.focus();
   }
 
@@ -416,6 +418,12 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   }
 
   // Private methods
+  private clearSelection(): void {
+    this.selectedEntity = null;
+    this.onChange(null);
+    this.entityCleared.emit();
+  }
+
   private setupSearch(): void {
     this.searchSubject.pipe(
       debounceTime(this.debounceMs),
