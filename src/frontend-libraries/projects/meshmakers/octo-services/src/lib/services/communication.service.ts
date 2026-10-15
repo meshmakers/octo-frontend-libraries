@@ -34,8 +34,7 @@ export class CommunicationService {
 
   /** Headers to prevent browser caching of debug/execution data. */
   private readonly noCacheHeaders = new HttpHeaders()
-    .set('Cache-Control', 'no-cache, no-store')
-    .set('Pragma', 'no-cache');
+    .set('Cache-Control', 'no-cache, no-store');
 
   /**
    * Gets the base URL for communication services.

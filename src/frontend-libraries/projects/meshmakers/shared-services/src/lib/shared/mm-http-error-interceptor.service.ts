@@ -38,6 +38,21 @@ export const ON_CONNECTION_LOST = new InjectionToken<() => void>('ON_CONNECTION_
 export const MM_CALLER_HANDLED_STATUSES = new HttpContextToken<readonly number[]>(() => []);
 
 /**
+ * Marks one request as optional (a probe or a widget read the page can do without): when it fails
+ * at network level (status 0 — CORS rejection, DNS, offline) the interceptor does NOT treat that as
+ * a lost backend connection, so neither `ON_CONNECTION_LOST` (the host's full-screen overlay) nor
+ * the generic toast fires; the caller degrades locally. The error is still rethrown. A real outage
+ * is still detected by the non-optional calls of the host (configuration, health, GraphQL).
+ * HTTP responses (403, 400, ...) are reported as for any other request.
+ *
+ * @example
+ * ```typescript
+ * http.get(url, { context: new HttpContext().set(MM_OPTIONAL_REQUEST, true) });
+ * ```
+ */
+export const MM_OPTIONAL_REQUEST = new HttpContextToken<boolean>(() => false);
+
+/**
  * How the interceptor reports a failed response to the user. `null` means it stays silent and the
  * caller is the only one who can tell the user anything.
  */
@@ -61,6 +76,13 @@ function isHttpErrorResponse(error: unknown): error is HttpErrorLike {
 @Injectable()
 export class MmHttpErrorInterceptor implements HttpInterceptor {
 
+  /**
+   * Status-0 errors of `MM_OPTIONAL_REQUEST` requests the interceptor deliberately stayed silent
+   * about (AB#6619). `reportsToUser` only receives the error, not the request context, so it
+   * recognises these by identity — the interceptor rethrows the very same object.
+   */
+  private static readonly silencedOptionalErrors = new WeakSet<object>();
+
   private readonly messageService = inject(MessageService);
   private readonly onConnectionLost = inject(ON_CONNECTION_LOST, { optional: true });
 
@@ -74,6 +96,7 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
    */
   public static reportsToUser(error: unknown): boolean {
     return isHttpErrorResponse(error)
+      && !MmHttpErrorInterceptor.silencedOptionalErrors.has(error)
       && MmHttpErrorInterceptor.classify(error, error.url) !== null;
   }
 
@@ -83,6 +106,12 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
 
         if (request.context.get(MM_CALLER_HANDLED_STATUSES).includes(error.status)) {
+          return throwError(() => error);
+        }
+
+        if (error.status === 0 && request.context.get(MM_OPTIONAL_REQUEST)) {
+          MmHttpErrorInterceptor.silencedOptionalErrors.add(error);
+          console.debug('Optional request failed at network level, not treated as connection loss', request.url);
           return throwError(() => error);
         }
 
