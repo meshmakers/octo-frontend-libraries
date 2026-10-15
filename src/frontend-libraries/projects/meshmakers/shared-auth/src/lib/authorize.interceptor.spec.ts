@@ -744,6 +744,57 @@ describe('authorizeInterceptor (401 refresh and retry)', () => {
     expect(errors[0].status).toBe(401);
   }));
 
+  describe('health report (AB#6739)', () => {
+    it('should send the bearer to a known service health URL', fakeAsync(() => {
+      http.get('https://auth.example.com/health').subscribe();
+
+      const request = httpMock.expectOne('https://auth.example.com/health');
+      expect(request.request.headers.get('Authorization')).toBe(`Bearer ${OLD_TOKEN}`);
+      request.flush({ status: 'Healthy' });
+      tick();
+    }));
+
+    it('should surface a 401 without refreshing the token or retrying', fakeAsync(() => {
+      refreshYieldsNewToken();
+
+      const errors: HttpErrorResponse[] = [];
+      http.get('https://auth.example.com/health').subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
+
+      unauthorized(httpMock.expectOne('https://auth.example.com/health'));
+      tick();
+
+      expect(authServiceMock.refreshAccessToken).not.toHaveBeenCalled();
+      expect(errors).toHaveLength(1);
+      expect(errors[0].status).toBe(401);
+      httpMock.expectNone('https://auth.example.com/health');
+    }));
+
+    it.each(['https://auth.example.com/health/', 'https://auth.example.com/health?x=1', 'https://auth.example.com/health#top'])(
+      'should treat %s as the health report as well', fakeAsync((url: string) => {
+        const errors: HttpErrorResponse[] = [];
+        http.get(url).subscribe({ error: (err: HttpErrorResponse) => errors.push(err) });
+
+        unauthorized(httpMock.expectOne(url));
+        tick();
+
+        expect(authServiceMock.refreshAccessToken).not.toHaveBeenCalled();
+        expect(errors[0].status).toBe(401);
+      }));
+
+    it('should still refresh a 401 on a path that merely starts with health', fakeAsync(() => {
+      refreshYieldsNewToken();
+
+      http.get('https://auth.example.com/healthz/live').subscribe();
+
+      unauthorized(httpMock.expectOne('https://auth.example.com/healthz/live'));
+      tick();
+
+      expect(authServiceMock.refreshAccessToken).toHaveBeenCalledTimes(1);
+      httpMock.expectOne('https://auth.example.com/healthz/live').flush({});
+      tick();
+    }));
+  });
+
   it('should NOT refresh a 401 from the token endpoint itself', fakeAsync(() => {
     refreshYieldsNewToken();
 

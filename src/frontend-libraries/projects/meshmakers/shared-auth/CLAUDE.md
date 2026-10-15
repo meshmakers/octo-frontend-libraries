@@ -144,9 +144,12 @@ stable on purpose — the framework's English `error_description` is prose that 
 may reword. A `401` carrying no challenge keeps the old behaviour and is refreshed, so services
 that have not adopted it lose nothing.
 
-Never retried: requests without a token, and the token endpoint itself
-(`/connect/token`), matched on the path with query string, fragment and trailing slashes
-stripped. Letting one through does not recurse loudly — it deadlocks silently: the refresh
+Never retried: requests without a token, the service health report (`<service>/health`, AB#6739:
+it needs a Bearer token now, the token is attached, but a `401` goes straight to the caller —
+`HealthService` turns it into "unknown" — because the report is polled and a refusing service
+would otherwise cost one refresh grant per poll, a failed refresh clearing the session), and the
+token endpoint itself (`/connect/token`), both matched on the path with query string, fragment
+and trailing slashes stripped. Letting one through does not recurse loudly — it deadlocks silently: the refresh
 posts to that endpoint through this chain, so the single-flight promise waits on itself,
 never settles, never runs its `finally`, and every later 401 in the page then awaits a
 promise that cannot resolve. **Therefore `refreshAccessToken()` must issue no other

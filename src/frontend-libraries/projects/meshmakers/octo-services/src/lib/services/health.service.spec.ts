@@ -158,6 +158,18 @@ describe('HealthService', () => {
       const result = await resultPromise;
       expect(result).toBeNull();
     });
+
+    // AB#6739: /health needs a Bearer token now. A refused token must read as "unknown" (null),
+    // never as a thrown error that would break the cockpit or the widgets.
+    it.each([401, 403])('should return null on %s without throwing', async (status) => {
+      vi.spyOn(console, 'error').mockReturnValue(undefined);
+      const resultPromise = service.getAssetRepoServiceHealthAsync();
+
+      const req = httpMock.expectOne(expectedUrl);
+      req.flush('', { status, statusText: 'Refused' });
+
+      await expect(resultPromise).resolves.toBeNull();
+    });
   });
 
   describe('getIdentityServiceAsync', () => {
