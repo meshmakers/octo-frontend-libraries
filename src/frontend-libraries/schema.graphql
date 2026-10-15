@@ -800,7 +800,7 @@ type BasicAsset_EventSourceUnionEdge {
 }
 
 """Union of types derived from Basic/Asset for RelatesFrom association"""
-union BasicAsset_RelatesFromUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration
+union BasicAsset_RelatesFromUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration | SystemNotificationNotificationSubscription | SystemNotificationNotificationPreference | SystemNotificationNotificationDeliveryState
 
 """A connection to `BasicAsset_RelatesFromUnion`."""
 type BasicAsset_RelatesFromUnionConnection {
@@ -10433,7 +10433,7 @@ type BasicTreeNode_ParentUnionEdge {
 }
 
 """Union of types derived from Basic/TreeNode for RelatesTo association"""
-union BasicTreeNode_RelatesToUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration
+union BasicTreeNode_RelatesToUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration | SystemNotificationNotificationSubscription | SystemNotificationNotificationPreference | SystemNotificationNotificationDeliveryState
 
 """A connection to `BasicTreeNode_RelatesToUnion`."""
 type BasicTreeNode_RelatesToUnionConnection {
@@ -37673,6 +37673,9 @@ type OctoSubscriptions {
   systemUISymbolLibraryEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemUISymbolLibraryUpdateMessage
   systemUITreeNavigationConfigurationEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemUITreeNavigationConfigurationUpdateMessage
   systemUIUIElementEvents(beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter], rtId: OctoObjectId, updateTypes: [UpdateType]!): SystemUIUIElementUpdateMessage
+  systemNotificationNotificationSubscriptionEvents(rtId: OctoObjectId, updateTypes: [UpdateType]!, beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter]): SystemNotificationNotificationSubscriptionUpdateMessage
+  systemNotificationNotificationPreferenceEvents(rtId: OctoObjectId, updateTypes: [UpdateType]!, beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter]): SystemNotificationNotificationPreferenceUpdateMessage
+  systemNotificationNotificationDeliveryStateEvents(rtId: OctoObjectId, updateTypes: [UpdateType]!, beforeFieldFilter: [FieldFilter], fieldFilter: [FieldFilter]): SystemNotificationNotificationDeliveryStateUpdateMessage
 }
 
 """Information about pagination in a connection."""
@@ -39451,6 +39454,18 @@ type Runtime {
 
   """Mutation for entities of type 'SystemUITreeNavigationConfiguration'."""
   systemUITreeNavigationConfigurations: SystemUITreeNavigationConfigurationMutations
+  """
+  Mutation for entities of type 'SystemNotificationNotificationSubscription'.
+  """
+  systemNotificationNotificationSubscriptions: SystemNotificationNotificationSubscriptionMutations
+  """
+  Mutation for entities of type 'SystemNotificationNotificationPreference'.
+  """
+  systemNotificationNotificationPreferences: SystemNotificationNotificationPreferenceMutations
+  """
+  Mutation for entities of type 'SystemNotificationNotificationDeliveryState'.
+  """
+  systemNotificationNotificationDeliveryStates: SystemNotificationNotificationDeliveryStateMutations
 }
 
 type RuntimeModelQuery {
@@ -46462,6 +46477,90 @@ type RuntimeModelQuery {
 
   """Transient runtime queries"""
   transientQuery: RtTransient!
+  systemNotificationNotificationSubscription(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Global options to apply to the query, for example to include archived items.
+    """
+    options: GlobalQueryOptions
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Geospatial filter for items, that searches for items near a point"""
+    geoNearFilter: NearGeospatialFilter
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+  ): SystemNotificationNotificationSubscriptionConnection
+  systemNotificationNotificationPreference(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Global options to apply to the query, for example to include archived items.
+    """
+    options: GlobalQueryOptions
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Geospatial filter for items, that searches for items near a point"""
+    geoNearFilter: NearGeospatialFilter
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+  ): SystemNotificationNotificationPreferenceConnection
+  systemNotificationNotificationDeliveryState(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Global options to apply to the query, for example to include archived items.
+    """
+    options: GlobalQueryOptions
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Geospatial filter for items, that searches for items near a point"""
+    geoNearFilter: NearGeospatialFilter
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+  ): SystemNotificationNotificationDeliveryStateConnection
 }
 
 input SearchFilter {
@@ -47600,6 +47699,32 @@ type SystemAggregationRtQuery implements SystemEntityInterface & SystemPersisten
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   textSearchFilter: SystemTextSearchFilter
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemAggregationRtQuery`."""
@@ -47657,6 +47782,7 @@ input SystemAggregationRtQueryInput {
   rtWellKnownName: String
   taggedBy: [RtAssociationInput]
   textSearchFilter: SystemTextSearchFilterInput
+  notificationSubscriptions: [RtAssociationInput]
 }
 
 input SystemAggregationRtQueryInputUpdate {
@@ -47970,6 +48096,32 @@ type SystemAggregationSdQuery implements SystemEntityInterface & SystemPersisten
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   to: DateTime
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemAggregationSdQuery`."""
@@ -48030,6 +48182,7 @@ input SystemAggregationSdQueryInput {
   rtWellKnownName: String
   taggedBy: [RtAssociationInput]
   to: DateTime
+  notificationSubscriptions: [RtAssociationInput]
 }
 
 input SystemAggregationSdQueryInputUpdate {
@@ -71697,6 +71850,32 @@ type SystemDownsamplingSdQuery implements SystemEntityInterface & SystemPersiste
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   to: DateTime
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemDownsamplingSdQuery`."""
@@ -71757,6 +71936,7 @@ input SystemDownsamplingSdQueryInput {
   rtWellKnownName: String
   taggedBy: [RtAssociationInput]
   to: DateTime
+  notificationSubscriptions: [RtAssociationInput]
 }
 
 input SystemDownsamplingSdQueryInputUpdate {
@@ -72317,7 +72497,7 @@ type SystemEntityUpdateMessage {
 }
 
 """Union of types derived from System/Entity for Configures association"""
-union SystemEntity_ConfiguresUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration
+union SystemEntity_ConfiguresUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration | SystemNotificationNotificationSubscription | SystemNotificationNotificationPreference | SystemNotificationNotificationDeliveryState
 
 """A connection to `SystemEntity_ConfiguresUnion`."""
 type SystemEntity_ConfiguresUnionConnection {
@@ -72356,7 +72536,7 @@ type SystemEntity_ConfiguresUnionEdge {
 }
 
 """Union of types derived from System/Entity for IsTagging association"""
-union SystemEntity_IsTaggingUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration
+union SystemEntity_IsTaggingUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration | SystemNotificationNotificationSubscription | SystemNotificationNotificationPreference | SystemNotificationNotificationDeliveryState
 
 """A connection to `SystemEntity_IsTaggingUnion`."""
 type SystemEntity_IsTaggingUnionConnection {
@@ -72397,7 +72577,7 @@ type SystemEntity_IsTaggingUnionEdge {
 """
 Union of types derived from System/Entity for MappedAsSource association
 """
-union SystemEntity_MappedAsSourceUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration
+union SystemEntity_MappedAsSourceUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration | SystemNotificationNotificationSubscription | SystemNotificationNotificationPreference | SystemNotificationNotificationDeliveryState
 
 """A connection to `SystemEntity_MappedAsSourceUnion`."""
 type SystemEntity_MappedAsSourceUnionConnection {
@@ -72438,7 +72618,7 @@ type SystemEntity_MappedAsSourceUnionEdge {
 """
 Union of types derived from System/Entity for MappedAsTarget association
 """
-union SystemEntity_MappedAsTargetUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration
+union SystemEntity_MappedAsTargetUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration | SystemNotificationNotificationSubscription | SystemNotificationNotificationPreference | SystemNotificationNotificationDeliveryState
 
 """A connection to `SystemEntity_MappedAsTargetUnion`."""
 type SystemEntity_MappedAsTargetUnionConnection {
@@ -72477,7 +72657,7 @@ type SystemEntity_MappedAsTargetUnionEdge {
 }
 
 """Union of types derived from System/Entity for RelatesFrom association"""
-union SystemEntity_RelatesFromUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration
+union SystemEntity_RelatesFromUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration | SystemNotificationNotificationSubscription | SystemNotificationNotificationPreference | SystemNotificationNotificationDeliveryState
 
 """A connection to `SystemEntity_RelatesFromUnion`."""
 type SystemEntity_RelatesFromUnionConnection {
@@ -72516,7 +72696,7 @@ type SystemEntity_RelatesFromUnionEdge {
 }
 
 """Union of types derived from System/Entity for RelatesTo association"""
-union SystemEntity_RelatesToUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration
+union SystemEntity_RelatesToUnion = BasicAsset | BasicCity | BasicCountry | BasicDistrict | BasicEmployee | BasicEnergyConsentPeriod | BasicEnergyConsumer | BasicEnergyEdaMessage | BasicEnergyEdaMeteringPoint | BasicEnergyEdaProcess | BasicEnergyEnergyMeasurement | BasicEnergyOperatingFacility | BasicEnergyProducer | BasicState | BasicTree | BasicTreeNode | EnergyCommunityBillingDocument | EnergyCommunityBillingDocumentLineItem | EnergyCommunityConsumer | EnergyCommunityCustomer | EnergyCommunityEnergyPrice | EnergyCommunityParticipationPeriod | EnergyCommunityProducer | EnvironmentCarbonBudget | EnvironmentCarbonEmission | EnvironmentCertificateOfOrigin | EnvironmentComplianceRecord | EnvironmentEnvironmentalGoal | EnvironmentWasteMeter | IndustryBasicAlarm | IndustryBasicEvent | IndustryBasicMachine | IndustryBasicRuntimeVariable | IndustryEnergyDemandResponseEvent | IndustryEnergyEnergyConsumer | IndustryEnergyEnergyCost | IndustryEnergyEnergyForecast | IndustryEnergyEnergyMeter | IndustryEnergyEnergyPerformanceIndicator | IndustryEnergyEnergyStorage | IndustryEnergyInverter | IndustryEnergyPhotovoltaicSystem | IndustryEnergyPhotovoltaicSystemModule | IndustryEnergyPhotovoltaicSystemString | IndustryFluidHeatMeter | IndustryFluidWaterMeter | IndustryMaintenanceAccount | IndustryMaintenanceCostCenter | IndustryMaintenanceEmployee | IndustryMaintenanceEnergyBalance | IndustryMaintenanceJournalEntry | IndustryMaintenanceOrder | IndustryMaintenanceOrderCosts | IndustryMaintenanceOrderFeedback | IndustryMaintenanceWorkplace | IndustryManufacturingPartialFeedback | IndustryManufacturingProductionOrder | IndustryManufacturingProductionOrderItem | IndustryManufacturingShift | IndustryManufacturingShiftMachine | IndustryManufacturingShiftOrderItem | IndustryManufacturingShiftTemplate | OctoSdkDemoCustomer | OctoSdkDemoMeteringPoint | OctoSdkDemoOperatingFacility | SystemAggregationRtQuery | SystemAggregationSdQuery | SystemAiAiAgentConfig | SystemAiAiAgentJob | SystemAiAiAgentSession | SystemAiAiApprovalRequest | SystemAiAiAuditEvent | SystemAiAiCredentialBinding | SystemAiAiCredentialTicket | SystemAiAiKnowledgeSource | SystemAiAiPromptTemplate | SystemAiAiQuotaLimit | SystemAiAiSessionEvent | SystemAiAiTokenLease | SystemAiAiToolPolicy | SystemAiAiUsageRecord | SystemAutoIncrement | SystemBlueprintBackup | SystemBlueprintHistory | SystemBlueprintInstallation | SystemBotAttributeAggregateConfiguration | SystemBotFixup | SystemCommunicationAdapter | SystemCommunicationAdapterPool | SystemCommunicationAiConfiguration | SystemCommunicationApplication | SystemCommunicationDataFlow | SystemCommunicationDataPointMapping | SystemCommunicationDeploymentSite | SystemCommunicationDiscordConfiguration | SystemCommunicationEMailReceiverConfiguration | SystemCommunicationEMailSenderConfiguration | SystemCommunicationEdaConfiguration | SystemCommunicationEnergyCommunityConfiguration | SystemCommunicationFinApiConfiguration | SystemCommunicationGrafanaConfiguration | SystemCommunicationHelmRepositoryConfiguration | SystemCommunicationLentAdapterPool | SystemCommunicationLoxoneConfiguration | SystemCommunicationMicrosoftGraphConfiguration | SystemCommunicationPipeline | SystemCommunicationPipelineExecution | SystemCommunicationPipelineStatistics | SystemCommunicationPipelineTrigger | SystemCommunicationSapConfiguration | SystemCommunicationServiceAccountConfiguration | SystemCommunicationSftpConfiguration | SystemCommunicationSignalChannel | SystemCommunicationTag | SystemCommunicationWeClappConfiguration | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemIdentityApiResource | SystemIdentityApiScope | SystemIdentityAzureEntraIdIdentityProvider | SystemIdentityClient | SystemIdentityClientMirror | SystemIdentityDataPermission | SystemIdentityDataPolicy | SystemIdentityDataProtectionKey | SystemIdentityEmailDomainGroupRule | SystemIdentityExternalTenantUserMapping | SystemIdentityFacebookIdentityProvider | SystemIdentityGoogleIdentityProvider | SystemIdentityGroup | SystemIdentityIdentityResource | SystemIdentityMicrosoftAdIdentityProvider | SystemIdentityMicrosoftIdentityProvider | SystemIdentityOAuthAuthorization | SystemIdentityOAuthToken | SystemIdentityOctoTenantIdentityProvider | SystemIdentityOpenLdapIdentityProvider | SystemIdentityPermission | SystemIdentityPermissionRole | SystemIdentityPersistedGrant | SystemIdentityRole | SystemIdentityServerSideSession | SystemIdentityUser | SystemIdentityVerifiedExternalIdentifier | SystemMigrationHistory | SystemNotificationCssTemplateConfiguration | SystemNotificationEvent | SystemNotificationMailNotificationConfiguration | SystemNotificationNotificationTemplate | SystemNotificationStatefulEvent | SystemReportingConnectionInfo | SystemReportingFileSystemItem | SystemReportingFolder | SystemReportingFolderRoot | SystemSimpleRtQuery | SystemSimpleSdQuery | SystemStreamDataRawArchive | SystemStreamDataRecomputeJob | SystemStreamDataRollupArchive | SystemStreamDataTimeRangeArchive | SystemTenant | SystemTenantConfiguration | SystemTenantModeConfiguration | SystemUIBranding | SystemUIDashboard | SystemUIDashboardWidget | SystemUIEntityForm | SystemUIMappingCoverageConfiguration | SystemUIProcessDiagram | SystemUISymbolDefinition | SystemUISymbolLibrary | SystemUITreeNavigationConfiguration | SystemNotificationNotificationSubscription | SystemNotificationNotificationPreference | SystemNotificationNotificationDeliveryState
 
 """A connection to `SystemEntity_RelatesToUnion`."""
 type SystemEntity_RelatesToUnionConnection {
@@ -72924,6 +73104,32 @@ type SystemGroupingAggregationRtQuery implements SystemEntityInterface & SystemP
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   textSearchFilter: SystemTextSearchFilter
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemGroupingAggregationRtQuery`."""
@@ -72982,6 +73188,7 @@ input SystemGroupingAggregationRtQueryInput {
   rtWellKnownName: String
   taggedBy: [RtAssociationInput]
   textSearchFilter: SystemTextSearchFilterInput
+  notificationSubscriptions: [RtAssociationInput]
 }
 
 input SystemGroupingAggregationRtQueryInputUpdate {
@@ -73296,6 +73503,32 @@ type SystemGroupingAggregationSdQuery implements SystemEntityInterface & SystemP
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   to: DateTime
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemGroupingAggregationSdQuery`."""
@@ -73357,6 +73590,7 @@ input SystemGroupingAggregationSdQueryInput {
   rtWellKnownName: String
   taggedBy: [RtAssociationInput]
   to: DateTime
+  notificationSubscriptions: [RtAssociationInput]
 }
 
 input SystemGroupingAggregationSdQueryInputUpdate {
@@ -86259,7 +86493,7 @@ enum SystemNavigationFilterModes {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.3.0/CssTemplateConfiguration-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1'
 """
 type SystemNotificationCssTemplateConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -86651,7 +86885,7 @@ type SystemNotificationCssTemplateConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.3.0/Event-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1'
 """
 type SystemNotificationEvent implements SystemEntityInterface {
   associations(
@@ -87063,7 +87297,7 @@ type SystemNotificationEventUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.3.0/MailNotificationConfiguration-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1'
 """
 type SystemNotificationMailNotificationConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -87457,7 +87691,7 @@ type SystemNotificationMailNotificationConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.3.0/NotificationTemplate-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1'
 """
 type SystemNotificationNotificationTemplate implements SystemEntityInterface {
   associations(
@@ -87730,6 +87964,32 @@ type SystemNotificationNotificationTemplate implements SystemEntityInterface {
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   type: SystemNotificationNotificationTypes!
+  subscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_SubscriptionsUnionConnection
 }
 
 """A connection to `SystemNotificationNotificationTemplate`."""
@@ -87783,6 +88043,7 @@ input SystemNotificationNotificationTemplateInput {
   subjectTemplate: String
   taggedBy: [RtAssociationInput]
   type: SystemNotificationNotificationTypes
+  subscriptions: [RtAssociationInput]
 }
 
 input SystemNotificationNotificationTemplateInputUpdate {
@@ -87835,7 +88096,7 @@ enum SystemNotificationRenderingTypes {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.3.0/StatefulEvent-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1'
 """
 type SystemNotificationStatefulEvent implements SystemEntityInterface {
   associations(
@@ -88467,6 +88728,32 @@ type SystemPersistentQuery implements SystemEntityInterface {
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemPersistentQuery`."""
@@ -88717,6 +89004,28 @@ interface SystemPersistentQueryInterface {
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
+  notificationSubscriptions(
+    """Returns the first n elements from the list."""
+    first: Int
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """Aggregations description"""
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 type SystemPersistentQueryUpdate {
@@ -91817,6 +92126,32 @@ type SystemSimpleRtQuery implements SystemEntityInterface & SystemPersistentQuer
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   textSearchFilter: SystemTextSearchFilter
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemSimpleRtQuery`."""
@@ -91875,6 +92210,7 @@ input SystemSimpleRtQueryInput {
   sorting: [SystemSortOrderItemInput]
   taggedBy: [RtAssociationInput]
   textSearchFilter: SystemTextSearchFilterInput
+  notificationSubscriptions: [RtAssociationInput]
 }
 
 input SystemSimpleRtQueryInputUpdate {
@@ -92189,6 +92525,32 @@ type SystemSimpleSdQuery implements SystemEntityInterface & SystemPersistentQuer
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   to: DateTime
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemSimpleSdQuery`."""
@@ -92250,6 +92612,7 @@ input SystemSimpleSdQueryInput {
   sorting: [SystemSortOrderItemInput]
   taggedBy: [RtAssociationInput]
   to: DateTime
+  notificationSubscriptions: [RtAssociationInput]
 }
 
 input SystemSimpleSdQueryInputUpdate {
@@ -93505,6 +93868,32 @@ type SystemStreamDataQuery implements SystemEntityInterface & SystemPersistentQu
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   to: DateTime
+  notificationSubscriptions(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 """A connection to `SystemStreamDataQuery`."""
@@ -93761,6 +94150,28 @@ interface SystemStreamDataQueryInterface {
     sortOrder: [Sort]
   ): SystemCommunicationTag_TaggedByUnionConnection
   to: DateTime
+  notificationSubscriptions(
+    """Returns the first n elements from the list."""
+    first: Int
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """Aggregations description"""
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection
 }
 
 type SystemStreamDataQueryUpdate {
@@ -100873,4 +101284,1341 @@ type statistics {
 
   """Statistic value"""
   value: SimpleScalar
+}
+
+"""
+A connection to `SystemNotificationNotificationSubscription_NotificationSubscriptionsUnion`.
+"""
+type SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationSubscription_NotificationSubscriptionsUnion]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionEdge]
+}
+
+"""
+Union of types derived from System.Notification/NotificationSubscription for NotificationSubscriptions association
+"""
+union SystemNotificationNotificationSubscription_NotificationSubscriptionsUnion = SystemNotificationNotificationSubscription
+
+"""
+Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1'
+"""
+type SystemNotificationNotificationSubscription implements SystemEntityInterface {
+  rtId: OctoObjectId!
+  ckTypeId: RtCkTypeId!
+  rtCreationDateTime: DateTime
+  rtChangedDateTime: DateTime
+  rtWellKnownName: String
+  """
+  Subject id of the identity that created the entity (engine-stamped; read-only).
+  """
+  rtCreatedBy: String
+  """
+  Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value.
+  """
+  rtDisplayName: String!
+  """
+  Engine-computed display description (from the CK type's displayDescriptionRule).
+  """
+  rtDisplayDescription: String
+  rtVersion: ULong
+  constructionKitType: CkType
+  associations(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """The role id of the association."""
+    roleId: String!
+    """
+    Include indirect associations, otherwise direct associations are returned.
+    """
+    includeIndirect: Boolean
+    """The direction of the association."""
+    direction: GraphDirection!
+    """The construction kit type with the given id."""
+    ckId: String!
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+  ): RtEntityGenericDtoConnection
+  name: String!
+  description: String
+  enabled: Boolean!
+  rtBlueprintSource: String
+  rtBlueprintLocked: Boolean
+  rtBlueprintAppliedAt: DateTime
+  query(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemPersistentQuery_QueryUnionConnection
+  template(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationTemplate_TemplateUnionConnection
+  relatesTo(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemEntity_RelatesToUnionConnection
+  relatesFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemEntity_RelatesFromUnionConnection
+  configuredBy(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  mapsFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationDataPointMapping_MapsFromUnionConnection
+  mapsTo(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationDataPointMapping_MapsToUnionConnection
+  taggedBy(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationTag_TaggedByUnionConnection
+  preferences(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationPreference_PreferencesUnionConnection
+  deployedAt: DateTime
+}
+
+"""
+A connection to `SystemNotificationNotificationSubscription_SubscriptionsUnion`.
+"""
+type SystemNotificationNotificationSubscription_SubscriptionsUnionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationSubscription_SubscriptionsUnion]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationSubscription_SubscriptionsUnionEdge]
+}
+
+"""
+Union of types derived from System.Notification/NotificationSubscription for Subscriptions association
+"""
+union SystemNotificationNotificationSubscription_SubscriptionsUnion = SystemNotificationNotificationSubscription
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationSubscription_SubscriptionsUnion`.
+"""
+type SystemNotificationNotificationSubscription_SubscriptionsUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationSubscription_SubscriptionsUnion
+}
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationSubscription_NotificationSubscriptionsUnion`.
+"""
+type SystemNotificationNotificationSubscription_NotificationSubscriptionsUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationSubscription_NotificationSubscriptionsUnion
+}
+
+input SystemNotificationNotificationSubscriptionInput {
+  rtWellKnownName: String
+  name: String
+  description: String
+  enabled: Boolean
+  rtBlueprintSource: String
+  rtBlueprintLocked: Boolean
+  rtBlueprintAppliedAt: DateTime
+  query: [RtAssociationInput]
+  template: [RtAssociationInput]
+  relatesTo: [RtAssociationInput]
+  relatesFrom: [RtAssociationInput]
+  configuredBy: [RtAssociationInput]
+  mapsFrom: [RtAssociationInput]
+  mapsTo: [RtAssociationInput]
+  taggedBy: [RtAssociationInput]
+  preferences: [RtAssociationInput]
+  deployedAt: DateTime
+}
+
+"""A connection to `SystemNotificationNotificationSubscription`."""
+type SystemNotificationNotificationSubscriptionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationSubscription]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationSubscriptionEdge]
+}
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationSubscription`.
+"""
+type SystemNotificationNotificationSubscriptionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationSubscription
+}
+
+type SystemNotificationNotificationSubscriptionMutations {
+  """
+  Creates new entities of type 'SystemNotificationNotificationSubscription'.
+  """
+  create(entities: [SystemNotificationNotificationSubscriptionInput]!): [SystemNotificationNotificationSubscription]
+  """
+  Updates existing entity of type 'SystemNotificationNotificationSubscription'.
+  """
+  update(entities: [SystemNotificationNotificationSubscriptionInputUpdate]!): [SystemNotificationNotificationSubscription]
+}
+
+input SystemNotificationNotificationSubscriptionInputUpdate {
+  rtId: OctoObjectId
+  """Item to update"""
+  item: SystemNotificationNotificationSubscriptionInput!
+}
+
+type SystemNotificationNotificationSubscriptionUpdateMessage {
+  """The corresponding items"""
+  items: [SystemNotificationNotificationSubscriptionUpdate]
+}
+
+type SystemNotificationNotificationSubscriptionUpdate {
+  """The corresponding item"""
+  item: SystemNotificationNotificationSubscription
+  updateState: UpdateType
+}
+
+"""
+A connection to `SystemNotificationNotificationSubscription_SubscriptionUnion`.
+"""
+type SystemNotificationNotificationSubscription_SubscriptionUnionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationSubscription_SubscriptionUnion]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationSubscription_SubscriptionUnionEdge]
+}
+
+"""
+Union of types derived from System.Notification/NotificationSubscription for Subscription association
+"""
+union SystemNotificationNotificationSubscription_SubscriptionUnion = SystemNotificationNotificationSubscription
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationSubscription_SubscriptionUnion`.
+"""
+type SystemNotificationNotificationSubscription_SubscriptionUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationSubscription_SubscriptionUnion
+}
+
+"""
+Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1'
+"""
+type SystemNotificationNotificationPreference implements SystemEntityInterface {
+  rtId: OctoObjectId!
+  ckTypeId: RtCkTypeId!
+  rtCreationDateTime: DateTime
+  rtChangedDateTime: DateTime
+  rtWellKnownName: String
+  """
+  Subject id of the identity that created the entity (engine-stamped; read-only).
+  """
+  rtCreatedBy: String
+  """
+  Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value.
+  """
+  rtDisplayName: String!
+  """
+  Engine-computed display description (from the CK type's displayDescriptionRule).
+  """
+  rtDisplayDescription: String
+  rtVersion: ULong
+  constructionKitType: CkType
+  associations(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """The role id of the association."""
+    roleId: String!
+    """
+    Include indirect associations, otherwise direct associations are returned.
+    """
+    includeIndirect: Boolean
+    """The direction of the association."""
+    direction: GraphDirection!
+    """The construction kit type with the given id."""
+    ckId: String!
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+  ): RtEntityGenericDtoConnection
+  subjectId: String!
+  rtBlueprintSource: String
+  rtBlueprintLocked: Boolean
+  rtBlueprintAppliedAt: DateTime
+  subscription(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationSubscription_SubscriptionUnionConnection
+  relatesTo(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemEntity_RelatesToUnionConnection
+  relatesFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemEntity_RelatesFromUnionConnection
+  configuredBy(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  mapsFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationDataPointMapping_MapsFromUnionConnection
+  mapsTo(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationDataPointMapping_MapsToUnionConnection
+  taggedBy(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationTag_TaggedByUnionConnection
+  cronExpression: String!
+  skipExistingRows: Boolean!
+  timeZone: String
+  deliveryState(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationDeliveryState_DeliveryStateUnionConnection
+}
+
+"""
+A connection to `SystemNotificationNotificationPreference_PreferencesUnion`.
+"""
+type SystemNotificationNotificationPreference_PreferencesUnionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationPreference_PreferencesUnion]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationPreference_PreferencesUnionEdge]
+}
+
+"""
+Union of types derived from System.Notification/NotificationPreference for Preferences association
+"""
+union SystemNotificationNotificationPreference_PreferencesUnion = SystemNotificationNotificationPreference
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationPreference_PreferencesUnion`.
+"""
+type SystemNotificationNotificationPreference_PreferencesUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationPreference_PreferencesUnion
+}
+
+input SystemNotificationNotificationPreferenceInput {
+  rtWellKnownName: String
+  subjectId: String
+  rtBlueprintSource: String
+  rtBlueprintLocked: Boolean
+  rtBlueprintAppliedAt: DateTime
+  subscription: [RtAssociationInput]
+  relatesTo: [RtAssociationInput]
+  relatesFrom: [RtAssociationInput]
+  configuredBy: [RtAssociationInput]
+  mapsFrom: [RtAssociationInput]
+  mapsTo: [RtAssociationInput]
+  taggedBy: [RtAssociationInput]
+  cronExpression: String
+  skipExistingRows: Boolean
+  timeZone: String
+  deliveryState: [RtAssociationInput]
+}
+
+"""A connection to `SystemNotificationNotificationPreference`."""
+type SystemNotificationNotificationPreferenceConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationPreference]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationPreferenceEdge]
+}
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationPreference`.
+"""
+type SystemNotificationNotificationPreferenceEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationPreference
+}
+
+type SystemNotificationNotificationPreferenceMutations {
+  """
+  Creates new entities of type 'SystemNotificationNotificationPreference'.
+  """
+  create(entities: [SystemNotificationNotificationPreferenceInput]!): [SystemNotificationNotificationPreference]
+  """
+  Updates existing entity of type 'SystemNotificationNotificationPreference'.
+  """
+  update(entities: [SystemNotificationNotificationPreferenceInputUpdate]!): [SystemNotificationNotificationPreference]
+}
+
+input SystemNotificationNotificationPreferenceInputUpdate {
+  rtId: OctoObjectId
+  """Item to update"""
+  item: SystemNotificationNotificationPreferenceInput!
+}
+
+type SystemNotificationNotificationPreferenceUpdateMessage {
+  """The corresponding items"""
+  items: [SystemNotificationNotificationPreferenceUpdate]
+}
+
+type SystemNotificationNotificationPreferenceUpdate {
+  """The corresponding item"""
+  item: SystemNotificationNotificationPreference
+  updateState: UpdateType
+}
+
+"""
+Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1'
+"""
+type SystemNotificationNotificationDeliveryState implements SystemEntityInterface {
+  rtId: OctoObjectId!
+  ckTypeId: RtCkTypeId!
+  rtCreationDateTime: DateTime
+  rtChangedDateTime: DateTime
+  rtWellKnownName: String
+  """
+  Subject id of the identity that created the entity (engine-stamped; read-only).
+  """
+  rtCreatedBy: String
+  """
+  Engine-computed display name (from the CK type's displayNameRule). Falls back to '<ckTypeId>@<rtId>' when no computed value is stored. Filtering and sorting operate on the stored value.
+  """
+  rtDisplayName: String!
+  """
+  Engine-computed display description (from the CK type's displayDescriptionRule).
+  """
+  rtDisplayDescription: String
+  rtVersion: ULong
+  constructionKitType: CkType
+  associations(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """The role id of the association."""
+    roleId: String!
+    """
+    Include indirect associations, otherwise direct associations are returned.
+    """
+    includeIndirect: Boolean
+    """The direction of the association."""
+    direction: GraphDirection!
+    """The construction kit type with the given id."""
+    ckId: String!
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+  ): RtEntityGenericDtoConnection
+  processedUntil: DateTime
+  queryRtId: String
+  subjectId: String
+  skipExistingRows: Boolean
+  lastRunAt: DateTime
+  lastSentAt: DateTime
+  lastError: String
+  runningSince: DateTime
+  rtBlueprintSource: String
+  rtBlueprintLocked: Boolean
+  rtBlueprintAppliedAt: DateTime
+  preference(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemNotificationNotificationPreference_PreferenceUnionConnection
+  relatesTo(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemEntity_RelatesToUnionConnection
+  relatesFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemEntity_RelatesFromUnionConnection
+  configuredBy(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemBotAttributeAggregateConfiguration_ConfiguredByUnionConnection
+  mapsFrom(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationDataPointMapping_MapsFromUnionConnection
+  mapsTo(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationDataPointMapping_MapsToUnionConnection
+  taggedBy(
+    """Only return edges after the specified cursor."""
+    after: String
+    """
+    Specifies the maximum number of edges to return, starting after the cursor specified by 'after', or the first number of edges if 'after' is not specified.
+    """
+    first: Int
+    """
+    Filter by multiple CK type IDs (can include base types to include all derived types).
+    """
+    ckTypeIds: [String!]!
+    """Returns the entity with the given rtId."""
+    rtId: OctoObjectId
+    """Returns entities with the given rtIds."""
+    rtIds: [OctoObjectId]
+    """Filters items based on text search"""
+    searchFilter: SearchFilter
+    """Sort order for items"""
+    sortOrder: [Sort]
+    """Filters items based on field compare"""
+    fieldFilter: [FieldFilter]
+    """
+    Allows to define aggregations (min, max, sum, count, avg, ..) for a result set or a grouping of fields.
+    """
+    aggregations: ResultAggregationInput
+  ): SystemCommunicationTag_TaggedByUnionConnection
+}
+
+"""
+A connection to `SystemNotificationNotificationPreference_PreferenceUnion`.
+"""
+type SystemNotificationNotificationPreference_PreferenceUnionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationPreference_PreferenceUnion]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationPreference_PreferenceUnionEdge]
+}
+
+"""
+Union of types derived from System.Notification/NotificationPreference for Preference association
+"""
+union SystemNotificationNotificationPreference_PreferenceUnion = SystemNotificationNotificationPreference
+
+"""
+A connection to `SystemNotificationNotificationDeliveryState_DeliveryStateUnion`.
+"""
+type SystemNotificationNotificationDeliveryState_DeliveryStateUnionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationDeliveryState_DeliveryStateUnion]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationDeliveryState_DeliveryStateUnionEdge]
+}
+
+"""
+Union of types derived from System.Notification/NotificationDeliveryState for DeliveryState association
+"""
+union SystemNotificationNotificationDeliveryState_DeliveryStateUnion = SystemNotificationNotificationDeliveryState
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationDeliveryState_DeliveryStateUnion`.
+"""
+type SystemNotificationNotificationDeliveryState_DeliveryStateUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationDeliveryState_DeliveryStateUnion
+}
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationPreference_PreferenceUnion`.
+"""
+type SystemNotificationNotificationPreference_PreferenceUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationPreference_PreferenceUnion
+}
+
+input SystemNotificationNotificationDeliveryStateInput {
+  rtWellKnownName: String
+  processedUntil: DateTime
+  queryRtId: String
+  subjectId: String
+  skipExistingRows: Boolean
+  lastRunAt: DateTime
+  lastSentAt: DateTime
+  lastError: String
+  runningSince: DateTime
+  rtBlueprintSource: String
+  rtBlueprintLocked: Boolean
+  rtBlueprintAppliedAt: DateTime
+  preference: [RtAssociationInput]
+  relatesTo: [RtAssociationInput]
+  relatesFrom: [RtAssociationInput]
+  configuredBy: [RtAssociationInput]
+  mapsFrom: [RtAssociationInput]
+  mapsTo: [RtAssociationInput]
+  taggedBy: [RtAssociationInput]
+}
+
+"""A connection to `SystemNotificationNotificationDeliveryState`."""
+type SystemNotificationNotificationDeliveryStateConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationDeliveryState]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationDeliveryStateEdge]
+}
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationDeliveryState`.
+"""
+type SystemNotificationNotificationDeliveryStateEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationDeliveryState
+}
+
+type SystemNotificationNotificationDeliveryStateMutations {
+  """
+  Creates new entities of type 'SystemNotificationNotificationDeliveryState'.
+  """
+  create(entities: [SystemNotificationNotificationDeliveryStateInput]!): [SystemNotificationNotificationDeliveryState]
+  """
+  Updates existing entity of type 'SystemNotificationNotificationDeliveryState'.
+  """
+  update(entities: [SystemNotificationNotificationDeliveryStateInputUpdate]!): [SystemNotificationNotificationDeliveryState]
+}
+
+input SystemNotificationNotificationDeliveryStateInputUpdate {
+  rtId: OctoObjectId
+  """Item to update"""
+  item: SystemNotificationNotificationDeliveryStateInput!
+}
+
+type SystemNotificationNotificationDeliveryStateUpdateMessage {
+  """The corresponding items"""
+  items: [SystemNotificationNotificationDeliveryStateUpdate]
+}
+
+type SystemNotificationNotificationDeliveryStateUpdate {
+  """The corresponding item"""
+  item: SystemNotificationNotificationDeliveryState
+  updateState: UpdateType
+}
+
+"""A connection to `SystemPersistentQuery_QueryUnion`."""
+type SystemPersistentQuery_QueryUnionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemPersistentQuery_QueryUnion]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemPersistentQuery_QueryUnionEdge]
+}
+
+"""
+A connection to `SystemNotificationNotificationTemplate_TemplateUnion`.
+"""
+type SystemNotificationNotificationTemplate_TemplateUnionConnection {
+  """
+  A count of the total number of objects in this connection, ignoring pagination. This allows a client to fetch the first five objects by passing "5" as the argument to `first`, then fetch the total count so it could display "5 of 83", for example. In cases where we employ infinite scrolling or don't have an exact count of entries, this field will return `null`.
+  """
+  totalCount: Int
+  """Information to aid in pagination."""
+  pageInfo: PageInfo
+  """
+  A list of all of the objects returned in the connection. This is a convenience field provided for quickly exploring the API; rather than querying for "{ edges { node } }" when no edge data is needed, this field can be used instead. Note that when clients like Relay need to fetch the "cursor" field on the edge to enable efficient pagination, this shortcut cannot be used, and the full "{ edges { node } } " version should be used instead.
+  """
+  items: [SystemNotificationNotificationTemplate_TemplateUnion]
+  """Result of aggregating the items of the result set."""
+  aggregation: aggregation
+  """Result of aggregating the items by fields."""
+  fieldAggregations: [fieldAggregation]
+  """Information to aid in pagination."""
+  edges: [SystemNotificationNotificationTemplate_TemplateUnionEdge]
+}
+
+"""
+Union of types derived from System/PersistentQuery for Query association
+"""
+union SystemPersistentQuery_QueryUnion = SystemAggregationRtQuery | SystemAggregationSdQuery | SystemDownsamplingSdQuery | SystemGroupingAggregationRtQuery | SystemGroupingAggregationSdQuery | SystemSimpleRtQuery | SystemSimpleSdQuery
+
+"""
+An edge in a connection from an object to another object of type `SystemPersistentQuery_QueryUnion`.
+"""
+type SystemPersistentQuery_QueryUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemPersistentQuery_QueryUnion
+}
+
+"""
+Union of types derived from System.Notification/NotificationTemplate for Template association
+"""
+union SystemNotificationNotificationTemplate_TemplateUnion = SystemNotificationNotificationTemplate
+
+"""
+An edge in a connection from an object to another object of type `SystemNotificationNotificationTemplate_TemplateUnion`.
+"""
+type SystemNotificationNotificationTemplate_TemplateUnionEdge {
+  """A cursor for use in pagination"""
+  cursor: String!
+  """The item at the end of the edge"""
+  node: SystemNotificationNotificationTemplate_TemplateUnion
 }
