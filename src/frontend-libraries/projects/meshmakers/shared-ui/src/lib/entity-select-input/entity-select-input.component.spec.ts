@@ -91,11 +91,9 @@ describe('EntitySelectInputComponent', () => {
       component.autocomplete = { closeActionSheet: vi.fn() } as unknown as EntitySelectInputComponent['autocomplete'];
       component.ngOnInit();
 
-      component.searchFormControl.setValue('pipeline_ec_pod', { emitEvent: false });
       component.onFilterChange('pipeline_ec_pod');
       await vi.advanceTimersByTimeAsync(component.debounceMs);
 
-      component.searchFormControl.setValue('', { emitEvent: false });
       component.onSelectionChange('');
       component.onFilterChange('');
       resolveSearch({ totalCount: 1, items: [query] });
@@ -110,13 +108,52 @@ describe('EntitySelectInputComponent', () => {
     }
   });
 
+  it('shows the results of a search typed into an empty field, whose form control Kendo updates only on commit', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(dataSource.onFilter).mockResolvedValueOnce({ totalCount: 1, items: [query] });
+      component.ngOnInit();
+      component.searchFormControl.setValue('', { emitEvent: false });
+
+      component.onFilterChange('pipeline_ec_pod');
+      await vi.advanceTimersByTimeAsync(component.debounceMs);
+
+      expect(component.filteredEntities).toEqual([query.name]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('searches again for the same text after it was deleted with backspace and typed again', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(dataSource.onFilter).mockClear();
+      vi.mocked(dataSource.onFilter).mockResolvedValue({ totalCount: 1, items: [query] });
+      component.ngOnInit();
+
+      component.onFilterChange('pip');
+      await vi.advanceTimersByTimeAsync(component.debounceMs);
+      component.onFilterChange('pi');
+      component.onFilterChange('p');
+      component.onFilterChange('');
+      await vi.advanceTimersByTimeAsync(component.debounceMs);
+      component.onFilterChange('pip');
+      await vi.advanceTimersByTimeAsync(component.debounceMs);
+
+      expect(dataSource.onFilter).toHaveBeenCalledTimes(2);
+      expect(component.filteredEntities).toEqual([query.name]);
+    } finally {
+      vi.mocked(dataSource.onFilter).mockResolvedValue({ totalCount: 0, items: [] });
+      vi.useRealTimers();
+    }
+  });
+
   it('keeps a search result while the input still holds the searched text', async () => {
     vi.useFakeTimers();
     try {
       vi.mocked(dataSource.onFilter).mockResolvedValueOnce({ totalCount: 1, items: [query] });
       component.ngOnInit();
 
-      component.searchFormControl.setValue('pipeline_ec_pod', { emitEvent: false });
       component.onFilterChange('pipeline_ec_pod');
       await vi.advanceTimersByTimeAsync(component.debounceMs);
 

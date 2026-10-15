@@ -29,7 +29,7 @@ import {IconsModule, SVGIconModule} from '@progress/kendo-angular-icons';
 import {xIcon, searchIcon} from '@progress/kendo-svg-icons';
 import {EntitySelectDataSource} from '@meshmakers/shared-services';
 import {Subject, of} from 'rxjs';
-import {debounceTime, distinctUntilChanged, switchMap, tap, catchError} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, switchMap, tap, catchError} from 'rxjs/operators';
 import {
   EntitySelectDialogDataSource,
   EntitySelectInputMessages,
@@ -286,6 +286,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
 
   // Private members
   private searchSubject = new Subject<string>();
+  private typedText = '';
   private destroy$ = new Subject<void>();
   private onChange: (value: unknown) => void = () => { /* noop */ };
   private onTouched: () => void = () => { /* noop */ };
@@ -355,12 +356,12 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   // Event handlers
   onFilterChange(event: string): void {
     const filter = event;
-    if (!filter || filter.length < this.minSearchLength) {
+    this.typedText = filter ?? '';
+    if (this.typedText.length < this.minSearchLength) {
       this.filteredEntities = [];
-      return;
     }
 
-    this.searchSubject.next(filter);
+    this.searchSubject.next(this.typedText);
   }
 
   onSelectionChange(value: string): void {
@@ -381,6 +382,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
     // Optional: Trigger search on focus if there's already text
     const currentValue = this.searchFormControl.value;
     if (currentValue && currentValue.length >= this.minSearchLength && this.filteredEntities.length === 0) {
+      this.typedText = currentValue;
       this.searchSubject.next(currentValue);
     }
   }
@@ -428,19 +430,20 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
     this.searchSubject.pipe(
       debounceTime(this.debounceMs),
       distinctUntilChanged(),
+      filter(text => text.length >= this.minSearchLength),
       tap(() => {
         this.isLoading = true;
         this.filteredEntities = [];
       }),
-      switchMap(filter => {
+      switchMap(searchText => {
         if (!this.dataSource) {
           return of({totalCount: 0, items: []});
         }
 
-        if (filter.startsWith(this.prefix)) {
-          if (typeof filter === 'string') {
-            filter = filter.replace(this.prefix, '').trim();
-            return this.dataSource.onFilter(filter, this.maxResults).catch(error => {
+        if (searchText.startsWith(this.prefix)) {
+          if (typeof searchText === 'string') {
+            searchText = searchText.replace(this.prefix, '').trim();
+            return this.dataSource.onFilter(searchText, this.maxResults).catch(error => {
               console.error('Entity search error:', error);
               return {totalCount: 0, items: []};
             });
@@ -448,7 +451,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
             return of({totalCount: 0, items: []});
           }
         } else {
-          return this.dataSource.onFilter(filter, this.maxResults).catch(error => {
+          return this.dataSource.onFilter(searchText, this.maxResults).catch(error => {
             console.error('Entity search error:', error);
             return {totalCount: 0, items: []};
           });
@@ -461,7 +464,7 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
     ).subscribe(result => {
       this.isLoading = false;
 
-      if ((this.searchFormControl.value ?? '').length < this.minSearchLength) {
+      if (this.typedText.length < this.minSearchLength) {
         return;
       }
 

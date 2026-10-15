@@ -47,8 +47,8 @@ npm run test:shared-ui
 built-in clear button (`[clearButton]="true"`) or a field emptied by hand - resets the value to `null`
 and emits `entityCleared` once. Typing other text over a selected entity does not clear it; the value
 changes only when another entity is picked. A search result that arrives after the field was emptied
-(below `minSearchLength`) is dropped, so a search still pending from before cannot refill the list and
-let `onBlur()` auto-select its single match. Pinned by `entity-select-input.component.spec.ts`.
+(below `minSearchLength`) is dropped - judged by the text last seen in `filterChange`, because Kendo updates the form control only when a value is committed, never while typing - so a search still pending from before cannot refill the list and
+let `onBlur()` auto-select its single match. Text below `minSearchLength` still goes into the search stream and is filtered out after `distinctUntilChanged`, so text deleted with backspace and typed again is searched again instead of being swallowed as a repeat. Pinned by `entity-select-input.component.spec.ts`.
 
 ### Dialog Services Pattern
 
