@@ -51692,7 +51692,7 @@ export enum SystemNavigationFilterModesDto {
   IncludeDto = 'INCLUDE'
 }
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemNotificationCssTemplateConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -51723,7 +51723,7 @@ export type SystemNotificationCssTemplateConfigurationDto = SystemConfigurationI
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51738,7 +51738,7 @@ export type SystemNotificationCssTemplateConfigurationAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51752,7 +51752,7 @@ export type SystemNotificationCssTemplateConfigurationConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51766,7 +51766,7 @@ export type SystemNotificationCssTemplateConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51780,7 +51780,7 @@ export type SystemNotificationCssTemplateConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51794,7 +51794,7 @@ export type SystemNotificationCssTemplateConfigurationRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51808,7 +51808,7 @@ export type SystemNotificationCssTemplateConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51822,7 +51822,7 @@ export type SystemNotificationCssTemplateConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1' */
 export type SystemNotificationCssTemplateConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51915,7 +51915,7 @@ export type SystemNotificationCssTemplateConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemNotificationCssTemplateConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1' */
 export type SystemNotificationEventDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemNotificationEvent';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -51947,7 +51947,7 @@ export type SystemNotificationEventDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1' */
 export type SystemNotificationEventAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51962,7 +51962,7 @@ export type SystemNotificationEventAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1' */
 export type SystemNotificationEventConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51976,7 +51976,7 @@ export type SystemNotificationEventConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1' */
 export type SystemNotificationEventMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -51990,7 +51990,7 @@ export type SystemNotificationEventMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1' */
 export type SystemNotificationEventMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52004,7 +52004,7 @@ export type SystemNotificationEventMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1' */
 export type SystemNotificationEventRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52018,7 +52018,7 @@ export type SystemNotificationEventRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1' */
 export type SystemNotificationEventRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52032,7 +52032,7 @@ export type SystemNotificationEventRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1' */
 export type SystemNotificationEventTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52165,7 +52165,7 @@ export type SystemNotificationEventUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemNotificationEventUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationDto = SystemConfigurationInterfaceDto & SystemEntityInterfaceDto & {
   __typename?: 'SystemNotificationMailNotificationConfiguration';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -52197,7 +52197,7 @@ export type SystemNotificationMailNotificationConfigurationDto = SystemConfigura
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52212,7 +52212,7 @@ export type SystemNotificationMailNotificationConfigurationAssociationsArgsDto =
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52226,7 +52226,7 @@ export type SystemNotificationMailNotificationConfigurationConfiguredByArgsDto =
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52240,7 +52240,7 @@ export type SystemNotificationMailNotificationConfigurationMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52254,7 +52254,7 @@ export type SystemNotificationMailNotificationConfigurationMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52268,7 +52268,7 @@ export type SystemNotificationMailNotificationConfigurationRelatesFromArgsDto = 
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52282,7 +52282,7 @@ export type SystemNotificationMailNotificationConfigurationRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52296,7 +52296,7 @@ export type SystemNotificationMailNotificationConfigurationTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1' */
 export type SystemNotificationMailNotificationConfigurationUsedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52390,7 +52390,7 @@ export type SystemNotificationMailNotificationConfigurationUpdateMessageDto = {
   items?: Maybe<Array<Maybe<SystemNotificationMailNotificationConfigurationUpdateDto>>>;
 };
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStateDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemNotificationNotificationDeliveryState';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -52403,6 +52403,8 @@ export type SystemNotificationNotificationDeliveryStateDto = SystemEntityInterfa
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
   preference?: Maybe<SystemNotificationNotificationPreference_PreferenceUnionConnectionDto>;
+  processedUntil?: Maybe<Scalars['DateTime']['output']>;
+  queryRtId?: Maybe<Scalars['String']['output']>;
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
   rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -52420,13 +52422,13 @@ export type SystemNotificationNotificationDeliveryStateDto = SystemEntityInterfa
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
   runningSince?: Maybe<Scalars['DateTime']['output']>;
-  seenRtIds?: Maybe<Array<Scalars['String']['output']>>;
-  skippedRtIds?: Maybe<Array<Scalars['String']['output']>>;
+  skipExistingRows?: Maybe<Scalars['Boolean']['output']>;
+  subjectId?: Maybe<Scalars['String']['output']>;
   taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStateAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52441,7 +52443,7 @@ export type SystemNotificationNotificationDeliveryStateAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStateConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52455,7 +52457,7 @@ export type SystemNotificationNotificationDeliveryStateConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStateMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52469,7 +52471,7 @@ export type SystemNotificationNotificationDeliveryStateMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStateMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52483,7 +52485,7 @@ export type SystemNotificationNotificationDeliveryStateMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStatePreferenceArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52497,7 +52499,7 @@ export type SystemNotificationNotificationDeliveryStatePreferenceArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStateRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52511,7 +52513,7 @@ export type SystemNotificationNotificationDeliveryStateRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStateRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52525,7 +52527,7 @@ export type SystemNotificationNotificationDeliveryStateRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1' */
 export type SystemNotificationNotificationDeliveryStateTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52572,6 +52574,8 @@ export type SystemNotificationNotificationDeliveryStateInputDto = {
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   preference?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  processedUntil?: InputMaybe<Scalars['DateTime']['input']>;
+  queryRtId?: InputMaybe<Scalars['String']['input']>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
@@ -52579,8 +52583,8 @@ export type SystemNotificationNotificationDeliveryStateInputDto = {
   rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
   rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
   runningSince?: InputMaybe<Scalars['DateTime']['input']>;
-  seenRtIds?: InputMaybe<Array<Scalars['String']['input']>>;
-  skippedRtIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  skipExistingRows?: InputMaybe<Scalars['Boolean']['input']>;
+  subjectId?: InputMaybe<Scalars['String']['input']>;
   taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
 };
 
@@ -52650,7 +52654,7 @@ export type SystemNotificationNotificationDeliveryState_DeliveryStateUnionEdgeDt
   node?: Maybe<SystemNotificationNotificationDeliveryState_DeliveryStateUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemNotificationNotificationPreference';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -52685,7 +52689,7 @@ export type SystemNotificationNotificationPreferenceDto = SystemEntityInterfaceD
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52700,7 +52704,7 @@ export type SystemNotificationNotificationPreferenceAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52714,7 +52718,7 @@ export type SystemNotificationNotificationPreferenceConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceDeliveryStateArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52728,7 +52732,7 @@ export type SystemNotificationNotificationPreferenceDeliveryStateArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52742,7 +52746,7 @@ export type SystemNotificationNotificationPreferenceMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52756,7 +52760,7 @@ export type SystemNotificationNotificationPreferenceMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52770,7 +52774,7 @@ export type SystemNotificationNotificationPreferenceRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52784,7 +52788,7 @@ export type SystemNotificationNotificationPreferenceRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceSubscriptionArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52798,7 +52802,7 @@ export type SystemNotificationNotificationPreferenceSubscriptionArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1' */
 export type SystemNotificationNotificationPreferenceTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -52951,7 +52955,7 @@ export type SystemNotificationNotificationPreference_PreferencesUnionEdgeDto = {
   node?: Maybe<SystemNotificationNotificationPreference_PreferencesUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemNotificationNotificationSubscription';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -52987,7 +52991,7 @@ export type SystemNotificationNotificationSubscriptionDto = SystemEntityInterfac
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53002,7 +53006,7 @@ export type SystemNotificationNotificationSubscriptionAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53016,7 +53020,7 @@ export type SystemNotificationNotificationSubscriptionConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53030,7 +53034,7 @@ export type SystemNotificationNotificationSubscriptionMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53044,7 +53048,7 @@ export type SystemNotificationNotificationSubscriptionMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionPreferencesArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53058,7 +53062,7 @@ export type SystemNotificationNotificationSubscriptionPreferencesArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionQueryArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53072,7 +53076,7 @@ export type SystemNotificationNotificationSubscriptionQueryArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53086,7 +53090,7 @@ export type SystemNotificationNotificationSubscriptionRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53100,7 +53104,7 @@ export type SystemNotificationNotificationSubscriptionRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53114,7 +53118,7 @@ export type SystemNotificationNotificationSubscriptionTaggedByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1' */
 export type SystemNotificationNotificationSubscriptionTemplateArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53297,7 +53301,7 @@ export type SystemNotificationNotificationSubscription_SubscriptionsUnionEdgeDto
   node?: Maybe<SystemNotificationNotificationSubscription_SubscriptionsUnionDto>;
 };
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemNotificationNotificationTemplate';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -53331,7 +53335,7 @@ export type SystemNotificationNotificationTemplateDto = SystemEntityInterfaceDto
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53346,7 +53350,7 @@ export type SystemNotificationNotificationTemplateAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53360,7 +53364,7 @@ export type SystemNotificationNotificationTemplateConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53374,7 +53378,7 @@ export type SystemNotificationNotificationTemplateMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53388,7 +53392,7 @@ export type SystemNotificationNotificationTemplateMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53402,7 +53406,7 @@ export type SystemNotificationNotificationTemplateRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53416,7 +53420,7 @@ export type SystemNotificationNotificationTemplateRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateSubscriptionsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53430,7 +53434,7 @@ export type SystemNotificationNotificationTemplateSubscriptionsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1' */
 export type SystemNotificationNotificationTemplateTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53568,7 +53572,7 @@ export enum SystemNotificationRenderingTypesDto {
   PlainDto = 'PLAIN'
 }
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1' */
 export type SystemNotificationStatefulEventDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemNotificationStatefulEvent';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -53601,7 +53605,7 @@ export type SystemNotificationStatefulEventDto = SystemEntityInterfaceDto & {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1' */
 export type SystemNotificationStatefulEventAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53616,7 +53620,7 @@ export type SystemNotificationStatefulEventAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1' */
 export type SystemNotificationStatefulEventConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53630,7 +53634,7 @@ export type SystemNotificationStatefulEventConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1' */
 export type SystemNotificationStatefulEventMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53644,7 +53648,7 @@ export type SystemNotificationStatefulEventMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1' */
 export type SystemNotificationStatefulEventMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53658,7 +53662,7 @@ export type SystemNotificationStatefulEventMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1' */
 export type SystemNotificationStatefulEventRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53672,7 +53676,7 @@ export type SystemNotificationStatefulEventRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1' */
 export type SystemNotificationStatefulEventRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -53686,7 +53690,7 @@ export type SystemNotificationStatefulEventRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1' */
+/** Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1' */
 export type SystemNotificationStatefulEventTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;

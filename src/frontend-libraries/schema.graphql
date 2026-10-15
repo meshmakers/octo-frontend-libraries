@@ -86493,7 +86493,7 @@ enum SystemNavigationFilterModes {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.5.0/CssTemplateConfiguration-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/CssTemplateConfiguration-1'
 """
 type SystemNotificationCssTemplateConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -86885,7 +86885,7 @@ type SystemNotificationCssTemplateConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.5.0/Event-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/Event-1'
 """
 type SystemNotificationEvent implements SystemEntityInterface {
   associations(
@@ -87297,7 +87297,7 @@ type SystemNotificationEventUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.5.0/MailNotificationConfiguration-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/MailNotificationConfiguration-1'
 """
 type SystemNotificationMailNotificationConfiguration implements SystemConfigurationInterface & SystemEntityInterface {
   associations(
@@ -87691,7 +87691,7 @@ type SystemNotificationMailNotificationConfigurationUpdateMessage {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationTemplate-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationTemplate-1'
 """
 type SystemNotificationNotificationTemplate implements SystemEntityInterface {
   associations(
@@ -88096,7 +88096,7 @@ enum SystemNotificationRenderingTypes {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.5.0/StatefulEvent-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/StatefulEvent-1'
 """
 type SystemNotificationStatefulEvent implements SystemEntityInterface {
   associations(
@@ -101314,7 +101314,7 @@ Union of types derived from System.Notification/NotificationSubscription for Not
 union SystemNotificationNotificationSubscription_NotificationSubscriptionsUnion = SystemNotificationNotificationSubscription
 
 """
-Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationSubscription-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationSubscription-1'
 """
 type SystemNotificationNotificationSubscription implements SystemEntityInterface {
   rtId: OctoObjectId!
@@ -101770,7 +101770,7 @@ type SystemNotificationNotificationSubscription_SubscriptionUnionEdge {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationPreference-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationPreference-1'
 """
 type SystemNotificationNotificationPreference implements SystemEntityInterface {
   rtId: OctoObjectId!
@@ -102152,7 +102152,7 @@ type SystemNotificationNotificationPreferenceUpdate {
 }
 
 """
-Runtime entities of construction kit type 'System.Notification-2.5.0/NotificationDeliveryState-1'
+Runtime entities of construction kit type 'System.Notification-2.6.0/NotificationDeliveryState-1'
 """
 type SystemNotificationNotificationDeliveryState implements SystemEntityInterface {
   rtId: OctoObjectId!
@@ -102202,8 +102202,10 @@ type SystemNotificationNotificationDeliveryState implements SystemEntityInterfac
     """Filters items based on field compare"""
     fieldFilter: [FieldFilter]
   ): RtEntityGenericDtoConnection
-  seenRtIds: [String!]
-  skippedRtIds: [String!]
+  processedUntil: DateTime
+  queryRtId: String
+  subjectId: String
+  skipExistingRows: Boolean
   lastRunAt: DateTime
   lastSentAt: DateTime
   lastError: String
@@ -102471,8 +102473,10 @@ type SystemNotificationNotificationPreference_PreferenceUnionEdge {
 
 input SystemNotificationNotificationDeliveryStateInput {
   rtWellKnownName: String
-  seenRtIds: [String!]
-  skippedRtIds: [String!]
+  processedUntil: DateTime
+  queryRtId: String
+  subjectId: String
+  skipExistingRows: Boolean
   lastRunAt: DateTime
   lastSentAt: DateTime
   lastError: String
