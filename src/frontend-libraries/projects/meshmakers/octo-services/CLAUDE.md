@@ -114,6 +114,12 @@ Checks health status of backend services.
 | `getCommunicationControllerServiceAsync()` | `Promise<HealthCheck \| null>` | Communication Controller health |
 | `getMeshAdapterAsync()` | `Promise<HealthCheck \| null>` | Mesh Adapter health |
 
+`GET <service>/health` needs a Bearer token since AB#6739 (anonymous callers get `401`). The
+`authorizeInterceptor` attaches it for every URL in `wellKnownServiceUris`, so a host must list the
+service there (Studio lists asset, bot, communication, ai, reporting, identity and the mesh adapter).
+A `503` returns the report body (an unhealthy service). A refused call (`401`/`403`), an unreachable
+service or any other error yields `null` — shown as "unknown", never thrown.
+
 ### AssetRepoService
 
 Manages tenants and model import/export. **Tenant-aware**: uses `TENANT_ID_PROVIDER` (injected as `optional: true`) to resolve the current tenant ID for tenant management API requests. Falls back to `'octosystem'` when the provider is not available or returns `null`. Tenant API URLs follow the pattern `{assetServices}{tenantId}/v1/tenants`.

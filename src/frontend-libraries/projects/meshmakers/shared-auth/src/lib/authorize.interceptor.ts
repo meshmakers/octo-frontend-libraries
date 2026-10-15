@@ -77,6 +77,24 @@ function isTokenEndpointUrl(url: string): boolean {
 }
 
 /**
+ * Checks if the request targets a service's detailed health report (`<service>/health`).
+ *
+ * Since AB#6739 that report needs a Bearer token, so the interceptor attaches one like to any
+ * other service call. It is deliberately kept out of the 401 recovery below: the report is polled
+ * by the cockpit and the service-health widgets, and a service that keeps refusing the token
+ * (a mis-configured issuer, say) would otherwise spend one refresh grant per poll — and a failed refresh clears the session,
+ * which a health tile must never cause. The 401 reaches the caller, which shows the service as
+ * "unknown"; a genuinely expired token is refreshed by the next ordinary API call.
+ *
+ * Path-only comparison, like `isTokenEndpointUrl`: a query string, fragment or trailing slash
+ * must not change the decision.
+ */
+function isHealthReportUrl(url: string): boolean {
+  const path = url.split('#')[0].split('?')[0].replace(/\/+$/, '');
+  return path.endsWith('/health');
+}
+
+/**
  * The one denial code a refresh can repair. Adapter-owned and stable: the server deliberately
  * does not make a client key on the framework's English `error_description`, which a dependency
  * bump may reword.
@@ -220,8 +238,8 @@ export const authorizeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown
   }
 
   // Never let the token endpoint into the recovery path — see isTokenEndpointUrl for the
-  // deadlock this avoids.
-  if (!tokenAttached || isTokenEndpointUrl(req.url)) {
+  // deadlock this avoids — nor the health report (see isHealthReportUrl).
+  if (!tokenAttached || isTokenEndpointUrl(req.url) || isHealthReportUrl(req.url)) {
     return next(req);
   }
 

@@ -146,7 +146,8 @@ It also recovers from an expired access token: when a request that carried a tok
 comes back `401`, the token is refreshed and the request is retried once with the new
 bearer. The refresh is single-flight (concurrent 401s share one refresh), and a `401`
 that arrives after that refresh already finished reuses its result instead of starting
-another one. A retry is never itself retried. Requests without a token and the token
+another one. A retry is never itself retried. Requests without a token, the service health
+report (`/health`, which needs the bearer since AB#6739 but is never refreshed on `401`) and the token
 endpoint itself are left alone, and if the refresh fails the original `401` reaches the
 caller.
 
