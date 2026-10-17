@@ -10,6 +10,11 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui (move icon)
+
+- New: `MM_ACTION_ICONS.move` (`arrowRightIcon`) for "move to another folder / container"; replaces ad hoc
+  `arrowsMoveIcon`, which reads as "add" (AB#6462).
+
 ### shared-ui / octo-ui / octo-meshboard / octo-process-diagrams (dialog actions)
 
 - **Visual change, apps must react to nothing:** every dialog footer in the libraries now shows the

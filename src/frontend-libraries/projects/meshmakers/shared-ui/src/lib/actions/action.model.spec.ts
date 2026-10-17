@@ -66,6 +66,8 @@ describe('action.model', () => {
     expect(MM_ACTION_ICONS.restore.name).toBe('undo');
     expect(MM_ACTION_ICONS.pin.name).toBe('pin');
     expect(MM_ACTION_ICONS.unpin.name).toBe('unpin');
+    expect(MM_ACTION_ICONS.move.name).toBe('arrow-right');
+    expect(MM_ACTION_ICONS.move).not.toBe(MM_ACTION_ICONS.add);
     expect(MM_ACTION_ICONS.merge.name).toBe('cells-merge');
     expect(MM_ACTION_ICONS.resetPassword.name).toBe('password');
     expect(MM_ACTION_ICONS.backfill.name).toBe('clock-arrow-rotate');
