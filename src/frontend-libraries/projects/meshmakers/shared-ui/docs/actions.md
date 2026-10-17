@@ -24,7 +24,7 @@ const deleteDump: MmAction<'delete-dump'> = {
 
 `MM_ACTION_ICONS` maps verbs to Kendo SVG icons: `add`, `edit`, `view`, `open`, `delete`,
 `clear`, `copy`, `duplicate`, `refresh`, `deploy`, `undeploy`, `run`, `stop`, `export`,
-`import`, `download`, `report`, `restore`, `pin`, `unpin`, `merge`, `resetPassword`, `backfill`,
+`import`, `download`, `report`, `restore`, `pin`, `unpin`, `move`, `merge`, `resetPassword`, `backfill`,
 `recompute`. Use it instead of importing icons ad hoc.
 
 ## `mm-row-actions`

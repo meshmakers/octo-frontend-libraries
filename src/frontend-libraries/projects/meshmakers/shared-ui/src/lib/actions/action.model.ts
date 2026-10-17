@@ -1,5 +1,6 @@
 import {SVGIcon} from '@progress/kendo-svg-icons';
 import {
+  arrowRightIcon,
   arrowRotateCwIcon,
   calculatorIcon,
   cellsMergeIcon,
@@ -130,6 +131,8 @@ export const MM_ACTION_ICONS = {
   pin: pinIcon,
   /** Remove a pin ("Unpin from Home"). */
   unpin: unpinIcon,
+  /** Move an item to another folder / container (never `arrowsMoveIcon`: it reads as "add"). */
+  move: arrowRightIcon,
   /** Merge one item into another (e.g. merge users); usually `danger`. */
   merge: cellsMergeIcon,
   /** Reset / set a password. */
