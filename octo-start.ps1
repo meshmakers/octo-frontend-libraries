@@ -1,3 +1,4 @@
+#Requires -Version 7.0
 param(
     [string]$configuration = "Release"
 )
@@ -26,32 +27,75 @@ try {
         }
     }
 
-    # Verify npx is available
-    if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
-        Write-Host "npx not found in PATH" -ForegroundColor Red
+    # ng is started as "node <ng.js>" directly, not through npx: no cmd.exe/npx wrappers on Windows
+    # (see AB#3715), and the started process is the dev server itself, so its PID can be recorded
+    # and its process tree ended reliably on every platform.
+    $nodeExe = (Get-Command node -ErrorAction SilentlyContinue).Source
+    if (-not $nodeExe) {
+        Write-Output "ERROR: node not found in PATH"
         exit 1
     }
+    $ngCli = Join-Path $frontendLibsPath "node_modules/@angular/cli/bin/ng.js"
+    if (-not (Test-Path -LiteralPath $ngCli)) {
+        Write-Output "ERROR: Angular CLI not found at $ngCli (run npm ci)"
+        exit 1
+    }
+    $onWindows = $IsWindows -or (-not ($IsMacOS -or $IsLinux))
 
-    # On Windows, run npx via cmd.exe to handle .cmd/.ps1 wrappers correctly.
-    # System.Diagnostics.Process cannot execute .ps1 files directly.
-    if ($IsWindows -or (-not ($IsMacOS -or $IsLinux))) {
-        $procFileName = "cmd.exe"
-        $npxPrefix = "/c npx "
-    } else {
-        $procFileName = (Get-Command npx).Source
-        $npxPrefix = ""
+    # Dev servers left over from an earlier run: when the job host of this script dies without
+    # reaching the finally block below (Start-Octo killed, terminal closed, crash), the ng serve
+    # processes survive and keep 4201/4202 bound. Every run records the PIDs of the servers it
+    # started in a file of its own, in a directory under the user's profile (the shared temp
+    # directory would let another local user plant a record). The next run ends exactly those
+    # process trees before the ports are checked. Only processes this script started are touched.
+    $pidDir = Join-Path ([System.Environment]::GetFolderPath("LocalApplicationData", "Create")) "octo-frontend-libraries"
+    New-Item -ItemType Directory -Path $pidDir -Force | Out-Null
+    $pidFile = Join-Path $pidDir "octo-start-$PID.pids"
+
+    # One line per server: "<pid>|<start time as UTC ticks>". The start time is the PID reuse
+    # guard: a process that now runs under a recorded PID but started at another time is not ours.
+    function Stop-RecordedServers {
+        foreach ($record in @(Get-ChildItem -LiteralPath $pidDir -Filter "octo-start-*.pids" -ErrorAction Ignore)) {
+            foreach ($entry in @(Get-Content -LiteralPath $record.FullName | Where-Object { $_ -match '^\d+\|\d+$' })) {
+                $recordedPid, $recordedTicks = $entry -split '\|'
+                $recorded = Get-Process -Id ([int]$recordedPid) -ErrorAction Ignore
+                if (-not $recorded) { continue }
+                try { $startedTicks = $recorded.StartTime.ToUniversalTime().Ticks } catch { $startedTicks = -1 }
+                if ([math]::Abs($startedTicks - [long]$recordedTicks) -gt 20000000) {
+                    Write-Output "PID $recordedPid from an earlier run belongs to another process now, leaving it alone"
+                    continue
+                }
+                Write-Output "Stopping leftover dev server from an earlier run (PID $recordedPid)"
+                try { $recorded.Kill($true) } catch { Write-Output "Could not stop PID ${recordedPid}: $($_.Exception.Message)" }
+            }
+            Remove-Item -LiteralPath $record.FullName -Force -ErrorAction Ignore
+        }
     }
 
-    # Kill any leftover processes on our ports
+    # Bind test with the same address ng serve uses (0.0.0.0). Unix needs ReuseAddress so that
+    # connections in TIME_WAIT from the previous run do not count as busy, exactly like node's own bind.
+    function Test-PortFree($port) {
+        $probe = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $port)
+        if (-not $onWindows) { $probe.Server.SetSocketOption([System.Net.Sockets.SocketOptionLevel]::Socket, [System.Net.Sockets.SocketOptionName]::ReuseAddress, $true) }
+        $errorsBefore = $Error.Count
+        try { $probe.Start(); $free = $true } catch { $free = $false } finally { $probe.Stop() }
+        # A failed bind is the expected answer here, not an error worth keeping in $Error.
+        while ($Error.Count -gt $errorsBefore) { $Error.RemoveAt(0) }
+        return $free
+    }
+
+    function Wait-PortFree($port, $timeoutMs = 5000) {
+        $deadline = (Get-Date).AddMilliseconds($timeoutMs)
+        while (-not (Test-PortFree $port) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 250 }
+        return (Test-PortFree $port)
+    }
+
+    Stop-RecordedServers
     foreach ($port in @(4201, 4202)) {
-        $existingPid = $null
-        if ($IsMacOS -or $IsLinux) {
-            $existingPid = (lsof -ti :$port 2>$null)
-        }
-        if ($existingPid) {
-            Write-Host "Killing leftover process on port $port (PID: $existingPid)" -ForegroundColor Yellow
-            kill $existingPid 2>$null
-            Start-Sleep -Milliseconds 500
+        if (-not (Wait-PortFree $port)) {
+            # Same policy as the Refinery Studio start script: do not start against a busy port.
+            Write-Output "ERROR: Port $port is in use, not starting the dev servers"
+            exit 1
         }
     }
 
@@ -62,60 +106,73 @@ try {
     # This works correctly both standalone and when called from Start-Job (no console/terminal required)
     function Start-NgServe($project, $port) {
         $psi = [System.Diagnostics.ProcessStartInfo]::new()
-        $psi.FileName = $procFileName
-        $psi.Arguments = "${npxPrefix}ng serve $project --port $port --configuration $ngConfiguration"
+        $psi.FileName = $nodeExe
+        $psi.Arguments = "`"$ngCli`" serve $project --port $port --configuration $ngConfiguration"
         $psi.WorkingDirectory = $frontendLibsPath
         $psi.UseShellExecute = $false
         $psi.RedirectStandardOutput = $true
         $psi.RedirectStandardError = $true
+        # Redirect stdin and close it right after start. Without this the child inherits the
+        # stdin handle of the Start-Job host (the job protocol pipe); npx blocked on it before
+        # it ever spawned `ng serve` - the servers never came up and the log stayed empty.
+        $psi.RedirectStandardInput = $true
         $psi.CreateNoWindow = $true
 
         $proc = [System.Diagnostics.Process]::new()
         $proc.StartInfo = $psi
         $proc.Start() | Out-Null
+        $proc.StandardInput.Close()
 
         return $proc
     }
 
-    Write-Host "Starting demo-app on https://localhost:4201" -ForegroundColor Cyan
-    Write-Host "Starting legacy-demo-app on https://localhost:4202" -ForegroundColor Cyan
-
-    $demoProc = Start-NgServe "demo-app" 4201
-    $legacyProc = Start-NgServe "legacy-demo-app" 4202
-
-    $processes = @($demoProc, $legacyProc)
+    $processes = @()
     $projectNames = @("demo-app", "legacy-demo-app")
+    $ports = @(4201, 4202)
 
     try {
-        while ($true) {
-            # Read and forward stdout/stderr from both processes
-            for ($i = 0; $i -lt $processes.Count; $i++) {
-                $proc = $processes[$i]
-                $name = $projectNames[$i]
+        # Each server is recorded right after its start, so a failed second start still leaves
+        # the first one recorded and reaches the finally block below.
+        for ($i = 0; $i -lt $projectNames.Count; $i++) {
+            Write-Host "Starting $($projectNames[$i]) on https://localhost:$($ports[$i])" -ForegroundColor Cyan
+            $proc = Start-NgServe $projectNames[$i] $ports[$i]
+            $processes += $proc
+            Add-Content -LiteralPath $pidFile -Value "$($proc.Id)|$($proc.StartTime.ToUniversalTime().Ticks)"
+        }
 
-                if ($proc.StandardOutput -and !$proc.StandardOutput.EndOfStream) {
-                    while ($proc.StandardOutput.Peek() -ge 0) {
-                        $line = $proc.StandardOutput.ReadLine()
-                        if ($line) { Write-Output "[$name] $line" }
-                    }
-                }
-                if ($proc.StandardError -and !$proc.StandardError.EndOfStream) {
-                    while ($proc.StandardError.Peek() -ge 0) {
-                        $line = $proc.StandardError.ReadLine()
-                        if ($line) { Write-Output "[$name] $line" }
-                    }
-                }
+        # One pending ReadLineAsync per stream. Each pass forwards every line that arrives within
+        # 20 ms per stream (bursts and a server's last lines before it exits included) and then
+        # waits in Start-Sleep, so a pipeline stop (Stop-Octo, Ctrl+C) interrupts it there and
+        # reaches the finally block. The blocking EndOfStream/Peek reads used before could not be
+        # interrupted while the servers were silent: Start-Octo's StopJob() then hung on this job
+        # and the servers survived it.
+        $readers = @()
+        for ($i = 0; $i -lt $processes.Count; $i++) {
+            foreach ($stream in @($processes[$i].StandardOutput, $processes[$i].StandardError)) {
+                $readers += @{ Name = $projectNames[$i]; Stream = $stream; Pending = $stream.ReadLineAsync() }
             }
+        }
 
-            # Check if all processes have exited
+        while ($true) {
             $allExited = $true
             foreach ($proc in $processes) {
                 if (-not $proc.HasExited) {
                     $allExited = $false
                 }
             }
+
+            # Forward every complete line; a null line is the end of that stream.
+            foreach ($reader in $readers) {
+                while ($reader.Pending -and ($reader.Pending.IsCompleted -or [System.Threading.Tasks.Task]::WaitAny([System.Threading.Tasks.Task[]]@($reader.Pending), 20) -ge 0)) {
+                    $line = if ($reader.Pending.IsFaulted -or $reader.Pending.IsCanceled) { $null } else { $reader.Pending.Result }
+                    if ($null -eq $line) { $reader.Pending = $null; break }
+                    if ($line) { Write-Output "[$($reader.Name)] $line" }
+                    $reader.Pending = $reader.Stream.ReadLineAsync()
+                }
+            }
+
             if ($allExited) {
-                Write-Host "All processes have exited." -ForegroundColor Yellow
+                Write-Output "All processes have exited."
                 break
             }
 
@@ -123,33 +180,18 @@ try {
         }
     }
     catch {
-        # Ctrl+C or error
+        # A failed start or a failure in the monitor loop; Ctrl+C does not come through here.
+        Write-Output "ERROR: $($_.Exception.Message)"
+        exit 1
     }
     finally {
         Write-Host "Stopping servers..." -ForegroundColor Yellow
         foreach ($proc in $processes) {
             if (-not $proc.HasExited) {
-                if ($IsMacOS -or $IsLinux) {
-                    # Kill the process tree
-                    kill -- -$($proc.Id) 2>$null
-                    if (-not $proc.HasExited) {
-                        $proc.Kill($true)
-                    }
-                }
-                else {
-                    taskkill /PID $proc.Id /T /F 2>$null | Out-Null
-                }
+                try { $proc.Kill($true) } catch { Write-Output "Could not stop PID $($proc.Id): $($_.Exception.Message)" }
             }
         }
-        # Final cleanup: make sure nothing is left on our ports
-        foreach ($port in @(4201, 4202)) {
-            if ($IsMacOS -or $IsLinux) {
-                $leftover = (lsof -ti :$port 2>$null)
-                if ($leftover) {
-                    kill -9 $leftover 2>$null
-                }
-            }
-        }
+        Remove-Item -LiteralPath $pidFile -Force -ErrorAction Ignore
         Write-Host "Servers stopped." -ForegroundColor Yellow
     }
 }
