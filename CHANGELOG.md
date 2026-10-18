@@ -10,6 +10,14 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui styles / shared-ui (destructive dialog confirm really red, AB#6464)
+
+- Fix: the error fill of a destructive confirm (`themeColor="error"`) never painted in apps. Kendo Angular adds
+  theme colour and fill mode as separate classes, so a default-fill error button carries only `k-button-error`
+  (never `k-button-solid-error`); the `octo-button` mixin now matches it (excluding flat / outline / link / clear),
+  and outline / flat error buttons in dialog action rows keep the error border and text. Delete confirms, the
+  danger confirmation window and Replace-style actions now differ from Cancel without reading the label.
+
 ### shared-auth (tenant mismatch blocking state, AB#6731)
 
 - **BREAKING for hosts using `authorizeGuard` with a `:tenantId` route**: when the token still belongs to another
