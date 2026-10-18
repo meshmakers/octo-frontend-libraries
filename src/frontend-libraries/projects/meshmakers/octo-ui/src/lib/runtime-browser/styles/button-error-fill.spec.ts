@@ -41,12 +41,9 @@ describe('octo-button error fill (AB#6464)', () => {
     for (const selector of selectors) {
       expect(selector).not.toMatch(/themecolor/);
       const bare = selector.match(/\.k-button-error:not\(([^)]*)\)/);
-      if (bare) {
-        for (const fill of ['.k-button-flat', '.k-button-outline', '.k-button-link', '.k-button-clear']) {
-          expect(bare[1]).toContain(fill);
-        }
-      } else {
-        expect(selector).toContain('.k-button-solid-error');
+      expect(bare).not.toBeNull();
+      for (const fill of ['.k-button-flat', '.k-button-outline', '.k-button-link', '.k-button-clear']) {
+        expect(bare?.[1]).toContain(fill);
       }
     }
   });
