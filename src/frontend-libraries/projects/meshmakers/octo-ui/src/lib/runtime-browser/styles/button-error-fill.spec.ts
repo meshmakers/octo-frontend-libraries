@@ -28,16 +28,23 @@ describe('octo-button error fill (AB#6464)', () => {
     css = await compile();
   });
 
-  it('paints the error fill on the solid error button', () => {
-    expect(errorFillSelectors(css).some((s) => s.includes('.k-button-solid-error'))).toBe(true);
+  it('paints the error fill on the button Kendo renders for themeColor="error" (class k-button-error only)', () => {
+    // Kendo Angular adds theme colour and fill mode as separate classes: there is never a
+    // `k-button-solid-error`, a default-fill error button carries just `k-button-error`.
+    const selectors = errorFillSelectors(css);
+    expect(selectors.some((s) => /\.k-button-error:not\(/.test(s))).toBe(true);
   });
 
-  it('never matches flat or outline error buttons or the bare themeColor attribute', () => {
+  it('excludes every flat / outline / link / clear fill from the error fill', () => {
     const selectors = errorFillSelectors(css);
     expect(selectors.length).toBeGreaterThan(0);
     for (const selector of selectors) {
-      expect(selector).toContain('.k-button-solid-error');
-      expect(selector).not.toMatch(/flat|outline|themecolor|k-button-error/);
+      expect(selector).not.toMatch(/themecolor/);
+      const bare = selector.match(/\.k-button-error:not\(([^)]*)\)/);
+      expect(bare).not.toBeNull();
+      for (const fill of ['.k-button-flat', '.k-button-outline', '.k-button-link', '.k-button-clear']) {
+        expect(bare?.[1]).toContain(fill);
+      }
     }
   });
 });

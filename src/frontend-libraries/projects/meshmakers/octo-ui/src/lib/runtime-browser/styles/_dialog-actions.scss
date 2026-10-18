@@ -31,7 +31,7 @@
 
     // Outline / flat destructive confirms (e.g. the entity page's Delete): the generic action-row
     // rules force a neutral border and text colour with !important, so restate the danger look.
-    .k-button:is(.k-button-outline-error, .k-button-flat-error) {
+    .k-button:is(.k-button-outline-error, .k-button-flat-error, .k-button-error:is(.k-button-outline, .k-button-flat)) {
       color: var(--theme-status-error, var(--bubblegum)) !important;
       border-color: var(--theme-status-error, var(--bubblegum)) !important;
 
