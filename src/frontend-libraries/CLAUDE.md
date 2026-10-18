@@ -53,6 +53,16 @@ npm run test:octo-meshboard
 
 The full command reference is in [Testing (Vitest)](#testing-vitest) below.
 
+## octo-services: CK library REST DTOs and the upgrade guard (AB#6872)
+
+`ck-model-catalog.dto.ts` mirrors the asset-repo `ckmodelcatalog` / `models` REST DTOs. The tenant upgrade guard
+members (`isBlocked`, `blockers[]` of `CkUpgradeBlockerDto`, `isRangeRetaining`) are **optional** on every DTO:
+an older asset-repo sends none of them, and a consumer must render as before. Read them only through the
+null-safe helpers of `ck-upgrade-blockers.ts` (`isCkBlocked`, `ckBlockersOf`, `ckFirstBlockerReason`,
+`parseCkUpgradeBlockedError` for the `409 CK_UPGRADE_BLOCKED` problem details). The request DTOs deliberately have
+no `forceBreakingUpdate`: forcing a breaking update is an octo-cli / API operation, not a UI one. The blocker
+`kind` set is open; unknown kinds must be tolerated.
+
 ## Documentation Standards
 
 - **All concept documents and technical documentation must be written in English**
