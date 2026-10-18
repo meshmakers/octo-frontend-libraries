@@ -2,7 +2,7 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ApolloLink } from '@apollo/client/core';
 import { throwError } from 'rxjs';
-import { OCTO_SILENT_ERRORS, OctoErrorLink } from './octo-error-link';
+import { OCTO_HANDLES_CK_UPGRADE_BLOCKED, OCTO_SILENT_ERRORS, OctoErrorLink } from './octo-error-link';
 import { MessageService } from '@meshmakers/shared-services';
 
 describe('OctoErrorLink', () => {
@@ -78,6 +78,39 @@ describe('OctoErrorLink', () => {
       expect(messageServiceMock.showError).not.toHaveBeenCalled();
       run({});
       expect(messageServiceMock.showError).toHaveBeenCalledWith('boom');
+    });
+  });
+
+  describe('tenant upgrade guard refusals (AB#6903)', () => {
+    const refusal = { message: 'Blueprint update refused', extensions: { code: 'CK_UPGRADE_BLOCKED' } };
+    const other = { message: 'Other error', extensions: { code: 'OPERATION_FAILED' } };
+    const show = (errors: unknown[], skip: boolean): void =>
+      (octoErrorLink as unknown as { showError(e: { errors: unknown[] }, skip: boolean): void }).showError({ errors }, skip);
+
+    it('recognises the context flag', () => {
+      const op = (context: Record<string, unknown>) => ({ getContext: () => context }) as unknown as ApolloLink.Operation;
+      expect(OctoErrorLink.handlesCkUpgradeBlocked(op({ [OCTO_HANDLES_CK_UPGRADE_BLOCKED]: true }))).toBe(true);
+      expect(OctoErrorLink.handlesCkUpgradeBlocked(op({}))).toBe(false);
+      expect(OctoErrorLink.handlesCkUpgradeBlocked(undefined)).toBe(false);
+    });
+
+    it('toasts a refusal when the caller does not handle it', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      show([refusal], false);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows no toast for a refusal the caller handles', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      show([refusal], true);
+      expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
+    });
+
+    it('still toasts the other errors of the same operation', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      show([refusal, other], true);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall![0]).toBe('Other error');
     });
   });
 

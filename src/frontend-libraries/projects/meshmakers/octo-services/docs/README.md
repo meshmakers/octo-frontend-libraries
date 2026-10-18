@@ -875,6 +875,12 @@ Apollo Link that handles GraphQL errors and displays them via `MessageService`.
 // - Handles network errors gracefully
 ```
 
+Operation context flags (all opt-in, set via `context: { … }` on the Apollo call):
+- `OCTO_SILENT_ERRORS` — no toast for any error of the operation (best-effort background reads).
+- `OCTO_HANDLES_CK_UPGRADE_BLOCKED` (AB#6903) — the caller shows a tenant upgrade guard refusal itself
+  (`extensions.code = CK_UPGRADE_BLOCKED`, see `parseCkUpgradeBlockedGraphQlError`); that one error gets no toast,
+  all other errors of the operation still do.
+
 #### Error Response Format
 
 The link handles errors with `extensions.OctoDetails`:

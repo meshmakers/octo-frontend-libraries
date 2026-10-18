@@ -3,6 +3,7 @@ import { inject, Injectable, Injector } from '@angular/core';
 import {MessageService} from '@meshmakers/shared-services';
 import {ApolloLink} from '@apollo/client/core';
 import { CombinedGraphQLErrors, ErrorLike } from '@apollo/client';
+import { CK_UPGRADE_BLOCKED_CODE } from './ck-model-catalog.dto';
 
 /**
  * Operation context flag: errors of an operation with `context: { [OCTO_SILENT_ERRORS]: true }`
@@ -10,6 +11,13 @@ import { CombinedGraphQLErrors, ErrorLike } from '@apollo/client';
  * caller handles the failure itself (e.g. the Settings counts, AB#5523).
  */
 export const OCTO_SILENT_ERRORS = 'octoSilentErrors';
+
+/**
+ * Operation context flag (AB#6903): the caller of the operation shows a tenant upgrade guard refusal
+ * (`extensions.code = CK_UPGRADE_BLOCKED`) itself, with its blockers. Such errors get no toast; every other error of
+ * the operation is toasted as usual. Opt-in on purpose: a caller that does not handle the refusal keeps the toast.
+ */
+export const OCTO_HANDLES_CK_UPGRADE_BLOCKED = 'octoHandlesCkUpgradeBlocked';
 
 @Injectable()
 export class OctoErrorLink extends ApolloLink {
@@ -30,7 +38,7 @@ export class OctoErrorLink extends ApolloLink {
         }
 
         if (error instanceof CombinedGraphQLErrors) {
-          this.showError(error);
+          this.showError(error, OctoErrorLink.handlesCkUpgradeBlocked(operation));
         } else {
           this.showErrorLike(error);
         }
@@ -52,6 +60,15 @@ export class OctoErrorLink extends ApolloLink {
     }
   }
 
+  /** True when the operation shows a guard refusal itself ({@link OCTO_HANDLES_CK_UPGRADE_BLOCKED}). */
+  static handlesCkUpgradeBlocked(operation: ApolloLink.Operation | undefined): boolean {
+    try {
+      return operation?.getContext?.()?.[OCTO_HANDLES_CK_UPGRADE_BLOCKED] === true;
+    } catch {
+      return false;
+    }
+  }
+
   private showErrorLike(error: ErrorLike): void {
     // Network connectivity errors (HTTP status 0) are already handled by MmHttpErrorInterceptor
     // which either shows the connection error overlay (via ON_CONNECTION_LOST) or a toast.
@@ -67,16 +84,25 @@ export class OctoErrorLink extends ApolloLink {
     messageService.showError(error.message);
   }
 
-  private showError(combinedGraphQLErrors: CombinedGraphQLErrors): void{
+  private showError(combinedGraphQLErrors: CombinedGraphQLErrors, skipCkUpgradeBlocked = false): void{
     const messageService = this.injector.get(MessageService);
+
+    const errors = skipCkUpgradeBlocked
+      ? combinedGraphQLErrors.errors.filter(e => e.extensions?.['code'] !== CK_UPGRADE_BLOCKED_CODE)
+      : combinedGraphQLErrors.errors;
+    if (errors.length === 0) {
+      // Only guard refusals, and the caller shows them with their blockers.
+      console.warn('GraphQL operation refused by the tenant upgrade guard (shown by the caller)', combinedGraphQLErrors.errors);
+      return;
+    }
 
     // Dedupe identical errors before rendering. A list query with one broken field produces one
     // error PER ROW (observed on AB#4771: 13 rollup rows each yielded the same "Error trying to
     // resolve field 'columns'" / INVALID_OPERATION), which used to flood the toast with the same
     // message N times. Identical (message, code, OctoDetails) tuples collapse into one entry with
     // an "(× N)" suffix; every raw error is still logged to the console individually.
-    const deduped = new Map<string, { error: (typeof combinedGraphQLErrors.errors)[number]; count: number }>();
-    for (const error of combinedGraphQLErrors.errors) {
+    const deduped = new Map<string, { error: (typeof errors)[number]; count: number }>();
+    for (const error of errors) {
       console.error(error);
 
       const key = JSON.stringify([

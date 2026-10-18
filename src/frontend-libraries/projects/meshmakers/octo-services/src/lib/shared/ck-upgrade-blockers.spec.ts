@@ -1,5 +1,8 @@
 import { CkModelLibraryStatusItemDto, CkUpgradeBlockerDto } from './ck-model-catalog.dto';
-import { ckBlockersOf, ckFirstBlockerReason, isCkBlocked, parseCkUpgradeBlockedError } from './ck-upgrade-blockers';
+import {
+  ckBlockersOf, ckFirstBlockerReason, isCkBlocked, isCkUpgradeBlockedGraphQlError, parseCkUpgradeBlockedError,
+  parseCkUpgradeBlockedGraphQlError
+} from './ck-upgrade-blockers';
 
 const blocker = (over: Partial<CkUpgradeBlockerDto> = {}): CkUpgradeBlockerDto => ({
   dependent: 'EnergyCommunity.Registration-2.8.0',
@@ -85,5 +88,49 @@ describe('ck-upgrade-blockers (AB#6872)', () => {
       expect(parseCkUpgradeBlockedError(new Error('boom'))).toBeNull();
       expect(parseCkUpgradeBlockedError(null)).toBeNull();
     });
+  });
+});
+
+describe('parseCkUpgradeBlockedGraphQlError (AB#6903)', () => {
+  const refusal = (extensions: Record<string, unknown>, message = 'Blueprint update refused') => ({ message, extensions });
+  const data = { updateSet: ['Basic-2.5.0'], blockers: [blocker()] };
+
+  it('reads the blockers and update set of a CombinedGraphQLErrors-like error', () => {
+    const problem = parseCkUpgradeBlockedGraphQlError({ errors: [refusal({ code: 'CK_UPGRADE_BLOCKED', data })] });
+    expect(problem?.code).toBe('CK_UPGRADE_BLOCKED');
+    expect(problem?.detail).toBe('Blueprint update refused');
+    expect(problem?.updateSet).toEqual(['Basic-2.5.0']);
+    expect(problem?.blockers).toEqual([blocker()]);
+  });
+
+  it('accepts graphQLErrors, a raw array and a single error', () => {
+    const entry = refusal({ code: 'CK_UPGRADE_BLOCKED', data });
+    expect(parseCkUpgradeBlockedGraphQlError({ graphQLErrors: [entry] })?.blockers?.length).toBe(1);
+    expect(parseCkUpgradeBlockedGraphQlError([entry])?.blockers?.length).toBe(1);
+    expect(parseCkUpgradeBlockedGraphQlError(entry)?.blockers?.length).toBe(1);
+  });
+
+  it('finds the refusal among other errors and reads members placed directly under extensions', () => {
+    const problem = parseCkUpgradeBlockedGraphQlError({
+      errors: [refusal({ code: 'OPERATION_FAILED' }), refusal({ code: 'CK_UPGRADE_BLOCKED', ...data })]
+    });
+    expect(problem?.blockers).toEqual([blocker()]);
+    expect(isCkUpgradeBlockedGraphQlError([refusal({ code: 'CK_UPGRADE_BLOCKED' })])).toBe(true);
+  });
+
+  it('yields an empty blocker list when the refusal carries no data', () => {
+    const problem = parseCkUpgradeBlockedGraphQlError([refusal({ code: 'CK_UPGRADE_BLOCKED' })]);
+    expect(problem?.blockers).toEqual([]);
+    expect(problem?.updateSet).toBeUndefined();
+  });
+
+  it('returns null for unrelated errors and unusable input', () => {
+    expect(parseCkUpgradeBlockedGraphQlError([refusal({ code: 'OPERATION_FAILED', data })])).toBeNull();
+    expect(parseCkUpgradeBlockedGraphQlError({ errors: [{ message: 'x' }] })).toBeNull();
+    expect(parseCkUpgradeBlockedGraphQlError(new Error('network'))).toBeNull();
+    expect(parseCkUpgradeBlockedGraphQlError({ status: 409, error: { code: 'CK_UPGRADE_BLOCKED' } })).toBeNull();
+    expect(parseCkUpgradeBlockedGraphQlError(null)).toBeNull();
+    expect(parseCkUpgradeBlockedGraphQlError('CK_UPGRADE_BLOCKED')).toBeNull();
+    expect(isCkUpgradeBlockedGraphQlError(undefined)).toBe(false);
   });
 });
