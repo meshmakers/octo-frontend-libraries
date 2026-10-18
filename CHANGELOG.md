@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-auth (tenant mismatch blocking state, AB#6731)
+
+- **BREAKING for hosts using `authorizeGuard` with a `:tenantId` route**: when the token still belongs to another
+  tenant than the route after the switch attempt, the guard no longer continues (the old
+  `Proceeding with current token` console.warn path). It redirects to `/:tenantId/tenant-mismatch`; register
+  `TenantMismatchComponent` there (`TENANT_MISMATCH_PATH`). Hosts without that route fall to their wildcard route.
+- The guard now tries `AuthorizeService.switchTenantByExchange` (in place) before the redirect flow.
+- New: `TenantMismatchComponent`, `TENANT_MISMATCH_PATH`, `AuthorizeService.retryTenantSignIn` /
+  `isTenantSignInRetried` (user-initiated sign-in once per tenant, then "not a member").
+
 ### octo-services (CK library upgrade guard)
 
 - New: tenant upgrade guard members in the CK library REST DTOs, all optional so an older asset repository still

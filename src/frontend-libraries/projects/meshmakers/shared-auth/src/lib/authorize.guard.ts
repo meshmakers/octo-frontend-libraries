@@ -1,6 +1,13 @@
 import { inject } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateFn, CanMatchFn, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, CanMatchFn, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { AuthorizeService } from './authorize.service';
+
+/**
+ * Path segment of the blocking route a host registers as `/:tenantId/tenant-mismatch`. The guard
+ * redirects there when the token still belongs to another tenant than the route after the switch
+ * attempt (AB#6731); render {@link TenantMismatchComponent} on it.
+ */
+export const TENANT_MISMATCH_PATH = 'tenant-mismatch';
 
 /**
  * Walks up the route tree to find the tenantId parameter.
@@ -14,6 +21,10 @@ function findRouteTenantId(route: ActivatedRouteSnapshot): string | undefined {
     current = current.parent;
   }
   return undefined;
+}
+
+function mismatchTree(router: Router, routeTenantId: string): UrlTree {
+  return router.createUrlTree(['/', routeTenantId, TENANT_MISMATCH_PATH]);
 }
 
 /**
@@ -33,7 +44,7 @@ function findRouteTenantId(route: ActivatedRouteSnapshot): string | undefined {
  * { path: 'admin', component: AdminComponent, canActivate: [authorizeGuard], data: { roles: ['AdminPanelManagement'] } }
  * ```
  */
-export const authorizeGuard: CanActivateFn = async (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+export const authorizeGuard: CanActivateFn = async (route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Promise<boolean | UrlTree> => {
   const authorizeService = inject(AuthorizeService);
   const router = inject(Router);
 
@@ -55,15 +66,24 @@ export const authorizeGuard: CanActivateFn = async (route: ActivatedRouteSnapsho
   const routeTenantId = findRouteTenantId(route);
   if (tokenTenantId && routeTenantId && routeTenantId.toLowerCase() !== tokenTenantId.toLowerCase()) {
     console.debug(`[AuthGuard] Tenant mismatch: token="${tokenTenantId}", route="${routeTenantId}" — attempting tenant switch`);
-    // switchTenant returns false if a switch was already attempted (loop prevention).
-    // Use state.url (the router's target URL) — not window.location.href which is
-    // still the current page during in-app navigation (e.g., tenant switcher dropdown).
-    const targetUrl = window.location.origin + state.url;
-    if (authorizeService.switchTenant(routeTenantId, targetUrl)) {
-      return false;
+    // 1. In-place token exchange (RFC 8693): no reload, no login mask.
+    if (await authorizeService.switchTenantByExchange(routeTenantId)) {
+      authorizeService.consumeSwitchAttempted();
+    } else {
+      // 2. Fall back to the redirect (auth-code flow). switchTenant returns false if a switch was
+      // already attempted (loop prevention). Use state.url (the router's target URL) — not
+      // window.location.href which is still the current page during in-app navigation.
+      const targetUrl = window.location.origin + state.url;
+      if (authorizeService.switchTenant(routeTenantId, targetUrl)) {
+        return false;
+      }
     }
-    // Switch was skipped — fall through to role-based checks
-    console.warn(`[AuthGuard] Tenant mismatch persists after switch attempt (token="${tokenTenantId}", route="${routeTenantId}"). Proceeding with current token.`);
+    // 3. Never continue with a token of another tenant (AB#6731): re-check after the attempt and
+    // block with an explanation instead of letting the page issue requests that fail.
+    const tokenAfter = authorizeService.tokenTenantId();
+    if (tokenAfter && tokenAfter.toLowerCase() !== routeTenantId.toLowerCase()) {
+      return mismatchTree(router, routeTenantId);
+    }
   } else {
     // No mismatch — clear any leftover switch-attempted flag
     authorizeService.consumeSwitchAttempted();

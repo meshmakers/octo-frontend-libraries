@@ -75,6 +75,22 @@ All guards and the interceptor are functional (not class-based):
 
 The deprecated class-based `AuthorizeGuard` and `AuthorizeInterceptor` were removed.
 
+### Tenant switch and the tenant-mismatch screen (AB#6731)
+
+`authorizeGuard` enforces: no tenant route is entered with a token of another tenant. On a mismatch
+(token `tenant_id` != route `tenantId`) it
+1. tries `AuthorizeService.switchTenantByExchange` (RFC 8693, in place, no reload);
+2. falls back to `switchTenant` (clear session, reload, auth-code flow);
+3. if neither moves the token to the route tenant (loop-protection flag set, or the exchange did not
+   change the token tenant) it returns a `UrlTree` to `/:tenantId/tenant-mismatch` instead of
+   letting the page load. There is no console-warn-only fall-through any more.
+
+Hosts must register `{ path: ':tenantId/tenant-mismatch', component: TenantMismatchComponent }`
+(`TENANT_MISMATCH_PATH`) as a sibling **before** the guarded `:tenantId` route. The component offers a
+user-initiated "Sign in to <tenant>" (`AuthorizeService.retryTenantSignIn`, once per tenant; it clears the
+loop-protection flag once); after that retry it only says "not a member, contact your administrator".
+`consumeSwitchAttempted()` (called when token and route tenant match) ends the whole cycle.
+
 ### Discovery-Document Resilience
 
 `AuthorizeService.initialize()` wraps `oauthService.loadDiscoveryDocumentAndTryLogin()` in a bounded exponential-backoff retry loop (defaults: 6 attempts, 1500 ms initial delay, 30 s cap). This covers the brief window during which the Identity service is unreachable after a redeploy — the symptom is otherwise reported by the browser as a CORS error (the ingress error page carries no `Access-Control-Allow-Origin` header), which is why a plain network-error catch upstream wouldn't help.
