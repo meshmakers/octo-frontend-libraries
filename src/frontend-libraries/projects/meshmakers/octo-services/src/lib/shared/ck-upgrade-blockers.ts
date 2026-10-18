@@ -46,3 +46,51 @@ export function parseCkUpgradeBlockedError(error: unknown): CkUpgradeBlockedProb
   if (problem.code !== CK_UPGRADE_BLOCKED_CODE) return null;
   return { ...problem, code: CK_UPGRADE_BLOCKED_CODE, blockers: ckBlockersOf(problem) } as CkUpgradeBlockedProblemDto;
 }
+
+/**
+ * GraphQL sibling of {@link parseCkUpgradeBlockedError} (CK v2 F2.5, AB#6903): reads a blueprint mutation
+ * (`blueprints.install`, `blueprints.applyUpdate`) refused by the tenant upgrade guard. The asset repository answers
+ * such a refusal as an execution error with `extensions.code = CK_UPGRADE_BLOCKED` and the structured blockers in the
+ * error data (`extensions.data.blockers` / `extensions.data.updateSet`; a host that does not wrap the data reads the
+ * same members directly under `extensions`).
+ *
+ * Accepts every shape a failed Apollo call comes in: Apollo 4 `CombinedGraphQLErrors` (`errors`), the older
+ * `graphQLErrors`, a raw array of GraphQL errors, or a single GraphQL error. Structural on purpose (no `instanceof`).
+ * Returns null for every other error, so the caller keeps its normal error path; a refusal without blocker data (older
+ * or reduced server answer) still yields a problem with an empty blocker list and the server message as `detail`.
+ */
+export function parseCkUpgradeBlockedGraphQlError(error: unknown): CkUpgradeBlockedProblemDto | null {
+  for (const entry of graphQlErrorEntries(error)) {
+    const extensions = asRecord(entry['extensions']);
+    if (extensions?.['code'] !== CK_UPGRADE_BLOCKED_CODE) continue;
+    const data = asRecord(extensions['data']) ?? extensions;
+    const updateSet = Array.isArray(data['updateSet'])
+      ? (data['updateSet'] as unknown[]).filter((m): m is string => typeof m === 'string')
+      : undefined;
+    return {
+      code: CK_UPGRADE_BLOCKED_CODE,
+      detail: typeof entry['message'] === 'string' ? entry['message'] : undefined,
+      updateSet,
+      blockers: ckBlockersOf({ blockers: Array.isArray(data['blockers']) ? (data['blockers'] as CkUpgradeBlockerDto[]) : null })
+    };
+  }
+  return null;
+}
+
+/** True when the GraphQL error (any shape accepted by {@link parseCkUpgradeBlockedGraphQlError}) is a guard refusal. */
+export function isCkUpgradeBlockedGraphQlError(error: unknown): boolean {
+  return parseCkUpgradeBlockedGraphQlError(error) !== null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+function graphQlErrorEntries(error: unknown): Record<string, unknown>[] {
+  if (Array.isArray(error)) return error.map(asRecord).filter((e): e is Record<string, unknown> => e !== null);
+  const candidate = asRecord(error);
+  if (!candidate) return [];
+  if (Array.isArray(candidate['errors'])) return graphQlErrorEntries(candidate['errors']);
+  if (Array.isArray(candidate['graphQLErrors'])) return graphQlErrorEntries(candidate['graphQLErrors']);
+  return candidate['extensions'] !== undefined ? [candidate] : [];
+}

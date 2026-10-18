@@ -63,6 +63,19 @@ null-safe helpers of `ck-upgrade-blockers.ts` (`isCkBlocked`, `ckBlockersOf`, `c
 no `forceBreakingUpdate`: forcing a breaking update is an octo-cli / API operation, not a UI one. The blocker
 `kind` set is open; unknown kinds must be tolerated.
 
+**Blueprints over GraphQL (AB#6903).** `blueprints.install` / `blueprints.applyUpdate` refuse a blocked CK update set
+as a GraphQL execution error with `extensions.code = CK_UPGRADE_BLOCKED` and the blockers in the error data;
+`blueprints.previewUpdate` (also for a first install) reports `isBlocked`, `ckUpdateSet`, `blockers[]` without refusing.
+`parseCkUpgradeBlockedGraphQlError(error)` (sibling of the REST 409 parser) accepts Apollo 4 `CombinedGraphQLErrors`,
+`graphQLErrors`, a raw array or one error and returns the same `CkUpgradeBlockedProblemDto` (empty blockers when the
+refusal carries no data) or null for any other error. A caller that shows the refusal itself passes the operation
+context `{ [OCTO_HANDLES_CK_UPGRADE_BLOCKED]: true }`; `OctoErrorLink` then skips the toast for exactly that code and
+keeps toasting every other error of the operation.
+Note: the asset repository puts the blockers into `ExecutionError.Data`; GraphQL.NET sends that to clients only when
+`ErrorInfoProviderOptions.ExposeData` is on (default false, not set by the asset repository as of 2026-10-18), so a
+refusal may arrive with the code and the English message only. The parser then returns an empty blocker list; the
+caller can fetch the blockers with `previewUpdate` (the Studio does).
+
 ## Documentation Standards
 
 - **All concept documents and technical documentation must be written in English**
