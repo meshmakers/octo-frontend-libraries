@@ -1,7 +1,7 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Route, Router, RouterStateSnapshot, UrlSegment } from '@angular/router';
-import { authorizeGuard, authorizeChildGuard, authorizeMatchGuard, authorizeDeactivateGuard } from './authorize.guard';
+import { authorizeGuard, authorizeChildGuard, authorizeMatchGuard, authorizeDeactivateGuard, TENANT_MISMATCH_PATH } from './authorize.guard';
 import { AuthorizeService } from './authorize.service';
 import { Roles } from './roles';
 
@@ -27,6 +27,7 @@ describe('Functional Guards', () => {
     authServiceMock = {
       login: vi.fn().mockName('AuthorizeService.login'),
       switchTenant: vi.fn().mockName('AuthorizeService.switchTenant'),
+      switchTenantByExchange: vi.fn().mockName('AuthorizeService.switchTenantByExchange'),
       consumePendingTenantSwitch: vi.fn().mockName('AuthorizeService.consumePendingTenantSwitch'),
       consumeSwitchAttempted: vi.fn().mockName('AuthorizeService.consumeSwitchAttempted'),
       // Signal mocks - these return a function that returns the value
@@ -37,9 +38,11 @@ describe('Functional Guards', () => {
     authServiceMock.consumePendingTenantSwitch.mockReturnValue(null);
     authServiceMock.consumeSwitchAttempted.mockReturnValue(null);
     authServiceMock.switchTenant.mockReturnValue(true);
+    authServiceMock.switchTenantByExchange.mockResolvedValue(false);
 
     routerMock = {
-      navigate: vi.fn().mockName('Router.navigate')
+      navigate: vi.fn().mockName('Router.navigate'),
+      createUrlTree: vi.fn().mockName('Router.createUrlTree').mockImplementation((commands: string[]) => ({ commands }))
     } as unknown as MockedObject<Router>;
     routerMock.navigate.mockResolvedValue(true);
 
@@ -243,25 +246,59 @@ describe('Functional Guards', () => {
         expect(authServiceMock.login).not.toHaveBeenCalled();
       });
 
-      it('should fall through to role check when switchTenant returns false (loop prevention)', async () => {
+      const mismatchRoute = (): ActivatedRouteSnapshot => ({
+        data: { roles: [] },
+        params: {},
+        parent: { params: { tenantId: 'meshtest' }, parent: null } as unknown as ActivatedRouteSnapshot
+      } as unknown as ActivatedRouteSnapshot);
+
+      it('should NOT fall through but block when switchTenant returns false (flag set, token tenant mismatch)', async () => {
         tokenTenantIdValue = 'octosystem';
         authServiceMock.switchTenant.mockReturnValue(false);
         mockState = { url: '/meshtest' } as RouterStateSnapshot;
-        mockRoute = {
-          data: { roles: [] },
-          params: {},
-          parent: {
-            params: { tenantId: 'meshtest' },
-            parent: null
-          } as unknown as ActivatedRouteSnapshot
-        } as unknown as ActivatedRouteSnapshot;
 
-        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mockRoute, mockState));
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mismatchRoute(), mockState));
 
-        // switchTenant was called but returned false (loop prevention)
         expect(authServiceMock.switchTenant).toHaveBeenCalledWith('meshtest', expect.stringContaining('/meshtest'));
-        // Guard falls through to role check — empty roles means access granted
+        expect(routerMock.createUrlTree).toHaveBeenCalledWith(['/', 'meshtest', TENANT_MISMATCH_PATH]);
+        expect(result).toEqual({ commands: ['/', 'meshtest', TENANT_MISMATCH_PATH] });
+      });
+
+      it('should try the token exchange first and not redirect when it succeeds', async () => {
+        tokenTenantIdValue = 'octosystem';
+        authServiceMock.switchTenantByExchange.mockImplementation(async () => {
+          tokenTenantIdValue = 'meshtest'; // the exchange swaps the session in place
+          return true;
+        });
+        mockState = { url: '/meshtest' } as RouterStateSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mismatchRoute(), mockState));
+
+        expect(authServiceMock.switchTenantByExchange).toHaveBeenCalledWith('meshtest');
+        expect(authServiceMock.switchTenant).not.toHaveBeenCalled();
         expect(result).toBe(true);
+      });
+
+      it('should redirect (auth-code flow) when the exchange is not possible', async () => {
+        tokenTenantIdValue = 'octosystem';
+        authServiceMock.switchTenantByExchange.mockResolvedValue(false);
+        mockState = { url: '/meshtest' } as RouterStateSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mismatchRoute(), mockState));
+
+        expect(authServiceMock.switchTenantByExchange).toHaveBeenCalledWith('meshtest');
+        expect(authServiceMock.switchTenant).toHaveBeenCalled();
+        expect(result).toBe(false);
+      });
+
+      it('should block when the exchange reports success but the token tenant still differs', async () => {
+        tokenTenantIdValue = 'octosystem';
+        authServiceMock.switchTenantByExchange.mockResolvedValue(true);
+        mockState = { url: '/meshtest' } as RouterStateSnapshot;
+
+        const result = await TestBed.runInInjectionContext(() => authorizeGuard(mismatchRoute(), mockState));
+
+        expect(result).toEqual({ commands: ['/', 'meshtest', TENANT_MISMATCH_PATH] });
       });
     });
   });

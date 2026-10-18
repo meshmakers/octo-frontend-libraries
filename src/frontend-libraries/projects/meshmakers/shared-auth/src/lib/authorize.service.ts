@@ -84,6 +84,8 @@ export class AuthorizeService {
   private static readonly TOKEN_EXCHANGE_GRANT = 'urn:ietf:params:oauth:grant-type:token-exchange';
   private static readonly ACCESS_TOKEN_TYPE = 'urn:ietf:params:oauth:token-type:access_token';
   private static readonly TENANT_SWITCH_ATTEMPTED_KEY = 'octo_tenant_switch_attempted';
+  /** Set when the user explicitly retried the sign-in from the tenant-mismatch screen (AB#6731). */
+  private static readonly TENANT_SIGNIN_RETRIED_KEY = 'octo_tenant_signin_retried';
   private static readonly DEFAULT_DISCOVERY_RETRY: DiscoveryDocumentRetryOptions = {
     attempts: 6,
     initialDelayMs: 1500,
@@ -493,6 +495,35 @@ export class AuthorizeService {
   }
 
   /**
+   * User-initiated retry from the tenant-mismatch screen (AB#6731): clears the loop-protection
+   * flag once and starts a fresh authorization-code flow for the target tenant. The retry is
+   * remembered, so a second mismatch is reported as "not a member" instead of offering another
+   * sign-in. Returns false (and does nothing) when this tenant was already retried.
+   */
+  public retryTenantSignIn(targetTenantId: string, targetUrl: string): boolean {
+    if (this.isTenantSignInRetried(targetTenantId)) {
+      return false;
+    }
+    try {
+      sessionStorage.setItem(AuthorizeService.TENANT_SIGNIN_RETRIED_KEY, targetTenantId);
+      sessionStorage.removeItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
+    } catch {
+      // sessionStorage may be unavailable
+    }
+    return this.switchTenant(targetTenantId, targetUrl);
+  }
+
+  /** True when the user already retried the sign-in for this tenant from the mismatch screen. */
+  public isTenantSignInRetried(targetTenantId: string): boolean {
+    try {
+      const retried = sessionStorage.getItem(AuthorizeService.TENANT_SIGNIN_RETRIED_KEY);
+      return !!retried && retried.toLowerCase() === targetTenantId.toLowerCase();
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Switches to another tenant in place, without a redirect, by exchanging the current access
    * token for one issued in the target tenant (RFC 8693).
    *
@@ -687,6 +718,8 @@ export class AuthorizeService {
     try {
       const tenantId = sessionStorage.getItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
       sessionStorage.removeItem(AuthorizeService.TENANT_SWITCH_ATTEMPTED_KEY);
+      // A consistent token/route tenant ends the whole switch cycle, including an explicit retry.
+      sessionStorage.removeItem(AuthorizeService.TENANT_SIGNIN_RETRIED_KEY);
       return tenantId;
     } catch {
       return null;

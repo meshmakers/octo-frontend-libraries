@@ -24,8 +24,12 @@ export {
   authorizeGuard,
   authorizeChildGuard,
   authorizeMatchGuard,
-  authorizeDeactivateGuard
+  authorizeDeactivateGuard,
+  TENANT_MISMATCH_PATH
 } from './lib/authorize.guard';
+
+// Blocking screen for a token of another tenant than the route (AB#6731); register on /:tenantId/tenant-mismatch
+export { TenantMismatchComponent } from './lib/tenant-mismatch.component';
 
 // UI Components (Kendo) - available via '@meshmakers/shared-auth/login-ui'
 // import { LoginAppBarSectionComponent } from '@meshmakers/shared-auth/login-ui';

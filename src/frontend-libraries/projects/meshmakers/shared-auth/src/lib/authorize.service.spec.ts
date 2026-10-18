@@ -818,6 +818,48 @@ describe('AuthorizeService', () => {
       afterEach(() => {
         sessionStorage.removeItem('octo_tenant_reauth');
         sessionStorage.removeItem('octo_tenant_switch_attempted');
+        sessionStorage.removeItem('octo_tenant_signin_retried');
+      });
+    });
+
+    describe('retryTenantSignIn (AB#6731)', () => {
+      beforeEach(async () => {
+        await service.initialize(mockOptions);
+        sessionStorage.removeItem('octo_tenant_signin_retried');
+      });
+
+      afterEach(() => {
+        sessionStorage.removeItem('octo_tenant_reauth');
+        sessionStorage.removeItem('octo_tenant_switch_attempted');
+        sessionStorage.removeItem('octo_tenant_signin_retried');
+      });
+
+      it('should clear the loop-protection flag once, remember the retry and start the switch', () => {
+        sessionStorage.setItem('octo_tenant_switch_attempted', 'meshtest');
+
+        const started = service.retryTenantSignIn('meshtest', 'https://localhost:4200/meshtest');
+
+        expect(started).toBe(true);
+        expect(service.isTenantSignInRetried('meshtest')).toBe(true);
+        expect(sessionStorage.getItem('octo_tenant_reauth')).toBe('meshtest');
+      });
+
+      it('should not retry a second time for the same tenant', () => {
+        service.retryTenantSignIn('meshtest', 'https://localhost:4200/meshtest');
+        oauthServiceMock.stopAutomaticRefresh.mockClear();
+
+        const again = service.retryTenantSignIn('MeshTest', 'https://localhost:4200/meshtest');
+
+        expect(again).toBe(false);
+        expect(oauthServiceMock.stopAutomaticRefresh).not.toHaveBeenCalled();
+      });
+
+      it('should forget the retry when the switch cycle ends (consumeSwitchAttempted)', () => {
+        service.retryTenantSignIn('meshtest', 'https://localhost:4200/meshtest');
+
+        service.consumeSwitchAttempted();
+
+        expect(service.isTenantSignInRetried('meshtest')).toBe(false);
       });
     });
 
