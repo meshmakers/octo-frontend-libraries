@@ -55,6 +55,7 @@ export * from './lib/shared/tenantFeaturesDtos';
 export * from './lib/shared/movePipelineDtos';
 export * from './lib/shared/domainDtos';
 export * from './lib/shared/ck-model-catalog.dto';
+export * from './lib/shared/ck-upgrade-blockers';
 
 // GraphQL generated types - re-export all for use by dependent packages
 export * from './lib/graphQL/globalTypes';

@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services (CK library upgrade guard)
+
+- New: tenant upgrade guard members in the CK library REST DTOs, all optional so an older asset repository still
+  works: `CkUpgradeBlockerDto`, `isBlocked` / `blockers` / `isRangeRetaining` on `CkModelLibraryStatusItemDto`,
+  `isBlocked` / `blockers` on `UpgradeCheckResponseDto`, `DependencyResolutionResponseDto` and
+  `BatchDependencyResolutionResponseDto`, and `CkUpgradeBlockedProblemDto` / `CK_UPGRADE_BLOCKED_CODE` for the
+  `409` problem details of a refused import. Null-safe helpers `isCkBlocked`, `ckBlockersOf`,
+  `ckFirstBlockerReason`, `parseCkUpgradeBlockedError`. No force member: forcing is an octo-cli / API operation
+  (AB#6872).
+
 ### shared-ui (move icon)
 
 - New: `MM_ACTION_ICONS.move` (`arrowRightIcon`) for "move to another folder / container"; replaces ad hoc
