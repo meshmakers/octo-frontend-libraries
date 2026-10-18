@@ -62,4 +62,19 @@ describe('TenantMismatchComponent', () => {
     expect(links).toContain('Back to octosystem');
     expect(links).toContain('other');
   });
+
+  it('shows the access-denied chip like the Studio screen and the retry-final hint when no other tenant exists', () => {
+    retried = true;
+    const el = create(['octosystem']);
+
+    expect(el.textContent).toContain('Access denied');
+    expect(el.textContent).toContain('Contact your administrator to request access.');
+    expect(el.textContent).toContain('No other tenants available for this account.');
+  });
+
+  it('focuses the sign-in button when it is offered', () => {
+    const el = create();
+
+    expect(document.activeElement).toBe(el.querySelector('button'));
+  });
 });
