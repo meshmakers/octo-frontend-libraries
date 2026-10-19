@@ -8,7 +8,7 @@
           {{ expression() }}
         </code>
         @if (mergedConfig().showCopyButton) {
-          <button
+          <button type="button"
             kendoButton
             [svgIcon]="copiedRecently() ? checkIcon : copyIcon"
             [title]="copiedRecently() ? 'Copied!' : 'Copy to clipboard'"
@@ -42,7 +42,7 @@
       <div class="presets-label">Quick Select</div>
       <div class="presets-grid">
         @for (preset of presetsByCategory().frequent; track preset.id) {
-          <button
+          <button type="button"
             kendoButton
             size="small"
             fillMode="outline"
@@ -192,28 +192,28 @@
           <div class="form-row mode-row">
             <kendo-label text="On"></kendo-label>
             <div class="mode-buttons">
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="dailyMode() === 'every'"
                 [disabled]="disabled()"
                 (click)="onDailyModeChange('every')">
                 Every day
               </button>
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="dailyMode() === 'weekdays'"
                 [disabled]="disabled()"
                 (click)="onDailyModeChange('weekdays')">
                 Weekdays
               </button>
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="dailyMode() === 'weekends'"
                 [disabled]="disabled()"
                 (click)="onDailyModeChange('weekends')">
                 Weekends
               </button>
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="dailyMode() === 'specific'"
                 [disabled]="disabled()"
@@ -227,7 +227,7 @@
             <div class="form-row days-row">
               <div class="day-buttons">
                 @for (day of weekdayAbbreviations; track day.value) {
-                  <button
+                  <button type="button"
                     kendoButton
                     [selected]="isDaySelected(day.value)"
                     [disabled]="disabled()"
@@ -284,7 +284,7 @@
             <kendo-label text="On days"></kendo-label>
             <div class="day-buttons">
               @for (day of weekdayAbbreviations; track day.value) {
-                <button
+                <button type="button"
                   kendoButton
                   [selected]="isDaySelected(day.value)"
                   [disabled]="disabled()"
@@ -338,14 +338,14 @@
 
           <div class="form-row mode-row">
             <div class="mode-buttons">
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="monthlyMode() === 'specific'"
                 [disabled]="disabled()"
                 (click)="onMonthlyModeChange('specific')">
                 Specific day
               </button>
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="monthlyMode() === 'relative'"
                 [disabled]="disabled()"
