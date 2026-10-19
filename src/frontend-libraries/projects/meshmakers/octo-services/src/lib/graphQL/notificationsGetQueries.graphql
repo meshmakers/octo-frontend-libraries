@@ -1,0 +1,16 @@
+query NotificationsGetQueries($after: String, $first: Int, $searchFilter: SearchFilter) {
+  runtime {
+    systemSimpleRtQuery(after: $after, first: $first, searchFilter: $searchFilter) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      items {
+        rtId
+        ckTypeId
+        name
+      }
+    }
+  }
+}

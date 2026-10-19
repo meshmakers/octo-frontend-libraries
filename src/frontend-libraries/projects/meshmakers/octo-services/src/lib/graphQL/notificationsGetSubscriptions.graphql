@@ -1,0 +1,66 @@
+query NotificationsGetSubscriptions(
+  $first: Int
+  $after: String
+  $searchFilter: SearchFilter
+  $fieldFilter: [FieldFilter]
+  $sortOrder: [Sort]
+) {
+  runtime {
+    systemNotificationNotificationSubscription(
+      first: $first
+      after: $after
+      searchFilter: $searchFilter
+      fieldFilter: $fieldFilter
+      sortOrder: $sortOrder
+    ) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      items {
+        rtId
+        ckTypeId
+        name
+        enabled
+        preferences(ckTypeIds: ["System.Notification/NotificationPreference"], first: 1000) {
+          totalCount
+          items {
+            ... on SystemNotificationNotificationPreference {
+              rtId
+              ckTypeId
+              deliveryState(ckTypeIds: ["System.Notification/NotificationDeliveryState"]) {
+                items {
+                  ... on SystemNotificationNotificationDeliveryState {
+                    rtId
+                    ckTypeId
+                    lastRunAt
+                    lastError
+                  }
+                }
+              }
+            }
+          }
+        }
+        query(ckTypeIds: ["System/SimpleRtQuery"]) {
+          items {
+            ... on SystemSimpleRtQuery {
+              rtId
+              ckTypeId
+              name
+            }
+          }
+        }
+        template(ckTypeIds: ["System.Notification/NotificationTemplate"]) {
+          items {
+            ... on SystemNotificationNotificationTemplate {
+              rtId
+              ckTypeId
+              rtWellKnownName
+            }
+          }
+        }
+      }
+    }
+  }
+}

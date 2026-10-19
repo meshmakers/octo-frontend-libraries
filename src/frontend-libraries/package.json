@@ -122,6 +122,8 @@
     "@angular/build": "^22.1.7",
     "@angular/cli": "^22.1.7",
     "@angular/compiler-cli": "^22.1.5",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.14",
     "@eslint/js": "^10.0.1",
     "@graphql-codegen/cli": "^6.3.1",
     "@graphql-codegen/fragment-matcher": "^6.0.1",

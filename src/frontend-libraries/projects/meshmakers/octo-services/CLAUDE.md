@@ -426,6 +426,28 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | `getPipelineExecutionDebugPointNodes(tenantId, pipelineRtId, pipelineCkTypeId, executionId)` | Get debug point tree |
 | `getDebugPoint(tenantId, pipelineRtId, pipelineCkTypeId, executionId, nodeId)` | Get data at debug point |
 
+### Notification subscriptions (AB#2585)
+
+Building blocks for screens that manage `System.Notification` subscriptions and their recipients, shared by the
+Refinery Studio and the EnergyCommunity app. Each app keeps its own views; the data and the rules live here once.
+
+| Export | What it is |
+|--------|-------------|
+| `NotificationSubscriptionService` | Reads and writes subscriptions (`getSubscriptions`, `getSubscription`, `createSubscription` - always undeployed, `updateSubscription` - only the association that changed), recipients (`getRecipients`, `getRecipient`, `findRecipient`, `createRecipient`, `updateRecipient` - `subjectId` only when given), the pickers (`searchQueries`, `searchEmailTemplates`), `getPlaceholderSources` and `deleteWithDeliveryStates` (archive, then erase the delivery states; throws when the archive fails, reports a failed erase in its result). A delivery state recorded for another user reads as not run. |
+| `NotificationRecipientCandidatesService` | The users a recipient can be: the admin user list (with e-mail) for `UserManagement`, the user directory otherwise |
+| `NOTIFICATION_RECIPIENT_CANDIDATES` | The source the recipient pickers read (`NotificationRecipientCandidatesSource.load()`). Defaults to `NotificationRecipientCandidatesService`. An app that calls no identity API (the EnergyCommunity app) provides `GraphQlNotificationRecipientCandidatesService` instead: it pages `runtime.systemIdentityUser` of the tenant's GraphQL (`notificationsGetIdentityUsers`), id = the user's rtId = the preference `subjectId` |
+| `NotificationSubscriptionService.getTemplateSubscriptions(templateRtId)` | The subscriptions that use a template, each with the columns of its query (`notificationsGetTemplateSubscriptions`). A template editor uses them to switch from its own placeholder catalog to `${count}` + the query columns |
+| `notificationPreferenceStatus`, `notificationSubscriptionHealth`, `notificationErrorText` | Status rules of a recipient and a subscription |
+| `isNotificationSchedulable`, `firesMoreThanOncePerMinute`, `withScheduleTimeZone`, `notificationTimeZones`, `browserTimeZone` | Schedule rules; the next executions come in as a function (`CronParserService.getNextExecutions` in the apps), because this library does not depend on shared-ui |
+| `unknownNotificationPlaceholders`, `placeholderList` | Template placeholders a query does not provide; the message text stays in the app, which translates it |
+| `notificationColumnPath(column)` | Splits a query column into the types it navigates through and the attribute (`relatesTo.basicEnergyMeteringPoint->contact.firstName` → trail `[basicEnergyMeteringPoint]`, attribute `contact.firstName`) |
+| `NotificationSubscriptionService.getQuerySample(queryRtId, take)` | The first rows of a query (`runtimeQuery`, `notificationsGetQuerySample`) for a preview; `null` when the query cannot run. The asset repository refuses a query whose columns navigate deeply (`ASSET1006`, column expansion limit) even though the engine runs it, so a caller must cope with `null` |
+| `renderNotificationPreview(subject, body, options)` | Subject and body as the engine renders them (`NotificationDigest.Render`): `${count}` in both, one body block per row joined by a blank line, values HTML- and markdown-encoded for a markup body, date-times as `yyyy-MM-dd HH:mm` (browser time zone). Without rows one block with the host's `standIn(column)`, counted as 1. A token that is no column stays as written |
+| `loadPickerUsers`, `loadAdminPickerUsers`, `userDisplayName`, `userPickerText` | Load every user of a tenant for a picker, page by page |
+| `nameSearchTerm` | A typed text as a literal name search term (regex metacharacters escaped, an inner `*` as `\x2A`, a leading `@` as `\x40`) |
+
+Deploy, undeploy and the schedule sync stay on `CommunicationService`: they are controller routes, not GraphQL.
+
 ### ReportingService
 
 Tenant feature toggle for the Reporting feature (AB#4215). Backed by

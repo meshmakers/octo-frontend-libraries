@@ -89,6 +89,16 @@ export * from './lib/services/job-management.service';
 export * from './lib/services/file-download.service';
 export * from './lib/services/files-client.service';
 export * from './lib/services/communication.service';
+export * from './lib/services/picker-users';
+export * from './lib/shared/name-search-term';
+
+// Notification subscriptions (System.Notification)
+export * from './lib/notifications/notification-status';
+export * from './lib/notifications/notification-schedule';
+export * from './lib/notifications/notification-placeholders';
+export * from './lib/notifications/notification-preview';
+export * from './lib/notifications/notification-subscription.service';
+export * from './lib/notifications/notification-recipient-candidates.service';
 export * from './lib/services/reporting.service';
 export * from './lib/services/ai.service';
 export * from './lib/services/tus-upload.service';

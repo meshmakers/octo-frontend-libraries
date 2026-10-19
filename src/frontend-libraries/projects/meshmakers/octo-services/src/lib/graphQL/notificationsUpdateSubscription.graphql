@@ -1,0 +1,9 @@
+mutation NotificationsUpdateSubscription($entities: [SystemNotificationNotificationSubscriptionInputUpdate]!) {
+  runtime {
+    systemNotificationNotificationSubscriptions {
+      update(entities: $entities) {
+        rtId
+      }
+    }
+  }
+}

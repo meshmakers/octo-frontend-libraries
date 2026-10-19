@@ -1,0 +1,17 @@
+query NotificationsGetPlaceholderSources($queryRtId: OctoObjectId!, $templateRtId: OctoObjectId!) {
+  runtime {
+    systemSimpleRtQuery(rtId: $queryRtId) {
+      items {
+        rtId
+        columns
+      }
+    }
+    systemNotificationNotificationTemplate(rtId: $templateRtId) {
+      items {
+        rtId
+        subjectTemplate
+        bodyTemplate
+      }
+    }
+  }
+}

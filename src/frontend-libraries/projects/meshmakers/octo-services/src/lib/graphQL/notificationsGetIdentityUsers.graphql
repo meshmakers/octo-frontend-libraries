@@ -1,0 +1,14 @@
+query notificationsGetIdentityUsers($first: Int, $after: String) {
+  runtime {
+    systemIdentityUser(first: $first, after: $after) {
+      totalCount
+      items {
+        rtId
+        userName
+        firstName
+        lastName
+        email
+      }
+    }
+  }
+}

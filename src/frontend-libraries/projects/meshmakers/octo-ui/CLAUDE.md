@@ -519,6 +519,50 @@ The feature couples directly to the `SystemUIBranding` CK runtime type
 (`rtWellKnownName = "Branding"`), which is service-managed and auto-distributed
 to every tenant by `octo-admin-panel`.
 
+## Notifications (AB#2585)
+
+Secondary entry point `@meshmakers/octo-ui/notifications`: the views of notification subscriptions
+(`System.Notification`), shared by host apps. Data and rules come from `@meshmakers/octo-services`
+(`NotificationSubscriptionService`, `notification-status`, `notification-schedule`); deploy, undeploy
+and the schedule sync are controller routes on `CommunicationService`, so the host must provide
+`CONFIGURATION_SERVICE` with `communicationServices` and list that URL for the bearer token.
+
+| Export | What it is |
+|---|---|
+| `mm-notification-subscriptions` | List of subscriptions (name, deployed, recipients, health, template). Row action Open, row menu Deploy / Undeploy (with `canWrite`) - the same place as every other list of the host apps. No create: subscriptions come from blueprints or the Studio. Inputs `tenantId`, `canWrite`; output `openSubscription` - the host decides the route |
+| `mm-notification-subscription-detail` | One subscription: name, description and its recipients. Deployment lives in the list, the template text in the host's template editor. Inputs `tenantId`, `subscriptionRtId`, `canWrite`; output `loaded` (for a breadcrumb) |
+| `mm-notification-recipients` | Recipients of one subscription (`mm-list-view`): user, schedule (humanized, with the time zone for fixed hours), Onwards / Catch up, status, last mail. Add / Edit open `NotificationRecipientDialogComponent`; Delete is a danger confirm, archives the preferences, erases their delivery states, then syncs each preference's schedule |
+| `NotificationRecipientDialogComponent` | Recipient form: user (from `NOTIFICATION_RECIPIENT_CANDIDATES`), cron (`mm-cron-builder`, at most once a minute), time zone, start option. Refuses a second recipient of the same user, saves through `NotificationSubscriptionService`, then calls `syncNotificationSchedule(tenantId, preferenceRtId)` |
+| `NotificationDeploymentService` | Deploy / undeploy with toasts; undeploy asks first |
+
+- **Texts** go through the `MM_TRANSLATE` hook (keys `MM.OCTO_UI.NOTIFICATIONS.*`, English defaults in
+  `notifications.messages.ts`). A host without the hook shows English.
+- **Studio still has its own pages** (create/edit subscription with query and template pickers,
+  placeholder check). Moving it onto these components is a separate step; until then the rules of the
+  two must stay in step.
+
+## Template editor (AB#2585)
+
+Secondary entry point `@meshmakers/octo-ui/template-editor`: the building blocks of an e-mail template
+editor, so every app edits subjects and bodies the same way. The host keeps its own form, card layout and
+preview; it supplies the placeholders and decides which tokens are known.
+
+| Export | What it is |
+|---|---|
+| `mm-template-source-editor` | CodeMirror editor bound to a `FormControl` (`control`). Paints `${...}` tokens known / unknown by `isKnownToken` (a function; swapping it repaints). `singleLine` for a subject drops newlines. `insertToken(token)` puts a token at the cursor, `focus()` |
+| `mm-placeholder-catalog` | Searchable catalog: group rail (hidden for one group) and entries with label, token (a navigating token shortened to its last step, `${…contact.firstName}`, the whole token in the tooltip), example (`sample`) and an optional `note`, a use count from `templateText`. A group with `unavailable` (the reason) stays in the rail, greyed, shows the reason and inserts nothing - so a host keeps the same tabs in every template. Opens on the first available group. Inputs `groups`, `targetLabel`, `templateText`; output `insertPlaceholder` |
+| `TemplatePlaceholderGroup`, `TemplatePlaceholder`, `splitTemplateSegments` | The data the catalog shows and the token split the editor paints with |
+| `notificationPlaceholderGroup(columns, sample, t, options?)` | ONE catalog group for a notification template: `${count}` and every query column, a navigating one labelled `<entity> · <attribute>` (`a.typeA->b.typeB->attr`; the host may name the entity, `options.typeLabel`). Examples come from the first query row, without one from `options.exampleOf(column)`. `options.id` / `options.label` name the group |
+
+- **CodeMirror is an optional peer** (`@codemirror/state`, `@codemirror/view`): only a host that imports
+  this entry needs it.
+- **Texts** go through `MM_TRANSLATE` (keys `MM.OCTO_UI.TEMPLATE_EDITOR.*`, English defaults in
+  `template-editor.messages.ts`). A host passing its own `t` to `notificationPlaceholderGroup` should call
+  `injectMmT(DEFAULT_TEMPLATE_EDITOR_MESSAGES)`, otherwise an untranslated key comes back as the key.
+- **Preview of a notification** is `renderNotificationPreview` of `@meshmakers/octo-services` (rendered like
+  the engine). The host shows it with its own markdown component.
+- Users: the EnergyCommunity app's E-Mail Templates editor. Refinery Studio still has its plain editor.
+
 ## Entity forms (AB#5522)
 
 Secondary entry point `@meshmakers/octo-ui/entity-forms` (`entity-forms/`, usage and route
