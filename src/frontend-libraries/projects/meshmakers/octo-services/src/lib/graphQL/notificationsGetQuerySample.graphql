@@ -1,0 +1,23 @@
+query notificationsGetQuerySample($rtId: OctoObjectId!, $first: Int) {
+  runtime {
+    runtimeQuery(rtId: $rtId) {
+      items {
+        queryRtId
+        rows(first: $first) {
+          totalCount
+          items {
+            ... on RtSimpleQueryRow {
+              rtId
+              cells(first: 1000) {
+                items {
+                  attributePath
+                  value
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

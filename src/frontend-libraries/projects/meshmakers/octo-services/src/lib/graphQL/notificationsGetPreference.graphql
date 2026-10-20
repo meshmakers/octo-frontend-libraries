@@ -1,0 +1,25 @@
+query NotificationsGetPreference($rtId: OctoObjectId!) {
+  runtime {
+    systemNotificationNotificationPreference(rtId: $rtId) {
+      items {
+        rtId
+        ckTypeId
+        subjectId
+        cronExpression
+        timeZone
+        deliveryState(ckTypeIds: ["System.Notification/NotificationDeliveryState"]) {
+          items {
+            ... on SystemNotificationNotificationDeliveryState {
+              rtId
+              ckTypeId
+              subjectId
+              lastRunAt
+              lastSentAt
+              lastError
+            }
+          }
+        }
+      }
+    }
+  }
+}

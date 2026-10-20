@@ -92,7 +92,6 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
 
   // --- Internal state ---
   protected readonly expression = signal<string>('0 * * * * *');
-  protected readonly selectedTabIndex = signal<number>(3); // Default to Daily tab
   protected readonly copiedRecently = signal(false);
   private suppressOnChange = true; // Suppress onChange until user interacts
 
@@ -184,6 +183,23 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
     'seconds', 'minutes', 'hourly', 'daily', 'weekly', 'monthly', 'custom'
   ];
 
+  protected readonly visibleTypes = computed(() => {
+    const config = this.mergedConfig();
+    return this.tabIndexToType.filter(type =>
+      (!config.scheduleTypes || config.scheduleTypes.includes(type)) && (type !== 'custom' || !!config.allowCustom));
+  });
+
+  protected readonly selectedTab = computed<ScheduleType | undefined>(() => {
+    const visible = this.visibleTypes();
+    const type = this.scheduleType();
+    if (visible.includes(type)) return type;
+    return visible.includes('custom') ? 'custom' : visible[0];
+  });
+
+  protected shows(type: ScheduleType): boolean {
+    return this.visibleTypes().includes(type);
+  }
+
   constructor() {
     // Assigned here rather than as field initialisers: a class field initialised from a
     // relative import reads `undefined` under the Vitest module runner, so calling the
@@ -216,7 +232,6 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
   ngOnInit(): void {
     const defaultType = this.mergedConfig().defaultScheduleType || 'daily';
     this.scheduleType.set(defaultType);
-    this.selectedTabIndex.set(this.tabIndexToType.indexOf(defaultType));
   }
 
   // --- ControlValueAccessor implementation ---
@@ -244,8 +259,7 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
 
   protected onTabSelect(index: number): void {
     this.suppressOnChange = false;
-    this.selectedTabIndex.set(index);
-    const type = this.tabIndexToType[index];
+    const type = this.visibleTypes()[index];
     if (type) {
       this.scheduleType.set(type);
     }
@@ -470,7 +484,6 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
     if (!schedule) return;
 
     this.scheduleType.set(schedule.type);
-    this.selectedTabIndex.set(this.tabIndexToType.indexOf(schedule.type));
 
     // Parse custom fields first (always available)
     if (schedule.customFields) {

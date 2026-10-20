@@ -1,0 +1,50 @@
+query NotificationsGetRecipients(
+  $rtId: OctoObjectId!
+  $first: Int
+  $after: String
+  $fieldFilter: [FieldFilter]
+  $sortOrder: [Sort]
+) {
+  runtime {
+    systemNotificationNotificationSubscription(rtId: $rtId) {
+      items {
+        rtId
+        enabled
+        preferences(
+          ckTypeIds: ["System.Notification/NotificationPreference"]
+          first: $first
+          after: $after
+          fieldFilter: $fieldFilter
+          sortOrder: $sortOrder
+        ) {
+          totalCount
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          items {
+            ... on SystemNotificationNotificationPreference {
+              rtId
+              ckTypeId
+              subjectId
+              cronExpression
+              timeZone
+              deliveryState(ckTypeIds: ["System.Notification/NotificationDeliveryState"]) {
+                items {
+                  ... on SystemNotificationNotificationDeliveryState {
+                    rtId
+                    ckTypeId
+                    subjectId
+                    lastRunAt
+                    lastSentAt
+                    lastError
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

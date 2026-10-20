@@ -426,6 +426,45 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 | `getPipelineExecutionDebugPointNodes(tenantId, pipelineRtId, pipelineCkTypeId, executionId)` | Get debug point tree |
 | `getDebugPoint(tenantId, pipelineRtId, pipelineCkTypeId, executionId, nodeId)` | Get data at debug point |
 
+### Notification subscriptions (AB#2585)
+
+The single source of truth for screens that manage `System.Notification` subscriptions and their recipients. The
+Refinery Studio and the EnergyCommunity app each keep their own screens; what a recipient is, how its status reads,
+which schedules are allowed and what a write does around the GraphQL call lives here once. There is no shared screen on
+purpose: the screens differ per app (the Studio creates and edits subscriptions, EC only deploys them and manages
+recipients), the behaviour does not.
+
+The behaviour follows established products (Kubernetes, Jira filter subscriptions, Grafana contact points), decided
+2026-10-20:
+
+- **A recipient is one user for its whole life.** Editing changes the schedule and the time zone only; another user
+  means delete and add (like the immutable `roleRef` of a RoleBinding). A delivery state recorded for another user still
+  reads as not run.
+- **No start option.** A new recipient's first mail lists what the query returns now, later mails only new or changed
+  rows (`skipExistingRows: false`). Older preferences keep the value they have; nothing rewrites it.
+- **Status on two axes**: `active` (the subscription is deployed) and `health` `OK` / `NOT_RUN` / `ERROR`, with a
+  `problem` (`USER_DELETED`, `INVALID_SCHEDULE`, `RUN_FAILED` + `detail`).
+- **Schedules**: `NOTIFICATION_SCHEDULE_TYPES` for the `scheduleTypes` of `mm-cron-builder`, `NOTIFICATION_DEFAULT_CRON`;
+  a cron that is empty, never fires or fires more than once a minute is refused.
+
+| Export | What it is |
+|--------|-------------|
+| `NotificationSubscriptionService` | `getSubscriptions` (summary with health), `getSubscription`, `deploy` / `undeploy`, `getRecipients(subscriptionRtId, { skip, take, sort, searchText })` (rows with user label and status; the search matches the user label), `getRecipient(rtId, subscriptionDeployed)`, `loadUsers`, `scheduleIssue(cron)`, `getTemplateSubscriptions`, `getQuerySample` |
+| `addRecipient(tenantId, subscription, { subjectId, cronExpression, timeZone })` | Refuses a user who already is a recipient or a schedule with an issue (`NotificationRecipientRefusedError`, `reason` `DUPLICATE` with `existingRtId`, or the schedule issue), creates the preference, then syncs its schedule |
+| `updateRecipient(tenantId, rtId, { cronExpression, timeZone })` | Writes the schedule and the time zone only, then syncs |
+| `deleteRecipients(tenantId, recipients)` | Deletes the preferences (throws when that fails), erases their delivery states, syncs. A failed erase or sync comes back in the result (`deliveryStateError`, `scheduleSyncError`), so the caller can say "deleted, but ..." |
+| `NotificationRecipientCandidatesService`, `NOTIFICATION_RECIPIENT_CANDIDATES` | The users a recipient can be. Default: the identity API (admin list with e-mail for `UserManagement`, the directory otherwise). An app that calls no identity API (EnergyCommunity) provides `GraphQlNotificationRecipientCandidatesService` (`runtime.systemIdentityUser`, id = rtId = preference `subjectId`) |
+| `notificationRecipientStatus`, `notificationSubscriptionHealth`, `notificationErrorText` | The status rules |
+| `notificationScheduleIssue`, `withScheduleTimeZone`, `notificationTimeZones`, `browserTimeZone` | The schedule rules |
+| `unknownNotificationPlaceholders`, `placeholderList`, `notificationColumnPath` | The placeholder rule: the body may use `${count}` and the query columns, the subject `${count}` only. The message text stays in the app |
+| `renderNotificationPreview`, `formatNotificationCell` | Subject and body as the engine renders them (`NotificationDigest.Render`) |
+
+Every write that changes when a recipient gets mail ends with `CommunicationService.syncNotificationSchedule` for that
+preference, inside the service; a screen never calls the sync itself. A failed sync does not undo the write.
+
+`getQuerySample` returns `null` when the query cannot run through GraphQL: the asset repository refuses columns that
+navigate deeply (`ASSET1006`) although the engine runs them.
+
 ### ReportingService
 
 Tenant feature toggle for the Reporting feature (AB#4215). Backed by

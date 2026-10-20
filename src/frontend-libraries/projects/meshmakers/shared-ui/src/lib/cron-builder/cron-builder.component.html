@@ -8,7 +8,7 @@
           {{ expression() }}
         </code>
         @if (mergedConfig().showCopyButton) {
-          <button
+          <button type="button"
             kendoButton
             [svgIcon]="copiedRecently() ? checkIcon : copyIcon"
             [title]="copiedRecently() ? 'Copied!' : 'Copy to clipboard'"
@@ -42,7 +42,7 @@
       <div class="presets-label">Quick Select</div>
       <div class="presets-grid">
         @for (preset of presetsByCategory().frequent; track preset.id) {
-          <button
+          <button type="button"
             kendoButton
             size="small"
             fillMode="outline"
@@ -64,7 +64,8 @@
     (tabSelect)="onTabSelect($event.index)">
 
     <!-- Seconds Tab -->
-    <kendo-tabstrip-tab [title]="'Seconds'" [selected]="selectedTabIndex() === 0">
+    @if (shows('seconds')) {
+    <kendo-tabstrip-tab [title]="'Seconds'" [selected]="selectedTab() === 'seconds'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row">
@@ -85,9 +86,11 @@
         </div>
       </ng-template>
     </kendo-tabstrip-tab>
+    }
 
     <!-- Minutes Tab -->
-    <kendo-tabstrip-tab [title]="'Minutes'" [selected]="selectedTabIndex() === 1">
+    @if (shows('minutes')) {
+    <kendo-tabstrip-tab [title]="'Minutes'" [selected]="selectedTab() === 'minutes'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row">
@@ -108,9 +111,11 @@
         </div>
       </ng-template>
     </kendo-tabstrip-tab>
+    }
 
     <!-- Hourly Tab -->
-    <kendo-tabstrip-tab [title]="'Hourly'" [selected]="selectedTabIndex() === 2">
+    @if (shows('hourly')) {
+    <kendo-tabstrip-tab [title]="'Hourly'" [selected]="selectedTab() === 'hourly'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row">
@@ -151,9 +156,11 @@
         </div>
       </ng-template>
     </kendo-tabstrip-tab>
+    }
 
     <!-- Daily Tab -->
-    <kendo-tabstrip-tab [title]="'Daily'" [selected]="selectedTabIndex() === 3">
+    @if (shows('daily')) {
+    <kendo-tabstrip-tab [title]="'Daily'" [selected]="selectedTab() === 'daily'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row time-row">
@@ -192,28 +199,28 @@
           <div class="form-row mode-row">
             <kendo-label text="On"></kendo-label>
             <div class="mode-buttons">
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="dailyMode() === 'every'"
                 [disabled]="disabled()"
                 (click)="onDailyModeChange('every')">
                 Every day
               </button>
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="dailyMode() === 'weekdays'"
                 [disabled]="disabled()"
                 (click)="onDailyModeChange('weekdays')">
                 Weekdays
               </button>
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="dailyMode() === 'weekends'"
                 [disabled]="disabled()"
                 (click)="onDailyModeChange('weekends')">
                 Weekends
               </button>
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="dailyMode() === 'specific'"
                 [disabled]="disabled()"
@@ -227,7 +234,7 @@
             <div class="form-row days-row">
               <div class="day-buttons">
                 @for (day of weekdayAbbreviations; track day.value) {
-                  <button
+                  <button type="button"
                     kendoButton
                     [selected]="isDaySelected(day.value)"
                     [disabled]="disabled()"
@@ -242,9 +249,11 @@
         </div>
       </ng-template>
     </kendo-tabstrip-tab>
+    }
 
     <!-- Weekly Tab -->
-    <kendo-tabstrip-tab [title]="'Weekly'" [selected]="selectedTabIndex() === 4">
+    @if (shows('weekly')) {
+    <kendo-tabstrip-tab [title]="'Weekly'" [selected]="selectedTab() === 'weekly'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row time-row">
@@ -284,7 +293,7 @@
             <kendo-label text="On days"></kendo-label>
             <div class="day-buttons">
               @for (day of weekdayAbbreviations; track day.value) {
-                <button
+                <button type="button"
                   kendoButton
                   [selected]="isDaySelected(day.value)"
                   [disabled]="disabled()"
@@ -298,9 +307,11 @@
         </div>
       </ng-template>
     </kendo-tabstrip-tab>
+    }
 
     <!-- Monthly Tab -->
-    <kendo-tabstrip-tab [title]="'Monthly'" [selected]="selectedTabIndex() === 5">
+    @if (shows('monthly')) {
+    <kendo-tabstrip-tab [title]="'Monthly'" [selected]="selectedTab() === 'monthly'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row time-row">
@@ -338,14 +349,14 @@
 
           <div class="form-row mode-row">
             <div class="mode-buttons">
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="monthlyMode() === 'specific'"
                 [disabled]="disabled()"
                 (click)="onMonthlyModeChange('specific')">
                 Specific day
               </button>
-              <button
+              <button type="button"
                 kendoButton
                 [selected]="monthlyMode() === 'relative'"
                 [disabled]="disabled()"
@@ -398,10 +409,11 @@
         </div>
       </ng-template>
     </kendo-tabstrip-tab>
+    }
 
     <!-- Custom/Advanced Tab -->
-    @if (mergedConfig().allowCustom) {
-      <kendo-tabstrip-tab [title]="'Custom'" [selected]="selectedTabIndex() === 6">
+    @if (shows('custom')) {
+      <kendo-tabstrip-tab [title]="'Custom'" [selected]="selectedTab() === 'custom'">
         <ng-template kendoTabContent>
           <div class="tab-content custom-tab">
             <div class="custom-fields">

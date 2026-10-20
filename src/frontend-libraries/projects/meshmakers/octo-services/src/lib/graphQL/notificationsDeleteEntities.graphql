@@ -1,0 +1,7 @@
+mutation NotificationsDeleteEntities($rtEntityIds: [RtEntityId]!, $options: DeleteStrategies) {
+  runtime {
+    runtimeEntities {
+      delete(entities: $rtEntityIds, options: $options)
+    }
+  }
+}

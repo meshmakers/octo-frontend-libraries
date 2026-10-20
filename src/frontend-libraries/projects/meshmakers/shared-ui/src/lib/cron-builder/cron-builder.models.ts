@@ -20,6 +20,8 @@ export interface CronBuilderConfig {
   showCopyButton?: boolean;
   /** Allow custom/advanced tab for direct cron editing */
   allowCustom?: boolean;
+  /** Schedule types offered as tabs; all when omitted */
+  scheduleTypes?: readonly ScheduleType[];
   /** Default schedule type to show */
   defaultScheduleType?: ScheduleType;
   /** Locale for human-readable output ('en' | 'de') */

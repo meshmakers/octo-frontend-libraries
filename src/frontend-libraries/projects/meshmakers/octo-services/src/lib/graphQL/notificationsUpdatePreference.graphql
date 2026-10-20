@@ -1,0 +1,9 @@
+mutation NotificationsUpdatePreference($entities: [SystemNotificationNotificationPreferenceInputUpdate]!) {
+  runtime {
+    systemNotificationNotificationPreferences {
+      update(entities: $entities) {
+        rtId
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+query NotificationsGetSubscription($rtId: OctoObjectId!) {
+  runtime {
+    systemNotificationNotificationSubscription(rtId: $rtId) {
+      items {
+        rtId
+        ckTypeId
+        name
+        description
+        enabled
+        query(ckTypeIds: ["System/SimpleRtQuery"]) {
+          items {
+            ... on SystemSimpleRtQuery {
+              rtId
+              ckTypeId
+              name
+            }
+          }
+        }
+        template(ckTypeIds: ["System.Notification/NotificationTemplate"]) {
+          items {
+            ... on SystemNotificationNotificationTemplate {
+              rtId
+              ckTypeId
+              rtWellKnownName
+            }
+          }
+        }
+      }
+    }
+  }
+}
