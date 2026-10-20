@@ -87,9 +87,7 @@ export interface NotificationRecipient extends NotificationEntityRef {
   status: NotificationRecipientStatus;
 }
 
-export interface NotificationRecipientPage extends NotificationPage<NotificationRecipient> {
-  subscriptionDeployed: boolean;
-}
+export type NotificationRecipientPage = NotificationPage<NotificationRecipient>;
 
 export interface NotificationScheduleInput {
   cronExpression: string;
@@ -233,7 +231,7 @@ export class NotificationSubscriptionService {
     const term = request.searchText?.trim().toLowerCase();
     if (term) {
       const matching = [...(users?.values() ?? [])].filter(user => user.label.toLowerCase().includes(term)).map(user => user.id);
-      if (matching.length === 0) return { items: [], totalCount: 0, subscriptionDeployed: false };
+      if (matching.length === 0) return { items: [], totalCount: 0 };
       fieldFilter.push({ attributePath: 'subjectId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: matching });
     }
     const result = await firstValueFrom(this.getRecipientsGQL.fetch({
@@ -252,8 +250,7 @@ export class NotificationSubscriptionService {
     const items = (connection?.items ?? []).filter((item): item is RecipientItem => item !== null && 'subjectId' in item);
     return {
       items: items.map(item => this.recipientOf(item, deployed, users)),
-      totalCount: connection?.totalCount ?? 0,
-      subscriptionDeployed: deployed
+      totalCount: connection?.totalCount ?? 0
     };
   }
 

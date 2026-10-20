@@ -56,4 +56,13 @@ describe('CronBuilderComponent', () => {
     TestBed.resetTestingModule();
     expect(tabs(render({ scheduleTypes: ['daily', 'weekly', 'custom'] }))).toEqual(['Daily', 'Weekly', 'Custom']);
   });
+
+  it('selects a tab it offers when the schedule type of its value is not offered', () => {
+    const fixture = render({ scheduleTypes: ['weekly'] });
+    const selected = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.k-tabstrip-item[aria-selected="true"]')]
+      .map(tab => tab.textContent?.trim());
+
+    expect(selected).toEqual(['Weekly']);
+    expect(fixture.componentInstance.cron.value).toBe('0 */5 * * * *');
+  });
 });

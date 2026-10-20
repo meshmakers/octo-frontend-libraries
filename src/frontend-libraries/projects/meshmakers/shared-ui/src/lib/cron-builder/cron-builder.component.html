@@ -65,7 +65,7 @@
 
     <!-- Seconds Tab -->
     @if (shows('seconds')) {
-    <kendo-tabstrip-tab [title]="'Seconds'" [selected]="scheduleType() === 'seconds'">
+    <kendo-tabstrip-tab [title]="'Seconds'" [selected]="selectedTab() === 'seconds'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row">
@@ -90,7 +90,7 @@
 
     <!-- Minutes Tab -->
     @if (shows('minutes')) {
-    <kendo-tabstrip-tab [title]="'Minutes'" [selected]="scheduleType() === 'minutes'">
+    <kendo-tabstrip-tab [title]="'Minutes'" [selected]="selectedTab() === 'minutes'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row">
@@ -115,7 +115,7 @@
 
     <!-- Hourly Tab -->
     @if (shows('hourly')) {
-    <kendo-tabstrip-tab [title]="'Hourly'" [selected]="scheduleType() === 'hourly'">
+    <kendo-tabstrip-tab [title]="'Hourly'" [selected]="selectedTab() === 'hourly'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row">
@@ -160,7 +160,7 @@
 
     <!-- Daily Tab -->
     @if (shows('daily')) {
-    <kendo-tabstrip-tab [title]="'Daily'" [selected]="scheduleType() === 'daily'">
+    <kendo-tabstrip-tab [title]="'Daily'" [selected]="selectedTab() === 'daily'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row time-row">
@@ -253,7 +253,7 @@
 
     <!-- Weekly Tab -->
     @if (shows('weekly')) {
-    <kendo-tabstrip-tab [title]="'Weekly'" [selected]="scheduleType() === 'weekly'">
+    <kendo-tabstrip-tab [title]="'Weekly'" [selected]="selectedTab() === 'weekly'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row time-row">
@@ -311,7 +311,7 @@
 
     <!-- Monthly Tab -->
     @if (shows('monthly')) {
-    <kendo-tabstrip-tab [title]="'Monthly'" [selected]="scheduleType() === 'monthly'">
+    <kendo-tabstrip-tab [title]="'Monthly'" [selected]="selectedTab() === 'monthly'">
       <ng-template kendoTabContent>
         <div class="tab-content">
           <div class="form-row time-row">
@@ -413,7 +413,7 @@
 
     <!-- Custom/Advanced Tab -->
     @if (shows('custom')) {
-      <kendo-tabstrip-tab [title]="'Custom'" [selected]="scheduleType() === 'custom'">
+      <kendo-tabstrip-tab [title]="'Custom'" [selected]="selectedTab() === 'custom'">
         <ng-template kendoTabContent>
           <div class="tab-content custom-tab">
             <div class="custom-fields">

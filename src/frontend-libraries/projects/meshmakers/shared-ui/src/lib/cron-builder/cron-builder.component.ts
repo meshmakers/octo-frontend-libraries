@@ -189,6 +189,13 @@ export class CronBuilderComponent implements OnInit, ControlValueAccessor {
       (!config.scheduleTypes || config.scheduleTypes.includes(type)) && (type !== 'custom' || !!config.allowCustom));
   });
 
+  protected readonly selectedTab = computed<ScheduleType | undefined>(() => {
+    const visible = this.visibleTypes();
+    const type = this.scheduleType();
+    if (visible.includes(type)) return type;
+    return visible.includes('custom') ? 'custom' : visible[0];
+  });
+
   protected shows(type: ScheduleType): boolean {
     return this.visibleTypes().includes(type);
   }
