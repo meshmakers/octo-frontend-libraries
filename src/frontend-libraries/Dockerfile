@@ -2,7 +2,7 @@ FROM nginx:1.31.5-alpine AS base
 WORKDIR /usr/share/nginx/html
 EXPOSE 80
 
-FROM --platform=$BUILDPLATFORM meshmakers/dotnet_sdk-node:1.3.0.0 AS build
+FROM --platform=$BUILDPLATFORM meshmakers/dotnet_sdk-node:1.4.0.0 AS build
 
 # Telerik/Kendo UI License (passed as build argument)
 ARG TELERIK_LICENSE
