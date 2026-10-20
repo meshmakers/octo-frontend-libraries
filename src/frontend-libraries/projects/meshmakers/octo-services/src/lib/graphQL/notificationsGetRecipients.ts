@@ -12,7 +12,7 @@ export type NotificationsGetRecipientsQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type NotificationsGetRecipientsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemNotificationNotificationSubscription?: { __typename?: 'SystemNotificationNotificationSubscriptionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationSubscription', rtId: any, enabled: boolean, preferences?: { __typename?: 'SystemNotificationNotificationPreference_PreferencesUnionConnection', totalCount?: number | null, pageInfo?: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } | null, items?: Array<{ __typename?: 'SystemNotificationNotificationPreference', rtId: any, ckTypeId: any, subjectId: string, cronExpression: string, skipExistingRows: boolean, timeZone?: string | null, deliveryState?: { __typename?: 'SystemNotificationNotificationDeliveryState_DeliveryStateUnionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationDeliveryState', rtId: any, ckTypeId: any, subjectId?: string | null, lastRunAt?: any | null, lastSentAt?: any | null, lastError?: string | null, runningSince?: any | null } | null> | null } | null } | null> | null } | null } | null> | null } | null } | null };
+export type NotificationsGetRecipientsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemNotificationNotificationSubscription?: { __typename?: 'SystemNotificationNotificationSubscriptionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationSubscription', rtId: any, enabled: boolean, preferences?: { __typename?: 'SystemNotificationNotificationPreference_PreferencesUnionConnection', totalCount?: number | null, pageInfo?: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } | null, items?: Array<{ __typename?: 'SystemNotificationNotificationPreference', rtId: any, ckTypeId: any, subjectId: string, cronExpression: string, timeZone?: string | null, deliveryState?: { __typename?: 'SystemNotificationNotificationDeliveryState_DeliveryStateUnionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationDeliveryState', rtId: any, ckTypeId: any, subjectId?: string | null, lastRunAt?: any | null, lastSentAt?: any | null, lastError?: string | null } | null> | null } | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const NotificationsGetRecipientsDocumentDto = gql`
     query NotificationsGetRecipients($rtId: OctoObjectId!, $first: Int, $after: String, $fieldFilter: [FieldFilter], $sortOrder: [Sort]) {
@@ -39,7 +39,6 @@ export const NotificationsGetRecipientsDocumentDto = gql`
               ckTypeId
               subjectId
               cronExpression
-              skipExistingRows
               timeZone
               deliveryState(ckTypeIds: ["System.Notification/NotificationDeliveryState"]) {
                 items {
@@ -50,7 +49,6 @@ export const NotificationsGetRecipientsDocumentDto = gql`
                     lastRunAt
                     lastSentAt
                     lastError
-                    runningSince
                   }
                 }
               }

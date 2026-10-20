@@ -1,9 +1,0 @@
-mutation NotificationsCreateSubscription($entities: [SystemNotificationNotificationSubscriptionInput]!) {
-  runtime {
-    systemNotificationNotificationSubscriptions {
-      create(entities: $entities) {
-        rtId
-      }
-    }
-  }
-}

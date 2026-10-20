@@ -1,21 +1,30 @@
 export const NOTIFICATION_MIN_INTERVAL_MS = 60_000;
 
+export const NOTIFICATION_SCHEDULE_TYPES = ['minutes', 'hourly', 'daily', 'weekly', 'monthly', 'custom'] as const;
+
+export const NOTIFICATION_DEFAULT_CRON = '0 0 7 * * *';
+
 const SAMPLE_SIZE = 20;
 
 export type NextExecutions = (cron: string, count: number) => Date[];
 
-export function firesMoreThanOncePerMinute(nextExecutions: NextExecutions, cron: string): boolean {
-  const executions = nextExecutions(cron, SAMPLE_SIZE);
+export type NotificationScheduleIssue = 'EMPTY' | 'INVALID' | 'TOO_FREQUENT';
+
+export function notificationScheduleIssue(nextExecutions: NextExecutions, cron: string | null | undefined): NotificationScheduleIssue | null {
+  if (!cron?.trim()) return 'EMPTY';
+  let executions: Date[];
+  try {
+    executions = nextExecutions(cron, SAMPLE_SIZE);
+  } catch {
+    return 'INVALID';
+  }
+  if (executions.length === 0) return 'INVALID';
   for (let i = 1; i < executions.length; i++) {
     if (executions[i].getTime() - executions[i - 1].getTime() < NOTIFICATION_MIN_INTERVAL_MS) {
-      return true;
+      return 'TOO_FREQUENT';
     }
   }
-  return false;
-}
-
-export function isNotificationSchedulable(nextExecutions: NextExecutions, cron: string | null | undefined): boolean {
-  return !!cron?.trim() && !firesMoreThanOncePerMinute(nextExecutions, cron);
+  return null;
 }
 
 export function withScheduleTimeZone(humanReadable: string, cron: string, timeZone?: string | null): string {

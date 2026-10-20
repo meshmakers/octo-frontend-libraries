@@ -1,8 +1,12 @@
-import { firesMoreThanOncePerMinute, isNotificationSchedulable, withScheduleTimeZone } from './notification-schedule';
+import { notificationScheduleIssue, withScheduleTimeZone } from './notification-schedule';
 
 describe('notification schedule', () => {
   const every = (ms: number) => (_cron: string, count: number) =>
     Array.from({ length: count }, (_, index) => new Date(Date.UTC(2026, 9, 15) + index * ms));
+  const never = () => [];
+  const unparsable = () => {
+    throw new Error('Invalid cron expression');
+  };
 
   it('marks fixed times with the zone and leaves intervals alone', () => {
     expect(withScheduleTimeZone('At 07:00', '0 0 7 * * *')).toBe('At 07:00 UTC');
@@ -11,15 +15,15 @@ describe('notification schedule', () => {
     expect(withScheduleTimeZone('Every 5 minutes', '0 */5 * * * *', 'Europe/Vienna')).toBe('Every 5 minutes');
   });
 
-  it('refuses schedules more often than once a minute and accepts once a minute', () => {
-    expect(firesMoreThanOncePerMinute(every(1000), '* * * * * *')).toBe(true);
-    expect(firesMoreThanOncePerMinute(every(60_000), '0 * * * * *')).toBe(false);
+  it('accepts a schedule that runs at most once a minute', () => {
+    expect(notificationScheduleIssue(every(60_000), '0 * * * * *')).toBeNull();
   });
 
-  it('treats an empty schedule as not schedulable', () => {
-    expect(isNotificationSchedulable(every(60_000), '  ')).toBe(false);
-    expect(isNotificationSchedulable(every(60_000), null)).toBe(false);
-    expect(isNotificationSchedulable(every(60_000), '0 * * * * *')).toBe(true);
-    expect(isNotificationSchedulable(every(1000), '* * * * * *')).toBe(false);
+  it('refuses a schedule that is empty, never runs, cannot be read, or runs more than once a minute', () => {
+    expect(notificationScheduleIssue(every(60_000), '  ')).toBe('EMPTY');
+    expect(notificationScheduleIssue(every(60_000), null)).toBe('EMPTY');
+    expect(notificationScheduleIssue(never, '0 0 0 31 2 *')).toBe('INVALID');
+    expect(notificationScheduleIssue(unparsable, '0 0 25 * * *')).toBe('INVALID');
+    expect(notificationScheduleIssue(every(1000), '* * * * * *')).toBe('TOO_FREQUENT');
   });
 });

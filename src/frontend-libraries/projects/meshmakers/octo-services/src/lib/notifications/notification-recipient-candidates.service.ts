@@ -47,15 +47,17 @@ export class GraphQlNotificationRecipientCandidatesService implements Notificati
 
   async load(): Promise<NotificationRecipientCandidate[]> {
     const candidates: NotificationRecipientCandidate[] = [];
+    let read = 0;
     for (let page = 0; page < PICKER_USERS_MAX_PAGES; page++) {
       const result = await firstValueFrom(this.getIdentityUsersGQL.fetch({
-        variables: { first: PICKER_USERS_PAGE_SIZE, after: GraphQL.offsetToCursor(candidates.length) },
+        variables: { first: PICKER_USERS_PAGE_SIZE, after: GraphQL.offsetToCursor(read) },
         fetchPolicy: 'network-only'
       }));
       const connection = result.data?.runtime?.systemIdentityUser;
-      const users = (connection?.items ?? []).filter(user => user !== null);
-      candidates.push(...users.map(user => graphQlCandidate(user)));
-      if (users.length < PICKER_USERS_PAGE_SIZE || candidates.length >= (connection?.totalCount ?? 0)) {
+      const items = connection?.items ?? [];
+      read += items.length;
+      candidates.push(...items.filter(user => user !== null).map(user => graphQlCandidate(user)));
+      if (items.length < PICKER_USERS_PAGE_SIZE || read >= (connection?.totalCount ?? 0)) {
         break;
       }
     }

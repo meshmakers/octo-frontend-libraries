@@ -1,35 +1,31 @@
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { CronParserService } from '@meshmakers/shared-ui';
 import {
   AssociationModOptionsDto,
   DeleteStrategiesDto,
   FieldFilterDto,
   FieldFilterOperatorsDto,
-  RtAssociationInputDto,
   RtEntityIdDto,
   SearchFilterDto,
-  SearchFilterTypesDto,
   SortDto
 } from '../graphQL/globalTypes';
 import { GraphQL } from '../shared/graphQL';
 import { OCTO_SILENT_ERRORS } from '../shared/octo-error-link';
-import { nameSearchTerm } from '../shared/name-search-term';
+import { CommunicationService } from '../services/communication.service';
 import { NotificationsGetSubscriptionsDtoGQL, NotificationsGetSubscriptionsQueryDto } from '../graphQL/notificationsGetSubscriptions';
 import { NotificationsGetSubscriptionDtoGQL } from '../graphQL/notificationsGetSubscription';
 import { NotificationsGetRecipientsDtoGQL, NotificationsGetRecipientsQueryDto } from '../graphQL/notificationsGetRecipients';
 import { NotificationsGetPreferenceDtoGQL } from '../graphQL/notificationsGetPreference';
-import { NotificationsCreateSubscriptionDtoGQL } from '../graphQL/notificationsCreateSubscription';
-import { NotificationsUpdateSubscriptionDtoGQL } from '../graphQL/notificationsUpdateSubscription';
 import { NotificationsCreatePreferenceDtoGQL } from '../graphQL/notificationsCreatePreference';
 import { NotificationsUpdatePreferenceDtoGQL } from '../graphQL/notificationsUpdatePreference';
 import { NotificationsDeleteEntitiesDtoGQL } from '../graphQL/notificationsDeleteEntities';
-import { NotificationsGetQueriesDtoGQL } from '../graphQL/notificationsGetQueries';
-import { NotificationsGetEmailTemplatesDtoGQL } from '../graphQL/notificationsGetEmailTemplates';
-import { NotificationsGetPlaceholderSourcesDtoGQL } from '../graphQL/notificationsGetPlaceholderSources';
 import { NotificationsGetTemplateSubscriptionsDtoGQL } from '../graphQL/notificationsGetTemplateSubscriptions';
 import { NotificationsGetQuerySampleDtoGQL } from '../graphQL/notificationsGetQuerySample';
-import { NotificationSubscriptionHealth, notificationSubscriptionHealth } from './notification-status';
+import { NotificationHealth, NotificationRecipientStatus, notificationRecipientStatus, notificationSubscriptionHealth } from './notification-status';
+import { NotificationScheduleIssue, notificationScheduleIssue } from './notification-schedule';
 import { NotificationQueryRow, NotificationQuerySample } from './notification-preview';
+import { NOTIFICATION_RECIPIENT_CANDIDATES, NotificationRecipientCandidate } from './notification-recipient-candidates.service';
 
 const RECIPIENT_PAGE = 1000;
 
@@ -55,11 +51,18 @@ export interface NotificationPageRequest {
   searchFilter?: SearchFilterDto | null;
 }
 
+export interface NotificationRecipientPageRequest {
+  skip: number;
+  take: number;
+  sort?: SortDto[] | null;
+  searchText?: string | null;
+}
+
 export interface NotificationSubscriptionSummary extends NotificationEntityRef {
   name: string;
   enabled: boolean;
   recipientCount: number;
-  health: NotificationSubscriptionHealth;
+  health: NotificationHealth | null;
   preferences: NotificationEntityRef[];
   deliveryStates: NotificationEntityRef[];
   query: NotificationNamedRef | null;
@@ -74,54 +77,52 @@ export interface NotificationSubscriptionDetail extends NotificationEntityRef {
   template: NotificationNamedRef | null;
 }
 
-export interface NotificationSubscriptionInput {
-  name: string;
-  description: string | null;
-  query: NotificationNamedRef | null;
-  template: NotificationNamedRef | null;
-}
-
-export interface NotificationDeliveryStateInfo extends NotificationEntityRef {
-  lastRunAt: unknown;
-  lastSentAt: unknown;
-  lastError: string | null;
-  runningSince: unknown;
-}
-
-export interface NotificationRecipientInfo extends NotificationEntityRef {
+export interface NotificationRecipient extends NotificationEntityRef {
   subjectId: string;
+  userLabel: string;
   cronExpression: string;
-  skipExistingRows: boolean;
   timeZone: string | null;
-  deliveryState: NotificationDeliveryStateInfo | null;
+  lastSentAt: unknown;
+  deliveryState: NotificationEntityRef | null;
+  status: NotificationRecipientStatus;
 }
 
-export interface NotificationRecipientPage extends NotificationPage<NotificationRecipientInfo> {
+export interface NotificationRecipientPage extends NotificationPage<NotificationRecipient> {
   subscriptionDeployed: boolean;
 }
 
-export interface NotificationRecipientInput {
-  subjectId?: string;
+export interface NotificationScheduleInput {
   cronExpression: string;
-  skipExistingRows: boolean;
   timeZone: string;
 }
 
-export interface NotificationPlaceholderSources {
-  columns: string[];
-  subjectTemplate: string | null;
-  bodyTemplate: string | null;
+export interface NotificationNewRecipient extends NotificationScheduleInput {
+  subjectId: string;
+}
+
+export interface NotificationWriteResult {
+  rtId: string;
+  scheduleSyncError: unknown;
+}
+
+export interface NotificationDeleteResult {
+  deliveryStateError: unknown;
+  scheduleSyncError: unknown;
+}
+
+export type NotificationRecipientRefusal = 'DUPLICATE' | NotificationScheduleIssue;
+
+export class NotificationRecipientRefusedError extends Error {
+  constructor(readonly reason: NotificationRecipientRefusal, readonly existingRtId: string | null = null) {
+    super(`Notification recipient refused: ${reason}`);
+    this.name = 'NotificationRecipientRefusedError';
+  }
 }
 
 export interface NotificationTemplateSubscription extends NotificationEntityRef {
   name: string;
   queryRtId: string | null;
   queryColumns: string[] | null;
-}
-
-export interface NotificationDeletionResult {
-  deliveryStatesErased: boolean;
-  error?: unknown;
 }
 
 type SubscriptionItem = NonNullable<NonNullable<NonNullable<NonNullable<NotificationsGetSubscriptionsQueryDto['runtime']>['systemNotificationNotificationSubscription']>['items']>[number]>;
@@ -136,7 +137,6 @@ interface RawDeliveryState {
   lastRunAt?: unknown;
   lastSentAt?: unknown;
   lastError?: string | null;
-  runningSince?: unknown;
 }
 
 interface RawRef {
@@ -151,57 +151,17 @@ function namedRef(item: RawRef | null | undefined): NotificationNamedRef | null 
   return { rtId: item.rtId, ckTypeId: item.ckTypeId, name: item.name ?? item.rtWellKnownName ?? item.rtId };
 }
 
-function deliveryStateOf(subjectId: string, states: readonly (RawDeliveryState | null)[] | null | undefined): NotificationDeliveryStateInfo | null {
+function deliveryStateOf(subjectId: string, states: readonly (RawDeliveryState | null)[] | null | undefined): RawDeliveryState | null {
   const recorded = states?.find(state => state !== null);
   if (!recorded) return null;
-  const otherUser = !!recorded.subjectId && recorded.subjectId !== subjectId;
-  return {
-    rtId: recorded.rtId,
-    ckTypeId: recorded.ckTypeId,
-    lastRunAt: otherUser ? null : recorded.lastRunAt ?? null,
-    lastSentAt: otherUser ? null : recorded.lastSentAt ?? null,
-    lastError: recorded.lastError ?? null,
-    runningSince: recorded.runningSince ?? null
-  };
-}
-
-function recipientOf(item: RecipientItem): NotificationRecipientInfo {
-  return {
-    rtId: item.rtId,
-    ckTypeId: item.ckTypeId,
-    subjectId: item.subjectId,
-    cronExpression: item.cronExpression,
-    skipExistingRows: item.skipExistingRows,
-    timeZone: item.timeZone ?? null,
-    deliveryState: deliveryStateOf(item.subjectId, item.deliveryState?.items as (RawDeliveryState | null)[] | null | undefined)
-  };
-}
-
-function associationDiff(original: NotificationEntityRef | null, selected: NotificationEntityRef | null): RtAssociationInputDto[] | undefined {
-  if (original?.rtId === selected?.rtId) return undefined;
-  const entries: RtAssociationInputDto[] = [];
-  if (original) {
-    entries.push({ modOption: AssociationModOptionsDto.DeleteDto, target: { rtId: original.rtId, ckTypeId: original.ckTypeId } });
+  if (recorded.subjectId && recorded.subjectId !== subjectId) {
+    return { rtId: recorded.rtId, ckTypeId: recorded.ckTypeId };
   }
-  if (selected) {
-    entries.push({ modOption: AssociationModOptionsDto.CreateDto, target: { rtId: selected.rtId, ckTypeId: selected.ckTypeId } });
-  }
-  return entries;
-}
-
-function nameFilter(searchText: string | null | undefined, attributePath: string): SearchFilterDto | undefined {
-  const term = searchText?.trim();
-  return term
-    ? { type: SearchFilterTypesDto.AttributeFilterDto, searchTerm: nameSearchTerm(term), attributePaths: [attributePath] }
-    : undefined;
+  return recorded;
 }
 
 function toEntityId(ref: NotificationEntityRef): RtEntityIdDto {
   return { rtId: ref.rtId, ckTypeId: ref.ckTypeId };
-}
-
-function namedRefs(items: readonly (RawRef | null)[] | null | undefined): NotificationNamedRef[] {
-  return (items ?? []).map(namedRef).filter((item): item is NotificationNamedRef => item !== null);
 }
 
 @Injectable({ providedIn: 'root' })
@@ -210,16 +170,14 @@ export class NotificationSubscriptionService {
   private readonly getSubscriptionGQL = inject(NotificationsGetSubscriptionDtoGQL);
   private readonly getRecipientsGQL = inject(NotificationsGetRecipientsDtoGQL);
   private readonly getPreferenceGQL = inject(NotificationsGetPreferenceDtoGQL);
-  private readonly createSubscriptionGQL = inject(NotificationsCreateSubscriptionDtoGQL);
-  private readonly updateSubscriptionGQL = inject(NotificationsUpdateSubscriptionDtoGQL);
   private readonly createPreferenceGQL = inject(NotificationsCreatePreferenceDtoGQL);
   private readonly updatePreferenceGQL = inject(NotificationsUpdatePreferenceDtoGQL);
   private readonly deleteEntitiesGQL = inject(NotificationsDeleteEntitiesDtoGQL);
-  private readonly getQueriesGQL = inject(NotificationsGetQueriesDtoGQL);
-  private readonly getEmailTemplatesGQL = inject(NotificationsGetEmailTemplatesDtoGQL);
-  private readonly getPlaceholderSourcesGQL = inject(NotificationsGetPlaceholderSourcesDtoGQL);
   private readonly getTemplateSubscriptionsGQL = inject(NotificationsGetTemplateSubscriptionsDtoGQL);
   private readonly getQuerySampleGQL = inject(NotificationsGetQuerySampleDtoGQL);
+  private readonly communication = inject(CommunicationService);
+  private readonly cronParser = inject(CronParserService);
+  private readonly candidates = inject(NOTIFICATION_RECIPIENT_CANDIDATES);
 
   async getSubscriptions(request: NotificationPageRequest): Promise<NotificationPage<NotificationSubscriptionSummary>> {
     const result = await firstValueFrom(this.getSubscriptionsGQL.fetch({
@@ -253,153 +211,102 @@ export class NotificationSubscriptionService {
     };
   }
 
-  async createSubscription(input: NotificationSubscriptionInput): Promise<string | null> {
-    const result = await firstValueFrom(this.createSubscriptionGQL.mutate({
-      variables: {
-        entities: [{
-          name: input.name,
-          description: input.description || null,
-          enabled: false,
-          query: associationDiff(null, input.query),
-          template: associationDiff(null, input.template)
-        }]
-      }
-    }));
-    return result.data?.runtime?.systemNotificationNotificationSubscriptions?.create?.[0]?.rtId ?? null;
+  deploy(tenantId: string, subscriptionRtId: string): Promise<void> {
+    return this.communication.deployNotificationSubscription(tenantId, subscriptionRtId);
   }
 
-  async updateSubscription(rtId: string, input: NotificationSubscriptionInput,
-    original: Pick<NotificationSubscriptionInput, 'query' | 'template'>): Promise<void> {
-    await firstValueFrom(this.updateSubscriptionGQL.mutate({
-      variables: {
-        entities: [{
-          rtId,
-          item: {
-            name: input.name,
-            description: input.description || null,
-            query: associationDiff(original.query, input.query),
-            template: associationDiff(original.template, input.template)
-          }
-        }]
-      }
-    }));
+  undeploy(tenantId: string, subscriptionRtId: string): Promise<void> {
+    return this.communication.undeployNotificationSubscription(tenantId, subscriptionRtId);
   }
 
-  async getRecipients(subscriptionRtId: string, request: NotificationPageRequest): Promise<NotificationRecipientPage> {
+  loadUsers(): Promise<NotificationRecipientCandidate[]> {
+    return this.candidates.load();
+  }
+
+  scheduleIssue(cronExpression: string | null | undefined): NotificationScheduleIssue | null {
+    return notificationScheduleIssue((cron, count) => this.cronParser.getNextExecutions(cron, count), cronExpression);
+  }
+
+  async getRecipients(subscriptionRtId: string, request: NotificationRecipientPageRequest): Promise<NotificationRecipientPage> {
+    const users = await this.usersById();
+    const fieldFilter: FieldFilterDto[] = [];
+    const term = request.searchText?.trim().toLowerCase();
+    if (term) {
+      const matching = [...(users?.values() ?? [])].filter(user => user.label.toLowerCase().includes(term)).map(user => user.id);
+      if (matching.length === 0) return { items: [], totalCount: 0, subscriptionDeployed: false };
+      fieldFilter.push({ attributePath: 'subjectId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: matching });
+    }
     const result = await firstValueFrom(this.getRecipientsGQL.fetch({
       variables: {
         rtId: subscriptionRtId,
         first: request.take,
         after: GraphQL.offsetToCursor(request.skip),
         sortOrder: request.sort ?? null,
-        fieldFilter: request.fieldFilter?.length ? request.fieldFilter : null
+        fieldFilter: fieldFilter.length > 0 ? fieldFilter : null
       },
       fetchPolicy: 'network-only'
     }));
     const subscription = result.data?.runtime?.systemNotificationNotificationSubscription?.items?.find(item => item !== null);
     const connection = subscription?.preferences;
+    const deployed = subscription?.enabled ?? false;
     const items = (connection?.items ?? []).filter((item): item is RecipientItem => item !== null && 'subjectId' in item);
     return {
-      items: items.map(recipientOf),
+      items: items.map(item => this.recipientOf(item, deployed, users)),
       totalCount: connection?.totalCount ?? 0,
-      subscriptionDeployed: subscription?.enabled ?? false
+      subscriptionDeployed: deployed
     };
   }
 
-  async getRecipient(rtId: string): Promise<NotificationRecipientInfo | null> {
-    const result = await firstValueFrom(this.getPreferenceGQL.fetch({ variables: { rtId }, fetchPolicy: 'network-only' }));
+  async getRecipient(rtId: string, subscriptionDeployed: boolean): Promise<NotificationRecipient | null> {
+    const [result, users] = await Promise.all([
+      firstValueFrom(this.getPreferenceGQL.fetch({ variables: { rtId }, fetchPolicy: 'network-only' })),
+      this.usersById()
+    ]);
     const item = result.data?.runtime?.systemNotificationNotificationPreference?.items?.find(entry => entry !== null);
-    return item ? recipientOf(item as RecipientItem) : null;
+    return item ? this.recipientOf(item as RecipientItem, subscriptionDeployed, users) : null;
   }
 
-  async findRecipient(subscriptionRtId: string, subjectId: string): Promise<string | null> {
-    const page = await this.getRecipients(subscriptionRtId, {
-      skip: 0,
-      take: 1,
-      fieldFilter: [{ attributePath: 'subjectId', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: subjectId }]
-    });
-    return page.items[0]?.rtId ?? null;
-  }
-
-  async createRecipient(subscription: NotificationEntityRef, input: Required<NotificationRecipientInput>): Promise<string | null> {
+  async addRecipient(tenantId: string, subscription: NotificationEntityRef, input: NotificationNewRecipient): Promise<NotificationWriteResult> {
+    this.refuseInvalidSchedule(input.cronExpression);
+    const existing = await this.findRecipient(subscription.rtId, input.subjectId);
+    if (existing) throw new NotificationRecipientRefusedError('DUPLICATE', existing);
     const result = await firstValueFrom(this.createPreferenceGQL.mutate({
       variables: {
         entities: [{
           subjectId: input.subjectId,
           cronExpression: input.cronExpression,
-          skipExistingRows: input.skipExistingRows,
+          skipExistingRows: false,
           timeZone: input.timeZone,
-          subscription: [{
-            modOption: AssociationModOptionsDto.CreateDto,
-            target: { rtId: subscription.rtId, ckTypeId: subscription.ckTypeId }
-          }]
+          subscription: [{ modOption: AssociationModOptionsDto.CreateDto, target: toEntityId(subscription) }]
         }]
       }
     }));
-    return result.data?.runtime?.systemNotificationNotificationPreferences?.create?.[0]?.rtId ?? null;
+    const rtId = result.data?.runtime?.systemNotificationNotificationPreferences?.create?.[0]?.rtId;
+    if (!rtId) throw new Error('The recipient was not created');
+    return { rtId, scheduleSyncError: await this.syncSchedule(tenantId, [rtId]) };
   }
 
-  async updateRecipient(rtId: string, input: NotificationRecipientInput): Promise<void> {
+  async updateRecipient(tenantId: string, rtId: string, input: NotificationScheduleInput): Promise<NotificationWriteResult> {
+    this.refuseInvalidSchedule(input.cronExpression);
     await firstValueFrom(this.updatePreferenceGQL.mutate({
-      variables: {
-        entities: [{
-          rtId,
-          item: {
-            cronExpression: input.cronExpression,
-            skipExistingRows: input.skipExistingRows,
-            timeZone: input.timeZone,
-            ...(input.subjectId !== undefined ? { subjectId: input.subjectId } : {})
-          }
-        }]
+      variables: { entities: [{ rtId, item: { cronExpression: input.cronExpression, timeZone: input.timeZone } }] }
+    }));
+    return { rtId, scheduleSyncError: await this.syncSchedule(tenantId, [rtId]) };
+  }
+
+  async deleteRecipients(tenantId: string, recipients: readonly Pick<NotificationRecipient, 'rtId' | 'ckTypeId' | 'deliveryState'>[]): Promise<NotificationDeleteResult> {
+    if (recipients.length === 0) return { deliveryStateError: null, scheduleSyncError: null };
+    await firstValueFrom(this.deleteEntitiesGQL.mutate({ variables: { rtEntityIds: recipients.map(toEntityId) } }));
+    const states = recipients.flatMap(recipient => recipient.deliveryState ? [toEntityId(recipient.deliveryState)] : []);
+    let deliveryStateError: unknown = null;
+    if (states.length > 0) {
+      try {
+        await firstValueFrom(this.deleteEntitiesGQL.mutate({ variables: { rtEntityIds: states, options: DeleteStrategiesDto.EraseDto } }));
+      } catch (error) {
+        deliveryStateError = error;
       }
-    }));
-  }
-
-  async deleteWithDeliveryStates(archived: readonly NotificationEntityRef[],
-    deliveryStates: readonly NotificationEntityRef[]): Promise<NotificationDeletionResult> {
-    await firstValueFrom(this.deleteEntitiesGQL.mutate({ variables: { rtEntityIds: archived.map(toEntityId) } }));
-    if (deliveryStates.length === 0) return { deliveryStatesErased: true };
-    try {
-      await firstValueFrom(this.deleteEntitiesGQL.mutate({
-        variables: { rtEntityIds: deliveryStates.map(toEntityId), options: DeleteStrategiesDto.EraseDto }
-      }));
-      return { deliveryStatesErased: true };
-    } catch (error) {
-      return { deliveryStatesErased: false, error };
     }
-  }
-
-  async searchQueries(skip: number, take: number, searchText?: string | null): Promise<NotificationPage<NotificationNamedRef>> {
-    const result = await firstValueFrom(this.getQueriesGQL.fetch({
-      variables: { first: take, after: GraphQL.offsetToCursor(skip), searchFilter: nameFilter(searchText, 'name') },
-      fetchPolicy: 'network-only'
-    }));
-    const connection = result.data?.runtime?.systemSimpleRtQuery;
-    return { items: namedRefs(connection?.items as (RawRef | null)[] | undefined), totalCount: connection?.totalCount ?? 0 };
-  }
-
-  async searchEmailTemplates(skip: number, take: number, searchText?: string | null): Promise<NotificationPage<NotificationNamedRef>> {
-    const result = await firstValueFrom(this.getEmailTemplatesGQL.fetch({
-      variables: { first: take, after: GraphQL.offsetToCursor(skip), searchFilter: nameFilter(searchText, 'rtWellKnownName') },
-      fetchPolicy: 'network-only'
-    }));
-    const connection = result.data?.runtime?.systemNotificationNotificationTemplate;
-    return { items: namedRefs(connection?.items as (RawRef | null)[] | undefined), totalCount: connection?.totalCount ?? 0 };
-  }
-
-  async getPlaceholderSources(queryRtId: string, templateRtId: string): Promise<NotificationPlaceholderSources | null> {
-    const result = await firstValueFrom(this.getPlaceholderSourcesGQL.fetch({
-      variables: { queryRtId, templateRtId },
-      fetchPolicy: 'network-only'
-    }));
-    const columns = result.data?.runtime?.systemSimpleRtQuery?.items?.find(item => item !== null)?.columns;
-    const template = result.data?.runtime?.systemNotificationNotificationTemplate?.items?.find(item => item !== null);
-    if (!columns || !template) return null;
-    return {
-      columns: columns.filter((column): column is string => !!column),
-      subjectTemplate: template.subjectTemplate ?? null,
-      bodyTemplate: template.bodyTemplate ?? null
-    };
+    return { deliveryStateError, scheduleSyncError: await this.syncSchedule(tenantId, recipients.map(recipient => recipient.rtId)) };
   }
 
   async getTemplateSubscriptions(templateRtId: string): Promise<NotificationTemplateSubscription[]> {
@@ -440,6 +347,62 @@ export class NotificationSubscriptionService {
     } catch {
       return null;
     }
+  }
+
+  private refuseInvalidSchedule(cronExpression: string): void {
+    const issue = this.scheduleIssue(cronExpression);
+    if (issue) throw new NotificationRecipientRefusedError(issue);
+  }
+
+  private async findRecipient(subscriptionRtId: string, subjectId: string): Promise<string | null> {
+    const result = await firstValueFrom(this.getRecipientsGQL.fetch({
+      variables: {
+        rtId: subscriptionRtId,
+        first: 1,
+        fieldFilter: [{ attributePath: 'subjectId', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: subjectId }]
+      },
+      fetchPolicy: 'network-only'
+    }));
+    const preferences = result.data?.runtime?.systemNotificationNotificationSubscription?.items?.find(item => item !== null)?.preferences;
+    return preferences?.items?.find(item => item !== null && 'rtId' in item)?.rtId ?? null;
+  }
+
+  private async syncSchedule(tenantId: string, preferenceRtIds: readonly string[]): Promise<unknown> {
+    let failure: unknown = null;
+    for (const rtId of preferenceRtIds) {
+      try {
+        await this.communication.syncNotificationSchedule(tenantId, rtId);
+      } catch (error) {
+        failure ??= error;
+      }
+    }
+    return failure;
+  }
+
+  private async usersById(): Promise<Map<string, NotificationRecipientCandidate> | null> {
+    try {
+      return new Map((await this.candidates.load()).map(user => [user.id, user]));
+    } catch {
+      return null;
+    }
+  }
+
+  private recipientOf(item: RecipientItem, subscriptionDeployed: boolean,
+    users: Map<string, NotificationRecipientCandidate> | null): NotificationRecipient {
+    const state = deliveryStateOf(item.subjectId, item.deliveryState?.items as (RawDeliveryState | null)[] | null | undefined);
+    const user = users?.get(item.subjectId);
+    const userExists = users === null || users.size === 0 || !!user;
+    return {
+      rtId: item.rtId,
+      ckTypeId: item.ckTypeId,
+      subjectId: item.subjectId,
+      userLabel: user?.label ?? item.subjectId,
+      cronExpression: item.cronExpression,
+      timeZone: item.timeZone ?? null,
+      lastSentAt: state?.lastSentAt ?? null,
+      deliveryState: state ? { rtId: state.rtId, ckTypeId: state.ckTypeId } : null,
+      status: notificationRecipientStatus(state, subscriptionDeployed, userExists, this.scheduleIssue(item.cronExpression) === null)
+    };
   }
 
   private summaryOf(item: SubscriptionItem, allPreferences: readonly (SubscriptionPreference | null)[]): NotificationSubscriptionSummary {

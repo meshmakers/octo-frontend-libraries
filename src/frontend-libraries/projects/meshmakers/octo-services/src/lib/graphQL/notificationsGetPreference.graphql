@@ -6,7 +6,6 @@ query NotificationsGetPreference($rtId: OctoObjectId!) {
         ckTypeId
         subjectId
         cronExpression
-        skipExistingRows
         timeZone
         deliveryState(ckTypeIds: ["System.Notification/NotificationDeliveryState"]) {
           items {
@@ -17,7 +16,6 @@ query NotificationsGetPreference($rtId: OctoObjectId!) {
               lastRunAt
               lastSentAt
               lastError
-              runningSince
             }
           }
         }

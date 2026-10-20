@@ -8,7 +8,7 @@ export type NotificationsGetPreferenceQueryVariablesDto = Types.Exact<{
 }>;
 
 
-export type NotificationsGetPreferenceQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemNotificationNotificationPreference?: { __typename?: 'SystemNotificationNotificationPreferenceConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationPreference', rtId: any, ckTypeId: any, subjectId: string, cronExpression: string, skipExistingRows: boolean, timeZone?: string | null, deliveryState?: { __typename?: 'SystemNotificationNotificationDeliveryState_DeliveryStateUnionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationDeliveryState', rtId: any, ckTypeId: any, subjectId?: string | null, lastRunAt?: any | null, lastSentAt?: any | null, lastError?: string | null, runningSince?: any | null } | null> | null } | null } | null> | null } | null } | null };
+export type NotificationsGetPreferenceQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemNotificationNotificationPreference?: { __typename?: 'SystemNotificationNotificationPreferenceConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationPreference', rtId: any, ckTypeId: any, subjectId: string, cronExpression: string, timeZone?: string | null, deliveryState?: { __typename?: 'SystemNotificationNotificationDeliveryState_DeliveryStateUnionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationDeliveryState', rtId: any, ckTypeId: any, subjectId?: string | null, lastRunAt?: any | null, lastSentAt?: any | null, lastError?: string | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const NotificationsGetPreferenceDocumentDto = gql`
     query NotificationsGetPreference($rtId: OctoObjectId!) {
@@ -19,7 +19,6 @@ export const NotificationsGetPreferenceDocumentDto = gql`
         ckTypeId
         subjectId
         cronExpression
-        skipExistingRows
         timeZone
         deliveryState(ckTypeIds: ["System.Notification/NotificationDeliveryState"]) {
           items {
@@ -30,7 +29,6 @@ export const NotificationsGetPreferenceDocumentDto = gql`
               lastRunAt
               lastSentAt
               lastError
-              runningSince
             }
           }
         }

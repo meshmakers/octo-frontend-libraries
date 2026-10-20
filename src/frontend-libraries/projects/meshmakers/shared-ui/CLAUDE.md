@@ -32,7 +32,7 @@ npm run test:shared-ui
 | `BaseFormComponent` | `mm-base-form` | Form wrapper, auto unsaved changes detection |
 | `BaseTreeDetailComponent` | — | Base class for tree + detail layouts |
 | `TreeComponent` | `mm-tree` | Kendo TreeView with drag-drop |
-| `CronBuilderComponent` | `mm-cron-builder` | ControlValueAccessor, reactive forms; every button is `type="button"`, so it never submits the form it sits in (a quick-select click used to save the AB#2585 recipient dialog) |
+| `CronBuilderComponent` | `mm-cron-builder` | ControlValueAccessor, reactive forms; every button is `type="button"`, so it never submits the form it sits in; `config.scheduleTypes` limits the tabs offered (all when omitted) |
 | `TimeRangePickerComponent` | `mm-time-range-picker` | Multiple modes, Date + ISO outputs |
 | `CopyableTextComponent` | `mm-copyable-text` | Clipboard API |
 | `EntitySelectInputComponent` | `mm-entity-select-input` | Autocomplete with dialog fallback |

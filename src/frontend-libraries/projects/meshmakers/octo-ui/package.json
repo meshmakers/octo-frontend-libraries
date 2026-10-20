@@ -21,18 +21,10 @@
     "@progress/kendo-angular-popup": "^24.1.0",
     "@progress/kendo-data-query": "^1.7.3",
     "@progress/kendo-svg-icons": "^4.8.0",
-    "apollo-angular": "^14.0.0",
-    "@codemirror/state": "^6.7.2",
-    "@codemirror/view": "^6.43.11"
+    "apollo-angular": "^14.0.0"
   },
   "peerDependenciesMeta": {
     "@ngx-translate/core": {
-      "optional": true
-    },
-    "@codemirror/state": {
-      "optional": true
-    },
-    "@codemirror/view": {
       "optional": true
     }
   },
