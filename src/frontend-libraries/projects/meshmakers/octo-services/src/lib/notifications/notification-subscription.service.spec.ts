@@ -134,6 +134,38 @@ describe('NotificationSubscriptionService', () => {
       expect(recipient?.user).toEqual(users[0]);
     });
 
+    it('lets callers that ask at the same time share one load', async () => {
+      let release!: (value: typeof users) => void;
+      loadCandidates.mockReturnValueOnce(new Promise(resolve => release = resolve));
+      const svc = cachingService();
+
+      const page = svc.getRecipients('s1', { skip: 0, take: 10 });
+      const recipient = svc.getRecipient('p1', true);
+      await Promise.resolve();
+      release(users);
+
+      expect((await page).items[0].user).toEqual(users[0]);
+      expect((await recipient)?.user).toEqual(users[0]);
+      expect(loadCandidates).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives callers that share a failed load no users and loads again on the next call', async () => {
+      let fail!: (error: Error) => void;
+      loadCandidates.mockReturnValueOnce(new Promise((_, reject) => fail = reject));
+      const svc = cachingService();
+
+      const page = svc.getRecipients('s1', { skip: 0, take: 10 });
+      const recipient = svc.getRecipient('p1', true);
+      await Promise.resolve();
+      fail(new Error('identity down'));
+
+      expect((await page).items[0].user).toBeNull();
+      expect((await recipient)?.user).toBeNull();
+      expect(loadCandidates).toHaveBeenCalledTimes(1);
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+      expect(loadCandidates).toHaveBeenCalledTimes(2);
+    });
+
     it('keeps the users of each tenant apart', async () => {
       const svc = cachingService();
 
