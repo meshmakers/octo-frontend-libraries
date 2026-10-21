@@ -448,11 +448,10 @@ export class AvailableTenantsService {
 }
 ```
 
-### Parallel development note
+### Contract
 
-The client was developed against the contract of AB#7044 with `HttpTestingController`; it is verified against the
-real endpoint after the identity rollout (AB#7054). Against an identity without the endpoint it returns
-`identity-too-old`.
+The client implements the contract of AB#7044 (octo-identity-services, `TenantTopologyApiController`). Against an
+identity without the endpoint it returns `identity-too-old`.
 
 ## Components
 
