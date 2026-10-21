@@ -5,6 +5,7 @@ import { CronParserService } from '@meshmakers/shared-ui';
 import { NotificationRecipientRefusedError, NotificationSubscriptionService } from './notification-subscription.service';
 import { NOTIFICATION_RECIPIENT_CANDIDATES } from './notification-recipient-candidates.service';
 import { CommunicationService } from '../services/communication.service';
+import { TENANT_ID_PROVIDER } from '../services/tenant-provider';
 import { NotificationsGetSubscriptionsDtoGQL } from '../graphQL/notificationsGetSubscriptions';
 import { NotificationsGetSubscriptionDtoGQL } from '../graphQL/notificationsGetSubscription';
 import { NotificationsGetRecipientsDtoGQL } from '../graphQL/notificationsGetRecipients';
@@ -26,6 +27,7 @@ describe('NotificationSubscriptionService', () => {
   let communication: { syncNotificationSchedule: ReturnType<typeof vi.fn> };
   let nextExecutions: (cron: string, count: number) => Date[];
   let loadCandidates: Mock<() => Promise<typeof users>>;
+  let ambientTenant: string | null;
 
   function service(): NotificationSubscriptionService {
     TestBed.configureTestingModule({
@@ -41,7 +43,8 @@ describe('NotificationSubscriptionService', () => {
         { provide: NotificationsGetQuerySampleDtoGQL, useValue: gql['querySample'] ?? {} },
         { provide: CommunicationService, useValue: communication },
         { provide: CronParserService, useValue: { getNextExecutions: (cron: string, count: number) => nextExecutions(cron, count) } },
-        { provide: NOTIFICATION_RECIPIENT_CANDIDATES, useValue: { load: () => loadCandidates() } }
+        { provide: NOTIFICATION_RECIPIENT_CANDIDATES, useValue: { load: () => loadCandidates() } },
+        { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(ambientTenant) }
       ]
     });
     return TestBed.inject(NotificationSubscriptionService);
@@ -52,6 +55,7 @@ describe('NotificationSubscriptionService', () => {
     communication = { syncNotificationSchedule: vi.fn().mockResolvedValue(undefined) };
     nextExecutions = everyMinute;
     loadCandidates = vi.fn().mockResolvedValue(users);
+    ambientTenant = 't1';
   });
 
   afterEach(() => TestBed.resetTestingModule());
@@ -122,9 +126,9 @@ describe('NotificationSubscriptionService', () => {
     it('loads the users of a tenant once for pages, searches and the edit form', async () => {
       const svc = cachingService();
 
-      await svc.getRecipients('s1', { skip: 0, take: 10, tenantId: 't1' });
-      await svc.getRecipients('s1', { skip: 10, take: 10, searchText: 'bea', tenantId: 't1' });
-      const recipient = await svc.getRecipient('p1', true, 't1');
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+      await svc.getRecipients('s1', { skip: 10, take: 10, searchText: 'bea' });
+      const recipient = await svc.getRecipient('p1', true);
 
       expect(loadCandidates).toHaveBeenCalledTimes(1);
       expect(recipient?.user).toEqual(users[0]);
@@ -133,13 +137,15 @@ describe('NotificationSubscriptionService', () => {
     it('keeps the users of each tenant apart', async () => {
       const svc = cachingService();
 
-      await svc.getRecipients('s1', { skip: 0, take: 10, tenantId: 't1' });
-      await svc.getRecipients('s1', { skip: 0, take: 10, tenantId: 't2' });
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+      ambientTenant = 't2';
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
 
       expect(loadCandidates).toHaveBeenCalledTimes(2);
     });
 
-    it('loads them every time when the caller names no tenant', async () => {
+    it('loads them every time while no tenant is active', async () => {
+      ambientTenant = null;
       const svc = cachingService();
 
       await svc.getRecipients('s1', { skip: 0, take: 10 });
@@ -152,8 +158,8 @@ describe('NotificationSubscriptionService', () => {
       const svc = cachingService();
       loadCandidates.mockRejectedValueOnce(new Error('identity down'));
 
-      const failed = await svc.getRecipients('s1', { skip: 0, take: 10, tenantId: 't1' });
-      await svc.getRecipients('s1', { skip: 0, take: 10, tenantId: 't1' });
+      const failed = await svc.getRecipients('s1', { skip: 0, take: 10 });
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
 
       expect(failed.items[0].user).toBeNull();
       expect(loadCandidates).toHaveBeenCalledTimes(2);
@@ -163,9 +169,9 @@ describe('NotificationSubscriptionService', () => {
       vi.useFakeTimers({ toFake: ['Date'] });
       const svc = cachingService();
 
-      await svc.getRecipients('s1', { skip: 0, take: 10, tenantId: 't1' });
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
       vi.setSystemTime(Date.now() + 61_000);
-      await svc.getRecipients('s1', { skip: 0, take: 10, tenantId: 't1' });
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
 
       expect(loadCandidates).toHaveBeenCalledTimes(2);
     });

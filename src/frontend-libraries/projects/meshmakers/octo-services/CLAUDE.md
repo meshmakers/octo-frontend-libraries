@@ -449,7 +449,7 @@ The behaviour follows established products (Kubernetes, Jira filter subscription
 
 | Export | What it is |
 |--------|-------------|
-| `NotificationSubscriptionService` | `getSubscriptions` (summary with health), `getSubscription`, `deploy` / `undeploy`, `getRecipients(subscriptionRtId, { skip, take, sort, searchText, tenantId })` (rows with user, user label and status; the search matches the user label), `getRecipient(rtId, subscriptionDeployed, tenantId?)`, `loadUsers(tenantId?)`, `scheduleIssue(cron)`, `getTemplateSubscriptions`, `getQuerySample` |
+| `NotificationSubscriptionService` | `getSubscriptions` (summary with health), `getSubscription`, `deploy` / `undeploy`, `getRecipients(subscriptionRtId, { skip, take, sort, searchText })` (rows with user, user label and status; the search matches the user label), `getRecipient(rtId, subscriptionDeployed)`, `loadUsers()`, `scheduleIssue(cron)`, `getTemplateSubscriptions`, `getQuerySample` |
 | `addRecipient(tenantId, subscription, { subjectId, cronExpression, timeZone })` | Refuses a user who already is a recipient or a schedule with an issue (`NotificationRecipientRefusedError`, `reason` `DUPLICATE` with `existingRtId`, or the schedule issue), creates the preference, then syncs its schedule |
 | `updateRecipient(tenantId, rtId, { cronExpression, timeZone })` | Writes the schedule and the time zone only, then syncs |
 | `deleteRecipients(tenantId, recipients)` | Deletes the preferences (throws when that fails), erases their delivery states, syncs. A failed erase or sync comes back in the result (`deliveryStateError`, `scheduleSyncError`), so the caller can say "deleted, but ..." |
@@ -459,7 +459,7 @@ The behaviour follows established products (Kubernetes, Jira filter subscription
 | `unknownNotificationPlaceholders`, `placeholderList`, `notificationColumnPath` | The placeholder rule: the body may use `${count}` and the query columns, the subject `${count}` only. The message text stays in the app |
 | `renderNotificationPreview`, `formatNotificationCell` | Subject and body as the engine renders them (`NotificationDigest.Render`) |
 
-The users of a tenant are loaded once and kept for 60 seconds when the caller passes the `tenantId` (pages, searches, sorts and the edit form share one load; a failed load is not kept; without a `tenantId` every call loads them). The key is the tenant because the service is a root singleton and the Refinery Studio switches tenants without a reload.
+The users of a tenant are loaded once and kept for 60 seconds (pages, searches, sorts and the edit form share one load; a failed load is not kept). The key is the tenant `TENANT_ID_PROVIDER` reports, the same one the candidate sources load from, so users are never kept under another tenant; while it reports none, every call loads them.
 
 Every write that changes when a recipient gets mail ends with `CommunicationService.syncNotificationSchedule` for that
 preference, inside the service; a screen never calls the sync itself. A failed sync does not undo the write.
