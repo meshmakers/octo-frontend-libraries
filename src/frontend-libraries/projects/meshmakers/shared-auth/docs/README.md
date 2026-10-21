@@ -448,6 +448,8 @@ export class AvailableTenantsService {
 }
 ```
 
+Documentation: [Tenant Topology API](https://docs.meshmakers.cloud/docs/technologyGuide/identityService/tenant-topology) (endpoint reference) and [Which tenants may my app offer?](https://docs.meshmakers.cloud/docs/developerGuide/solutionArchitecture/apiIntegration#which-tenants-may-my-app-offer) (guide for app developers).
+
 ### Contract
 
 The client implements the contract of AB#7044 (octo-identity-services, `TenantTopologyApiController`). Against an
