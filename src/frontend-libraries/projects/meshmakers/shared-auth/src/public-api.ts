@@ -62,3 +62,21 @@ export function provideMmSharedAuth(): EnvironmentProviders {
     AuthorizeService
   ]);
 }
+
+// Tenant topology client (AB#7053): which of the user's tenants lie below the app root
+export { TenantTopologyService } from './lib/tenant-topology.service';
+export type { TenantTopologyLoadOptions } from './lib/tenant-topology.service';
+export {
+  topologyLeaves,
+  topologyDirectChildren,
+  topologyTenantIds,
+  knownTopology,
+  unknownTopology
+} from './lib/tenant-topology';
+export type {
+  TenantTopologyNode,
+  TenantTopologyResult,
+  TenantTopologyUnknownReason,
+  KnownTenantTopology,
+  UnknownTenantTopology
+} from './lib/tenant-topology';

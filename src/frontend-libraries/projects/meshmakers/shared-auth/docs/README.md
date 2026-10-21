@@ -359,6 +359,100 @@ a `catch` block, or a rethrow. The status is therefore read structurally rather 
 `instanceof HttpErrorResponse` check, so an error that lost its prototype on the way still
 classifies. It must be a `number`: an object carrying `status: "403"` is not a refusal.
 
+## Tenant Topology (AB#7053)
+
+`TenantTopologyService.load(scope)` asks identity which of the signed-in user's tenants lie below the
+app's root tenant and whether each of them has children. It wraps
+`GET {issuer}/api/tenant-topology?scope={rootTenantId}` (contract: AB#7044, octo-identity-services). An
+app needs no call to any other tenant for this, which the user-token tenant gate (AB#6728) would reject.
+
+```typescript
+const result = await inject(TenantTopologyService).load('rootTenantId'); // never throws, never rejects
+
+if (result.topologyKnown) {
+  result.scopeHasChildren;            // false + empty list = legacy: the root is the app tenant
+  topologyLeaves(result);             // tenants without children: the ones the user works in
+  topologyDirectChildren(result);     // depth === 1 (grouping tenants and leaves directly below the root)
+  topologyTenantIds(result);          // all ids
+} else {
+  result.reason;                      // diagnostics only
+}
+```
+
+### Result
+
+`TenantTopologyResult` is `{ topologyKnown: true, scope, scopeHasChildren, tenants: [{ tenantId, depth, hasChildren }] }`
+or `{ topologyKnown: false, reason, tenants: [], scopeHasChildren: null }`. Fields the library does not know are
+not exposed. Test helpers for app specs: `knownTopology(scope, nodes, scopeHasChildren?)`, `unknownTopology(reason)`.
+
+| `reason` | Cause | Cached |
+|----------|-------|--------|
+| `identity-too-old` | 404, identity predates the endpoint | for the session |
+| `hierarchy-unreadable` | 503, identity could not read the whole hierarchy | no |
+| `unauthorized` | 401 or 403 (expired token, client-credentials token, missing `octo_api` read scope) | no |
+| `rate-limited` | 429, per-user rate limit of identity (`Retry-After: 60`) | no |
+| `network` | transport error, timeout (10 s), 502/504/other 5xx | no |
+| `invalid-response` | 200 with a body that does not fit the contract, or an unexpected status | no |
+| `not-configured` | no issuer, no access token, a scope that is not a tenant id, or 400 | no |
+
+**Rule: map every `topologyKnown: false` to the existing degraded mode (token tenant only) and never call another
+tenant.** The library sends exactly one request to that one endpoint: no retry, no other URL, no GraphQL. An app
+must not fall back to a cross-tenant call either; under `Enforce` identity refuses it anyway.
+
+### Caching
+
+- Successful results are cached per session, keyed by scope (case-insensitive), the token's `tenant_id` and its
+  `allowed_tenants`: a tenant switch or a token with another claim never serves a stale entitlement. A refreshed token
+  with the same tenant and claim hits the cache.
+- Concurrent calls for the same key share one request (single flight).
+- `load(scope, { refresh: true })` bypasses the cache; sign-out (`isAuthenticated` turns false) clears it, also for
+  a response that is still in flight. `clearCache()` does the same on demand.
+
+### Security
+
+- The method takes no URL: it is built from `AuthorizeService.issuer()`. The scope must match the tenant-id pattern
+  (1 to 64 ASCII letters, digits, `-`, `_`) or the result is `not-configured` without a request.
+- The bearer is attached explicitly to this one request. The request bypasses the HTTP interceptors (`HttpBackend`),
+  so the identity URL need not be in `wellKnownServiceUris`, the header is never duplicated and no interceptor
+  refresh/retry can send a second request. A `401` therefore surfaces as `unauthorized`; the next ordinary API call
+  refreshes the token.
+- Only the status code and the scope are logged (`console.debug`); no `HttpErrorResponse` (URL, headers, body) leaves
+  the library.
+
+### Example: `AvailableTenantsService`
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class AvailableTenantsService {
+  private readonly topology = inject(TenantTopologyService);
+  private readonly auth = inject(AuthorizeService);
+  readonly topologyKnown = signal(false);
+  readonly tenants = signal<string[]>([]);
+
+  async load(rootTenantId: string): Promise<void> {
+    const result = await this.topology.load(rootTenantId);
+    if (!result.topologyKnown) {
+      // identity too old, unreadable, unauthorized, ...: token tenant only, no further requests
+      this.topologyKnown.set(false);
+      this.tenants.set([this.auth.tokenTenantId() ?? rootTenantId]);
+      return;
+    }
+    this.topologyKnown.set(true);
+    if (!result.scopeHasChildren) {
+      this.tenants.set([rootTenantId]);                                // legacy single-tenant: the root is the app tenant
+      return;
+    }
+    // Grouping tenants (hasChildren) are for navigation only; the user works in the leaves.
+    this.tenants.set(topologyLeaves(result).map((t) => t.tenantId));
+  }
+}
+```
+
+### Contract
+
+The client implements the contract of AB#7044 (octo-identity-services, `TenantTopologyApiController`). Against an
+identity without the endpoint it returns `identity-too-old`.
+
 ## Components
 
 ### LoginAppBarSectionComponent

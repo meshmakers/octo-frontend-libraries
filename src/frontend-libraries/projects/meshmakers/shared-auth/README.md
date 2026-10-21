@@ -151,6 +151,13 @@ report (`/health`, which needs the bearer since AB#6739 but is never refreshed o
 endpoint itself are left alone, and if the refresh fails the original `401` reaches the
 caller.
 
+### TenantTopologyService
+
+`await inject(TenantTopologyService).load(rootTenantId)` returns which of the user's tenants lie below the app root
+(`topologyLeaves`, `topologyDirectChildren`, `topologyTenantIds`) or a `topologyKnown: false` result with a reason; it
+never throws. Map every unknown result to "token tenant only". See
+[docs/README.md](docs/README.md#tenant-topology-ab7053).
+
 ### Error classification
 
 `authorizationRefusal(error)` tells a `401` and a `403` apart on an error typed `unknown`,

@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-auth (tenant topology client, AB#7053)
+
+- New (non-breaking, additive): `TenantTopologyService.load(scope, { refresh? })` asks identity
+  (`GET {issuer}/api/tenant-topology?scope=`, AB#7044) which of the signed-in user's tenants lie below the app root.
+  Never throws; returns `topologyKnown: false` with a reason (`identity-too-old`, `hierarchy-unreadable`,
+  `unauthorized`, `rate-limited`, `network`, `invalid-response`, `not-configured`) instead. One request, no
+  cross-tenant fallback, per-session cache keyed by scope + token tenant + `allowed_tenants`, single flight, cleared on
+  sign-out. Helpers `topologyLeaves`, `topologyDirectChildren`, `topologyTenantIds`; test helpers `knownTopology`,
+  `unknownTopology`. No new peer dependency.
+
 ### octo-ui styles / shared-ui (destructive dialog confirm really red, AB#6464)
 
 - Fix: the error fill of a destructive confirm (`themeColor="error"`) never painted in apps. Kendo Angular adds
