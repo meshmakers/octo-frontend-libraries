@@ -56,6 +56,7 @@ export interface NotificationRecipientPageRequest {
   take: number;
   sort?: SortDto[] | null;
   searchText?: string | null;
+  tenantId?: string | null;
 }
 
 export interface NotificationSubscriptionSummary extends NotificationEntityRef {
@@ -80,6 +81,7 @@ export interface NotificationSubscriptionDetail extends NotificationEntityRef {
 export interface NotificationRecipient extends NotificationEntityRef {
   subjectId: string;
   userLabel: string;
+  user?: NotificationRecipientCandidate | null;
   cronExpression: string;
   timeZone: string | null;
   lastSentAt: unknown;
@@ -162,6 +164,8 @@ function toEntityId(ref: NotificationEntityRef): RtEntityIdDto {
   return { rtId: ref.rtId, ckTypeId: ref.ckTypeId };
 }
 
+const USERS_CACHE_MS = 60_000;
+
 @Injectable({ providedIn: 'root' })
 export class NotificationSubscriptionService {
   private readonly getSubscriptionsGQL = inject(NotificationsGetSubscriptionsDtoGQL);
@@ -176,6 +180,7 @@ export class NotificationSubscriptionService {
   private readonly communication = inject(CommunicationService);
   private readonly cronParser = inject(CronParserService);
   private readonly candidates = inject(NOTIFICATION_RECIPIENT_CANDIDATES);
+  private readonly usersCache = new Map<string, { loadedAt: number; users: Promise<NotificationRecipientCandidate[]> }>();
 
   async getSubscriptions(request: NotificationPageRequest): Promise<NotificationPage<NotificationSubscriptionSummary>> {
     const result = await firstValueFrom(this.getSubscriptionsGQL.fetch({
@@ -217,8 +222,16 @@ export class NotificationSubscriptionService {
     return this.communication.undeployNotificationSubscription(tenantId, subscriptionRtId);
   }
 
-  loadUsers(): Promise<NotificationRecipientCandidate[]> {
-    return this.candidates.load();
+  loadUsers(tenantId?: string | null): Promise<NotificationRecipientCandidate[]> {
+    if (!tenantId) return this.candidates.load();
+    const cached = this.usersCache.get(tenantId);
+    if (cached && Date.now() - cached.loadedAt < USERS_CACHE_MS) return cached.users;
+    const entry = { loadedAt: Date.now(), users: this.candidates.load() };
+    this.usersCache.set(tenantId, entry);
+    entry.users.catch(() => {
+      if (this.usersCache.get(tenantId) === entry) this.usersCache.delete(tenantId);
+    });
+    return entry.users;
   }
 
   scheduleIssue(cronExpression: string | null | undefined): NotificationScheduleIssue | null {
@@ -226,7 +239,7 @@ export class NotificationSubscriptionService {
   }
 
   async getRecipients(subscriptionRtId: string, request: NotificationRecipientPageRequest): Promise<NotificationRecipientPage> {
-    const users = await this.usersById();
+    const users = await this.usersById(request.tenantId);
     const fieldFilter: FieldFilterDto[] = [];
     const term = request.searchText?.trim().toLowerCase();
     if (term) {
@@ -254,10 +267,10 @@ export class NotificationSubscriptionService {
     };
   }
 
-  async getRecipient(rtId: string, subscriptionDeployed: boolean): Promise<NotificationRecipient | null> {
+  async getRecipient(rtId: string, subscriptionDeployed: boolean, tenantId?: string | null): Promise<NotificationRecipient | null> {
     const [result, users] = await Promise.all([
       firstValueFrom(this.getPreferenceGQL.fetch({ variables: { rtId }, fetchPolicy: 'network-only' })),
-      this.usersById()
+      this.usersById(tenantId)
     ]);
     const item = result.data?.runtime?.systemNotificationNotificationPreference?.items?.find(entry => entry !== null);
     return item ? this.recipientOf(item as RecipientItem, subscriptionDeployed, users) : null;
@@ -376,9 +389,9 @@ export class NotificationSubscriptionService {
     return failure;
   }
 
-  private async usersById(): Promise<Map<string, NotificationRecipientCandidate> | null> {
+  private async usersById(tenantId?: string | null): Promise<Map<string, NotificationRecipientCandidate> | null> {
     try {
-      return new Map((await this.candidates.load()).map(user => [user.id, user]));
+      return new Map((await this.loadUsers(tenantId)).map(user => [user.id, user]));
     } catch {
       return null;
     }
@@ -394,6 +407,7 @@ export class NotificationSubscriptionService {
       ckTypeId: item.ckTypeId,
       subjectId: item.subjectId,
       userLabel: user?.label ?? item.subjectId,
+      user: user ?? null,
       cronExpression: item.cronExpression,
       timeZone: item.timeZone ?? null,
       lastSentAt: state?.lastSentAt ?? null,
