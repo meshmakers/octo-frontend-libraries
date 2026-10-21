@@ -91,6 +91,17 @@ user-initiated "Sign in to <tenant>" (`AuthorizeService.retryTenantSignIn`, once
 loop-protection flag once); after that retry it only says "not a member, contact your administrator".
 `consumeSwitchAttempted()` (called when token and route tenant match) ends the whole cycle.
 
+### Tenant topology client (AB#7053)
+
+`TenantTopologyService.load(scope)` (`lib/tenant-topology.service.ts`, types and pure/test helpers in
+`lib/tenant-topology.ts`) wraps identity's `GET {issuer}/api/tenant-topology?scope=` (AB#7044). Properties to keep:
+never throws or rejects (every failure is `topologyKnown: false` with a `reason`); exactly one request, no fallback to
+another URL or tenant; no URL parameter (URL from `AuthorizeService.issuer()`); scope validated against the tenant-id
+pattern; bearer attached explicitly and the request goes through `HttpBackend` (no interceptor, no duplicate header, no
+refresh retry); cache per scope + token tenant + `allowed_tenants` (known results and `identity-too-old` only), single
+flight, cleared on sign-out; only status and scope are logged. 429 is mapped to the extra reason `rate-limited`, 400 to
+`not-configured`. Details and usage example: `docs/README.md` section "Tenant Topology".
+
 ### Discovery-Document Resilience
 
 `AuthorizeService.initialize()` wraps `oauthService.loadDiscoveryDocumentAndTryLogin()` in a bounded exponential-backoff retry loop (defaults: 6 attempts, 1500 ms initial delay, 30 s cap). This covers the brief window during which the Identity service is unreachable after a redeploy — the symptom is otherwise reported by the browser as a CORS error (the ingress error page carries no `Access-Control-Allow-Origin` header), which is why a plain network-error catch upstream wouldn't help.
