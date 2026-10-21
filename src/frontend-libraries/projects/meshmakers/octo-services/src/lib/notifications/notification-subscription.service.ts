@@ -181,7 +181,7 @@ export class NotificationSubscriptionService {
   private readonly cronParser = inject(CronParserService);
   private readonly candidates = inject(NOTIFICATION_RECIPIENT_CANDIDATES);
   private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
-  private readonly usersCache = new Map<string, { loadedAt: number; users: Promise<NotificationRecipientCandidate[]> }>();
+  private readonly usersCache = new Map<string, { loadedAt: number | null; users: Promise<NotificationRecipientCandidate[]> }>();
 
   async getSubscriptions(request: NotificationPageRequest): Promise<NotificationPage<NotificationSubscriptionSummary>> {
     const result = await firstValueFrom(this.getSubscriptionsGQL.fetch({
@@ -227,10 +227,13 @@ export class NotificationSubscriptionService {
     const tenantId = await this.tenantIdProvider?.();
     if (!tenantId) return this.candidates.load();
     const cached = this.usersCache.get(tenantId);
-    if (cached && Date.now() - cached.loadedAt < USERS_CACHE_MS) return cached.users;
-    const entry = { loadedAt: Date.now(), users: this.candidates.load() };
+    if (cached && (cached.loadedAt === null || Date.now() - cached.loadedAt < USERS_CACHE_MS)) return cached.users;
+    const entry: { loadedAt: number | null; users: Promise<NotificationRecipientCandidate[]> } =
+      { loadedAt: null, users: this.candidates.load() };
     this.usersCache.set(tenantId, entry);
-    entry.users.catch(() => {
+    entry.users.then(() => {
+      entry.loadedAt = Date.now();
+    }, () => {
       if (this.usersCache.get(tenantId) === entry) this.usersCache.delete(tenantId);
     });
     return entry.users;

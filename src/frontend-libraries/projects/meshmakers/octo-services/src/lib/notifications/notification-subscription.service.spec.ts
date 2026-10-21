@@ -166,6 +166,25 @@ describe('NotificationSubscriptionService', () => {
       expect(loadCandidates).toHaveBeenCalledTimes(2);
     });
 
+    it('reuses a load that is still running after a minute and counts the minute from when it ends', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      let release!: (value: typeof users) => void;
+      loadCandidates.mockReturnValueOnce(new Promise(resolve => release = resolve));
+      const svc = cachingService();
+
+      const first = svc.getRecipients('s1', { skip: 0, take: 10 });
+      await Promise.resolve();
+      vi.setSystemTime(Date.now() + 61_000);
+      const second = svc.getRecipients('s1', { skip: 0, take: 10 });
+      await Promise.resolve();
+      release(users);
+      await Promise.all([first, second]);
+      vi.setSystemTime(Date.now() + 59_000);
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+
+      expect(loadCandidates).toHaveBeenCalledTimes(1);
+    });
+
     it('keeps the users of each tenant apart', async () => {
       const svc = cachingService();
 

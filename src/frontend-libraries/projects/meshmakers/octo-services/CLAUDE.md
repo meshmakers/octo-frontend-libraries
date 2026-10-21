@@ -459,7 +459,7 @@ The behaviour follows established products (Kubernetes, Jira filter subscription
 | `unknownNotificationPlaceholders`, `placeholderList`, `notificationColumnPath` | The placeholder rule: the body may use `${count}` and the query columns, the subject `${count}` only. The message text stays in the app |
 | `renderNotificationPreview`, `formatNotificationCell` | Subject and body as the engine renders them (`NotificationDigest.Render`) |
 
-The users of a tenant are loaded once and kept for 60 seconds (pages, searches, sorts and the edit form share one load; a failed load is not kept). The key is the tenant `TENANT_ID_PROVIDER` reports when the load starts, the same one the candidate sources load from, so a caller cannot file users under a tenant other than the source's; while it reports none, every call loads them. Callers that ask while a load is running share it.
+The users of a tenant are loaded once and kept for 60 seconds (pages, searches, sorts and the edit form share one load; a failed load is not kept). The key is the tenant `TENANT_ID_PROVIDER` reports when the load starts, the same one the candidate sources load from, so a caller cannot file users under a tenant other than the source's; while it reports none, every call loads them. Callers that ask while a load is running share it, however long it takes; the 60 seconds count from when it succeeded.
 
 Every write that changes when a recipient gets mail ends with `CommunicationService.syncNotificationSchedule` for that
 preference, inside the service; a screen never calls the sync itself. A failed sync does not undo the write.
