@@ -387,12 +387,12 @@ not exposed. Test helpers for app specs: `knownTopology(scope, nodes, scopeHasCh
 
 | `reason` | Cause | Cached |
 |----------|-------|--------|
-| `identity-too-old` | 404, identity predates the endpoint | for the session |
+| `identity-too-old` | 404, or a 2xx with a non-JSON content type (an identity older than AB#7044 answers unknown `/api` paths with its SPA fallback: 200 `text/html`) | for the session |
 | `hierarchy-unreadable` | 503, identity could not read the whole hierarchy | no |
 | `unauthorized` | 401 or 403 (expired token, client-credentials token, missing `octo_api` read scope) | no |
 | `rate-limited` | 429, per-user rate limit of identity (`Retry-After: 60`) | no |
 | `network` | transport error, timeout (10 s), 502/504/other 5xx | no |
-| `invalid-response` | 200 with a body that does not fit the contract, or an unexpected status | no |
+| `invalid-response` | 2xx JSON with a body that does not fit the contract (or unparsable JSON), or an unexpected status | no |
 | `not-configured` | no issuer, no access token, a scope that is not a tenant id, or 400 | no |
 
 **Rule: map every `topologyKnown: false` to the existing degraded mode (token tenant only) and never call another

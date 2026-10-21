@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting, TestRequest } from '@angular/common/http/testing';
 import { signal, WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -171,6 +171,26 @@ describe('TenantTopologyService', () => {
       });
     }
 
+    it('a 200 text/html (SPA fallback of an older identity) resolves with reason identity-too-old', async () => {
+      const result = await answer('R', (r) =>
+        r.flush('<!doctype html><html></html>', { status: 200, statusText: 'OK', headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+      );
+
+      expect(result).toEqual({ topologyKnown: false, reason: 'identity-too-old', tenants: [], scopeHasChildren: null });
+    });
+
+    it('a 200 application/json that cannot be parsed resolves with reason invalid-response', async () => {
+      const result = await answer('R', (r) =>
+        r.error(new ProgressEvent('error'), {
+          status: 200,
+          statusText: 'OK',
+          headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+        })
+      );
+
+      expect(result).toMatchObject({ topologyKnown: false, reason: 'invalid-response' });
+    });
+
     it('no issuer resolves not-configured without a request', async () => {
       issuer.set(null);
 
@@ -281,6 +301,21 @@ describe('TenantTopologyService', () => {
 
     it('a network error is not cached', async () => {
       await answer('R', (r) => r.error(new ProgressEvent('error')));
+
+      expect(await answer('R', (r) => r.flush(topologyBody()))).toMatchObject({ topologyKnown: true });
+    });
+
+    it('a 200 text/html is cached as identity-too-old: the second call sends no request', async () => {
+      await answer('R', (r) =>
+        r.flush('<html></html>', { status: 200, statusText: 'OK', headers: { 'Content-Type': 'text/html' } })
+      );
+
+      expect(await service.load('R')).toMatchObject({ topologyKnown: false, reason: 'identity-too-old' });
+      http.expectNone(() => true);
+    });
+
+    it('a 200 application/json of the wrong shape is not cached', async () => {
+      await answer('R', (r) => r.flush({ nope: true }, { status: 200, statusText: 'OK', headers: { 'Content-Type': 'application/json' } }));
 
       expect(await answer('R', (r) => r.flush(topologyBody()))).toMatchObject({ topologyKnown: true });
     });

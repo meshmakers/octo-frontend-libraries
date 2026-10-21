@@ -118,15 +118,20 @@ export class TenantTopologyService {
 
   private async fetch(issuer: string, scope: string, token: string): Promise<TenantTopologyResult> {
     try {
-      const body = await firstValueFrom(
+      const response = await firstValueFrom(
         this.http
           .get<unknown>(`${issuer}/api/tenant-topology`, {
             params: { scope },
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
+            observe: 'response'
           })
           .pipe(timeout(REQUEST_TIMEOUT_MS))
       );
-      const parsed = parseResponse(body, scope);
+      // An identity older than AB#7044 answers unknown /api paths with its SPA fallback: 200 text/html.
+      if (isNonJsonContentType(response.headers.get('Content-Type'))) {
+        return this.unknown('identity-too-old', scope, response.status);
+      }
+      const parsed = parseResponse(response.body, scope);
       if (!parsed) {
         return this.unknown('invalid-response', scope);
       }
@@ -134,6 +139,14 @@ export class TenantTopologyService {
     } catch (error) {
       // Only the status leaves this block: the HttpErrorResponse carries URL, headers and body.
       const status = error instanceof HttpErrorResponse ? error.status : 0;
+      // A 2xx that the HttpClient could not parse as JSON: html means an old identity, anything else is malformed.
+      if (error instanceof HttpErrorResponse && status >= 200 && status < 300) {
+        return this.unknown(
+          isNonJsonContentType(error.headers.get('Content-Type')) ? 'identity-too-old' : 'invalid-response',
+          scope,
+          status
+        );
+      }
       return this.unknown(reasonForStatus(status), scope, status);
     }
   }
@@ -152,6 +165,12 @@ export class TenantTopologyService {
     const allowed = [...new Set(allowedTenantsFromToken(token).map((t) => t.toLowerCase()))].sort();
     return JSON.stringify([scope.toLowerCase(), tenant, allowed]);
   }
+}
+
+/** True when a content type is present and is not JSON (`application/json`, `application/problem+json`, ...). */
+function isNonJsonContentType(contentType: string | null): boolean {
+  const type = (contentType ?? '').split(';')[0].trim().toLowerCase();
+  return type !== '' && type !== 'application/json' && !type.endsWith('+json');
 }
 
 function reasonForStatus(status: number): TenantTopologyUnknownReason {

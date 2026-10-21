@@ -20,6 +20,13 @@ starts a new empty "Unreleased" section.
   sign-out. Helpers `topologyLeaves`, `topologyDirectChildren`, `topologyTenantIds`; test helpers `knownTopology`,
   `unknownTopology`. No new peer dependency.
 
+### shared-auth (tenant topology: older identity answers 200 text/html, AB#7054)
+
+- Fix: an identity older than AB#7044 does not answer 404 for `/api/tenant-topology` but 200 `text/html` (SPA fallback).
+  `TenantTopologyService.load()` now maps a 2xx response with a non-JSON content type to `identity-too-old` (cached for
+  the session like the 404, so a not-yet-upgraded cluster gets one request, not one per call). A 2xx JSON body of the
+  wrong shape or unparsable JSON stays `invalid-response` (not cached).
+
 ### octo-ui styles / shared-ui (destructive dialog confirm really red, AB#6464)
 
 - Fix: the error fill of a destructive confirm (`themeColor="error"`) never painted in apps. Kendo Angular adds
