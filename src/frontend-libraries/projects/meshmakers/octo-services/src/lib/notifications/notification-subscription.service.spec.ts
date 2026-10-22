@@ -1,9 +1,11 @@
+import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { CronParserService } from '@meshmakers/shared-ui';
 import { NotificationRecipientRefusedError, NotificationSubscriptionService } from './notification-subscription.service';
 import { NOTIFICATION_RECIPIENT_CANDIDATES } from './notification-recipient-candidates.service';
 import { CommunicationService } from '../services/communication.service';
+import { TENANT_ID_PROVIDER } from '../services/tenant-provider';
 import { NotificationsGetSubscriptionsDtoGQL } from '../graphQL/notificationsGetSubscriptions';
 import { NotificationsGetSubscriptionDtoGQL } from '../graphQL/notificationsGetSubscription';
 import { NotificationsGetRecipientsDtoGQL } from '../graphQL/notificationsGetRecipients';
@@ -24,6 +26,8 @@ describe('NotificationSubscriptionService', () => {
   let gql: Record<string, { fetch?: ReturnType<typeof vi.fn>; mutate?: ReturnType<typeof vi.fn> }>;
   let communication: { syncNotificationSchedule: ReturnType<typeof vi.fn> };
   let nextExecutions: (cron: string, count: number) => Date[];
+  let loadCandidates: Mock<() => Promise<typeof users>>;
+  let ambientTenant: string | null;
 
   function service(): NotificationSubscriptionService {
     TestBed.configureTestingModule({
@@ -39,7 +43,8 @@ describe('NotificationSubscriptionService', () => {
         { provide: NotificationsGetQuerySampleDtoGQL, useValue: gql['querySample'] ?? {} },
         { provide: CommunicationService, useValue: communication },
         { provide: CronParserService, useValue: { getNextExecutions: (cron: string, count: number) => nextExecutions(cron, count) } },
-        { provide: NOTIFICATION_RECIPIENT_CANDIDATES, useValue: { load: () => Promise.resolve(users) } }
+        { provide: NOTIFICATION_RECIPIENT_CANDIDATES, useValue: { load: () => loadCandidates() } },
+        { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(ambientTenant) }
       ]
     });
     return TestBed.inject(NotificationSubscriptionService);
@@ -49,6 +54,8 @@ describe('NotificationSubscriptionService', () => {
     gql = {};
     communication = { syncNotificationSchedule: vi.fn().mockResolvedValue(undefined) };
     nextExecutions = everyMinute;
+    loadCandidates = vi.fn().mockResolvedValue(users);
+    ambientTenant = 't1';
   });
 
   afterEach(() => TestBed.resetTestingModule());
@@ -104,6 +111,121 @@ describe('NotificationSubscriptionService', () => {
     const page = await service().getRecipients('s1', { skip: 0, take: 10 });
 
     expect(page.items[0].status.problem).toBe('USER_DELETED');
+  });
+
+  describe('users of the recipients', () => {
+    function cachingService(): NotificationSubscriptionService {
+      gql['recipients'] = { fetch: fetch(recipients(null)) };
+      gql['preference'] = { fetch: fetch({ runtime: { systemNotificationNotificationPreference: { items: [
+        recipients(null).runtime.systemNotificationNotificationSubscription.items[0].preferences.items[0]] } } }) };
+      return service();
+    }
+
+    afterEach(() => vi.useRealTimers());
+
+    it('loads the users of a tenant once for pages, searches and the edit form', async () => {
+      const svc = cachingService();
+
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+      await svc.getRecipients('s1', { skip: 10, take: 10, searchText: 'bea' });
+      const recipient = await svc.getRecipient('p1', true);
+
+      expect(loadCandidates).toHaveBeenCalledTimes(1);
+      expect(recipient?.user).toEqual(users[0]);
+    });
+
+    it('lets callers that ask at the same time share one load', async () => {
+      let release!: (value: typeof users) => void;
+      loadCandidates.mockReturnValueOnce(new Promise(resolve => release = resolve));
+      const svc = cachingService();
+
+      const page = svc.getRecipients('s1', { skip: 0, take: 10 });
+      const recipient = svc.getRecipient('p1', true);
+      await Promise.resolve();
+      release(users);
+
+      expect((await page).items[0].user).toEqual(users[0]);
+      expect((await recipient)?.user).toEqual(users[0]);
+      expect(loadCandidates).toHaveBeenCalledTimes(1);
+    });
+
+    it('gives callers that share a failed load no users and loads again on the next call', async () => {
+      let fail!: (error: Error) => void;
+      loadCandidates.mockReturnValueOnce(new Promise((_, reject) => fail = reject));
+      const svc = cachingService();
+
+      const page = svc.getRecipients('s1', { skip: 0, take: 10 });
+      const recipient = svc.getRecipient('p1', true);
+      await Promise.resolve();
+      fail(new Error('identity down'));
+
+      expect((await page).items[0].user).toBeNull();
+      expect((await recipient)?.user).toBeNull();
+      expect(loadCandidates).toHaveBeenCalledTimes(1);
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+      expect(loadCandidates).toHaveBeenCalledTimes(2);
+    });
+
+    it('reuses a load that is still running after a minute and counts the minute from when it ends', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      let release!: (value: typeof users) => void;
+      loadCandidates.mockReturnValueOnce(new Promise(resolve => release = resolve));
+      const svc = cachingService();
+
+      const first = svc.getRecipients('s1', { skip: 0, take: 10 });
+      await Promise.resolve();
+      vi.setSystemTime(Date.now() + 61_000);
+      const second = svc.getRecipients('s1', { skip: 0, take: 10 });
+      await Promise.resolve();
+      release(users);
+      await Promise.all([first, second]);
+      vi.setSystemTime(Date.now() + 59_000);
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+
+      expect(loadCandidates).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the users of each tenant apart', async () => {
+      const svc = cachingService();
+
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+      ambientTenant = 't2';
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+
+      expect(loadCandidates).toHaveBeenCalledTimes(2);
+    });
+
+    it('loads them every time while no tenant is active', async () => {
+      ambientTenant = null;
+      const svc = cachingService();
+
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+
+      expect(loadCandidates).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not keep a failed load', async () => {
+      const svc = cachingService();
+      loadCandidates.mockRejectedValueOnce(new Error('identity down'));
+
+      const failed = await svc.getRecipients('s1', { skip: 0, take: 10 });
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+
+      expect(failed.items[0].user).toBeNull();
+      expect(loadCandidates).toHaveBeenCalledTimes(2);
+    });
+
+    it('loads them again after a minute, so new users show up', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      const svc = cachingService();
+
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+      vi.setSystemTime(Date.now() + 61_000);
+      await svc.getRecipients('s1', { skip: 0, take: 10 });
+
+      expect(loadCandidates).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('searches recipients by the label of their user', async () => {

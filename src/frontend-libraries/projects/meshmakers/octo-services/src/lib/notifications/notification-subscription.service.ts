@@ -26,6 +26,7 @@ import { NotificationHealth, NotificationRecipientStatus, notificationRecipientS
 import { NotificationScheduleIssue, notificationScheduleIssue } from './notification-schedule';
 import { NotificationQueryRow, NotificationQuerySample } from './notification-preview';
 import { NOTIFICATION_RECIPIENT_CANDIDATES, NotificationRecipientCandidate } from './notification-recipient-candidates.service';
+import { TENANT_ID_PROVIDER } from '../services/tenant-provider';
 
 const RECIPIENT_PAGE = 1000;
 
@@ -80,6 +81,7 @@ export interface NotificationSubscriptionDetail extends NotificationEntityRef {
 export interface NotificationRecipient extends NotificationEntityRef {
   subjectId: string;
   userLabel: string;
+  user?: NotificationRecipientCandidate | null;
   cronExpression: string;
   timeZone: string | null;
   lastSentAt: unknown;
@@ -162,6 +164,8 @@ function toEntityId(ref: NotificationEntityRef): RtEntityIdDto {
   return { rtId: ref.rtId, ckTypeId: ref.ckTypeId };
 }
 
+const USERS_CACHE_MS = 60_000;
+
 @Injectable({ providedIn: 'root' })
 export class NotificationSubscriptionService {
   private readonly getSubscriptionsGQL = inject(NotificationsGetSubscriptionsDtoGQL);
@@ -176,6 +180,8 @@ export class NotificationSubscriptionService {
   private readonly communication = inject(CommunicationService);
   private readonly cronParser = inject(CronParserService);
   private readonly candidates = inject(NOTIFICATION_RECIPIENT_CANDIDATES);
+  private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
+  private readonly usersCache = new Map<string, { loadedAt: number | null; users: Promise<NotificationRecipientCandidate[]> }>();
 
   async getSubscriptions(request: NotificationPageRequest): Promise<NotificationPage<NotificationSubscriptionSummary>> {
     const result = await firstValueFrom(this.getSubscriptionsGQL.fetch({
@@ -217,8 +223,20 @@ export class NotificationSubscriptionService {
     return this.communication.undeployNotificationSubscription(tenantId, subscriptionRtId);
   }
 
-  loadUsers(): Promise<NotificationRecipientCandidate[]> {
-    return this.candidates.load();
+  async loadUsers(): Promise<NotificationRecipientCandidate[]> {
+    const tenantId = await this.tenantIdProvider?.();
+    if (!tenantId) return this.candidates.load();
+    const cached = this.usersCache.get(tenantId);
+    if (cached && (cached.loadedAt === null || Date.now() - cached.loadedAt < USERS_CACHE_MS)) return cached.users;
+    const entry: { loadedAt: number | null; users: Promise<NotificationRecipientCandidate[]> } =
+      { loadedAt: null, users: this.candidates.load() };
+    this.usersCache.set(tenantId, entry);
+    entry.users.then(() => {
+      entry.loadedAt = Date.now();
+    }, () => {
+      if (this.usersCache.get(tenantId) === entry) this.usersCache.delete(tenantId);
+    });
+    return entry.users;
   }
 
   scheduleIssue(cronExpression: string | null | undefined): NotificationScheduleIssue | null {
@@ -378,7 +396,7 @@ export class NotificationSubscriptionService {
 
   private async usersById(): Promise<Map<string, NotificationRecipientCandidate> | null> {
     try {
-      return new Map((await this.candidates.load()).map(user => [user.id, user]));
+      return new Map((await this.loadUsers()).map(user => [user.id, user]));
     } catch {
       return null;
     }
@@ -394,6 +412,7 @@ export class NotificationSubscriptionService {
       ckTypeId: item.ckTypeId,
       subjectId: item.subjectId,
       userLabel: user?.label ?? item.subjectId,
+      user: user ?? null,
       cronExpression: item.cronExpression,
       timeZone: item.timeZone ?? null,
       lastSentAt: state?.lastSentAt ?? null,
