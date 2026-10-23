@@ -122,6 +122,7 @@
     "@angular/build": "^22.1.7",
     "@angular/cli": "^22.1.7",
     "@angular/compiler-cli": "^22.1.5",
+    "@dash0/sdk-web": "^0.24.0",
     "@eslint/js": "^10.0.1",
     "@graphql-codegen/cli": "^6.3.1",
     "@graphql-codegen/fragment-matcher": "^6.0.1",

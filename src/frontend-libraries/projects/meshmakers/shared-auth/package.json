@@ -4,6 +4,7 @@
   "peerDependencies": {
     "@angular/common": "^22.0.0",
     "@angular/core": "^22.0.0",
+    "@dash0/sdk-web": "^0.24.0",
     "@progress/kendo-angular-buttons": "^24.1.0",
     "@progress/kendo-angular-indicators": "^24.1.0",
     "@progress/kendo-angular-layout": "^24.1.0",
@@ -11,6 +12,7 @@
     "angular-oauth2-oidc": "^22.0.0"
   },
   "peerDependenciesMeta": {
+    "@dash0/sdk-web": { "optional": true },
     "@progress/kendo-angular-buttons": { "optional": true },
     "@progress/kendo-angular-indicators": { "optional": true },
     "@progress/kendo-angular-layout": { "optional": true },

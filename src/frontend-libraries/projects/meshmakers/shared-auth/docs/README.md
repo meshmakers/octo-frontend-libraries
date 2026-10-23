@@ -11,6 +11,7 @@ Angular library for OAuth2/OIDC authentication with OpenID Connect support.
 - [Guards](#guards)
 - [Interceptor](#interceptor)
 - [Error Classification](#error-classification)
+- [Observability: session identity](#observability-session-identity-ab7327)
 - [Components](#components)
   - [LoginAppBarSectionComponent](#loginappbarsectioncomponent)
 - [Roles](#roles)
@@ -454,6 +455,38 @@ Documentation: [Tenant Topology API](https://docs.meshmakers.cloud/docs/technolo
 
 The client implements the contract of AB#7044 (octo-identity-services, `TenantTopologyApiController`). Against an
 identity without the endpoint it returns `identity-too-old`.
+
+## Observability: session identity (AB#7327)
+
+Opt-in: an app can tell its browser monitoring (Dash0 RUM) **who is signed in and on which tenant**. Apps that do
+not opt in see no change, and `@dash0/sdk-web` is not required (it is an *optional* peer dependency used only by the
+`@meshmakers/shared-auth/dash0` entry point).
+
+```typescript
+// app.config.ts — after the Dash0 SDK was initialised (init()) in main.ts
+import { provideMmSharedAuth } from '@meshmakers/shared-auth';
+import { provideDash0SessionIdentity } from '@meshmakers/shared-auth/dash0';
+
+providers: [provideMmSharedAuth(), provideDash0SessionIdentity()]
+```
+
+| Attribute | Value |
+|-----------|-------|
+| `user.id` | `sub` claim |
+| `user.name` | user name |
+| `user.email` | e-mail address (omitted when the identity has none) |
+| `octo.tenant.id` | tenant of the current access token (same key as the backend services) |
+
+- **When:** set after sign-in and after every tenant switch (in-place token exchange and redirect fallback), only when
+  the identity actually changed (a token refresh does not repeat it); cleared when the session ends (logout,
+  `session_terminated`, `token_refresh_error`, cross-tab logout, the reset before a redirect tenant switch). The page
+  load before sign-in stays anonymous.
+- **Never breaks auth:** the sink is driven from one `effect()` over the user and token-tenant signals; an exception in
+  it is caught and logged as one `console.warn` with a fixed text (no name, no e-mail).
+- **Privacy:** name and e-mail are personal data and are sent to Dash0 (EU region). Only enable it in apps and
+  environments where that is covered by the data protection information (decision 2026-10-22, AB#7326).
+- **Other monitoring tools:** provide your own `SessionIdentitySink` (`{ set(identity), clear() }`) under the
+  `SESSION_IDENTITY_SINK` token of the main entry point; the Dash0 adapter is just one implementation.
 
 ## Components
 

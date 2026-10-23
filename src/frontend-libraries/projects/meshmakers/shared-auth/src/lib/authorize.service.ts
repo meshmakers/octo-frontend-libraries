@@ -1,8 +1,9 @@
-import { Injectable, Signal, WritableSignal, computed, inject, signal } from '@angular/core';
+import { Injectable, Signal, WritableSignal, computed, effect, inject, signal } from '@angular/core';
 import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
 import { Roles } from './roles';
 import { TenantAwareOAuthStorage } from './tenant-aware-oauth-storage';
 import { allowedTenantsFromToken, tenantIdFromToken } from './jwt-claims';
+import { SESSION_IDENTITY_SINK, SessionIdentity, SessionIdentitySink, sameSessionIdentity } from './session-identity';
 
 export interface IUser {
   family_name: string | null;
@@ -176,6 +177,8 @@ export class AuthorizeService {
 
   constructor() {
     console.debug('AuthorizeService::created');
+
+    this.setUpSessionIdentity(inject(SESSION_IDENTITY_SINK, { optional: true }));
 
     this.oauthService.discoveryDocumentLoaded$.subscribe((_) => {
       console.debug('discoveryDocumentLoaded$');
@@ -981,6 +984,54 @@ export class AuthorizeService {
     }
 
     console.debug('AuthorizeService::uninitialize::completed');
+  }
+
+  /**
+   * Drives the optional {@link SessionIdentitySink} from one place (AB#7327): the identity is derived from
+   * `_user` + `_tokenTenantId`, so every path that sets them (login, token refresh, in-place tenant switch,
+   * redirect fallback) and every path that clears them (logout, session_terminated, token_refresh_error,
+   * cross-tab logout, reset before a redirect switch) is covered without touching each one. Nothing is
+   * registered when the app provides no sink. A sink that throws never affects authentication.
+   */
+  private setUpSessionIdentity(sink: SessionIdentitySink | null): void {
+    if (!sink) {
+      return;
+    }
+
+    const identity = computed<SessionIdentity | null>(() => {
+      const user = this._user();
+      if (!user?.sub) {
+        return null;
+      }
+      return {
+        userId: user.sub,
+        name: user.name || null,
+        email: user.email || null,
+        tenantId: this._tokenTenantId()
+      };
+    }, { equal: sameSessionIdentity });
+
+    let published = false;
+    effect(() => {
+      const current = identity();
+      if (current === null && !published) {
+        return; // anonymous start: nothing was published, nothing to clear
+      }
+      published = current !== null;
+      try {
+        if (current === null) {
+          sink.clear();
+        } else {
+          sink.set(current);
+        }
+      } catch (error) {
+        // Fixed text + error type only: the message or the identity may carry name or e-mail.
+        console.warn(
+          `AuthorizeService: session identity sink failed on ${current === null ? 'clear' : 'set'} (${
+            error instanceof Error ? error.name : typeof error
+          }) — ignored`);
+      }
+    });
   }
 
   private async loadUserAsync(): Promise<void> {
