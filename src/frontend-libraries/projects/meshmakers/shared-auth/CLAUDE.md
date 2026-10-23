@@ -44,6 +44,9 @@ shared-auth/
 │       ├── public-api.ts             # Exports: LoginAppBarSectionComponent
 │       └── mm-login-app-bar-section/ # Login UI component
 │
+├── dash0/                            # Secondary entry point (optional peer @dash0/sdk-web)
+│   └── src/                          # provideDash0SessionIdentity(), createDash0SessionIdentitySink()
+│
 ├── docs/
 │   └── README.md                     # Detailed API reference
 ├── DEPRECATION-UPDATE-CONCEPT.md     # Migration history (all phases completed)
@@ -54,10 +57,11 @@ shared-auth/
 
 ### Two Entry Points
 
-The library has two entry points to keep Kendo UI as an optional dependency:
+The library has three entry points to keep Kendo UI and the Dash0 SDK optional dependencies:
 
 - **`@meshmakers/shared-auth`** — Core auth (no Kendo dependency). Services, guards, interceptor.
 - **`@meshmakers/shared-auth/login-ui`** — UI component (requires Kendo). `LoginAppBarSectionComponent`.
+- **`@meshmakers/shared-auth/dash0`** — opt-in session identity for Dash0 browser monitoring (AB#7327). The core entry point must never import `@dash0/sdk-web`: `AuthorizeService` only knows the optional `SESSION_IDENTITY_SINK` token (`session-identity.ts`) and drives it from one `effect()` over `_user` + `_tokenTenantId`; the adapter maps it to `identify()` + `octo.tenant.id`.
 
 The `LoginAppBarSectionComponent` exists in both `src/lib/` and `login-ui/src/` but is only exported from the secondary entry point. The copy in `src/lib/` is NOT exported via `public-api.ts`.
 
@@ -227,3 +231,4 @@ mm-login-app-bar-section {
 - **Angular 22** (core, common/http, router)
 - **angular-oauth2-oidc** v22 (OAuth2/OIDC client)
 - **@progress/kendo-angular-buttons, -indicators, -layout, -popup** (optional, only for login-ui)
+- **@dash0/sdk-web** (optional, only for the dash0 entry point)

@@ -10,6 +10,18 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-auth (session identity for browser monitoring, AB#7327)
+
+- New (non-breaking, additive, opt-in): `AuthorizeService` drives an optional `SESSION_IDENTITY_SINK`
+  (`SessionIdentitySink { set(identity), clear() }`, `SessionIdentity { userId, name, email, tenantId }`) from one
+  `effect()` over the user and token-tenant signals: `set` after sign-in and after every tenant switch (token exchange
+  and redirect fallback; not repeated on an unchanged token refresh), `clear` on every session end. A throwing sink only
+  produces one fixed-text `console.warn` (no name, no e-mail). No sink provided = no change.
+- New secondary entry point `@meshmakers/shared-auth/dash0`: `provideDash0SessionIdentity()` maps the identity to
+  `identify(sub, { name, email })` + signal attribute `octo.tenant.id` (same key as the backend services) and clears
+  them on session end. `@dash0/sdk-web` ^0.24.0 is an **optional** peer dependency, needed only by apps that import
+  this entry point. Name and e-mail are personal data sent to Dash0 (EU) — see the shared-auth README.
+
 ### shared-auth (tenant topology client, AB#7053)
 
 - New (non-breaking, additive): `TenantTopologyService.load(scope, { refresh? })` asks identity

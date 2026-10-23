@@ -12,6 +12,10 @@ export * from './lib/roles';
 export { TenantAwareOAuthStorage } from './lib/tenant-aware-oauth-storage';
 export { decodeJwtPayload, tenantIdFromToken, allowedTenantsFromToken } from './lib/jwt-claims';
 
+// Session identity hook for browser monitoring (AB#7327); the Dash0 adapter lives in '@meshmakers/shared-auth/dash0'
+export { SESSION_IDENTITY_SINK } from './lib/session-identity';
+export type { SessionIdentity, SessionIdentitySink } from './lib/session-identity';
+
 // Functional interceptor
 export { authorizeInterceptor } from './lib/authorize.interceptor';
 
