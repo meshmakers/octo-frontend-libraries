@@ -37,6 +37,7 @@ import { buildChangeSet } from '../core/change-set-builder';
 import {
   ENTITY_FORM_CROSS_FIELD_VALIDATORS,
   EntityFormCrossFieldValidator,
+  EntityFormFieldHintsProvider,
   flattenCrossFieldValidators,
   runCrossFieldValidators,
 } from '../core/cross-field-validation';
@@ -66,6 +67,7 @@ import {
   CkAttributeInfo,
   CkRecordInfo,
   EntityFormChangeSet,
+  EntityFormFieldHint,
   EntityFormMode,
   EntityFormValueState,
   ResolvedEntityForm,
@@ -195,7 +197,15 @@ export class EntityFormComponent {
    */
   readonly fieldErrors = input<Readonly<Record<string, string>> | null | undefined>(undefined);
 
+  /**
+   * Host hints under fields (AB#7423): called with the current values of the form on every change; the
+   * returned hints (text and an optional action link) are shown under their fields. Informational only.
+   */
+  readonly fieldHints = input<EntityFormFieldHintsProvider | null | undefined>(undefined);
+
   // --- Outputs ---
+  /** The action link of a field hint was activated (`actionId` as given by the host, `key` = field key). */
+  readonly fieldHintAction = output<{ key: string; actionId: string }>();
   readonly changeSetChange = output<EntityFormChangeSet>();
   readonly validChange = output<boolean>();
   readonly dirtyChange = output<boolean>();
@@ -242,6 +252,36 @@ export class EntityFormComponent {
       const key = byName.get(name.toLowerCase());
       if (key && message) {
         out[key] = message;
+      }
+    }
+    return out;
+  });
+  /** Host hints by field key, re-evaluated when the values change. */
+  protected readonly hostHints = computed<Readonly<Record<string, EntityFormFieldHint>>>(() => {
+    const provider = this.fieldHints();
+    if (!provider) {
+      return {};
+    }
+    const model = this.model();
+    let answer: Readonly<Record<string, EntityFormFieldHint>> | null | undefined;
+    try {
+      answer = provider({ values: this.rawValues(), form: model, mode: this.mode() });
+    } catch (error) {
+      console.error('mm-entity-form: a field hints provider failed and was ignored', error);
+      return {};
+    }
+    const byName = new Map<string, string>();
+    for (const f of allFields(model)) {
+      byName.set(f.key.toLowerCase(), f.key);
+      if (f.attributeName) {
+        byName.set(f.attributeName.toLowerCase(), f.key);
+      }
+    }
+    const out: Record<string, EntityFormFieldHint> = {};
+    for (const [name, hint] of Object.entries(answer ?? {})) {
+      const key = byName.get(name.toLowerCase());
+      if (key && hint?.text) {
+        out[key] = hint;
       }
     }
     return out;
@@ -421,13 +461,34 @@ export class EntityFormComponent {
         if (!control || control.disabled || !control.invalid || vis[field.key] === false) {
           continue;
         }
+        return this.focusField(field.key);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Focuses the editor of a visible field (key or attribute name, any casing), expanding its section when it
+   * is collapsed (AB#7423, e.g. a hint's action link that leads to another field). Returns the field key, or
+   * `null` when there is no such visible field.
+   */
+  focusField(name: string): string | null {
+    const wanted = name.toLowerCase();
+    const vis = this.visibility();
+    for (const section of this.view().sections) {
+      for (const field of section.fields) {
+        if (field.key.toLowerCase() !== wanted && field.attributeName?.toLowerCase() !== wanted) {
+          continue;
+        }
+        if (vis[field.key] === false) {
+          return null;
+        }
         if (this.isCollapsed(section)) {
           this.toggleSection(section);
         }
         afterNextRender(() => {
-          const target = this.host.nativeElement.querySelector<HTMLElement>(
-            `[data-field-key="${CSS.escape(field.key)}"] input, [data-field-key="${CSS.escape(field.key)}"] textarea, [data-field-key="${CSS.escape(field.key)}"] [tabindex]`,
-          );
+          const root = `[data-field-key="${CSS.escape(field.key)}"]`;
+          const target = this.host.nativeElement.querySelector<HTMLElement>(`${root} input, ${root} textarea, ${root} [tabindex]`);
           target?.focus();
         }, { injector: this.injector });
         return field.key;
@@ -479,6 +540,14 @@ export class EntityFormComponent {
   /** Host mark of the field (shown while the field is pristine), or `null`. */
   protected hostMark(field: ResolvedField): string | null {
     return this.hostFieldMarks()[field.key] ?? null;
+  }
+
+  protected hintOf(field: ResolvedField): EntityFormFieldHint | null {
+    return this.hostHints()[field.key] ?? null;
+  }
+
+  protected onHintAction(field: ResolvedField, actionId: string): void {
+    this.fieldHintAction.emit({ key: field.key, actionId });
   }
 
   protected isFieldVisible(field: ResolvedField): boolean {

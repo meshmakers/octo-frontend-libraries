@@ -41,6 +41,8 @@
                   [readOnly]="ro"
                   [required]="isRequired(field)"
                   [externalError]="hostMark(field)"
+                  [hint]="hintOf(field)"
+                  (hintAction)="onHintAction(field, $event)"
                   [revision]="rev"
                 >
                   @if (field.secret && field.kind === 'attribute' && (field.editor === 'password' || field.editor === 'multiline' || field.editor === 'text')) {

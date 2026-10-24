@@ -79,6 +79,7 @@ export type {
   EntityFormCrossFieldValidatorProvision,
   EntityFormCrossFieldContext,
   EntityFormCrossFieldErrors,
+  EntityFormFieldHintsProvider,
 } from './core/cross-field-validation';
 export { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, ENTITY_FORM_SECRET_PLACEHOLDER_VALUES } from './core/secret-write-availability';
 export {

@@ -127,3 +127,11 @@ export function runCrossFieldValidators(
   }
   return result;
 }
+
+/**
+ * Host hints on fields (AB#7423): evaluated on the current values of the form on every change. The result is keyed
+ * by field key or attribute name (any casing); unknown keys are ignored. `mm-entity-form` input `fieldHints`.
+ */
+export type EntityFormFieldHintsProvider = (
+  context: EntityFormCrossFieldContext,
+) => Readonly<Record<string, import('../models/entity-form.models').EntityFormFieldHint>> | null | undefined;

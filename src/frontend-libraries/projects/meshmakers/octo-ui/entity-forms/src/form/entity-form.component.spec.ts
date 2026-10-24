@@ -965,4 +965,60 @@ describe('EntityFormComponent', () => {
       expect(document.activeElement).toBe(inputOf('code'));
     });
   });
+
+  describe('host field hints (AB#7423)', () => {
+    const hintOf = (key: string): HTMLElement | null => fieldEl(key)?.querySelector('[data-field-hint]') ?? null;
+    const provider = (context: { values: Readonly<Record<string, unknown>> }) =>
+      context.values['code'] === 'ABC'
+        ? { CODE: { text: 'Overridden elsewhere: ABC is deployed', actionLabel: 'Open options', actionId: 'open-options' } }
+        : { port: { text: 'plain note' } };
+
+    it('shows the hint under the field, re-evaluates it on every value change and links it with aria-describedby', async () => {
+      fixture.componentRef.setInput('fieldHints', provider);
+      await render(sftpModel(), 'edit', editState());
+      expect(hintOf('port')?.textContent?.trim()).toBe('plain note');
+      expect(hintOf('port')?.querySelector('button')).toBeNull();
+      expect(hintOf('code')).toBeNull();
+
+      api.control('code').setValue('ABC');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(hintOf('port')).toBeNull();
+      expect(hintOf('code')?.textContent).toContain('Overridden elsewhere: ABC is deployed');
+      const input = fieldEl('code')?.querySelector('input');
+      expect(input?.getAttribute('aria-describedby')).toContain(hintOf('code')!.id);
+    });
+
+    it('emits the action id with the field key when the link is activated; a hint never blocks saving', async () => {
+      fixture.componentRef.setInput('fieldHints', provider);
+      await render(sftpModel(), 'edit', editState({ values: { host: 'h', port: 22, code: 'ABC', password: 'x' } }));
+      const events: { key: string; actionId: string }[] = [];
+      component.fieldHintAction.subscribe((e) => events.push(e));
+      hintOf('code')!.querySelector('button')!.click();
+      expect(events).toEqual([{ key: 'code', actionId: 'open-options' }]);
+      expect(component.isValid()).toBe(true);
+    });
+
+    it('ignores a failing provider and unknown fields', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      fixture.componentRef.setInput('fieldHints', () => { throw new Error('boom'); });
+      await render(sftpModel(), 'edit', editState());
+      expect(fixture.nativeElement.querySelector('[data-field-hint]')).toBeNull();
+      spy.mockRestore();
+      fixture.componentRef.setInput('fieldHints', () => ({ nothing: { text: 'x' } }));
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-field-hint]')).toBeNull();
+    });
+
+    it('focusField focuses a field by name and expands its collapsed section', async () => {
+      await render(sftpModel(), 'create');
+      expect(fieldEl('timeout')).toBeNull();
+      expect(component.focusField('TIMEOUT')).toBe('timeout');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(document.activeElement).toBe(fieldEl('timeout')?.querySelector('input'));
+      expect(component.focusField('nope')).toBeNull();
+    });
+  });
 });

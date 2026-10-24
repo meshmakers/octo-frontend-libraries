@@ -1,9 +1,9 @@
 import { formatDate } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, LOCALE_ID, afterRenderEffect, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, output, LOCALE_ID, afterRenderEffect, computed, inject, input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { formatSecretStatus } from '@meshmakers/octo-services';
 import { EntityFormsMessages, formatEntityFormsMessage, secretStatusLabelsOf } from '../entity-forms.messages';
-import { ResolvedField } from '../models/entity-form.models';
+import { EntityFormFieldHint, ResolvedField } from '../models/entity-form.models';
 import { firstErrorKey } from './entity-form-controls';
 
 /**
@@ -60,6 +60,14 @@ export type EntityFormSecretState = 'set' | 'notSet' | 'needsReEntry' | 'keyMiss
     } @else if (field().help) {
       <div class="mm-ef-field__help" [id]="helpId()">{{ field().help }}</div>
     }
+    @if (hint(); as h) {
+      <div class="mm-ef-field__hint" role="note" [id]="hintId()" data-field-hint>
+        {{ h.text }}
+        @if (h.actionLabel) {
+          <button type="button" class="mm-ef-field__hint-action" (click)="hintAction.emit(h.actionId ?? '')">{{ h.actionLabel }}</button>
+        }
+      </div>
+    }
   `,
 })
 export class EntityFormFieldComponent {
@@ -77,6 +85,10 @@ export class EntityFormFieldComponent {
    * by the last failed deployment. Informational; never affects validity.
    */
   readonly externalError = input<string | null>(null);
+  /** Host hint (AB#7423): informational text with an optional action link under the field. */
+  readonly hint = input<EntityFormFieldHint | null>(null);
+  /** The hint's action link was activated; carries the hint's `actionId`. */
+  readonly hintAction = output<string>();
   /** Change counter from the parent form; read so `errorText` recomputes on every form event. */
   readonly revision = input(0);
 
@@ -85,6 +97,7 @@ export class EntityFormFieldComponent {
 
   protected readonly errorId = computed(() => `mm-ef-error-${this.field().key}`);
   protected readonly helpId = computed(() => `mm-ef-help-${this.field().key}`);
+  protected readonly hintId = computed(() => `mm-ef-hint-${this.field().key}`);
 
   constructor() {
     // The error text (or, without one, the help text) describes the projected editor control, so a
@@ -100,9 +113,9 @@ export class EntityFormFieldComponent {
       if (!input) {
         return;
       }
-      const describedBy = error ? this.errorId() : hasHelp ? this.helpId() : null;
-      if (describedBy) {
-        input.setAttribute('aria-describedby', describedBy);
+      const ids = [error ? this.errorId() : hasHelp ? this.helpId() : null, this.hint() ? this.hintId() : null].filter((id): id is string => !!id);
+      if (ids.length > 0) {
+        input.setAttribute('aria-describedby', ids.join(' '));
       } else {
         input.removeAttribute('aria-describedby');
       }
