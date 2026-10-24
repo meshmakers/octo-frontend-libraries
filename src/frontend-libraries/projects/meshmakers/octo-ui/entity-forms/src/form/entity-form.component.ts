@@ -4,13 +4,16 @@ import {
   DestroyRef,
   computed,
   effect,
+  ElementRef,
+  afterNextRender,
   inject,
+  Injector,
   input,
   output,
   signal,
   untracked,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { CronBuilderComponent } from '@meshmakers/shared-ui';
 import { KENDO_SVGICON } from '@progress/kendo-angular-icons';
 import { KENDO_DATETIMEPICKER } from '@progress/kendo-angular-dateinputs';
@@ -31,6 +34,12 @@ import {
   entityFormUnsetPlaceholderLookup,
 } from '../core/unset-placeholders';
 import { buildChangeSet } from '../core/change-set-builder';
+import {
+  ENTITY_FORM_CROSS_FIELD_VALIDATORS,
+  EntityFormCrossFieldValidator,
+  flattenCrossFieldValidators,
+  runCrossFieldValidators,
+} from '../core/cross-field-validation';
 import { formValuesEqual } from '../core/entity-form-value-mapper';
 import { isVisible } from '../core/visible-when';
 import { ENTITY_FORM_LABEL_RESOLVER, EntityFormLabelResolver, localizeEntityForm } from '../core/entity-form-labels';
@@ -138,6 +147,11 @@ export class EntityFormComponent {
   private readonly keyRingConfigured = inject(ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, { optional: true });
   private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
   private readonly injectedBeforeSave = inject(ENTITY_FORM_BEFORE_SAVE, { optional: true });
+  private readonly injectedCrossFieldValidators = flattenCrossFieldValidators(
+    inject(ENTITY_FORM_CROSS_FIELD_VALIDATORS, { optional: true }),
+  );
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
   private readonly unsetPlaceholders = entityFormUnsetPlaceholderLookup(inject(ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, { optional: true }));
 
   // --- Inputs ---
@@ -167,6 +181,20 @@ export class EntityFormComponent {
    */
   readonly beforeSave = input<EntityFormBeforeSaveHook | null | undefined>(undefined);
 
+  /**
+   * Host cross-field validators (AB#7422), applied in addition to the ones registered with
+   * `provideEntityFormCrossFieldValidators` / `ENTITY_FORM_CROSS_FIELD_VALIDATORS`. A validator
+   * names the fields that break a rule over several fields; those fields are invalid (message
+   * shown immediately) and the form cannot be saved until the rule holds.
+   */
+  readonly crossFieldValidators = input<readonly EntityFormCrossFieldValidator[] | null | undefined>(undefined);
+  /**
+   * Host marks on fields (AB#7422), e.g. the field named by the last failed deployment: key = field
+   * key or attribute name (any casing), value = the text shown under the field. A mark is
+   * informational — it never blocks saving — and disappears as soon as the user edits that field.
+   */
+  readonly fieldErrors = input<Readonly<Record<string, string>> | null | undefined>(undefined);
+
   // --- Outputs ---
   readonly changeSetChange = output<EntityFormChangeSet>();
   readonly validChange = output<boolean>();
@@ -194,6 +222,30 @@ export class EntityFormComponent {
   /** Raw values (disabled controls included) for VisibleWhen evaluation. */
   private readonly rawValues = signal<Record<string, unknown>>({});
   private readonly collapsed = signal<ReadonlySet<string>>(new Set<string>());
+  /** Current cross-field errors by field key (the control validators read it; see {@link refreshCrossFieldErrors}). */
+  private crossFieldErrorMap: Readonly<Record<string, string>> = {};
+  /** Host field marks by field key. */
+  protected readonly hostFieldMarks = computed<Readonly<Record<string, string>>>(() => {
+    const marks = this.fieldErrors();
+    if (!marks) {
+      return {};
+    }
+    const byName = new Map<string, string>();
+    for (const f of allFields(this.model())) {
+      byName.set(f.key.toLowerCase(), f.key);
+      if (f.attributeName) {
+        byName.set(f.attributeName.toLowerCase(), f.key);
+      }
+    }
+    const out: Record<string, string> = {};
+    for (const [name, message] of Object.entries(marks)) {
+      const key = byName.get(name.toLowerCase());
+      if (key && message) {
+        out[key] = message;
+      }
+    }
+    return out;
+  });
   /** Keys of the fields whose stored value was an unset placeholder (AB#5623); they start empty. */
   protected readonly unsetPlaceholderFields = signal<ReadonlySet<string>>(new Set<string>());
   /** attributeNames of secrets whose clear is staged for the next save (Q8). */
@@ -339,10 +391,39 @@ export class EntityFormComponent {
     return (form.valid || form.disabled) && this.saveBlockedReason() === null;
   }
 
-  /** Marks every control as touched so validation errors become visible. */
+  /**
+   * Marks every control as touched so validation errors become visible and moves the focus to the
+   * first invalid field (AB#7422), expanding its section when it is collapsed.
+   */
   markAllAsTouched(): void {
     this.form().markAllAsTouched();
     this.bump();
+    this.focusFirstInvalid();
+  }
+
+  /** Focuses the first invalid, visible field in reading order. Returns its key, or `null`. */
+  focusFirstInvalid(): string | null {
+    const controls = this.form().controls;
+    const vis = this.visibility();
+    for (const section of this.view().sections) {
+      for (const field of section.fields) {
+        const control = controls[field.key];
+        if (!control || control.disabled || !control.invalid || vis[field.key] === false) {
+          continue;
+        }
+        if (this.isCollapsed(section)) {
+          this.toggleSection(section);
+        }
+        afterNextRender(() => {
+          const target = this.host.nativeElement.querySelector<HTMLElement>(
+            `[data-field-key="${CSS.escape(field.key)}"] input, [data-field-key="${CSS.escape(field.key)}"] textarea, [data-field-key="${CSS.escape(field.key)}"] [tabindex]`,
+          );
+          target?.focus();
+        }, { injector: this.injector });
+        return field.key;
+      }
+    }
+    return null;
   }
 
   /** Rebuilds the form from the current inputs, discarding user edits. */
@@ -383,6 +464,11 @@ export class EntityFormComponent {
 
   protected control(key: string): FormControl<unknown> {
     return this.form().controls[key];
+  }
+
+  /** Host mark of the field (shown while the field is pristine), or `null`. */
+  protected hostMark(field: ResolvedField): string | null {
+    return this.hostFieldMarks()[field.key] ?? null;
   }
 
   protected isFieldVisible(field: ResolvedField): boolean {
@@ -539,10 +625,13 @@ export class EntityFormComponent {
     const form = buildFormGroup(model, mode, { state, readOnly });
     this.normaliseAttributeReferences(model, form);
     this.clearUnsetPlaceholders(model, form);
+    this.installCrossFieldValidators(form);
     this.form.set(form);
     this.collapsed.set(new Set(model.sections.filter((s) => s.collapsed && s.title).map((s) => s.key)));
     this.rawValues.set(form.getRawValue());
     this.applyVisibility();
+    this.crossFieldErrorMap = {};
+    this.refreshCrossFieldErrors();
     this.baselineValues = cloneValue(form.getRawValue());
     this.lastValid = undefined;
     this.lastDirty = undefined;
@@ -587,6 +676,7 @@ export class EntityFormComponent {
     if (!formValuesEqual(raw, this.rawValues())) {
       this.rawValues.set(raw);
       this.applyVisibility();
+      this.refreshCrossFieldErrors();
     }
     this.bump();
     this.emitState();
@@ -618,6 +708,40 @@ export class EntityFormComponent {
         control.disable({ emitEvent: false });
       }
     }
+  }
+
+  /** One validator per control that reports the current cross-field error of its field. */
+  private installCrossFieldValidators(form: FormGroup<Record<string, FormControl<unknown>>>): void {
+    for (const [key, control] of Object.entries(form.controls)) {
+      const validator: ValidatorFn = (_control: AbstractControl): ValidationErrors | null => {
+        const message = this.crossFieldErrorMap[key];
+        return message ? { crossField: { message } } : null;
+      };
+      control.addValidators(validator);
+    }
+  }
+
+  /**
+   * Re-runs the cross-field validators on the enabled values and re-validates exactly the
+   * controls whose error changed (`emitEvent: false`: no event loop; the caller bumps / emits).
+   */
+  private refreshCrossFieldErrors(): void {
+    const validators = [...this.injectedCrossFieldValidators, ...(this.crossFieldValidators() ?? [])];
+    const form = this.form();
+    const next = validators.length === 0
+      ? {}
+      : runCrossFieldValidators(validators, this.model(), allFields(this.model()), this.enabledValues(), this.mode());
+    const previous = this.crossFieldErrorMap;
+    const keys = new Set([...Object.keys(previous), ...Object.keys(next)]);
+    const changed = [...keys].filter((k) => previous[k] !== next[k]);
+    if (changed.length === 0) {
+      return;
+    }
+    this.crossFieldErrorMap = next;
+    for (const key of changed) {
+      form.controls[key]?.updateValueAndValidity({ emitEvent: false, onlySelf: true });
+    }
+    form.updateValueAndValidity({ emitEvent: false });
   }
 
   /** Values of enabled controls only (hidden and read-only fields are absent). */

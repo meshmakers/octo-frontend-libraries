@@ -40,6 +40,7 @@
                   [secretSetAt]="secretSetAt(field)"
                   [readOnly]="ro"
                   [required]="isRequired(field)"
+                  [externalError]="hostMark(field)"
                   [revision]="rev"
                 >
                   @if (field.secret && field.kind === 'attribute' && (field.editor === 'password' || field.editor === 'multiline' || field.editor === 'text')) {

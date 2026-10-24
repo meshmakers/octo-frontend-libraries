@@ -219,6 +219,42 @@ providers: [{ provide: ENTITY_FORM_FALLBACK_FORMS, useValue: MY_FALLBACK_FORMS }
 This is the per-type counterpart of the built-in `form-default` safety net; the host is
 responsible for keeping its copies in step with the seed.
 
+## Cross-field validation and field marks (AB#7422)
+
+Per-field rules (`required`, `min`, `max`, `pattern`) cannot express a rule over several fields such as
+"request must not exceed limit". A host registers a validator for the CK types it knows; the library has
+no domain knowledge:
+
+```ts
+const requestWithinLimit: EntityFormCrossFieldValidator = {
+  ckTypeIds: ['System.UI/BaseType'],            // concrete type or any ancestor, case-insensitive
+  validate: ({ values }) => values['request'] > values['limit']
+    ? { request: 'Request exceeds limit', limit: 'Request exceeds limit' }   // field key or attribute name, any casing
+    : null,
+};
+// route / root:    providers: [provideEntityFormCrossFieldValidators(requestWithinLimit)]
+// or per form:     <mm-entity-form [crossFieldValidators]="[requestWithinLimit]" ...>
+```
+
+- `values` holds the current values of the **enabled** fields (hidden by `VisibleWhen`, read-only and `view`
+  mode fields are absent), keyed by field key = camelCase attribute name. The validator is re-run on every value
+  change and when the form is built, so a stored invalid combination is marked on open.
+- Each named field becomes invalid (`control.errors.crossField`), its message is shown under the field **at once**
+  (also on a field the user has not touched, e.g. the partner field), and `isValid()` is `false` until the validator
+  answers `null` or `{}`. Per-field errors (required, pattern, ...) take precedence over the cross-field text on the
+  same field. The first message per field wins when several validators answer.
+- A form matches by `ResolvedEntityForm.rtCkTypeId` and `ckTypeAncestors` (new, from the CK metadata), so a rule on a
+  base type also covers derived types and tenant forms of derived types.
+- A throwing validator is logged and ignored; it never blocks the form.
+
+**`fieldErrors` input** (`mm-entity-form`): `Record<fieldKeyOrAttributeName, text>` marks a field with a host text, for
+example the field named by the last failed deployment. A mark is informational: it does not affect validity or
+saving and disappears as soon as the user edits that field.
+
+**Accessibility**: the error text (else the help text) of a field is linked to its input with `aria-describedby`
+(`mm-ef-error-<key>` / `mm-ef-help-<key>`), an invalid input gets `aria-invalid="true"`, and `markAllAsTouched()` moves
+the focus to the first invalid field (expanding a collapsed section; `focusFirstInvalid()` does the same on its own).
+
 ## Action confirmation (`ENTITY_FORM_ACTION_CONFIRMATION`)
 
 Optional `(request: { action: 'delete', ckTypeId, count, description }) => Promise<boolean>`,

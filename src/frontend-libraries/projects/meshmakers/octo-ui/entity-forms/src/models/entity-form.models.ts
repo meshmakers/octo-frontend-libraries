@@ -245,6 +245,11 @@ export interface ResolvedEntityForm {
   formRtId?: string;
   formWellKnownName?: string;
   rtCkTypeId: string;
+  /**
+   * Ancestor CK type ids of {@link rtCkTypeId} (nearest first), as read from the CK metadata.
+   * Lets host cross-field validators target a base type (AB#7422).
+   */
+  ckTypeAncestors?: string[];
   formTargetCkTypeId: string;
   isAbstract: boolean;
   includeDerivedTypes: boolean;

@@ -10,6 +10,17 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui entity-forms (generic cross-field validation, AB#7422)
+
+- New (non-breaking, additive): host-registered form-level validators for `mm-entity-form`:
+  `provideEntityFormCrossFieldValidators(...)` / `ENTITY_FORM_CROSS_FIELD_VALIDATORS` / input `crossFieldValidators`,
+  `EntityFormCrossFieldValidator { ckTypeIds, validate({ values, form, mode }) }`. A validator names the fields that break a
+  rule over several fields; they are marked invalid with the host's message (shown at once) and block saving. No
+  domain names in the library. `ResolvedEntityForm.ckTypeAncestors` (new) lets a validator target a base type.
+- New input `fieldErrors` on `mm-entity-form`: informational host marks on fields (never block saving, vanish on edit).
+- Accessibility: error / help text linked by `aria-describedby`, `aria-invalid` on invalid inputs, and
+  `markAllAsTouched()` focuses the first invalid field (`focusFirstInvalid()`).
+
 ### shared-auth (session identity for browser monitoring, AB#7327)
 
 - New (non-breaking, additive, opt-in): `AuthorizeService` drives an optional `SESSION_IDENTITY_SINK`

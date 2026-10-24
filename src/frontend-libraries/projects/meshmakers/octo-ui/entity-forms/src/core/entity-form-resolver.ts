@@ -743,6 +743,7 @@ export function resolveEntityForm(
   const result: ResolvedEntityForm = {
     source: picked ? picked.source : 'builtIn',
     rtCkTypeId: type.rtCkTypeId,
+    ckTypeAncestors: [...type.ancestors],
     formTargetCkTypeId: form.targetCkTypeId,
     isAbstract: type.isAbstract,
     includeDerivedTypes: form.includeDerivedTypes,
