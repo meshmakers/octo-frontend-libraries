@@ -127,6 +127,22 @@
     font-size: 0.8em;
   }
 
+  .mm-ef-field__hint {
+    color: var(--theme-status-warning, inherit);
+    font-size: 0.8em;
+  }
+
+  .mm-ef-field__hint-action {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin-left: 0.4em;
+    color: var(--theme-text-accent, inherit);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
   &--readonly .mm-ef-field__editor {
     opacity: 0.85;
   }

@@ -75,6 +75,18 @@ export interface EntityFormSectionDef {
   columns?: number | null;
 }
 
+/**
+ * Host hint under a field (AB#7423): informational text, optionally with one action link, e.g.
+ * "Overridden elsewhere - this value is deployed: 1Gi" + "Open values.yaml". Never affects validity.
+ */
+export interface EntityFormFieldHint {
+  text: string;
+  /** Label of the action link; without it the hint is plain text. */
+  actionLabel?: string;
+  /** Passed back with `fieldHintAction` when the link is activated. */
+  actionId?: string;
+}
+
 export interface EntityFormFieldDef {
   attributePath: string;
   sectionKey?: string | null;

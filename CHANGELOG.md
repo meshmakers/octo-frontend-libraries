@@ -10,6 +10,12 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui entity-forms (field hints, AB#7423)
+
+- New (non-breaking, additive): input `fieldHints` on `mm-entity-form` (`EntityFormFieldHintsProvider`, `EntityFormFieldHint
+  { text, actionLabel?, actionId? }`): host hints with an optional action link under fields, re-evaluated on every value change;
+  output `fieldHintAction`; `focusField(name)` (also used by `focusFirstInvalid`). Informational, never blocks saving.
+
 ### octo-ui entity-forms (generic cross-field validation, AB#7422)
 
 - New (non-breaking, additive): host-registered form-level validators for `mm-entity-form`:

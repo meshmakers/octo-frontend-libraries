@@ -251,6 +251,12 @@ const requestWithinLimit: EntityFormCrossFieldValidator = {
 example the field named by the last failed deployment. A mark is informational: it does not affect validity or
 saving and disappears as soon as the user edits that field.
 
+**Field hints** (`fieldHints` input, AB#7423): `(context) => Record<fieldKeyOrAttributeName, { text, actionLabel?, actionId? }>`,
+called with the current values (same context as a cross-field validator) on every change. The hint is shown under the field
+(warning colour, role `note`, linked with `aria-describedby`); with `actionLabel` it carries one link that emits
+`fieldHintAction` `{ key, actionId }` — the host decides what it does (e.g. `focusField('valuesYaml')`, which focuses a
+field by key or attribute name and expands its collapsed section). Hints are informational: no validity, no change set.
+
 **Accessibility**: the error text (else the help text) of a field is linked to its input with `aria-describedby`
 (`mm-ef-error-<key>` / `mm-ef-help-<key>`), an invalid input gets `aria-invalid="true"`, and `markAllAsTouched()` moves
 the focus to the first invalid field (expanding a collapsed section; `focusFirstInvalid()` does the same on its own).
