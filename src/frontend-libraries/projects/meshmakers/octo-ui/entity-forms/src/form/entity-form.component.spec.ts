@@ -868,6 +868,19 @@ describe('EntityFormComponent', () => {
       expect(errorOf('code')).toBe("Code 'abcd' is not a valid code");
     });
 
+    it('re-validates when the validators input changes after the form was built', async () => {
+      await render(lowHighModel(), 'edit', { values: { low: '9', high: '5' }, secretPresence: {}, associations: {} });
+      expect(component.isValid()).toBe(true);
+      fixture.componentRef.setInput('crossFieldValidators', [lowHigh]);
+      fixture.detectChanges();
+      expect(component.isValid()).toBe(false);
+      expect(errorOf('low')).toBe('low 9 exceeds high 5');
+      fixture.componentRef.setInput('crossFieldValidators', []);
+      fixture.detectChanges();
+      expect(component.isValid()).toBe(true);
+      expect(errorOf('low')).toBeNull();
+    });
+
     it('validates the values the form is built with (a stored invalid pair is marked on open)', async () => {
       TestBed.resetTestingModule();
       await TestBed.configureTestingModule({
@@ -918,6 +931,13 @@ describe('EntityFormComponent', () => {
       api.control('port').markAsDirty();
       fixture.detectChanges();
       expect(errorOf('port')).toBeNull();
+    });
+
+    it('links the error of a toggle to its k-switch element (Kendo exposes it there, not on an input)', async () => {
+      const m = model([section('s', [field({ key: 'flag', valueType: 'BOOLEAN', editor: 'toggle', help: 'Flag help' })])]);
+      await render(m, 'create');
+      const sw = fieldEl('flag')?.querySelector('.k-switch');
+      expect(sw?.getAttribute('aria-describedby')).toBe('mm-ef-help-flag');
     });
 
     it('links the error text to the input with aria-describedby and sets aria-invalid', async () => {

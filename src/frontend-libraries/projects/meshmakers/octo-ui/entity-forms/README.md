@@ -228,7 +228,7 @@ no domain knowledge:
 ```ts
 const requestWithinLimit: EntityFormCrossFieldValidator = {
   ckTypeIds: ['System.UI/BaseType'],            // concrete type or any ancestor, case-insensitive
-  validate: ({ values }) => values['request'] > values['limit']
+  validate: ({ values }) => Number(values['request']) > Number(values['limit'])
     ? { request: 'Request exceeds limit', limit: 'Request exceeds limit' }   // field key or attribute name, any casing
     : null,
 };

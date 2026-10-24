@@ -93,7 +93,10 @@ export class EntityFormFieldComponent {
     afterRenderEffect(() => {
       const error = this.errorText();
       const hasHelp = !!this.field().help;
-      const input = this.host.nativeElement.querySelector<HTMLElement>('.mm-ef-field__editor input, .mm-ef-field__editor textarea');
+      // Kendo switch and dropdown list expose their accessible element as `.k-switch` / `.k-dropdownlist`.
+      const input = this.host.nativeElement.querySelector<HTMLElement>(
+        '.mm-ef-field__editor .k-switch, .mm-ef-field__editor .k-dropdownlist, .mm-ef-field__editor input, .mm-ef-field__editor textarea',
+      );
       if (!input) {
         return;
       }

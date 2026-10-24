@@ -314,6 +314,16 @@ export class EntityFormComponent {
       const initialValues = this.initialValues();
       untracked(() => this.rebuild(model, mode, this.withPrefill(model, mode, state ?? null, initialValues), readOnly));
     });
+    // Validators that arrive or change after the form was built (async source, conditional binding): re-validate.
+    effect(() => {
+      this.crossFieldValidators();
+      untracked(() => {
+        if (this.refreshCrossFieldErrors()) {
+          this.bump();
+          this.emitState();
+        }
+      });
+    });
     // The key ring status arrives asynchronously (and may change): re-apply the enabled state of
     // the secret controls whenever it flips after the form was built.
     effect(() => {
@@ -725,7 +735,7 @@ export class EntityFormComponent {
    * Re-runs the cross-field validators on the enabled values and re-validates exactly the
    * controls whose error changed (`emitEvent: false`: no event loop; the caller bumps / emits).
    */
-  private refreshCrossFieldErrors(): void {
+  private refreshCrossFieldErrors(): boolean {
     const validators = [...this.injectedCrossFieldValidators, ...(this.crossFieldValidators() ?? [])];
     const form = this.form();
     const next = validators.length === 0
@@ -735,13 +745,14 @@ export class EntityFormComponent {
     const keys = new Set([...Object.keys(previous), ...Object.keys(next)]);
     const changed = [...keys].filter((k) => previous[k] !== next[k]);
     if (changed.length === 0) {
-      return;
+      return false;
     }
     this.crossFieldErrorMap = next;
     for (const key of changed) {
       form.controls[key]?.updateValueAndValidity({ emitEvent: false, onlySelf: true });
     }
     form.updateValueAndValidity({ emitEvent: false });
+    return true;
   }
 
   /** Values of enabled controls only (hidden and read-only fields are absent). */
