@@ -241,8 +241,8 @@ const requestWithinLimit: EntityFormCrossFieldValidator = {
   change and when the form is built, so a stored invalid combination is marked on open.
 - Each named field becomes invalid (`control.errors.crossField`), its message is shown under the field **at once**
   (also on a field the user has not touched, e.g. the partner field), and `isValid()` is `false` until the validator
-  answers `null` or `{}`. Per-field errors (required, pattern, ...) take precedence over the cross-field text on the
-  same field. The first message per field wins when several validators answer.
+  answers `null` or `{}`. A host message replaces the generic text of the field's own rules (min, max, pattern, ...) so a validator
+  can word the format error itself; `required` still comes first. The first message per field wins when several validators answer.
 - A form matches by `ResolvedEntityForm.rtCkTypeId` and `ckTypeAncestors` (new, from the CK metadata), so a rule on a
   base type also covers derived types and tenant forms of derived types.
 - A throwing validator is logged and ignored; it never blocks the form.

@@ -854,6 +854,20 @@ describe('EntityFormComponent', () => {
       expect(errorOf('high')).toBeNull();
     });
 
+    it('lets the host message replace the generic pattern text of the same field', async () => {
+      const wording: EntityFormCrossFieldValidator = {
+        ckTypeIds: ['System.Communication/SftpConfiguration'],
+        validate: ({ values }) => (values['code'] === 'abcd' ? { code: "Code 'abcd' is not a valid code" } : null),
+      };
+      fixture.componentRef.setInput('crossFieldValidators', [wording]);
+      await render(sftpModel(), 'create');
+      api.control('code').setValue('abcd');
+      api.control('code').markAsDirty();
+      fixture.detectChanges();
+      expect(api.control('code').hasError('pattern')).toBe(true);
+      expect(errorOf('code')).toBe("Code 'abcd' is not a valid code");
+    });
+
     it('validates the values the form is built with (a stored invalid pair is marked on open)', async () => {
       TestBed.resetTestingModule();
       await TestBed.configureTestingModule({
