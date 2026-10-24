@@ -67,6 +67,19 @@ export type {
   EntityFormBeforeSaveResult,
   EntityFormBeforeSaveOutcome,
 } from './core/before-save';
+export {
+  ENTITY_FORM_CROSS_FIELD_VALIDATORS,
+  provideEntityFormCrossFieldValidators,
+  flattenCrossFieldValidators,
+  crossFieldValidatorApplies,
+  runCrossFieldValidators,
+} from './core/cross-field-validation';
+export type {
+  EntityFormCrossFieldValidator,
+  EntityFormCrossFieldValidatorProvision,
+  EntityFormCrossFieldContext,
+  EntityFormCrossFieldErrors,
+} from './core/cross-field-validation';
 export { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, ENTITY_FORM_SECRET_PLACEHOLDER_VALUES } from './core/secret-write-availability';
 export {
   ENTITY_FORM_UNSET_PLACEHOLDER_VALUES,

@@ -13,6 +13,7 @@ import { ENTITY_FORM_SECRET_KEY_RING_CONFIGURED } from '../core/secret-write-ava
 import { ENTITY_FORM_LABEL_RESOLVER } from '../core/entity-form-labels';
 import { ENTITY_FORM_BEFORE_SAVE, EntityFormSaveVeto } from '../core/before-save';
 import { EntityFormChangeSet } from '../models/entity-form.models';
+import { EntityFormCrossFieldValidator, ENTITY_FORM_CROSS_FIELD_VALIDATORS } from '../core/cross-field-validation';
 import { ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, EntityFormUnsetPlaceholderValues } from '../core/unset-placeholders';
 
 /** Protected-member view used by the spec. */
@@ -808,6 +809,160 @@ describe('EntityFormComponent', () => {
       fixture.componentRef.setInput('messages', { notConfigured: 'Nicht konfiguriert' });
       await render(graphModel(), 'edit', graphState());
       expect(input('clientId')?.getAttribute('placeholder')).toBe('Nicht konfiguriert');
+    });
+  });
+
+  describe('cross-field validators (AB#7422)', () => {
+    /** low must not exceed high; the message is shown under both fields. */
+    const lowHigh: EntityFormCrossFieldValidator = {
+      ckTypeIds: ['System.Communication/SftpConfiguration'],
+      validate: ({ values }) => {
+        const low = Number(values['low']);
+        const high = Number(values['high']);
+        return values['low'] && values['high'] && low > high
+          ? { low: `low ${low} exceeds high ${high}`, high: `low ${low} exceeds high ${high}` }
+          : null;
+      },
+    };
+
+    function lowHighModel(): ResolvedEntityForm {
+      return model([section('range', [field({ key: 'low', width: 'half' }), field({ key: 'high', width: 'half' }), field({ key: 'other' })], { columns: 2 })]);
+    }
+
+    const errorOf = (key: string): string | null => fieldEl(key)?.querySelector('.mm-ef-field__error')?.textContent?.trim() ?? null;
+
+    it('marks both fields at once, blocks the form and clears when the rule holds', async () => {
+      fixture.componentRef.setInput('crossFieldValidators', [lowHigh]);
+      await render(lowHighModel(), 'edit', { values: { low: '1', high: '5' }, secretPresence: {}, associations: {} });
+      expect(component.isValid()).toBe(true);
+      expect(errorOf('low')).toBeNull();
+
+      api.control('low').setValue('9');
+      fixture.detectChanges();
+      expect(component.isValid()).toBe(false);
+      expect(api.control('low').hasError('crossField')).toBe(true);
+      expect(api.control('high').hasError('crossField')).toBe(true);
+      // The partner field is not touched or dirty, its message is shown anyway.
+      expect(errorOf('high')).toBe('low 9 exceeds high 5');
+      expect(errorOf('low')).toBe('low 9 exceeds high 5');
+      expect(errorOf('other')).toBeNull();
+
+      api.control('high').setValue('20');
+      fixture.detectChanges();
+      expect(component.isValid()).toBe(true);
+      expect(errorOf('low')).toBeNull();
+      expect(errorOf('high')).toBeNull();
+    });
+
+    it('lets the host message replace the generic pattern text of the same field', async () => {
+      const wording: EntityFormCrossFieldValidator = {
+        ckTypeIds: ['System.Communication/SftpConfiguration'],
+        validate: ({ values }) => (values['code'] === 'abcd' ? { code: "Code 'abcd' is not a valid code" } : null),
+      };
+      fixture.componentRef.setInput('crossFieldValidators', [wording]);
+      await render(sftpModel(), 'create');
+      api.control('code').setValue('abcd');
+      api.control('code').markAsDirty();
+      fixture.detectChanges();
+      expect(api.control('code').hasError('pattern')).toBe(true);
+      expect(errorOf('code')).toBe("Code 'abcd' is not a valid code");
+    });
+
+    it('re-validates when the validators input changes after the form was built', async () => {
+      await render(lowHighModel(), 'edit', { values: { low: '9', high: '5' }, secretPresence: {}, associations: {} });
+      expect(component.isValid()).toBe(true);
+      fixture.componentRef.setInput('crossFieldValidators', [lowHigh]);
+      fixture.detectChanges();
+      expect(component.isValid()).toBe(false);
+      expect(errorOf('low')).toBe('low 9 exceeds high 5');
+      fixture.componentRef.setInput('crossFieldValidators', []);
+      fixture.detectChanges();
+      expect(component.isValid()).toBe(true);
+      expect(errorOf('low')).toBeNull();
+    });
+
+    it('validates the values the form is built with (a stored invalid pair is marked on open)', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        providers: [{ provide: ENTITY_FORM_CROSS_FIELD_VALIDATORS, useValue: [lowHigh], multi: true }],
+        animationsEnabled: false,
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      api = component as unknown as Testable;
+      await render(lowHighModel(), 'edit', { values: { low: '9', high: '5' }, secretPresence: {}, associations: {} });
+      expect(component.isValid()).toBe(false);
+      expect(errorOf('low')).toBe('low 9 exceeds high 5');
+    });
+
+    it('does not validate a disabled (read-only) field and does not block a view form', async () => {
+      fixture.componentRef.setInput('crossFieldValidators', [lowHigh]);
+      await render(lowHighModel(), 'view', { values: { low: '9', high: '5' }, secretPresence: {}, associations: {} });
+      expect(errorOf('low')).toBeNull();
+      expect(component.isValid()).toBe(true);
+    });
+
+    it('ignores validators of another type', async () => {
+      fixture.componentRef.setInput('crossFieldValidators', [{ ...lowHigh, ckTypeIds: ['System.UI/Other'] }]);
+      await render(lowHighModel(), 'edit', { values: { low: '9', high: '5' }, secretPresence: {}, associations: {} });
+      expect(component.isValid()).toBe(true);
+    });
+
+    it('does not mark the error as a change: the change set holds only what the user edited', async () => {
+      fixture.componentRef.setInput('crossFieldValidators', [lowHigh]);
+      await render(lowHighModel(), 'edit', { values: { low: '1', high: '5' }, secretPresence: {}, associations: {} });
+      api.control('low').setValue('9');
+      api.control('low').markAsDirty();
+      expect(component.getChangeSet().attributes).toEqual([{ attributeName: 'low', value: '9' }]);
+    });
+  });
+
+  describe('host field marks and accessibility (AB#7422)', () => {
+    const errorOf = (key: string): string | null => fieldEl(key)?.querySelector('.mm-ef-field__error')?.textContent?.trim() ?? null;
+    const inputOf = (key: string): HTMLInputElement | null => fieldEl(key)?.querySelector('input') ?? null;
+
+    it('shows a host mark on a pristine field, never blocks saving and drops it when the field is edited', async () => {
+      fixture.componentRef.setInput('fieldErrors', { PORT: 'Port 0 was rejected by the last deployment' });
+      await render(sftpModel(), 'edit', editState());
+      expect(errorOf('port')).toBe('Port 0 was rejected by the last deployment');
+      expect(component.isValid()).toBe(true);
+      api.control('port').setValue(23);
+      api.control('port').markAsDirty();
+      fixture.detectChanges();
+      expect(errorOf('port')).toBeNull();
+    });
+
+    it('links the error of a toggle to its k-switch element (Kendo exposes it there, not on an input)', async () => {
+      const m = model([section('s', [field({ key: 'flag', valueType: 'BOOLEAN', editor: 'toggle', help: 'Flag help' })])]);
+      await render(m, 'create');
+      const sw = fieldEl('flag')?.querySelector('.k-switch');
+      expect(sw?.getAttribute('aria-describedby')).toBe('mm-ef-help-flag');
+    });
+
+    it('links the error text to the input with aria-describedby and sets aria-invalid', async () => {
+      await render(sftpModel(), 'create');
+      component.markAllAsTouched();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const err = fieldEl('host')?.querySelector('.mm-ef-field__error');
+      expect(err?.id).toBe('mm-ef-error-host');
+      expect(inputOf('host')?.getAttribute('aria-describedby')).toBe('mm-ef-error-host');
+      expect(inputOf('host')?.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('moves the focus to the first invalid field on markAllAsTouched and expands a collapsed section', async () => {
+      await render(sftpModel(), 'create');
+      api.control('host').setValue('h');
+      api.control('password').setValue('secret');
+      api.control('code').setValue('abcd');
+      component.markAllAsTouched();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(component.focusFirstInvalid()).toBe('code');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(document.activeElement).toBe(inputOf('code'));
     });
   });
 });

@@ -1,5 +1,5 @@
 import { formatDate } from '@angular/common';
-import { ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, LOCALE_ID, afterRenderEffect, computed, inject, input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { formatSecretStatus } from '@meshmakers/octo-services';
 import { EntityFormsMessages, formatEntityFormsMessage, secretStatusLabelsOf } from '../entity-forms.messages';
@@ -56,9 +56,9 @@ export type EntityFormSecretState = 'set' | 'notSet' | 'needsReEntry' | 'keyMiss
       <ng-content></ng-content>
     </div>
     @if (errorText(); as err) {
-      <div class="mm-ef-field__error" role="alert">{{ err }}</div>
+      <div class="mm-ef-field__error" role="alert" [id]="errorId()">{{ err }}</div>
     } @else if (field().help) {
-      <div class="mm-ef-field__help">{{ field().help }}</div>
+      <div class="mm-ef-field__help" [id]="helpId()">{{ field().help }}</div>
     }
   `,
 })
@@ -72,10 +72,47 @@ export class EntityFormFieldComponent {
   readonly readOnly = input(false);
   /** Whether the field is required in the current mode (secrets: only when not set). */
   readonly required = input(false);
+  /**
+   * Host mark (AB#7422): text shown under a pristine, otherwise valid field, e.g. the field named
+   * by the last failed deployment. Informational; never affects validity.
+   */
+  readonly externalError = input<string | null>(null);
   /** Change counter from the parent form; read so `errorText` recomputes on every form event. */
   readonly revision = input(0);
 
   private readonly locale = inject(LOCALE_ID);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  protected readonly errorId = computed(() => `mm-ef-error-${this.field().key}`);
+  protected readonly helpId = computed(() => `mm-ef-help-${this.field().key}`);
+
+  constructor() {
+    // The error text (or, without one, the help text) describes the projected editor control, so a
+    // screen reader announces it with the field (AB#7422). The editors are projected, therefore the
+    // attributes are set on the first native input of the shell after every render.
+    afterRenderEffect(() => {
+      const error = this.errorText();
+      const hasHelp = !!this.field().help;
+      // Kendo switch and dropdown list expose their accessible element as `.k-switch` / `.k-dropdownlist`.
+      const input = this.host.nativeElement.querySelector<HTMLElement>(
+        '.mm-ef-field__editor .k-switch, .mm-ef-field__editor .k-dropdownlist, .mm-ef-field__editor input, .mm-ef-field__editor textarea',
+      );
+      if (!input) {
+        return;
+      }
+      const describedBy = error ? this.errorId() : hasHelp ? this.helpId() : null;
+      if (describedBy) {
+        input.setAttribute('aria-describedby', describedBy);
+      } else {
+        input.removeAttribute('aria-describedby');
+      }
+      if (error) {
+        input.setAttribute('aria-invalid', 'true');
+      } else {
+        input.removeAttribute('aria-invalid');
+      }
+    });
+  }
 
   protected readonly showRequired = computed(() => this.required() && !this.readOnly());
 
@@ -107,7 +144,17 @@ export class EntityFormFieldComponent {
   protected readonly errorText = computed<string | null>(() => {
     this.revision();
     const control = this.control();
-    if (!control || control.disabled || !control.invalid || !(control.touched || control.dirty)) {
+    if (!control || control.disabled) {
+      return null;
+    }
+    // A host-marked field that is still untouched (AB#7422): informational text, no validity impact.
+    const mark = this.externalError();
+    if (!control.invalid && mark && !control.dirty) {
+      return mark;
+    }
+    const crossField = (control.errors?.['crossField'] as { message?: string } | undefined)?.message;
+    // A cross-field error is shown at once: the partner field the user edits is not this one.
+    if (!control.invalid || !(control.touched || control.dirty || crossField)) {
       return null;
     }
     const key = firstErrorKey(control.errors);
@@ -130,6 +177,8 @@ export class EntityFormFieldComponent {
         return m.validationUrl;
       case 'json':
         return m.validationJson;
+      case 'crossField':
+        return crossField ?? m.formInvalid;
       default:
         return m.formInvalid;
     }

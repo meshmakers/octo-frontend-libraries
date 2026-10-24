@@ -235,7 +235,7 @@ export function firstErrorKey(errors: ValidationErrors | null | undefined): stri
   if (!errors) {
     return null;
   }
-  const order = ['required', 'min', 'max', 'pattern', 'email', 'url', 'json'];
+  const order = ['required', 'crossField', 'min', 'max', 'pattern', 'email', 'url', 'json'];
   return order.find((k) => k in errors) ?? Object.keys(errors)[0] ?? null;
 }
 
