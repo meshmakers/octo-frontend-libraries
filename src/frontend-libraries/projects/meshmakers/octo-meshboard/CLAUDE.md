@@ -840,6 +840,12 @@ systems of a type that also models heating circuits). Helpers:
   carries the description verbatim (`meshboard-persistence.entity-selector-filter.spec.ts`,
   fixture `testing/entity-selector-filter.fixtures.ts`).
 
+> **Hosts with `keyFields: ['rtId']` (AB#7649).** `getAssociationTargets` selects `rtId` on the
+> source entity as well, although nothing reads it: a host whose Apollo cache keys `RtEntity` by
+> `rtId` (voest-app) otherwise throws "Missing field 'rtId' while extracting keyFields" on the write,
+> and the child scope resolves to nothing. Every RtEntity `items` selection in this library's
+> documents carries `rtId` (pinned in `services/association-targets-cache.spec.ts`).
+
 ### Auto-exposed selected-entity rtId / rtCkTypeId
 
 In addition to the mapped attribute variables, every selector automatically
@@ -1205,6 +1211,7 @@ Current test files:
 - `kpi-decimal-places.spec.ts` - `decimalPlaces` normalisation (integer numbers 0-3 only, out-of-range and non-number values)
 - `kpi-config-dialog.component.spec.ts` - KPI dialog formula validation, output-name and cycle checks, `decimalPlaces` save
 - `widget-group-config-dialog.component.spec.ts` - widget-group dialog: KPI child `decimalPlaces` read, save, out-of-range (AB#7686)
+- `association-targets-cache.spec.ts` - `getAssociationTargets` selects `rtId` on every entity row; round trip through a cache keyed by `rtId` (AB#7649)
 - `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)
 
 ---
