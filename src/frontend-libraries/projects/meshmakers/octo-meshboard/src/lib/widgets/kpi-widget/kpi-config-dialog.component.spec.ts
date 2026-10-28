@@ -169,6 +169,24 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     }));
   });
 
+  it('returns the decimal places on save (AB#7686)', async () => {
+    await open([kpi('self')], { initialFormula: '${a}', initialDecimalPlaces: 1 });
+
+    expect(component.form.decimalPlaces).toBe(1);
+    component.onSave();
+
+    expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ decimalPlaces: 1 }));
+  });
+
+  it('returns no decimal places when the field is empty (AB#7686)', async () => {
+    await open([kpi('self')], { initialFormula: '${a}' });
+
+    expect(component.form.decimalPlaces).toBeNull();
+    component.onSave();
+
+    expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ decimalPlaces: undefined }));
+  });
+
   it('inserts a variable reference', async () => {
     await open([kpi('self')], { initialFormula: '1 +' });
 

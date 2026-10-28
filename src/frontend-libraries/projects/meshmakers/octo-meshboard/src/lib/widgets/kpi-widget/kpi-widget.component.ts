@@ -243,6 +243,14 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return strValue;
     }
 
+    const decimals = this.currentConfig()?.decimalPlaces;
+    if (typeof decimals === 'number' && Number.isInteger(decimals) && decimals >= 0 && decimals <= 20) {
+      return numValue.toLocaleString('de-AT', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
     return numValue.toLocaleString('de-AT', {
       minimumFractionDigits: numValue % 1 !== 0 ? 2 : 0,
       maximumFractionDigits: 2

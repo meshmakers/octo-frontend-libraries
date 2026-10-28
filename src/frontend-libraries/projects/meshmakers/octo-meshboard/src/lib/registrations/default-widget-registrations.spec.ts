@@ -109,6 +109,51 @@ describe('Default widget registrations — KPI', () => {
     });
   });
 
+  describe('decimalPlaces (AB#7686)', () => {
+    it('keeps the decimal places of a formula KPI through dialog apply and persistence', () => {
+      const applied = applyResult(createKpiWidget(), {
+        dataSourceType: 'formula',
+        formula: '${a} / ${b} * 100',
+        decimalPlaces: 1
+      });
+      expect(applied.decimalPlaces).toBe(1);
+      expect(roundTrip(applied).decimalPlaces).toBe(1);
+    });
+
+    it('keeps the decimal places of a static, persistent-query and runtime-entity KPI', () => {
+      const staticKpi = applyResult(createKpiWidget(), { dataSourceType: 'static', staticValue: '1', decimalPlaces: 2 });
+      const queryKpi = applyResult(createKpiWidget(), {
+        dataSourceType: 'persistentQuery',
+        queryRtId: 'q-1',
+        queryName: 'Query',
+        queryMode: 'simpleCount',
+        decimalPlaces: 0
+      });
+      const entityKpi = applyResult(createKpiWidget(), {
+        dataSourceType: 'runtimeEntity',
+        ckTypeId: 'Test/Type',
+        valueAttribute: '_count',
+        decimalPlaces: 3
+      });
+
+      expect(roundTrip(staticKpi).decimalPlaces).toBe(2);
+      expect(roundTrip(queryKpi).decimalPlaces).toBe(0);
+      expect(roundTrip(entityKpi).decimalPlaces).toBe(3);
+    });
+
+    it('passes the decimal places to the dialog', () => {
+      const initial = registry.getInitialConfig(createKpiWidget({ decimalPlaces: 1 }));
+      expect(initial['initialDecimalPlaces']).toBe(1);
+    });
+
+    it('stores nothing when unset', () => {
+      const applied = applyResult(createKpiWidget({ decimalPlaces: 1 }), { dataSourceType: 'static', staticValue: '1' });
+      expect(applied.decimalPlaces).toBeUndefined();
+      expect('decimalPlaces' in JSON.parse(JSON.stringify(registry.serializeWidget(applied).config))).toBe(false);
+      expect(roundTrip(applied).decimalPlaces).toBeUndefined();
+    });
+  });
+
   describe('formula and output variable (AB#5364)', () => {
     it('round-trips a formula KPI with output variable and comparison text', () => {
       const applied = applyResult(createKpiWidget(), {

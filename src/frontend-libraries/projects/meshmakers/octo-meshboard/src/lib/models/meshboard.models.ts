@@ -371,6 +371,8 @@ export interface KpiWidgetConfig extends WidgetConfig {
   staticValue?: string;
   /** Comparison text displayed below the value in trend color (e.g., '+3,1% vs. Vorwoche'). Supports ${variables}. */
   comparisonText?: string;
+  /** Fixed number of fraction digits (0-20) for a numeric value; unset keeps up to two digits. */
+  decimalPlaces?: number;
   /**
    * Scale factor applied to a NUMERIC query value before display (non-numeric
    * values pass through unchanged). Use case: cumulated energy from uniformly

@@ -66,6 +66,7 @@ export interface KpiConfigResult extends WidgetConfigResult {
   suffix?: string;
   trend?: 'up' | 'down' | 'neutral';
   comparisonText?: string;
+  decimalPlaces?: number;
   // Filters
   filters?: FieldFilterDto[];
 }
@@ -509,6 +510,19 @@ interface TrendOption {
             <kendo-textbox [(ngModel)]="form.comparisonText" placeholder="e.g. +3,1% vs. last week"></kendo-textbox>
             <p class="section-hint">Displayed below the value in the trend color. Supports {{ variableSyntaxHint }}</p>
           </div>
+          <div class="form-field">
+            <label>Decimal Places</label>
+            <kendo-numerictextbox
+              [(ngModel)]="form.decimalPlaces"
+              [min]="0"
+              [max]="6"
+              [step]="1"
+              [decimals]="0"
+              format="n0"
+              placeholder="Automatic">
+            </kendo-numerictextbox>
+            <p class="section-hint">Fixed number of decimal places for numeric values (0-6). Leave empty for automatic (up to 2).</p>
+          </div>
         </div>
 
         <!-- Filters Section -->
@@ -731,6 +745,7 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialSuffix?: string;
   @Input() initialTrend?: 'up' | 'down' | 'neutral';
   @Input() initialComparisonText?: string;
+  @Input() initialDecimalPlaces?: number;
 
   // Initial values for editing - Persistent Query
   @Input() initialDataSourceType?: KpiDataSourceType;
@@ -805,6 +820,7 @@ export class KpiConfigDialogComponent implements OnInit {
     suffix: '',
     trend: undefined as 'up' | 'down' | 'neutral' | undefined,
     comparisonText: '',
+    decimalPlaces: null as number | null,
     // Query-specific form fields
     queryValueField: '',
     queryCategoryField: '',
@@ -969,6 +985,7 @@ export class KpiConfigDialogComponent implements OnInit {
     this.form.suffix = this.initialSuffix || '';
     this.form.trend = this.initialTrend;
     this.form.comparisonText = this.initialComparisonText || '';
+    this.form.decimalPlaces = this.initialDecimalPlaces ?? null;
     this.form.queryValueField = this.initialQueryValueField || '';
     this.form.queryCategoryField = this.initialQueryCategoryField || '';
     this.form.queryCategoryValue = this.initialQueryCategoryValue || '';
@@ -1189,6 +1206,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
+        decimalPlaces: this.form.decimalPlaces ?? undefined,
         outputVariableName: this.form.outputVariableName.trim() || undefined
       });
       return;
@@ -1204,6 +1222,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
+        decimalPlaces: this.form.decimalPlaces ?? undefined,
         outputVariableName: this.form.outputVariableName.trim() || undefined
       });
       return;
@@ -1229,6 +1248,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
+        decimalPlaces: this.form.decimalPlaces ?? undefined,
         outputVariableName: this.form.outputVariableName.trim() || undefined,
         filters: filtersDto
       });
@@ -1243,6 +1263,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
+        decimalPlaces: this.form.decimalPlaces ?? undefined,
         outputVariableName: this.form.outputVariableName.trim() || undefined,
         filters: filtersDto
       });

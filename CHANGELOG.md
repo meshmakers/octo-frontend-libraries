@@ -10,6 +10,14 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard KPI widget (decimal places, AB#7686)
+
+- New (non-breaking, additive): optional `decimalPlaces` on `KpiWidgetConfig` (persisted in the widget `Config` JSON).
+  When set, a numeric value is shown with exactly that many fraction digits, also for whole numbers
+  (`decimalPlaces: 1`: 38.9 -> `38,9`, 46 -> `46,0`); unset keeps the previous behaviour (two digits for a
+  fractional value, none for a whole number). The KPI configuration dialog has a *Decimal Places* field (0-6,
+  empty = automatic).
+
 ### octo-ui entity-forms (field hints, AB#7423)
 
 - New (non-breaking, additive): input `fieldHints` on `mm-entity-form` (`EntityFormFieldHintsProvider`, `EntityFormFieldHint

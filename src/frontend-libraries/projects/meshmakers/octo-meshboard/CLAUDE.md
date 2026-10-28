@@ -367,7 +367,7 @@ interface AggregationQuery {
 
 | Type | Description | Data Sources |
 |------|-------------|--------------|
-| `kpi` | Single numeric value with optional trend. Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
+| `kpi` | Single numeric value with optional trend. Optional `decimalPlaces` fixes the fraction digits of a numeric value (unset: two for a fractional value, none for a whole number; AB#7686). Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
 | `gauge` | Arc, Circular, Linear, or Radial gauge | runtimeEntity, persistentQuery, aggregation, static |
 | `barChart` | Bar/Column chart | persistentQuery, constructionKitQuery |
 | `pieChart` | Pie/Donut chart | persistentQuery, constructionKitQuery |
@@ -943,8 +943,8 @@ Current test files:
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
-- `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364)
-- `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish
+- `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
+- `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish, `decimalPlaces` formatting
 - `kpi-config-dialog.component.spec.ts` - KPI dialog formula validation, output-name and cycle checks
 - `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)
 

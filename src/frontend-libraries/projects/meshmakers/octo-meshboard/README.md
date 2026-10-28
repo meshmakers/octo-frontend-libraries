@@ -240,12 +240,19 @@ interface KpiWidgetConfig {
   suffix?: string;
   icon?: string;
   trend?: 'up' | 'down' | 'neutral';
+  decimalPlaces?: number;
   // For persistent query mode
   queryMode?: 'simpleCount' | 'aggregation' | 'groupedAggregation';
   queryValueField?: string;
   filters?: WidgetFilterConfig[];
 }
 ```
+
+Numbers are formatted with the `de-AT` locale. Without `decimalPlaces` a fractional value shows two
+fraction digits and a whole number none (38.9 -> `38,90`, 46 -> `46`). With `decimalPlaces` every numeric
+value shows exactly that many (`decimalPlaces: 1`: 38.9 -> `38,9`, 46 -> `46,0`). In a seed, set it in the
+widget `Config` JSON, e.g. `{"valueMode":"formula","formula":"...","decimalPlaces":1}`; the configuration
+dialog offers it as *Decimal Places* (AB#7686).
 
 ### Gauge Widget
 Displays a numeric value as arc, circular, linear, or radial gauge.

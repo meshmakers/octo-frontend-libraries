@@ -306,6 +306,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialSuffix: kpiWidget.suffix,
         initialTrend: kpiWidget.trend,
         initialComparisonText: kpiWidget.comparisonText,
+        initialDecimalPlaces: kpiWidget.decimalPlaces,
         // Filters
         initialFilters: kpiWidget.filters
       };
@@ -336,6 +337,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           suffix: result.suffix,
           trend: result.trend,
           comparisonText: result.comparisonText,
+          decimalPlaces: result.decimalPlaces,
           filters: undefined
         };
       } else if (result.dataSourceType === 'static') {
@@ -356,6 +358,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           suffix: result.suffix,
           trend: result.trend,
           comparisonText: result.comparisonText,
+          decimalPlaces: result.decimalPlaces,
           filters: undefined
         };
       } else if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
@@ -385,6 +388,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           suffix: result.suffix,
           trend: result.trend,
           comparisonText: result.comparisonText,
+          decimalPlaces: result.decimalPlaces,
           filters
         };
       } else {
@@ -406,6 +410,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           suffix: result.suffix,
           trend: result.trend,
           comparisonText: result.comparisonText,
+          decimalPlaces: result.decimalPlaces,
           filters
         };
       }
@@ -440,6 +445,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           icon: widget.icon,
           trend: widget.trend,
           comparisonText: widget.comparisonText,
+          decimalPlaces: widget.decimalPlaces,
           staticValue: widget.staticValue,
           valueMode: widget.valueMode,
           formula: widget.formula,
@@ -487,6 +493,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           icon: config['icon'] as string | undefined,
           trend: config['trend'] as KpiWidgetConfig['trend'],
           comparisonText: config['comparisonText'] as string | undefined,
+          decimalPlaces: config['decimalPlaces'] as number | undefined,
           outputVariableName: config['outputVariableName'] as string | undefined
         };
       }
@@ -508,6 +515,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           icon: config['icon'] as string | undefined,
           trend: config['trend'] as KpiWidgetConfig['trend'],
           comparisonText: config['comparisonText'] as string | undefined,
+          decimalPlaces: config['decimalPlaces'] as number | undefined,
           outputVariableName: config['outputVariableName'] as string | undefined,
           filters: config['filters'] as WidgetFilterConfig[] | undefined
         };
@@ -525,6 +533,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         icon: config['icon'] as string | undefined,
         trend: config['trend'] as KpiWidgetConfig['trend'],
         comparisonText: config['comparisonText'] as string | undefined,
+        decimalPlaces: config['decimalPlaces'] as number | undefined,
         outputVariableName: config['outputVariableName'] as string | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };

@@ -201,4 +201,74 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
 
     expect(component.rawValue()).toBe('5000');
   });
+
+  describe('decimalPlaces (AB#7686)', () => {
+    it('shows exactly the configured number of fraction digits', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('38,9');
+    });
+
+    it('rounds to the configured number of fraction digits', () => {
+      render(kpi({ staticValue: '52.649', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('52,6');
+    });
+
+    it('pads a whole number to the configured number of fraction digits', () => {
+      render(kpi({ staticValue: '46', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('46,0');
+    });
+
+    it('pads zero to the configured number of fraction digits', () => {
+      render(kpi({ staticValue: '0', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('0,0');
+    });
+
+    it('shows no fraction digits when set to zero', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 0 }));
+
+      expect(component.value()).toBe('39');
+    });
+
+    it('applies to formula values', () => {
+      render(kpi({ valueMode: 'formula', formula: '${b} / ${a} * 100', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('40,0');
+    });
+
+    it('keeps two fraction digits for a decimal value when unset', () => {
+      render(kpi({ staticValue: '38.9' }));
+
+      expect(component.value()).toBe('38,90');
+    });
+
+    it('keeps no fraction digits for a whole number when unset', () => {
+      render(kpi({ staticValue: '46' }));
+
+      expect(component.value()).toBe('46');
+    });
+
+    it('keeps zero without fraction digits when unset', () => {
+      render(kpi({ staticValue: '0' }));
+
+      expect(component.value()).toBe('0');
+    });
+
+    it('falls back to the default for an invalid setting', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: -1 }));
+
+      expect(component.value()).toBe('38,90');
+    });
+
+    it('leaves a missing value and text untouched', () => {
+      render(kpi({ staticValue: '', decimalPlaces: 1 }));
+      expect(component.value()).toBe('-');
+
+      render(kpi({ staticValue: 'n/a', decimalPlaces: 1 }));
+      expect(component.value()).toBe('n/a');
+    });
+  });
 });
