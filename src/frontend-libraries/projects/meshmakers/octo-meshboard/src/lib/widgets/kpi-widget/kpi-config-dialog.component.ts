@@ -521,7 +521,7 @@ interface TrendOption {
               format="n0"
               placeholder="Automatic">
             </kendo-numerictextbox>
-            <p class="section-hint">Fixed number of decimal places for numeric values (0-6). Leave empty for automatic (up to 2).</p>
+            <p class="section-hint">Fixed number of decimal places for numeric values (0-6). Leave empty for automatic (two for a fractional value, none for a whole number).</p>
           </div>
         </div>
 

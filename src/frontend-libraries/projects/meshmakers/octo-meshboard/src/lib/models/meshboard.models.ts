@@ -371,7 +371,7 @@ export interface KpiWidgetConfig extends WidgetConfig {
   staticValue?: string;
   /** Comparison text displayed below the value in trend color (e.g., '+3,1% vs. Vorwoche'). Supports ${variables}. */
   comparisonText?: string;
-  /** Fixed number of fraction digits (0-20) for a numeric value; unset keeps up to two digits. */
+  /** Fixed number of fraction digits (0-20) for a numeric value; unset: two digits for a fractional value, none for a whole number. */
   decimalPlaces?: number;
   /**
    * Scale factor applied to a NUMERIC query value before display (non-numeric
