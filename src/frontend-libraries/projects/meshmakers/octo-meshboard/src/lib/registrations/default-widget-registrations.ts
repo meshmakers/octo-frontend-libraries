@@ -306,7 +306,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialSuffix: kpiWidget.suffix,
         initialTrend: kpiWidget.trend,
         initialComparisonText: kpiWidget.comparisonText,
-        initialDecimalPlaces: kpiWidget.decimalPlaces,
+        initialDecimalPlaces: normalizeKpiDecimalPlaces(kpiWidget.decimalPlaces),
         // Filters
         initialFilters: kpiWidget.filters
       };
@@ -493,7 +493,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           icon: config['icon'] as string | undefined,
           trend: config['trend'] as KpiWidgetConfig['trend'],
           comparisonText: config['comparisonText'] as string | undefined,
-          decimalPlaces: config['decimalPlaces'] as number | undefined,
+          decimalPlaces: normalizeKpiDecimalPlaces(config['decimalPlaces']),
           outputVariableName: config['outputVariableName'] as string | undefined
         };
       }
@@ -515,7 +515,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           icon: config['icon'] as string | undefined,
           trend: config['trend'] as KpiWidgetConfig['trend'],
           comparisonText: config['comparisonText'] as string | undefined,
-          decimalPlaces: config['decimalPlaces'] as number | undefined,
+          decimalPlaces: normalizeKpiDecimalPlaces(config['decimalPlaces']),
           outputVariableName: config['outputVariableName'] as string | undefined,
           filters: config['filters'] as WidgetFilterConfig[] | undefined
         };
@@ -533,7 +533,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         icon: config['icon'] as string | undefined,
         trend: config['trend'] as KpiWidgetConfig['trend'],
         comparisonText: config['comparisonText'] as string | undefined,
-        decimalPlaces: config['decimalPlaces'] as number | undefined,
+        decimalPlaces: normalizeKpiDecimalPlaces(config['decimalPlaces']),
         outputVariableName: config['outputVariableName'] as string | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
@@ -2448,6 +2448,7 @@ function readPieChartPresentationConfig(config: Record<string, unknown>): Partia
 import { InjectionToken } from '@angular/core';
 import { WidgetRegistration } from '../services/widget-registry.service';
 import { MESHBOARD_MESSAGES, MeshBoardMessagesSource } from '../utils/meshboard-messages';
+import { normalizeKpiDecimalPlaces } from '../utils/kpi-decimal-places';
 
 /**
  * Configuration options for MeshBoard

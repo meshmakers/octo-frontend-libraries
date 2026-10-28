@@ -13,6 +13,7 @@ import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { applyValueMultiplier, matchesAttributePath } from '../../utils/widget-data-utils';
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
+import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 
 @Component({
@@ -155,7 +156,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     if (config?.dataSource?.type === 'persistentQuery') {
       attributeName = '_queryValue';
     } else if (config?.dataSource?.type === 'static') {
-      attributeName = '_staticValue';
+      attributeName = config.dataSource.data ? config.valueAttribute : '_staticValue';
     } else {
       attributeName = config?.valueAttribute;
     }
@@ -243,9 +244,13 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return strValue;
     }
 
-    const decimals = this.currentConfig()?.decimalPlaces;
-    if (typeof decimals === 'number' && Number.isInteger(decimals) && decimals >= 0 && decimals <= 20) {
-      return numValue.toLocaleString('de-AT', {
+    const decimals = normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces);
+    if (decimals !== undefined) {
+      const negative = numValue < 0 || Object.is(numValue, -0);
+      const shown = negative && Number(new Intl.NumberFormat('en-US', { maximumFractionDigits: decimals, useGrouping: false }).format(numValue)) === 0
+        ? 0
+        : numValue;
+      return shown.toLocaleString('de-AT', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
       });
@@ -339,6 +344,12 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     if (this.isFormulaMode()) {
       // Formula values are computed live from the variables (see formulaResult)
       this._data.set(null);
+      this._error.set(null);
+      return;
+    }
+
+    if (dataSource.type === 'static' && dataSource.data) {
+      this._data.set(dataSource.data as RuntimeEntityData);
       this._error.set(null);
       return;
     }

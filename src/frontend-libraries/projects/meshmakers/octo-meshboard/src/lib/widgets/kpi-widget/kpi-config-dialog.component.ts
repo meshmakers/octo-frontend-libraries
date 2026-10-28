@@ -27,6 +27,7 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { KPI_MAX_DECIMAL_PLACES, normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 
 /**
  * Data source type for KPI. `'formula'` computes the value from a formula over
@@ -515,13 +516,13 @@ interface TrendOption {
             <kendo-numerictextbox
               [(ngModel)]="form.decimalPlaces"
               [min]="0"
-              [max]="6"
+              [max]="maxDecimalPlaces"
               [step]="1"
               [decimals]="0"
               format="n0"
               placeholder="Automatic">
             </kendo-numerictextbox>
-            <p class="section-hint">Fixed number of decimal places for numeric values (0-6). Leave empty for automatic (two for a fractional value, none for a whole number).</p>
+            <p class="section-hint">Fixed number of decimal places for numeric values (0-3). Leave empty for automatic (two for a fractional value, none for a whole number).</p>
           </div>
         </div>
 
@@ -932,6 +933,10 @@ export class KpiConfigDialogComponent implements OnInit {
 
   readonly variableSyntaxHint = '${variableName}';
 
+  get maxDecimalPlaces(): number {
+    return KPI_MAX_DECIMAL_PLACES;
+  }
+
   trendOptions: TrendOption[] = [
     { value: undefined, label: 'None' },
     { value: 'up', label: 'Up (positive)' },
@@ -1206,7 +1211,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
-        decimalPlaces: this.form.decimalPlaces ?? undefined,
+        decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces),
         outputVariableName: this.form.outputVariableName.trim() || undefined
       });
       return;
@@ -1222,7 +1227,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
-        decimalPlaces: this.form.decimalPlaces ?? undefined,
+        decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces),
         outputVariableName: this.form.outputVariableName.trim() || undefined
       });
       return;
@@ -1248,7 +1253,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
-        decimalPlaces: this.form.decimalPlaces ?? undefined,
+        decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces),
         outputVariableName: this.form.outputVariableName.trim() || undefined,
         filters: filtersDto
       });
@@ -1263,7 +1268,7 @@ export class KpiConfigDialogComponent implements OnInit {
         suffix: this.form.suffix || undefined,
         trend: this.form.trend,
         comparisonText: this.form.comparisonText || undefined,
-        decimalPlaces: this.form.decimalPlaces ?? undefined,
+        decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces),
         outputVariableName: this.form.outputVariableName.trim() || undefined,
         filters: filtersDto
       });

@@ -202,6 +202,64 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
     expect(component.rawValue()).toBe('5000');
   });
 
+  describe('widget-group child with entity data (AB#7686)', () => {
+    function groupChild(value: unknown, overrides: Partial<KpiWidgetConfig> = {}): KpiWidgetConfig {
+      return kpi({
+        valueAttribute: 'value',
+        labelAttribute: 'name',
+        dataSource: {
+          type: 'static',
+          data: {
+            rtId: 'entity-1',
+            ckTypeId: 'TestType',
+            attributes: [
+              { attributeName: 'value', value },
+              { attributeName: 'name', value: 'Machine 1' }
+            ],
+            associations: []
+          }
+        },
+        ...overrides
+      });
+    }
+
+    it('shows the value from the entity data', () => {
+      render(groupChild(38.9));
+      expect(component.value()).toBe('38,90');
+
+      render(groupChild(46));
+      expect(component.value()).toBe('46');
+    });
+
+    it('applies decimalPlaces to the entity value', () => {
+      render(groupChild(38.9, { decimalPlaces: 1 }));
+      expect(component.value()).toBe('38,9');
+      expect(text()).toContain('38,9');
+
+      render(groupChild(46, { decimalPlaces: 1 }));
+      expect(component.value()).toBe('46,0');
+    });
+
+    it('shows the label from labelAttribute', () => {
+      render(groupChild(46));
+
+      expect(component.label()).toBe('Machine 1');
+    });
+
+    it('shows a dash when the value attribute is missing', () => {
+      render(groupChild(46, { valueAttribute: 'missing' }));
+
+      expect(component.value()).toBe('-');
+    });
+
+    it('keeps the static value path for a KPI without entity data', () => {
+      render(kpi({ staticValue: '${a}', decimalPlaces: 1 }));
+
+      expect(component.rawValue()).toBe('5000');
+      expect(component.value()).toMatch(/^5\D?000,0$/);
+    });
+  });
+
   describe('decimalPlaces (AB#7686)', () => {
     it('shows exactly the configured number of fraction digits', () => {
       render(kpi({ staticValue: '38.9', decimalPlaces: 1 }));
@@ -269,16 +327,74 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
       expect(component.value()).toBe('38,90');
     });
 
-    it('falls back to the default for a setting above 20', () => {
-      render(kpi({ staticValue: '38.9', decimalPlaces: 21 }));
+    it('falls back to the default for a setting above 3', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 4 }));
 
       expect(component.value()).toBe('38,90');
     });
 
-    it('accepts the upper limit of 20', () => {
-      render(kpi({ staticValue: '46', decimalPlaces: 20 }));
+    it('accepts the upper limit of 3', () => {
+      render(kpi({ staticValue: '46', decimalPlaces: 3 }));
 
-      expect(component.value()).toBe('46,' + '0'.repeat(20));
+      expect(component.value()).toBe('46,000');
+    });
+
+    it('shows a negative value that rounds to zero without a sign', () => {
+      render(kpi({ staticValue: '-0.04', decimalPlaces: 1 }));
+      expect(component.value()).toBe('0,0');
+
+      render(kpi({ staticValue: '-0.3', decimalPlaces: 0 }));
+      expect(component.value()).toBe('0');
+    });
+
+    it('shows a negative zero input without a sign', () => {
+      render(kpi({ staticValue: '-0', decimalPlaces: 1 }));
+      expect(component.value()).toBe('0,0');
+
+      render(kpi({ staticValue: '-0', decimalPlaces: 0 }));
+      expect(component.value()).toBe('0');
+    });
+
+    it('keeps the sign of a negative value that does not round to zero', () => {
+      render(kpi({ staticValue: '-3.25', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('-3,3');
+    });
+
+    it('shows positive zero with the configured digits', () => {
+      render(kpi({ staticValue: '0', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('0,0');
+    });
+
+    it('keeps the automatic format for a negative value when unset', () => {
+      render(kpi({ staticValue: '-0.04' }));
+
+      expect(component.value()).toBe('-0,04');
+    });
+
+    it('falls back to the default for extreme or invalid settings without an error', () => {
+      for (const decimalPlaces of [4, 6, 10, 20, 21, 100, 101, 1e21, Infinity, NaN]) {
+        render(kpi({ staticValue: '38.9', decimalPlaces }));
+        expect(component.value()).toBe('38,90');
+      }
+    });
+
+    it('formats extreme values with 0 to 3 digits without NaN or Infinity text', () => {
+      const values = ['1e21', '1e-7', '-1e21', String(Number.MAX_SAFE_INTEGER)];
+      for (const staticValue of values) {
+        for (let decimalPlaces = 0; decimalPlaces <= 3; decimalPlaces++) {
+          render(kpi({ staticValue, decimalPlaces }));
+          const shown = component.value();
+          expect(shown).not.toMatch(/NaN|Infinity/);
+          const fraction = decimalPlaces === 0 ? '' : `,[0-9]{${decimalPlaces}}`;
+          expect(shown).toMatch(new RegExp(`^-?[0-9 \u00a0\u202f]+${fraction}$`));
+        }
+      }
+      render(kpi({ staticValue: '1e-7', decimalPlaces: 3 }));
+      expect(component.value()).toBe('0,000');
+      render(kpi({ staticValue: '-1e-7', decimalPlaces: 1 }));
+      expect(component.value()).toBe('0,0');
     });
 
     it('leaves a missing value and text untouched', () => {

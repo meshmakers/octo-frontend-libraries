@@ -15,8 +15,14 @@ starts a new empty "Unreleased" section.
 - New (non-breaking, additive): optional `decimalPlaces` on `KpiWidgetConfig` (persisted in the widget `Config` JSON).
   When set, a numeric value is shown with exactly that many fraction digits, also for whole numbers
   (`decimalPlaces: 1`: 38.9 -> `38,9`, 46 -> `46,0`); unset keeps the previous behaviour (two digits for a
-  fractional value, none for a whole number). The KPI configuration dialog has a *Decimal Places* field (0-6,
-  empty = automatic).
+  fractional value, none for a whole number). Valid values are the integer numbers 0-3; anything else (strings
+  included) falls back to automatic. A negative value that rounds to zero shows no sign. Widget-group
+  KPI children receive the setting from `childTemplate.staticConfig`. The KPI configuration dialog has a *Decimal
+  Places* field (0-3, empty = automatic).
+- Fix: KPI children of a widget group showed `-` instead of their value: the KPI static branch read only
+  `staticValue` and ignored the entity data the group passes in `dataSource.data`. It now uses that data with
+  `valueAttribute` when present (as the gauge does); a plain static KPI is unchanged. The widget-group
+  configuration dialog offers *Decimal Places* for KPI children and keeps the value on save.
 
 ### shared-ui shell user menu (avatar, AB#7679)
 

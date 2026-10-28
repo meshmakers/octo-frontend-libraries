@@ -187,6 +187,14 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ decimalPlaces: undefined }));
   });
 
+  it('does not save a typed value above 3 (AB#7686)', async () => {
+    await open([kpi('self')], { initialFormula: '${a}' });
+    component.form.decimalPlaces = 7;
+    component.onSave();
+
+    expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ decimalPlaces: undefined }));
+  });
+
   it('inserts a variable reference', async () => {
     await open([kpi('self')], { initialFormula: '1 +' });
 

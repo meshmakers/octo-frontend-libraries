@@ -146,6 +146,31 @@ describe('Default widget registrations — KPI', () => {
       expect(initial['initialDecimalPlaces']).toBe(1);
     });
 
+    it('normalises a hand-written decimalPlaces when loading, in every mode', () => {
+      const cases: [unknown, number | undefined][] = [[1, 1], [3, 3], ['1', undefined], [1.5, undefined], [4, undefined], [-1, undefined], [null, undefined], ['abc', undefined]];
+      const modes: Partial<PersistedWidgetData>[] = [
+        { dataSourceType: 'static' },
+        { dataSourceType: 'systemQuery', dataSourceRtId: 'q-1' },
+        { dataSourceType: 'runtimeEntity', dataSourceCkTypeId: 'Test/Type' }
+      ];
+      for (const mode of modes) {
+        for (const [raw, expected] of cases) {
+          const widget = createKpiWidget();
+          const restored = registry.deserializeWidget({
+            ...toPersisted({ dataSourceType: 'static', config: { decimalPlaces: raw, valueMode: 'formula', formula: '1' } }, widget),
+            ...mode
+          }) as KpiWidgetConfig;
+          expect(restored.decimalPlaces).toBe(expected);
+        }
+      }
+    });
+
+    it('passes only a number or nothing to the dialog', () => {
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: 2 }))['initialDecimalPlaces']).toBe(2);
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: '2' as unknown as number }))['initialDecimalPlaces']).toBeUndefined();
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: 5 }))['initialDecimalPlaces']).toBeUndefined();
+    });
+
     it('stores nothing when unset', () => {
       const applied = applyResult(createKpiWidget({ decimalPlaces: 1 }), { dataSourceType: 'static', staticValue: '1' });
       expect(applied.decimalPlaces).toBeUndefined();
