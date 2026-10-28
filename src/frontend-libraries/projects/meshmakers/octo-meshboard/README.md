@@ -255,7 +255,10 @@ widget `Config` JSON, e.g. `{"valueMode":"formula","formula":"...","decimalPlace
 dialog offers it as *Decimal Places* (AB#7686). Valid values are the JSON numbers 0-3 (integers); anything
 else (a string such as `"1"`, a fraction, a negative value, 4 or more, other types) falls back to the automatic
 format. Unlike the heatmap's `decimalPlaces` (a maximum, default 2), the KPI value is an exact digit count and
-unset means automatic.
+unset means automatic; both widgets format through the shared `formatWidgetNumber` (`utils/widget-data-utils.ts`,
+cached `Intl.NumberFormat` instances). With `decimalPlaces` set, a text value is parsed strictly: only a string
+that is a complete number (`"12"`, `" 12 "`, `"1e3"`) is formatted, anything else (`"12 kWh"`, an ISO date,
+`"12,5"`) is shown unchanged. Without `decimalPlaces` the previous lenient parsing stays (`"12 kWh"` -> `12`).
 A negative value that rounds to zero is shown without a sign (`-0.04` with 1 -> `0,0`). The setting also
 applies to KPI children of a widget group (`childTemplate.staticConfig.decimalPlaces`, also offered in the
 widget-group configuration dialog).

@@ -23,6 +23,10 @@ starts a new empty "Unreleased" section.
   `staticValue` and ignored the entity data the group passes in `dataSource.data`. It now uses that data with
   `valueAttribute` when present (as the gauge does); a plain static KPI is unchanged. The widget-group
   configuration dialog offers *Decimal Places* for KPI children and keeps the value on save.
+- With `decimalPlaces` set, the KPI parses a text value strictly and shows a non-numeric text (`"12 kWh"`, an ISO
+  date) unchanged; without it, parsing is unchanged. KPI and heatmap format through the shared, cached
+  `formatWidgetNumber` (KPI: exact digit count; heatmap: maximum, unchanged output). The KPI display fields are
+  copied through one helper per path (dialog result, persisted config, dialog save).
 
 ### shared-ui shell user menu (avatar, AB#7679)
 

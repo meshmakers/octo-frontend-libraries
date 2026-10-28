@@ -1207,12 +1207,7 @@ export class KpiConfigDialogComponent implements OnInit {
         ckTypeId: '',
         valueAttribute: '',
         formula: this.form.formula.trim(),
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces),
-        outputVariableName: this.form.outputVariableName.trim() || undefined
+        ...this.displayFields()
       });
       return;
     }
@@ -1223,12 +1218,7 @@ export class KpiConfigDialogComponent implements OnInit {
         ckTypeId: '',
         valueAttribute: '',
         staticValue: this.form.staticValue,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces),
-        outputVariableName: this.form.outputVariableName.trim() || undefined
+        ...this.displayFields()
       });
       return;
     }
@@ -1249,12 +1239,7 @@ export class KpiConfigDialogComponent implements OnInit {
         queryValueField: this.form.queryValueField || undefined,
         queryCategoryField: this.form.queryCategoryField || undefined,
         queryCategoryValue: this.form.queryCategoryValue || undefined,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces),
-        outputVariableName: this.form.outputVariableName.trim() || undefined,
+        ...this.displayFields(),
         filters: filtersDto
       });
     } else if (this.selectedCkType) {
@@ -1264,15 +1249,21 @@ export class KpiConfigDialogComponent implements OnInit {
         rtId: this.isCountMode ? undefined : this.selectedEntity?.rtId,
         valueAttribute: this.isCountMode ? '_count' : this.form.valueAttribute,
         labelAttribute: this.form.labelAttribute || undefined,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces),
-        outputVariableName: this.form.outputVariableName.trim() || undefined,
+        ...this.displayFields(),
         filters: filtersDto
       });
     }
+  }
+
+  private displayFields(): Pick<KpiConfigResult, 'prefix' | 'suffix' | 'trend' | 'comparisonText' | 'outputVariableName' | 'decimalPlaces'> {
+    return {
+      prefix: this.form.prefix || undefined,
+      suffix: this.form.suffix || undefined,
+      trend: this.form.trend,
+      comparisonText: this.form.comparisonText || undefined,
+      outputVariableName: this.form.outputVariableName.trim() || undefined,
+      decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces)
+    };
   }
 
   onCancel(): void {

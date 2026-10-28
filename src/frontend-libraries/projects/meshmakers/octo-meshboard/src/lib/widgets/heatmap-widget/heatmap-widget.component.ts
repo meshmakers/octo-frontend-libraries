@@ -9,7 +9,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { formatWidgetNumber, matchesAttributePath } from '../../utils/widget-data-utils';
 import { getZonedDateParts, toInstant, zonedDateKey } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
 
@@ -286,10 +286,7 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       return this.formatSI(displayValue, decimals);
     }
 
-    return displayValue.toLocaleString('de-AT', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: decimals
-    });
+    return formatWidgetNumber(displayValue, decimals, 'maximum');
   }
 
   /**
@@ -308,17 +305,11 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     for (const [threshold, prefix] of siPrefixes) {
       if (abs >= threshold) {
         const scaled = value / threshold;
-        return scaled.toLocaleString('de-AT', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: decimals
-        }) + prefix;
+        return formatWidgetNumber(scaled, decimals, 'maximum') + prefix;
       }
     }
 
-    return value.toLocaleString('de-AT', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: decimals
-    });
+    return formatWidgetNumber(value, decimals, 'maximum');
   }
 
   cellLabelContent = (e: { value: number }): string => {

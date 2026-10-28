@@ -202,6 +202,55 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
     expect(component.rawValue()).toBe('5000');
   });
 
+  function groupChildValue(value: unknown, decimalPlaces?: number): KpiWidgetConfig {
+    return kpi({
+      valueAttribute: 'value',
+      decimalPlaces,
+      dataSource: {
+        type: 'static',
+        data: { rtId: 'e', ckTypeId: 'T', attributes: [{ attributeName: 'value', value }], associations: [] }
+      }
+    });
+  }
+
+  describe('strict number parsing with decimalPlaces (AB#7686)', () => {
+    const plain = (shown: string): string => shown.replace(/[\u00a0\u202f]/g, ' ');
+    const cases: [string, string, string][] = [
+      ['12 kWh', '12 kWh', '12'],
+      ['2024-05-01T10:00:00Z', '2024-05-01T10:00:00Z', '2 024'],
+      ['1e3', '1 000,0', '1 000'],
+      [' 12 ', '12,0', '12'],
+      ['-', '-', '-'],
+      ['n/a', 'n/a', 'n/a'],
+      ['12,5', '12,5', '12'],
+      ['  ', '  ', '  '],
+      ['Infinity', 'Infinity', '∞']
+    ];
+
+    for (const [input, withDecimals, unset] of cases) {
+      it(`shows "${input}" as "${withDecimals}" with 1 decimal and as before when unset`, () => {
+        render(kpi({ staticValue: input, decimalPlaces: 1 }));
+        expect(plain(component.value())).toBe(withDecimals);
+
+        render(kpi({ staticValue: input }));
+        expect(plain(component.value())).toBe(unset);
+      });
+    }
+
+    it('shows an empty value as a dash', () => {
+      render(kpi({ staticValue: '', decimalPlaces: 1 }));
+      expect(component.value()).toBe('-');
+    });
+
+    it('formats numbers given as numbers with 0 to 3 digits', () => {
+      const digits = ['12', '12,3', '12,35', '12,346'];
+      for (let decimalPlaces = 0; decimalPlaces <= 3; decimalPlaces++) {
+        render(groupChildValue(12.3456, decimalPlaces));
+        expect(component.value()).toBe(digits[decimalPlaces]);
+      }
+    });
+  });
+
   describe('widget-group child with entity data (AB#7686)', () => {
     function groupChild(value: unknown, overrides: Partial<KpiWidgetConfig> = {}): KpiWidgetConfig {
       return kpi({

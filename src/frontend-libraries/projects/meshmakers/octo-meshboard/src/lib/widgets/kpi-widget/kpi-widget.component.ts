@@ -11,7 +11,7 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { applyValueMultiplier, matchesAttributePath } from '../../utils/widget-data-utils';
+import { applyValueMultiplier, formatWidgetNumber, getNumberFormat, matchesAttributePath } from '../../utils/widget-data-utils';
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
@@ -237,6 +237,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return '-';
     }
 
+    const decimals = normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces);
+    if (decimals !== undefined) {
+      return this.formatWithDecimals(value, strValue, decimals);
+    }
+
     const numValue = typeof value === 'number' ? value : parseFloat(strValue);
 
     if (isNaN(numValue)) {
@@ -244,22 +249,22 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return strValue;
     }
 
-    const decimals = normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces);
-    if (decimals !== undefined) {
-      const negative = numValue < 0 || Object.is(numValue, -0);
-      const shown = negative && Number(new Intl.NumberFormat('en-US', { maximumFractionDigits: decimals, useGrouping: false }).format(numValue)) === 0
-        ? 0
-        : numValue;
-      return shown.toLocaleString('de-AT', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-      });
-    }
-
     return numValue.toLocaleString('de-AT', {
       minimumFractionDigits: numValue % 1 !== 0 ? 2 : 0,
       maximumFractionDigits: 2
     });
+  }
+
+  private formatWithDecimals(value: unknown, strValue: string, decimals: number): string {
+    const trimmed = strValue.trim();
+    const numValue = typeof value === 'number' ? value : trimmed === '' ? NaN : Number(trimmed);
+    if (typeof value === 'number' ? isNaN(numValue) : !Number.isFinite(numValue)) {
+      return strValue;
+    }
+
+    const negative = numValue < 0 || Object.is(numValue, -0);
+    const shown = negative && Number(getNumberFormat('en-US', 0, decimals, false).format(numValue)) === 0 ? 0 : numValue;
+    return formatWidgetNumber(shown, decimals, 'exact');
   }
 
   readonly label = computed(() => {

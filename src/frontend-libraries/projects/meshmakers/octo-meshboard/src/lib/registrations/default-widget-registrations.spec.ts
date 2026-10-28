@@ -179,6 +179,47 @@ describe('Default widget registrations — KPI', () => {
     });
   });
 
+  describe('KPI display fields in every mode (AB#7686)', () => {
+    const display = {
+      prefix: 'EUR ',
+      suffix: ' kWh',
+      trend: 'up' as const,
+      comparisonText: 'vs. ${last}',
+      decimalPlaces: 2,
+      outputVariableName: 'shown'
+    };
+    const modes: Partial<KpiConfigResult>[] = [
+      { dataSourceType: 'runtimeEntity', ckTypeId: 'Test/Type', valueAttribute: '_count' },
+      { dataSourceType: 'persistentQuery', queryRtId: 'q-1', queryName: 'Query', queryMode: 'simpleCount' },
+      { dataSourceType: 'static', staticValue: '42' },
+      { dataSourceType: 'formula', formula: '${a} * 2' }
+    ];
+
+    for (const mode of modes) {
+      it(`keeps every display field of a ${mode.dataSourceType} KPI through apply, persistence and the dialog`, () => {
+        const applied = applyResult(createKpiWidget({ icon: 'chart' }), { ...mode, ...display });
+        const restored = roundTrip(applied);
+        const initial = registry.getInitialConfig(restored);
+
+        for (const widget of [applied, restored]) {
+          expect(widget.prefix).toBe(display.prefix);
+          expect(widget.suffix).toBe(display.suffix);
+          expect(widget.trend).toBe(display.trend);
+          expect(widget.comparisonText).toBe(display.comparisonText);
+          expect(widget.decimalPlaces).toBe(display.decimalPlaces);
+          expect(widget.outputVariableName).toBe(display.outputVariableName);
+          expect(widget.icon).toBe('chart');
+        }
+        expect(initial['initialPrefix']).toBe(display.prefix);
+        expect(initial['initialSuffix']).toBe(display.suffix);
+        expect(initial['initialTrend']).toBe(display.trend);
+        expect(initial['initialComparisonText']).toBe(display.comparisonText);
+        expect(initial['initialDecimalPlaces']).toBe(display.decimalPlaces);
+        expect(initial['initialOutputVariableName']).toBe(display.outputVariableName);
+      });
+    }
+  });
+
   describe('formula and output variable (AB#5364)', () => {
     it('round-trips a formula KPI with output variable and comparison text', () => {
       const applied = applyResult(createKpiWidget(), {

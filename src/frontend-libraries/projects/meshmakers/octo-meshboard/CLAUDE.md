@@ -941,7 +941,8 @@ Current test files:
 - `meshboard-state.service.spec.ts` - State management (74 tests, includes entity selector management + stream-data time-arg binding)
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
-- `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests)
+- `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
+- `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
 - `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
 - `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish, `decimalPlaces` formatting (incl. negative zero)
