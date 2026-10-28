@@ -14,8 +14,7 @@ starts a new empty "Unreleased" section.
 
 - Fix (non-breaking): the large avatar in the user menu panel no longer shrinks into an ellipse beside a long account name
   (`.avatar { flex: none }` in `user-menu.component.scss`; before, the flex row `.user-identity` squeezed it horizontally).
-  The small avatar in the top bar is unchanged. Hosts that worked around it (Energy Community: `.user-identity .avatar
-  { flex-shrink: 0 }`) can drop the rule after taking this release.
+  The small avatar in the top bar is unchanged.
 
 ### octo-ui entity-forms (field hints, AB#7423)
 
