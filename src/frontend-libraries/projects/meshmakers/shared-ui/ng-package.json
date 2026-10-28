@@ -14,6 +14,11 @@
       "input": "i18n",
       "glob": "*.json",
       "output": "i18n"
+    },
+    {
+      "input": "fonts",
+      "glob": "**/*.{css,txt,woff2}",
+      "output": "fonts"
     }
   ]
 }
