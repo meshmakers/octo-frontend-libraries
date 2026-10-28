@@ -10,6 +10,14 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui fonts (web fonts shipped with the library, AB#7682)
+
+- New (non-breaking, additive): `@meshmakers/shared-ui` ships the web fonts of the shared theme (Roboto, Montserrat,
+  Roboto Mono; 20 `woff2` files, `fonts/fonts.css`, SIL OFL licence texts), so an app no longer needs a Google Fonts
+  `<link>`: one entry `node_modules/@meshmakers/shared-ui/fonts/fonts.css` in the `styles` of the app build
+  (`docs/fonts.md`). Apps that load the fonts from Google today (Refinery Studio, meshmakers-app) switch to it and
+  drop the link; Energy Community, which loads no fonts, adds the entry.
+
 ### shared-ui shell user menu (avatar, AB#7679)
 
 - Fix (non-breaking): the large avatar in the user menu panel no longer shrinks into an ellipse beside a long account name
