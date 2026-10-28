@@ -44,5 +44,7 @@ redistribution with the licence text. The files are the `woff2` files of the `@f
 ## Adding a weight or a subset
 
 Take the matching `woff2` file from `@fontsource/<family>/files/`, put it into `fonts/`, copy its rule (and its
-`unicode-range`) from `@fontsource/<family>/<weight>.css` into `fonts.css` with the url `./<file>.woff2`, and say
-so in the CHANGELOG. `ng-package.json` copies everything in `fonts/`.
+`unicode-range`) from `@fontsource/<family>/<weight>.css` into `fonts.css`, and say so in the CHANGELOG. The
+fontsource rules list a `.woff` fallback next to the `woff2` file: replace the whole `src` with the single entry
+`url("./<file>.woff2") format("woff2")`, because only the `woff2` file is copied and a host build cannot resolve a
+`.woff` url that is not in the package. `ng-package.json` copies everything in `fonts/`.
