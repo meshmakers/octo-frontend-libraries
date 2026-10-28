@@ -365,8 +365,46 @@ interface TableWidgetConfig {
   filters?: WidgetFilterConfig[];
   pageSize?: number;
   sortable?: boolean;
+  rowAction?: { label: string };                                                  // AB#7728
+  valueMarkers?: { field: string; tooltip: string; icon?: string; color?: string }[]; // AB#7728
 }
 ```
+
+**Row action (AB#7728).** A board author switches on *Row Action* in the table's configuration
+dialog and gives it a label (e.g. "Details"); it is stored as `rowAction: { label }` in the widget's
+`Config` JSON. The table offers it as a row action button **only when the host app provides
+`MESHBOARD_TABLE_ROW_ACTION_HANDLER`** — without a handler (other apps, the Refinery Studio) the
+table looks as before. The handler receives which widget the action came from and the row's values:
+
+```typescript
+import { MESHBOARD_TABLE_ROW_ACTION_HANDLER, MeshBoardTableRowActionEvent } from '@meshmakers/octo-meshboard';
+
+providers: [
+  // app-wide, or on the component that embeds <mm-meshboard-view>
+  {
+    provide: MESHBOARD_TABLE_ROW_ACTION_HANDLER,
+    useFactory: () => {
+      const details = inject(DailyDetailsDialogService);
+      return (e: MeshBoardTableRowActionEvent) => {
+        // e = { widgetId (rtId, else local id), widgetTitle, meshBoardRtId, actionLabel, row }
+        if (e.widgetTitle === 'Energiedaten täglich') {
+          details.open(e.row['rtWellKnownName'] as string, e.row['day'] as string);
+        }
+      };
+    }
+  }
+]
+```
+
+`row` is keyed by column field (attribute path / query column), a copy of the list row. A handler that
+throws (or rejects) is logged and does not break the table.
+
+**Value markers (AB#7728).** `valueMarkers` turns a column into a marker column: the cell shows the
+icon (status icon set: `exclamation-circle` (default), `warning-triangle`, `check-circle`, `x-circle`,
+`minus-circle`, `question-circle`, `circle`) with `tooltip` as title and accessible name when the value
+is a number (or numeric string) above zero, and stays empty otherwise (`isPositiveMarkerValue`). It
+works for configured columns and for columns derived from a persistent query; set it in the dialog's
+*Value Markers* card.
 
 **Texts (AB#5622).** The list inside the table (`mm-list-view`) takes its texts from
 `MESHBOARD_MESSAGES` — "No records available.", pager texts, toolbar labels — merged over the

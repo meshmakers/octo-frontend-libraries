@@ -439,6 +439,34 @@ export interface TableWidgetConfig extends WidgetConfig {
   filters?: TableFilterConfig[];
   pageSize?: number;
   sortable?: boolean;
+  /**
+   * Row action handled by the host app (AB#7728), e.g. "Details" opening a dialog for the row.
+   * Offered only when the host provides `MESHBOARD_TABLE_ROW_ACTION_HANDLER`; absent = no action.
+   */
+  rowAction?: TableRowActionConfig;
+  /**
+   * Marker columns (AB#7728): the cell of `field` shows an icon with tooltip when its value is a
+   * number above zero, and stays empty otherwise. Works for configured and query-derived columns.
+   */
+  valueMarkers?: TableValueMarkerConfig[];
+}
+
+/** Row action of a table widget (AB#7728). */
+export interface TableRowActionConfig {
+  /** Label of the action: tooltip, menu text and accessible name (e.g. "Details"). */
+  label: string;
+}
+
+/** Marker of a table column (AB#7728): icon + tooltip when the numeric cell value is above zero. */
+export interface TableValueMarkerConfig {
+  /** Column field the marker replaces (attribute path / query column). */
+  field: string;
+  /** Tooltip and accessible name of the marker (e.g. "Contains manual values"). */
+  tooltip: string;
+  /** Icon name of the status icon set (`check-circle`, `exclamation-circle`, …); default `exclamation-circle`. */
+  icon?: string;
+  /** CSS colour of the icon; default the cell's text colour. */
+  color?: string;
 }
 
 export interface TableColumnStatusIconMapping {

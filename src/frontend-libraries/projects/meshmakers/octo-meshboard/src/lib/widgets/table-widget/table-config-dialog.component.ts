@@ -6,7 +6,7 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule, NumericTextBoxModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
-import { columnsIcon, sortAscIcon, filterIcon, searchIcon } from '@progress/kendo-svg-icons';
+import { columnsIcon, sortAscIcon, filterIcon, searchIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import {
   CkTypeSelectorInputComponent,
@@ -27,7 +27,7 @@ import {
   GetCkTypeAvailableQueryColumnsDtoGQL
 } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
-import { TableColumn, EntitySelectorConfig } from '../../models/meshboard.models';
+import { TableColumn, EntitySelectorConfig, TableRowActionConfig, TableValueMarkerConfig } from '../../models/meshboard.models';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
@@ -67,7 +67,16 @@ export interface TableConfigResult {
   // Common:
   pageSize: number;
   sortable: boolean;
+  /** Row action handled by the host (AB#7728); undefined = none. */
+  rowAction?: TableRowActionConfig;
+  /** Marker columns (AB#7728); undefined = none. */
+  valueMarkers?: TableValueMarkerConfig[];
 }
+
+/** Icons offered for a value marker (names of the table widget's status icon set). */
+export const TABLE_VALUE_MARKER_ICONS: readonly string[] = [
+  'exclamation-circle', 'warning-triangle', 'check-circle', 'x-circle', 'minus-circle', 'question-circle', 'circle'
+];
 
 /**
  * Configuration dialog for Table widgets.
@@ -293,6 +302,67 @@ export interface TableConfigResult {
             </div>
           </div>
         </div>
+
+        <!-- Row Action (AB#7728) -->
+        <div class="config-card row-action-card">
+          <div class="card-header">
+            <span class="card-title">Row Action</span>
+          </div>
+          <div class="card-content stacked-content">
+            <div class="form-field checkbox-field">
+              <label>
+                <input type="checkbox" name="rowActionEnabled" [(ngModel)]="rowActionEnabled" kendoCheckBox />
+                Offer an action per row
+              </label>
+            </div>
+            @if (rowActionEnabled) {
+              <div class="form-field">
+                <label>Action Label <span class="required">*</span></label>
+                <kendo-textbox name="rowActionLabel" [(ngModel)]="rowActionLabel" placeholder="e.g. Details"></kendo-textbox>
+              </div>
+            }
+            <p class="field-hint">The app that shows the board handles the action and receives the row's values. Apps without a handler do not offer it.</p>
+          </div>
+        </div>
+
+        <!-- Value Markers (AB#7728) -->
+        <div class="config-card markers-card">
+          <div class="card-header">
+            <span class="card-title">Value Markers</span>
+            <span class="card-count">({{ valueMarkers.length }})</span>
+          </div>
+          <div class="card-content stacked-content">
+            @for (marker of valueMarkers; track $index; let i = $index) {
+              <div class="marker-row">
+                <kendo-combobox
+                  class="marker-field"
+                  [data]="markerFieldOptions"
+                  [allowCustom]="true"
+                  [(ngModel)]="marker.field"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="Column field">
+                </kendo-combobox>
+                <kendo-textbox
+                  class="marker-tooltip"
+                  [(ngModel)]="marker.tooltip"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="Tooltip">
+                </kendo-textbox>
+                <kendo-dropdownlist
+                  class="marker-icon"
+                  [data]="markerIcons"
+                  [(ngModel)]="marker.icon"
+                  [ngModelOptions]="{ standalone: true }">
+                </kendo-dropdownlist>
+                <button kendoButton fillMode="flat" [svgIcon]="removeIcon" title="Remove marker" (click)="removeValueMarker(i)"></button>
+              </div>
+            }
+            <div>
+              <button kendoButton fillMode="flat" [svgIcon]="addIcon" (click)="addValueMarker()">Add Marker</button>
+            </div>
+            <p class="field-hint">A marker shows the icon with its tooltip when the column's value is above zero; otherwise the cell stays empty.</p>
+          </div>
+        </div>
       </div>
 
       <div class="action-bar mm-dialog-actions">
@@ -419,6 +489,26 @@ export interface TableConfigResult {
       color: var(--kendo-color-on-app-surface, #212529);
     }
 
+    .stacked-content {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .marker-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .marker-field, .marker-tooltip {
+      flex: 1;
+    }
+
+    .marker-icon {
+      width: 180px;
+    }
+
     .data-source-type .radio-group {
       display: flex;
       gap: 24px;
@@ -490,11 +580,26 @@ export class TableConfigDialogComponent implements OnInit {
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
   @Input() initialEntitySelectorId?: string;
+  @Input() initialRowAction?: TableRowActionConfig;
+  @Input() initialValueMarkers?: TableValueMarkerConfig[];
 
   protected readonly columnsIcon = columnsIcon;
   protected readonly sortIcon = sortAscIcon;
   protected readonly filterIcon = filterIcon;
   protected readonly searchIcon = searchIcon;
+  protected readonly addIcon = plusIcon;
+  protected readonly removeIcon = trashIcon;
+  protected get markerIcons(): readonly string[] { return TABLE_VALUE_MARKER_ICONS; }
+
+  // Row action and value markers (AB#7728)
+  rowActionEnabled = false;
+  rowActionLabel = '';
+  valueMarkers: { field: string; tooltip: string; icon: string; color?: string }[] = [];
+
+  /** Field suggestions for markers: the configured columns (query columns are only known at run time). */
+  get markerFieldOptions(): string[] {
+    return this.dataSourceType === 'runtimeEntity' ? this.selectedColumns : [];
+  }
 
   // Data source type selection
   dataSourceType: TableDataSourceType = 'runtimeEntity';
@@ -531,6 +636,12 @@ export class TableConfigDialogComponent implements OnInit {
   };
 
   get isValid(): boolean {
+    if (this.rowActionEnabled && !this.rowActionLabel.trim()) {
+      return false;
+    }
+    if (this.valueMarkers.some(m => !m.field?.trim() || !m.tooltip?.trim())) {
+      return false;
+    }
     if (this.dataSourceType === 'runtimeEntity') {
       return this.selectedCkType !== null && this.selectedColumns.length > 0;
     } else {
@@ -559,6 +670,14 @@ export class TableConfigDialogComponent implements OnInit {
     this.form.sortable = this.initialSortable ?? true;
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
     this.entitySelectorId = this.initialEntitySelectorId;
+    this.rowActionEnabled = !!this.initialRowAction?.label;
+    this.rowActionLabel = this.initialRowAction?.label ?? '';
+    this.valueMarkers = (this.initialValueMarkers ?? []).map(m => ({
+      field: m.field,
+      tooltip: m.tooltip,
+      icon: m.icon ?? TABLE_VALUE_MARKER_ICONS[0],
+      ...(m.color ? { color: m.color } : {})
+    }));
 
     // Convert initial sorting from string-based format to SortDto
     if (this.initialSorting) {
@@ -714,6 +833,29 @@ export class TableConfigDialogComponent implements OnInit {
     }
   }
 
+  addValueMarker(): void {
+    this.valueMarkers = [...this.valueMarkers, { field: '', tooltip: '', icon: TABLE_VALUE_MARKER_ICONS[0] }];
+  }
+
+  removeValueMarker(index: number): void {
+    this.valueMarkers = this.valueMarkers.filter((_, i) => i !== index);
+  }
+
+  /** Row action and markers of the result (AB#7728); keys are omitted when nothing is configured. */
+  private rowExtrasResult(): Pick<TableConfigResult, 'rowAction' | 'valueMarkers'> {
+    const label = this.rowActionLabel.trim();
+    const markers: TableValueMarkerConfig[] = this.valueMarkers.map(m => ({
+      field: m.field.trim(),
+      tooltip: m.tooltip.trim(),
+      icon: m.icon,
+      ...(m.color ? { color: m.color } : {})
+    }));
+    return {
+      ...(this.rowActionEnabled && label ? { rowAction: { label } } : {}),
+      ...(markers.length > 0 ? { valueMarkers: markers } : {})
+    };
+  }
+
   onFiltersChange(filters: FieldFilterItem[]): void {
     this.filters = filters;
   }
@@ -793,7 +935,8 @@ export class TableConfigDialogComponent implements OnInit {
         sorting: this.sorting,
         filters: filterDtos,
         pageSize: this.form.pageSize,
-        sortable: this.form.sortable
+        sortable: this.form.sortable,
+        ...this.rowExtrasResult()
       });
     } else if (this.dataSourceType === 'persistentQuery' && this.selectedPersistentQuery) {
       // Convert filters (remove IDs)
@@ -830,7 +973,8 @@ export class TableConfigDialogComponent implements OnInit {
         ignoreTimeFilter: this.ignoreTimeFilter,
         entitySelectorId: this.entitySelectorId,
         pageSize: this.form.pageSize,
-        sortable: this.form.sortable
+        sortable: this.form.sortable,
+        ...this.rowExtrasResult()
       });
     }
   }

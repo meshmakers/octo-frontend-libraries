@@ -120,3 +120,108 @@ describe('TableWidgetComponent — enum labels (AB#5622)', () => {
     expect(resolver).toHaveBeenCalledWith(expect.objectContaining({ valueType: 'ENUM', attribute: 'state' }));
   });
 });
+
+describe('TableWidgetComponent — row action and value markers (AB#7728)', () => {
+  async function create(config: Partial<TableWidgetConfig>, handler?: (e: unknown) => void | Promise<void>) {
+    const { MESHBOARD_TABLE_ROW_ACTION_HANDLER } = await import('../../utils/meshboard-table-row-action');
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: MeshBoardStateService, useValue: { timeZoneMode: signal('local'), persistedMeshBoardId: signal('board-1') } },
+        ...(handler ? [{ provide: MESHBOARD_TABLE_ROW_ACTION_HANDLER, useValue: handler }] : [])
+      ]
+    });
+    const cmp = TestBed.runInInjectionContext(() => new TableWidgetComponent());
+    cmp.config = {
+      id: 'w1', rtId: 'rt-w1', type: 'table', title: 'Daily values', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q1' },
+      columns: [],
+      ...config
+    } as TableWidgetConfig;
+    return cmp;
+  }
+
+  it('offers no row action without one configured, even with a host handler', async () => {
+    const cmp = await create({}, vi.fn());
+    expect(cmp.rowActions()).toEqual([]);
+  });
+
+  it('offers no row action without a host handler', async () => {
+    const cmp = await create({ rowAction: { label: 'Details' } });
+    expect(cmp.rowActions()).toEqual([]);
+  });
+
+  it('offers the configured row action when the host handles it', async () => {
+    const cmp = await create({ rowAction: { label: 'Details' } }, vi.fn());
+    const actions = cmp.rowActions();
+    expect(actions.length).toBe(1);
+    expect(actions[0].label).toBe('Details');
+    expect(actions[0].icon).toBeDefined();
+    expect(cmp.rowActions()).toBe(actions);
+  });
+
+  it('tells the host the widget and the row values', async () => {
+    const handler = vi.fn();
+    const cmp = await create({ rowAction: { label: 'Details' } }, handler);
+    const [action] = cmp.rowActions();
+    const row = { day: '2026-10-27', energy_sum: 12.5, manualCount: 2 };
+
+    await cmp.onRowAction({ id: action.id, action: { id: action.id, label: action.label }, row });
+
+    expect(handler).toHaveBeenCalledWith({
+      widgetId: 'rt-w1',
+      widgetTitle: 'Daily values',
+      meshBoardRtId: 'board-1',
+      actionLabel: 'Details',
+      row
+    });
+  });
+
+  it('falls back to the local widget id for an unsaved widget', async () => {
+    const handler = vi.fn();
+    const cmp = await create({ rtId: undefined, rowAction: { label: 'Details' } }, handler);
+    const [action] = cmp.rowActions();
+    await cmp.onRowAction({ id: action.id, action: { id: action.id, label: action.label }, row: {} });
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ widgetId: 'w1' }));
+  });
+
+  it('logs a failing host handler instead of throwing', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const cmp = await create({ rowAction: { label: 'Details' } }, () => { throw new Error('boom'); });
+    const [action] = cmp.rowActions();
+    await expect(cmp.onRowAction({ id: action.id, action: { id: action.id, label: action.label }, row: {} })).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalled();
+  });
+
+  it('turns a query-derived column into a marker column', async () => {
+    const cmp = await create({ valueMarkers: [{ field: 'manualCount', tooltip: 'Contains manual values' }] });
+    cmp.onQueryColumnsLoaded([
+      { attributePath: 'day', attributeValueType: 'DATE_TIME' },
+      { attributePath: 'manualCount', attributeValueType: 'INTEGER' }
+    ]);
+    const [day, marker] = cmp.listViewColumns();
+    expect(day.dataType).toBe('text');
+    expect(marker.dataType).toBe('component');
+    expect(marker.formatter).toBeUndefined();
+    const inputs = marker.cellInputs!({ manualCount: 3 });
+    expect(inputs['value']).toBe(3);
+    expect(inputs['tooltip']).toBe('Contains manual values');
+    expect(inputs['icon']).toBeDefined();
+  });
+
+  it('turns a configured column into a marker column and reads dotted paths', async () => {
+    const cmp = await create({
+      dataSource: { type: 'runtimeEntity', ckTypeId: 'Test/Day' } as never,
+      columns: [{ field: 'stats.manual', title: 'Manual' }, { field: 'name', title: 'Name' }],
+      valueMarkers: [{ field: 'stats.manual', tooltip: 'Manual', icon: 'warning-triangle', color: 'orange' }]
+    });
+    const [marker, name] = cmp.listViewColumns();
+    expect(marker.dataType).toBe('component');
+    expect(marker.cellInputs!({ stats: { manual: 1 } })).toEqual(expect.objectContaining({ value: 1, color: 'orange' }));
+    expect(name.dataType).toBe('text');
+  });
+
+  it('leaves columns unchanged without markers', async () => {
+    const cmp = await create({ dataSource: { type: 'runtimeEntity', ckTypeId: 'Test/Day' } as never, columns: [{ field: 'manualCount', title: 'Manual', dataType: 'numeric' }] });
+    expect(cmp.listViewColumns()[0].dataType).toBe('numeric');
+  });
+});

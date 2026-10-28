@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { WindowService } from '@progress/kendo-angular-dialog';
 import { WidgetRegistryService, PersistedWidgetData, WidgetPersistenceData } from '../services/widget-registry.service';
-import { registerDefaultWidgets } from './default-widget-registrations';
+import { registerDefaultWidgets, parseTableRowExtras } from './default-widget-registrations';
 import { BarChartWidgetConfig, KpiWidgetConfig, PersistentQueryDataSource, PieChartWidgetConfig, TableWidgetConfig } from '../models/meshboard.models';
+import { TableConfigResult } from '../widgets/table-widget/table-config-dialog.component';
 import { PieChartConfigResult } from '../widgets/pie-chart-widget/pie-chart-config-dialog.component';
 import { KpiConfigResult } from '../widgets/kpi-widget/kpi-config-dialog.component';
 
@@ -399,5 +400,86 @@ describe('Default widget registrations — entity-selector binding on runtime qu
     }) as BarChartWidgetConfig;
     expect((restored.dataSource as PersistentQueryDataSource).entitySelectorId).toBe('site');
     expect((restored.dataSource as PersistentQueryDataSource).queryFamily).toBe('runtime');
+  });
+});
+
+describe('Default widget registrations — table row action and value markers (AB#7728)', () => {
+  let registry: WidgetRegistryService;
+
+  function table(overrides: Partial<TableWidgetConfig> = {}): TableWidgetConfig {
+    return {
+      id: 'tbl-1', rtId: 'tbl-1', type: 'table', title: 'Daily', col: 1, row: 1, colSpan: 4, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q1', queryName: 'daily', queryFamily: 'streamData' },
+      columns: [], sorting: [], filters: [], pageSize: 10, sortable: true,
+      ...overrides
+    };
+  }
+
+  function roundTrip(widget: TableWidgetConfig): { persisted: Record<string, unknown>; widget: TableWidgetConfig } {
+    const serialized = registry.serializeWidget(widget);
+    const restored = registry.deserializeWidget({
+      rtId: widget.id, ckTypeId: 'System.UI/DashboardWidget', name: widget.title, type: 'table',
+      col: widget.col, row: widget.row, colSpan: widget.colSpan, rowSpan: widget.rowSpan,
+      dataSourceType: 'systemQuery', dataSourceCkTypeId: null, dataSourceRtId: serialized.dataSourceRtId ?? null,
+      config: JSON.stringify(serialized.config)
+    }) as TableWidgetConfig;
+    return { persisted: serialized.config as Record<string, unknown>, widget: restored };
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: WindowService, useValue: { open: vi.fn() } }]
+    });
+    registry = TestBed.inject(WidgetRegistryService);
+    registerDefaultWidgets(registry);
+  });
+
+  it('keeps the row action and the markers through persistence', () => {
+    const { persisted, widget } = roundTrip(table({
+      rowAction: { label: 'Details' },
+      valueMarkers: [{ field: 'manualCount', tooltip: 'Contains manual values', icon: 'warning-triangle' }]
+    }));
+    expect(persisted['rowAction']).toEqual({ label: 'Details' });
+    expect(persisted['valueMarkers']).toEqual([{ field: 'manualCount', tooltip: 'Contains manual values', icon: 'warning-triangle' }]);
+    expect(widget.rowAction).toEqual({ label: 'Details' });
+    expect(widget.valueMarkers).toEqual([{ field: 'manualCount', tooltip: 'Contains manual values', icon: 'warning-triangle' }]);
+  });
+
+  it('writes no new keys for a table without them', () => {
+    const { persisted, widget } = roundTrip(table());
+    expect('rowAction' in persisted).toBe(false);
+    expect('valueMarkers' in persisted).toBe(false);
+    expect(widget.rowAction).toBeUndefined();
+    expect(widget.valueMarkers).toBeUndefined();
+  });
+
+  it('applies the dialog result and removes settings the dialog cleared', () => {
+    const base = table({ rowAction: { label: 'Old' }, valueMarkers: [{ field: 'x', tooltip: 'X' }] });
+    const result: TableConfigResult = {
+      dataSourceType: 'persistentQuery', ckTypeId: '', columns: [], sorting: [], filters: [],
+      queryRtId: 'q1', queryName: 'daily', pageSize: 10, sortable: true,
+      rowAction: { label: 'Details' }
+    };
+    const applied = registry.applyConfigResult(base, result) as TableWidgetConfig;
+    expect(applied.rowAction).toEqual({ label: 'Details' });
+    expect(applied.valueMarkers).toBeUndefined();
+
+    const withoutAction: TableConfigResult = { ...result, rowAction: undefined };
+    const cleared = registry.applyConfigResult(applied, withoutAction) as TableWidgetConfig;
+    expect(cleared.rowAction).toBeUndefined();
+  });
+
+  it('hands the current settings to the dialog', () => {
+    const initial = registry.getInitialConfig(table({ rowAction: { label: 'Details' }, valueMarkers: [{ field: 'm', tooltip: 'M' }] }));
+    expect(initial?.['initialRowAction']).toEqual({ label: 'Details' });
+    expect(initial?.['initialValueMarkers']).toEqual([{ field: 'm', tooltip: 'M' }]);
+  });
+
+  it('drops foreign persisted values', () => {
+    expect(parseTableRowExtras({ rowAction: { label: '  ' }, valueMarkers: 'x' })).toEqual({});
+    expect(parseTableRowExtras({
+      rowAction: { label: 7 },
+      valueMarkers: [null, { field: '', tooltip: 'a' }, { field: 'f' }, { field: 'f', tooltip: 't', icon: 3, color: 'red' }]
+    })).toEqual({ valueMarkers: [{ field: 'f', tooltip: 't', color: 'red' }] });
   });
 });
