@@ -10,6 +10,12 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui shell user menu (avatar, AB#7679)
+
+- Fix (non-breaking): the large avatar in the user menu panel no longer shrinks into an ellipse beside a long account name
+  (`.avatar { flex: none }` in `user-menu.component.scss`; before, the flex row `.user-identity` squeezed it horizontally).
+  The small avatar in the top bar is unchanged.
+
 ### octo-ui entity-forms (field hints, AB#7423)
 
 - New (non-breaking, additive): input `fieldHints` on `mm-entity-form` (`EntityFormFieldHintsProvider`, `EntityFormFieldHint
