@@ -263,6 +263,24 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
       expect(component.value()).toBe('38,90');
     });
 
+    it('falls back to the default for a non-integer setting', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 1.5 }));
+
+      expect(component.value()).toBe('38,90');
+    });
+
+    it('falls back to the default for a setting above 20', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 21 }));
+
+      expect(component.value()).toBe('38,90');
+    });
+
+    it('accepts the upper limit of 20', () => {
+      render(kpi({ staticValue: '46', decimalPlaces: 20 }));
+
+      expect(component.value()).toBe('46,' + '0'.repeat(20));
+    });
+
     it('leaves a missing value and text untouched', () => {
       render(kpi({ staticValue: '', decimalPlaces: 1 }));
       expect(component.value()).toBe('-');
