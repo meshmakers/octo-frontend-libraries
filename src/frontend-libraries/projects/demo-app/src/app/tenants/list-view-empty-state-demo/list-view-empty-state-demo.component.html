@@ -1,0 +1,31 @@
+<div class="empty-state-demo">
+  <h3>mm-list-view empty state actions (AB#7628)</h3>
+  <p>
+    Put the page's primary command into <code>&lt;ng-template mmListViewEmptyActions&gt;</code>. It shows in the
+    empty variant only: not while loading and not while a search or host filter is active.
+  </p>
+
+  <div class="empty-state-demo__options">
+    <input type="checkbox" kendoCheckBox id="host-filter" [ngModel]="hostFilterActive()" (ngModelChange)="hostFilterActive.set($event)" />
+    <kendo-label for="host-filter" text="Host filter active (hasExternalFilters)"></kendo-label>
+    <span class="empty-state-demo__clicks" data-testid="create-clicks">"New customer" clicked: {{ createClicks() }}</span>
+  </div>
+
+  <div class="empty-state-demo__lists">
+    <section class="empty-state-demo__list" data-testid="without-action">
+      <h4>Without action (unchanged)</h4>
+      <mm-list-view appEmptyDataSource [columns]="columns" [emptyState]="emptyState"
+                    [hasExternalFilters]="hostFilterActive()"></mm-list-view>
+    </section>
+
+    <section class="empty-state-demo__list" data-testid="with-action">
+      <h4>With action</h4>
+      <mm-list-view appEmptyDataSource [columns]="columns" [emptyState]="emptyState"
+                    [hasExternalFilters]="hostFilterActive()">
+        <ng-template mmListViewEmptyActions>
+          <button kendoButton type="button" themeColor="primary" (click)="onCreateCustomer()">New customer</button>
+        </ng-template>
+      </mm-list-view>
+    </section>
+  </div>
+</div>
