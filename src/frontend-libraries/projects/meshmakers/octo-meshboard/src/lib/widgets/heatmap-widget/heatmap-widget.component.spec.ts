@@ -148,3 +148,53 @@ describe('HeatmapWidgetComponent — threshold coloring', () => {
     });
   });
 });
+
+describe('HeatmapWidgetComponent — value formatting through the shared formatter (AB#7686)', () => {
+  function legacyFormatSI(value: number, decimals: number): string {
+    const abs = Math.abs(value);
+    const siPrefixes: [number, string][] = [[1e12, 'T'], [1e9, 'G'], [1e6, 'M'], [1e3, 'k']];
+    for (const [threshold, prefix] of siPrefixes) {
+      if (abs >= threshold) {
+        return (value / threshold).toLocaleString('de-AT', { minimumFractionDigits: 0, maximumFractionDigits: decimals }) + prefix;
+      }
+    }
+    return value.toLocaleString('de-AT', { minimumFractionDigits: 0, maximumFractionDigits: decimals });
+  }
+
+  function legacyFormatValue(config: Partial<HeatmapWidgetConfig>, value: number): string {
+    const decimals = config.decimalPlaces ?? 2;
+    const displayValue = value * (config.valueMultiplier ?? 1);
+    if (config.compactNumbers) {
+      return legacyFormatSI(displayValue, decimals);
+    }
+    return displayValue.toLocaleString('de-AT', { minimumFractionDigits: 0, maximumFractionDigits: decimals });
+  }
+
+  it('produces exactly the previous output over a grid of values, digits and options', () => {
+    TestBed.configureTestingModule({
+      imports: [HeatmapWidgetComponent],
+      providers: [
+        { provide: MeshBoardStateService, useValue: {} },
+        { provide: QueryExecutorService, useValue: {} },
+        { provide: MeshBoardVariableService, useValue: {} }
+      ]
+    });
+    const component = TestBed.createComponent(HeatmapWidgetComponent).componentInstance;
+    const values = [0, -0, 1, -1, 0.5, 0.004, 0.005, -0.005, 2.675, 38.9, 46, 999.995, 1234.5678, -1234.5678, 13600, 999999.5, 1e6, 2.5e9, -7.25e12, 1e21, 1e-7, Number.MAX_SAFE_INTEGER, Infinity, -Infinity];
+    const decimals = [undefined, 0, 1, 2, 3, 4, 5, 6];
+    let compared = 0;
+    for (const compactNumbers of [false, true]) {
+      for (const valueMultiplier of [undefined, 1, 0.001, 10 / 3600]) {
+        for (const decimalPlaces of decimals) {
+          const config = { type: 'heatmap', decimalPlaces, compactNumbers, valueMultiplier } as unknown as HeatmapWidgetConfig;
+          component.config = config;
+          for (const value of values) {
+            expect(component.formatValue(value)).toBe(legacyFormatValue(config, value));
+            compared++;
+          }
+        }
+      }
+    }
+    expect(compared).toBe(1536);
+  });
+});

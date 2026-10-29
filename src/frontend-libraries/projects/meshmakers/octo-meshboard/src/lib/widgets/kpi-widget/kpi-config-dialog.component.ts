@@ -27,6 +27,7 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { KPI_MAX_DECIMAL_PLACES, normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 
 /**
  * Data source type for KPI. `'formula'` computes the value from a formula over
@@ -66,6 +67,7 @@ export interface KpiConfigResult extends WidgetConfigResult {
   suffix?: string;
   trend?: 'up' | 'down' | 'neutral';
   comparisonText?: string;
+  decimalPlaces?: number;
   // Filters
   filters?: FieldFilterDto[];
 }
@@ -509,6 +511,19 @@ interface TrendOption {
             <kendo-textbox [(ngModel)]="form.comparisonText" placeholder="e.g. +3,1% vs. last week"></kendo-textbox>
             <p class="section-hint">Displayed below the value in the trend color. Supports {{ variableSyntaxHint }}</p>
           </div>
+          <div class="form-field">
+            <label>Decimal Places</label>
+            <kendo-numerictextbox
+              [(ngModel)]="form.decimalPlaces"
+              [min]="0"
+              [max]="maxDecimalPlaces"
+              [step]="1"
+              [decimals]="0"
+              format="n0"
+              placeholder="Automatic">
+            </kendo-numerictextbox>
+            <p class="section-hint">Fixed number of decimal places for numeric values (0-3). Leave empty for automatic (two for a fractional value, none for a whole number).</p>
+          </div>
         </div>
 
         <!-- Filters Section -->
@@ -731,6 +746,7 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialSuffix?: string;
   @Input() initialTrend?: 'up' | 'down' | 'neutral';
   @Input() initialComparisonText?: string;
+  @Input() initialDecimalPlaces?: number;
 
   // Initial values for editing - Persistent Query
   @Input() initialDataSourceType?: KpiDataSourceType;
@@ -805,6 +821,7 @@ export class KpiConfigDialogComponent implements OnInit {
     suffix: '',
     trend: undefined as 'up' | 'down' | 'neutral' | undefined,
     comparisonText: '',
+    decimalPlaces: null as number | null,
     // Query-specific form fields
     queryValueField: '',
     queryCategoryField: '',
@@ -916,6 +933,10 @@ export class KpiConfigDialogComponent implements OnInit {
 
   readonly variableSyntaxHint = '${variableName}';
 
+  get maxDecimalPlaces(): number {
+    return KPI_MAX_DECIMAL_PLACES;
+  }
+
   trendOptions: TrendOption[] = [
     { value: undefined, label: 'None' },
     { value: 'up', label: 'Up (positive)' },
@@ -969,6 +990,7 @@ export class KpiConfigDialogComponent implements OnInit {
     this.form.suffix = this.initialSuffix || '';
     this.form.trend = this.initialTrend;
     this.form.comparisonText = this.initialComparisonText || '';
+    this.form.decimalPlaces = this.initialDecimalPlaces ?? null;
     this.form.queryValueField = this.initialQueryValueField || '';
     this.form.queryCategoryField = this.initialQueryCategoryField || '';
     this.form.queryCategoryValue = this.initialQueryCategoryValue || '';
@@ -1185,11 +1207,7 @@ export class KpiConfigDialogComponent implements OnInit {
         ckTypeId: '',
         valueAttribute: '',
         formula: this.form.formula.trim(),
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        outputVariableName: this.form.outputVariableName.trim() || undefined
+        ...this.displayFields()
       });
       return;
     }
@@ -1200,11 +1218,7 @@ export class KpiConfigDialogComponent implements OnInit {
         ckTypeId: '',
         valueAttribute: '',
         staticValue: this.form.staticValue,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        outputVariableName: this.form.outputVariableName.trim() || undefined
+        ...this.displayFields()
       });
       return;
     }
@@ -1225,11 +1239,7 @@ export class KpiConfigDialogComponent implements OnInit {
         queryValueField: this.form.queryValueField || undefined,
         queryCategoryField: this.form.queryCategoryField || undefined,
         queryCategoryValue: this.form.queryCategoryValue || undefined,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        outputVariableName: this.form.outputVariableName.trim() || undefined,
+        ...this.displayFields(),
         filters: filtersDto
       });
     } else if (this.selectedCkType) {
@@ -1239,14 +1249,21 @@ export class KpiConfigDialogComponent implements OnInit {
         rtId: this.isCountMode ? undefined : this.selectedEntity?.rtId,
         valueAttribute: this.isCountMode ? '_count' : this.form.valueAttribute,
         labelAttribute: this.form.labelAttribute || undefined,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        outputVariableName: this.form.outputVariableName.trim() || undefined,
+        ...this.displayFields(),
         filters: filtersDto
       });
     }
+  }
+
+  private displayFields(): Pick<KpiConfigResult, 'prefix' | 'suffix' | 'trend' | 'comparisonText' | 'outputVariableName' | 'decimalPlaces'> {
+    return {
+      prefix: this.form.prefix || undefined,
+      suffix: this.form.suffix || undefined,
+      trend: this.form.trend,
+      comparisonText: this.form.comparisonText || undefined,
+      outputVariableName: this.form.outputVariableName.trim() || undefined,
+      decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces)
+    };
   }
 
   onCancel(): void {

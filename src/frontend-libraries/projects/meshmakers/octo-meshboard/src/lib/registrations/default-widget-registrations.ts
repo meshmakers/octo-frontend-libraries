@@ -181,6 +181,29 @@ function createDefaultPersistentQueryDataSource(): PersistentQueryDataSource {
  * Registers all built-in widget types with the registry.
  * Called during app initialization.
  */
+function kpiDisplayFieldsFromResult(result: KpiConfigResult): Pick<KpiWidgetConfig, 'outputVariableName' | 'prefix' | 'suffix' | 'trend' | 'comparisonText' | 'decimalPlaces'> {
+  return {
+    outputVariableName: result.outputVariableName,
+    prefix: result.prefix,
+    suffix: result.suffix,
+    trend: result.trend,
+    comparisonText: result.comparisonText,
+    decimalPlaces: result.decimalPlaces
+  };
+}
+
+function kpiDisplayFieldsFromPersisted(config: Record<string, unknown>): Pick<KpiWidgetConfig, 'prefix' | 'suffix' | 'icon' | 'trend' | 'comparisonText' | 'outputVariableName' | 'decimalPlaces'> {
+  return {
+    prefix: config['prefix'] as string | undefined,
+    suffix: config['suffix'] as string | undefined,
+    icon: config['icon'] as string | undefined,
+    trend: config['trend'] as KpiWidgetConfig['trend'],
+    comparisonText: config['comparisonText'] as string | undefined,
+    outputVariableName: config['outputVariableName'] as string | undefined,
+    decimalPlaces: normalizeKpiDecimalPlaces(config['decimalPlaces'])
+  };
+}
+
 export function registerDefaultWidgets(registry: WidgetRegistryService): void {
   // Entity Card Widget
   registry.registerWidget<EntityCardWidgetConfig, EntityCardConfigResult>({
@@ -306,6 +329,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialSuffix: kpiWidget.suffix,
         initialTrend: kpiWidget.trend,
         initialComparisonText: kpiWidget.comparisonText,
+        initialDecimalPlaces: normalizeKpiDecimalPlaces(kpiWidget.decimalPlaces),
         // Filters
         initialFilters: kpiWidget.filters
       };
@@ -324,7 +348,6 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           dataSource: { type: 'static' as const },
           valueMode: 'formula' as const,
           formula: result.formula,
-          outputVariableName: result.outputVariableName,
           valueAttribute: '',
           staticValue: undefined,
           labelAttribute: undefined,
@@ -332,10 +355,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryValueField: undefined,
           queryCategoryField: undefined,
           queryCategoryValue: undefined,
-          prefix: result.prefix,
-          suffix: result.suffix,
-          trend: result.trend,
-          comparisonText: result.comparisonText,
+          ...kpiDisplayFieldsFromResult(result),
           filters: undefined
         };
       } else if (result.dataSourceType === 'static') {
@@ -343,7 +363,6 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           ...widget,
           valueMode: undefined,
           formula: undefined,
-          outputVariableName: result.outputVariableName,
           dataSource: { type: 'static' as const },
           valueAttribute: '',
           staticValue: result.staticValue,
@@ -352,10 +371,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryValueField: undefined,
           queryCategoryField: undefined,
           queryCategoryValue: undefined,
-          prefix: result.prefix,
-          suffix: result.suffix,
-          trend: result.trend,
-          comparisonText: result.comparisonText,
+          ...kpiDisplayFieldsFromResult(result),
           filters: undefined
         };
       } else if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
@@ -373,7 +389,6 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           ...widget,
           valueMode: undefined,
           formula: undefined,
-          outputVariableName: result.outputVariableName,
           dataSource,
           valueAttribute: '',
           staticValue: undefined,
@@ -381,10 +396,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryValueField: result.queryValueField,
           queryCategoryField: result.queryCategoryField,
           queryCategoryValue: result.queryCategoryValue,
-          prefix: result.prefix,
-          suffix: result.suffix,
-          trend: result.trend,
-          comparisonText: result.comparisonText,
+          ...kpiDisplayFieldsFromResult(result),
           filters
         };
       } else {
@@ -393,7 +405,6 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           ...widget,
           valueMode: undefined,
           formula: undefined,
-          outputVariableName: result.outputVariableName,
           dataSource: createDataSource(result, false),
           valueAttribute: result.valueAttribute,
           labelAttribute: result.labelAttribute,
@@ -402,10 +413,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryValueField: undefined,
           queryCategoryField: undefined,
           queryCategoryValue: undefined,
-          prefix: result.prefix,
-          suffix: result.suffix,
-          trend: result.trend,
-          comparisonText: result.comparisonText,
+          ...kpiDisplayFieldsFromResult(result),
           filters
         };
       }
@@ -440,6 +448,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           icon: widget.icon,
           trend: widget.trend,
           comparisonText: widget.comparisonText,
+          decimalPlaces: widget.decimalPlaces,
           staticValue: widget.staticValue,
           valueMode: widget.valueMode,
           formula: widget.formula,
@@ -482,12 +491,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           staticValue: config['staticValue'] as string | undefined,
           valueMode: config['valueMode'] === 'formula' ? 'formula' : undefined,
           formula: config['formula'] as string | undefined,
-          prefix: config['prefix'] as string | undefined,
-          suffix: config['suffix'] as string | undefined,
-          icon: config['icon'] as string | undefined,
-          trend: config['trend'] as KpiWidgetConfig['trend'],
-          comparisonText: config['comparisonText'] as string | undefined,
-          outputVariableName: config['outputVariableName'] as string | undefined
+          ...kpiDisplayFieldsFromPersisted(config)
         };
       }
 
@@ -503,12 +507,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryCategoryField: config['queryCategoryField'] as string | undefined,
           queryCategoryValue: config['queryCategoryValue'] as string | undefined,
           valueMultiplier: config['valueMultiplier'] as number | undefined,
-          prefix: config['prefix'] as string | undefined,
-          suffix: config['suffix'] as string | undefined,
-          icon: config['icon'] as string | undefined,
-          trend: config['trend'] as KpiWidgetConfig['trend'],
-          comparisonText: config['comparisonText'] as string | undefined,
-          outputVariableName: config['outputVariableName'] as string | undefined,
+          ...kpiDisplayFieldsFromPersisted(config),
           filters: config['filters'] as WidgetFilterConfig[] | undefined
         };
       }
@@ -520,12 +519,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dataSource: dataSource as RuntimeEntityDataSource,
         valueAttribute: (config['valueAttribute'] as string) ?? '_count',
         labelAttribute: config['labelAttribute'] as string | undefined,
-        prefix: config['prefix'] as string | undefined,
-        suffix: config['suffix'] as string | undefined,
-        icon: config['icon'] as string | undefined,
-        trend: config['trend'] as KpiWidgetConfig['trend'],
-        comparisonText: config['comparisonText'] as string | undefined,
-        outputVariableName: config['outputVariableName'] as string | undefined,
+        ...kpiDisplayFieldsFromPersisted(config),
         filters: config['filters'] as WidgetFilterConfig[] | undefined
       };
     }
@@ -2439,6 +2433,7 @@ function readPieChartPresentationConfig(config: Record<string, unknown>): Partia
 import { InjectionToken } from '@angular/core';
 import { WidgetRegistration } from '../services/widget-registry.service';
 import { MESHBOARD_MESSAGES, MeshBoardMessagesSource } from '../utils/meshboard-messages';
+import { normalizeKpiDecimalPlaces } from '../utils/kpi-decimal-places';
 
 /**
  * Configuration options for MeshBoard

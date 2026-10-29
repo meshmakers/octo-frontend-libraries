@@ -11,7 +11,10 @@ import {
   QueryRow,
   QueryResult,
   SeriesConfig,
-  SUPPORTED_ROW_TYPES
+  SUPPORTED_ROW_TYPES,
+  formatWidgetNumber,
+  getNumberFormat,
+  WIDGET_NUMBER_LOCALE
 } from './widget-data-utils';
 
 /**
@@ -797,5 +800,28 @@ describe('applyValueMultiplier', () => {
 
   it('passes values through when no multiplier is configured', () => {
     expect(applyValueMultiplier(42, undefined)).toBe(42);
+  });
+});
+
+describe('formatWidgetNumber / getNumberFormat (AB#7686)', () => {
+  it('formats an exact digit count for the KPI and a maximum for the heatmap', () => {
+    expect(formatWidgetNumber(46, 1, 'exact')).toBe('46,0');
+    expect(formatWidgetNumber(38.94, 1, 'exact')).toBe('38,9');
+    expect(formatWidgetNumber(46, 2, 'maximum')).toBe('46');
+    expect(formatWidgetNumber(38.9, 2, 'maximum')).toBe('38,9');
+    expect(formatWidgetNumber(38.987, 2, 'maximum')).toBe('38,99');
+  });
+
+  it('reuses one formatter per locale, digits and grouping', () => {
+    const first = getNumberFormat(WIDGET_NUMBER_LOCALE, 1, 1);
+    expect(getNumberFormat(WIDGET_NUMBER_LOCALE, 1, 1)).toBe(first);
+    expect(getNumberFormat(WIDGET_NUMBER_LOCALE, 2, 2)).not.toBe(first);
+    expect(getNumberFormat('en-US', 1, 1)).not.toBe(first);
+    expect(getNumberFormat(WIDGET_NUMBER_LOCALE, 1, 1, false)).not.toBe(first);
+  });
+
+  it('throws the same RangeError as toLocaleString for an invalid digit count', () => {
+    expect(() => formatWidgetNumber(1, 101, 'maximum')).toThrow(RangeError);
+    expect(() => (1).toLocaleString('de-AT', { minimumFractionDigits: 0, maximumFractionDigits: 101 })).toThrow(RangeError);
   });
 });
