@@ -39,7 +39,7 @@ npm run test:shared-ui
 | `RowActionsComponent` | `mm-row-actions` | Row actions from `MmAction[]`: icon buttons, max 3 slots + overflow, focusable disabled reasons (AB#5570, `docs/actions.md`) |
 | `ActionButtonComponent` | `mm-action-button` | One `MmAction` as icon / text button (row, toolbar, page context) |
 | `OctoBotComponent` | `mm-octobot` | Animated mascot `<img>` from library assets (`OCTOBOT_ASSET_BASE_URL`), still under reduced motion; never in rows/tiles/buttons/toasts (AB#3444, `docs/octobot.md`) |
-| `EmptyStateComponent` | `mm-empty-state` | Empty (`idle`) / no-results (`look`) / error (no figure, "Try again") block; `mm-list-view [emptyState]` renders it once per list |
+| `EmptyStateComponent` | `mm-empty-state` | Empty (`idle`) / no-results (`look`) / error (no figure, "Try again") block; `mm-list-view [emptyState]` renders it once per list, with host actions from `mmListViewEmptyActions` (AB#7628) |
 
 ### EntitySelectInput: emptying the input clears the value
 
@@ -327,6 +327,29 @@ Worth knowing when a page has MANY filters (the Meshmakers App's transactions
 list carries six: view, category, period, from/to dates, clarification): that
 is more than the band can hold, and such a page is better off keeping a filter
 strip of its own. The slot suits the two-or-three-control case.
+
+**Actions in the empty state (`mmListViewEmptyActions`, AB#7628)**
+
+A list whose `[emptyState]` is set can offer the page's primary command inside
+the empty block, below the text, so an empty page is not a dead end:
+
+```html
+<mm-list-view [emptyState]="{ title: 'No customers yet', text: 'Create the first customer.' }" …>
+  <ng-template mmListViewEmptyActions>
+    <button kendoButton type="button" themeColor="primary" (click)="create()">New customer</button>
+  </ng-template>
+</mm-list-view>
+```
+
+The template is rendered only in the `empty` variant, after loading settled: not
+while the list loads, not in the `no-results` variant (a search or host filter is
+active, so the list is not empty) and not with `[emptyTemplate]` or without
+`[emptyState]`. Without the template the empty block is unchanged (no wrapper
+element). The buttons sit in `.mm-list-view-empty-actions` (centred, wrapping,
+`--theme-space-2` gap), the same layout as the Studio's `empty-actions`. A
+directive for the same reason as `mmListViewFilters`: the empty block lives in a
+`kendoGridNoRecordsTemplate`. The toolbar button stays; the empty-state button is
+a second way to the same command.
 
 **Built-in commands (`collapseCommandsBelow`, AB#3444)**
 

@@ -228,7 +228,13 @@
                           [text]="emptyState.filteredText || _messages.noResultsText"></mm-empty-state>
         } @else {
           <mm-empty-state class="mm-list-view-empty" variant="empty"
-                          [heading]="emptyState.title" [text]="emptyState.text"></mm-empty-state>
+                          [heading]="emptyState.title" [text]="emptyState.text">
+            @if (emptyActionsTemplate) {
+              <div class="mm-list-view-empty-actions">
+                <ng-container [ngTemplateOutlet]="emptyActionsTemplate.templateRef"></ng-container>
+              </div>
+            }
+          </mm-empty-state>
         }
       }
     } @else {

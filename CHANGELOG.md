@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui list view (actions in the empty state, AB#7628)
+
+- New (non-breaking, additive): `ListViewEmptyActionsDirective` (`<ng-template mmListViewEmptyActions>` inside
+  `mm-list-view`). With `[emptyState]` set, its content (e.g. the page's "New ..." button) is rendered inside
+  `mm-empty-state`, below the text, in `.mm-list-view-empty-actions`. Only in the `empty` variant: not while the list
+  loads and not in the "no results" variant (search, row filter or `hasExternalFilters`). A list without the template
+  renders exactly as before. Follow-up for the EC team after this release: the four EC lists with an empty state
+  (billing, EDA processes, imported metering points, registration requests) pass their primary command; the toolbar
+  button stays.
+
 ### shared-ui shell user menu (avatar, AB#7679)
 
 - Fix (non-breaking): the large avatar in the user menu panel no longer shrinks into an ellipse beside a long account name
