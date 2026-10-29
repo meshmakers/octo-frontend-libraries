@@ -351,6 +351,13 @@ directive for the same reason as `mmListViewFilters`: the empty block lives in a
 `kendoGridNoRecordsTemplate`. The toolbar button stays; the empty-state button is
 a second way to the same command.
 
+The action row stops the propagation of `keydown`. The no-records row sits
+inside the grid table, and Kendo's grid keyboard navigation (on by default)
+takes Enter and Space for its active cell: after tabbing from a header cell to
+the button, Enter moved the focus back to the header and the click never fired.
+The default action is not prevented, so the browser still clicks the button
+and Tab still moves on.
+
 **Built-in commands (`collapseCommandsBelow`, AB#3444)**
 
 The toolbar's own command group — row filter, Excel, PDF, reset filters,

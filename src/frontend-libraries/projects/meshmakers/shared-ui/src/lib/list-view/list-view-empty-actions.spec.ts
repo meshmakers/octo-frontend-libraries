@@ -110,6 +110,25 @@ describe('ListViewComponent empty state actions (AB#7628)', () => {
     expect(fixture.componentInstance.creations).toBe(1);
   });
 
+  it('keeps its keys away from the grid keyboard navigation, which would take Enter and Space for the header cell', async () => {
+    const { fixture, root, dataSource } = await render(HostWithActionComponent);
+    await answerEmpty(fixture, dataSource);
+
+    const grid = root.querySelector<HTMLElement>('kendo-grid')!;
+    const button = root.querySelector<HTMLButtonElement>('.mm-list-view-empty-actions button')!;
+    const keysSeenByGrid: string[] = [];
+    grid.addEventListener('keydown', event => keysSeenByGrid.push(event.key));
+    button.focus();
+    for (const key of ['Enter', ' ', 'Tab']) {
+      const keydown = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+      button.dispatchEvent(keydown);
+      expect(keydown.defaultPrevented, `default action of ${key}`).toBe(false);
+    }
+
+    expect(keysSeenByGrid).toEqual([]);
+    expect(document.activeElement).toBe(button);
+  });
+
   it('shows the "no results" variant without the action while a host filter is active', async () => {
     const { fixture, root, dataSource } = await render(HostWithActionComponent, true);
     await answerEmpty(fixture, dataSource);
