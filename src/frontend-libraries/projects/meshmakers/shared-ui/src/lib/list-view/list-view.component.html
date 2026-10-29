@@ -230,7 +230,7 @@
           <mm-empty-state class="mm-list-view-empty" variant="empty"
                           [heading]="emptyState.title" [text]="emptyState.text">
             @if (emptyActionsTemplate) {
-              <div class="mm-list-view-empty-actions" (keydown)="$event.stopPropagation()">
+              <div class="mm-list-view-empty-actions" (keydown)="keepEmptyActionKeysFromGrid($event)">
                 <ng-container [ngTemplateOutlet]="emptyActionsTemplate.templateRef"></ng-container>
               </div>
             }

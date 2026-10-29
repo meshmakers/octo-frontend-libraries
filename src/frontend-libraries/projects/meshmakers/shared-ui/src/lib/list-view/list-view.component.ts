@@ -494,6 +494,13 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return (this.dataBindingDirective?.currentState?.filter?.filters?.length ?? 0) > 0;
   }
 
+  protected keepEmptyActionKeysFromGrid(event: KeyboardEvent): void {
+    const keyForThePage = event.key === 'Escape';
+    if (!keyForThePage) {
+      event.stopPropagation();
+    }
+  }
+
   protected get emptyContext(): MmListEmptyContext {
     const filtered = this.isFiltered;
     return { $implicit: filtered, filtered };

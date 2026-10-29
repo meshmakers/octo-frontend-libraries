@@ -49,6 +49,22 @@ class HostWithActionComponent {
 
 @Component({
   standalone: true,
+  imports: [ListViewComponent, ControlledDataSourceDirective, ListViewEmptyActionsDirective],
+  template: `
+    <mm-list-view mmTestEmptyActionsDs [columns]="columns" [emptyTemplate]="custom"
+                  [emptyState]="{ title: 'No customers yet', text: 'Create the first customer.' }">
+      <ng-template mmListViewEmptyActions>
+        <button type="button" class="test-create">New customer</button>
+      </ng-template>
+    </mm-list-view>
+    <ng-template #custom><p class="test-custom-empty">Custom empty</p></ng-template>`,
+})
+class HostWithActionAndEmptyTemplateComponent {
+  readonly columns = COLUMNS;
+}
+
+@Component({
+  standalone: true,
   imports: [ListViewComponent, ControlledDataSourceDirective],
   template: `
     <mm-list-view mmTestEmptyActionsDs [columns]="columns"
@@ -127,6 +143,27 @@ describe('ListViewComponent empty state actions (AB#7628)', () => {
 
     expect(keysSeenByGrid).toEqual([]);
     expect(document.activeElement).toBe(button);
+  });
+
+  it('lets Escape reach the page, so an enclosing dialog still closes from the action', async () => {
+    const { fixture, root, dataSource } = await render(HostWithActionComponent);
+    await answerEmpty(fixture, dataSource);
+
+    const button = root.querySelector<HTMLButtonElement>('.mm-list-view-empty-actions button')!;
+    const keysSeenByPage: string[] = [];
+    root.addEventListener('keydown', event => keysSeenByPage.push(event.key));
+    button.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+
+    expect(keysSeenByPage).toEqual(['Escape']);
+  });
+
+  it('renders only the custom empty template when the host passes one next to an action', async () => {
+    const { fixture, root, dataSource } = await render(HostWithActionAndEmptyTemplateComponent);
+    await answerEmpty(fixture, dataSource);
+
+    expect(root.querySelector('.test-custom-empty')).not.toBeNull();
+    expect(root.querySelector('mm-empty-state')).toBeNull();
+    expect(root.querySelector('button.test-create')).toBeNull();
   });
 
   it('shows the "no results" variant without the action while a host filter is active', async () => {
