@@ -169,6 +169,70 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     }));
   });
 
+  it('returns the decimal places on save (AB#7686)', async () => {
+    await open([kpi('self')], { initialFormula: '${a}', initialDecimalPlaces: 1 });
+
+    expect(component.form.decimalPlaces).toBe(1);
+    component.onSave();
+
+    expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ decimalPlaces: 1 }));
+  });
+
+  it('returns no decimal places when the field is empty (AB#7686)', async () => {
+    await open([kpi('self')], { initialFormula: '${a}' });
+
+    expect(component.form.decimalPlaces).toBeNull();
+    component.onSave();
+
+    expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ decimalPlaces: undefined }));
+  });
+
+  it('does not save a typed value above 3 (AB#7686)', async () => {
+    await open([kpi('self')], { initialFormula: '${a}' });
+    component.form.decimalPlaces = 7;
+    component.onSave();
+
+    expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ decimalPlaces: undefined }));
+  });
+
+  describe('display fields in every mode on save (AB#7686)', () => {
+    const expected = {
+      prefix: 'EUR ',
+      suffix: ' kWh',
+      trend: 'down',
+      comparisonText: 'vs. last week',
+      decimalPlaces: 1,
+      outputVariableName: 'shown'
+    };
+
+    async function openWithDisplayFields(mode: string): Promise<void> {
+      await open([kpi('self')], {
+        initialDataSourceType: mode as never,
+        initialFormula: '${a}',
+        initialStaticValue: '42',
+        initialPrefix: 'EUR ',
+        initialSuffix: ' kWh',
+        initialTrend: 'down',
+        initialComparisonText: 'vs. last week',
+        initialDecimalPlaces: 1,
+        initialOutputVariableName: ' shown '
+      });
+      Object.assign(component, {
+        selectedPersistentQuery: { rtId: 'q-1', name: 'Query', ckTypeId: 'System/RuntimeQuery' },
+        selectedCkType: { rtCkTypeId: 'Test/Type' }
+      });
+    }
+
+    for (const mode of ['formula', 'static', 'persistentQuery', 'runtimeEntity']) {
+      it(`returns every display field for ${mode}`, async () => {
+        await openWithDisplayFields(mode);
+        component.onSave();
+
+        expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ dataSourceType: mode, ...expected }));
+      });
+    }
+  });
+
   it('inserts a variable reference', async () => {
     await open([kpi('self')], { initialFormula: '1 +' });
 

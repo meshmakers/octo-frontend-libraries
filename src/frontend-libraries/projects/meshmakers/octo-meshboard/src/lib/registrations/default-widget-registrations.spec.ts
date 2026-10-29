@@ -109,6 +109,117 @@ describe('Default widget registrations — KPI', () => {
     });
   });
 
+  describe('decimalPlaces (AB#7686)', () => {
+    it('keeps the decimal places of a formula KPI through dialog apply and persistence', () => {
+      const applied = applyResult(createKpiWidget(), {
+        dataSourceType: 'formula',
+        formula: '${a} / ${b} * 100',
+        decimalPlaces: 1
+      });
+      expect(applied.decimalPlaces).toBe(1);
+      expect(roundTrip(applied).decimalPlaces).toBe(1);
+    });
+
+    it('keeps the decimal places of a static, persistent-query and runtime-entity KPI', () => {
+      const staticKpi = applyResult(createKpiWidget(), { dataSourceType: 'static', staticValue: '1', decimalPlaces: 2 });
+      const queryKpi = applyResult(createKpiWidget(), {
+        dataSourceType: 'persistentQuery',
+        queryRtId: 'q-1',
+        queryName: 'Query',
+        queryMode: 'simpleCount',
+        decimalPlaces: 0
+      });
+      const entityKpi = applyResult(createKpiWidget(), {
+        dataSourceType: 'runtimeEntity',
+        ckTypeId: 'Test/Type',
+        valueAttribute: '_count',
+        decimalPlaces: 3
+      });
+
+      expect(roundTrip(staticKpi).decimalPlaces).toBe(2);
+      expect(roundTrip(queryKpi).decimalPlaces).toBe(0);
+      expect(roundTrip(entityKpi).decimalPlaces).toBe(3);
+    });
+
+    it('passes the decimal places to the dialog', () => {
+      const initial = registry.getInitialConfig(createKpiWidget({ decimalPlaces: 1 }));
+      expect(initial['initialDecimalPlaces']).toBe(1);
+    });
+
+    it('normalises a hand-written decimalPlaces when loading, in every mode', () => {
+      const cases: [unknown, number | undefined][] = [[1, 1], [3, 3], ['1', undefined], [1.5, undefined], [4, undefined], [-1, undefined], [null, undefined], ['abc', undefined]];
+      const modes: Partial<PersistedWidgetData>[] = [
+        { dataSourceType: 'static' },
+        { dataSourceType: 'systemQuery', dataSourceRtId: 'q-1' },
+        { dataSourceType: 'runtimeEntity', dataSourceCkTypeId: 'Test/Type' }
+      ];
+      for (const mode of modes) {
+        for (const [raw, expected] of cases) {
+          const widget = createKpiWidget();
+          const restored = registry.deserializeWidget({
+            ...toPersisted({ dataSourceType: 'static', config: { decimalPlaces: raw, valueMode: 'formula', formula: '1' } }, widget),
+            ...mode
+          }) as KpiWidgetConfig;
+          expect(restored.decimalPlaces).toBe(expected);
+        }
+      }
+    });
+
+    it('passes only a number or nothing to the dialog', () => {
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: 2 }))['initialDecimalPlaces']).toBe(2);
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: '2' as unknown as number }))['initialDecimalPlaces']).toBeUndefined();
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: 5 }))['initialDecimalPlaces']).toBeUndefined();
+    });
+
+    it('stores nothing when unset', () => {
+      const applied = applyResult(createKpiWidget({ decimalPlaces: 1 }), { dataSourceType: 'static', staticValue: '1' });
+      expect(applied.decimalPlaces).toBeUndefined();
+      expect('decimalPlaces' in JSON.parse(JSON.stringify(registry.serializeWidget(applied).config))).toBe(false);
+      expect(roundTrip(applied).decimalPlaces).toBeUndefined();
+    });
+  });
+
+  describe('KPI display fields in every mode (AB#7686)', () => {
+    const display = {
+      prefix: 'EUR ',
+      suffix: ' kWh',
+      trend: 'up' as const,
+      comparisonText: 'vs. ${last}',
+      decimalPlaces: 2,
+      outputVariableName: 'shown'
+    };
+    const modes: Partial<KpiConfigResult>[] = [
+      { dataSourceType: 'runtimeEntity', ckTypeId: 'Test/Type', valueAttribute: '_count' },
+      { dataSourceType: 'persistentQuery', queryRtId: 'q-1', queryName: 'Query', queryMode: 'simpleCount' },
+      { dataSourceType: 'static', staticValue: '42' },
+      { dataSourceType: 'formula', formula: '${a} * 2' }
+    ];
+
+    for (const mode of modes) {
+      it(`keeps every display field of a ${mode.dataSourceType} KPI through apply, persistence and the dialog`, () => {
+        const applied = applyResult(createKpiWidget({ icon: 'chart' }), { ...mode, ...display });
+        const restored = roundTrip(applied);
+        const initial = registry.getInitialConfig(restored);
+
+        for (const widget of [applied, restored]) {
+          expect(widget.prefix).toBe(display.prefix);
+          expect(widget.suffix).toBe(display.suffix);
+          expect(widget.trend).toBe(display.trend);
+          expect(widget.comparisonText).toBe(display.comparisonText);
+          expect(widget.decimalPlaces).toBe(display.decimalPlaces);
+          expect(widget.outputVariableName).toBe(display.outputVariableName);
+          expect(widget.icon).toBe('chart');
+        }
+        expect(initial['initialPrefix']).toBe(display.prefix);
+        expect(initial['initialSuffix']).toBe(display.suffix);
+        expect(initial['initialTrend']).toBe(display.trend);
+        expect(initial['initialComparisonText']).toBe(display.comparisonText);
+        expect(initial['initialDecimalPlaces']).toBe(display.decimalPlaces);
+        expect(initial['initialOutputVariableName']).toBe(display.outputVariableName);
+      });
+    }
+  });
+
   describe('formula and output variable (AB#5364)', () => {
     it('round-trips a formula KPI with output variable and comparison text', () => {
       const applied = applyResult(createKpiWidget(), {

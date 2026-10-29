@@ -441,3 +441,31 @@ export function applyValueMultiplier(value: number | string, multiplier: number 
   }
   return value * multiplier;
 }
+
+export const WIDGET_NUMBER_LOCALE = 'de-AT';
+
+export type FractionDigitsMode = 'exact' | 'maximum';
+
+const numberFormats = new Map<string, Intl.NumberFormat>();
+
+export function getNumberFormat(
+  locale: string,
+  minimumFractionDigits: number,
+  maximumFractionDigits: number,
+  useGrouping?: boolean
+): Intl.NumberFormat {
+  const key = `${locale}|${minimumFractionDigits}|${maximumFractionDigits}|${useGrouping}`;
+  let format = numberFormats.get(key);
+  if (!format) {
+    format = new Intl.NumberFormat(locale, useGrouping === undefined
+      ? { minimumFractionDigits, maximumFractionDigits }
+      : { minimumFractionDigits, maximumFractionDigits, useGrouping });
+    numberFormats.set(key, format);
+  }
+  return format;
+}
+
+export function formatWidgetNumber(value: number, fractionDigits: number, mode: FractionDigitsMode): string {
+  const minimumFractionDigits = mode === 'exact' ? fractionDigits : 0;
+  return getNumberFormat(WIDGET_NUMBER_LOCALE, minimumFractionDigits, fractionDigits).format(value);
+}

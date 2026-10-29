@@ -27,6 +27,7 @@ import { KpiWidgetComponent } from '../kpi-widget/kpi-widget.component';
 import { GaugeWidgetComponent } from '../gauge-widget/gauge-widget.component';
 import { EntityCardWidgetComponent } from '../entity-card-widget/entity-card-widget.component';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 
 /**
  * Widget Group Component
@@ -247,7 +248,8 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
       prefix: staticConfig?.prefix,
       suffix: staticConfig?.suffix,
       trend: staticConfig?.trend,
-      icon: staticConfig?.icon
+      icon: staticConfig?.icon,
+      decimalPlaces: normalizeKpiDecimalPlaces(staticConfig?.decimalPlaces)
     };
   }
 

@@ -11,8 +11,9 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { applyValueMultiplier, matchesAttributePath } from '../../utils/widget-data-utils';
+import { applyValueMultiplier, formatWidgetNumber, getNumberFormat, matchesAttributePath } from '../../utils/widget-data-utils';
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
+import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 
 @Component({
@@ -155,7 +156,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     if (config?.dataSource?.type === 'persistentQuery') {
       attributeName = '_queryValue';
     } else if (config?.dataSource?.type === 'static') {
-      attributeName = '_staticValue';
+      attributeName = config.dataSource.data ? config.valueAttribute : '_staticValue';
     } else {
       attributeName = config?.valueAttribute;
     }
@@ -236,6 +237,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return '-';
     }
 
+    const decimals = normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces);
+    if (decimals !== undefined) {
+      return this.formatWithDecimals(value, strValue, decimals);
+    }
+
     const numValue = typeof value === 'number' ? value : parseFloat(strValue);
 
     if (isNaN(numValue)) {
@@ -247,6 +253,22 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       minimumFractionDigits: numValue % 1 !== 0 ? 2 : 0,
       maximumFractionDigits: 2
     });
+  }
+
+  private static strictNumber(text: string): number {
+    const trimmed = text.trim();
+    return trimmed === '' ? NaN : Number(trimmed);
+  }
+
+  private formatWithDecimals(value: unknown, strValue: string, decimals: number): string {
+    const numValue = typeof value === 'number' ? value : KpiWidgetComponent.strictNumber(strValue);
+    if (typeof value === 'number' ? isNaN(numValue) : !Number.isFinite(numValue)) {
+      return strValue;
+    }
+
+    const negative = numValue < 0 || Object.is(numValue, -0);
+    const shown = negative && Number(getNumberFormat('en-US', 0, decimals, false).format(numValue)) === 0 ? 0 : numValue;
+    return formatWidgetNumber(shown, decimals, 'exact');
   }
 
   readonly label = computed(() => {
@@ -331,6 +353,12 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     if (this.isFormulaMode()) {
       // Formula values are computed live from the variables (see formulaResult)
       this._data.set(null);
+      this._error.set(null);
+      return;
+    }
+
+    if (dataSource.type === 'static' && dataSource.data) {
+      this._data.set(dataSource.data as RuntimeEntityData);
       this._error.set(null);
       return;
     }
@@ -551,6 +579,10 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     if (value === null || value === undefined) return 0;
     if (typeof value === 'number') return value;
     if (typeof value === 'string') {
+      if (normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces) !== undefined) {
+        const strict = KpiWidgetComponent.strictNumber(value);
+        return Number.isFinite(strict) ? strict : value;
+      }
       // Try to parse as number first
       const parsed = parseFloat(value);
       // If it's a valid number, return as number; otherwise return the string

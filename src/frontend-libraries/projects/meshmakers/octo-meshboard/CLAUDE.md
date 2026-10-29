@@ -367,7 +367,7 @@ interface AggregationQuery {
 
 | Type | Description | Data Sources |
 |------|-------------|--------------|
-| `kpi` | Single numeric value with optional trend. Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
+| `kpi` | Single numeric value with optional trend. A `static` data source with `data` (widget-group children) reads `valueAttribute` from that entity data; without `data` the KPI shows `staticValue`. Optional `decimalPlaces` (integer number 0-3, normalised on load by `utils/kpi-decimal-places.ts`, anything else = automatic; an exact digit count, unlike the heatmap's maximum; also passed to widget-group KPI children) fixes the fraction digits of a numeric value, a negative value rounding to zero shows no sign (unset or invalid: two for a fractional value, none for a whole number; AB#7686). Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
 | `gauge` | Arc, Circular, Linear, or Radial gauge | runtimeEntity, persistentQuery, aggregation, static |
 | `barChart` | Bar/Column chart | persistentQuery, constructionKitQuery |
 | `pieChart` | Pie/Donut chart | persistentQuery, constructionKitQuery |
@@ -941,11 +941,14 @@ Current test files:
 - `meshboard-state.service.spec.ts` - State management (74 tests, includes entity selector management + stream-data time-arg binding)
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
-- `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests)
+- `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
+- `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
-- `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364)
-- `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish
-- `kpi-config-dialog.component.spec.ts` - KPI dialog formula validation, output-name and cycle checks
+- `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
+- `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish, `decimalPlaces` formatting (incl. negative zero)
+- `kpi-decimal-places.spec.ts` - `decimalPlaces` normalisation (integer numbers 0-3 only, out-of-range and non-number values)
+- `kpi-config-dialog.component.spec.ts` - KPI dialog formula validation, output-name and cycle checks, `decimalPlaces` save
+- `widget-group-config-dialog.component.spec.ts` - widget-group dialog: KPI child `decimalPlaces` read, save, out-of-range (AB#7686)
 - `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)
 
 ---

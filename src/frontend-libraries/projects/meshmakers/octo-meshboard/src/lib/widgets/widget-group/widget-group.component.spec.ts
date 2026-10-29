@@ -367,6 +367,40 @@ describe('WidgetGroupComponent', () => {
       expect((childConfigs[0] as KpiWidgetConfig).suffix).toBe('%');
     }));
 
+    it('should pass decimalPlaces to KPI children (AB#7686)', fakeAsync(() => {
+      const mockData = createMockRepeaterData(2);
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
+
+      component.config = createMockConfig({
+        childTemplate: {
+          widgetType: 'kpi',
+          attributeMappings: { valueAttribute: 'value' },
+          staticConfig: { decimalPlaces: 1 }
+        }
+      });
+      fixture.detectChanges();
+      tick();
+
+      const childConfigs = component.childConfigs();
+      expect((childConfigs[0] as KpiWidgetConfig).decimalPlaces).toBe(1);
+      expect((childConfigs[1] as KpiWidgetConfig).decimalPlaces).toBe(1);
+    }));
+
+    it('should drop an invalid decimalPlaces of KPI children (AB#7686)', fakeAsync(() => {
+      dataServiceSpy.fetchRepeaterData.mockResolvedValue(createMockRepeaterData(1));
+
+      component.config = createMockConfig({
+        childTemplate: {
+          widgetType: 'kpi',
+          attributeMappings: { valueAttribute: 'value' },
+          staticConfig: { decimalPlaces: '2' as unknown as number }
+        }
+      });
+      fixture.detectChanges();
+      tick();
+      expect((component.childConfigs()[0] as KpiWidgetConfig).decimalPlaces).toBeUndefined();
+    }));
+
     it('should create Gauge child config correctly', fakeAsync(() => {
       const mockData = createMockRepeaterData(1);
       dataServiceSpy.fetchRepeaterData.mockResolvedValue(mockData);
