@@ -249,6 +249,35 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
         expect(component.value()).toBe(digits[decimalPlaces]);
       }
     });
+
+    async function renderQueryCell(cellValue: unknown, overrides: Partial<KpiWidgetConfig>): Promise<void> {
+      queryExecutor.execute.mockReturnValue(of({
+        totalCount: 1,
+        columns: [],
+        rows: [{ __typename: 'RtAggregationQueryRow', cells: [{ attributePath: 'amount_sum', value: cellValue }] }]
+      }));
+      render(kpi({
+        dataSource: { type: 'persistentQuery', queryRtId: 'q-1' },
+        queryMode: 'aggregation',
+        queryValueField: 'amount_sum',
+        ...overrides
+      }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('keeps a query cell text with decimalPlaces and parses it leniently when unset', async () => {
+      await renderQueryCell('12 kWh', { decimalPlaces: 1 });
+      expect(plain(component.value())).toBe('12 kWh');
+
+      await renderQueryCell('12 kWh', {});
+      expect(plain(component.value())).toBe('12');
+    });
+
+    it('applies the multiplier to a numeric query cell given as text with decimalPlaces', async () => {
+      await renderQueryCell('9418.39', { decimalPlaces: 1, valueMultiplier: 2 });
+      expect(plain(component.value())).toBe('18 836,8');
+    });
   });
 
   describe('widget-group child with entity data (AB#7686)', () => {

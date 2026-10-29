@@ -255,9 +255,13 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     });
   }
 
+  private static strictNumber(text: string): number {
+    const trimmed = text.trim();
+    return trimmed === '' ? NaN : Number(trimmed);
+  }
+
   private formatWithDecimals(value: unknown, strValue: string, decimals: number): string {
-    const trimmed = strValue.trim();
-    const numValue = typeof value === 'number' ? value : trimmed === '' ? NaN : Number(trimmed);
+    const numValue = typeof value === 'number' ? value : KpiWidgetComponent.strictNumber(strValue);
     if (typeof value === 'number' ? isNaN(numValue) : !Number.isFinite(numValue)) {
       return strValue;
     }
@@ -575,6 +579,10 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     if (value === null || value === undefined) return 0;
     if (typeof value === 'number') return value;
     if (typeof value === 'string') {
+      if (normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces) !== undefined) {
+        const strict = KpiWidgetComponent.strictNumber(value);
+        return Number.isFinite(strict) ? strict : value;
+      }
       // Try to parse as number first
       const parsed = parseFloat(value);
       // If it's a valid number, return as number; otherwise return the string
