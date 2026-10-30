@@ -481,8 +481,10 @@ export interface TableColumn {
   /**
    * Labels for raw cell values (AB#7655), keyed by the value as string (`"1"`, `"2"`, `"3"`); a
    * number `2` and a string `"2"` both match `"2"`. The cell shows the label as plain text (with the
-   * optional colour); an unmapped value shows the raw value, `null` / missing an empty cell. Wins over
-   * the column's `dataType` rendering and over `MESHBOARD_LABEL_RESOLVER`.
+   * optional colour); a value without a label keeps the column's `dataType` / `format` rendering,
+   * `null` / missing is an empty cell. When no label applies for the current language the column
+   * renders as without `valueLabels`. Wins over `MESHBOARD_LABEL_RESOLVER`. Not supported together
+   * with `statusMapping` (the labels are shown, a console warning is logged).
    */
   valueLabels?: Record<string, TableColumnValueLabel>;
 }

@@ -428,25 +428,37 @@ interface TableColumnValueLabel {
 
   No language = every column shows `title` and per-language labels show the raw value, exactly as
   before. `pickLocalizedText(texts, language)` is exported for hosts that need the same lookup.
-- **`titles`** — lookup order: the exact culture (`de-AT`, case-insensitive), then a key equal to
-  the language part (`de`), then `title`. A culture never picks a sibling culture (`de-DE` does not
-  take `de-AT`). Columns derived from a persistent query (no explicit `columns`) keep their
-  generated titles.
+- **`titles`** — lookup order: the exact culture or language (`de-AT`, `de`; case-insensitive);
+  for a culture (`de-AT`) without an exact key, a key equal to its language part (`de`); for a bare
+  language (`de`, e.g. from a simple language switcher) without an exact key, the **first authored
+  key of that language** (`de-AT` in `{ "en-GB": …, "de-AT": …, "de-DE": … }`, in the order the keys
+  are written); then `title`. A culture never picks a sibling culture (`de-DE` does not take `de-AT`).
+  Columns derived from a persistent query (no explicit `columns`) keep their generated titles.
 - **`valueLabels`** — keys are the raw value as string; a number `2` and a string `"2"` both match
   `"2"`. The cell shows the label as **plain text** like every other cell (no badge); `color`, when
   set, is the text colour — use a theme token such as `var(--kendo-color-error)`; without it the
-  theme text colour applies. A per-language `label` follows the host language like `titles`; without
-  a match the raw value shows. An unmapped value (e.g. `4`) shows the raw value, `null` / missing an
-  empty cell. `valueLabels` win over the column's `dataType` rendering and over
-  `MESHBOARD_LABEL_RESOLVER`.
-- **Configuration errors** — a culture key that is not a culture code (`german`, `de_AT`) or a
-  malformed `valueLabels` entry (no object, no usable `label`, non-string `color`) is ignored; the
-  widget logs **one** console warning per widget and column naming both, and the table still renders.
+  theme text colour applies. A per-language `label` follows the host language like `titles`. A value
+  without a label (unmapped, e.g. `4`, or a per-language label without a match) keeps the column's
+  rendering: `numeric` with `format` like the `number` pipe, `iso8601` with `format` like the `date`
+  pipe, plain text through the board's date-time formatter; `null` / missing is an empty cell. When
+  no label applies for the current language at all (e.g. only `de-AT` labels and the host language is
+  `en-GB`), the column renders exactly as without `valueLabels`, including `MESHBOARD_LABEL_RESOLVER`.
+  Otherwise `valueLabels` win over `MESHBOARD_LABEL_RESOLVER`. **`valueLabels` together with
+  `statusMapping` (status icons) is not supported:** the labels are shown, the status icons are not,
+  and the widget logs a console warning.
+- **Configuration errors** — a culture key that is not a culture code (`german`, `de_AT`), a
+  malformed `titles` entry (no object, non-string or empty text) or a malformed `valueLabels` entry
+  (no object, no usable `label`, non-string `color`) is ignored; the widget logs **one** console
+  warning per widget, column and set of problems naming them (a different problem after a config
+  edit is reported again), and the table still renders.
 - **Refinery Studio** — the table config dialog keeps hand-authored columns: saving a
-  persistent-query table without changing the query keeps its explicit `columns` unchanged (a new
-  query starts without explicit columns); for runtime-entity tables, columns that stay selected on
-  the same CK type keep all their properties (`titles`, `valueLabels`, `width`, `format`,
-  `statusMapping`, ...), newly selected ones get a generated title.
+  persistent-query table without changing the query keeps its explicit `columns` that the query still
+  returns (unchanged, in their order), drops those whose field the query no longer returns and adds the
+  query's other columns with a generated title, like derived columns (when the query's columns cannot
+  be loaded, the explicit columns stay unchanged; a new query starts without explicit columns); for
+  runtime-entity tables, columns that stay selected on the same CK type keep all their properties
+  (`titles`, `valueLabels`, `width`, `format`, `statusMapping`, ...), newly selected ones get a
+  generated title. A new `config` on the same widget instance re-renders headers and labels.
 
 Example — the daily quality 1/2/3 shown as L1/L2/L3 with German and English headers:
 

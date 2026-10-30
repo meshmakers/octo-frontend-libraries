@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, inject, signal, computed, ChangeDetectionStrategy, Signal } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, ViewChild, inject, signal, computed, ChangeDetectionStrategy, Signal, LOCALE_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableWidgetConfig, PersistentQueryDataSource, RuntimeEntityDataSource, TableColumnStatusIconMapping, TableColumn } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
@@ -9,7 +9,14 @@ import { TableWidgetDataSourceDirective, QueryColumn } from './table-widget-data
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
 import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
-import { TableColumnLabelProblems, hasLabelProblems, resolveColumnTitle, resolveValueLabels } from './table-column-labels';
+import {
+  TableColumnLabelProblems,
+  emptyLabelProblems,
+  formatUnlabelledValue,
+  hasLabelProblems,
+  resolveColumnTitle,
+  resolveValueLabels
+} from './table-column-labels';
 import { TableValueLabelCellComponent } from './table-value-label-cell.component';
 import { SVGIcon, checkCircleIcon, xCircleIcon, exclamationCircleIcon, questionCircleIcon, minusCircleIcon, warningTriangleIcon, circleIcon } from '@progress/kendo-svg-icons';
 
@@ -30,6 +37,19 @@ function resolveStatusMapping(config: Record<string, TableColumnStatusIconMappin
       { icon: ICON_MAP[val.icon] ?? questionCircleIcon, tooltip: val.tooltip, color: val.color }
     ])
   );
+}
+
+/** Per-instance fallback for the warning key of widgets without an id. */
+let nextTableWidgetInstance = 0;
+
+/** Short, stable hash of a text (FNV-1a, base 36) for warning keys. */
+function shortHash(text: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(36);
 }
 
 /** A row's value for a column field, read like `mm-list-view` does (flat key first, then nested path). */
@@ -126,8 +146,20 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   private readonly _queryColumnValueTypes = signal<ReadonlyMap<string, string>>(new Map());
   /** Host UI language (`MESHBOARD_LANGUAGE`, AB#7655) for column `titles` / `valueLabels`; `null` = `title` / raw texts. */
   private readonly language: Signal<string | null>;
-  /** Columns already warned about (`<widget id>|<field>`), so a bad config logs once, not on every language change. */
+  /**
+   * Problems already warned about (`<widget id or instance>|<field>|<problem hash>`), so a bad config
+   * logs once, not on every language change, while a new problem after a config edit is reported again.
+   */
   private readonly warnedColumns = new Set<string>();
+  /** Fallback warning key of a widget without an id. */
+  private readonly instanceKey = `#${++nextTableWidgetInstance}`;
+  /** App locale for the `number` / `date` rendering of unlabelled values in value-label columns. */
+  private readonly locale = inject(LOCALE_ID);
+  /**
+   * Bumped on every `config` change: `config` is a plain `@Input`, so the computeds that read it
+   * depend on this signal to pick up a new config on the same widget instance (AB#7655).
+   */
+  private readonly _configVersion = signal(0);
 
   constructor() {
     // Assigned here, not as a field initialiser: relative-import initialisers break under the Vitest runner (CLAUDE.md).
@@ -166,6 +198,8 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
    * For persistent queries, uses dynamically derived columns from the query response.
    */
   readonly listViewColumns = computed((): ListViewTableColumn[] => {
+    // A new config on the same instance recomputes the columns (titles, valueLabels, columns).
+    this._configVersion();
     // Read the board's timezone mode so datetime cells (e.g. archive
     // window_start/window_end, which arrive as raw ISO-8601 strings) render on
     // the same basis the time filter is computed on. Reading it here makes the
@@ -220,8 +254,9 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     // language signal here re-labels the columns without refetching data.
     if (this.config?.columns && this.config.columns.length > 0) {
       const language = this.language();
+      const textFormatter = (value: unknown): string => formatTableCellValue(value, mode);
       return this.config.columns.map(col => {
-        const problems: TableColumnLabelProblems = { unknownCultureKeys: [], malformedValueKeys: [] };
+        const problems: TableColumnLabelProblems = emptyLabelProblems();
         const base: ListViewTableColumn = {
           field: col.field,
           displayName: resolveColumnTitle(col, language, problems),
@@ -231,12 +266,16 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
           ...(col.statusMapping ? { statusMapping: resolveStatusMapping(col.statusMapping) } : {})
         };
         const labels = resolveValueLabels(col, language, problems);
+        if (labels && (col.statusMapping || col.dataType === 'statusIcons')) {
+          // valueLabels together with statusMapping (status icons) is not supported: the labels win.
+          problems.statusMappingIgnored = true;
+        }
         this.warnOnce(col, problems);
         if (!labels) {
           return withDateFormatter(base);
         }
-        // valueLabels win over the dataType rendering and over the label resolver: a plain-text
-        // cell with the label (and its optional colour), the raw value when unmapped, empty for null.
+        // valueLabels win over the label resolver: a plain-text cell with the label (and its optional
+        // colour); an unmapped value keeps the column's dataType / format rendering; empty for null.
         return {
           ...base,
           dataType: 'component',
@@ -249,7 +288,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
             const label = labels.get(String(value));
             return label
               ? { text: label.text, color: label.color }
-              : { text: formatTableCellValue(value, mode) };
+              : { text: formatUnlabelledValue(value, col, this.locale, textFormatter) };
           }
         };
       });
@@ -293,6 +332,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
    * Returns true once columns are available.
    */
   readonly columnsReady = computed((): boolean => {
+    this._configVersion();
     if (!this.config?.dataSource) return false;
 
     if (this.config.dataSource.type === 'persistentQuery') {
@@ -305,25 +345,35 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   });
 
   /**
-   * Logs one console warning per widget and column for ignored `titles` / `valueLabels` entries
-   * (unknown culture keys, malformed value labels, AB#7655). The table still renders.
+   * Logs one console warning per widget, column and set of problems for ignored `titles` /
+   * `valueLabels` entries (unknown culture keys, malformed titles or value labels, `valueLabels`
+   * together with `statusMapping`, AB#7655). The table still renders. The key carries a hash of the
+   * problem list, so a different problem after a config edit is reported again; widgets without an
+   * id use a per-instance key.
    */
   private warnOnce(column: TableColumn, problems: TableColumnLabelProblems): void {
     if (!hasLabelProblems(problems)) {
       return;
     }
-    const key = `${this.config?.id ?? ''}|${column.field}`;
+    const parts: string[] = [];
+    const quoted = (keys: string[]): string => keys.map(k => `"${k}"`).join(', ');
+    if (problems.unknownCultureKeys.length > 0) {
+      parts.push(`unknown culture keys ${quoted(problems.unknownCultureKeys)}`);
+    }
+    if (problems.malformedTitleKeys && problems.malformedTitleKeys.length > 0) {
+      parts.push(`malformed titles entries ${quoted(problems.malformedTitleKeys)}`);
+    }
+    if (problems.malformedValueKeys.length > 0) {
+      parts.push(`malformed valueLabels entries ${quoted(problems.malformedValueKeys)}`);
+    }
+    if (problems.statusMappingIgnored) {
+      parts.push('statusMapping (valueLabels together with status icons are not supported; the labels are shown)');
+    }
+    const key = `${this.config?.id || this.instanceKey}|${column.field}|${shortHash(parts.join(';'))}`;
     if (this.warnedColumns.has(key)) {
       return;
     }
     this.warnedColumns.add(key);
-    const parts: string[] = [];
-    if (problems.unknownCultureKeys.length > 0) {
-      parts.push(`unknown culture keys ${problems.unknownCultureKeys.map(k => `"${k}"`).join(', ')}`);
-    }
-    if (problems.malformedValueKeys.length > 0) {
-      parts.push(`malformed valueLabels entries ${problems.malformedValueKeys.map(k => `"${k}"`).join(', ')}`);
-    }
     console.warn(
       `octo-meshboard: table widget "${this.config?.title ?? ''}" (${this.config?.id ?? ''}), column "${column.field}": ignoring ${parts.join('; ')}`
     );
@@ -337,6 +387,9 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['config']) {
+      this._configVersion.update(version => version + 1);
+    }
     if (changes['config'] && !changes['config'].firstChange) {
       // Clear cached query columns when config changes (for persistent queries)
       if (this.config?.dataSource?.type === 'persistentQuery') {

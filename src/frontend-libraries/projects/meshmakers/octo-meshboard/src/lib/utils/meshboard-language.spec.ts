@@ -44,4 +44,18 @@ describe('meshboard-language (AB#7655)', () => {
     expect(pickLocalizedText(texts, null)).toBeUndefined();
     expect(pickLocalizedText(undefined, 'de')).toBeUndefined();
   });
+  it('a bare language without an exact key takes the first authored key of that language', () => {
+    const texts = { 'en-GB': 'GB', 'de-AT': 'AT', 'de-DE': 'DE' };
+    expect(pickLocalizedText(texts, 'de')).toBe('AT');
+    expect(pickLocalizedText({ 'de-DE': 'DE', 'de-AT': 'AT' }, 'de')).toBe('DE');
+    expect(pickLocalizedText({ 'de-AT': 'AT', de: 'plain' }, 'de')).toBe('plain');
+    expect(pickLocalizedText(texts, 'DE')).toBe('AT');
+    expect(pickLocalizedText(texts, 'fr')).toBeUndefined();
+  });
+
+  it('a culture never takes a sibling culture, also when a bare-language match exists', () => {
+    const texts = { 'de-AT': 'AT', 'en-GB': 'GB' };
+    expect(pickLocalizedText(texts, 'de-DE')).toBeUndefined();
+    expect(pickLocalizedText(texts, 'en-US')).toBeUndefined();
+  });
 });

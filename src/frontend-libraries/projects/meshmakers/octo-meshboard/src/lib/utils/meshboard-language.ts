@@ -51,16 +51,21 @@ export function isCultureKey(key: string): boolean {
 }
 
 /**
- * Picks the text for `language` from a per-language map (AB#7655). Lookup order: the exact culture
- * (`de-AT`, case-insensitive), then a key equal to its language part (`de`). A culture never picks a
- * sibling culture (`de-DE` does not take `de-AT`). Returns `undefined` when there is no language, no
- * map or no match, so the caller applies its own fallback (e.g. the column `title`).
+ * Picks the text for `language` from a per-language map (AB#7655). Lookup order:
+ * 1. the exact culture or language (`de-AT`, `de`; case-insensitive);
+ * 2. a culture (`de-AT`) without an exact key: a key equal to its language part (`de`). A culture
+ *    never picks a sibling culture (`de-DE` does not take `de-AT`);
+ * 3. a bare language (`de`) without an exact key: the first authored key of that language
+ *    (`de-AT` in `{ 'en-GB': …, 'de-AT': …, 'de-DE': … }`), in the map's key order.
+ * Returns `undefined` when there is no language, no map or no match, so the caller applies its own
+ * fallback (e.g. the column `title`).
  */
 export function pickLocalizedText(texts: Readonly<Record<string, string>> | null | undefined, language: string | null | undefined): string | undefined {
   if (!texts || !language) {
     return undefined;
   }
   const wanted = language.toLowerCase();
+  const isBareLanguage = !wanted.includes('-');
   const languagePart = wanted.split('-')[0];
   let languageMatch: string | undefined;
   for (const [key, text] of Object.entries(texts)) {
@@ -71,7 +76,10 @@ export function pickLocalizedText(texts: Readonly<Record<string, string>> | null
     if (candidate === wanted) {
       return text;
     }
-    if (languageMatch === undefined && candidate === languagePart) {
+    if (languageMatch !== undefined) {
+      continue;
+    }
+    if (isBareLanguage ? candidate.split('-')[0] === wanted : candidate === languagePart) {
       languageMatch = text;
     }
   }

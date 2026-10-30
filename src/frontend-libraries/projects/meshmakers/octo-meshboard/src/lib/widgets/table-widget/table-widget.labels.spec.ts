@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
+import { SimpleChange, signal } from '@angular/core';
 import { TableWidgetComponent } from './table-widget.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { TableColumn, TableWidgetConfig } from '../../models/meshboard.models';
@@ -62,6 +62,10 @@ describe('TableWidgetComponent — titles per language (AB#7655 AC 1, 2)', () =>
 
   it('never picks a sibling culture: de-DE shows title', () => {
     expect(create({ columns: [qualityColumn] }, { language: 'de-DE' }).listViewColumns()[0].displayName).toBe('Dataquality');
+  });
+
+  it('a bare host language takes the first authored culture of that language', () => {
+    expect(create({ columns: [qualityColumn] }, { language: 'de' }).listViewColumns()[0].displayName).toBe('Datenqualität');
   });
 
   it('uses a key equal to the language part', () => {
@@ -206,5 +210,114 @@ describe('TableWidgetComponent — resolver for numeric enum cells (AB#7655 AC 5
     expect(cell(cmp, 1).text).toBe('L1');
     expect(cell(cmp, 9).text).toBe('9');
     expect(resolver).not.toHaveBeenCalled();
+  });
+});
+
+describe('TableWidgetComponent - review round 1 (AB#7655)', () => {
+  it('per-language labels without a language match keep the dataType / format rendering and the resolver', () => {
+    const resolver = vi.fn(() => null);
+    const cmp = create({
+      columns: [{ field: 'q', title: 'Q', dataType: 'numeric', format: '1.2-2', valueLabels: { '1': { label: { 'de-AT': 'gut' } } } }]
+    }, { language: 'en-GB', resolver });
+    const [column] = cmp.listViewColumns();
+    expect(column.dataType).toBe('numeric');
+    expect(column.format).toBe('1.2-2');
+    expect(column.cellComponent).toBeUndefined();
+  });
+
+  it('per-language labels without a language match on a text column keep the label resolver', () => {
+    const resolver = vi.fn(() => 'from resolver');
+    const cmp = create({
+      columns: [{ field: 'q', title: 'Q', valueLabels: { '1': { label: { 'de-AT': 'gut' } } } }]
+    }, { language: 'en-GB', resolver });
+    const [column] = cmp.listViewColumns();
+    expect(column.dataType).toBe('text');
+    expect(column.formatter!('PAID', {})).toBe('from resolver');
+  });
+
+  it('an unlabelled value keeps the numeric format of the column', () => {
+    const cmp = create({ columns: [{ ...qualityColumn, format: '1.2-2' }] });
+    expect(cell(cmp, 2).text).toBe('L2');
+    expect(cell(cmp, 1234.5)).toEqual({ text: '1,234.50' });
+    expect(cell(cmp, '7')).toEqual({ text: '7.00' });
+  });
+
+  it('an unlabelled value keeps the date format of an iso8601 column', () => {
+    const cmp = create({
+      columns: [{ field: 'd', title: 'D', dataType: 'iso8601', format: 'yyyy-MM-dd', valueLabels: { '0': { label: 'never' } } }]
+    });
+    expect(cell(cmp, '0').text).toBe('never');
+    expect(cell(cmp, '2026-10-30T12:00:00').text).toBe('2026-10-30');
+  });
+
+  it('valueLabels together with statusMapping warn once; the labels are shown', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const cmp = create({
+      columns: [{
+        field: 's', title: 'S', dataType: 'statusIcons',
+        statusMapping: { ok: { icon: 'check-circle', tooltip: 'OK' } },
+        valueLabels: { ok: { label: 'Fine' } }
+      }]
+    });
+    expect(cell(cmp, 'ok').text).toBe('Fine');
+    cmp.listViewColumns();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0][0])).toContain('statusMapping');
+  });
+
+  it('malformed titles warn once like malformed valueLabels', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const language = signal('de-AT');
+    const cmp = create({ columns: [{ field: 'q', title: 'Quality', titles: { 'de-AT': 42 as never } }] }, { language });
+    expect(cmp.listViewColumns()[0].displayName).toBe('Quality');
+    language.set('en-GB');
+    cmp.listViewColumns();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0][0])).toContain('malformed titles entries "de-AT"');
+  });
+
+  it('a new problem on the same column after a config edit is reported again; the same one is not', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const cmp = create({ columns: [{ field: 'q', title: 'Q', titles: { german: 'x' } }] });
+    cmp.listViewColumns();
+    const replace = (config: Partial<TableWidgetConfig>): void => {
+      const previous = cmp.config;
+      cmp.config = { ...previous, ...config } as TableWidgetConfig;
+      vi.spyOn(cmp, 'refresh').mockImplementation(() => undefined);
+      cmp.ngOnChanges({ config: new SimpleChange(previous, cmp.config, false) });
+      cmp.listViewColumns();
+    };
+    replace({ columns: [{ field: 'q', title: 'Q', titles: { german: 'x' } }] });
+    expect(warn).toHaveBeenCalledTimes(1);
+    replace({ columns: [{ field: 'q', title: 'Q', titles: { deutsch: 'x' } }] });
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(String(warn.mock.calls[1][0])).toContain('"deutsch"');
+  });
+
+  it('widgets without an id do not share warnings', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const column: TableColumn = { field: 'q', title: 'Q', titles: { german: 'x' } };
+    create({ id: '', columns: [column] }).listViewColumns();
+    TestBed.resetTestingModule();
+    create({ id: '', columns: [column] }).listViewColumns();
+    expect(warn).toHaveBeenCalledTimes(2);
+  });
+
+  it('a new config on the same instance gives new headers and labels', () => {
+    const cmp = create({ columns: [qualityColumn] }, { language: 'de-AT' });
+    const refresh = vi.spyOn(cmp, 'refresh').mockImplementation(() => undefined);
+    expect(cmp.listViewColumns()[0].displayName).toBe('Datenqualität');
+    expect(cell(cmp, 1).text).toBe('L1');
+
+    const previous = cmp.config;
+    cmp.config = {
+      ...previous,
+      columns: [{ ...qualityColumn, titles: { 'de-AT': 'Qualität' }, valueLabels: { '1': { label: 'Stufe 1' } } }]
+    };
+    cmp.ngOnChanges({ config: new SimpleChange(previous, cmp.config, false) });
+
+    expect(cmp.listViewColumns()[0].displayName).toBe('Qualität');
+    expect(cell(cmp, 1).text).toBe('Stufe 1');
+    return Promise.resolve().then(() => expect(refresh).toHaveBeenCalled());
   });
 });

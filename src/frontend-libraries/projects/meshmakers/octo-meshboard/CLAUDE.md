@@ -1221,6 +1221,16 @@ Current test files:
   colour) — deliberately not the list view's badge, so the cells look like every other cell and `null` stays empty.
 - The table config dialog must never rebuild columns it did not change (`mergeRuntimeEntityColumns`,
   `mergePersistentQueryColumns`); `applyConfigResult` takes `result.columns` for persistent-query tables.
+  On the same query the dialog loads the query's current fields once (`loadQueryFields`) and drops kept
+  columns the query no longer returns, adding its other fields as derived columns; a failed lookup keeps
+  the columns unchanged.
+- `resolveValueLabels` returns `null` when no label applies for the current language, so the column keeps
+  its `dataType` rendering and the label resolver. Unlabelled values of a label column go through
+  `formatUnlabelledValue` (`number` / `date` pipe semantics with `LOCALE_ID`). `valueLabels` with
+  `statusMapping` is unsupported (warning).
+- `config` is a plain `@Input`; `listViewColumns` / `columnsReady` read `_configVersion`, bumped in
+  `ngOnChanges`, so a new config on the same instance recomputes them.
+- `warnOnce` keys are `<widget id or per-instance key>|<field>|<hash of the problem list>`.
 
 ---
 
