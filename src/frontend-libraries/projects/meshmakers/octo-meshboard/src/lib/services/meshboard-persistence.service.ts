@@ -546,6 +546,8 @@ export class MeshBoardPersistenceService {
           attributeMappings: es.attributeMappings,
           showInToolbar: es.showInToolbar,
           defaultRtId: es.defaultRtId,
+          // Carried verbatim: the one-hop form and the multi-hop `path`
+          // (AB#7723) keep their keys and order, so older boards encode unchanged.
           childScope: es.childScope,
           // AB#7722 — omitted (undefined → dropped by JSON.stringify) for
           // selectors that follow nobody, so older boards encode unchanged.

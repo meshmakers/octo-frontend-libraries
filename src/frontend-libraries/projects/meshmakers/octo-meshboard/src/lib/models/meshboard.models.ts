@@ -91,7 +91,7 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
   /**
    * Asset-scope binding: the `id` of an entity selector whose selection scopes
    * this widget's stream-data query. The selector resolves its picked entity to
-   * a set of source rtIds (via its `childScope` one-hop, or the picked entity
+   * a set of source rtIds (via its `childScope` hop or path, or the picked entity
    * itself when no childScope is configured); those rtIds are passed as the
    * query's `streamDataArgs.rtIds`, replacing the persisted RtIds at execution
    * time. Absent ⇒ the query runs with its persisted scope. Ignored for runtime
@@ -1411,21 +1411,45 @@ export interface EntitySelectorAttributeMapping {
 }
 
 /**
- * One-hop association traversal that turns a selected entity into the set of
- * source rtIds a stream-data widget should be scoped to.
+ * One association hop of a multi-hop child scope (AB#7723): from the entities
+ * reached so far (the picked entity for the first hop) over `roleId` in
+ * `direction` to the entities of `targetCkTypeId`.
+ */
+export interface EntitySelectorScopeHop {
+  /** Association role of this hop (e.g. "System/ParentChild"). */
+  roleId: string;
+  /** Traversal direction; defaults to `'in'` (see {@link EntitySelectorChildScope.direction}). */
+  direction?: 'in' | 'out';
+  /** CK type of the entities this hop reaches; the source type of the next hop. */
+  targetCkTypeId: string;
+}
+
+/**
+ * Association traversal that turns a selected entity into the set of source
+ * rtIds a stream-data widget should be scoped to.
  *
  * Use case: the user picks a `MeteringPoint`, but the stream-data archive is
  * keyed by its child `EnergyMeasurement` rtIds. The childScope describes that
- * single hop (target type + association role + direction); the selected
- * entity's children of `targetCkTypeId` reached via `roleId` become the scope
- * rtIds. When a selector has no childScope, the picked entity's own rtId is the
- * scope (direct keying).
+ * hop (target type + association role + direction); the selected entity's
+ * children of `targetCkTypeId` reached via `roleId` become the scope rtIds.
+ * When a selector has no childScope, the picked entity's own rtId is the scope
+ * (direct keying).
+ *
+ * Two forms (AB#7723):
+ * - **One hop** — the top-level `targetCkTypeId` / `roleId` / `direction`. This
+ *   is the original form; the editor keeps writing one-hop scopes this way, so
+ *   older library versions keep reading them.
+ * - **Path** — `path`, an ordered list of 2 to {@link MAX_SCOPE_HOPS} hops
+ *   (A → B → C). The source type of hop n is the target type of hop n-1; the
+ *   scope is the distinct rtIds reached by the last hop. When `path` is present
+ *   (non-empty) it wins and the top-level fields are ignored; the editor then
+ *   omits them.
  */
 export interface EntitySelectorChildScope {
-  /** CK type of the child entities that key the stream-data archive (e.g. EnergyMeasurement). */
-  targetCkTypeId: string;
-  /** Association role linking the selected entity to the children (e.g. "System/ParentChild"). */
-  roleId: string;
+  /** CK type of the child entities that key the stream-data archive (e.g. EnergyMeasurement). One-hop form. */
+  targetCkTypeId?: string;
+  /** Association role linking the selected entity to the children (e.g. "System/ParentChild"). One-hop form. */
+  roleId?: string;
   /**
    * Traversal direction from the selected (parent) entity to its children.
    * For `System/ParentChild` the child owns the association to its parent, so
@@ -1433,7 +1457,16 @@ export interface EntitySelectorChildScope {
    * `'out'` only for custom roles modelled parent → child.
    */
   direction?: 'in' | 'out';
+  /**
+   * Ordered multi-hop path (AB#7723). Wins over the top-level fields when
+   * non-empty. At most {@link MAX_SCOPE_HOPS} hops; a longer path, or a hop
+   * without role or target type, makes the scope fail (no data plus notice).
+   */
+  path?: EntitySelectorScopeHop[];
 }
+
+/** Maximum number of hops of a child-scope path, enforced by editor and runtime (AB#7723). */
+export const MAX_SCOPE_HOPS = 5;
 
 /**
  * Configuration for a single entity selector in the MeshBoard toolbar.
@@ -1453,8 +1486,8 @@ export interface EntitySelectorConfig {
   /** Optional pre-selected entity rtId */
   defaultRtId?: string;
   /**
-   * Optional one-hop traversal that resolves the picked entity to the child
-   * source rtIds a stream-data widget scopes by. Absent ⇒ the picked entity's
+   * Optional traversal (one hop, or a multi-hop `path` — AB#7723) that resolves
+   * the picked entity to the source rtIds a stream-data widget scopes by. Absent ⇒ the picked entity's
    * own rtId is the scope. See {@link EntitySelectorChildScope}.
    */
   childScope?: EntitySelectorChildScope;

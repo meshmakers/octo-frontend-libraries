@@ -10,6 +10,34 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard entity selectors (multi-hop child scope, AB#7723)
+
+- New (non-breaking, additive): optional `EntitySelectorChildScope.path`, an ordered list of 2 to 5 association
+  hops `{ roleId, direction?, targetCkTypeId }` (new type `EntitySelectorScopeHop`, constant `MAX_SCOPE_HOPS` = 5).
+  A selector can now scope through several associations (e.g. site → system → device): the source type of hop n is
+  the target type of hop n-1, and the scope is the distinct rtIds reached by the last hop. A non-empty `path` wins
+  over the top-level `targetCkTypeId` / `roleId` / `direction`, which stay valid as the one-hop form and now are
+  optional in the type. Followers (AB#7722) resolve their own path from the leader's pick.
+- Query cost: each hop is resolved with one batched request over all entities the previous hop reached
+  (`MeshBoardDataService.fetchAssociationTargetRtIds`, new document `getAssociationTargetRtIds`: rtIds only, 100
+  sources per request, batches of one hop in parallel, up to 1000 targets per source with a console warning on
+  truncation) — never one request per entity. One-hop scopes keep the original request.
+- Scope contract (AB#7721) at every hop: an empty hop ends the resolution with an empty scope (no further request);
+  a failed hop, or an invalid path (more than 5 hops, a hop without role or target type), is a failed scope with the
+  board notice; a slower resolution of an older pick stops after its current hop and never overwrites a newer one.
+- Selector editor (MeshBoard Settings → Entity Selectors → Child Scope): the single target/role/direction block is
+  replaced by a hop list (new `EntitySelectorScopePathEditorComponent`, `mm-entity-selector-scope-path-editor`;
+  wireframe agreed in AB#7723): add (at most 5), remove, move up/down; per hop an association from the source type's
+  CK metadata (role, direction and base target in one entry, or "Other role…" for free text) and a target type
+  restricted to types derived from the association's target; a warning when a hop's role is not defined on its
+  source type, a hint when the metadata cannot be loaded, validation that blocks saving an incomplete hop, and the
+  path line. One hop saves in the original top-level form (older library versions keep reading it), two or more
+  hops save as `path` only.
+- Persistence: `childScope` is carried verbatim in the board description, so `path` survives save, reload and
+  export / import from "Manage MeshBoards". Boards with one-hop scopes encode byte-identically and resolve exactly
+  as before. An older library version reading a `path`-only scope finds no top-level hop and scopes by the picked
+  entity itself.
+
 ### octo-meshboard entity selectors (hidden selector follows a visible one, AB#7722)
 
 - New (non-breaking, additive): optional `EntitySelectorConfig.followsSelectorId`. A follower selector has no picker

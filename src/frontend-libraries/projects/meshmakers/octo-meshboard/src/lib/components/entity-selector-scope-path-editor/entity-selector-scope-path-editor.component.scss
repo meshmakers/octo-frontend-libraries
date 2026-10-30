@@ -1,0 +1,127 @@
+// Neutral, theme-agnostic styling (Kendo CSS variables with neutral fallbacks).
+.scope-path-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.field-label {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--kendo-color-on-app-surface, #424242);
+}
+
+.field-hint,
+.scope-from,
+.scope-empty {
+  font-size: 0.75rem;
+  color: var(--kendo-color-subtle, #757575);
+  margin: 0;
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: var(--kendo-color-error, #f44336);
+}
+
+.field-warning {
+  font-size: 0.75rem;
+  color: var(--kendo-color-warning, #b26a00);
+}
+
+code {
+  font-family: var(--theme-font-mono, monospace);
+}
+
+.hop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  border: 1px solid var(--kendo-color-border, #e0e0e0);
+  border-radius: 4px;
+  background: var(--kendo-color-surface-alt, #fafafa);
+  min-width: 0;
+}
+
+.hop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.hop-title {
+  font-weight: 500;
+  font-size: 0.875rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hop-source {
+  font-weight: 400;
+  color: var(--kendo-color-subtle, #757575);
+}
+
+// The header buttons never wrap (wireframe change 6).
+.hop-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.hop-remove {
+  color: var(--kendo-color-error, #f44336);
+}
+
+.hop-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+
+  kendo-dropdownlist {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+// Long association entries are cut off; the full text is in the title tooltip.
+.assoc-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hop-free-text {
+  display: flex;
+  gap: 0.5rem;
+  min-width: 0;
+
+  kendo-textbox {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.hop-direction {
+  flex: 0 0 auto;
+}
+
+.scope-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+// The path line wraps (at the spaces around the arrows) in a narrow window.
+.scope-path {
+  font-size: 0.75rem;
+  font-family: var(--theme-font-mono, monospace);
+  color: var(--kendo-color-on-app-surface, #424242);
+  overflow-wrap: break-word;
+}

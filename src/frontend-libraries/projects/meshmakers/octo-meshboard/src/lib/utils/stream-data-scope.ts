@@ -6,7 +6,7 @@ import type { QueryFamily } from './query-family';
  * transiently by `MeshBoardStateService`, written by the view while a pick is
  * resolved to its source rtIds.
  *
- * - `pending`: the pick is being resolved (one-hop childScope traversal).
+ * - `pending`: the pick is being resolved (childScope traversal, one hop or a path).
  * - `resolved`: the pick resolved to `rtIds` — possibly none.
  * - `failed`: the resolution threw (e.g. the association fetch failed).
  *

@@ -12,7 +12,7 @@ import {
   AttributeSelectorDialogService
 } from '@meshmakers/octo-ui';
 import { CkTypeSelectorItem, type AttributeItem } from '@meshmakers/octo-services';
-import { EntitySelectorConfig, EntitySelectorAttributeMapping, EntitySelectorChildScope } from '../../models/meshboard.models';
+import { EntitySelectorConfig, EntitySelectorAttributeMapping, EntitySelectorScopeHop } from '../../models/meshboard.models';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource, RuntimeEntityItem } from '../../utils/runtime-entity-data-sources';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
@@ -23,6 +23,8 @@ import {
   resolveFollowLeader,
   selectorsFollowing
 } from '../../utils/entity-selector-follow';
+import { childScopeFromHops, scopeHopsOf, scopeHopsValidationError } from '../../utils/entity-selector-scope-path';
+import { EntitySelectorScopePathEditorComponent } from '../entity-selector-scope-path-editor/entity-selector-scope-path-editor.component';
 
 /**
  * Component for editing entity selector configurations in MeshBoard settings.
@@ -41,7 +43,8 @@ import {
     LabelModule,
     SVGIconModule,
     CkTypeSelectorInputComponent,
-    EntitySelectInputComponent
+    EntitySelectInputComponent,
+    EntitySelectorScopePathEditorComponent
   ],
   templateUrl: './entity-selector-editor.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -75,15 +78,10 @@ export class EntitySelectorEditorComponent {
   protected editShowInToolbar = true;
   protected editDefaultRtId = '';
 
-  // Child scope (stream-data): optional one-hop traversal resolving the picked
-  // entity to the child source rtIds a stream-data widget scopes by.
-  protected editChildScopeTargetCkTypeId = '';
-  protected editChildScopeTargetCkTypeItem: CkTypeSelectorItem | null = null;
-  protected editChildScopeRoleId = '';
-  // Parent → children via System/ParentChild is reached INBOUND (the child holds
-  // the association to its parent), so 'in' is the correct default for a
-  // childScope that resolves a picked parent to its children.
-  protected editChildScopeDirection: 'in' | 'out' = 'in';
+  // Child scope (stream-data, AB#7723): the hops from the picked entity to the
+  // entities whose rtIds scope bound widgets. Empty = the picked entity itself.
+  // One hop saves in the original top-level form, two or more as `path`.
+  protected editScopeHops: EntitySelectorScopeHop[] = [];
 
   // Leader/follower (AB#7722): id of the selector this one follows ('' = none).
   protected editFollowsSelectorId = '';
@@ -106,10 +104,7 @@ export class EntitySelectorEditorComponent {
     this.editMappings = [];
     this.editShowInToolbar = true;
     this.editDefaultRtId = '';
-    this.editChildScopeTargetCkTypeId = '';
-    this.editChildScopeTargetCkTypeItem = null;
-    this.editChildScopeRoleId = 'System/ParentChild';
-    this.editChildScopeDirection = 'in';
+    this.editScopeHops = [];
     this.editFollowsSelectorId = '';
     this.followNotice = '';
     this.defaultEntityDataSource = null;
@@ -137,17 +132,7 @@ export class EntitySelectorEditorComponent {
     this.editMappings = [...selector.attributeMappings];
     this.editShowInToolbar = selector.showInToolbar !== false;
     this.editDefaultRtId = selector.defaultRtId ?? '';
-    this.editChildScopeTargetCkTypeId = selector.childScope?.targetCkTypeId ?? '';
-    this.editChildScopeTargetCkTypeItem = selector.childScope?.targetCkTypeId
-      ? {
-        fullName: selector.childScope.targetCkTypeId,
-        rtCkTypeId: selector.childScope.targetCkTypeId,
-        isAbstract: false,
-        isFinal: false
-      }
-      : null;
-    this.editChildScopeRoleId = selector.childScope?.roleId ?? 'System/ParentChild';
-    this.editChildScopeDirection = selector.childScope?.direction ?? 'in';
+    this.editScopeHops = scopeHopsOf(selector.childScope);
     this.editFollowsSelectorId = selector.followsSelectorId ?? '';
     this.followNotice = '';
     // A follower picks from its leader's CK type; re-sync it in case the leader's
@@ -297,20 +282,14 @@ export class EntitySelectorEditorComponent {
     });
   }
 
-  /**
-   * Handles child-scope target CK type selection.
-   */
-  onChildScopeCkTypeSelected(ckType: CkTypeSelectorItem): void {
-    this.editChildScopeTargetCkTypeId = ckType.rtCkTypeId;
-    this.editChildScopeTargetCkTypeItem = ckType;
+  /** Takes the hop list of the child-scope editor (AB#7723). */
+  onScopeHopsChanged(hops: EntitySelectorScopeHop[]): void {
+    this.editScopeHops = hops;
   }
 
-  /**
-   * Handles child-scope target CK type cleared.
-   */
-  onChildScopeCkTypeCleared(): void {
-    this.editChildScopeTargetCkTypeId = '';
-    this.editChildScopeTargetCkTypeItem = null;
+  /** Validation message of the hop list, or '' when it can be saved. */
+  get scopeHopsError(): string {
+    return scopeHopsValidationError(this.editScopeHops) ?? '';
   }
 
   /**
@@ -333,16 +312,10 @@ export class EntitySelectorEditorComponent {
   saveEdit(): void {
     if (!this.isEditValid()) return;
 
-    // Only persist a childScope when both the target type and role are set;
-    // otherwise leave it undefined (the picked entity itself is the scope).
-    const childScope: EntitySelectorChildScope | undefined =
-      this.editChildScopeTargetCkTypeId && this.editChildScopeRoleId.trim()
-        ? {
-          targetCkTypeId: this.editChildScopeTargetCkTypeId,
-          roleId: this.editChildScopeRoleId.trim(),
-          direction: this.editChildScopeDirection
-        }
-        : undefined;
+    // No hops = no childScope (the picked entity itself is the scope); one hop
+    // in the original top-level form (older library versions keep reading it);
+    // two or more hops as `path` (AB#7723).
+    const childScope = childScopeFromHops(this.editScopeHops);
 
     const selector: EntitySelectorConfig = {
       id: this.editId,
@@ -403,6 +376,11 @@ export class EntitySelectorEditorComponent {
     }
 
     if (this.followError) {
+      return false;
+    }
+
+    // Every hop needs an association and a target type; at most 5 hops (AB#7723).
+    if (this.scopeHopsError) {
       return false;
     }
 

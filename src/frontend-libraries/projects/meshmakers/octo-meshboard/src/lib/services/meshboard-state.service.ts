@@ -47,7 +47,7 @@ export class MeshBoardStateService {
   /**
    * Transient scope state of each entity selector's current selection (keyed
    * by selector id): `pending` while the view resolves the pick, `resolved`
-   * with the source rtIds (one-hop childScope traversal, or the picked entity's
+   * with the source rtIds (childScope hop or path, or the picked entity's
    * own rtId; possibly none), or `failed`. No entry = no active pick. Not
    * persisted — derived fresh from each selection, cleared on board switch
    * (AB#7721).
@@ -821,7 +821,7 @@ export class MeshBoardStateService {
   /**
    * Stores the source rtIds resolved from an entity selector's current
    * selection. Called by the view component after a selection resolves (the
-   * one-hop childScope traversal, or the picked entity's own rtId when the
+   * childScope traversal (one hop or a path), or the picked entity's own rtId when the
    * selector has no childScope). An empty array is a resolved EMPTY scope:
    * bound widgets show no data and send no query (AB#7721). Transient — not
    * persisted.

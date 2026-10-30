@@ -334,8 +334,9 @@ applies in place of the persisted RtIds.
 
 Resolution flow:
 1. The selector resolves its picked entity to source rtIds when the selection
-   changes — either the selector's `childScope` one-hop (e.g. a parent → its
-   child device rtIds) or, with no childScope, the picked entity's own rtId. The
+   changes — either the selector's `childScope` (one hop, e.g. a parent → its
+   child device rtIds, or a multi-hop `path`, AB#7723) or, with no childScope,
+   the picked entity's own rtId. The
    view marks the scope `pending` first and stores the result via
    `MeshBoardStateService.setEntitySelectorRtIds` (or `setEntitySelectorScopeFailed`).
 2. Each SD widget first asks `resolveStreamDataScope(entitySelectorId, queryFamily)`
@@ -628,7 +629,7 @@ interface EntitySelectorConfig {
   attributeMappings: EntitySelectorAttributeMapping[];
   showInToolbar?: boolean;     // Show in toolbar (default: true). If false, uses defaultRtId
   defaultRtId?: string;       // Pre-selected entity (required when showInToolbar=false)
-  childScope?: EntitySelectorChildScope; // One-hop scope for stream-data widgets (see below)
+  childScope?: EntitySelectorChildScope; // One hop or a multi-hop path for stream-data widgets (see below)
   followsSelectorId?: string; // Leader selector id (AB#7722) — see *Leader/follower selectors*
   selectedRtId?: string;      // Current selection (transient, not persisted)
   selectedDisplayName?: string; // Current display name (transient)
@@ -640,20 +641,77 @@ interface EntitySelectorAttributeMapping {
   attributeValueType?: string; // Attribute value type
 }
 
-// One association hop turning the picked entity into the child source rtIds a
+// Association traversal turning the picked entity into the source rtIds a
 // stream-data widget scopes by (e.g. MeteringPoint → EnergyMeasurement rtIds).
 interface EntitySelectorChildScope {
-  targetCkTypeId: string;      // Child type that keys the archive (e.g. EnergyMeasurement)
-  roleId: string;              // Association role (e.g. "System/ParentChild")
-  direction?: 'in' | 'out';    // Traversal direction (default 'out' = parent → child)
+  targetCkTypeId?: string;     // One-hop form: type that keys the archive (e.g. EnergyMeasurement)
+  roleId?: string;             // One-hop form: association role (e.g. "System/ParentChild")
+  direction?: 'in' | 'out';    // One-hop form: direction (default 'in' — System/ParentChild children are inbound)
+  path?: EntitySelectorScopeHop[]; // Multi-hop form (AB#7723): 2..MAX_SCOPE_HOPS hops, wins when non-empty
+}
+
+interface EntitySelectorScopeHop {
+  roleId: string;
+  direction?: 'in' | 'out';    // default 'in'
+  targetCkTypeId: string;      // source type of the next hop
 }
 ```
 
 The `childScope` is configured in the "Child Scope (stream-data)" section of
-the entity-selector editor (target CK type + role + direction). When set, a
-selection resolves to the child rtIds via `getAssociationTargets`; when absent,
-the picked entity's own rtId is the scope. These rtIds feed a widget's
-`entitySelectorId` asset-scope binding — see *PersistentQueryDataSource* above.
+the entity-selector editor (hop list, see *Multi-hop child scope*). When set, a
+selection resolves to the rtIds of the last hop; when absent, the picked
+entity's own rtId is the scope. These rtIds feed a widget's `entitySelectorId`
+asset-scope binding — see *PersistentQueryDataSource* above.
+
+### Multi-hop child scope (AB#7723)
+
+A child scope is either the original **one-hop form** (top-level
+`targetCkTypeId` / `roleId` / `direction`) or a **path** of 2 to
+`MAX_SCOPE_HOPS` (5) hops, e.g. site → system → device. Helpers:
+`utils/entity-selector-scope-path.ts` (pure, unit-tested): `scopePlan` (none /
+single / path / invalid), `resolveScopePath`, `scopeHopsOf` /
+`childScopeFromHops` (editor mapping), `scopeHopsValidationError`.
+
+Resolution contract (view, `resolveEntitySelectorScopeRtIds`):
+
+| Config | Resolution |
+|---|---|
+| no `childScope`, or incomplete top-level fields without `path` | the picked entity's own rtId (unchanged) |
+| one-hop form | one `fetchAssociationTargets` request — exactly the pre-AB#7723 request and result |
+| `path` (non-empty; wins over the top-level fields) | hop by hop; hop n's sources are the de-duplicated targets of hop n-1, its source type is hop n-1's target type; scope = distinct rtIds of the last hop |
+| `path` with more than 5 hops, or a hop without role / target type | **failed** scope (notice, no data, no request) |
+
+- **Query cost:** each hop is ONE batched step over all its sources —
+  `MeshBoardDataService.fetchAssociationTargetRtIds` sends `runtimeEntities(rtIds:)`
+  with the association targets nested (`getAssociationTargetRtIds`, rtIds only, no
+  attributes), `ASSOCIATION_HOP_SOURCE_BATCH` (100) sources per request, the
+  batches of a hop in parallel, `ASSOCIATION_HOP_TARGETS_PER_SOURCE` (1000)
+  targets per source with a console warning when a source has more. Never one
+  request per entity.
+- **Empty hop** → no further hop is requested, resolved **empty** (`noTargets`).
+- **Failed hop** → **failed** scope (AB#7721 notice, logged once).
+- **Stale pick** → `resolveScopePath` checks the selector's sequence number after
+  every hop and stops (returns `null`, nothing applied) once a newer pick started.
+- Followers (AB#7722) resolve their own `path` from the leader's pick.
+- **Editor** (`EntitySelectorScopePathEditorComponent`, wireframe agreed by Freya
+  in AB#7723): hop list with add (max 5), remove, move up/down (icon buttons with
+  `aria-label`/title, focus stays on the moved hop); per hop an "Association"
+  dropdown from `getCkTypeAssociationRoles` of the hop's source type (role +
+  direction + base target in one entry, plus "Other role…" for free text) and a
+  target-type picker restricted via `derivedFromRtCkTypeId` to the association's
+  target; a hop whose role is not defined on its (new) source type keeps its
+  values and shows "Association <role> is not defined on <type>." (warning, does
+  not block); metadata that cannot be loaded shows a hint and free-text fields;
+  an incomplete hop blocks saving (Kendo `k-invalid` + message); empty state and
+  path line. Followers use the same component.
+- **Persistence:** the editor saves no hops as no `childScope`, one hop in the
+  top-level form (older library versions keep reading it) and two or more hops as
+  `{ path }` only. `MeshBoardPersistenceService` carries `childScope` verbatim, so
+  `path` round-trips through save/reload and export/import, and one-hop boards
+  encode byte-identically (`meshboard-persistence.entity-selector-multihop.spec.ts`,
+  fixture `testing/entity-selector-scope-path.fixtures.ts`). An older library
+  reading a `path`-only scope sees no top-level hop and scopes by the picked
+  entity itself.
 
 ### Leader/follower selectors (AB#7722)
 
@@ -661,8 +719,8 @@ A widget binds exactly one selector and a selector has one child scope, so one
 visible pick could scope only widgets of one target type. A **follower**
 (`followsSelectorId: '<leader id>'`) closes that gap: one visible leader (e.g. a
 site) drives any number of hidden followers, each with its own `childScope`
-(e.g. site → devices, site → sensors), so one pick rescopes widgets of different
-target types. Helpers: `utils/entity-selector-follow.ts` (pure, unit-tested).
+(e.g. site → devices, site → sensors, or a multi-hop path, AB#7723), so one pick
+rescopes widgets of different target types. Helpers: `utils/entity-selector-follow.ts` (pure, unit-tested).
 
 Resolution contract (view, `resolveEntitySelectorVariables`):
 
@@ -836,6 +894,7 @@ For a follower: the leader's pick (by the order above) > the follower's own
 | Component | Selector | Description |
 |-----------|----------|-------------|
 | `EntitySelectorEditorComponent` | `mm-entity-selector-editor` | Settings editor for managing selectors |
+| `EntitySelectorScopePathEditorComponent` | `mm-entity-selector-scope-path-editor` | Child scope hop list of the selector editor (AB#7723) |
 | `EntitySelectorToolbarComponent` | `mm-entity-selector-toolbar` | Toolbar rendering entity select dropdowns |
 
 > **Display names (AB#4813).** The entity pickers (`RuntimeEntitySelectDataSource` /
@@ -1042,9 +1101,13 @@ Current test files:
 - `meshboard-view.entity-selector-follow.spec.ts` - Leader/follower selectors: follower scope and variables from the leader's pick, two target types, pending, empty, own default, clear, URL restore/write, no picker, unknown leader, stale picks (AB#7722)
 - `utils/entity-selector-follow.spec.ts` - Leader resolution, followers, toolbar visibility, editor validation messages (AB#7722)
 - `meshboard-persistence.entity-selector-follow.spec.ts` - `followsSelectorId` save/reload and export/import round trip; a pre-AB#7722 description imports and re-encodes byte-identically (AB#7722)
-- `entity-selector-editor.component.spec.ts` - Editor "Follows" option: leader list, CK type fixing, validation, list badges, removal confirmation (AB#7722)
+- `entity-selector-editor.component.spec.ts` - Editor "Follows" option: leader list, CK type fixing, validation, list badges, removal confirmation (AB#7722); child scope hop list save forms and validation (AB#7723)
+- `utils/entity-selector-scope-path.spec.ts` - Child scope plan, editor mapping, validation, hop-by-hop resolution (AB#7723)
+- `meshboard-view.entity-selector-multihop.spec.ts` - Two/three-hop resolution with duplicates, empty and failed hops, invalid path, pending, stale picks, followers, pre-AB#7723 one-hop board (AB#7723)
+- `meshboard-persistence.entity-selector-multihop.spec.ts` - `path` save/reload and export/import; a pre-AB#7723 description imports and re-encodes byte-identically (AB#7723)
+- `entity-selector-scope-path-editor.component.spec.ts` - Hop list: add/remove/reorder, associations from metadata, "Other role…", warnings, metadata failure, validation, accessibility (AB#7723)
 - `widgets/stream-data-scope.widgets.spec.ts` - Line chart, bar chart and table send no query for an empty or pending scope (AB#7721); KPI in `kpi-widget.component.spec.ts`, process binding in `process-data.service.spec.ts`
-- `meshboard-data.service.spec.ts` - Data fetching (32 tests)
+- `meshboard-data.service.spec.ts` - Data fetching, incl. batched association hops (AB#7723)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
 - `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation
@@ -1076,6 +1139,9 @@ Located in `src/lib/graphQL/`:
 | `getDashboardEntity.ts` | Fetch single entity |
 | `getEntitiesByCkType.ts` | Fetch entities by type |
 | `getCkModelsWithState.ts` | CK models with state |
+| `getAssociationTargets.ts` | Association targets of one entity (with attributes); one-hop child scope |
+| `getAssociationTargetRtIds.ts` | Batched association hop: target rtIds of many entities (multi-hop child scope, AB#7723) |
+| `getCkTypeAssociationRoles.ts` | Associations of a CK type (association widget dialog, child scope hop list) |
 
 ---
 

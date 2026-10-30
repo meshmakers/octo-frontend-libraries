@@ -1,0 +1,118 @@
+<div class="scope-path-editor">
+  <span class="field-hint">
+    Optional. Path of associations from the picked entity to the entities whose
+    rtIds scope bound stream-data widgets (up to {{ maxHops }} hops).
+  </span>
+
+  @if (rows.length === 0) {
+    <p class="scope-empty" data-test="scope-empty">No child scope: widgets use the picked entity's own rtId.</p>
+  } @else {
+    <span class="scope-from">From: <code>{{ sourceCkTypeId || '?' }}</code> (picked entity)</span>
+    @if (metadataFailed) {
+      <span class="field-hint scope-metadata-failed" data-test="metadata-failed">
+        Associations could not be loaded; enter the role manually.
+      </span>
+    }
+
+    @for (row of rows; track $index; let i = $index; let first = $first; let last = $last) {
+      <div class="hop-card" #hopCard tabindex="-1" [attr.data-test]="'hop-' + (i + 1)">
+        <div class="hop-header">
+          <span class="hop-title">
+            Hop {{ i + 1 }}
+            @if (i > 0) {
+              <span class="hop-source">(from <code>{{ sourceTypeOf(i) || '?' }}</code>)</span>
+            }
+          </span>
+          <span class="hop-actions">
+            @if (!first) {
+              <button kendoButton fillMode="flat" size="small" [svgIcon]="arrowUpIcon"
+                data-hop-action="up"
+                [attr.aria-label]="'Move hop ' + (i + 1) + ' up'" [title]="'Move hop ' + (i + 1) + ' up'"
+                (click)="moveHop(i, -1)"></button>
+            }
+            @if (!last) {
+              <button kendoButton fillMode="flat" size="small" [svgIcon]="arrowDownIcon"
+                data-hop-action="down"
+                [attr.aria-label]="'Move hop ' + (i + 1) + ' down'" [title]="'Move hop ' + (i + 1) + ' down'"
+                (click)="moveHop(i, 1)"></button>
+            }
+            <button kendoButton fillMode="flat" size="small" [svgIcon]="trashIcon" class="hop-remove"
+              data-hop-action="remove"
+              [attr.aria-label]="'Remove hop ' + (i + 1)" [title]="'Remove hop ' + (i + 1)"
+              (click)="removeHop(i)"></button>
+          </span>
+        </div>
+
+        <div class="hop-field">
+          <label class="field-label" [attr.for]="'hop-assoc-' + i">Association</label>
+          @if (hasAssociationList(i)) {
+            <kendo-dropdownlist
+              [id]="'hop-assoc-' + i"
+              [data]="associationOptions(i)"
+              textField="label"
+              valueField="key"
+              [valuePrimitive]="true"
+              [value]="row.associationKey || null"
+              [defaultItem]="{ key: '', label: 'Select an association…' }"
+              [class.k-invalid]="isRoleInvalid(i)"
+              (valueChange)="onAssociationChanged(i, $event)">
+              <ng-template kendoDropDownListValueTemplate let-item>
+                <span class="assoc-text" [title]="item?.label ?? ''">{{ item?.label }}</span>
+              </ng-template>
+              <ng-template kendoDropDownListItemTemplate let-item>
+                <span class="assoc-text" [title]="item.label">{{ item.label }}</span>
+              </ng-template>
+            </kendo-dropdownlist>
+          }
+          @if (isFreeText(i)) {
+            <div class="hop-free-text">
+              <kendo-textbox
+                [id]="hasAssociationList(i) ? null : 'hop-assoc-' + i"
+                [value]="row.roleId"
+                placeholder="Association role (e.g. System/ParentChild)"
+                [class.k-invalid]="isRoleInvalid(i)"
+                (valueChange)="onRoleChanged(i, $event)">
+              </kendo-textbox>
+              <select class="hop-direction" [attr.aria-label]="'Direction of hop ' + (i + 1)"
+                [ngModel]="row.direction" (ngModelChange)="onDirectionChanged(i, $event)">
+                <option value="in">Inbound</option>
+                <option value="out">Outbound</option>
+              </select>
+            </div>
+          }
+          @if (associationWarning(i); as warning) {
+            <span class="field-warning" data-test="association-warning">{{ warning }}</span>
+          }
+        </div>
+
+        <div class="hop-field">
+          <label class="field-label">Target type</label>
+          <mm-ck-type-selector-input
+            [ngModel]="row.targetItem"
+            [derivedFromRtCkTypeId]="baseTargetOf(i)"
+            [placeholder]="'Target CK type…'"
+            [class.k-invalid]="isTargetInvalid(i)"
+            (ckTypeSelected)="onTargetSelected(i, $event)"
+            (ckTypeCleared)="onTargetCleared(i)">
+          </mm-ck-type-selector-input>
+        </div>
+
+        @if (hopError(i); as error) {
+          <span class="field-error" data-test="hop-error">{{ error }}</span>
+        }
+      </div>
+    }
+  }
+
+  <div class="scope-footer">
+    <button kendoButton fillMode="flat" [svgIcon]="plusIcon" [disabled]="!canAddHop"
+      data-test="add-hop" (click)="addHop()">Add hop</button>
+    @if (!canAddHop) {
+      <span class="field-hint">At most {{ maxHops }} hops.</span>
+    }
+  </div>
+
+  @if (rows.length > 0) {
+    <span class="scope-path" data-test="scope-path">Path: {{ pathLabel }}</span>
+  }
+</div>
