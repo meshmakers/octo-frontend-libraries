@@ -664,7 +664,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         return {
           ...widget,
           dataSource,
-          columns: [], // Will be derived from query at runtime
+          // Explicit columns the dialog kept (same query, AB#7655); [] = derived from the query at runtime
+          columns: result.columns ?? [],
           sorting: [],
           filters,
           pageSize: result.pageSize,
@@ -2433,6 +2434,7 @@ function readPieChartPresentationConfig(config: Record<string, unknown>): Partia
 import { InjectionToken } from '@angular/core';
 import { WidgetRegistration } from '../services/widget-registry.service';
 import { MESHBOARD_MESSAGES, MeshBoardMessagesSource } from '../utils/meshboard-messages';
+import { MESHBOARD_LANGUAGE, MeshBoardLanguageSource } from '../utils/meshboard-language';
 import { normalizeKpiDecimalPlaces } from '../utils/kpi-decimal-places';
 
 /**
@@ -2452,6 +2454,13 @@ export interface MeshBoardOptions {
    * table widget's list texts. Fixed object or signal. Absent = English.
    */
   messages?: MeshBoardMessagesSource;
+  /**
+   * The host's current UI language (AB#7655), provided as `MESHBOARD_LANGUAGE`: a culture code
+   * (`de-AT`) or a signal of it for apps that switch the language at runtime. Board configurations
+   * use it to pick per-language texts (table column `titles`, `valueLabels`). Absent = the default
+   * texts (column `title`); MeshBoard never falls back to `LOCALE_ID`.
+   */
+  language?: MeshBoardLanguageSource;
 }
 
 /**
@@ -2498,6 +2507,9 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
   if (opts.messages) {
     providers.push({ provide: MESHBOARD_MESSAGES, useValue: opts.messages });
   }
+  if (opts.language) {
+    providers.push({ provide: MESHBOARD_LANGUAGE, useValue: opts.language });
+  }
 
   // Include default widgets unless explicitly disabled
   if (opts.includeDefaultWidgets !== false) {
@@ -2518,6 +2530,14 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
  */
 export function provideMeshBoardMessages(messages: MeshBoardMessagesSource): EnvironmentProviders {
   return makeEnvironmentProviders([{ provide: MESHBOARD_MESSAGES, useValue: messages }]);
+}
+
+/**
+ * Provides the host's UI language (`MESHBOARD_LANGUAGE`, AB#7655) without `provideMeshBoard()` —
+ * for apps that register the widgets lazily. A string or a signal (the widgets follow it).
+ */
+export function provideMeshBoardLanguage(language: MeshBoardLanguageSource): EnvironmentProviders {
+  return makeEnvironmentProviders([{ provide: MESHBOARD_LANGUAGE, useValue: language }]);
 }
 
 /**

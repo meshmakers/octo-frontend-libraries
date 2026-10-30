@@ -10,6 +10,25 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard table column titles per language and value labels (AB#7655)
+
+- New (non-breaking, additive): table columns take `titles` (header per culture code; lookup exact culture, then the
+  language part, then `title` - `de-DE` never picks `de-AT`) and `valueLabels` (raw value as string → `{ label, color? }`,
+  `label` one text or a text per culture code). A value-label cell is plain text with the optional text colour; an
+  unmapped value shows the raw value, `null` an empty cell; `valueLabels` win over `dataType` and over
+  `MESHBOARD_LABEL_RESOLVER`. Unknown culture keys and malformed entries are ignored with one console warning per
+  widget and column.
+- New host language source: `provideMeshBoard({ language })`, `provideMeshBoardLanguage(language)` or the token
+  `MESHBOARD_LANGUAGE` (culture code or `Signal<string | null>`; headers and labels follow a signal without a refetch).
+  Not provided = `title` / raw values as before; no fallback to `LOCALE_ID`. Also exported: `pickLocalizedText`,
+  type `MeshBoardLanguageSource`, `TableColumnValueLabel`.
+- `MESHBOARD_LABEL_RESOLVER` is now also offered numeric cells of persistent-query columns whose value type is an
+  enum (`value` = the number as string); string cells behave as before.
+- Fix: the table config dialog no longer erases hand-authored columns. Saving a persistent-query table on the same
+  query keeps its explicit `columns` (was `[]`); runtime-entity columns that stay selected on the same CK type keep
+  their properties (`titles`, `valueLabels`, `width`, `format`, `statusMapping`). Existing boards render unchanged;
+  Refinery Studio needs no change.
+
 ### octo-services base types for the method handler diagnostics (AB#7877)
 
 - Additive: `schema.graphql` and `globalTypes.ts` now contain the system-admin query `methodHandlers` of the

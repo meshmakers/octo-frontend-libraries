@@ -35,6 +35,7 @@ import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-tog
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
+import { mergePersistentQueryColumns, mergeRuntimeEntityColumns } from './table-column-labels';
 
 /**
  * Data source type for table widget
@@ -725,12 +726,12 @@ export class TableConfigDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.dataSourceType === 'runtimeEntity' && this.selectedCkType) {
-      // Convert selected columns to TableColumn format
-      const columns: TableColumn[] = this.selectedColumns.map(field => ({
-        field,
-        title: this.formatColumnTitle(field),
-        width: undefined
-      }));
+      // Convert selected columns to TableColumn format. Columns that stay selected on the same
+      // CK type keep their authored properties (titles, valueLabels, width, format, ... — AB#7655).
+      const sameDataSource = this.initialDataSourceType !== 'persistentQuery'
+        && !!this.initialCkTypeId && this.selectedCkType.rtCkTypeId === this.initialCkTypeId;
+      const columns: TableColumn[] = mergeRuntimeEntityColumns(
+        this.selectedColumns, this.initialColumns, sameDataSource, field => this.formatColumnTitle(field));
 
       // Convert filters (remove IDs)
       const filterDtos: FieldFilterDto[] = this.filters.map(f => ({
@@ -763,7 +764,11 @@ export class TableConfigDialogComponent implements OnInit {
       this.windowRef.close({
         dataSourceType: 'persistentQuery',
         ckTypeId: '', // Not used for persistent query
-        columns: [], // Will be derived from query
+        // Explicit (hand-authored) columns survive a save on the same query (AB#7655);
+        // a new query starts without explicit columns (derived from the query at run time).
+        columns: mergePersistentQueryColumns(
+          this.initialColumns,
+          this.initialDataSourceType === 'persistentQuery' && this.selectedPersistentQuery.rtId === this.initialQueryRtId),
         sorting: [],
         filters: queryFilterDtos,
         queryRtId: this.selectedPersistentQuery.rtId,

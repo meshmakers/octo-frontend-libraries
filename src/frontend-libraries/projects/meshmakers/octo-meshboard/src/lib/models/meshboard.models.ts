@@ -445,9 +445,30 @@ export interface TableColumnStatusIconMapping {
   color?: string;
 }
 
+/**
+ * Display label of one raw cell value of a table column (AB#7655), e.g. `{ label: 'L2' }` for `2`.
+ */
+export interface TableColumnValueLabel {
+  /**
+   * Text shown instead of the raw value: one string for every language, or a text per culture
+   * code (`{ "de-AT": "gut", "en-GB": "good" }`) that follows the host language
+   * (`MESHBOARD_LANGUAGE`; exact culture, then language part). Without a match the raw value shows.
+   */
+  label: string | Record<string, string>;
+  /** Optional CSS text colour (e.g. `var(--kendo-color-success)`); without it the theme text colour applies. */
+  color?: string;
+}
+
 export interface TableColumn {
   field: string;
+  /** Header text; the fallback when `titles` has no text for the host language. */
   title: string;
+  /**
+   * Header text per culture code (AB#7655), e.g. `{ "de-AT": "Datenqualität", "en-GB": "Data quality" }`.
+   * Picked for the host language (`MESHBOARD_LANGUAGE` / `provideMeshBoard({ language })`): exact
+   * culture, then a key equal to the language part (`de`), then `title`. No host language = `title`.
+   */
+  titles?: Record<string, string>;
   width?: number;
   dataType?: string;
   /**
@@ -457,6 +478,13 @@ export interface TableColumn {
    */
   format?: string;
   statusMapping?: Record<string, TableColumnStatusIconMapping>;
+  /**
+   * Labels for raw cell values (AB#7655), keyed by the value as string (`"1"`, `"2"`, `"3"`); a
+   * number `2` and a string `"2"` both match `"2"`. The cell shows the label as plain text (with the
+   * optional colour); an unmapped value shows the raw value, `null` / missing an empty cell. Wins over
+   * the column's `dataType` rendering and over `MESHBOARD_LABEL_RESOLVER`.
+   */
+  valueLabels?: Record<string, TableColumnValueLabel>;
 }
 
 /**
