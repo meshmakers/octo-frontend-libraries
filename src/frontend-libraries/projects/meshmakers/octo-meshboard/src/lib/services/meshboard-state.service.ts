@@ -23,6 +23,16 @@ const REQUIRED_CK_MODEL = 'System.UI';
 const REQUIRED_CK_MODEL_MIN_VERSION = '1.0.1';
 
 /**
+ * The period an embedding host sets on the board (AB#7582): two exact instants
+ * (half-open `[from, to)`), or `invalid` (with the reason) when the host passed an
+ * unparseable or empty range. Produced by `parseHostTimeRange`, held transiently by
+ * {@link MeshBoardStateService.setHostTimeRange}.
+ */
+export type HostTimeRangeState =
+  | { status: 'valid'; from: Date; to: Date }
+  | { status: 'invalid'; reason: string };
+
+/**
  * Service that manages MeshBoard state and persistence.
  * Coordinates loading, saving, and switching between MeshBoards.
  */
@@ -53,6 +63,12 @@ export class MeshBoardStateService {
    * (AB#7721).
    */
   private readonly _entitySelectorScopes = signal<Record<string, EntitySelectorScopeState>>({});
+  /**
+   * Period set by the page that embeds the board (`MeshBoardViewComponent.timeRange`, AB#7582):
+   * exact instants, or `invalid` when the host passed an unusable range. `null` = the board's own
+   * selection applies. Transient — never persisted, never written into the board config.
+   */
+  private readonly _hostTimeRange = signal<HostTimeRangeState | null>(null);
   /**
    * Transient variables published by widgets (KPI output variables, AB#5364).
    * Kept apart from `_meshBoardConfig` so publishing triggers no persistence and
@@ -745,10 +761,22 @@ export class MeshBoardStateService {
    * Boundaries are resolved on the board's {@link timeZoneMode} basis (local by
    * default, or UTC), the same basis widgets format their datetime display on —
    * so the selected range and the displayed timestamps stay consistent.
+   *
+   * While an embedding host has set a period ({@link setHostTimeRange}, AB#7582)
+   * and the board's time filter is enabled, the host's instants are returned
+   * unchanged (no day snapping, no zone conversion) and the stored selection is
+   * ignored; an invalid host period resolves to `null`.
    */
   resolveCurrentTimeRange(): TimeRange | null {
     const config = this._meshBoardConfig().timeFilter;
-    if (!config?.enabled || !config.selection) {
+    if (!config?.enabled) {
+      return null;
+    }
+    const host = this._hostTimeRange();
+    if (host) {
+      return host.status === 'valid' ? { from: new Date(host.from), to: new Date(host.to) } : null;
+    }
+    if (!config.selection) {
       return null;
     }
     const showTime = config.pickerConfig?.showTime ?? false;
@@ -882,8 +910,21 @@ export class MeshBoardStateService {
    *   no-data state and send no query. Never fall back to the persisted scope.
    *
    * A legacy config without `queryFamily` is treated as stream data.
+   *
+   * AB#7582: while the embedding host's period is invalid, every stream-data
+   * query bound to the time filter is `empty` (`invalidTimeRange`), whatever its
+   * selector binding; pass the widget's `ignoreTimeFilter` so an opted-out widget,
+   * whose data does not depend on the period, keeps querying.
    */
-  resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily): StreamDataScope {
+  resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily, ignoreTimeFilter?: boolean): StreamDataScope {
+    if (family !== 'runtime' && this.isStreamDataBlockedByHostTimeRange(ignoreTimeFilter)) {
+      return { kind: 'empty', reason: 'invalidTimeRange' };
+    }
+    return this.resolveSelectorScope(entitySelectorId, family);
+  }
+
+  /** The entity-selector part of {@link resolveStreamDataScope} (AB#7721), without the host gate. */
+  private resolveSelectorScope(entitySelectorId?: string, family?: QueryFamily): StreamDataScope {
     if (!entitySelectorId || family === 'runtime') {
       return { kind: 'unscoped' };
     }
@@ -913,12 +954,51 @@ export class MeshBoardStateService {
    * skip the query for `pending` / `empty` (AB#7721).
    */
   resolveStreamDataRtIds(entitySelectorId?: string): string[] | undefined {
-    const scope = this.resolveStreamDataScope(entitySelectorId);
+    const scope = this.resolveSelectorScope(entitySelectorId);
     return scope.kind === 'scoped' ? scope.rtIds : undefined;
   }
 
   private setEntitySelectorScope(selectorId: string, state: EntitySelectorScopeState): void {
     this._entitySelectorScopes.update(map => ({ ...map, [selectorId]: state }));
+  }
+
+  /**
+   * Sets (or with `null` clears) the period of the page embedding the board
+   * (AB#7582). Called by `MeshBoardViewComponent` for its `timeRange` input; a
+   * host normally sets the input instead of calling this. Transient: not
+   * persisted, not written into the board config, so it never causes unsaved
+   * changes. Only takes effect while the board's time filter is enabled.
+   */
+  setHostTimeRange(state: HostTimeRangeState | null, owner?: object): void {
+    this._hostTimeRange.set(state);
+    this.hostTimeRangeOwner = state ? owner ?? null : null;
+  }
+
+  /**
+   * Clears the host period only if `owner` set it (AB#7582). The service is
+   * root-provided, so a view that is destroyed (or drops its `timeRange`) must not
+   * clear a period another view set in the meantime.
+   */
+  clearHostTimeRange(owner: object): void {
+    if (this.hostTimeRangeOwner === owner) {
+      this.setHostTimeRange(null);
+    }
+  }
+
+  /** The view (or other caller) that set the current host period, if it said so. */
+  private hostTimeRangeOwner: object | null = null;
+
+  /** The period set by the embedding host, or `null` when the board's own selection applies. */
+  readonly hostTimeRange = this._hostTimeRange.asReadonly();
+
+  /**
+   * True when an invalid host period blocks a stream-data query that is bound to
+   * the time filter (AB#7582): the period is invalid, the board's time filter is
+   * enabled and the caller did not opt out with `ignoreTimeFilter`. Such a query
+   * must not be sent — without a window it would read the whole archive.
+   */
+  isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?: boolean): boolean {
+    return !ignoreTimeFilter && this._hostTimeRange()?.status === 'invalid' && this.isTimeFilterEnabled();
   }
 
   /**

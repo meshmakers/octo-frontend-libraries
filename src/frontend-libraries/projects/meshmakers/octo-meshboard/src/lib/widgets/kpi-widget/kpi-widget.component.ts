@@ -463,7 +463,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       // Entity-selector scope (AB#7721): pending → stay in the loading state and
       // send no query (the view refreshes once the scope is known); empty → show
       // the no-data value '-' without querying the persisted (unscoped) scope.
-      const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily);
+      const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
       if (scope.kind === 'pending') {
         return;
       }

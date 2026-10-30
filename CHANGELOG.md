@@ -10,6 +10,27 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard host-set period (`timeRange` / `timeFilterControl`, AB#7582)
+
+- New (non-breaking, additive) inputs on `mm-meshboard-view`: `timeRange` (`{ from, to }` as `Date` or RFC 3339
+  strings with an offset - `Z` or `±HH:MM`, seconds required, uppercase `T`/`Z`; compact offsets and dates or times
+  that do not exist are rejected; half-open `[from, to)`) lets a host page set the board's period as exact instants;
+  `timeFilterControl` (`'board'` default | `'host'`) hides the board's time-range picker and its reset button only.
+  While `timeRange` is set, `$timeRangeFrom` / `$timeRangeTo` and every stream-data window use exactly those instants
+  (no day snapping, independent of `showTime` and `timeZoneMode`), `tf_*` parameters and the stored/default selection
+  are ignored (also after `timeRange` goes back to `undefined`), no `tf_*` parameters are written, there are no unsaved
+  changes, and the picker is hidden. With `'host'` and no `timeRange` the board selection applies, but no `tf_*` is
+  written. A change reloads the widgets once; `undefined` returns to the board's own selection. An invalid range sends
+  no stream-data query bound to the time filter (widgets, process element bindings, widget-group repeater; widgets with
+  `ignoreTimeFilter` keep querying) and logs one console error (runtime-query widgets with `$timeRangeFrom` filters are
+  not gated - see README). Day buckets and labels still follow `timeZoneMode`: embedders set it to their business zone.
+  Default behaviour (no `timeRange`, `'board'`) is unchanged; Refinery Studio needs no change.
+- New on `MeshBoardStateService`: `setHostTimeRange(state, owner?)`, `clearHostTimeRange(owner)` (owner-aware, the
+  service is shared by views), `hostTimeRange`, `isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?)` (all transient,
+  never persisted); `resolveCurrentTimeRange()` returns the host period while the time filter is enabled;
+  `resolveStreamDataScope` takes the widget's `ignoreTimeFilter` as optional third argument; `StreamDataScope` `empty`
+  has the new reason `invalidTimeRange`. Exports `MeshBoardHostTimeRange`, `MeshBoardTimeFilterControl`,
+  `HostTimeRangeState`, `parseHostTimeRange`.
 ### octo-meshboard entity selectors (multi-hop child scope, AB#7723)
 
 - New (non-breaking, additive): optional `EntitySelectorChildScope.path`, an ordered list of 2 to 5 association

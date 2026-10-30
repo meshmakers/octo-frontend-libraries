@@ -69,14 +69,16 @@ describe('MeshBoardDataService', () => {
     queryExecutorSpy = {
       execute: vi.fn().mockName('QueryExecutorService.execute'),
       executeRuntime: vi.fn().mockName('QueryExecutorService.executeRuntime'),
-      executeStreamData: vi.fn().mockName('QueryExecutorService.executeStreamData')
+      executeStreamData: vi.fn().mockName('QueryExecutorService.executeStreamData'),
+      resolveFamily: vi.fn().mockName('QueryExecutorService.resolveFamily').mockResolvedValue('runtime')
     } as unknown as MockedObject<QueryExecutorService>;
     apolloSpy = {
       query: vi.fn().mockName('Apollo.query')
     } as unknown as MockedObject<Apollo>;
     stateServiceSpy = {
       getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
-      resolveCurrentTimeRange: vi.fn().mockName('MeshBoardStateService.resolveCurrentTimeRange')
+      resolveCurrentTimeRange: vi.fn().mockName('MeshBoardStateService.resolveCurrentTimeRange'),
+      isStreamDataBlockedByHostTimeRange: vi.fn().mockName('MeshBoardStateService.isStreamDataBlockedByHostTimeRange').mockReturnValue(false)
     } as unknown as MockedObject<MeshBoardStateService>;
     variableServiceSpy = {
       convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
@@ -1017,6 +1019,39 @@ describe('MeshBoardDataService', () => {
         expect(result[0].attributes.get('value')).toBe(100);
         expect(result[1].rtId).toBe('entity-2');
         expect(result[1].attributes.get('name')).toBe('Machine 2');
+      });
+
+      describe('with an invalid host period (AB#7582)', () => {
+        beforeEach(() => {
+          stateServiceSpy.isStreamDataBlockedByHostTimeRange.mockReturnValue(true);
+          queryExecutorSpy.execute.mockReturnValue(of(runtimeResult([
+            { rtId: 'entity-1', ckTypeId: 'TestType', cells: [{ attributePath: 'name', value: 'Machine 1' }] }
+          ], 'TestType')));
+        });
+
+        it('sends no stream-data query and shows no items', async () => {
+          const result = await service.fetchRepeaterData({ type: 'repeaterQuery', queryRtId: 'sd-1', queryFamily: 'streamData' });
+
+          expect(queryExecutorSpy.execute).not.toHaveBeenCalled();
+          expect(result).toEqual([]);
+        });
+
+        it('resolves an unknown family first and skips a stream-data query', async () => {
+          queryExecutorSpy.resolveFamily.mockResolvedValue('streamData');
+
+          const result = await service.fetchRepeaterData({ type: 'repeaterQuery', queryRtId: 'sd-1' });
+
+          expect(queryExecutorSpy.resolveFamily).toHaveBeenCalledWith('sd-1');
+          expect(queryExecutorSpy.execute).not.toHaveBeenCalled();
+          expect(result).toEqual([]);
+        });
+
+        it('still runs a runtime query', async () => {
+          const result = await service.fetchRepeaterData({ type: 'repeaterQuery', queryRtId: 'rt-1', queryFamily: 'runtime' });
+
+          expect(queryExecutorSpy.execute).toHaveBeenCalledTimes(1);
+          expect(result.length).toBe(1);
+        });
       });
 
       it('should sanitize attribute paths (replace dots with underscores)', async () => {
