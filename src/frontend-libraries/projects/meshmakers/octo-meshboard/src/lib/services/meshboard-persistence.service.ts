@@ -546,7 +546,10 @@ export class MeshBoardPersistenceService {
           attributeMappings: es.attributeMappings,
           showInToolbar: es.showInToolbar,
           defaultRtId: es.defaultRtId,
-          childScope: es.childScope
+          childScope: es.childScope,
+          // AB#7722 — omitted (undefined → dropped by JSON.stringify) for
+          // selectors that follow nobody, so older boards encode unchanged.
+          followsSelectorId: es.followsSelectorId || undefined
         }));
       }
 

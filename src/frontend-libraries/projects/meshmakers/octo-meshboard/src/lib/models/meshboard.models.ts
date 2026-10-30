@@ -1458,6 +1458,17 @@ export interface EntitySelectorConfig {
    * own rtId is the scope. See {@link EntitySelectorChildScope}.
    */
   childScope?: EntitySelectorChildScope;
+  /**
+   * Optional id of the selector this one follows (AB#7722). A follower has no
+   * picker of its own and is never written to or read from the URL: it takes
+   * the leader's current pick as its picked entity (its `ckTypeId` is the
+   * leader's) and resolves its own `childScope` and `attributeMappings` from it.
+   * Its `defaultRtId` is used only while the leader has no pick. One level only:
+   * a leader cannot itself be a follower. An unknown or chained leader is
+   * treated as "leader has no pick" (plus a console warning).
+   * See `utils/entity-selector-follow.ts`.
+   */
+  followsSelectorId?: string;
   /** Current selection (transient, not persisted) */
   selectedRtId?: string;
   /** Display name of the currently selected entity */

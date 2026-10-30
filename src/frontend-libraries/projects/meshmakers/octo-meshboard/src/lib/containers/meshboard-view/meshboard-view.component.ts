@@ -32,7 +32,7 @@ import { WidgetRegistryService } from '../../services/widget-registry.service';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
-import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig } from '../../models/meshboard.models';
+import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig, RuntimeEntityData } from '../../models/meshboard.models';
 import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows } from '../../utils/compact-layout';
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
@@ -43,6 +43,13 @@ import {
   EntitySelectorEvent,
   EntitySelectorClearEvent
 } from '../../components/entity-selector-toolbar/entity-selector-toolbar.component';
+import {
+  effectiveSelector,
+  followersOf,
+  isFollowerSelector,
+  resolveFollowLeader,
+  showsInToolbar
+} from '../../utils/entity-selector-follow';
 import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
 import { MeshBoardEmptyStateComponent } from '../../components/meshboard-empty-state/meshboard-empty-state.component';
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
@@ -250,12 +257,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   // Entity Selector computed signals
   protected readonly entitySelectorsConfig = computed(() => this.stateService.getEntitySelectors());
   protected readonly hasEntitySelectors = computed(() =>
-    !this.hideEntitySelectors() && (this.entitySelectorsConfig()?.some(es => es.showInToolbar !== false) ?? false)
+    !this.hideEntitySelectors() && (this.entitySelectorsConfig()?.some(es => showsInToolbar(es)) ?? false)
   );
   protected readonly unselectedToolbarSelectors = computed(() => {
     if (this.hideEntitySelectors()) return [];
     const selectors = this.entitySelectorsConfig() ?? [];
-    return selectors.filter(es => es.showInToolbar !== false && !es.selectedRtId);
+    return selectors.filter(es => showsInToolbar(es) && !es.selectedRtId);
   });
 
   /**
@@ -839,6 +846,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       console.warn(`Entity selector '${selectorId}' not found`);
       return;
     }
+    if (isFollowerSelector(selector)) {
+      // A follower's pick is derived from its leader (AB#7722).
+      console.warn(`Entity selector '${selectorId}' follows '${selector.followsSelectorId}' and cannot be set directly`);
+      return;
+    }
 
     // Update selection state
     this.stateService.updateEntitySelectorSelection(selectorId, rtId, displayName);
@@ -857,12 +869,57 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Programmatically clears an entity selector value from outside the component.
    */
   clearEntitySelector(selectorId: string): void {
+    const selector = this.stateService.getEntitySelector(selectorId);
+    if (selector && isFollowerSelector(selector)) {
+      console.warn(`Entity selector '${selectorId}' follows '${selector.followsSelectorId}' and cannot be cleared directly`);
+      return;
+    }
+    this.clearSelectorPick(selectorId);
+    // Followers fall back to their own defaultRtId, or to no scope (AB#7722).
+    const followers = this.resetFollowersOf(selectorId);
+    this.stateService.triggerRefresh();
+    if (followers) {
+      void followers.then(() => this.stateService.triggerRefresh());
+    }
+  }
+
+  /**
+   * Clears one selector's pick, variables and scope state. Without a pick bound
+   * widgets fall back to the persisted scope (AB#7721).
+   */
+  private clearSelectorPick(selectorId: string): void {
     this.stateService.updateEntitySelectorSelection(selectorId, undefined);
     this.stateService.clearEntitySelectorVariables(selectorId);
-    // Without a pick bound widgets fall back to the persisted scope (AB#7721).
     this.scopeRequestSeq.set(selectorId, (this.scopeRequestSeq.get(selectorId) ?? 0) + 1);
     this.stateService.clearEntitySelectorRtIds(selectorId);
-    this.stateService.triggerRefresh();
+  }
+
+  /**
+   * The leader `leaderId` has no pick any more: each of its followers resolves
+   * its own `defaultRtId`, or — without one — has no pick and no scope
+   * (AB#7722). Followers with a default are marked pending synchronously.
+   * Returns a promise for the default resolutions, or `null` when there are none.
+   */
+  private resetFollowersOf(leaderId: string): Promise<void> | null {
+    const followers = followersOf(this.stateService.getEntitySelectors(), leaderId);
+    const resolutions: Promise<void>[] = [];
+    for (const follower of followers) {
+      if (follower.defaultRtId) {
+        const rtId = follower.defaultRtId;
+        const resolution = this.resolveEntitySelectorVariables(follower, rtId);
+        // The resolution marked the follower pending synchronously; remember
+        // its sequence so a leader pick made meanwhile keeps its selection.
+        const seq = this.scopeRequestSeq.get(follower.id);
+        resolutions.push(resolution.then(displayName => {
+          if (this.scopeRequestSeq.get(follower.id) === seq) {
+            this.stateService.updateEntitySelectorSelection(follower.id, rtId, displayName);
+          }
+        }));
+      } else {
+        this.clearSelectorPick(follower.id);
+      }
+    }
+    return resolutions.length > 0 ? Promise.all(resolutions).then(() => undefined) : null;
   }
 
   /** Resolution errors for runtime entity variables */
@@ -1380,7 +1437,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   async onEntitySelectorSelected(event: EntitySelectorEvent): Promise<void> {
     const { selectorId, entity } = event;
     const selector = this.stateService.getEntitySelector(selectorId);
-    if (!selector) return;
+    // Followers render no picker; their pick is derived from the leader (AB#7722).
+    if (!selector || isFollowerSelector(selector)) return;
 
     // Update selector selection state
     this.stateService.updateEntitySelectorSelection(selectorId, entity.rtId, entity.displayName);
@@ -1401,17 +1459,15 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    */
   async onEntitySelectorCleared(event: EntitySelectorClearEvent): Promise<void> {
     const { selectorId } = event;
+    const selector = this.stateService.getEntitySelector(selectorId);
+    if (selector && isFollowerSelector(selector)) return;
 
-    // Clear selection state
-    this.stateService.updateEntitySelectorSelection(selectorId, undefined);
+    // Clear selection, variables and the resolved stream-data scope: without a
+    // pick bound widgets fall back to the persisted scope (AB#7721).
+    this.clearSelectorPick(selectorId);
 
-    // Clear variables for this selector
-    this.stateService.clearEntitySelectorVariables(selectorId);
-
-    // Clear the resolved stream-data scope for this selector: without a pick
-    // bound widgets fall back to the persisted scope (AB#7721).
-    this.scopeRequestSeq.set(selectorId, (this.scopeRequestSeq.get(selectorId) ?? 0) + 1);
-    this.stateService.clearEntitySelectorRtIds(selectorId);
+    // Followers fall back to their own defaultRtId, or to no scope (AB#7722).
+    await this.resetFollowersOf(selectorId);
 
     // Sync to URL
     this.writeEntitySelectorsToUrl();
@@ -1424,14 +1480,17 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Initializes entity selectors from URL params, route data, or defaults.
    */
   private async initializeEntitySelectors(): Promise<void> {
-    const picks = this.initialEntitySelectorPicks();
+    const picks = this.initialEntitySelectorPicks(true);
     if (picks.length === 0) return;
 
     // Mark every picked scope pending before the first await, so no bound
     // widget queries the persisted scope while the picks resolve (AB#7721).
     this.primeEntitySelectorScopes();
 
-    for (const { selector, rtId } of picks) {
+    for (const { selector, rtId, viaLeader } of picks) {
+      // A follower whose leader has a pick is resolved together with the
+      // leader (one entity fetch, AB#7722).
+      if (viaLeader) continue;
       const displayName = await this.resolveEntitySelectorVariables(selector, rtId);
       this.stateService.updateEntitySelectorSelection(selector.id, rtId, displayName);
     }
@@ -1445,21 +1504,40 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   /**
    * The initial pick of each entity selector. Priority: route data > URL
    * params > defaultRtId. Selectors without a pick are left out.
+   *
+   * Followers (AB#7722) never read route data or the URL: a follower takes its
+   * leader's initial pick (`viaLeader: true`, resolved together with the
+   * leader) and falls back to its own `defaultRtId` only when the leader has
+   * none. An unknown or chained leader counts as "leader has no pick"; with
+   * `warn` set this logs a console warning.
    */
-  private initialEntitySelectorPicks(): { selector: EntitySelectorConfig; rtId: string }[] {
+  private initialEntitySelectorPicks(warn = false): { selector: EntitySelectorConfig; rtId: string; viaLeader: boolean }[] {
     const selectors = this.stateService.getEntitySelectors();
     if (selectors.length === 0) return [];
 
     const urlSelections = this.readEntitySelectorsFromUrl();
     const routeData = this.route.snapshot.data['entitySelectors'] as Record<string, string> | undefined;
+    const ownPick = (selector: EntitySelectorConfig): string | undefined =>
+      routeData?.[selector.id] ?? urlSelections.get(selector.id) ?? selector.defaultRtId;
 
-    const picks: { selector: EntitySelectorConfig; rtId: string }[] = [];
+    const picks: { selector: EntitySelectorConfig; rtId: string; viaLeader: boolean }[] = [];
     for (const selector of selectors) {
-      const rtId = routeData?.[selector.id]
-        ?? urlSelections.get(selector.id)
-        ?? selector.defaultRtId;
-      if (rtId) {
-        picks.push({ selector, rtId });
+      const leader = resolveFollowLeader(selectors, selector);
+      if (leader.kind === 'none') {
+        const rtId = ownPick(selector);
+        if (rtId) picks.push({ selector, rtId, viaLeader: false });
+        continue;
+      }
+      if (leader.kind === 'invalid' && warn) {
+        console.warn(
+          `Entity selector '${selector.id}' follows '${leader.leaderId}', which ${leader.problem === 'unknown' ? 'does not exist' : leader.problem === 'self' ? 'is itself' : 'follows another selector'} — treated as "leader has no pick"`
+        );
+      }
+      const leaderRtId = leader.kind === 'leader' ? ownPick(leader.leader) : undefined;
+      if (leaderRtId) {
+        picks.push({ selector, rtId: leaderRtId, viaLeader: true });
+      } else if (selector.defaultRtId) {
+        picks.push({ selector, rtId: selector.defaultRtId, viaLeader: false });
       }
     }
     return picks;
@@ -1481,18 +1559,31 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   }
 
   /**
-   * Resolves variables for an entity selector by fetching entity attributes.
+   * Resolves variables for an entity selector by fetching entity attributes,
+   * then its stream-data scope.
+   *
+   * A leader's pick is also the pick of all its followers (AB#7722): they are
+   * marked pending together with the leader, the picked entity is fetched
+   * once, and each follower gets its own variables (its attribute mappings,
+   * `<id>_rtId`, `<id>_rtCkTypeId`), its own scope (its `childScope`) and the
+   * leader's selection. Returns the picked entity's display name.
    */
   private async resolveEntitySelectorVariables(selector: EntitySelectorConfig, rtId: string): Promise<string | undefined> {
+    const selectors = this.stateService.getEntitySelectors();
+    const resolved = effectiveSelector(selectors, selector);
+    const followers = followersOf(selectors, selector.id).map(f => effectiveSelector(selectors, f));
+    const targets = [resolved, ...followers];
+
     // The scope of the new pick is unknown until it resolves: bound widgets
     // must neither keep the previous pick's scope nor fall back to the
-    // persisted one (AB#7721).
-    const seq = this.beginScopeResolution(selector.id);
+    // persisted one (AB#7721). Followers are pending while the leader is.
+    const seqs = targets.map(t => this.beginScopeResolution(t.id));
+    const failAll = (): void => targets.forEach((t, i) => this.failScopeResolution(t.id, seqs[i]));
     try {
       const entity = await firstValueFrom(
         this.dataService.fetchRuntimeEntity({
           type: 'runtimeEntity',
-          ckTypeId: selector.ckTypeId,
+          ckTypeId: resolved.ckTypeId,
           rtId
         })
       );
@@ -1501,61 +1592,86 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         console.warn(`Entity not found for selector '${selector.id}': ${rtId}`);
         // The pick cannot be resolved: bound widgets show no data instead of
         // waiting forever or falling back to the persisted scope (AB#7721).
-        this.failScopeResolution(selector.id, seq);
+        failAll();
         return undefined;
       }
 
-      const values = selector.attributeMappings.map(mapping => {
-        const attr = entity.attributes.find(a => a.attributeName === mapping.attributePath);
-        return {
-          name: mapping.variableName,
-          value: attr ? String(attr.value ?? '') : '',
-          type: mapping.attributeValueType
-            ? this.variableService.mapAttributeTypeToVariableType(mapping.attributeValueType)
-            : 'string'
-        };
+      // A newer pick (of the leader, or a follower's own default) may have
+      // started meanwhile; never overwrite its variables or selection.
+      const isCurrent = (i: number): boolean => this.scopeRequestSeq.get(targets[i].id) === seqs[i];
+      targets.forEach((target, i) => {
+        if (isCurrent(i)) {
+          this.stateService.setEntitySelectorVariables(target.id, this.selectorVariables(target, entity, rtId));
+        }
       });
-
-      // Auto-expose the selected entity's rtId as `$<selectorId>_rtId` so SD/runtime
-      // widgets can scope to the picked asset (parent-association filter) without the
-      // designer adding a fake attribute mapping. An explicit mapping to the same
-      // variable name wins (skip the synthetic one if already present).
-      const rtIdVariableName = `${selector.id}_rtId`;
-      if (!values.some(v => v.name === rtIdVariableName)) {
-        values.push({ name: rtIdVariableName, value: rtId, type: 'string' });
-      }
-
-      // Auto-expose the selected entity's CK type as `$<selectorId>_rtCkTypeId`
-      // so entity-display widgets (e.g. the entity card) can resolve both the
-      // rtId and its type from a single board-level selection. Prefer the picked
-      // entity's actual type (it may be a subtype of the selector's configured
-      // `ckTypeId`); fall back to the selector's type. An explicit mapping to the
-      // same variable name wins.
-      const rtCkTypeIdVariableName = `${selector.id}_rtCkTypeId`;
-      if (!values.some(v => v.name === rtCkTypeIdVariableName)) {
-        values.push({ name: rtCkTypeIdVariableName, value: entity.ckTypeId ?? selector.ckTypeId, type: 'string' });
-      }
-
-      this.stateService.setEntitySelectorVariables(selector.id, values);
-
-      // Resolve the stream-data scope rtIds for this selection (one-hop
-      // childScope traversal, or the picked entity itself). Runs alongside the
-      // variable resolution so widgets bound to this selector can scope their
-      // stream-data query by the resolved source rtIds.
-      await this.resolveEntitySelectorScopeRtIds(selector, rtId, seq);
 
       // Label the selection the way the pick dialog does: by the engine's
       // display name (the type's displayNameRule — "2026" for a fiscal year),
       // not the well-known name, which most entities do not carry. Without it
       // a board opened on its defaultRtId showed the raw rtId in the toolbar
       // until the user re-picked the very same entity.
-      return entity.rtDisplayName || entity.rtWellKnownName || entity.rtId;
+      const displayName = entity.rtDisplayName || entity.rtWellKnownName || entity.rtId;
+      followers.forEach((follower, i) => {
+        if (isCurrent(i + 1)) {
+          this.stateService.updateEntitySelectorSelection(follower.id, rtId, displayName);
+        }
+      });
+
+      // Resolve the stream-data scope rtIds for this selection (one-hop
+      // childScope traversal, or the picked entity itself), per selector, so
+      // widgets bound to the leader or any follower scope their stream-data
+      // query by the resolved source rtIds.
+      await Promise.all(targets.map((t, i) => this.resolveEntitySelectorScopeRtIds(t, rtId, seqs[i])));
+
+      return displayName;
     } catch (error) {
       console.error(`Error resolving entity selector '${selector.id}':`, error);
       // Same as above: a failed pick is an empty scope, never the persisted one.
-      this.failScopeResolution(selector.id, seq);
+      failAll();
       return undefined;
     }
+  }
+
+  /**
+   * The variables one selector derives from the picked entity: its attribute
+   * mappings plus the auto-exposed `<id>_rtId` and `<id>_rtCkTypeId`.
+   */
+  private selectorVariables(
+    selector: EntitySelectorConfig,
+    entity: RuntimeEntityData,
+    rtId: string
+  ): { name: string; value: string; type?: string }[] {
+    const values = selector.attributeMappings.map(mapping => {
+      const attr = entity.attributes.find(a => a.attributeName === mapping.attributePath);
+      return {
+        name: mapping.variableName,
+        value: attr ? String(attr.value ?? '') : '',
+        type: mapping.attributeValueType
+          ? this.variableService.mapAttributeTypeToVariableType(mapping.attributeValueType)
+          : 'string'
+      };
+    });
+
+    // Auto-expose the selected entity's rtId as `$<selectorId>_rtId` so SD/runtime
+    // widgets can scope to the picked asset (parent-association filter) without the
+    // designer adding a fake attribute mapping. An explicit mapping to the same
+    // variable name wins (skip the synthetic one if already present).
+    const rtIdVariableName = `${selector.id}_rtId`;
+    if (!values.some(v => v.name === rtIdVariableName)) {
+      values.push({ name: rtIdVariableName, value: rtId, type: 'string' });
+    }
+
+    // Auto-expose the selected entity's CK type as `$<selectorId>_rtCkTypeId`
+    // so entity-display widgets (e.g. the entity card) can resolve both the
+    // rtId and its type from a single board-level selection. Prefer the picked
+    // entity's actual type (it may be a subtype of the selector's configured
+    // `ckTypeId`); fall back to the selector's type. An explicit mapping to the
+    // same variable name wins.
+    const rtCkTypeIdVariableName = `${selector.id}_rtCkTypeId`;
+    if (!values.some(v => v.name === rtCkTypeIdVariableName)) {
+      values.push({ name: rtCkTypeIdVariableName, value: entity.ckTypeId ?? selector.ckTypeId, type: 'string' });
+    }
+    return values;
   }
 
   /**
@@ -1633,6 +1749,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     const params: Record<string, string | null> = {};
 
     for (const selector of selectors) {
+      // Followers are derived from their leader and never serialized (AB#7722).
+      if (isFollowerSelector(selector)) continue;
       params[`es_${selector.id}`] = selector.selectedRtId ?? null;
     }
 

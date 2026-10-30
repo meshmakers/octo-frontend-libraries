@@ -38,6 +38,11 @@
     color: var(--kendo-color-info, #0288d1);
   }
 
+  // AB#7722: a follower whose leader is missing or itself a follower.
+  .selector-mode-error {
+    color: var(--kendo-color-error, #d32f2f);
+  }
+
   .selector-ck-type {
     font-size: 0.8rem;
     color: var(--kendo-color-subtle, #757575);
