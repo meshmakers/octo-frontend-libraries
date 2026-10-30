@@ -862,6 +862,18 @@ describe('MeshBoardStateService', () => {
         expect(service.failedEntitySelectorScopeIds()).toEqual([]);
       });
 
+      it('is empty (noPick) for a dependent without pick while its leader has one, and lists it (AB#7916)', () => {
+        service.setEntitySelectorScopeNeedsPick('room');
+        expect(service.resolveStreamDataScope('room', 'streamData')).toEqual({ kind: 'empty', reason: 'noPick' });
+        expect(service.resolveStreamDataScope('room', 'runtime')).toEqual({ kind: 'empty', reason: 'noPick' });
+        expect(service.resolveStreamDataRtIds('room')).toBeUndefined();
+        expect(service.needsPickEntitySelectorIds()).toEqual(['room']);
+        expect(service.failedEntitySelectorScopeIds()).toEqual([]);
+        service.clearEntitySelectorRtIds('room');
+        expect(service.resolveStreamDataScope('room', 'streamData')).toEqual({ kind: 'unscoped' });
+        expect(service.needsPickEntitySelectorIds()).toEqual([]);
+      });
+
       it('treats a legacy config without queryFamily as stream data', () => {
         service.setEntitySelectorRtIds('site', []);
         expect(service.resolveStreamDataScope('site')).toEqual({ kind: 'empty', reason: 'noTargets' });

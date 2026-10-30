@@ -374,6 +374,7 @@ Per selector the state service keeps one transient `EntitySelectorScopeState`
 | `resolved`, ≥1 rtId | resolution done | `scoped` | queries with `streamDataArgs.rtIds` (unchanged) |
 | `resolved`, 0 rtIds | the pick has nothing in scope | `empty` / `noTargets` | shows its **no-data** state, sends **no query** |
 | `failed` | association fetch threw, or the picked entity was not found | `empty` / `failed` | as above; the view shows one notice per selector (*Could not resolve the scope of "<label>"*, `MeshBoardMessages.scopeResolutionFailed`) and logs the error once |
+| `needsPick` (AB#7916) | a dependent selector (or a follower of one without own pick) has no pick while its leader has one | `empty` / `noPick` | no data, no query; the view shows *Pick a <label> to see this data.* (`MeshBoardMessages.scopePickRequired`) — see *Dependent selectors* |
 
 Rules:
 - **Never fall back to the persisted scope for `pending` or `empty`.** The persisted
@@ -865,13 +866,14 @@ the texts, and the query wrappers `withoutListing` / `deferredPickerQuery`.
   neither a follower nor itself dependent. A dependent may itself lead followers.
 - **Resolution (view):** whenever the leader's pick resolves
   (`resolveEntitySelectorVariables` — toolbar pick, URL / route / default pick on
-  load, `setEntitySelector`), `resolvePickerScopesOf` marks every valid
-  dependent pending in the same synchronous step and walks its path with
-  `resolveScopePath` + `MeshBoardDataService.fetchAssociationTargetRtIds` (one
-  batched request per hop, distinct rtIds of the last hop, an empty hop ends
-  the walk). It runs independently of the leader's own resolution — the
-  leader's variables, URL write and widget refresh never wait for the
-  dependents' hops. A per-dependent sequence number discards a late resolution
+  load, `setEntitySelector`), `pickWithDependents` → `settleDependentsOf` marks
+  every valid dependent's picker scope pending in the same synchronous step and
+  `resolvePickerScope` walks its path with `resolveScopePath` +
+  `MeshBoardDataService.fetchAssociationTargetRtIds` (one batched request per
+  hop, distinct rtIds of the last hop, an empty hop ends the walk). The leader's
+  pick waits for a dependent only when that dependent's pick has to be decided
+  (it has a pick or a default, AB#7916); otherwise the picker scope resolves in
+  the background. A per-dependent sequence number discards a late resolution
   of an earlier leader pick. The result is kept in
   `MeshBoardStateService.pickerScopes` (`setPickerScopePending` /
   `setPickerScopeRtIds` / `setPickerScopeFailed` / `clearPickerScope`), next to
@@ -905,9 +907,7 @@ the texts, and the query wrappers `withoutListing` / `deferredPickerQuery`.
   (2026-10-30, a room type of a solution tenant): `rtId IN` alone, with
   `rtDisplayName LIKE` and with an attribute `EQUALS` row each returned exactly
   the expected subset.
-- **Not here (AB#7916):** what happens to a dependent pick that is out of scope
-  after a leader change, URL validation of dependent picks, widget states of the
-  dependent's own scope. **Editor (AB#7917):** the selector editor does not show
+- **Pick lifecycle:** see *Dependent pick lifecycle (AB#7916)* below. **Editor (AB#7917):** the selector editor does not show
   the setting yet and its save rebuilds the selector without `scopeSource` —
   editing a dependent selector in the editor drops the setting until AB#7917.
 - **Persistence:** `scopeSource` is in the selector whitelist of
@@ -916,6 +916,52 @@ the texts, and the query wrappers `withoutListing` / `deferredPickerQuery`.
   export/import carries the description verbatim
   (`meshboard-persistence.entity-selector-scope-source.spec.ts`, fixture
   `testing/entity-selector-scope-source.fixtures.ts`).
+
+### Dependent pick lifecycle (AB#7916)
+
+A dependent never keeps a pick outside its leader's pick. Pure helpers in
+`utils/entity-selector-scope-source.ts`: `nextDependentPick(current, default,
+pickerScope)` and `isInPickerScope(rtId, pickerScope)`. View methods:
+`pickWithDependents`, `settleDependentsOf`, `releaseDependentsOf`,
+`needsPickWithoutOwnPick`, `acceptsDependentPick`.
+
+| Event | Dependent |
+|---|---|
+| leader picked (toolbar, host, load) — dependent has a pick or a default | in the same synchronous step the dependent **and its followers** are marked `pending` (bound widgets show loading, never the old pick's data); after the picker scope resolved: pick in scope → kept; else `defaultRtId` in scope → default; else no pick |
+| leader picked — dependent has neither pick nor default | at once `needsPick`; its followers without own default too (no waiting for the hops) |
+| picker scope resolved empty | no pick, `needsPick` ("Pick a <label>") |
+| picker scope failed | no pick, `failed` scope ("Could not resolve the scope of <label>") |
+| leader cleared | dependents keep their pick; a dependent without pick (and its followers that needed one) goes back to the persisted scope; a dependent whose decision was still running resolves its current pick again |
+| dependent cleared while the leader has a pick | `needsPick` |
+| dependent picked (toolbar or `setEntitySelector`) | accepted only inside the picker scope (`isInPickerScope`; a pending scope is awaited); otherwise a console warning and nothing changes or re-queries |
+
+- **One refresh per change.** The leader's toolbar pick, `setEntitySelector`
+  and the board load call `triggerRefresh()` once, after the leader, its
+  followers, every dependent decision and the dependents' followers settled
+  (widgets reload only on a config reference change, so they query exactly once).
+- **Stale changes.** Each selector carries a change number
+  (`leaderChangeSeq`); a change overtaken by a newer pick or clear of the same
+  selector skips its URL write and refresh. The picker-scope sequence number
+  (`pickerScopeSeq`) drops the decision of an overtaken leader pick, the scope
+  sequence number (`scopeRequestSeq`) its variable and scope writes — with
+  S1 → S2 → S3 only the S3 outcome is applied.
+- **Narrowed AB#7721 rule.** "No pick ⇒ persisted scope" still holds for every
+  selector except a dependent whose leader has a pick (and that dependent's
+  followers without own pick): they are `needsPick`, because the persisted scope
+  would show entities outside the leader's pick. `primeEntitySelectorScopes`
+  sets it before the first widget renders.
+- **URL and route data.** The dependent keeps its own `es_<id>` param next to
+  the leader's. On load the selectors that are not dependent resolve first; each
+  dependent of a picked leader is decided against its picker scope with its
+  initial pick (route data > URL > default) as the current pick. A dropped URL
+  or route-data pick is logged once (`console.info`) and the URL is rewritten
+  with `replaceUrl` — in the same navigation as the initial rtId sync when that
+  runs (`entitySelectorUrlParams`), never in a second one. A dependent whose
+  leader has no pick keeps its URL pick unscoped, as before.
+- Specs: `meshboard-view.entity-selector-dependent-pick.spec.ts` (a real line
+  chart per selector, reloaded on every refresh, with a spy on
+  `QueryExecutorService`), `utils/entity-selector-scope-source.spec.ts`,
+  `services/meshboard-state.service.spec.ts`.
 
 > **Hosts with `keyFields: ['rtId']` (AB#7649).** `getAssociationTargets` selects `rtId` on the
 > source entity as well, although nothing reads it: a host whose Apollo cache keys `RtEntity` by
@@ -1056,6 +1102,8 @@ For a follower: the leader's pick (by the order above) > the follower's own
 | `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | What a bound widget does — host gate (AB#7582, stream data), then the selector scope; see *Scope resolution contract* |
 | `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | Selector scope only, runtime and stream data alike (AB#7725) |
 | `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` |
+| `setEntitySelectorScopeNeedsPick(selectorId)` | `void` | Dependent without pick while its leader has one (AB#7916): `empty` / `noPick` |
+| `needsPickEntitySelectorIds` | `Signal<string[]>` | Selectors in `needsPick` (board notice "Pick a <label> to see this data.", AB#7916) |
 | `pickerScopes` | `Signal<Record<string, EntitySelectorScopeState>>` | Picker scopes of dependent selectors (AB#7915); no entry = leader has no pick |
 | `setPickerScopePending` / `setPickerScopeRtIds` / `setPickerScopeFailed` / `clearPickerScope` / `getPickerScopeState` | — | Write / read one dependent's picker scope (AB#7915) |
 
@@ -1279,6 +1327,7 @@ Current test files:
 - `utils/entity-selector-scope-source.spec.ts` - Scope source resolution and every invalid case, dependents, picker states, texts, query wrappers (AB#7915)
 - `entity-selector-toolbar.scope-source.spec.ts` - Dependent picker: `rtId IN` on dropdown and dialog, AND with filter rows and search, one hop, no leader pick, pending (no query until settled), empty / failed / invalid texts, leader change, unscoped selectors unchanged (AB#7915)
 - `meshboard-view.entity-selector-scope-source.spec.ts` - Picker scope resolution: three batched hops with duplicates, one hop, pending, empty, failed hop, invalid configurations (one warning each), stale leader pick, clear, URL pick on load (AB#7915)
+- `meshboard-view.entity-selector-dependent-pick.spec.ts` - Dependent pick lifecycle: keep / default / none on a leader change, pending and exactly one query per bound widget, no pick while the leader has one (no query, notice), persisted scope without leader pick, empty and failed picker scope, leader cleared, URL and route-data validation with `replaceUrl`, host API, two quick leader changes (AB#7916)
 - `meshboard-persistence.entity-selector-scope-source.spec.ts` - `scopeSource` save/reload and export/import; a pre-AB#7915 description imports and re-encodes byte-identically (AB#7915)
 - `entity-selector-scope-path-editor.component.spec.ts` - Hop list: add/remove/reorder, associations from metadata, "Other role…", warnings, metadata failure, validation, accessibility (AB#7723)
 - `widgets/stream-data-scope.widgets.spec.ts` - Line chart, bar chart and table send no query for an empty or pending scope (AB#7721); KPI in `kpi-widget.component.spec.ts`, process binding in `process-data.service.spec.ts`

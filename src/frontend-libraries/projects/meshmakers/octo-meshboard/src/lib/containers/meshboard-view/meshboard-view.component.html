@@ -202,6 +202,15 @@
       </div>
     }
 
+    <!-- Dependent selectors without pick while their leader has one (AB#7916) -->
+    @if (scopePickRequiredNotices().length > 0) {
+      <div class="variable-resolution-errors scope-pick-required" role="status">
+        @for (notice of scopePickRequiredNotices(); track notice.selectorId) {
+          <span class="error-item">{{ notice.message }}</span>
+        }
+      </div>
+    }
+
     <!-- Banner Zone: widgets placed in the banner stack above the grid -->
     @if (isEditMode()) {
       <div class="zone-label banner-zone-label">Banner Zone</div>

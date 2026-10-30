@@ -135,6 +135,9 @@ export function pickerScopeView(
       return { kind: 'failed' };
     case 'resolved':
       return state.rtIds.length > 0 ? { kind: 'scoped', rtIds: state.rtIds } : { kind: 'empty' };
+    case 'needsPick':
+      // Widget-scope state only (AB#7916); never stored as a picker scope.
+      return { kind: 'unscoped' };
   }
 }
 
@@ -198,4 +201,48 @@ export function deferredPickerQuery(
     switchMap(query => query ? query.fetch(options) : emptyPickerResult())
   )) as PickerFetch;
   return wrapped;
+}
+
+/**
+ * The pick a dependent selector keeps after its leader's pick changed
+ * (AB#7916), decided from the dependent's picker scope:
+ * - no picker scope (`undefined`, the leader has no pick) → the current pick
+ *   stays (the picker lists unscoped, AB#7915);
+ * - resolved with rtIds → the current pick if it is among them, else the
+ *   `defaultRtId` if it is among them, else no pick (`null`);
+ * - resolved empty, failed or still pending → no pick.
+ *
+ * Never returns an rtId outside a resolved picker scope.
+ */
+export function nextDependentPick(
+  current: string | undefined,
+  defaultRtId: string | undefined,
+  pickerScope: EntitySelectorScopeState | undefined
+): string | null {
+  if (!pickerScope) {
+    return current ?? null;
+  }
+  if (pickerScope.status !== 'resolved') {
+    return null;
+  }
+  if (current && pickerScope.rtIds.includes(current)) {
+    return current;
+  }
+  if (defaultRtId && pickerScope.rtIds.includes(defaultRtId)) {
+    return defaultRtId;
+  }
+  return null;
+}
+
+/**
+ * True when `rtId` may be picked in a dependent selector with the given picker
+ * scope (AB#7916): anything while the leader has no pick, only an in-scope
+ * rtId while the scope is resolved, nothing while it is empty, failed or
+ * pending.
+ */
+export function isInPickerScope(rtId: string, pickerScope: EntitySelectorScopeState | undefined): boolean {
+  if (!pickerScope) {
+    return true;
+  }
+  return pickerScope.status === 'resolved' && pickerScope.rtIds.includes(rtId);
 }
