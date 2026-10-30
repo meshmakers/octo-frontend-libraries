@@ -373,7 +373,7 @@ Rules:
   line / bar / pie / heatmap render the empty chart (`emptyQueryExecutionResult`); the
   table lists no rows (pending: the fetch observable never emits, so the list stays
   loading until the refresh cancels it); stats grid / summary card show `-` per cell
-  (pending: the whole widget stays loading); the process binding gets no rows.
+  (pending: the whole widget stays loading); the process binding gets no rows (pending: `BoundDataResult.pending`, the widget stays loading).
 - A custom widget that reads `resolveStreamDataRtIds` must check
   `resolveStreamDataScope` first — `undefined` from `resolveStreamDataRtIds` is not
   "query unscoped" for a pending or empty scope.

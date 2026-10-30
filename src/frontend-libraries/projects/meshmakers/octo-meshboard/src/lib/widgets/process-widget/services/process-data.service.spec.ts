@@ -136,11 +136,23 @@ describe('ProcessDataService — stream-data query binding', () => {
     expect(opts?.streamDataArgs).toEqual({ from, to, rtIds: ['rt-1', 'rt-2'] });
   });
 
-  it('binds no rows and sends no query for an empty or pending entity-selector scope (AB#7721)', async () => {
+  it('reports a pending entity-selector scope without sending a query (AB#7721)', async () => {
+    const config = baseConfig();
+    config.bindingEntitySelectorId = 'site';
+    stateService.resolveStreamDataScope.mockReturnValue({ kind: 'pending' });
+
+    const result = await service.loadBoundData(config);
+
+    expect(queryExecutor.execute).not.toHaveBeenCalled();
+    expect(result?.pending).toBe(true);
+    expect(result?.queryResult).toBeUndefined();
+  });
+
+  it('binds no rows and sends no query for an empty entity-selector scope (AB#7721)', async () => {
     const config = baseConfig();
     config.bindingEntitySelectorId = 'site';
 
-    for (const scope of [{ kind: 'empty', reason: 'noTargets' }, { kind: 'empty', reason: 'failed' }, { kind: 'pending' }]) {
+    for (const scope of [{ kind: 'empty', reason: 'noTargets' }, { kind: 'empty', reason: 'failed' }]) {
       stateService.resolveStreamDataScope.mockReturnValue(scope as ReturnType<MeshBoardStateService['resolveStreamDataScope']>);
 
       const result = await service.loadBoundData(config);

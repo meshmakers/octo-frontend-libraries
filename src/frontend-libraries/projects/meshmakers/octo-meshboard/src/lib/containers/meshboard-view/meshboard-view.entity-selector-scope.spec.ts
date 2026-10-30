@@ -114,7 +114,7 @@ describe('MeshBoardViewComponent — entity selector scope (AB#7721)', () => {
 
   it('turns a pick without child-scope targets into an empty scope and refreshes the widgets', async () => {
     const fixture = setup([SITE_SELECTOR]);
-    const refresh = vi.spyOn(MeshBoardStateService.prototype, 'triggerRefresh');
+    const refresh = vi.spyOn(MeshBoardStateService.prototype, 'triggerRefresh').mockReturnValue(undefined);
 
     const el = await settle(fixture);
 
