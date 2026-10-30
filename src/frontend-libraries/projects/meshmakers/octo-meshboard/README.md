@@ -142,6 +142,60 @@ With `plain` the host is responsible for the gutter: a route that loads the view
 an unpadded outlet should wrap it in a padded page instead. Exported helpers: `MeshBoardChrome`,
 `MESHBOARD_CHROME_ROUTE_DATA`, `resolveMeshBoardChrome`.
 
+### Period set by the host (`timeRange` / `timeFilterControl`, AB#7582)
+
+A host page that has its own period control (one "from / to" for the whole page) passes the period
+to the embedded board as **two exact instants** and switches the board's own time-range picker off,
+so page and dashboard always show the same days, whatever time zone the browser is in.
+
+| Input | Type | Effect |
+|-------|------|--------|
+| `timeRange` | `{ from: Date \| string; to: Date \| string } \| undefined` | Half-open period `[from, to)`. Strings are ISO 8601 **with a zone designator** (`Z` or `±hh:mm`); a string without one is rejected, because the browser would read it in its own zone. |
+| `timeFilterControl` | `'board' \| 'host'` (default `'board'`) | `'host'` hides the board's time-range picker and its reset button. Entity selectors and the toolbar actions stay, in `headerMode` `full` and `compact`. |
+
+Rules while `timeRange` is set (and the board's time filter is enabled):
+
+- `$timeRangeFrom` / `$timeRangeTo` and the stream-data window of every stream-data widget are
+  exactly the two instants — no snapping to 00:00, independent of `pickerConfig.showTime` and of
+  the board `timeZoneMode`.
+- **The host wins:** `tf_*` query parameters and the stored/default selection are ignored, the view
+  writes no `tf_*` parameters, the stored selection is not touched and the board shows no unsaved
+  changes. The picker is hidden and its events are ignored, whatever the `timeFilterControl`
+  value.
+- A new period reloads the widgets once (an equal period — same instants — reloads nothing); the
+  board definition is not reloaded. Setting `timeRange` back to `undefined` returns the board to
+  its own selection (and, with `'board'`, shows the picker again).
+- An invalid period (unparseable value, or `from >= to`) sends **no stream-data query**: the
+  widgets show their normal empty state (`resolveStreamDataScope` returns
+  `{ kind: 'empty', reason: 'invalidTimeRange' }`), `$timeRangeFrom` / `$timeRangeTo` are removed,
+  and the view logs one console error naming the input. **Limitation:** widgets backed by a
+  *runtime* query or aggregation whose filter uses `$timeRangeFrom` / `$timeRangeTo` are not
+  gated; they run with the placeholder unresolved. An invalid range is a host bug — fix it there.
+- A board whose time filter is disabled ignores `timeRange` and logs nothing.
+- With `timeRange` undefined and `timeFilterControl='board'` the view behaves exactly as before.
+
+Day rules belong to the host: the library has no "day start" offset. A host whose day starts at
+06:00 (e.g. a gas day) computes the instants itself, in its business time zone:
+
+```typescript
+import { MeshBoardHostTimeRange } from '@meshmakers/octo-meshboard';
+
+/** Gas day `day` (yyyy-mm-dd) = 06:00 Vienna to 06:00 Vienna the next day (23/24/25 h on DST days). */
+function gasDay(day: string): MeshBoardHostTimeRange {
+  return { from: viennaInstant(day, 6), to: viennaInstant(addDays(day, 1), 6) };
+}
+// viennaInstant(day, hour) returns the UTC instant of that Vienna wall-clock time, e.g.
+// viennaInstant('2026-03-28', 6) = '2026-03-28T05:00:00Z', viennaInstant('2026-03-29', 6) = '2026-03-29T04:00:00Z'.
+```
+
+```html
+<mm-meshboard-view headerMode="compact" timeFilterControl="host" [timeRange]="period()"></mm-meshboard-view>
+```
+
+The period is held transiently by `MeshBoardStateService` (`hostTimeRange`, `setHostTimeRange`) and
+cleared when the view is destroyed; it is never persisted. Exported helpers:
+`MeshBoardHostTimeRange`, `MeshBoardTimeFilterControl`, `parseHostTimeRange`, `HostTimeRangeState`.
+
 ### URL Sync (`meshBoardSyncUrl`)
 
 After the initial load and after every post-init board switch (e.g. via the

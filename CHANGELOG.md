@@ -10,6 +10,21 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard host-set period (`timeRange` / `timeFilterControl`, AB#7582)
+
+- New (non-breaking, additive) inputs on `mm-meshboard-view`: `timeRange` (`{ from, to }` as `Date` or ISO 8601
+  strings with a zone designator, half-open `[from, to)`) lets a host page set the board's period as exact instants;
+  `timeFilterControl` (`'board'` default | `'host'`) hides the board's time-range picker and its reset button only.
+  While `timeRange` is set, `$timeRangeFrom` / `$timeRangeTo` and every stream-data window use exactly those instants
+  (no day snapping, independent of `showTime` and `timeZoneMode`), `tf_*` parameters and the stored/default selection
+  are ignored, no `tf_*` parameters are written, there are no unsaved changes, and the picker is hidden. A change
+  reloads the widgets once; `undefined` returns to the board's own selection. An invalid range sends no stream-data
+  query and logs one console error (runtime-query widgets with `$timeRangeFrom` filters are not gated — see README).
+  Default behaviour (no `timeRange`, `'board'`) is unchanged; Refinery Studio needs no change.
+- New on `MeshBoardStateService`: `setHostTimeRange`, `hostTimeRange` (transient, never persisted);
+  `resolveCurrentTimeRange()` returns the host period while the time filter is enabled; `StreamDataScope` `empty` has
+  the new reason `invalidTimeRange`. Exports `MeshBoardHostTimeRange`, `MeshBoardTimeFilterControl`,
+  `ParsedHostTimeRange`, `HostTimeRangeState`, `parseHostTimeRange`.
 ### octo-meshboard entity selectors (multi-hop child scope, AB#7723)
 
 - New (non-breaking, additive): optional `EntitySelectorChildScope.path`, an ordered list of 2 to 5 association

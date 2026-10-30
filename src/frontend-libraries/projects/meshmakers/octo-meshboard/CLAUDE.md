@@ -147,6 +147,7 @@ export class MyComponent {
 | `clearEntitySelectorVariables(selectorId)` | `void` | Clear variables for a selector |
 | `resolveCurrentTimeRange()` | `TimeRange \| null` | Resolve active time filter to `{from, to}` |
 | `resolveStreamDataTimeArgs(ignoreTimeFilter?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out |
+| `setHostTimeRange(state \| null)` / `hostTimeRange` | `void` / `Signal<HostTimeRangeState \| null>` | Period of the embedding host (`mm-meshboard-view [timeRange]`, AB#7582): transient, never persisted; while set and the filter is enabled `resolveCurrentTimeRange()` returns its exact instants, an invalid one makes `resolveStreamDataScope` return `empty`/`invalidTimeRange` |
 | `setEntitySelectorScopePending(selectorId)` | `void` | Mark a selector's scope as resolving (AB#7721) |
 | `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Store the resolved source rtIds (transient); `[]` = resolved EMPTY scope |
 | `setEntitySelectorScopeFailed(selectorId)` | `void` | Mark a selector's scope resolution as failed (AB#7721) |
@@ -1097,6 +1098,7 @@ Current test files:
 - `meshboard-grid.service.spec.ts` - Grid collision detection (39 tests)
 - `meshboard-variable.service.spec.ts` - Variable resolution (67 tests)
 - `meshboard-state.service.spec.ts` - State management (includes entity selector management, stream-data time-arg binding and the scope states of AB#7721)
+- `meshboard-view.host-time-range.spec.ts` / `host-time-range.spec.ts` - Host-set period and hidden picker (AB#7582): exact instants under process TZ UTC and America/New_York, host wins over tf_*/stored selection, one reload per change, invalid range, disabled filter
 - `meshboard-view.entity-selector-scope.spec.ts` - View scope resolution: empty / failed / pending / unscoped picks, URL picks, stale resolutions, clear (AB#7721)
 - `meshboard-view.entity-selector-follow.spec.ts` - Leader/follower selectors: follower scope and variables from the leader's pick, two target types, pending, empty, own default, clear, URL restore/write, no picker, unknown leader, stale picks (AB#7722)
 - `utils/entity-selector-follow.spec.ts` - Leader resolution, followers, toolbar visibility, editor validation messages (AB#7722)

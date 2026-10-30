@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy, ElementRef, NgZone, input } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, Type, OnDestroy, effect, ViewChild, ChangeDetectionStrategy, ElementRef, NgZone, input, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule, NavigationEnd } from '@angular/router';
 import { urlWithoutEditParam, wantsEditModeFromUrl } from '../../utils/edit-mode-url';
@@ -37,6 +37,14 @@ import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmpty
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
+import {
+  MeshBoardHostTimeRange,
+  MeshBoardTimeFilterControl,
+  ParsedHostTimeRange,
+  parseHostTimeRange,
+  sameHostTimeRange,
+  toHostTimeRangeState
+} from './host-time-range';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
 import {
   EntitySelectorToolbarComponent,
@@ -191,6 +199,38 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly effectiveChrome = computed(() =>
     resolveMeshBoardChrome(this.chrome(), this.routeChrome()));
 
+  /**
+   * The period set by the host page (AB#7582): two exact instants, half-open `[from, to)`, as
+   * `Date` objects or ISO 8601 strings with a zone designator. While set (and the board's time
+   * filter is enabled) the view publishes exactly these instants as `$timeRangeFrom` /
+   * `$timeRangeTo` and as the stream-data window - no day snapping, no zone conversion - and
+   * ignores the `tf_*` query parameters and the stored/default selection. It writes no `tf_*`
+   * parameters and causes no unsaved changes. A change reloads the widgets once; `undefined`
+   * returns the board to its own selection. Day rules (e.g. a 06:00 gas day) belong to the host.
+   * An invalid range (unparseable, or `from >= to`) sends no stream-data query and logs one
+   * console error. A board with the time filter disabled ignores the input.
+   */
+  readonly timeRange = input<MeshBoardHostTimeRange | undefined>(undefined);
+
+  /**
+   * Who controls the period: `board` (default, unchanged behaviour) shows the board's time-range
+   * picker; `host` hides the picker and its reset button - entity selectors and actions stay.
+   * While `timeRange` is set the picker is hidden and its events are ignored either way.
+   */
+  readonly timeFilterControl = input<MeshBoardTimeFilterControl>('board');
+
+  /** The parsed `timeRange` input; `undefined` = the host sets no period. */
+  protected readonly parsedHostTimeRange = computed(() => parseHostTimeRange(this.timeRange()));
+  /** True while the host owns the period (a valid or an invalid `timeRange` is set). */
+  protected readonly isHostTimeRangeActive = computed(() => this.parsedHostTimeRange() !== undefined);
+  /** Whether the board's own time-range picker (and its reset button) is rendered. */
+  protected readonly showTimeRangePicker = computed(() =>
+    this.isTimeFilterEnabled() && this.timeFilterControl() !== 'host' && !this.isHostTimeRangeActive());
+  /** The host range last applied to the state service (to reload only on a real change). */
+  private appliedHostTimeRange: ParsedHostTimeRange | undefined;
+  /** The invalid host range already reported, so a board switch does not log it again. */
+  private reportedInvalidHostTimeRange: ParsedHostTimeRange | undefined;
+
   // Computed link to MeshBoard page with tenant
   protected readonly meshBoardPageLink = computed(() => {
     // Get tenant from route parameters (synchronously from snapshot)
@@ -298,6 +338,16 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       }
     });
 
+    // Host period (AB#7582): apply every change of the timeRange input after the initial load
+    // (ngOnInit applies the initial value) and reload the widgets once.
+    effect(() => {
+      const parsed = this.parsedHostTimeRange();
+      if (!this._isInitialized()) {
+        return;
+      }
+      untracked(() => this.onHostTimeRangeChanged(parsed));
+    });
+
     // Effect to re-evaluate the auto-refresh timer whenever the MeshBoard
     // config changes (e.g. user edits autoRefreshSeconds in settings, or a
     // different board is loaded). Re-reads on the same interval skip the
@@ -355,8 +405,14 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     }
   }
 
-  /** The active time-filter selection to mirror into the URL, or null when the filter is off. */
+  /**
+   * The active time-filter selection to mirror into the URL, or null when the filter is off or
+   * the host owns the period (AB#7582: the view then writes no tf_* parameters).
+   */
   private activeTimeFilterSelection(): TimeRangeSelection | null {
+    if (this.isHostTimeRangeActive()) {
+      return null;
+    }
     const config = this.stateService.getTimeFilterConfig();
     return config?.enabled ? config.selection ?? null : null;
   }
@@ -493,6 +549,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   }
 
   ngOnDestroy(): void {
+    // The state service is root-provided: a host period must not outlive the view that set it.
+    if (this.appliedHostTimeRange) {
+      this.stateService.setHostTimeRange(null);
+    }
     this.resizeObserver?.disconnect();
     this.closeConfigDialog();
     this.navigationSubscription?.unsubscribe();
@@ -539,8 +599,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   /**
    * Initializes time filter variables based on URL query params or stored selection.
    * URL params take precedence over stored selection to support page reload.
+   * A period set by the host (`timeRange`, AB#7582) takes precedence over both.
    */
   private initializeTimeFilterVariables(): void {
+    if (this.applyHostTimeRange(this.parsedHostTimeRange())) {
+      return;
+    }
     const timeFilter = this.stateService.getTimeFilterConfig();
     if (!timeFilter?.enabled) {
       return;
@@ -591,6 +655,56 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
     const rangeISO = TimeRangeUtils.toISO(range);
     this.stateService.setTimeFilterVariables(rangeISO.from, rangeISO.to);
+  }
+
+  /**
+   * Hands the host period to the state service and publishes `$timeRangeFrom` / `$timeRangeTo`
+   * as exactly its instants (AB#7582). Returns true while the host owns the period, so the
+   * caller skips the board's own selection. With the time filter disabled the period is only
+   * stored (the state service ignores it then) and nothing is logged.
+   */
+  private applyHostTimeRange(parsed: ParsedHostTimeRange | undefined): boolean {
+    const previous = this.appliedHostTimeRange;
+    this.appliedHostTimeRange = parsed;
+    if (!parsed) {
+      // Without a host period nothing changes for the board (default path untouched). When the
+      // host drops its period, its variables go too; the board's own selection (if any) re-sets them.
+      if (previous) {
+        this.stateService.setHostTimeRange(null);
+        this.stateService.clearTimeFilterVariables();
+      }
+      return false;
+    }
+    this.stateService.setHostTimeRange(toHostTimeRangeState(parsed));
+    if (!this.stateService.isTimeFilterEnabled()) {
+      return true;
+    }
+    if (parsed.status === 'valid') {
+      this.stateService.setTimeFilterVariables(parsed.from.toISOString(), parsed.to.toISOString());
+    } else {
+      this.stateService.clearTimeFilterVariables();
+      if (this.reportedInvalidHostTimeRange !== parsed) {
+        this.reportedInvalidHostTimeRange = parsed;
+        console.error(`mm-meshboard-view: input "timeRange" is invalid (${parsed.reason}); `
+          + 'the board sends no stream-data query until the host sets a valid range.');
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Applies a change of the `timeRange` input after the initial load (AB#7582): the host period,
+   * or the board's own selection again when the input went back to `undefined`. Reloads the
+   * widgets once; an equal period (same instants) changes nothing.
+   */
+  private onHostTimeRangeChanged(parsed: ParsedHostTimeRange | undefined): void {
+    if (sameHostTimeRange(parsed, this.appliedHostTimeRange)) {
+      return;
+    }
+    this.initializeTimeFilterVariables();
+    if (this.stateService.isTimeFilterEnabled()) {
+      this.stateService.triggerRefresh();
+    }
   }
 
   /**
@@ -968,6 +1082,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Updates the time filter variables, persists the selection, syncs to URL, and triggers refresh.
    */
   async onTimeSelectionChange(sharedSelection: SharedTimeRangeSelection): Promise<void> {
+    // The host owns the period (AB#7582): no selection, URL or refresh from the picker.
+    if (this.isHostTimeRangeActive()) {
+      return;
+    }
     // Convert shared-ui selection to our model
     const selection: TimeRangeSelection = {
       type: sharedSelection.type,
@@ -1016,6 +1134,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Clears the stored selection and applies the default.
    */
   resetTimeFilterToDefault(): void {
+    if (this.isHostTimeRangeActive()) {
+      return;
+    }
     const config = this.timeFilterConfig();
     if (!config?.defaultSelection) return;
 

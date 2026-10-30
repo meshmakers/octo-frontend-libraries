@@ -30,12 +30,15 @@ export type EntitySelectorScopeState =
  * - `empty`: the pick has nothing in scope (`noTargets`) or the lookup failed
  *   (`failed`) — show the no-data state and send NO query. Never fall back to
  *   the persisted scope: that would show rows of other entities.
+ *   `invalidTimeRange` (AB#7582): the embedding host set a `timeRange` that is
+ *   unparseable or empty (`from >= to`) — every stream-data query of the board
+ *   is skipped, whatever its selector binding.
  */
 export type StreamDataScope =
   | { kind: 'unscoped' }
   | { kind: 'pending' }
   | { kind: 'scoped'; rtIds: string[] }
-  | { kind: 'empty'; reason: 'noTargets' | 'failed' };
+  | { kind: 'empty'; reason: 'noTargets' | 'failed' | 'invalidTimeRange' };
 
 /**
  * The result a widget renders instead of executing its query when its scope is
