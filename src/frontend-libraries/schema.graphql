@@ -35878,6 +35878,180 @@ type LargeBinaryInfo {
 
 scalar Long
 
+"""One handler instance of a CK method. Service data only."""
+type MethodHandlerInstance {
+  """Highest wire contract version the instance understands."""
+  contractVersion: Int!
+
+  """Live until then."""
+  expiresUtc: DateTime!
+
+  """Handler instance id."""
+  instanceId: String!
+
+  """Last announcement or withdrawal received."""
+  lastSeenUtc: DateTime!
+
+  """
+  Last seen of the row in the shared snapshot store, null if none or the store was not readable.
+  """
+  persistedLastSeenUtc: DateTime
+
+  """Handler service name."""
+  serviceName: String!
+
+  """
+  HEARTBEAT, or SNAPSHOT for a restored row no heartbeat has confirmed yet.
+  """
+  source: MethodHandlerSource!
+
+  """State of the instance."""
+  state: MethodHandlerInstanceState!
+
+  """Tenant ids the instance serves ("*" = all)."""
+  tenants: [String!]!
+
+  """Informational version of the handler service."""
+  version: String
+}
+
+"""State of one handler instance at the time of the query."""
+enum MethodHandlerInstanceState {
+  """The announced TTL ran out without a heartbeat."""
+  EXPIRED
+
+  """Announced, not withdrawn, not expired."""
+  LIVE
+
+  """
+  Treated as expired because the broker returned a mandatory send (no queue bound).
+  """
+  NO_QUEUE_BOUND
+
+  """The instance withdrew gracefully."""
+  WITHDRAWN
+}
+
+"""A CK method with its handler instances."""
+type MethodHandlerMethod {
+  """Every known handler instance, including expired and withdrawn ones."""
+  instances: [MethodHandlerInstance!]!
+
+  """Latest last-seen time of any instance, null without instances."""
+  lastSeenUtc: DateTime
+
+  """
+  Number of live handler instances (in-process methods have no instances).
+  """
+  liveInstanceCount: Int!
+
+  """Qualified method id."""
+  methodId: String!
+
+  """State of the method."""
+  state: MethodHandlerMethodState!
+
+  """Transport of the method."""
+  transport: MethodHandlerTransport!
+}
+
+"""State of a CK method in the handler registry of the answering replica."""
+enum MethodHandlerMethodState {
+  """At least one live handler instance, or served in-process."""
+  LIVE
+
+  """
+  The system tenant defines the method with a service handler, but no instance announced it.
+  """
+  NOT_ANNOUNCED
+
+  """
+  Handler instances are known, but all are expired, withdrawn or have no queue bound.
+  """
+  NO_LIVE_HANDLER
+}
+
+"""Where the registry row of an instance comes from."""
+enum MethodHandlerSource {
+  """
+  Received as an announcement (heartbeat or discovery answer) or withdrawal.
+  """
+  HEARTBEAT
+
+  """
+  Restored from the persisted snapshot and not yet confirmed by the instance.
+  """
+  SNAPSHOT
+}
+
+"""Transport a CK method is served over."""
+enum MethodHandlerTransport {
+  """Message bus: handler instances of other services announce themselves."""
+  BUS
+
+  """Served in-process by the answering service."""
+  IN_PROCESS
+}
+
+"""
+The gateway replica that answered. Every replica answers from its own memory; the snapshot columns show what the other replicas wrote.
+"""
+type MethodHandlersAnsweredBy {
+  """Id of the dispatcher instance of the answering replica."""
+  dispatcherInstanceId: String!
+
+  """Time the states were evaluated at."""
+  generatedAtUtc: DateTime!
+
+  """
+  The most recent snapshot write failed (cleared by the next successful write).
+  """
+  lastFlushFailed: Boolean!
+
+  """
+  Time of the last successful snapshot write, null when none happened yet.
+  """
+  lastFlushUtc: DateTime
+
+  """Version of the answering service."""
+  serviceVersion: String!
+
+  """A snapshot store is present and the persisted snapshot is enabled."""
+  snapshotEnabled: Boolean!
+
+  """
+  The last snapshot load failed; the registry then fills from heartbeats.
+  """
+  snapshotLoadFailed: Boolean!
+
+  """Time of the last snapshot load, null when none ran."""
+  snapshotLoadedAtUtc: DateTime
+
+  """
+  Rows taken over from the snapshot by the last load, null when none ran.
+  """
+  snapshotRowsRestored: Int
+}
+
+"""
+Diagnostics of the CK method handler registry (system administrators only). Service data only.
+"""
+type MethodHandlersQuery {
+  """The gateway replica that answered, with its snapshot health."""
+  answeredBy: MethodHandlersAnsweredBy!
+
+  """CK methods with their handler instances."""
+  methods(
+    """
+    Matches the method id or the service name of an instance (case-insensitive).
+    """
+    search: String
+
+    """Only methods in one of these states."""
+    states: [MethodHandlerMethodState!]
+  ): [MethodHandlerMethod!]!
+}
+
 """Enum of the availability states of models."""
 enum ModelState {
   AVAILABLE
@@ -35930,6 +36104,11 @@ type OctoQuery {
   ): [ArchivePathInfo!]!
   blueprints: BlueprintsQuery
   constructionKit: ConstructionKitQuery
+
+  """
+  Diagnostics of the CK method handler registry of the answering gateway replica: per method the handler instances, their state, last seen time, and heartbeat versus persisted snapshot. Requires a token of the system tenant (a user token also the AdminPanelManagement role). Service data only.
+  """
+  methodHandlers: MethodHandlersQuery
   runtime: RuntimeModelQuery
 
   """
