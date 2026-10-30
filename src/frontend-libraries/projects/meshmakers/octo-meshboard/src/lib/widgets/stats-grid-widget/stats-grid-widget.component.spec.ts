@@ -39,7 +39,7 @@ describe('StatsGridWidgetComponent — stream-data persistent-query stats', () =
     const stateService = {
       resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
       resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
-      resolveEntitySelectorScope: vi.fn().mockName('MeshBoardStateService.resolveEntitySelectorScope').mockReturnValue({ kind: 'unscoped' }),
+      resolveStreamDataScope: vi.fn().mockName('MeshBoardStateService.resolveStreamDataScope').mockReturnValue({ kind: 'unscoped' }),
       getVariables: vi.fn().mockName('MeshBoardStateService.getVariables')
     };
     stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);

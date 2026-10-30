@@ -232,7 +232,7 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
     // state (an observable that never emits; the next refresh after the scope
     // resolves cancels it) and send no query; empty → no rows, no query — never
     // the persisted (unscoped) scope.
-    const scope = this.stateService.resolveEntitySelectorScope(dataSource.entitySelectorId);
+    const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
     if (scope.kind === 'pending') {
       return NEVER;
     }

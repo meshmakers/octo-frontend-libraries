@@ -391,6 +391,13 @@ export class MeshBoardDataService {
    */
   private async fetchRepeaterFromQuery(family: QueryFamily | undefined, queryRtId: string, maxItems: number): Promise<RepeaterDataItem[]> {
     try {
+      // AB#7582: while the embedding host's period is invalid, a stream-data
+      // repeater query is not sent (it would read the whole archive); the group
+      // shows no items. Runtime queries are unaffected.
+      if (this.stateService.isStreamDataBlockedByHostTimeRange()
+        && (family ?? await this.queryExecutor.resolveFamily(queryRtId)) === 'streamData') {
+        return [];
+      }
       const streamDataArgs = this.buildRepeaterStreamDataArgs();
 
       const result = await firstValueFrom(

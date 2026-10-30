@@ -44,8 +44,8 @@
           </div>
         }
 
-        <!-- Time Filter (center) -->
-        @if (isTimeFilterEnabled()) {
+        <!-- Time Filter (center); hidden when the host owns the period (AB#7582) -->
+        @if (showTimeRangePicker()) {
           <div class="toolbar-center">
             <mm-time-range-picker
               [config]="timeFilterConfig()?.pickerConfig ?? {}"
@@ -70,7 +70,7 @@
 
         <!-- Entity Selectors -->
         @if (hasEntitySelectors()) {
-          @if (isTimeFilterEnabled()) {
+          @if (showTimeRangePicker()) {
             <div class="toolbar-separator"></div>
           }
           <div class="toolbar-entity-selectors">
@@ -82,7 +82,7 @@
           </div>
         }
 
-        @if (isTimeFilterEnabled() || hasEntitySelectors()) {
+        @if (showTimeRangePicker() || hasEntitySelectors()) {
           <div class="toolbar-separator"></div>
         }
         <div class="toolbar-right mm-toolbar-actions">

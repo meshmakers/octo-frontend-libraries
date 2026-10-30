@@ -633,7 +633,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       // Entity-selector scope (AB#7721): pending → stay in the loading state and
       // send no query (the view refreshes once the scope is known); empty → render
       // the empty chart without querying the persisted (unscoped) scope.
-      const scope = this.stateService.resolveEntitySelectorScope(queryDataSource.entitySelectorId);
+      const scope = this.stateService.resolveStreamDataScope(queryDataSource.entitySelectorId, queryDataSource.queryFamily, queryDataSource.ignoreTimeFilter);
       if (scope.kind === 'pending') {
         return;
       }

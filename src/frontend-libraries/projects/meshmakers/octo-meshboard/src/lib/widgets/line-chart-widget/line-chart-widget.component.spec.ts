@@ -33,7 +33,7 @@ describe('LineChartWidgetComponent dataInfo (load counter)', () => {
     const stateService = {
       resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
       resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
-      resolveEntitySelectorScope: vi.fn().mockName('MeshBoardStateService.resolveEntitySelectorScope').mockReturnValue({ kind: 'unscoped' }),
+      resolveStreamDataScope: vi.fn().mockName('MeshBoardStateService.resolveStreamDataScope').mockReturnValue({ kind: 'unscoped' }),
       getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
       timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
     };
@@ -127,7 +127,7 @@ describe('LineChartWidgetComponent downsampling envelope (FE-3)', () => {
     const stateService = {
       resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
       resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
-      resolveEntitySelectorScope: vi.fn().mockName('MeshBoardStateService.resolveEntitySelectorScope').mockReturnValue({ kind: 'unscoped' }),
+      resolveStreamDataScope: vi.fn().mockName('MeshBoardStateService.resolveStreamDataScope').mockReturnValue({ kind: 'unscoped' }),
       getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
       timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
     };
@@ -219,7 +219,7 @@ describe('LineChartWidgetComponent resolution-aware source scope (AB#4818)', () 
     const stateService = {
       resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
       resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
-      resolveEntitySelectorScope: vi.fn().mockName('MeshBoardStateService.resolveEntitySelectorScope').mockReturnValue({ kind: 'unscoped' }),
+      resolveStreamDataScope: vi.fn().mockName('MeshBoardStateService.resolveStreamDataScope').mockReturnValue({ kind: 'unscoped' }),
       resolveStreamDataTimeZone: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeZone'),
       getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
       timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
@@ -336,7 +336,7 @@ describe('LineChartWidgetComponent resolution signals (AB#5157)', () => {
     const stateService = {
       resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
       resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
-      resolveEntitySelectorScope: vi.fn().mockName('MeshBoardStateService.resolveEntitySelectorScope').mockReturnValue({ kind: 'unscoped' }),
+      resolveStreamDataScope: vi.fn().mockName('MeshBoardStateService.resolveStreamDataScope').mockReturnValue({ kind: 'unscoped' }),
       resolveStreamDataTimeZone: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeZone'),
       getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
       timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')

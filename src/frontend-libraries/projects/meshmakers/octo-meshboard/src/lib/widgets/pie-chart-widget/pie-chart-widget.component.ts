@@ -438,7 +438,7 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     // Entity-selector scope (AB#7721): pending → stay in the loading state and
     // send no query (the view refreshes once the scope is known); empty → render
     // the empty chart without querying the persisted (unscoped) scope.
-    const scope = this.stateService.resolveEntitySelectorScope(dataSource.entitySelectorId);
+    const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
     if (scope.kind === 'pending') {
       return;
     }

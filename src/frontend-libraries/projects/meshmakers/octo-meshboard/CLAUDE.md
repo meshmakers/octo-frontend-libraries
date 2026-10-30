@@ -147,13 +147,15 @@ export class MyComponent {
 | `clearEntitySelectorVariables(selectorId)` | `void` | Clear variables for a selector |
 | `resolveCurrentTimeRange()` | `TimeRange \| null` | Resolve active time filter to `{from, to}` |
 | `resolveStreamDataTimeArgs(ignoreTimeFilter?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out |
+| `setHostTimeRange(state \| null, owner?)` / `clearHostTimeRange(owner)` / `hostTimeRange` | `void` / `void` / `Signal<HostTimeRangeState \| null>` | Period of the embedding host (`mm-meshboard-view [timeRange]`, AB#7582): transient, never persisted, owner-aware clearing (root service shared by views); while set and the filter is enabled `resolveCurrentTimeRange()` returns its exact instants |
+| `isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?)` | `boolean` | True while an invalid host period blocks a stream-data query bound to the time filter (AB#7582); `resolveStreamDataScope(id, family, ignoreTimeFilter)` then returns `empty`/`invalidTimeRange`; the process binding and the widget-group repeater check it directly |
 | `setEntitySelectorScopePending(selectorId)` | `void` | Mark a selector's scope as resolving (AB#7721) |
 | `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Store the resolved source rtIds (transient); `[]` = resolved EMPTY scope |
 | `setEntitySelectorScopeFailed(selectorId)` | `void` | Mark a selector's scope resolution as failed (AB#7721) |
 | `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the scope state (no pick → persisted scope) |
-| `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | `unscoped` / `pending` / `scoped` / `empty` for runtime and stream-data queries alike — see *Scope resolution contract* (AB#7721, AB#7725) |
-| `resolveStreamDataScope(entitySelectorId?, family?)` | `StreamDataScope` | Kept for existing callers; delegates to `resolveEntitySelectorScope` (`family` no longer changes the result, AB#7725) |
-| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` — check `resolveEntitySelectorScope` first |
+| `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | Widget entry point: AB#7582 host gate first (stream data only, `empty`/`invalidTimeRange`; pass the widget's `ignoreTimeFilter`), then `resolveEntitySelectorScope` — see *Scope resolution contract* |
+| `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | Selector part only: `unscoped` / `pending` / `scoped` / `empty` for runtime and stream-data queries alike (AB#7721, AB#7725) |
+| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` — check `resolveStreamDataScope` first |
 
 ### MeshBoardGridService
 
@@ -354,7 +356,8 @@ Resolution flow:
    the picked entity's own rtId. The
    view marks the scope `pending` first and stores the result via
    `MeshBoardStateService.setEntitySelectorRtIds` (or `setEntitySelectorScopeFailed`).
-2. Each widget first asks `resolveEntitySelectorScope(entitySelectorId)` and then,
+2. Each widget first asks `resolveStreamDataScope(entitySelectorId, queryFamily, ignoreTimeFilter)`
+   (AB#7582 host gate for stream data, then `resolveEntitySelectorScope`) and then,
    for a `scoped` scope, passes the rtIds as `scopeRtIds` (and, for stream data,
    merges `resolveStreamDataRtIds(entitySelectorId)` into `streamDataArgs`
    alongside the time range).
@@ -394,7 +397,7 @@ Rules:
   loading until the refresh cancels it); stats grid / summary card show `-` per cell
   and send no query while the cell's scope is pending or empty (pending: the whole widget stays loading); the process binding gets no rows (pending: `BoundDataResult.pending`, the widget stays loading).
 - A custom widget that reads `resolveStreamDataRtIds` must check
-  `resolveEntitySelectorScope` first — `undefined` from `resolveStreamDataRtIds` is not
+  `resolveStreamDataScope` first — `undefined` from `resolveStreamDataRtIds` is not
   "query unscoped" for a pending or empty scope.
 
 Configured per widget via the "Scope to entity selector" dropdown
@@ -911,8 +914,8 @@ For a follower: the leader's pick (by the order above) > the follower's own
 | `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the scope state of a selector |
 | `getEntitySelectorScopeState(selectorId)` | `EntitySelectorScopeState \| undefined` | Raw scope state (`pending` / `resolved` / `failed`), `undefined` = no pick |
 | `failedEntitySelectorScopeIds` | `Signal<string[]>` | Selectors whose scope resolution failed (board notice) |
-| `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | What a bound widget does (runtime and stream data) — see *Scope resolution contract* |
-| `resolveStreamDataScope(entitySelectorId?, family?)` | `StreamDataScope` | Kept for existing callers; same result as `resolveEntitySelectorScope` (AB#7725) |
+| `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | What a bound widget does — host gate (AB#7582, stream data), then the selector scope; see *Scope resolution contract* |
+| `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | Selector scope only, runtime and stream data alike (AB#7725) |
 | `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` |
 
 ### Components
@@ -1123,6 +1126,7 @@ Current test files:
 - `meshboard-grid.service.spec.ts` - Grid collision detection (39 tests)
 - `meshboard-variable.service.spec.ts` - Variable resolution (67 tests)
 - `meshboard-state.service.spec.ts` - State management (includes entity selector management, stream-data time-arg binding and the scope states of AB#7721)
+- `meshboard-view.host-time-range.spec.ts` / `host-time-range.spec.ts` - Host-set period and hidden picker (AB#7582): exact instants under process TZ UTC and America/New_York, host wins over tf_*/stored selection, one reload per change, invalid range, disabled filter, destroy during load, owner-aware clearing, `ignoreTimeFilter` not blanked, stale tf_*; parser: RFC 3339 only, calendar-invalid dates and times rejected
 - `meshboard-view.entity-selector-scope.spec.ts` - View scope resolution: empty / failed / pending / unscoped picks, URL picks, stale resolutions, clear (AB#7721)
 - `meshboard-view.entity-selector-follow.spec.ts` - Leader/follower selectors: follower scope and variables from the leader's pick, two target types, pending, empty, own default, clear, URL restore/write, no picker, unknown leader, stale picks (AB#7722)
 - `utils/entity-selector-follow.spec.ts` - Leader resolution, followers, toolbar visibility, editor validation messages (AB#7722)

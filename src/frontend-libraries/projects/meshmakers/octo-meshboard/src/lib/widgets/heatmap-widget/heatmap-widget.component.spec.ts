@@ -36,7 +36,7 @@ describe('HeatmapWidgetComponent — threshold coloring', () => {
   beforeEach(() => {
     stateService = {
       resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
-      resolveEntitySelectorScope: vi.fn().mockName('MeshBoardStateService.resolveEntitySelectorScope').mockReturnValue({ kind: 'unscoped' }),
+      resolveStreamDataScope: vi.fn().mockName('MeshBoardStateService.resolveStreamDataScope').mockReturnValue({ kind: 'unscoped' }),
       resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
       timeZoneMode: vi.fn().mockName('MeshBoardStateService.timeZoneMode')
     } as unknown as MockedObject<MeshBoardStateService>;

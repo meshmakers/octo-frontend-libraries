@@ -160,7 +160,7 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
   }
 
   private scopeOf(source: PersistentQueryCellSource): StreamDataScope {
-    return this.stateService.resolveEntitySelectorScope(source.entitySelectorId);
+    return this.stateService.resolveStreamDataScope(source.entitySelectorId, source.queryFamily, source.ignoreTimeFilter);
   }
 
   private buildStreamDataArgs(source: PersistentQueryCellSource): StreamDataExecutionArgs | undefined {

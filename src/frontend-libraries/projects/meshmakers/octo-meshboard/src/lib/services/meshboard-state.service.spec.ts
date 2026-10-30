@@ -874,6 +874,22 @@ describe('MeshBoardStateService', () => {
         expect(service.resolveEntitySelectorScope('site')).toEqual({ kind: 'scoped', rtIds: ['dev-1'] });
       });
 
+      it('gates bound stream data on an invalid host period but keeps the selector scope of runtime queries (AB#7582 + AB#7725)', () => {
+        service.updateTimeFilterConfig({ enabled: true });
+        service.setHostTimeRange({ status: 'invalid', reason: 'from >= to' });
+        service.setEntitySelectorRtIds('site', ['dev-1']);
+
+        expect(service.resolveStreamDataScope('site', 'streamData')).toEqual({ kind: 'empty', reason: 'invalidTimeRange' });
+        expect(service.resolveStreamDataScope('site', undefined)).toEqual({ kind: 'empty', reason: 'invalidTimeRange' });
+        expect(service.resolveStreamDataScope('site', 'streamData', true)).toEqual({ kind: 'scoped', rtIds: ['dev-1'] });
+        expect(service.resolveStreamDataScope('site', 'runtime')).toEqual({ kind: 'scoped', rtIds: ['dev-1'] });
+        service.setEntitySelectorRtIds('site', []);
+        expect(service.resolveStreamDataScope('site', 'runtime')).toEqual({ kind: 'empty', reason: 'noTargets' });
+        // The selector part alone is not gated.
+        expect(service.resolveEntitySelectorScope('site')).toEqual({ kind: 'empty', reason: 'noTargets' });
+        service.setHostTimeRange(null);
+      });
+
       it('resolveEntitySelectorScope covers all states independent of the query family (AB#7725)', () => {
         expect(service.resolveEntitySelectorScope()).toEqual({ kind: 'unscoped' });
         expect(service.resolveEntitySelectorScope('site')).toEqual({ kind: 'unscoped' });
