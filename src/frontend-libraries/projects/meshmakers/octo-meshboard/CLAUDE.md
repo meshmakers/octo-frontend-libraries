@@ -907,9 +907,25 @@ the texts, and the query wrappers `withoutListing` / `deferredPickerQuery`.
   (2026-10-30, a room type of a solution tenant): `rtId IN` alone, with
   `rtDisplayName LIKE` and with an attribute `EQUALS` row each returned exactly
   the expected subset.
-- **Pick lifecycle:** see *Dependent pick lifecycle (AB#7916)* below. **Editor (AB#7917):** the selector editor does not show
-  the setting yet and its save rebuilds the selector without `scopeSource` —
-  editing a dependent selector in the editor drops the setting until AB#7917.
+- **Pick lifecycle:** see *Dependent pick lifecycle (AB#7916)* below.
+- **Editor (AB#7917, wireframe agreed by Freya):** section "List only entities
+  inside" of `mm-entity-selector-editor`, shown for a non-follower with a CK type
+  (after *Picker filter*). "Inside the pick of" offers other selectors that are
+  neither followers nor dependent; the path is `mm-entity-selector-scope-path-editor`
+  with `[sourceCkTypeId]` = the leader's type and `[lockedTargetCkTypeId]` = the
+  selector's type (last hop read-only, new hops go in front of it, it never moves,
+  removing it makes the previous hop the fixed one). Editor rules are pure functions
+  in `components/entity-selector-editor/entity-selector-scope-source-editor.ts`
+  (leader options, dependents, `scopeSourceValidationError` on top of
+  `resolveScopeSource`, list summary `Inside: <leader> (<n> hops)`). Save writes
+  `{ selectorId, path }` (one hop too), "(none)" and followers write nothing (a
+  follower's stored one is removed with a notice). A selector with dependents can
+  neither pick a leader nor follow one. The default check resolves the leader's
+  `defaultRtId` through the path (`MeshBoardDataService` resolved lazily via the
+  injector, so specs without a dependent default need not provide it) and warns,
+  never blocks. Specs: `entity-selector-editor.scope-source.spec.ts`,
+  `entity-selector-scope-source-editor.spec.ts`, the locked block of
+  `entity-selector-scope-path-editor.component.spec.ts`.
 - **Persistence:** `scopeSource` is in the selector whitelist of
   `encodeVariablesInDescription`, reduced to `selectorId` and the hop fields and
   omitted when unset — boards without dependents encode byte-identically;
@@ -1112,7 +1128,7 @@ For a follower: the leader's pick (by the order above) > the follower's own
 | Component | Selector | Description |
 |-----------|----------|-------------|
 | `EntitySelectorEditorComponent` | `mm-entity-selector-editor` | Settings editor for managing selectors |
-| `EntitySelectorScopePathEditorComponent` | `mm-entity-selector-scope-path-editor` | Child scope hop list of the selector editor (AB#7723) |
+| `EntitySelectorScopePathEditorComponent` | `mm-entity-selector-scope-path-editor` | Hop list of the selector editor: child scope (AB#7723) and the scope source path with a fixed last target (AB#7917) |
 | `EntitySelectorToolbarComponent` | `mm-entity-selector-toolbar` | Toolbar rendering entity select dropdowns |
 
 > **Display names (AB#4813).** The entity pickers (`RuntimeEntitySelectDataSource` /

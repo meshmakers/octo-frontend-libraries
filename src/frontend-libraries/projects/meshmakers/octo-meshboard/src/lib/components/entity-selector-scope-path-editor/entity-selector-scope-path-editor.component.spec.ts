@@ -249,3 +249,97 @@ describe('EntitySelectorScopePathEditorComponent (AB#7723)', () => {
     expect(editor.isFreeText(0)).toBe(true);
   });
 });
+
+/**
+ * Fixed last-hop target (AB#7917): the scope source path of a dependent
+ * selector always ends at the selector's own CK type. Neutral fixtures only.
+ */
+describe('EntitySelectorScopePathEditorComponent — locked last target (AB#7917)', () => {
+  const toBuilding: EntitySelectorScopeHop = { roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: 'Test/Building' };
+  const toStorey: EntitySelectorScopeHop = { roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: 'Test/Storey' };
+  const toRoom: EntitySelectorScopeHop = { roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: 'Test/Room' };
+
+  async function create(hops: EntitySelectorScopeHop[], locked = 'Test/Room') {
+    TestBed.configureTestingModule({
+      imports: [EntitySelectorScopePathEditorComponent],
+      providers: [provideNoopAnimations(), { provide: GetCkTypeAssociationRolesDtoGQL, useValue: { fetch: () => of({ data: null }) } }]
+    });
+    TestBed.overrideComponent(EntitySelectorScopePathEditorComponent, {
+      remove: { imports: [CkTypeSelectorInputComponent] },
+      add: { imports: [CkTypeSelectorInputStubComponent] }
+    });
+    const fixture = TestBed.createComponent(EntitySelectorScopePathEditorComponent);
+    const editor = fixture.componentInstance;
+    editor.sourceCkTypeId = 'Test/Site';
+    editor.lockedTargetCkTypeId = locked;
+    editor.hops = hops;
+    editor.description = 'Path from the leader pick.';
+    editor.sourceDescription = 'pick of Site';
+    editor.emptyText = 'Add at least one hop.';
+    const emitted: EntitySelectorScopeHop[][] = [];
+    editor.hopsChange.subscribe(v => emitted.push(v));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return { fixture, editor, emitted, el: fixture.nativeElement as HTMLElement };
+  }
+
+  it('shows the last target read-only and the host texts', async () => {
+    const { el } = await create([toBuilding, toStorey, toRoom]);
+
+    expect(el.querySelectorAll('mm-ck-type-selector-input').length).toBe(2);
+    expect(el.querySelector('[data-test="hop-3"] [data-test="locked-target"]')?.textContent).toContain('Test/Room');
+    expect(el.querySelector('[data-test="hop-3"] [data-test="locked-target"]')?.textContent).toContain("fixed: this selector's CK type");
+    expect(el.textContent).toContain('Path from the leader pick.');
+    expect(el.querySelector('.scope-from')?.textContent).toContain('(pick of Site)');
+    expect(el.querySelector('[data-test="scope-path"]')?.textContent).toContain('Test/Site → Test/Building → Test/Storey → Test/Room');
+  });
+
+  it('shows the host empty text without hops and adds the first hop at the fixed type', async () => {
+    const { editor, emitted, el } = await create([]);
+    expect(el.querySelector('[data-test="scope-empty"]')?.textContent).toContain('Add at least one hop.');
+
+    editor.addHop();
+
+    expect(emitted.at(-1)).toEqual([{ roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: 'Test/Room' }]);
+  });
+
+  it('inserts new hops before the fixed last hop, up to the maximum', async () => {
+    const { editor, emitted } = await create([toRoom]);
+
+    editor.addHop();
+    expect(emitted.at(-1)).toEqual([{ roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: '' }, toRoom]);
+    for (let i = 0; i < MAX_SCOPE_HOPS; i++) editor.addHop();
+    expect(emitted.at(-1)).toHaveLength(MAX_SCOPE_HOPS);
+    expect(emitted.at(-1)!.at(-1)).toEqual(toRoom);
+  });
+
+  it('never moves the fixed last hop and offers no move buttons for it', async () => {
+    const { fixture, editor, emitted, el } = await create([toBuilding, toStorey, toRoom]);
+
+    expectIconButtonsAccessible(fixture);
+    expect(el.querySelector('[aria-label="Move hop 3 up"]')).toBeNull();
+    expect(el.querySelector('[aria-label="Move hop 2 down"]')).toBeNull();
+    editor.moveHop(2, -1);
+    editor.moveHop(1, 1);
+    expect(emitted).toEqual([]);
+
+    editor.moveHop(1, -1);
+    expect(emitted.at(-1)).toEqual([toStorey, toBuilding, toRoom]);
+  });
+
+  it('makes the previous hop the fixed one when the last hop is removed', async () => {
+    const { editor, emitted } = await create([toBuilding, toStorey, toRoom]);
+
+    editor.removeHop(2);
+
+    expect(emitted.at(-1)).toEqual([toBuilding, { ...toStorey, targetCkTypeId: 'Test/Room' }]);
+  });
+
+  it('does not report a missing target on the fixed hop', async () => {
+    const { editor } = await create([{ ...toBuilding, targetCkTypeId: '' }, { roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: '' }]);
+
+    expect(editor.hopError(0)).toBe('Hop 1 needs an association and a target type.');
+    expect(editor.hopError(1)).toBe('');
+  });
+});

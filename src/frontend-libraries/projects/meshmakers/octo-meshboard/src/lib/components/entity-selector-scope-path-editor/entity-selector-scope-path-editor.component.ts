@@ -93,7 +93,18 @@ export class EntitySelectorScopePathEditorComponent {
   protected readonly arrowDownIcon = arrowDownIcon;
   protected readonly trashIcon = MM_ACTION_ICONS.delete;
 
+  /**
+   * Intro text above the hop list. Unset = the child-scope text (AB#7723);
+   * the scope-source section of the selector editor passes its own (AB#7917).
+   */
+  @Input() description: string | null = null;
+  /** What the source of hop 1 is, shown after its type ("picked entity"). */
+  @Input() sourceDescription = 'picked entity';
+  /** Text shown while there is no hop. Unset = the child-scope text. */
+  @Input() emptyText: string | null = null;
+
   private _sourceCkTypeId = '';
+  private _lockedTargetCkTypeId = '';
   private lastEmitted: EntitySelectorScopeHop[] | null = null;
   private readonly associations = new Map<string, AssociationLoad>();
 
@@ -105,6 +116,22 @@ export class EntitySelectorScopePathEditorComponent {
   }
   get sourceCkTypeId(): string {
     return this._sourceCkTypeId;
+  }
+
+  /**
+   * When set, the last hop's target type is fixed to this type (AB#7917: the
+   * scope source path always ends at the dependent selector's CK type). The
+   * last hop then shows the type read-only, new hops are inserted before it,
+   * and it cannot be moved; removing it makes the previous hop the fixed one.
+   */
+  @Input()
+  set lockedTargetCkTypeId(value: string | null | undefined) {
+    this._lockedTargetCkTypeId = value ?? '';
+    this.applyLock();
+    this.syncAssociationKeys();
+  }
+  get lockedTargetCkTypeId(): string {
+    return this._lockedTargetCkTypeId;
   }
 
   /** The configured hops (one-hop form = one hop). */
@@ -120,7 +147,28 @@ export class EntitySelectorScopePathEditorComponent {
       targetItem: h.targetCkTypeId ? ckTypeItem(h.targetCkTypeId) : null,
       associationKey: ''
     }));
+    this.applyLock();
     this.syncAssociationKeys();
+  }
+
+  /** True when the last hop's target type is fixed ({@link lockedTargetCkTypeId}). */
+  get isLocked(): boolean {
+    return !!this._lockedTargetCkTypeId;
+  }
+
+  /** True when hop `index` is the last hop and its target type is fixed. */
+  isLockedHop(index: number): boolean {
+    return this.isLocked && index === this.rows.length - 1;
+  }
+
+  /** True when hop `index` offers "move up" (a fixed last hop stays last). */
+  canMoveUp(index: number): boolean {
+    return index > 0 && !this.isLockedHop(index);
+  }
+
+  /** True when hop `index` offers "move down" (nothing moves below a fixed last hop). */
+  canMoveDown(index: number): boolean {
+    return index < this.rows.length - 1 && !this.isLockedHop(index + 1);
   }
 
   /** Maximum hop count (getter: relative imports must not initialise fields, see CLAUDE.md). */
@@ -195,7 +243,7 @@ export class EntitySelectorScopePathEditorComponent {
   /** Validation message of hop `index`: an incomplete hop blocks saving (see `scopeHopsValidationError`). */
   hopError(index: number): string {
     const row = this.rows[index];
-    return !row.roleId.trim() || !row.targetCkTypeId.trim()
+    return !row.roleId.trim() || this.isTargetInvalid(index)
       ? `Hop ${index + 1} needs an association and a target type.`
       : '';
   }
@@ -205,24 +253,30 @@ export class EntitySelectorScopePathEditorComponent {
   }
 
   isTargetInvalid(index: number): boolean {
-    return !this.rows[index].targetCkTypeId.trim();
+    return !this.isLockedHop(index) && !this.rows[index].targetCkTypeId.trim();
   }
 
   addHop(): void {
     if (!this.canAddHop) return;
-    this.rows = [...this.rows, {
+    const hop: HopRow = {
       roleId: 'System/ParentChild',
       direction: 'in',
       targetCkTypeId: '',
       targetItem: null,
       associationKey: ''
-    }];
+    };
+    // A fixed last hop stays last: the new hop goes in front of it.
+    this.rows = this.isLocked && this.rows.length > 0
+      ? [...this.rows.slice(0, -1), hop, this.rows[this.rows.length - 1]]
+      : [...this.rows, hop];
+    this.applyLock();
     this.syncAssociationKeys();
     this.emit();
   }
 
   removeHop(index: number): void {
     this.rows = this.rows.filter((_, i) => i !== index);
+    this.applyLock();
     this.syncAssociationKeys();
     this.emit();
   }
@@ -230,6 +284,7 @@ export class EntitySelectorScopePathEditorComponent {
   moveHop(index: number, delta: -1 | 1): void {
     const target = index + delta;
     if (target < 0 || target >= this.rows.length) return;
+    if (this.isLockedHop(index) || this.isLockedHop(target)) return;
     const rows = [...this.rows];
     [rows[index], rows[target]] = [rows[target], rows[index]];
     this.rows = rows;
@@ -276,7 +331,16 @@ export class EntitySelectorScopePathEditorComponent {
     this.emit();
   }
 
+  /** Sets the last hop's target type to the fixed type (no-op without a lock). */
+  private applyLock(): void {
+    const last = this.rows[this.rows.length - 1];
+    if (!this.isLocked || !last || last.targetCkTypeId === this._lockedTargetCkTypeId) return;
+    last.targetCkTypeId = this._lockedTargetCkTypeId;
+    last.targetItem = ckTypeItem(this._lockedTargetCkTypeId);
+  }
+
   private emit(): void {
+    this.applyLock();
     this.lastEmitted = this.rows.map(r => ({ roleId: r.roleId, direction: r.direction, targetCkTypeId: r.targetCkTypeId }));
     this.hopsChange.emit(this.lastEmitted);
   }

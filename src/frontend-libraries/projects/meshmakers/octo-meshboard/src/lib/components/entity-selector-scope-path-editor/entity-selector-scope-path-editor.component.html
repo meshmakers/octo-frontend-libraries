@@ -1,20 +1,24 @@
 <div class="scope-path-editor">
   <span class="field-hint">
-    Optional. Path of associations from the picked entity to the entities whose
-    rtIds scope bound stream-data widgets (up to {{ maxHops }} hops).
+    @if (description) {
+      {{ description }}
+    } @else {
+      Optional. Path of associations from the picked entity to the entities whose
+      rtIds scope bound stream-data widgets (up to {{ maxHops }} hops).
+    }
   </span>
 
   @if (rows.length === 0) {
-    <p class="scope-empty" data-test="scope-empty">No child scope: widgets use the picked entity's own rtId.</p>
+    <p class="scope-empty" data-test="scope-empty">{{ emptyText || "No child scope: widgets use the picked entity's own rtId." }}</p>
   } @else {
-    <span class="scope-from">From: <code>{{ sourceCkTypeId || '?' }}</code> (picked entity)</span>
+    <span class="scope-from">From: <code>{{ sourceCkTypeId || '?' }}</code> ({{ sourceDescription }})</span>
     @if (metadataFailed) {
       <span class="field-hint scope-metadata-failed" data-test="metadata-failed">
         Associations could not be loaded; enter the role manually.
       </span>
     }
 
-    @for (row of rows; track $index; let i = $index; let first = $first; let last = $last) {
+    @for (row of rows; track $index; let i = $index) {
       <div class="hop-card" #hopCard tabindex="-1" [attr.data-test]="'hop-' + (i + 1)">
         <div class="hop-header">
           <span class="hop-title">
@@ -24,13 +28,13 @@
             }
           </span>
           <span class="hop-actions">
-            @if (!first) {
+            @if (canMoveUp(i)) {
               <button kendoButton fillMode="flat" size="small" [svgIcon]="arrowUpIcon"
                 data-hop-action="up"
                 [attr.aria-label]="'Move hop ' + (i + 1) + ' up'" [title]="'Move hop ' + (i + 1) + ' up'"
                 (click)="moveHop(i, -1)"></button>
             }
-            @if (!last) {
+            @if (canMoveDown(i)) {
               <button kendoButton fillMode="flat" size="small" [svgIcon]="arrowDownIcon"
                 data-hop-action="down"
                 [attr.aria-label]="'Move hop ' + (i + 1) + ' down'" [title]="'Move hop ' + (i + 1) + ' down'"
@@ -87,6 +91,11 @@
 
         <div class="hop-field">
           <label class="field-label">Target type</label>
+          @if (isLockedHop(i)) {
+            <span class="hop-target-fixed" data-test="locked-target">
+              <code>{{ lockedTargetCkTypeId }}</code> (fixed: this selector's CK type)
+            </span>
+          } @else {
           <mm-ck-type-selector-input
             [ngModel]="row.targetItem"
             [derivedFromRtCkTypeId]="baseTargetOf(i)"
@@ -95,6 +104,7 @@
             (ckTypeSelected)="onTargetSelected(i, $event)"
             (ckTypeCleared)="onTargetCleared(i)">
           </mm-ck-type-selector-input>
+          }
         </div>
 
         @if (hopError(i); as error) {
