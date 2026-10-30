@@ -20,6 +20,9 @@ import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
         [attr.aria-label]="tooltip || null"
         [style.color]="color">
         <kendo-svgicon [icon]="icon!"></kendo-svgicon>
+        @if (showValue) {
+          <span class="value-marker-value">{{ value }}</span>
+        }
       </span>
     }
   `,
@@ -27,6 +30,7 @@ import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
     .value-marker {
       display: inline-flex;
       align-items: center;
+      gap: 4px;
       cursor: default;
     }
   `],
@@ -37,6 +41,7 @@ export class TableValueMarkerCellComponent {
   @Input() icon?: SVGIcon;
   @Input() tooltip = '';
   @Input() color?: string;
+  @Input() showValue = false;
 
   get marked(): boolean {
     return !!this.icon && isPositiveMarkerValue(this.value);

@@ -570,8 +570,9 @@ starts a new empty "Unreleased" section.
 - New (non-breaking, additive): `TableWidgetConfig.rowAction: { label }` — a row action the host app handles. Offered only
   when the host provides `MESHBOARD_TABLE_ROW_ACTION_HANDLER` (`MeshBoardTableRowActionHandler`, receives
   `MeshBoardTableRowActionEvent { widgetId, widgetTitle, meshBoardRtId, actionLabel, row }`); without a handler nothing changes.
-- New (non-breaking, additive): `TableWidgetConfig.valueMarkers: [{ field, tooltip, icon?, color? }]` — the column's cell shows
-  the icon with tooltip when its value is above zero (`isPositiveMarkerValue`), else stays empty; works for query-derived columns.
+- New (non-breaking, additive): `TableWidgetConfig.valueMarkers: [{ field, tooltip, icon?, color?, showValue? }]` — the column's
+  cell shows the icon with tooltip when its value is above zero (`isPositiveMarkerValue`), with `showValue: true` also the value,
+  else stays empty; works for query-derived columns.
 - Both are set in the table configuration dialog and stored in the widget `Config` JSON only when configured.
 
 ### shared-ui shell user menu (avatar, AB#7679)

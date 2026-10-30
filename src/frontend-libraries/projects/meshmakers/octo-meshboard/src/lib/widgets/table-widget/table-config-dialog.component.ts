@@ -354,6 +354,10 @@ export const TABLE_VALUE_MARKER_ICONS: readonly string[] = [
                   [(ngModel)]="marker.icon"
                   [ngModelOptions]="{ standalone: true }">
                 </kendo-dropdownlist>
+                <label class="marker-show-value">
+                  <input type="checkbox" [(ngModel)]="marker.showValue" [ngModelOptions]="{ standalone: true }" kendoCheckBox />
+                  Show value
+                </label>
                 <button kendoButton fillMode="flat" [svgIcon]="removeIcon" title="Remove marker" (click)="removeValueMarker(i)"></button>
               </div>
             }
@@ -509,6 +513,15 @@ export const TABLE_VALUE_MARKER_ICONS: readonly string[] = [
       width: 180px;
     }
 
+    .marker-show-value {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      cursor: pointer;
+      color: var(--kendo-color-on-app-surface, #212529);
+    }
+
     .data-source-type .radio-group {
       display: flex;
       gap: 24px;
@@ -594,7 +607,7 @@ export class TableConfigDialogComponent implements OnInit {
   // Row action and value markers (AB#7728)
   rowActionEnabled = false;
   rowActionLabel = '';
-  valueMarkers: { field: string; tooltip: string; icon: string; color?: string }[] = [];
+  valueMarkers: { field: string; tooltip: string; icon: string; color?: string; showValue?: boolean }[] = [];
 
   /** Field suggestions for markers: the configured columns (query columns are only known at run time). */
   get markerFieldOptions(): string[] {
@@ -676,7 +689,8 @@ export class TableConfigDialogComponent implements OnInit {
       field: m.field,
       tooltip: m.tooltip,
       icon: m.icon ?? TABLE_VALUE_MARKER_ICONS[0],
-      ...(m.color ? { color: m.color } : {})
+      ...(m.color ? { color: m.color } : {}),
+      ...(m.showValue ? { showValue: true } : {})
     }));
 
     // Convert initial sorting from string-based format to SortDto
@@ -848,7 +862,8 @@ export class TableConfigDialogComponent implements OnInit {
       field: m.field.trim(),
       tooltip: m.tooltip.trim(),
       icon: m.icon,
-      ...(m.color ? { color: m.color } : {})
+      ...(m.color ? { color: m.color } : {}),
+      ...(m.showValue ? { showValue: true } : {})
     }));
     return {
       ...(this.rowActionEnabled && label ? { rowAction: { label } } : {}),

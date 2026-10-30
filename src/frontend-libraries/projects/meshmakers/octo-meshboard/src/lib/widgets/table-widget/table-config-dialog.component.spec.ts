@@ -63,6 +63,19 @@ describe('TableConfigDialogComponent — row action and value markers (AB#7728)'
     }));
   });
 
+  it('keeps showValue through load and save, and writes no key when it is off', async () => {
+    const component = await open({
+      initialValueMarkers: [{ field: 'a', tooltip: 'A', showValue: true }, { field: 'b', tooltip: 'B' }]
+    });
+    expect(component.valueMarkers[0].showValue).toBe(true);
+
+    component.onSave();
+
+    const [first, second] = windowRef.close.mock.calls[0][0].valueMarkers;
+    expect(first.showValue).toBe(true);
+    expect('showValue' in second).toBe(false);
+  });
+
   it('is invalid while the row action has no label or a marker is incomplete', async () => {
     const component = await open();
     expect(component.isValid).toBe(true);

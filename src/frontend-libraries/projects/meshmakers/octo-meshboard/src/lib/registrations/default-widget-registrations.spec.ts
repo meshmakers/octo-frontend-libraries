@@ -445,6 +445,13 @@ describe('Default widget registrations — table row action and value markers (A
     expect(widget.valueMarkers).toEqual([{ field: 'manualCount', tooltip: 'Contains manual values', icon: 'warning-triangle' }]);
   });
 
+  it('keeps showValue through persistence and ignores non-boolean values', () => {
+    const marker = { field: 'manualCount', tooltip: 'Manual', showValue: true };
+    expect(roundTrip(table({ valueMarkers: [marker] })).widget.valueMarkers).toEqual([marker]);
+    expect(parseTableRowExtras({ valueMarkers: [{ field: 'f', tooltip: 't', showValue: 'yes' }] }))
+      .toEqual({ valueMarkers: [{ field: 'f', tooltip: 't' }] });
+  });
+
   it('writes no new keys for a table without them', () => {
     const { persisted, widget } = roundTrip(table());
     expect('rowAction' in persisted).toBe(false);

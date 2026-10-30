@@ -206,6 +206,16 @@ describe('TableWidgetComponent — row action and value markers (AB#7728)', () =
     expect(inputs['value']).toBe(3);
     expect(inputs['tooltip']).toBe('Contains manual values');
     expect(inputs['icon']).toBeDefined();
+    expect(inputs['showValue']).toBe(false);
+  });
+
+  it('passes showValue to the marker cell', async () => {
+    const cmp = await create({
+      dataSource: { type: 'runtimeEntity', ckTypeId: 'Test/Day' } as never,
+      columns: [{ field: 'manualCount', title: 'Manual' }],
+      valueMarkers: [{ field: 'manualCount', tooltip: 'Manual', showValue: true }]
+    });
+    expect(cmp.listViewColumns()[0].cellInputs!({ manualCount: 3 })).toEqual(expect.objectContaining({ value: 3, showValue: true }));
   });
 
   it('turns a configured column into a marker column and reads dotted paths', async () => {

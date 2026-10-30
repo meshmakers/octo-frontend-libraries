@@ -366,7 +366,7 @@ interface TableWidgetConfig {
   pageSize?: number;
   sortable?: boolean;
   rowAction?: { label: string };                                                  // AB#7728
-  valueMarkers?: { field: string; tooltip: string; icon?: string; color?: string }[]; // AB#7728
+  valueMarkers?: { field: string; tooltip: string; icon?: string; color?: string; showValue?: boolean }[]; // AB#7728
 }
 ```
 
@@ -404,7 +404,8 @@ icon (status icon set: `exclamation-circle` (default), `warning-triangle`, `chec
 `minus-circle`, `question-circle`, `circle`) with `tooltip` as title and accessible name when the value
 is a number (or numeric string) above zero, and stays empty otherwise (`isPositiveMarkerValue`). It
 works for configured columns and for columns derived from a persistent query; set it in the dialog's
-*Value Markers* card.
+*Value Markers* card. With `showValue: true` the cell shows the value next to the icon (default: icon
+only); a value of zero or below still leaves the cell empty.
 
 **Texts (AB#5622).** The list inside the table (`mm-list-view`) takes its texts from
 `MESHBOARD_MESSAGES` — "No records available.", pager texts, toolbar labels — merged over the

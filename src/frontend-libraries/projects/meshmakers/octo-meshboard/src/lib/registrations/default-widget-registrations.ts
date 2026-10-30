@@ -130,7 +130,8 @@ export function parseTableRowExtras(config: Record<string, unknown>): Pick<Table
       field: m['field'] as string,
       tooltip: m['tooltip'] as string,
       ...(typeof m['icon'] === 'string' ? { icon: m['icon'] } : {}),
-      ...(typeof m['color'] === 'string' ? { color: m['color'] } : {})
+      ...(typeof m['color'] === 'string' ? { color: m['color'] } : {}),
+      ...(m['showValue'] === true ? { showValue: true } : {})
     }));
   return {
     ...(label ? { rowAction: { label } } : {}),

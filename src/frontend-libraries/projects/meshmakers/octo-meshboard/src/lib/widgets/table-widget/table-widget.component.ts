@@ -89,7 +89,8 @@ function withValueMarker(column: ListViewTableColumn, marker: TableValueMarkerCo
       value: readCellValue(row, column.field),
       icon,
       tooltip: marker.tooltip,
-      color: marker.color
+      color: marker.color,
+      showValue: marker.showValue === true
     })
   };
 }

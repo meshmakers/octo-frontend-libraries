@@ -467,6 +467,8 @@ export interface TableValueMarkerConfig {
   icon?: string;
   /** CSS colour of the icon; default the cell's text colour. */
   color?: string;
+  /** Also show the value next to the icon (AB#7728); default false = icon only. */
+  showValue?: boolean;
 }
 
 export interface TableColumnStatusIconMapping {

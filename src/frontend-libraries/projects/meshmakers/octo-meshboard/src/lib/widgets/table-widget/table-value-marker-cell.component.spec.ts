@@ -14,12 +14,15 @@ describe('isPositiveMarkerValue (AB#7728)', () => {
 });
 
 describe('TableValueMarkerCellComponent (AB#7728)', () => {
-  function render(value: unknown): HTMLElement {
+  function render(value: unknown, showValue?: boolean): HTMLElement {
     TestBed.configureTestingModule({ imports: [TableValueMarkerCellComponent] });
     const fixture = TestBed.createComponent(TableValueMarkerCellComponent);
     fixture.componentRef.setInput('value', value);
     fixture.componentRef.setInput('icon', exclamationCircleIcon);
     fixture.componentRef.setInput('tooltip', 'Contains manual values');
+    if (showValue !== undefined) {
+      fixture.componentRef.setInput('showValue', showValue);
+    }
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
@@ -29,6 +32,23 @@ describe('TableValueMarkerCellComponent (AB#7728)', () => {
     expect(marker).not.toBeNull();
     expect(marker!.getAttribute('title')).toBe('Contains manual values');
     expect(marker!.getAttribute('aria-label')).toBe('Contains manual values');
+  });
+
+  it('shows only the icon by default', () => {
+    expect(render(2).querySelector('.value-marker-value')).toBeNull();
+  });
+
+  it('shows the value next to the icon with showValue', () => {
+    const marker = render(2, true).querySelector('.value-marker');
+    expect(marker!.querySelector('kendo-svgicon')).not.toBeNull();
+    expect(marker!.querySelector('.value-marker-value')!.textContent).toBe('2');
+    expect(marker!.getAttribute('title')).toBe('Contains manual values');
+  });
+
+  it('stays empty for zero with showValue', () => {
+    const cell = render(0, true);
+    expect(cell.textContent!.trim()).toBe('');
+    expect(cell.querySelector('.value-marker')).toBeNull();
   });
 
   it('stays empty for zero', () => {
