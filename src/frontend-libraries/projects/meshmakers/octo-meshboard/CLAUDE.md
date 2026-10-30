@@ -843,8 +843,9 @@ systems of a type that also models heating circuits). Helpers:
 > **Hosts with `keyFields: ['rtId']` (AB#7649).** `getAssociationTargets` selects `rtId` on the
 > source entity as well, although nothing reads it: a host whose Apollo cache keys `RtEntity` by
 > `rtId` (voest-app) otherwise throws "Missing field 'rtId' while extracting keyFields" on the write,
-> and the child scope resolves to nothing. Every RtEntity `items` selection in this library's
-> documents carries `rtId` (pinned in `services/association-targets-cache.spec.ts`).
+> and the child scope resolves to nothing. Every RtEntity `items` selection of
+> this query carries `rtId` (pinned in `services/association-targets-cache.spec.ts`); keep `rtId` in
+> any new RtEntity selection for the same reason.
 
 ### Auto-exposed selected-entity rtId / rtCkTypeId
 
