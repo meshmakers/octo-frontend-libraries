@@ -20,7 +20,8 @@ import { CreateDashboardWidgetDtoGQL } from '../../graphQL/createDashboardWidget
 import { UpdateDashboardWidgetDtoGQL } from '../../graphQL/updateDashboardWidget';
 import { DeleteEntitiesDtoGQL } from '../../graphQL/deleteEntities';
 import type { EntitySelectorConfig, EntitySelectorScopeHop, MeshBoardConfig } from '../../models/meshboard.models';
-import { EntitySelectorScopePathEditorComponent } from '../entity-selector-scope-path-editor/entity-selector-scope-path-editor.component';
+import { EntitySelectorScopePathEditorComponent, OTHER_ASSOCIATION } from '../entity-selector-scope-path-editor/entity-selector-scope-path-editor.component';
+import { By } from '@angular/platform-browser';
 import { SITE_GRAPH, TO_BUILDING, TO_ROOM, TO_STOREY } from '../../testing/entity-selector-scope-source.fixtures';
 
 /** Stand-in for octo-ui's CK type picker (the real one needs Apollo). */
@@ -82,6 +83,9 @@ describe('EntitySelectorEditorComponent — dependent selector (AB#7917)', () =>
 
   let fetchHop: ReturnType<typeof vi.fn>;
 
+  /** Associations of the leader type as getCkTypeAssociationRoles returns them (null = none loaded). */
+  let rolesData: unknown = null;
+
   function create(selectors: EntitySelectorConfig[], hop?: (sources: readonly string[], target: string) => Observable<string[]>) {
     fetchHop = vi.fn((sources: readonly string[], _sourceType: string, target: string) =>
       hop ? hop(sources, target) : of(sources.flatMap(s => SITE_GRAPH[target]?.[s] ?? [])));
@@ -91,7 +95,7 @@ describe('EntitySelectorEditorComponent — dependent selector (AB#7917)', () =>
         { provide: AttributeSelectorDialogService, useValue: {} },
         { provide: MeshBoardVariableService, useValue: {} },
         { provide: GetEntitiesByCkTypeDtoGQL, useValue: { fetch: () => of({ data: null }) } },
-        { provide: GetCkTypeAssociationRolesDtoGQL, useValue: { fetch: () => of({ data: null }) } },
+        { provide: GetCkTypeAssociationRolesDtoGQL, useValue: { fetch: () => of({ data: rolesData }) } },
         { provide: MeshBoardDataService, useValue: { fetchAssociationTargetRtIds: fetchHop } },
         { provide: ConfirmationService, useValue: { showDangerConfirm: vi.fn().mockResolvedValue(true) } },
         provideNoopAnimations()
@@ -117,7 +121,10 @@ describe('EntitySelectorEditorComponent — dependent selector (AB#7917)', () =>
     return fixture.nativeElement as HTMLElement;
   }
 
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    rolesData = null;
+  });
 
   describe('section', () => {
     it('is shown for a non-follower with a CK type, after the picker filter and before the mappings', async () => {
@@ -232,6 +239,34 @@ describe('EntitySelectorEditorComponent — dependent selector (AB#7917)', () =>
         .toContain('Path from Site (Test/Site) to Room (Test/Room)');
       expect(el.querySelector('[data-test="scope-source-hint"]')?.textContent?.replace(/\s+/g, ' '))
         .toContain('The Room picker lists only the Room reached from the Site the user picked.');
+    });
+
+    it('keeps "Other role…" and the typed role of a hop through its own emission', async () => {
+      rolesData = {
+        constructionKit: { types: { items: [{ rtCkTypeId: 'Test/Site', associations: {
+          in: { all: [{ rtRoleId: 'System/ParentChild', rtTargetCkTypeId: 'System/Entity' }] }, out: { all: [] }
+        } }] } }
+      };
+      const { fixture, editor, form } = create([site, room]);
+      editor.editSelector(1);
+      editor.onScopeSourceChanged('site');
+      await render(fixture);
+      const pathEditor = fixture.debugElement
+        .query(By.css('[data-test="scope-source-section"] mm-entity-selector-scope-path-editor'))
+        .componentInstance as EntitySelectorScopePathEditorComponent;
+      expect(pathEditor.hasAssociationList(0)).toBe(true);
+
+      pathEditor.onAssociationChanged(0, OTHER_ASSOCIATION);
+      fixture.detectChanges();
+      expect(pathEditor.isFreeText(0)).toBe(true);
+
+      pathEditor.onRoleChanged(0, '');
+      fixture.detectChanges();
+      expect(pathEditor.isFreeText(0)).toBe(true);
+      pathEditor.onRoleChanged(0, 'System/ParentChild');
+      fixture.detectChanges();
+      expect(pathEditor.isFreeText(0)).toBe(true);
+      expect(form.editScopeSourceHops).toEqual([{ roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: 'Test/Room' }]);
     });
 
     it('allows at most five hops', async () => {

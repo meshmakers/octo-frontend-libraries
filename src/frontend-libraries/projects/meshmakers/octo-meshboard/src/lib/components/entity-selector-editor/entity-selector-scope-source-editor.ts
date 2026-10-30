@@ -49,14 +49,15 @@ export function scopeSourceToSave(selectorId: string, hops: readonly EntitySelec
 
 /**
  * Hops with the last hop's target type set to the selector's CK type — the
- * path always ends at the type the dependent picker lists.
+ * path always ends at the type the dependent picker lists. Returns the given
+ * array itself when nothing changes: the path editor recognises its own
+ * emission by reference and must not rebuild its rows (that would reset an
+ * "Other role…" choice or a role being typed).
  */
-export function lockLastHopTarget(hops: readonly EntitySelectorScopeHop[], ckTypeId: string): EntitySelectorScopeHop[] {
-  if (hops.length === 0 || !ckTypeId) return [...hops];
+export function lockLastHopTarget(hops: EntitySelectorScopeHop[], ckTypeId: string): EntitySelectorScopeHop[] {
   const last = hops[hops.length - 1];
-  return last.targetCkTypeId === ckTypeId
-    ? [...hops]
-    : [...hops.slice(0, -1), { ...last, targetCkTypeId: ckTypeId }];
+  if (!last || !ckTypeId || last.targetCkTypeId === ckTypeId) return hops;
+  return [...hops.slice(0, -1), { ...last, targetCkTypeId: ckTypeId }];
 }
 
 /**
@@ -121,7 +122,10 @@ export function scopeSourceSummary(selectors: readonly EntitySelectorConfig[], s
   return `Inside: ${selectorName(leader, selector.scopeSource.selectorId || '?')} (${hops} ${hops === 1 ? 'hop' : 'hops'})`;
 }
 
-/** True when the selector's scope source cannot be used at runtime (the list marks it as an error). */
+/**
+ * True when the selector's scope source cannot be used or saved as it is (the
+ * list marks it as an error) — the same rule as the editor validation.
+ */
 export function isInvalidScopeSource(selectors: readonly EntitySelectorConfig[], selector: EntitySelectorConfig): boolean {
-  return !!selector.scopeSource && !isFollowerSelector(selector) && resolveScopeSource(selectors, selector).kind === 'invalid';
+  return !!selector.scopeSource && !isFollowerSelector(selector) && scopeSourceValidationError(selectors, selector) !== null;
 }

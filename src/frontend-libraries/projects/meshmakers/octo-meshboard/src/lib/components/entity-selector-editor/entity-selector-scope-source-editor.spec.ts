@@ -49,6 +49,12 @@ describe('entity-selector-scope-source-editor (AB#7917)', () => {
       expect(hops).toEqual([TO_BUILDING, { ...TO_STOREY, targetCkTypeId: 'Test/Room' }]);
       expect(lockLastHopTarget([], 'Test/Room')).toEqual([]);
     });
+
+    it('returns the same array when the last target already fits (path editor echo guard)', () => {
+      const hops = [TO_BUILDING, TO_STOREY, TO_ROOM];
+      expect(lockLastHopTarget(hops, 'Test/Room')).toBe(hops);
+      expect(lockLastHopTarget(hops, '')).toBe(hops);
+    });
   });
 
   describe('scopeSourceValidationError', () => {
@@ -127,6 +133,11 @@ describe('entity-selector-scope-source-editor (AB#7917)', () => {
       expect(isInvalidScopeSource([SITE, ROOM], ROOM)).toBe(false);
       expect(isInvalidScopeSource([ROOM], ROOM)).toBe(true);
       expect(scopeSourceSummary([ROOM], ROOM)).toBe('Inside: site (3 hops)');
+    });
+
+    it('marks a path that ends at another type, like the editor validation', () => {
+      const room = { ...ROOM, scopeSource: { selectorId: 'site', path: [TO_BUILDING] } };
+      expect(isInvalidScopeSource([SITE, room], room)).toBe(true);
     });
   });
 });
