@@ -14,11 +14,18 @@ export interface MeshBoardMessages {
   tableList?: Partial<ListViewMessages>;
   /** Placeholder of a table widget without data source / columns. Default: "Table not configured" */
   tableNotConfigured?: string;
+  /**
+   * Board notice when an entity selector's stream-data scope could not be resolved (AB#7721);
+   * `{label}` is replaced by the selector label. Default:
+   * 'Could not resolve the scope of "{label}" - widgets bound to it show no data.'
+   */
+  scopeResolutionFailed?: string;
 }
 
 /** Default texts of {@link MeshBoardMessages} (the list texts default inside `mm-list-view`). */
 export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'tableList'>> = {
   tableNotConfigured: 'Table not configured',
+  scopeResolutionFailed: 'Could not resolve the scope of "{label}" - widgets bound to it show no data.',
 };
 
 /**
@@ -52,6 +59,7 @@ export function resolveMeshBoardMessages(messages: MeshBoardMessages | null | un
     ...DEFAULT_MESHBOARD_MESSAGES,
     ...(messages?.tableList ? { tableList: messages.tableList } : {}),
     ...(messages?.tableNotConfigured ? { tableNotConfigured: messages.tableNotConfigured } : {}),
+    ...(messages?.scopeResolutionFailed ? { scopeResolutionFailed: messages.scopeResolutionFailed } : {}),
   };
 }
 

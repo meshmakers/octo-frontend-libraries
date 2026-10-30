@@ -1393,6 +1393,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     this._isLoading.set(true);
     this._error.set(null);
     this._boundData.set(null);
+    // A bound entity-selector scope that is still resolving keeps the widget loading
+    // until the refresh that follows the resolution (AB#7721).
+    let scopePending = false;
 
     try {
       // Check for inline config first
@@ -1400,7 +1403,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
         this._diagramConfig.set(this.config.inlineConfig);
         await this.loadSymbolDefinitions(this.config.inlineConfig);
         await this.loadRuntimeData();
-        await this.loadBoundData();
+        scopePending = await this.loadBoundData();
         return;
       }
 
@@ -1410,7 +1413,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
         this._diagramConfig.set(diagram);
         await this.loadSymbolDefinitions(diagram);
         await this.loadRuntimeData();
-        await this.loadBoundData();
+        scopePending = await this.loadBoundData();
         return;
       }
 
@@ -1420,26 +1423,33 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       console.error('Error loading process diagram:', err);
       this._error.set('Failed to load process diagram');
     } finally {
-      this._isLoading.set(false);
+      if (!scopePending) {
+        this._isLoading.set(false);
+      }
     }
   }
 
   /**
-   * Loads bound data based on widget data binding configuration
+   * Loads bound data based on widget data binding configuration.
+   * Returns `true` when the bound entity-selector scope is still resolving (AB#7721).
    */
-  private async loadBoundData(): Promise<void> {
+  private async loadBoundData(): Promise<boolean> {
     // Only load if data binding is configured
     if (!this.config.dataBindingMode || this.config.dataBindingMode === 'none') {
-      return;
+      return false;
     }
 
     try {
       const boundData = await this.dataService.loadBoundData(this.config);
+      if (boundData?.pending) {
+        return true;
+      }
       this._boundData.set(boundData);
     } catch (err) {
       console.error('Error loading bound data:', err);
       // Don't set error - diagram still displays, just without bound data
     }
+    return false;
   }
 
   /**

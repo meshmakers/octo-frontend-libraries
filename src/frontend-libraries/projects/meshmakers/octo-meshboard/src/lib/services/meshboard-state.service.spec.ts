@@ -807,9 +807,10 @@ describe('MeshBoardStateService', () => {
         expect(service.resolveStreamDataRtIds('mp')).toEqual(['rt-1', 'rt-2']);
       });
 
-      it('should treat an empty rtId set as no scope', () => {
+      it('should return no rtIds for an empty rtId set (callers must check resolveStreamDataScope)', () => {
         service.setEntitySelectorRtIds('mp', []);
         expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
+        expect(service.resolveStreamDataScope('mp')).toEqual({ kind: 'empty', reason: 'noTargets' });
       });
 
       it('should isolate rtIds per selector', () => {
@@ -823,6 +824,65 @@ describe('MeshBoardStateService', () => {
         service.setEntitySelectorRtIds('mp', ['rt-1', 'rt-2']);
         service.clearEntitySelectorRtIds('mp');
         expect(service.resolveStreamDataRtIds('mp')).toBeUndefined();
+      });
+    });
+
+    describe('resolveStreamDataScope (AB#7721)', () => {
+      it('is unscoped without a binding', () => {
+        expect(service.resolveStreamDataScope()).toEqual({ kind: 'unscoped' });
+        expect(service.resolveStreamDataScope(undefined, 'streamData')).toEqual({ kind: 'unscoped' });
+      });
+
+      it('is unscoped for a bound selector without a pick (no scope state)', () => {
+        expect(service.resolveStreamDataScope('site', 'streamData')).toEqual({ kind: 'unscoped' });
+      });
+
+      it('is pending while the pick resolves', () => {
+        service.setEntitySelectorScopePending('site');
+        expect(service.resolveStreamDataScope('site', 'streamData')).toEqual({ kind: 'pending' });
+        expect(service.resolveStreamDataRtIds('site')).toBeUndefined();
+      });
+
+      it('is scoped once the pick resolved to rtIds', () => {
+        service.setEntitySelectorScopePending('site');
+        service.setEntitySelectorRtIds('site', ['dev-1', 'dev-2']);
+        expect(service.resolveStreamDataScope('site', 'streamData')).toEqual({ kind: 'scoped', rtIds: ['dev-1', 'dev-2'] });
+      });
+
+      it('is empty (noTargets) when the pick resolved to zero rtIds', () => {
+        service.setEntitySelectorRtIds('site', []);
+        expect(service.resolveStreamDataScope('site', 'streamData')).toEqual({ kind: 'empty', reason: 'noTargets' });
+      });
+
+      it('is empty (failed) when the resolution failed, and lists the selector as failed', () => {
+        service.setEntitySelectorScopeFailed('site');
+        expect(service.resolveStreamDataScope('site', 'streamData')).toEqual({ kind: 'empty', reason: 'failed' });
+        expect(service.failedEntitySelectorScopeIds()).toEqual(['site']);
+        service.setEntitySelectorRtIds('site', ['dev-1']);
+        expect(service.failedEntitySelectorScopeIds()).toEqual([]);
+      });
+
+      it('treats a legacy config without queryFamily as stream data', () => {
+        service.setEntitySelectorRtIds('site', []);
+        expect(service.resolveStreamDataScope('site')).toEqual({ kind: 'empty', reason: 'noTargets' });
+      });
+
+      it('ignores the binding for runtime queries', () => {
+        service.setEntitySelectorRtIds('site', []);
+        expect(service.resolveStreamDataScope('site', 'runtime')).toEqual({ kind: 'unscoped' });
+      });
+
+      it('is unscoped again after the selection is cleared', () => {
+        service.setEntitySelectorRtIds('site', []);
+        service.clearEntitySelectorRtIds('site');
+        expect(service.resolveStreamDataScope('site', 'streamData')).toEqual({ kind: 'unscoped' });
+      });
+
+      it('does not share the stored rtIds array with the caller', () => {
+        const rtIds = ['dev-1'];
+        service.setEntitySelectorRtIds('site', rtIds);
+        rtIds.push('dev-2');
+        expect(service.resolveStreamDataRtIds('site')).toEqual(['dev-1']);
       });
     });
 
@@ -1004,6 +1064,21 @@ describe('MeshBoardStateService', () => {
         await service.switchToMeshBoard('board1');
 
         expect(service.persistedMeshBoardId()).toBe('board1');
+      });
+
+      it('should drop the entity selector scopes of the previous board (AB#7721)', async () => {
+        service.setEntitySelectorRtIds('site', []);
+        service.setEntitySelectorScopeFailed('other');
+        mockPersistenceService.getMeshBoardWithWidgets.mockResolvedValue({
+          meshBoard: createMockPersistedMeshBoard({ rtId: 'board1', name: 'Board 1' }),
+          widgets: []
+        });
+        mockPersistenceService.toMeshBoardConfig.mockReturnValue(createMockConfig());
+
+        await service.switchToMeshBoard('board1');
+
+        expect(service.resolveStreamDataScope('site', 'streamData')).toEqual({ kind: 'unscoped' });
+        expect(service.failedEntitySelectorScopeIds()).toEqual([]);
       });
 
       it('should return current widgets when board not found', async () => {

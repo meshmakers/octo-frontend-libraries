@@ -147,9 +147,12 @@ export class MyComponent {
 | `clearEntitySelectorVariables(selectorId)` | `void` | Clear variables for a selector |
 | `resolveCurrentTimeRange()` | `TimeRange \| null` | Resolve active time filter to `{from, to}` |
 | `resolveStreamDataTimeArgs(ignoreTimeFilter?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out |
-| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Cache the source rtIds resolved from a selector's selection (transient) |
-| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the cached source rtIds for a selector |
-| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Asset-scope binding: source rtIds for the bound selector, or `undefined` (no scope) |
+| `setEntitySelectorScopePending(selectorId)` | `void` | Mark a selector's scope as resolving (AB#7721) |
+| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Store the resolved source rtIds (transient); `[]` = resolved EMPTY scope |
+| `setEntitySelectorScopeFailed(selectorId)` | `void` | Mark a selector's scope resolution as failed (AB#7721) |
+| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the scope state (no pick → persisted scope) |
+| `resolveStreamDataScope(entitySelectorId?, family?)` | `StreamDataScope` | `unscoped` / `pending` / `scoped` / `empty` — see *Scope resolution contract* (AB#7721) |
+| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` — check `resolveStreamDataScope` first |
 
 ### MeshBoardGridService
 
@@ -331,12 +334,49 @@ applies in place of the persisted RtIds.
 
 Resolution flow:
 1. The selector resolves its picked entity to source rtIds when the selection
-   changes — either the selector's `childScope` one-hop (e.g. a MeteringPoint →
-   its EnergyMeasurement rtIds) or, with no childScope, the picked entity's own
-   rtId. These are cached via `MeshBoardStateService.setEntitySelectorRtIds`.
-2. Each SD widget's `buildStreamDataArgs()` reads them with
-   `resolveStreamDataRtIds(entitySelectorId)` and merges them into
-   `streamDataArgs` alongside the time range.
+   changes — either the selector's `childScope` one-hop (e.g. a parent → its
+   child device rtIds) or, with no childScope, the picked entity's own rtId. The
+   view marks the scope `pending` first and stores the result via
+   `MeshBoardStateService.setEntitySelectorRtIds` (or `setEntitySelectorScopeFailed`).
+2. Each SD widget first asks `resolveStreamDataScope(entitySelectorId, queryFamily)`
+   and then, for a `scoped` scope, merges `resolveStreamDataRtIds(entitySelectorId)`
+   into `streamDataArgs` alongside the time range.
+
+#### Scope resolution contract (AB#7721)
+
+Per selector the state service keeps one transient `EntitySelectorScopeState`
+(`utils/stream-data-scope.ts`), cleared on every board switch:
+
+| State | Set by the view | `resolveStreamDataScope` | Bound widget |
+|---|---|---|---|
+| none | no pick (no route/URL pick, no `defaultRtId`), or pick cleared | `unscoped` | queries with the **persisted** scope (unchanged) |
+| `pending` | a pick starts resolving; every initial pick is primed right after a board loads, before change detection renders the widgets | `pending` | shows its **loading** state, sends **no query** |
+| `resolved`, ≥1 rtId | resolution done | `scoped` | queries with `streamDataArgs.rtIds` (unchanged) |
+| `resolved`, 0 rtIds | the pick has nothing in scope | `empty` / `noTargets` | shows its **no-data** state, sends **no query** |
+| `failed` | association fetch threw, or the picked entity was not found | `empty` / `failed` | as above; the view shows one notice per selector (*Could not resolve the scope of "<label>"*, `MeshBoardMessages.scopeResolutionFailed`) and logs the error once |
+
+Rules:
+- **Never fall back to the persisted scope for `pending` or `empty`.** The persisted
+  scope is usually the whole archive; a pick without e.g. a matching child would
+  otherwise show rows of other entities.
+- Runtime queries (`queryFamily: 'runtime'`) ignore the binding (`unscoped`); a legacy
+  config without `queryFamily` is treated as stream data.
+- Widgets reload only when their config reference changes, so the view calls
+  `triggerRefresh()` after the initial picks resolved and after every pick change.
+  A pending widget therefore never needs its own subscription. A widget that
+  (re)loads while the scope is pending (initial load, auto-refresh, time-filter
+  change) shows loading; on a pick change the previous content stays until the
+  refresh that follows the resolution — no query is sent in between.
+- Each pick resolution carries a per-selector sequence number; a slower resolution
+  of an earlier pick never overwrites the scope of a newer pick.
+- No-data rendering per widget: KPI / gauge show `-` (no output variable is published);
+  line / bar / pie / heatmap render the empty chart (`emptyQueryExecutionResult`); the
+  table lists no rows (pending: the fetch observable never emits, so the list stays
+  loading until the refresh cancels it); stats grid / summary card show `-` per cell
+  (pending: the whole widget stays loading); the process binding gets no rows (pending: `BoundDataResult.pending`, the widget stays loading).
+- A custom widget that reads `resolveStreamDataRtIds` must check
+  `resolveStreamDataScope` first — `undefined` from `resolveStreamDataRtIds` is not
+  "query unscoped" for a pending or empty scope.
 
 Configured per widget via the "Scope to entity selector" dropdown in the SD
 widget config dialogs (shown only for stream-data queries, like the time-filter
@@ -728,9 +768,14 @@ When embedding a MeshBoard in another application, entity selectors can be pre-p
 | `updateEntitySelectorSelection(selectorId, rtId, displayName?)` | `void` | Update one selector's selection |
 | `setEntitySelectorVariables(selectorId, values[])` | `void` | Create/replace variables for a selector |
 | `clearEntitySelectorVariables(selectorId)` | `void` | Remove variables for a selector |
-| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Cache the source rtIds resolved from a selection (transient) |
-| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear cached source rtIds for a selector |
-| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds for a widget's asset-scope binding |
+| `setEntitySelectorScopePending(selectorId)` | `void` | Mark the scope as resolving |
+| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Store the resolved source rtIds (transient); `[]` = resolved EMPTY scope |
+| `setEntitySelectorScopeFailed(selectorId)` | `void` | Mark the scope resolution as failed |
+| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the scope state of a selector |
+| `getEntitySelectorScopeState(selectorId)` | `EntitySelectorScopeState \| undefined` | Raw scope state (`pending` / `resolved` / `failed`), `undefined` = no pick |
+| `failedEntitySelectorScopeIds` | `Signal<string[]>` | Selectors whose scope resolution failed (board notice) |
+| `resolveStreamDataScope(entitySelectorId?, family?)` | `StreamDataScope` | What a bound widget does — see *Scope resolution contract* |
+| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` |
 
 ### Components
 
@@ -938,7 +983,9 @@ ng test @meshmakers/octo-meshboard --watch=false --coverage
 Current test files:
 - `meshboard-grid.service.spec.ts` - Grid collision detection (39 tests)
 - `meshboard-variable.service.spec.ts` - Variable resolution (67 tests)
-- `meshboard-state.service.spec.ts` - State management (74 tests, includes entity selector management + stream-data time-arg binding)
+- `meshboard-state.service.spec.ts` - State management (includes entity selector management, stream-data time-arg binding and the scope states of AB#7721)
+- `meshboard-view.entity-selector-scope.spec.ts` - View scope resolution: empty / failed / pending / unscoped picks, URL picks, stale resolutions, clear (AB#7721)
+- `widgets/stream-data-scope.widgets.spec.ts` - Line chart, bar chart and table send no query for an empty or pending scope (AB#7721); KPI in `kpi-widget.component.spec.ts`, process binding in `process-data.service.spec.ts`
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)

@@ -20,6 +20,28 @@ starts a new empty "Unreleased" section.
   (billing, EDA processes, imported metering points, registration requests) pass their primary command; the toolbar
   button stays.
 
+### octo-meshboard entity-selector scope (empty scope shows no data, AB#7721)
+
+- Fix (behaviour): a stream-data widget bound to an entity selector (`entitySelectorId`) whose pick resolves to
+  zero rtIds, or whose scope resolution fails, now shows its no-data state and sends **no query**. Before, it fell
+  back to the query's persisted scope (usually the whole archive) and showed rows of other entities. While the
+  pick resolves the widget shows its loading state and sends no query; the view marks every initial pick (route
+  data, `es_<id>` URL param, `defaultRtId`) pending right after a board loads and refreshes the widgets once the
+  picks resolved. A failed resolution is logged once and shown as a board notice ("Could not resolve the scope of
+  "<label>" ..."; host-translatable via `MeshBoardMessages.scopeResolutionFailed`), so "nothing in scope" and
+  "lookup failed" are distinguishable. A pick whose entity no longer exists counts as failed. An unbound widget, a
+  bound selector without pick and without `defaultRtId`, and runtime queries are unchanged.
+- New (non-breaking, additive) on `MeshBoardStateService`: `resolveStreamDataScope(entitySelectorId?, family?)`
+  returning `StreamDataScope` (`unscoped` | `pending` | `scoped` | `empty`), `setEntitySelectorScopePending`,
+  `setEntitySelectorScopeFailed`, `getEntitySelectorScopeState`, `failedEntitySelectorScopeIds`; helper
+  `emptyQueryExecutionResult` and the types `EntitySelectorScopeState` / `StreamDataScope`. Scope state is cleared on
+  board switch. `setEntitySelectorRtIds(id, [])` now means a resolved EMPTY scope.
+- Note for custom widgets: `resolveStreamDataRtIds` still returns `undefined` for a pending or empty scope; check
+  `resolveStreamDataScope` first and skip the query for `pending` / `empty`. All built-in callers (line, bar, pie,
+  KPI, gauge, heatmap, table, stats grid, summary card, process binding) do.
+- Also fixed: a slower resolution of an earlier pick no longer overwrites the scope of a newer pick, and
+  `MeshBoardViewComponent.clearEntitySelector` now clears the scope as the toolbar clear did.
+
 ### octo-meshboard KPI widget (decimal places, AB#7686)
 
 - New (non-breaking, additive): optional `decimalPlaces` on `KpiWidgetConfig` (persisted in the widget `Config` JSON).

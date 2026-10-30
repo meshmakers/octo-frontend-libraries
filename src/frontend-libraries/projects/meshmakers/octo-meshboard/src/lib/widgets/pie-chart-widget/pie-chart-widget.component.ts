@@ -435,6 +435,19 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
    * Note: isNotConfigured() check in loadData() ensures queryRtId is set.
    */
   private async loadPersistentQueryData(dataSource: PersistentQueryDataSource): Promise<void> {
+    // Entity-selector scope (AB#7721): pending → stay in the loading state and
+    // send no query (the view refreshes once the scope is known); empty → render
+    // the empty chart without querying the persisted (unscoped) scope.
+    const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily);
+    if (scope.kind === 'pending') {
+      return;
+    }
+    if (scope.kind === 'empty') {
+      this._rawData.set([]);
+      this._isLoading.set(false);
+      return;
+    }
+
     const fieldFilter = this.convertFiltersToDto(this.config.filters);
     // queryFamily may be undefined for legacy widget configs — the executor
     // falls back to a one-time lookup by rtId. streamDataArgs is sent

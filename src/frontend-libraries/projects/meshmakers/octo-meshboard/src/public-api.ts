@@ -60,6 +60,8 @@ export { MESHBOARD_CHROME_ROUTE_DATA, isMeshBoardChrome, resolveMeshBoardChrome 
 // Query family classification (runtime vs stream-data persistent queries)
 export type { QueryFamily, QueryKind, QueryClassification } from './lib/utils/query-family';
 export { classifyQuery, queryFamily } from './lib/utils/query-family';
+export type { EntitySelectorScopeState, StreamDataScope } from './lib/utils/stream-data-scope';
+export { emptyQueryExecutionResult } from './lib/utils/stream-data-scope';
 
 // Shared Components
 export { QuerySelectorComponent } from './lib/components/query-selector/query-selector.component';

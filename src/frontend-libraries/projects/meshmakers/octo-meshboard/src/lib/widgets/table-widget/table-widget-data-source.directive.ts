@@ -1,5 +1,5 @@
 import { Directive, forwardRef, inject, Input, signal, Signal, Output, EventEmitter } from '@angular/core';
-import { Observable, from, of } from 'rxjs';
+import { NEVER, Observable, from, of } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { OctoGraphQlDataSource, SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { DataSourceBase, FetchDataOptions, FetchResultTyped, ListViewComponent } from '@meshmakers/shared-ui';
@@ -228,6 +228,18 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
     dataSource: PersistentQueryDataSource,
     queryOptions: FetchDataOptions
   ): Observable<FetchResultTyped<Record<string, unknown>>> {
+    // Entity-selector scope (AB#7721): pending → keep the list in its loading
+    // state (an observable that never emits; the next refresh after the scope
+    // resolves cancels it) and send no query; empty → no rows, no query — never
+    // the persisted (unscoped) scope.
+    const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily);
+    if (scope.kind === 'pending') {
+      return NEVER;
+    }
+    if (scope.kind === 'empty') {
+      return of(new FetchResultTyped<Record<string, unknown>>([], 0));
+    }
+
     const fieldFilter = this.convertFiltersToDto(this._config?.filters);
 
     // queryFamily may be undefined for legacy widget configs — the executor
