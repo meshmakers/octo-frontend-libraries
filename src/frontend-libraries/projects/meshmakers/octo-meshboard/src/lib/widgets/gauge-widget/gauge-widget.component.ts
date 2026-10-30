@@ -489,7 +489,9 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
       const result = await firstValueFrom(
         this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
           fieldFilter: fieldFilter ?? undefined,
-          streamDataArgs
+          streamDataArgs,
+          // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+          scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
         }).pipe(
           catchError(err => {
             console.error('Error loading Gauge query data:', err);

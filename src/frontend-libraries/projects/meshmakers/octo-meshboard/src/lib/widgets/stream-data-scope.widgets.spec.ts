@@ -243,12 +243,12 @@ describe('stream-data widgets — entity-selector scope (AB#7721)', () => {
       expect(emitted[0].data.length).toBe(1);
     });
 
-    it('ignores the binding for a runtime query', () => {
+    it('applies the empty-scope rule to a runtime query too (AB#7725)', () => {
       state.setEntitySelectorRtIds('site', []);
 
       create({ ...BOUND, queryFamily: 'runtime' }).fetchData(OPTIONS).subscribe();
 
-      expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
     });
   });
 });

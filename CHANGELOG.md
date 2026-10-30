@@ -10,6 +10,30 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard entity selectors (runtime and grouping queries follow the scope, AB#7725)
+
+- Behaviour change: a widget whose **runtime** persistent query (SimpleRtQuery, AggregationRtQuery,
+  GroupingAggregationRtQuery) is bound to an entity selector (`entitySelectorId`) is now restricted to the rtIds the
+  selector resolved to. Until now the binding was ignored for runtime queries, so tables, bar and pie charts, KPIs,
+  gauges, stats grids, summary cards, heatmaps, line charts and process bindings of a site board showed every entity.
+  The restriction runs on the server: the executor adds the field filter `rtId IN (resolved rtIds)`, AND-combined with
+  the widget's filters and the saved query's own filters, so a grouping or aggregation query aggregates over the
+  scoped entities only (no client-side filtering after a full load). Stream-data queries — including grouping and
+  aggregation queries — keep passing the rtIds as `streamDataArgs.rtIds`.
+- The empty-scope contract of AB#7721 now applies to runtime queries too: pending → loading, no query; empty or
+  failed → no data, no query; no binding or no pick → the query runs as saved. Stats grid and summary card cells no
+  longer query the saved scope while their scope is pending (they show `-` until the refresh after the resolution).
+- New (additive): `QueryExecutionOptions.scopeRtIds` (family-agnostic scope; runtime → `rtId IN`, stream data →
+  `arg.rtIds` unless `streamDataArgs.rtIds` is set), the static helper `QueryExecutorService.withRtIdScope`, and
+  `MeshBoardStateService.resolveEntitySelectorScope(entitySelectorId?)` (the selector part only).
+  `resolveStreamDataScope(id, family?, ignoreTimeFilter?)` stays the widget entry point: the host-period gate of
+  AB#7582 (stream data only) first, then `resolveEntitySelectorScope`; the `family` argument no longer changes the
+  selector part.
+- Config dialogs: the "Scope to entity selector" field (`mm-entity-selector-scope-picker`, also inside
+  `mm-persistent-query-cell-editor`) is now offered for runtime queries as well, not only for stream-data queries.
+- Persistence is unchanged: the binding was already saved for both families, so existing boards load, save and
+  export/import byte-identically. Boards that had a runtime widget bound to a selector start to follow it.
+
 ### octo-meshboard entity selectors (picker filter, AB#7724)
 
 - New (non-breaking, additive): optional `EntitySelectorConfig.filters` of the widget filter type

@@ -153,7 +153,8 @@ export class MyComponent {
 | `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Store the resolved source rtIds (transient); `[]` = resolved EMPTY scope |
 | `setEntitySelectorScopeFailed(selectorId)` | `void` | Mark a selector's scope resolution as failed (AB#7721) |
 | `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the scope state (no pick → persisted scope) |
-| `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | `unscoped` / `pending` / `scoped` / `empty` — see *Scope resolution contract* (AB#7721); pass the widget's `ignoreTimeFilter` (AB#7582 host gate) |
+| `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | Widget entry point: AB#7582 host gate first (stream data only, `empty`/`invalidTimeRange`; pass the widget's `ignoreTimeFilter`), then `resolveEntitySelectorScope` — see *Scope resolution contract* |
+| `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | Selector part only: `unscoped` / `pending` / `scoped` / `empty` for runtime and stream-data queries alike (AB#7721, AB#7725) |
 | `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` — check `resolveStreamDataScope` first |
 
 ### MeshBoardGridService
@@ -321,14 +322,28 @@ interface PersistentQueryDataSource {
   queryName?: string;         // Display name
   queryFamily?: QueryFamily;  // 'runtime' | 'streamData' (derived when absent)
   ignoreTimeFilter?: boolean; // SD opt-out of the MeshBoard time-filter binding
-  entitySelectorId?: string;  // Asset-scope binding (stream-data) — see below
+  entitySelectorId?: string;  // Asset-scope binding (runtime + stream-data, AB#7725) — see below
 }
 ```
 
 #### Asset-scope binding (`entitySelectorId`)
 
-A stream-data widget can be scoped to a picked asset by naming an entity
-selector. Stream-data archives are keyed by their **source rtIds**, not by a
+A persistent-query widget — runtime or stream-data — can be scoped to a picked
+asset by naming an entity selector. The restriction always runs on the server,
+never by filtering a full result on the client:
+
+| Query family | How the resolved rtIds restrict the query |
+|---|---|
+| Stream data (simple, aggregation, grouping, downsampling) | `streamDataArgs.rtIds` → backend `StreamDataArguments.rtIds` override (replaces the persisted RtIds) |
+| Runtime (SimpleRtQuery, AggregationRtQuery, GroupingAggregationRtQuery, AB#7725) | field filter `rtId IN (rtIds)` (`FieldFilterOperatorsDto.InDto`), AND-combined with the widget's filters and the saved query's own filters; the backend applies all of them in the database query before aggregating, so grouping/aggregation results cover the scoped entities only |
+
+Widgets pass the scope as `QueryExecutionOptions.scopeRtIds`; `QueryExecutorService`
+picks the mechanism per family after it knows the family (also for a legacy config
+without `queryFamily`, which it looks up once). `QueryExecutorService.withRtIdScope`
+builds the runtime filter list. For stream data an explicit `streamDataArgs.rtIds`
+wins over `scopeRtIds` (both carry the same scope in the built-in widgets).
+
+Stream data in detail: Stream-data archives are keyed by their **source rtIds**, not by a
 parent column — so a field-filter on `$mp_rtId` can't scope an archive query.
 Instead the widget passes those source rtIds as the query's
 `streamDataArgs.rtIds`, which the backend `StreamDataArguments.rtIds` override
@@ -341,9 +356,11 @@ Resolution flow:
    the picked entity's own rtId. The
    view marks the scope `pending` first and stores the result via
    `MeshBoardStateService.setEntitySelectorRtIds` (or `setEntitySelectorScopeFailed`).
-2. Each SD widget first asks `resolveStreamDataScope(entitySelectorId, queryFamily)`
-   and then, for a `scoped` scope, merges `resolveStreamDataRtIds(entitySelectorId)`
-   into `streamDataArgs` alongside the time range.
+2. Each widget first asks `resolveStreamDataScope(entitySelectorId, queryFamily, ignoreTimeFilter)`
+   (AB#7582 host gate for stream data, then `resolveEntitySelectorScope`) and then,
+   for a `scoped` scope, passes the rtIds as `scopeRtIds` (and, for stream data,
+   merges `resolveStreamDataRtIds(entitySelectorId)` into `streamDataArgs`
+   alongside the time range).
 
 #### Scope resolution contract (AB#7721)
 
@@ -362,8 +379,10 @@ Rules:
 - **Never fall back to the persisted scope for `pending` or `empty`.** The persisted
   scope is usually the whole archive; a pick without e.g. a matching child would
   otherwise show rows of other entities.
-- Runtime queries (`queryFamily: 'runtime'`) ignore the binding (`unscoped`); a legacy
-  config without `queryFamily` is treated as stream data.
+- The contract is the same for runtime queries (AB#7725): a bound runtime widget is
+  pending / empty / scoped exactly like a stream-data widget, independent of
+  `queryFamily` (also when it is missing on a legacy config). Before AB#7725 runtime
+  queries ignored the binding.
 - Widgets reload only when their config reference changes, so the view calls
   `triggerRefresh()` after the initial picks resolved and after every pick change.
   A pending widget therefore never needs its own subscription. A widget that
@@ -376,14 +395,19 @@ Rules:
   line / bar / pie / heatmap render the empty chart (`emptyQueryExecutionResult`); the
   table lists no rows (pending: the fetch observable never emits, so the list stays
   loading until the refresh cancels it); stats grid / summary card show `-` per cell
-  (pending: the whole widget stays loading); the process binding gets no rows (pending: `BoundDataResult.pending`, the widget stays loading).
+  and send no query while the cell's scope is pending or empty (pending: the whole widget stays loading); the process binding gets no rows (pending: `BoundDataResult.pending`, the widget stays loading).
 - A custom widget that reads `resolveStreamDataRtIds` must check
   `resolveStreamDataScope` first — `undefined` from `resolveStreamDataRtIds` is not
   "query unscoped" for a pending or empty scope.
 
-Configured per widget via the "Scope to entity selector" dropdown in the SD
-widget config dialogs (shown only for stream-data queries, like the time-filter
-toggle).
+Configured per widget via the "Scope to entity selector" dropdown
+(`mm-entity-selector-scope-picker`) in the config dialogs of table, bar chart,
+pie chart, KPI, gauge, line chart, heatmap, process and the per-cell editor of
+stats grid / summary card. It is shown as soon as a query of either family is
+selected (until AB#7725 only for stream-data queries); the time-filter toggle
+stays stream-data only. The binding is persisted as `entitySelectorId` in the
+widget config for both families and omitted when unset, so unbound widgets
+encode byte-identically.
 
 ### AggregationDataSource
 
@@ -445,8 +469,8 @@ interface AggregationQuery {
 > (`StatItem.persistentQuerySource` / `SummaryCardTile.persistentQuerySource`,
 > shape {@link PersistentQueryCellSource}). The shared
 > `mm-persistent-query-cell-editor` surfaces the query picker plus the SD-only
-> time-filter opt-out and entity-selector asset-scope (hidden for runtime
-> queries), exactly like the KPI/gauge widgets. Value extraction by `queryMode`
+> time-filter opt-out (hidden for runtime queries) and the entity-selector
+> asset-scope (both families, AB#7725), exactly like the KPI/gauge widgets. Value extraction by `queryMode`
 > (simpleCount / aggregation / groupedAggregation) is shared via
 > `utils/persistent-query-cell.ts`.
 
@@ -854,7 +878,9 @@ is made. Selection changes re-fetch automatically via the standard
 > column, so a `$mp_rtId` field-filter can't scope an archive query. Use the
 > selector's `childScope` + the widget's `entitySelectorId` asset-scope binding
 > instead, which scopes by the source rtIds via `streamDataArgs.rtIds`
-> (see *PersistentQueryDataSource*).
+> (see *PersistentQueryDataSource*). The same binding scopes a **runtime
+> persistent query** (`rtId IN` field filter, AB#7725) — prefer it over a
+> hand-written `$mp_rtId` filter when the query's own entities are the scope.
 
 An explicit `attributeMappings` entry that produces the same variable name wins
 (the synthetic `<selectorId>_rtId` is skipped if already present). The variable is
@@ -943,7 +969,8 @@ For a follower: the leader's pick (by the order above) > the follower's own
 | `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the scope state of a selector |
 | `getEntitySelectorScopeState(selectorId)` | `EntitySelectorScopeState \| undefined` | Raw scope state (`pending` / `resolved` / `failed`), `undefined` = no pick |
 | `failedEntitySelectorScopeIds` | `Signal<string[]>` | Selectors whose scope resolution failed (board notice) |
-| `resolveStreamDataScope(entitySelectorId?, family?)` | `StreamDataScope` | What a bound widget does — see *Scope resolution contract* |
+| `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | What a bound widget does — host gate (AB#7582, stream data), then the selector scope; see *Scope resolution contract* |
+| `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | Selector scope only, runtime and stream data alike (AB#7725) |
 | `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` |
 
 ### Components
@@ -1165,6 +1192,9 @@ Current test files:
 - `meshboard-persistence.entity-selector-multihop.spec.ts` - `path` save/reload and export/import; a pre-AB#7723 description imports and re-encodes byte-identically (AB#7723)
 - `entity-selector-scope-path-editor.component.spec.ts` - Hop list: add/remove/reorder, associations from metadata, "Other role…", warnings, metadata failure, validation, accessibility (AB#7723)
 - `widgets/stream-data-scope.widgets.spec.ts` - Line chart, bar chart and table send no query for an empty or pending scope (AB#7721); KPI in `kpi-widget.component.spec.ts`, process binding in `process-data.service.spec.ts`
+- `widgets/runtime-scope.widgets.spec.ts` - Runtime and grouping queries follow the selector (AB#7725): table (SimpleRtQuery), bar chart (runtime + stream-data grouping), pie chart, KPI, gauge and stats grid with bound / empty / failed / pending / unbound scopes, spying on the query executor; one table case through the real executor checks the `rtId IN` GraphQL variables
+- `query-executor.service.spec.ts` - `scopeRtIds`: runtime `rtId IN` filter AND-combined with the widget filters (also after a legacy family lookup), stream-data `arg.rtIds`, unbound unchanged (AB#7725)
+- `default-widget-registrations.spec.ts` - runtime-query binding round trip and byte-identical re-encoding (AB#7725)
 - `meshboard-data.service.spec.ts` - Data fetching, incl. batched association hops (AB#7723)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)

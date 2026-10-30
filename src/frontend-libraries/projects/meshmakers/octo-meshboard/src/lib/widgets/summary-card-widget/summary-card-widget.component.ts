@@ -213,15 +213,19 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
   }
 
   private async fetchPersistentQueryValue(source: PersistentQueryCellSource): Promise<unknown> {
-    // Empty scope (nothing in scope or lookup failed, AB#7721): no value, no
-    // query — never the persisted (unscoped) scope.
-    if (this.scopeOf(source).kind === 'empty') {
+    // Pending or empty scope (still resolving, nothing in scope or lookup failed,
+    // AB#7721/AB#7725): no value, no query — never the persisted (unscoped) scope.
+    // The view refreshes the widget once a pending scope is resolved.
+    const scope = this.scopeOf(source);
+    if (scope.kind === 'pending' || scope.kind === 'empty') {
       return null;
     }
     const result = await firstValueFrom(
       this.queryExecutor.execute(source.queryFamily, source.queryRtId, {
         fieldFilter: this.convertFiltersToDto(source.filters),
-        streamDataArgs: this.buildStreamDataArgs(source)
+        streamDataArgs: this.buildStreamDataArgs(source),
+        // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+        scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
       })
     );
     return extractPersistentQueryCellValue(result, source);

@@ -679,7 +679,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       const result = await firstValueFrom(
         this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
           fieldFilter: fieldFilter ?? undefined,
-          streamDataArgs
+          streamDataArgs,
+          // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+          scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
         }).pipe(
           catchError(err => {
             console.error('Error loading Line Chart data:', err);

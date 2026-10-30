@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { WindowService } from '@progress/kendo-angular-dialog';
 import { WidgetRegistryService, PersistedWidgetData, WidgetPersistenceData } from '../services/widget-registry.service';
 import { registerDefaultWidgets } from './default-widget-registrations';
-import { KpiWidgetConfig, PieChartWidgetConfig } from '../models/meshboard.models';
+import { BarChartWidgetConfig, KpiWidgetConfig, PersistentQueryDataSource, PieChartWidgetConfig, TableWidgetConfig } from '../models/meshboard.models';
 import { PieChartConfigResult } from '../widgets/pie-chart-widget/pie-chart-config-dialog.component';
 import { KpiConfigResult } from '../widgets/kpi-widget/kpi-config-dialog.component';
 
@@ -344,5 +344,60 @@ describe('Default widget registrations — pie chart presentation (AB#5622)', ()
     } as PieChartConfigResult) as PieChartWidgetConfig;
     expect(applied.categoryColors).toEqual({ PAID: '#00ff00' });
     expect(applied.labelPosition).toBe('none');
+  });
+});
+
+describe('Default widget registrations — entity-selector binding on runtime queries (AB#7725)', () => {
+  let registry: WidgetRegistryService;
+
+  function persisted(type: string, configJson: string): PersistedWidgetData {
+    return {
+      rtId: 'w-1', ckTypeId: 'System.UI/DashboardWidget', name: 'Widget', type,
+      col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSourceType: 'systemQuery', dataSourceCkTypeId: null, dataSourceRtId: 'q-rt',
+      config: configJson
+    };
+  }
+
+  function reEncode(type: string, configJson: string): string {
+    const widget = registry.deserializeWidget(persisted(type, configJson));
+    return JSON.stringify(registry.serializeWidget(widget!).config);
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [{ provide: WindowService, useValue: { open: vi.fn() } }] });
+    registry = TestBed.inject(WidgetRegistryService);
+    registerDefaultWidgets(registry);
+  });
+
+  it('round-trips a runtime table bound to a selector (save → reload, export → import)', () => {
+    const json = '{"columns":[],"pageSize":10,"sortable":true,"queryName":"Devices","queryRtId":"q-rt","queryFamily":"runtime","entitySelectorId":"site"}';
+
+    const widget = registry.deserializeWidget(persisted('table', json)) as TableWidgetConfig;
+
+    expect(widget.dataSource).toEqual(expect.objectContaining({ type: 'persistentQuery', queryFamily: 'runtime', entitySelectorId: 'site' }));
+    expect(reEncode('table', json)).toBe(json);
+  });
+
+  it('re-encodes an unbound runtime table byte-identically (no entitySelectorId key)', () => {
+    const json = '{"columns":[],"pageSize":10,"sortable":true,"queryName":"Devices","queryRtId":"q-rt","queryFamily":"runtime"}';
+
+    expect(reEncode('table', json)).toBe(json);
+  });
+
+  it('keeps the binding the config dialog returns for a runtime grouping bar chart', () => {
+    const bar = {
+      id: 'bar-1', rtId: 'bar-1', type: 'barChart', title: 'Bar', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-rt', queryFamily: 'runtime', entitySelectorId: 'site' },
+      chartType: 'column', categoryField: 'name', series: [{ field: 'value', name: 'Value' }]
+    } as BarChartWidgetConfig;
+
+    const serialized = registry.serializeWidget(bar);
+    expect(serialized.config['entitySelectorId']).toBe('site');
+    const restored = registry.deserializeWidget({
+      ...persisted('barChart', JSON.stringify(serialized.config))
+    }) as BarChartWidgetConfig;
+    expect((restored.dataSource as PersistentQueryDataSource).entitySelectorId).toBe('site');
+    expect((restored.dataSource as PersistentQueryDataSource).queryFamily).toBe('runtime');
   });
 });

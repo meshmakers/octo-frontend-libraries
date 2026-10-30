@@ -91,6 +91,20 @@ export interface QueryExecutionOptions {
   fieldFilter?: FieldFilterDto[] | null;
   /** Stream-data-only: time-range, interval, limit, queryMode. Ignored for runtime queries. */
   streamDataArgs?: StreamDataExecutionArgs | null;
+  /**
+   * Entity-selector scope (AB#7725): the source rtIds a widget bound to an entity
+   * selector is restricted to. Applied on the server for both families:
+   * - runtime queries (SimpleRtQuery, AggregationRtQuery, GroupingAggregationRtQuery):
+   *   adds the field filter `rtId IN (scopeRtIds)`, AND-combined with
+   *   {@link fieldFilter} and the persisted query's own filters — a grouping or
+   *   aggregation query aggregates over the scoped entities only;
+   * - stream-data queries: sent as `arg.rtIds` unless `streamDataArgs.rtIds` is set.
+   *
+   * `null`/`undefined` or an empty array means "no scope" (the query runs as saved).
+   * An empty scope must never reach the executor: callers skip the query instead
+   * (`StreamDataScope.kind === 'empty'`, AB#7721).
+   */
+  scopeRtIds?: string[] | null;
   /** Force a network round-trip instead of using the Apollo cache. */
   forceRefresh?: boolean;
 }
@@ -224,7 +238,7 @@ export class QueryExecutorService {
         rtId: queryRtId,
         first: options.first ?? undefined,
         after: options.after ?? undefined,
-        fieldFilter: options.fieldFilter ?? undefined
+        fieldFilter: QueryExecutorService.withRtIdScope(options.fieldFilter, options.scopeRtIds)
       },
       fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first'
     }).pipe(
@@ -248,7 +262,8 @@ export class QueryExecutorService {
   }
 
   executeStreamData(queryRtId: string, options: QueryExecutionOptions = {}): Observable<QueryExecutionResult> {
-    const arg = options.streamDataArgs ? this.buildStreamDataArg(options.streamDataArgs) : undefined;
+    const streamDataArgs = QueryExecutorService.withStreamDataScope(options.streamDataArgs, options.scopeRtIds);
+    const arg = streamDataArgs ? this.buildStreamDataArg(streamDataArgs) : undefined;
     return this.streamDataGql.fetch({
       variables: {
         rtId: queryRtId,
@@ -454,6 +469,31 @@ export class QueryExecutorService {
       }
     }
     return groups;
+  }
+
+  /**
+   * Runtime entity-selector scope (AB#7725): appends `rtId IN (scopeRtIds)` to the
+   * caller's field filters. The backend AND-combines all runtime field filters with
+   * the persisted query's filters before the database query, so simple rows as well
+   * as aggregation / grouping results cover the scoped entities only. Returns the
+   * caller's filters unchanged (or `undefined`) when there is no scope.
+   */
+  static withRtIdScope(fieldFilter: FieldFilterDto[] | null | undefined, scopeRtIds: string[] | null | undefined): FieldFilterDto[] | undefined {
+    if (!scopeRtIds || scopeRtIds.length === 0) {
+      return fieldFilter ?? undefined;
+    }
+    return [
+      ...(fieldFilter ?? []),
+      { attributePath: 'rtId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: scopeRtIds }
+    ];
+  }
+
+  /** Stream-data entity-selector scope: `scopeRtIds` fill `rtIds` unless the caller set them. */
+  private static withStreamDataScope(args: StreamDataExecutionArgs | null | undefined, scopeRtIds: string[] | null | undefined): StreamDataExecutionArgs | null | undefined {
+    if (!scopeRtIds || scopeRtIds.length === 0 || (args?.rtIds && args.rtIds.length > 0)) {
+      return args;
+    }
+    return { ...args, rtIds: scopeRtIds };
   }
 
   private buildStreamDataArg(args: StreamDataExecutionArgs): StreamDataArgumentsDto | undefined {

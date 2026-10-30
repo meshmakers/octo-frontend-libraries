@@ -254,7 +254,9 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
       first: queryOptions.state.take ?? this._config?.pageSize ?? 10,
       after: GraphQL.offsetToCursor(queryOptions.state.skip ?? 0),
       fieldFilter: fieldFilter ?? undefined,
-      streamDataArgs
+      streamDataArgs,
+      // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+      scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
     }).pipe(
       map(result => {
         // Extract columns from query response and update signal.

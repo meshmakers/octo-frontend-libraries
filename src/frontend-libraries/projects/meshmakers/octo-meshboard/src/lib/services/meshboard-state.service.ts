@@ -899,33 +899,39 @@ export class MeshBoardStateService {
   );
 
   /**
-   * Decides how a widget bound to an entity selector runs its stream-data query
-   * (AB#7721):
+   * Decides how a widget runs its persistent query — the entry point every
+   * built-in widget calls with its binding, query family and time-filter opt-out:
    *
-   * - `unscoped` — no binding, a runtime query (`family === 'runtime'`, the
-   *   binding is ignored there), or no active pick: keep the persisted scope.
-   * - `pending` — the pick is still resolving: show loading, send no query.
-   * - `scoped` — query with the resolved source rtIds.
-   * - `empty` — the pick has nothing in scope or the lookup failed: show the
-   *   no-data state and send no query. Never fall back to the persisted scope.
-   *
-   * A legacy config without `queryFamily` is treated as stream data.
-   *
-   * AB#7582: while the embedding host's period is invalid, every stream-data
-   * query bound to the time filter is `empty` (`invalidTimeRange`), whatever its
-   * selector binding; pass the widget's `ignoreTimeFilter` so an opted-out widget,
-   * whose data does not depend on the period, keeps querying.
+   * 1. Host gate (AB#7582): while the embedding host's period is invalid, every
+   *    stream-data query bound to the time filter is `empty` (`invalidTimeRange`),
+   *    whatever its selector binding; pass the widget's `ignoreTimeFilter` so an
+   *    opted-out widget, whose data does not depend on the period, keeps querying.
+   *    Runtime queries have no time window and are not gated. A legacy config
+   *    without `queryFamily` is treated as stream data here.
+   * 2. Entity-selector scope ({@link resolveEntitySelectorScope}, AB#7721) — since
+   *    AB#7725 for runtime queries too: `unscoped` / `pending` / `scoped` / `empty`.
    */
   resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily, ignoreTimeFilter?: boolean): StreamDataScope {
     if (family !== 'runtime' && this.isStreamDataBlockedByHostTimeRange(ignoreTimeFilter)) {
       return { kind: 'empty', reason: 'invalidTimeRange' };
     }
-    return this.resolveSelectorScope(entitySelectorId, family);
+    return this.resolveEntitySelectorScope(entitySelectorId);
   }
 
-  /** The entity-selector part of {@link resolveStreamDataScope} (AB#7721), without the host gate. */
-  private resolveSelectorScope(entitySelectorId?: string, family?: QueryFamily): StreamDataScope {
-    if (!entitySelectorId || family === 'runtime') {
+  /**
+   * The entity-selector part of {@link resolveStreamDataScope}, without the host
+   * gate — stream data (AB#7721) and runtime queries alike (AB#7725):
+   *
+   * - `unscoped` — no binding, or no active pick: keep the query as saved.
+   * - `pending` — the pick is still resolving: show loading, send no query.
+   * - `scoped` — query restricted to the resolved rtIds: stream data via
+   *   `streamDataArgs.rtIds`, runtime queries via the `rtId IN` field filter
+   *   (`QueryExecutionOptions.scopeRtIds`).
+   * - `empty` — the pick has nothing in scope or the lookup failed: show the
+   *   no-data state and send no query. Never fall back to the persisted scope.
+   */
+  resolveEntitySelectorScope(entitySelectorId?: string): StreamDataScope {
+    if (!entitySelectorId) {
       return { kind: 'unscoped' };
     }
     const state = this._entitySelectorScopes()[entitySelectorId];
@@ -954,7 +960,7 @@ export class MeshBoardStateService {
    * skip the query for `pending` / `empty` (AB#7721).
    */
   resolveStreamDataRtIds(entitySelectorId?: string): string[] | undefined {
-    const scope = this.resolveSelectorScope(entitySelectorId);
+    const scope = this.resolveEntitySelectorScope(entitySelectorId);
     return scope.kind === 'scoped' ? scope.rtIds : undefined;
   }
 
