@@ -76,6 +76,7 @@
           <div class="toolbar-entity-selectors">
             <mm-entity-selector-toolbar
               [entitySelectors]="entitySelectorsConfig()"
+              [variables]="boardVariables()"
               (entitySelected)="onEntitySelectorSelected($event)"
               (entityCleared)="onEntitySelectorCleared($event)">
             </mm-entity-selector-toolbar>
