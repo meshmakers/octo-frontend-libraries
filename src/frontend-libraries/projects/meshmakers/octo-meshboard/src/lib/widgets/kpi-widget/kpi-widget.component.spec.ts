@@ -483,4 +483,61 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
       expect(component.value()).toBe('n/a');
     });
   });
+
+  describe('entity-selector scope (AB#7721)', () => {
+    const scopedKpi = (): KpiWidgetConfig => kpi({
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-1', queryFamily: 'streamData', entitySelectorId: 'site' },
+      queryMode: 'aggregation',
+      outputVariableName: 'total'
+    });
+
+    it('shows no data and sends no query when the scope resolved to zero rtIds', async () => {
+      queryExecutor.execute.mockReturnValue(of({ totalCount: 10, rows: [], columns: [] }));
+      stateService.setEntitySelectorRtIds('site', []);
+      render(scopedKpi());
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
+      expect(component.isLoading()).toBe(false);
+      expect(component.value()).toBe('-');
+      expect(stateService.getVariable('total')).toBeUndefined();
+    });
+
+    it('shows no data and sends no query when the scope resolution failed', async () => {
+      stateService.setEntitySelectorScopeFailed('site');
+      render(scopedKpi());
+      await fixture.whenStable();
+
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
+      expect(component.value()).toBe('-');
+      expect(component.error()).toBeNull();
+    });
+
+    it('stays loading and sends no query while the scope is pending, then queries the resolved scope', async () => {
+      queryExecutor.execute.mockReturnValue(of({ totalCount: 3, rows: [], columns: [] }));
+      stateService.setEntitySelectorScopePending('site');
+      render(scopedKpi());
+      await fixture.whenStable();
+
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
+      expect(component.isLoading()).toBe(true);
+
+      stateService.setEntitySelectorRtIds('site', ['dev-1']);
+      component.refresh();
+      await fixture.whenStable();
+
+      expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
+      expect(queryExecutor.execute.mock.calls[0][2].streamDataArgs.rtIds).toEqual(['dev-1']);
+    });
+
+    it('keeps the persisted scope for a bound selector without pick', async () => {
+      queryExecutor.execute.mockReturnValue(of({ totalCount: 3, rows: [], columns: [] }));
+      render(scopedKpi());
+      await fixture.whenStable();
+
+      expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
+      expect(queryExecutor.execute.mock.calls[0][2].streamDataArgs?.rtIds).toBeUndefined();
+    });
+  });
 });

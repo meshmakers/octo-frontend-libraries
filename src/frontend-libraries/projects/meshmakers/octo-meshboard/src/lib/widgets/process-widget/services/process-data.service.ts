@@ -18,6 +18,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
 import { MeshBoardDataService } from '../../../services/meshboard-data.service';
 import { MeshBoardVariableService } from '../../../services/meshboard-variable.service';
 import { MeshBoardStateService } from '../../../services/meshboard-state.service';
+import { emptyQueryExecutionResult } from '../../../utils/stream-data-scope';
 import { QueryExecutorService, QueryExecutionResult, StreamDataExecutionArgs } from '../../../services/query-executor.service';
 import { RuntimeEntityData, WidgetFilterConfig } from '../../../models/meshboard.models';
 import { ProcessWidgetConfig } from '../process-widget-config.model';
@@ -712,6 +713,19 @@ export class ProcessDataService {
 
     if (!bindingQueryRtId) {
       throw new Error('Persistent query binding requires a Query rtId');
+    }
+
+    // Entity-selector scope (AB#7721): while the scope is pending or empty the
+    // binding gets no rows and NO query is sent — never the persisted (unscoped)
+    // scope. A pending scope is followed by a refresh once it resolves; the
+    // diagram itself stays visible meanwhile.
+    const scope = this.stateService.resolveStreamDataScope(config.bindingEntitySelectorId, bindingQueryFamily);
+    if (scope.kind === 'pending' || scope.kind === 'empty') {
+      return {
+        type: 'query',
+        queryResult: this.mapExecutionResult(emptyQueryExecutionResult(bindingQueryFamily)),
+        loadedAt: new Date()
+      };
     }
 
     // Convert widget filters to GraphQL format with variable resolution

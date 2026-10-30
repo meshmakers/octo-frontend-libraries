@@ -630,6 +630,22 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     this._error.set(null);
 
     try {
+      // Entity-selector scope (AB#7721): pending → stay in the loading state and
+      // send no query (the view refreshes once the scope is known); empty → render
+      // the empty chart without querying the persisted (unscoped) scope.
+      const scope = this.stateService.resolveStreamDataScope(queryDataSource.entitySelectorId, queryDataSource.queryFamily);
+      if (scope.kind === 'pending') {
+        return;
+      }
+      if (scope.kind === 'empty') {
+        this._resolutionSignal.set(null);
+        this._resolutionTarget.set(null);
+        this.processData([], false);
+        this._dataInfo.set({ rows: 0, points: 0, total: 0 });
+        this._isLoading.set(false);
+        return;
+      }
+
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
 
       // Resolution-aware routing (AB#4290): let the server pick the archive/rollup for the visible

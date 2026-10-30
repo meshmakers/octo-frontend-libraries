@@ -460,6 +460,18 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       // queryFamily may be undefined for legacy widget configs — the executor
       // falls back to a one-time lookup by rtId. streamDataArgs is sent
       // unconditionally because the runtime path ignores it.
+      // Entity-selector scope (AB#7721): pending → stay in the loading state and
+      // send no query (the view refreshes once the scope is known); empty → show
+      // the no-data value '-' without querying the persisted (unscoped) scope.
+      const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily);
+      if (scope.kind === 'pending') {
+        return;
+      }
+      if (scope.kind === 'empty') {
+        this._data.set(null);
+        this._isLoading.set(false);
+        return;
+      }
       const streamDataArgs = this.buildStreamDataArgs();
 
       const result = await firstValueFrom(

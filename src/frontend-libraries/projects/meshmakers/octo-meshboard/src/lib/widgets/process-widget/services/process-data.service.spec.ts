@@ -73,6 +73,7 @@ describe('ProcessDataService — stream-data query binding', () => {
     stateService = {
       resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
       resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
+      resolveStreamDataScope: vi.fn().mockName('MeshBoardStateService.resolveStreamDataScope').mockReturnValue({ kind: 'unscoped' }),
       getVariables: vi.fn().mockName('MeshBoardStateService.getVariables')
     } as unknown as MockedObject<MeshBoardStateService>;
     stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);
@@ -133,6 +134,23 @@ describe('ProcessDataService — stream-data query binding', () => {
     expect(stateService.resolveStreamDataRtIds).toHaveBeenCalledWith('mp');
     const opts = vi.mocked(queryExecutor.execute).mock.lastCall![2];
     expect(opts?.streamDataArgs).toEqual({ from, to, rtIds: ['rt-1', 'rt-2'] });
+  });
+
+  it('binds no rows and sends no query for an empty or pending entity-selector scope (AB#7721)', async () => {
+    const config = baseConfig();
+    config.bindingEntitySelectorId = 'site';
+
+    for (const scope of [{ kind: 'empty', reason: 'noTargets' }, { kind: 'empty', reason: 'failed' }, { kind: 'pending' }]) {
+      stateService.resolveStreamDataScope.mockReturnValue(scope as ReturnType<MeshBoardStateService['resolveStreamDataScope']>);
+
+      const result = await service.loadBoundData(config);
+
+      expect(stateService.resolveStreamDataScope).toHaveBeenLastCalledWith('site', 'streamData');
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
+      expect(result?.type).toBe('query');
+      expect(result?.queryResult?.rows).toEqual([]);
+      expect(result?.error).toBeUndefined();
+    }
   });
 
   it('honors the time-filter opt-out', async () => {

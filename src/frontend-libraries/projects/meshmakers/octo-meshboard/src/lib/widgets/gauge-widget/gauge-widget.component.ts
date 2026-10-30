@@ -386,6 +386,8 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   });
 
   readonly formattedValue = computed(() => {
+    // Nothing loaded (e.g. an empty entity-selector scope, AB#7721): no value, not "0".
+    if (!this._data()) return '-';
     const value = this.numericValue();
     return value.toLocaleString('de-AT', {
       minimumFractionDigits: value % 1 !== 0 ? 1 : 0,
@@ -470,6 +472,18 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
       // queryFamily may be undefined for legacy widget configs — the executor
       // falls back to a one-time lookup by rtId. streamDataArgs is sent
       // unconditionally because the runtime path ignores it.
+      // Entity-selector scope (AB#7721): pending → stay in the loading state and
+      // send no query (the view refreshes once the scope is known); empty → show
+      // no value ('-') without querying the persisted (unscoped) scope.
+      const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily);
+      if (scope.kind === 'pending') {
+        return;
+      }
+      if (scope.kind === 'empty') {
+        this._data.set(null);
+        this._isLoading.set(false);
+        return;
+      }
       const streamDataArgs = this.buildStreamDataArgs();
 
       const result = await firstValueFrom(

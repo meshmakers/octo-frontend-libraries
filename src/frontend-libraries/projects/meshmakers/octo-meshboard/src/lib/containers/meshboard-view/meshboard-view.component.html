@@ -191,6 +191,15 @@
       </div>
     }
 
+    <!-- Entity selector scopes that could not be resolved (AB#7721) -->
+    @if (scopeResolutionErrors().length > 0) {
+      <div class="variable-resolution-errors scope-resolution-errors" role="status">
+        @for (error of scopeResolutionErrors(); track error.selectorId) {
+          <span class="error-item">{{ error.message }}</span>
+        }
+      </div>
+    }
+
     <!-- Banner Zone: widgets placed in the banner stack above the grid -->
     @if (isEditMode()) {
       <div class="zone-label banner-zone-label">Banner Zone</div>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { StatsGridWidgetConfig, AggregationDataSource, StatItem, PersistentQueryCellSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import type { StreamDataScope } from '../../utils/stream-data-scope';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { extractPersistentQueryCellValue } from '../../utils/persistent-query-cell';
@@ -84,6 +85,14 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
     this._isLoading.set(true);
     this._error.set(null);
 
+    // Entity-selector scope (AB#7721): while a bound stat's scope is still
+    // resolving, stay in the loading state and send no query at all; the view
+    // refreshes the widget once the scope is known.
+    if (this.config.stats.some(stat => stat.persistentQuerySource
+      && this.scopeOf(stat.persistentQuerySource).kind === 'pending')) {
+      return;
+    }
+
     try {
       // Runtime aggregation queries are only needed for stats WITHOUT a
       // per-stat persistent-query source — those run through the executor below.
@@ -127,6 +136,11 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
   }
 
   private async loadPersistentQueryValue(source: PersistentQueryCellSource): Promise<number | null> {
+    // Empty scope (nothing in scope or lookup failed, AB#7721): no value, no
+    // query — never the persisted (unscoped) scope.
+    if (this.scopeOf(source).kind === 'empty') {
+      return null;
+    }
     try {
       const result = await firstValueFrom(
         this.queryExecutor.execute(source.queryFamily, source.queryRtId, {
@@ -139,6 +153,10 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
       console.error('Error loading stat persistent-query data:', err);
       return null;
     }
+  }
+
+  private scopeOf(source: PersistentQueryCellSource): StreamDataScope {
+    return this.stateService.resolveStreamDataScope(source.entitySelectorId, source.queryFamily);
   }
 
   private buildStreamDataArgs(source: PersistentQueryCellSource): StreamDataExecutionArgs | undefined {
