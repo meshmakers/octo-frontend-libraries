@@ -64,6 +64,16 @@ export class MeshBoardStateService {
    */
   private readonly _entitySelectorScopes = signal<Record<string, EntitySelectorScopeState>>({});
   /**
+   * Transient picker scope of each dependent selector (AB#7915, keyed by the
+   * dependent's id): `pending` while the leader's pick resolves along
+   * `scopeSource.path`, `resolved` with the rtIds the picker may list
+   * (possibly none), or `failed`. No entry = the leader has no pick, the picker
+   * lists unscoped. Not persisted, cleared on board switch.
+   */
+  private readonly _pickerScopes = signal<Record<string, EntitySelectorScopeState>>({});
+  /** Picker scopes of the dependent selectors (AB#7915), for the toolbar. */
+  readonly pickerScopes = this._pickerScopes.asReadonly();
+  /**
    * Period set by the page that embeds the board (`MeshBoardViewComponent.timeRange`, AB#7582):
    * exact instants, or `invalid` when the host passed an unusable range. `null` = the board's own
    * selection applies. Transient — never persisted, never written into the board config.
@@ -207,6 +217,7 @@ export class MeshBoardStateService {
 
         this._widgetVariables.set([]);
         this._entitySelectorScopes.set({});
+        this._pickerScopes.set({});
         this._hiddenForViewer.set(new Set());
         this._widgetContentHeights.set(new Map());
         this._loadedTenantId.set(tenantId);
@@ -962,6 +973,42 @@ export class MeshBoardStateService {
   resolveStreamDataRtIds(entitySelectorId?: string): string[] | undefined {
     const scope = this.resolveEntitySelectorScope(entitySelectorId);
     return scope.kind === 'scoped' ? scope.rtIds : undefined;
+  }
+
+  /** Marks a dependent selector's picker scope as resolving (AB#7915): the picker lists nothing yet. */
+  setPickerScopePending(selectorId: string): void {
+    this.setPickerScope(selectorId, { status: 'pending' });
+  }
+
+  /** Stores the rtIds a dependent selector's picker may list (AB#7915); `[]` = nothing in the leader's pick. */
+  setPickerScopeRtIds(selectorId: string, rtIds: string[]): void {
+    this.setPickerScope(selectorId, { status: 'resolved', rtIds: [...rtIds] });
+  }
+
+  /** Marks a dependent selector's picker scope as failed (AB#7915): the picker lists nothing. */
+  setPickerScopeFailed(selectorId: string): void {
+    this.setPickerScope(selectorId, { status: 'failed' });
+  }
+
+  /** Clears a dependent selector's picker scope (its leader has no pick): the picker lists unscoped. */
+  clearPickerScope(selectorId: string): void {
+    this._pickerScopes.update(map => {
+      if (!(selectorId in map)) {
+        return map;
+      }
+      const next = { ...map };
+      delete next[selectorId];
+      return next;
+    });
+  }
+
+  /** The picker scope of a dependent selector, or `undefined` when its leader has no pick. */
+  getPickerScopeState(selectorId: string): EntitySelectorScopeState | undefined {
+    return this._pickerScopes()[selectorId];
+  }
+
+  private setPickerScope(selectorId: string, state: EntitySelectorScopeState): void {
+    this._pickerScopes.update(map => ({ ...map, [selectorId]: state }));
   }
 
   private setEntitySelectorScope(selectorId: string, state: EntitySelectorScopeState): void {

@@ -57,6 +57,7 @@ import {
   showsInToolbar
 } from '../../utils/entity-selector-follow';
 import { resolveScopePath, scopePlan } from '../../utils/entity-selector-scope-path';
+import { dependentsOf, resolveScopeSource } from '../../utils/entity-selector-scope-source';
 import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
 import { MeshBoardEmptyStateComponent } from '../../components/meshboard-empty-state/meshboard-empty-state.component';
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
@@ -302,6 +303,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Entity Selector computed signals
   protected readonly entitySelectorsConfig = computed(() => this.stateService.getEntitySelectors());
+  /** Picker scopes of dependent selectors (AB#7915). */
+  protected readonly pickerScopes = computed(() => this.stateService.pickerScopes());
   /** Board variables substituted into the selectors' picker filters (AB#7724). */
   protected readonly boardVariables = computed(() => this.stateService.getVariables());
   protected readonly hasEntitySelectors = computed(() =>
@@ -1039,6 +1042,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     this.stateService.clearEntitySelectorVariables(selectorId);
     this.scopeRequestSeq.set(selectorId, (this.scopeRequestSeq.get(selectorId) ?? 0) + 1);
     this.stateService.clearEntitySelectorRtIds(selectorId);
+    // Without a leader pick its dependents list unscoped again (AB#7915).
+    for (const dependent of dependentsOf(this.stateService.getEntitySelectors(), selectorId)) {
+      this.pickerScopeSeq.set(dependent.id, (this.pickerScopeSeq.get(dependent.id) ?? 0) + 1);
+      this.stateService.clearPickerScope(dependent.id);
+    }
   }
 
   /**
@@ -1094,6 +1102,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * resolution of an earlier pick never overwrites the scope of a newer pick.
    */
   private readonly scopeRequestSeq = new Map<string, number>();
+
+  /**
+   * Per-dependent sequence number of the latest picker-scope resolution
+   * (AB#7915): a late resolution of an earlier leader pick is discarded.
+   */
+  private readonly pickerScopeSeq = new Map<string, number>();
 
   // ============================================================================
   // Time Filter Event Handlers
@@ -1705,11 +1719,75 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Selectors without a pick stay without scope state (persisted scope).
    */
   private primeEntitySelectorScopes(): void {
-    for (const { selector } of this.initialEntitySelectorPicks()) {
+    const picks = this.initialEntitySelectorPicks();
+    for (const { selector } of picks) {
       if (!this.stateService.getEntitySelectorScopeState(selector.id)) {
         this.stateService.setEntitySelectorScopePending(selector.id);
       }
     }
+    this.primePickerScopes(picks.filter(p => !p.viaLeader).map(p => p.selector.id));
+  }
+
+  /**
+   * Picker scopes of dependent selectors right after a board loaded (AB#7915):
+   * a dependent whose leader has an initial pick is pending (its picker lists
+   * nothing until the scope resolved); an invalid scope source is failed and
+   * logs one warning per board load (the state is cleared on board switch, so
+   * the guard on an existing state makes this idempotent).
+   */
+  private primePickerScopes(pickedSelectorIds: string[]): void {
+    const selectors = this.stateService.getEntitySelectors();
+    for (const selector of selectors) {
+      if (!selector.scopeSource || this.stateService.getPickerScopeState(selector.id)) continue;
+      const resolution = resolveScopeSource(selectors, selector);
+      if (resolution.kind === 'invalid') {
+        console.warn(
+          `Entity selector '${selector.id}' depends on '${resolution.leaderId}', but ${resolution.reason} — its picker lists nothing`
+        );
+        this.stateService.setPickerScopeFailed(selector.id);
+      } else if (resolution.kind === 'source' && pickedSelectorIds.includes(resolution.leader.id)) {
+        this.stateService.setPickerScopePending(selector.id);
+      }
+    }
+  }
+
+  /**
+   * Resolves the picker scope of every dependent of `leader` from the leader's
+   * pick `rtId` (AB#7915): marks each dependent pending synchronously, then
+   * walks its `scopeSource.path` with `resolveScopePath` (one batched request
+   * per hop) and stores the distinct rtIds of the last hop — `[]` when the pick
+   * reaches nothing. A failing hop is a failed picker scope (logged once); a
+   * resolution overtaken by a newer leader pick is discarded. Never rejects.
+   */
+  private resolvePickerScopesOf(leader: EntitySelectorConfig, rtId: string): Promise<void> {
+    const selectors = this.stateService.getEntitySelectors();
+    const resolutions = dependentsOf(selectors, leader.id).map(async dependent => {
+      const resolution = resolveScopeSource(selectors, dependent);
+      if (resolution.kind !== 'source') return;
+      const seq = (this.pickerScopeSeq.get(dependent.id) ?? 0) + 1;
+      this.pickerScopeSeq.set(dependent.id, seq);
+      this.stateService.setPickerScopePending(dependent.id);
+      const isCurrent = (): boolean => this.pickerScopeSeq.get(dependent.id) === seq;
+      try {
+        const rtIds = await resolveScopePath(
+          rtId,
+          resolution.leader.ckTypeId,
+          resolution.hops,
+          (sources, sourceCkTypeId, hop) => firstValueFrom(
+            this.dataService.fetchAssociationTargetRtIds(sources, sourceCkTypeId, hop.targetCkTypeId, hop.roleId, hop.direction)
+          ),
+          isCurrent
+        );
+        if (rtIds !== null && isCurrent()) {
+          this.stateService.setPickerScopeRtIds(dependent.id, rtIds);
+        }
+      } catch (error) {
+        if (!isCurrent()) return;
+        console.error(`Error resolving the picker scope of selector '${dependent.id}':`, error);
+        this.stateService.setPickerScopeFailed(dependent.id);
+      }
+    });
+    return Promise.all(resolutions).then(() => undefined);
   }
 
   /**
@@ -1733,6 +1811,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     // persisted one (AB#7721). Followers are pending while the leader is.
     const seqs = targets.map(t => this.beginScopeResolution(t.id));
     const failAll = (): void => targets.forEach((t, i) => this.failScopeResolution(t.id, seqs[i]));
+    // Dependents (AB#7915) list only what this pick reaches; marked pending in
+    // the same synchronous step, resolved in parallel with the entity fetch.
+    const pickerScopes = this.resolvePickerScopesOf(resolved, rtId);
     try {
       const entity = await firstValueFrom(
         this.dataService.fetchRuntimeEntity({
@@ -1783,6 +1864,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // Same as above: a failed pick is an empty scope, never the persisted one.
       failAll();
       return undefined;
+    } finally {
+      await pickerScopes;
     }
   }
 

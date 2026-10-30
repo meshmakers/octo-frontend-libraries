@@ -1499,6 +1499,28 @@ export interface EntitySelectorChildScope {
 export const MAX_SCOPE_HOPS = 5;
 
 /**
+ * Scope source of a dependent selector (AB#7915): the selector's picker lists
+ * only the entities reached from the leader's current pick through `path`.
+ *
+ * - `selectorId` — the leader: another selector of the same board that is
+ *   neither a follower (`followsSelectorId`) nor itself dependent. One level
+ *   only, like AB#7722 followers.
+ * - `path` — 1 to {@link MAX_SCOPE_HOPS} hops (the AB#7723 hop shape) from the
+ *   leader's CK type to this selector's CK type. Always a path, also for a
+ *   single hop (no one-hop shorthand).
+ *
+ * The picker sends the distinct rtIds at the end of the path as GraphQL field
+ * filter `rtId IN (…)`, AND-combined with the picker filter (AB#7724) and the
+ * text search. See `utils/entity-selector-scope-source.ts`.
+ */
+export interface EntitySelectorScopeSource {
+  /** Id of the leader selector. */
+  selectorId: string;
+  /** Hops from the leader's CK type to this selector's CK type (1–{@link MAX_SCOPE_HOPS}). */
+  path: EntitySelectorScopeHop[];
+}
+
+/**
  * Configuration for a single entity selector in the MeshBoard toolbar.
  * Each selector is bound to a CK type and populates variables from the selected entity.
  */
@@ -1548,6 +1570,16 @@ export interface EntitySelectorConfig {
    * See `utils/entity-selector-filter.ts`.
    */
   filters?: WidgetFilterConfig[];
+  /**
+   * Optional scope source (AB#7915): makes this selector *dependent* on a
+   * leader selector. While the leader has a pick, the toolbar dropdown and its
+   * search dialog list only the entities reached from that pick through
+   * `path` (server side, `rtId IN`). Without a leader pick the picker lists as
+   * if no scope source were set. A failed or invalid scope lists nothing — it
+   * never falls back to the full list. Followers ignore it.
+   * See {@link EntitySelectorScopeSource}.
+   */
+  scopeSource?: EntitySelectorScopeSource;
   /** Current selection (transient, not persisted) */
   selectedRtId?: string;
   /** Display name of the currently selected entity */

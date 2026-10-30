@@ -10,6 +10,28 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard dependent entity selectors (AB#7915)
+
+- New (non-breaking, additive): `EntitySelectorConfig.scopeSource = { selectorId, path }` makes a visible selector
+  *dependent* on a leader selector (neither a follower nor itself dependent; one level). `path` has 1–5 hops of the
+  AB#7723 hop shape from the leader's CK type to the selector's CK type and is always stored as a path. While the
+  leader has a pick, the toolbar dropdown and its search dialog list only the distinct entities at the end of the
+  path: the view resolves the *picker scope* with `resolveScopePath` + `fetchAssociationTargetRtIds` (one batched
+  request per hop, late resolutions of an earlier leader pick discarded) and the picker sends it as field filter
+  `rtId IN (…)`, AND-combined with the AB#7724 filter rows and the text search (server side, paging keeps working).
+- Picker states: leader without pick → lists unscoped as before; pending → loading, no listing query; resolved
+  empty → "No <label> in <leader>." (+ the filter sentence when a filter is set); a failed hop or an invalid
+  configuration (unknown/self/chained leader, follower with `scopeSource`, 0 or more than 5 hops, hop without role
+  or target type) → lists nothing, "Could not load the <label> of <leader>.", one console error/warning — never the
+  unscoped list. Followers ignore `scopeSource`.
+- New API: type `EntitySelectorScopeSource`, `MeshBoardStateService.pickerScopes` and `setPickerScopePending` /
+  `setPickerScopeRtIds` / `setPickerScopeFailed` / `clearPickerScope` / `getPickerScopeState`, toolbar input
+  `[pickerScopes]`. The helpers in `utils/entity-selector-scope-source.ts` stay internal.
+- Persistence: `scopeSource` is in the selector whitelist, written only when set; save/reload and the "Manage
+  MeshBoards" export/import round-trip it; boards without it re-encode byte-identically.
+- Not yet: clearing an out-of-scope dependent pick on a leader change and URL validation (AB#7916); the editor
+  setting (AB#7917). Until AB#7917 the selector editor's save drops `scopeSource` of the edited selector.
+
 ### octo-meshboard table column titles per language and value labels (AB#7655)
 
 - New (non-breaking, additive): table columns take `titles` (header per culture code; lookup exact culture or

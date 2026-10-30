@@ -556,6 +556,14 @@ export class MeshBoardPersistenceService {
           // rows are reduced to the persisted filter fields (no editor state).
           filters: es.filters?.length
             ? es.filters.map(f => ({ attributePath: f.attributePath, operator: f.operator, comparisonValue: f.comparisonValue }))
+            : undefined,
+          // AB#7915 — omitted when unset, so older boards encode unchanged;
+          // reduced to leader id and hops (keys in a fixed order).
+          scopeSource: es.scopeSource
+            ? {
+              selectorId: es.scopeSource.selectorId,
+              path: (es.scopeSource.path ?? []).map(h => ({ roleId: h.roleId, direction: h.direction, targetCkTypeId: h.targetCkTypeId }))
+            }
             : undefined
         }));
       }

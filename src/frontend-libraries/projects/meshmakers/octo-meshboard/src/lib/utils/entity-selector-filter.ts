@@ -91,12 +91,20 @@ export function unresolvedFilterVariables(filters: FieldFilterDto[] | undefined)
  */
 export function filteredNoEntitiesMessage(label: string, unresolvedVariables: string[] = []): string {
   const name = label || 'entity';
-  const base = `No ${name} found. This board only lists ${name} that match its filter.`;
+  const base = `No ${name} found. ${pickerFilterSentence(name)}`;
   if (unresolvedVariables.length === 0) {
     return base;
   }
   const vars = unresolvedVariables.map(v => `$${v}`).join(', ');
   return `${base} The filter uses ${vars}, which has no value yet.`;
+}
+
+/**
+ * The sentence that names the filter as a possible reason for an empty list;
+ * also appended to the empty text of a dependent picker (AB#7915).
+ */
+export function pickerFilterSentence(label: string): string {
+  return `This board only lists ${label || 'entity'} that match its filter.`;
 }
 
 /** Title of the picker's search dialog when a filter is set. */
