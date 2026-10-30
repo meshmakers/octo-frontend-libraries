@@ -12,19 +12,24 @@ interface ScopeOption {
 }
 
 /**
- * Per-widget asset-scope binding for stream-data persistent-query widgets.
+ * Per-widget asset-scope binding for persistent-query widgets — stream-data and
+ * runtime queries (AB#7725).
  *
- * Stream-data archives are keyed by their source rtIds, so a widget is scoped
- * to a picked asset by passing those source rtIds as `streamDataArgs.rtIds`
- * (see `MeshBoardStateService.resolveStreamDataRtIds` and the backend
- * `StreamDataArguments.rtIds` override). This control lets the designer bind a
- * single widget to one of the MeshBoard's entity selectors: when the selector's
- * entity is picked, its resolved source rtIds (the selector's `childScope`
- * hop or path, or the picked entity itself) scope this widget's query.
+ * This control lets the designer bind a single widget to one of the MeshBoard's
+ * entity selectors: when the selector's entity is picked, its resolved rtIds
+ * (the selector's `childScope` hop or path, or the picked entity itself) scope
+ * this widget's query on the server (see
+ * `MeshBoardStateService.resolveEntitySelectorScope` and
+ * `QueryExecutionOptions.scopeRtIds`):
+ * - stream-data queries get the rtIds as `streamDataArgs.rtIds` (the backend
+ *   `StreamDataArguments.rtIds` override) — simple, aggregation, grouping and
+ *   downsampling queries alike;
+ * - runtime queries (SimpleRtQuery, AggregationRtQuery,
+ *   GroupingAggregationRtQuery) get the field filter `rtId IN (rtIds)`,
+ *   AND-combined with the widget's and the saved query's own filters.
  *
- * The control renders only when the selected query is a stream-data query
- * (`family === 'streamData'`); for runtime queries the binding has no effect and
- * the picker stays hidden (mirrors `SdTimeFilterToggleComponent`).
+ * The control renders once a query is selected (`family` is known); without a
+ * query there is nothing to scope.
  *
  * Two-way bindable:
  * ```html
@@ -53,7 +58,7 @@ interface ScopeOption {
           (valueChange)="onSelect($event)">
         </kendo-dropdownlist>
         <p class="field-hint">
-          Scopes this widget's stream-data query to the rtIds resolved from the
+          Restricts this widget's query to the entities resolved from the
           selected asset. Leave unset to use the saved query's own scope.
         </p>
       </div>
@@ -68,7 +73,7 @@ interface ScopeOption {
   `]
 })
 export class EntitySelectorScopePickerComponent {
-  /** Family of the currently selected query. Picker is shown only for 'streamData'. */
+  /** Family of the currently selected query. Picker is shown once a query (either family) is selected. */
   @Input() family?: QueryFamily | null;
 
   /** Currently bound entity selector id (`undefined` ⇒ no binding). */
@@ -88,7 +93,7 @@ export class EntitySelectorScopePickerComponent {
   @Output() entitySelectorIdChange = new EventEmitter<string | undefined>();
 
   get visible(): boolean {
-    return this.family === 'streamData';
+    return this.family === 'streamData' || this.family === 'runtime';
   }
 
   /** "None" row first, then one row per available selector. */

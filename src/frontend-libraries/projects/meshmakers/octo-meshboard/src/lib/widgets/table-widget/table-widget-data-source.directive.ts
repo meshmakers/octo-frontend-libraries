@@ -232,7 +232,7 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
     // state (an observable that never emits; the next refresh after the scope
     // resolves cancels it) and send no query; empty → no rows, no query — never
     // the persisted (unscoped) scope.
-    const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily);
+    const scope = this.stateService.resolveEntitySelectorScope(dataSource.entitySelectorId);
     if (scope.kind === 'pending') {
       return NEVER;
     }
@@ -254,7 +254,9 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
       first: queryOptions.state.take ?? this._config?.pageSize ?? 10,
       after: GraphQL.offsetToCursor(queryOptions.state.skip ?? 0),
       fieldFilter: fieldFilter ?? undefined,
-      streamDataArgs
+      streamDataArgs,
+      // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+      scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
     }).pipe(
       map(result => {
         // Extract columns from query response and update signal.

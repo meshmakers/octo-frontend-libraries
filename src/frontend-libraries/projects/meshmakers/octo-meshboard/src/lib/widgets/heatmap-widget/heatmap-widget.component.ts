@@ -345,7 +345,7 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       // Entity-selector scope (AB#7721): pending → stay in the loading state and
       // send no query (the view refreshes once the scope is known); empty → render
       // the empty grid without querying the persisted (unscoped) scope.
-      const scope = this.stateService.resolveStreamDataScope(queryDataSource.entitySelectorId, queryDataSource.queryFamily);
+      const scope = this.stateService.resolveEntitySelectorScope(queryDataSource.entitySelectorId);
       if (scope.kind === 'pending') {
         return;
       }
@@ -356,7 +356,9 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
         : await firstValueFrom(
           this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
             fieldFilter: fieldFilter ?? undefined,
-            streamDataArgs
+            streamDataArgs,
+            // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+            scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
           }).pipe(
             catchError(err => {
               console.error('Error loading Heatmap data:', err);

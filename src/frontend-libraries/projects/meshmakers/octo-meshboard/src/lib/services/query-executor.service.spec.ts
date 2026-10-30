@@ -2,7 +2,7 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { firstValueFrom, of, throwError } from 'rxjs';
-import { CkRollupFunctionDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
+import { CkRollupFunctionDto, FieldFilterOperatorsDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { QueryExecutorService } from './query-executor.service';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
@@ -358,6 +358,79 @@ describe('QueryExecutorService', () => {
 
       expect(runtimeGqlSpy.fetch).toHaveBeenCalledTimes(1);
       expect(streamDataGqlSpy.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // Entity-selector scope (AB#7725): restricted on the server, both families
+  // ==========================================================================
+
+  describe('scopeRtIds (AB#7725)', () => {
+    const runtimeVariables = (): Record<string, unknown> =>
+      (vi.mocked(runtimeGqlSpy.fetch).mock.lastCall![0] as { variables: Record<string, unknown> }).variables;
+    const streamDataVariables = (): Record<string, unknown> =>
+      (vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as { variables: Record<string, unknown> }).variables;
+    const SITE_FILTER = { attributePath: 'name', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: 'North' };
+    const SCOPE_FILTER = { attributePath: 'rtId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: ['dev-1', 'dev-2'] };
+
+    beforeEach(() => {
+      runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({ runtime: { runtimeQuery: { items: [] } } })) as never);
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({ streamData: { streamDataQuery: { items: [] } } })) as never);
+    });
+
+    it('adds `rtId IN (scope)` to a runtime query, AND-combined after the widget filters', async () => {
+      await firstValueFrom(service.execute('runtime', 'q', { fieldFilter: [SITE_FILTER], scopeRtIds: ['dev-1', 'dev-2'] }));
+
+      expect(runtimeVariables()['fieldFilter']).toEqual([SITE_FILTER, SCOPE_FILTER]);
+    });
+
+    it('adds `rtId IN (scope)` to a runtime query without widget filters', async () => {
+      await firstValueFrom(service.executeRuntime('q', { scopeRtIds: ['dev-1', 'dev-2'] }));
+
+      expect(runtimeVariables()['fieldFilter']).toEqual([SCOPE_FILTER]);
+    });
+
+    it('applies the runtime scope after a legacy family lookup (no queryFamily on the config)', async () => {
+      persistentQueriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
+        runtime: { systemPersistentQuery: { items: [{ ckTypeId: 'System/GroupingAggregationRtQuery' }] } }
+      })) as never);
+
+      await firstValueFrom(service.execute(undefined, 'q-grouping', { scopeRtIds: ['dev-1', 'dev-2'] }));
+
+      expect(runtimeVariables()['fieldFilter']).toEqual([SCOPE_FILTER]);
+    });
+
+    it('leaves the runtime filters unchanged without a scope (unbound widget)', async () => {
+      await firstValueFrom(service.execute('runtime', 'q', { fieldFilter: [SITE_FILTER] }));
+      expect(runtimeVariables()['fieldFilter']).toEqual([SITE_FILTER]);
+
+      await firstValueFrom(service.execute('runtime', 'q', { scopeRtIds: [] }));
+      expect(runtimeVariables()['fieldFilter']).toBeUndefined();
+    });
+
+    it('does not mutate the caller\'s filter array', async () => {
+      const filters = [SITE_FILTER];
+
+      await firstValueFrom(service.execute('runtime', 'q', { fieldFilter: filters, scopeRtIds: ['dev-1'] }));
+
+      expect(filters).toEqual([SITE_FILTER]);
+    });
+
+    it('sends the scope as `arg.rtIds` to a stream-data query (grouping/aggregation alike)', async () => {
+      await firstValueFrom(service.execute('streamData', 'q', { scopeRtIds: ['dev-1', 'dev-2'] }));
+
+      const vars = streamDataVariables();
+      expect((vars['arg'] as Record<string, unknown>)['rtIds']).toEqual(['dev-1', 'dev-2']);
+      expect(vars['fieldFilter']).toBeUndefined();
+    });
+
+    it('keeps caller-provided `streamDataArgs.rtIds` for stream data', async () => {
+      await firstValueFrom(service.execute('streamData', 'q', {
+        streamDataArgs: { rtIds: ['dev-1'] },
+        scopeRtIds: ['dev-1', 'dev-2']
+      }));
+
+      expect((streamDataVariables()['arg'] as Record<string, unknown>)['rtIds']).toEqual(['dev-1']);
     });
   });
 

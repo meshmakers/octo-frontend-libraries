@@ -54,7 +54,7 @@ interface QueryItem {
         </kendo-combobox>
       </div>
 
-      <!-- Stream-data-only options (hidden for runtime queries) -->
+      <!-- Time filter: stream data only. Scope binding: both families (AB#7725). -->
       <mm-sd-time-filter-toggle
         [family]="family"
         [(ignoreTimeFilter)]="ignoreTimeFilter"

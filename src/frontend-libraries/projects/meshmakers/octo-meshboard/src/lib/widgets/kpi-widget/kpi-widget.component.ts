@@ -463,7 +463,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       // Entity-selector scope (AB#7721): pending → stay in the loading state and
       // send no query (the view refreshes once the scope is known); empty → show
       // the no-data value '-' without querying the persisted (unscoped) scope.
-      const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily);
+      const scope = this.stateService.resolveEntitySelectorScope(dataSource.entitySelectorId);
       if (scope.kind === 'pending') {
         return;
       }
@@ -477,7 +477,9 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       const result = await firstValueFrom(
         this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
           fieldFilter: fieldFilter ?? undefined,
-          streamDataArgs
+          streamDataArgs,
+          // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+          scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
         }).pipe(
           catchError(err => {
             console.error('Error loading KPI query data:', err);

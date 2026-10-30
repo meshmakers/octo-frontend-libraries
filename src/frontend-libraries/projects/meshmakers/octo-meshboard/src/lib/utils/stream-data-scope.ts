@@ -19,14 +19,17 @@ export type EntitySelectorScopeState =
   | { status: 'failed' };
 
 /**
- * What a widget bound to an entity selector does with its stream-data query
- * (AB#7721). Returned by `MeshBoardStateService.resolveStreamDataScope`.
+ * What a widget bound to an entity selector does with its persistent query —
+ * stream data (AB#7721) and runtime queries (AB#7725). Returned by
+ * `MeshBoardStateService.resolveEntitySelectorScope`.
  *
- * - `unscoped`: no binding, a runtime query, or no active pick — query with the
- *   persisted scope (unchanged behaviour).
+ * - `unscoped`: no binding or no active pick — query with the persisted scope
+ *   (unchanged behaviour).
  * - `pending`: the scope is still resolving — show the loading state and send
  *   NO query; the view triggers a refresh once the scope is known.
- * - `scoped`: query with `rtIds` as `streamDataArgs.rtIds`.
+ * - `scoped`: query restricted to `rtIds` on the server — stream data via
+ *   `streamDataArgs.rtIds`, runtime queries (simple, aggregation, grouping) via
+ *   the field filter `rtId IN (rtIds)` (`QueryExecutionOptions.scopeRtIds`).
  * - `empty`: the pick has nothing in scope (`noTargets`) or the lookup failed
  *   (`failed`) — show the no-data state and send NO query. Never fall back to
  *   the persisted scope: that would show rows of other entities.

@@ -726,7 +726,7 @@ export class ProcessDataService {
     // or empty — never the persisted (unscoped) scope. Pending → a `pending` result
     // (the widget stays loading; a refresh follows once the scope resolves);
     // empty → no rows.
-    const scope = this.stateService.resolveStreamDataScope(config.bindingEntitySelectorId, bindingQueryFamily);
+    const scope = this.stateService.resolveEntitySelectorScope(config.bindingEntitySelectorId);
     if (scope.kind === 'pending') {
       return { type: 'query', pending: true, loadedAt: new Date() };
     }
@@ -749,7 +749,9 @@ export class ProcessDataService {
       this.queryExecutor.execute(bindingQueryFamily, bindingQueryRtId, {
         first: 1000, // Reasonable limit for process diagram data
         fieldFilter: fieldFilters,
-        streamDataArgs: this.buildBindingStreamDataArgs(config)
+        streamDataArgs: this.buildBindingStreamDataArgs(config),
+        // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+        scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
       })
     );
 

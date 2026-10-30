@@ -867,9 +867,20 @@ describe('MeshBoardStateService', () => {
         expect(service.resolveStreamDataScope('site')).toEqual({ kind: 'empty', reason: 'noTargets' });
       });
 
-      it('ignores the binding for runtime queries', () => {
+      it('applies the binding to runtime queries too (AB#7725)', () => {
         service.setEntitySelectorRtIds('site', []);
-        expect(service.resolveStreamDataScope('site', 'runtime')).toEqual({ kind: 'unscoped' });
+        expect(service.resolveStreamDataScope('site', 'runtime')).toEqual({ kind: 'empty', reason: 'noTargets' });
+        service.setEntitySelectorRtIds('site', ['dev-1']);
+        expect(service.resolveEntitySelectorScope('site')).toEqual({ kind: 'scoped', rtIds: ['dev-1'] });
+      });
+
+      it('resolveEntitySelectorScope covers all states independent of the query family (AB#7725)', () => {
+        expect(service.resolveEntitySelectorScope()).toEqual({ kind: 'unscoped' });
+        expect(service.resolveEntitySelectorScope('site')).toEqual({ kind: 'unscoped' });
+        service.setEntitySelectorScopePending('site');
+        expect(service.resolveEntitySelectorScope('site')).toEqual({ kind: 'pending' });
+        service.setEntitySelectorScopeFailed('site');
+        expect(service.resolveEntitySelectorScope('site')).toEqual({ kind: 'empty', reason: 'failed' });
       });
 
       it('is unscoped again after the selection is cleared', () => {

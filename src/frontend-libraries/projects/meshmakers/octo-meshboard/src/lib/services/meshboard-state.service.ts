@@ -871,20 +871,19 @@ export class MeshBoardStateService {
   );
 
   /**
-   * Decides how a widget bound to an entity selector runs its stream-data query
-   * (AB#7721):
+   * Decides how a widget bound to an entity selector runs its persistent query —
+   * stream data (AB#7721) and runtime queries alike (AB#7725):
    *
-   * - `unscoped` — no binding, a runtime query (`family === 'runtime'`, the
-   *   binding is ignored there), or no active pick: keep the persisted scope.
+   * - `unscoped` — no binding, or no active pick: keep the query as saved.
    * - `pending` — the pick is still resolving: show loading, send no query.
-   * - `scoped` — query with the resolved source rtIds.
+   * - `scoped` — query restricted to the resolved rtIds: stream data via
+   *   `streamDataArgs.rtIds`, runtime queries via the `rtId IN` field filter
+   *   (`QueryExecutionOptions.scopeRtIds`).
    * - `empty` — the pick has nothing in scope or the lookup failed: show the
-   *   no-data state and send no query. Never fall back to the persisted scope.
-   *
-   * A legacy config without `queryFamily` is treated as stream data.
+   *   no-data state and send no query. Never fall back to the saved scope.
    */
-  resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily): StreamDataScope {
-    if (!entitySelectorId || family === 'runtime') {
+  resolveEntitySelectorScope(entitySelectorId?: string): StreamDataScope {
+    if (!entitySelectorId) {
       return { kind: 'unscoped' };
     }
     const state = this._entitySelectorScopes()[entitySelectorId];
@@ -904,16 +903,26 @@ export class MeshBoardStateService {
   }
 
   /**
+   * Scope of a widget's persistent query. Since AB#7725 the binding applies to
+   * runtime queries too, so the family no longer changes the result; the
+   * parameter is kept for the existing callers.
+   * Prefer {@link resolveEntitySelectorScope} in new code.
+   */
+  resolveStreamDataScope(entitySelectorId?: string, _family?: QueryFamily): StreamDataScope {
+    return this.resolveEntitySelectorScope(entitySelectorId);
+  }
+
+  /**
    * Resolves the stream-data `rtIds` for a persistent-query widget bound to an
    * entity selector: the resolved source rtIds when the scope is `scoped`,
    * otherwise `undefined`.
    *
    * `undefined` does NOT mean "query with the persisted scope" for a pending or
-   * empty scope — callers must check {@link resolveStreamDataScope} first and
+   * empty scope — callers must check {@link resolveEntitySelectorScope} first and
    * skip the query for `pending` / `empty` (AB#7721).
    */
   resolveStreamDataRtIds(entitySelectorId?: string): string[] | undefined {
-    const scope = this.resolveStreamDataScope(entitySelectorId);
+    const scope = this.resolveEntitySelectorScope(entitySelectorId);
     return scope.kind === 'scoped' ? scope.rtIds : undefined;
   }
 
