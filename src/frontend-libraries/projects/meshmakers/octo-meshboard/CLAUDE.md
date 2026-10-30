@@ -640,6 +640,7 @@ Entity selectors populate MeshBoard variables from a selected entity's attribute
 - **Toolbar mode** (`showInToolbar: true`, default): Users select an entity from a dropdown in the toolbar
 - **Fixed mode** (`showInToolbar: false`): Variables are resolved from a pre-configured default entity (no UI)
 - **Follower** (`followsSelectorId` set, AB#7722): no UI; takes the pick of another (leader) selector — see *Leader/follower selectors*
+- **Dependent** (`scopeSource` set, AB#7915): keeps its own picker, which lists only the entities reached from the leader's pick — see *Dependent selectors*
 
 This unified mechanism replaces both the old "runtime entity variables" and the toolbar entity selector concepts.
 
@@ -658,6 +659,7 @@ interface EntitySelectorConfig {
   childScope?: EntitySelectorChildScope; // One hop or a multi-hop path for stream-data widgets (see below)
   followsSelectorId?: string; // Leader selector id (AB#7722) — see *Leader/follower selectors*
   filters?: WidgetFilterConfig[]; // Picker filter (AB#7724) — see *Picker filter*
+  scopeSource?: EntitySelectorScopeSource; // Leader + path (AB#7915) — see *Dependent selectors*
   selectedRtId?: string;      // Current selection (transient, not persisted)
   selectedDisplayName?: string; // Current display name (transient)
 }
@@ -681,6 +683,12 @@ interface EntitySelectorScopeHop {
   roleId: string;
   direction?: 'in' | 'out';    // default 'in'
   targetCkTypeId: string;      // source type of the next hop
+}
+
+// Dependent selector (AB#7915): the picker lists only what the leader's pick reaches.
+interface EntitySelectorScopeSource {
+  selectorId: string;          // leader: not a follower, not itself dependent
+  path: EntitySelectorScopeHop[]; // 1..MAX_SCOPE_HOPS hops, leader type → this type; always a path
 }
 ```
 
@@ -840,6 +848,75 @@ systems of a type that also models heating circuits). Helpers:
   carries the description verbatim (`meshboard-persistence.entity-selector-filter.spec.ts`,
   fixture `testing/entity-selector-filter.fixtures.ts`).
 
+### Dependent selectors (AB#7915)
+
+Three selector roles: a **leader** is any selector others refer to; a **follower**
+(`followsSelectorId`, AB#7722) has no picker and takes the leader's pick; a
+**dependent** (`scopeSource`) keeps its own picker, but while the leader has a
+pick the picker lists only the entities reached from that pick through
+`scopeSource.path` — the *picker scope* (e.g. only the rooms of the picked
+site). Helpers: `utils/entity-selector-scope-source.ts` (pure, unit-tested):
+`resolveScopeSource`, `dependentsOf`, `pickerScopeView`, `leaderDisplayName`,
+the texts, and the query wrappers `withoutListing` / `deferredPickerQuery`.
+
+- **Shape:** `{ selectorId, path }`, `path` = 1–`MAX_SCOPE_HOPS` hops of the
+  AB#7723 hop shape from the leader's CK type to the dependent's CK type,
+  always stored as a path (no one-hop shorthand). One level only: the leader is
+  neither a follower nor itself dependent. A dependent may itself lead followers.
+- **Resolution (view):** whenever the leader's pick resolves
+  (`resolveEntitySelectorVariables` — toolbar pick, URL / route / default pick on
+  load, `setEntitySelector`), `resolvePickerScopesOf` marks every valid
+  dependent pending in the same synchronous step and walks its path with
+  `resolveScopePath` + `MeshBoardDataService.fetchAssociationTargetRtIds` (one
+  batched request per hop, distinct rtIds of the last hop, an empty hop ends
+  the walk). It runs independently of the leader's own resolution — the
+  leader's variables, URL write and widget refresh never wait for the
+  dependents' hops. A per-dependent sequence number discards a late resolution
+  of an earlier leader pick. The result is kept in
+  `MeshBoardStateService.pickerScopes` (`setPickerScopePending` /
+  `setPickerScopeRtIds` / `setPickerScopeFailed` / `clearPickerScope`), next to
+  the AB#7721 widget scopes and cleared on board switch. Clearing the leader
+  clears its dependents' picker scopes. The dependent's own widget scope
+  (its pick, its `childScope`) is unaffected.
+- **Picker (toolbar `[pickerScopes]`):**
+
+  | Picker scope | Dropdown and search dialog |
+  |---|---|
+  | leader has no pick (no entry) | lists without the scope, exactly as before |
+  | `pending` | the fetch waits until the scope settles (the input shows its loading state); **no** listing query is sent meanwhile |
+  | resolved, ≥1 rtId | field filter `rtId IN (scope)` (`QueryExecutorService.withRtIdScope`, as AB#7725), AND-combined with the AB#7724 filter rows and the text search via `withPickerFilters`; server-side, paging keeps working |
+  | resolved, 0 rtIds | lists nothing, no query; text `No <label> in <leader>.` (+ the filter sentence when a filter is set) |
+  | `failed` (a hop failed) or an invalid configuration | lists nothing, no query; text `Could not load the <label> of <leader>.` — never the unscoped list |
+
+  `<leader>` is the leader's picked display name (else its label, else its id).
+  The texts are set as `noEntitiesFound` **and** `minCharactersHint`, so they show
+  as soon as the dropdown opens. The search dialog shows an empty grid (shared-ui
+  has no message input for it). The data-source cache key contains the picker
+  scope (`pending:<id>`, `in:<rtIds>`, `none`), so a leader change gives the
+  dependent fresh data sources; selectors without scope source keep the exact
+  pre-AB#7915 key and query.
+- **Invalid configuration** (unknown or self leader, leader is a follower or
+  dependent, more than 5 hops, no hop, hop without role or target type): one
+  `console.warn` per board load and a failed picker scope. A follower with a
+  `scopeSource` warns too; followers have no picker and ignore it.
+- **Backend:** `runtimeEntities` resolves `rtId` field filters with collection
+  values to an `_id $in` match (`RtEntityFieldFilterResolver` in the MongoDB
+  engine), combined with the other field filters by AND. Checked on test-2
+  (2026-10-30, a room type of a solution tenant): `rtId IN` alone, with
+  `rtDisplayName LIKE` and with an attribute `EQUALS` row each returned exactly
+  the expected subset.
+- **Not here (AB#7916):** what happens to a dependent pick that is out of scope
+  after a leader change, URL validation of dependent picks, widget states of the
+  dependent's own scope. **Editor (AB#7917):** the selector editor does not show
+  the setting yet and its save rebuilds the selector without `scopeSource` —
+  editing a dependent selector in the editor drops the setting until AB#7917.
+- **Persistence:** `scopeSource` is in the selector whitelist of
+  `encodeVariablesInDescription`, reduced to `selectorId` and the hop fields and
+  omitted when unset — boards without dependents encode byte-identically;
+  export/import carries the description verbatim
+  (`meshboard-persistence.entity-selector-scope-source.spec.ts`, fixture
+  `testing/entity-selector-scope-source.fixtures.ts`).
+
 > **Hosts with `keyFields: ['rtId']` (AB#7649).** `getAssociationTargets` selects `rtId` on the
 > source entity as well, although nothing reads it: a host whose Apollo cache keys `RtEntity` by
 > `rtId` (voest-app) otherwise throws "Missing field 'rtId' while extracting keyFields" on the write,
@@ -979,6 +1056,8 @@ For a follower: the leader's pick (by the order above) > the follower's own
 | `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | What a bound widget does — host gate (AB#7582, stream data), then the selector scope; see *Scope resolution contract* |
 | `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | Selector scope only, runtime and stream data alike (AB#7725) |
 | `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` |
+| `pickerScopes` | `Signal<Record<string, EntitySelectorScopeState>>` | Picker scopes of dependent selectors (AB#7915); no entry = leader has no pick |
+| `setPickerScopePending` / `setPickerScopeRtIds` / `setPickerScopeFailed` / `clearPickerScope` / `getPickerScopeState` | — | Write / read one dependent's picker scope (AB#7915) |
 
 ### Components
 
@@ -1197,6 +1276,10 @@ Current test files:
 - `utils/entity-selector-scope-path.spec.ts` - Child scope plan, editor mapping, validation, hop-by-hop resolution (AB#7723)
 - `meshboard-view.entity-selector-multihop.spec.ts` - Two/three-hop resolution with duplicates, empty and failed hops, invalid path, pending, stale picks, followers, pre-AB#7723 one-hop board (AB#7723)
 - `meshboard-persistence.entity-selector-multihop.spec.ts` - `path` save/reload and export/import; a pre-AB#7723 description imports and re-encodes byte-identically (AB#7723)
+- `utils/entity-selector-scope-source.spec.ts` - Scope source resolution and every invalid case, dependents, picker states, texts, query wrappers (AB#7915)
+- `entity-selector-toolbar.scope-source.spec.ts` - Dependent picker: `rtId IN` on dropdown and dialog, AND with filter rows and search, one hop, no leader pick, pending (no query until settled), empty / failed / invalid texts, leader change, unscoped selectors unchanged (AB#7915)
+- `meshboard-view.entity-selector-scope-source.spec.ts` - Picker scope resolution: three batched hops with duplicates, one hop, pending, empty, failed hop, invalid configurations (one warning each), stale leader pick, clear, URL pick on load (AB#7915)
+- `meshboard-persistence.entity-selector-scope-source.spec.ts` - `scopeSource` save/reload and export/import; a pre-AB#7915 description imports and re-encodes byte-identically (AB#7915)
 - `entity-selector-scope-path-editor.component.spec.ts` - Hop list: add/remove/reorder, associations from metadata, "Other role…", warnings, metadata failure, validation, accessibility (AB#7723)
 - `widgets/stream-data-scope.widgets.spec.ts` - Line chart, bar chart and table send no query for an empty or pending scope (AB#7721); KPI in `kpi-widget.component.spec.ts`, process binding in `process-data.service.spec.ts`
 - `widgets/runtime-scope.widgets.spec.ts` - Runtime and grouping queries follow the selector (AB#7725): table (SimpleRtQuery), bar chart (runtime + stream-data grouping), pie chart, KPI, gauge and stats grid with bound / empty / failed / pending / unbound scopes, spying on the query executor; one table case through the real executor checks the `rtId IN` GraphQL variables
