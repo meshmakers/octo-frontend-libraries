@@ -110,6 +110,20 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'list-view-empty-state',
+    loadComponent: () =>
+      import('./list-view-empty-state-demo/list-view-empty-state-demo.component').then(m => m.ListViewEmptyStateDemoComponent),
+    data: {
+      breadcrumb: [
+        {
+          label: 'List View Empty State',
+          svgIcon: event_list,
+          url: 'list-view-empty-state'
+        }
+      ]
+    }
+  },
+  {
     path: 'list-view/details/:id',
     loadComponent: () =>
       import('./list-view-demo/details/details.component').then(m => m.ListViewDetailsComponent),

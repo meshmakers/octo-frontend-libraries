@@ -20,6 +20,7 @@ import {
 import {DropDownListComponent, ItemTemplateDirective, ValueTemplateDirective} from '@progress/kendo-angular-dropdowns';
 import {CompositeFilterDescriptor, FilterDescriptor} from '@progress/kendo-data-query';
 import {ListViewFiltersDirective} from './list-view-filters.directive';
+import {ListViewEmptyActionsDirective} from './list-view-empty-actions.directive';
 import {BadgeMapping, ColumnDefinition, ContextMenuType, ListViewCommand, ListViewMessages, MmListEmptyContext, MmListEmptyState, resolveListViewMessages, RowClassFn, StatusFieldConfig, StatusIconMapping, TableColumn} from './list-view.model';
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
@@ -206,6 +207,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    * a strip of their own above the grid — see ListViewFiltersDirective.
    */
   @ContentChild(ListViewFiltersDirective) protected filtersTemplate?: ListViewFiltersDirective;
+
+  @ContentChild(ListViewEmptyActionsDirective) protected emptyActionsTemplate?: ListViewEmptyActionsDirective;
 
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
@@ -489,6 +492,13 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       return true;
     }
     return (this.dataBindingDirective?.currentState?.filter?.filters?.length ?? 0) > 0;
+  }
+
+  protected keepEmptyActionKeysFromGrid(event: KeyboardEvent): void {
+    const keyForThePage = event.key === 'Escape';
+    if (!keyForThePage) {
+      event.stopPropagation();
+    }
   }
 
   protected get emptyContext(): MmListEmptyContext {
