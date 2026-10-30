@@ -48,6 +48,11 @@
     color: var(--kendo-color-subtle, #757575);
   }
 
+  // AB#7917: "Inside: Site (3 hops)" next to the filter chip.
+  .selector-scope-source-chip {
+    color: var(--kendo-color-subtle, #757575);
+  }
+
   .selector-ck-type {
     font-size: 0.8rem;
     color: var(--kendo-color-subtle, #757575);
@@ -113,6 +118,21 @@
     font-weight: 500;
     font-size: 0.875rem;
     color: var(--kendo-color-on-app-surface, #424242);
+  }
+
+  // AB#7917: labels inside the "List only entities inside" section.
+  .field-sublabel {
+    font-size: 0.8rem;
+    color: var(--kendo-color-on-app-surface, #424242);
+    overflow-wrap: anywhere;
+  }
+
+  .scope-source-field {
+    min-width: 0;
+
+    .follows-select {
+      max-width: 100%;
+    }
   }
 
   .field-hint {

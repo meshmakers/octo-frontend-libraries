@@ -10,6 +10,10 @@
             @if (getFilterSummary(selector); as filterSummary) {
               <span class="selector-mode selector-filter-chip">{{ filterSummary }}</span>
             }
+            @if (getScopeSourceSummary(selector); as scopeSummary) {
+              <span class="selector-mode selector-scope-source-chip" data-test="scope-source-summary"
+                [class.selector-mode-error]="isInvalidScopeSource(selector)">{{ scopeSummary }}</span>
+            }
             <span class="selector-ck-type">{{ selector.ckTypeId }}</span>
             <span class="selector-mappings">{{ getMappingSummary(selector) }}</span>
           </div>
@@ -89,7 +93,7 @@
           class="follows-select"
           [ngModel]="editFollowsSelectorId"
           (ngModelChange)="onFollowsChanged($event)"
-          [disabled]="followedBy.length > 0 && !editFollowsSelectorId">
+          [disabled]="isFollowsLocked">
           <option value="">— none (own picker / default entity) —</option>
           @for (leader of leaderOptions; track leader.id) {
             <option [value]="leader.id">{{ leader.label || leader.id }} ({{ leader.id }})</option>
@@ -102,6 +106,11 @@
           <span class="field-error">{{ followError }}</span>
         } @else if (followedBy.length > 0) {
           <span class="field-hint">Followed by {{ followedByLabels }} — a selector that is followed cannot follow another one.</span>
+        } @else if (dependents.length > 0 && !editFollowsSelectorId) {
+          <span class="field-hint" data-test="follows-dependents-hint">{{ dependentsLabels }} {{ dependents.length === 1 ? 'lists' : 'list' }} only entities inside this selector — a selector with dependents cannot follow another one.</span>
+        }
+        @if (isFollower && editScopeSourceSelectorId) {
+          <span class="field-hint follow-notice" data-test="follower-scope-source-notice">A follower has no picker: "List only entities inside {{ scopeSourceLeaderLabel }}" is removed when you save.</span>
         }
         @if (followNotice) {
           <span class="field-hint follow-notice">{{ followNotice }}</span>
@@ -146,6 +155,62 @@
             [availableVariables]="filterVariables"
             (filtersChange)="onFiltersChange($event)">
           </mm-field-filter-editor>
+        }
+      </div>
+      }
+
+      @if (editCkTypeId && !isFollower) {
+      <div class="form-field scope-source-field" data-test="scope-source-section" role="group" aria-labelledby="scopeSourceHeading">
+        <span class="field-label" id="scopeSourceHeading">List only entities inside</span>
+        <label class="field-sublabel" for="scopeSourceSelectorId">Inside the pick of</label>
+        <select
+          id="scopeSourceSelectorId"
+          class="follows-select"
+          [ngModel]="editScopeSourceSelectorId"
+          (ngModelChange)="onScopeSourceChanged($event)"
+          [disabled]="isScopeSourceLocked">
+          <option value="">(none)</option>
+          @for (leader of scopeSourceLeaderOptions; track leader.id) {
+            <option [value]="leader.id">{{ leader.label || leader.id }} ({{ leader.id }})</option>
+          }
+          @if (isScopeSourceLeaderUnavailable) {
+            <option [value]="editScopeSourceSelectorId">{{ scopeSourceLeaderLabel }} (unavailable)</option>
+          }
+        </select>
+        @if (isScopeSourceLocked) {
+          <span class="field-hint" data-test="scope-source-locked">{{ dependentsLabels }} {{ dependents.length === 1 ? 'lists' : 'list' }} only entities inside this selector. A selector with dependents cannot list only entities inside another one.</span>
+        } @else if (!editScopeSourceSelectorId) {
+          <span class="field-hint">Optional. Choose another selector to list only the {{ editName }} inside its pick.</span>
+        }
+
+        @if (editScopeSourceSelectorId) {
+          <span class="field-sublabel scope-source-path-title" data-test="scope-source-path-title">
+            Path from {{ scopeSourceLeaderLabel }} (<code>{{ scopeSourceLeaderCkTypeId || '?' }}</code>) to {{ editName }} (<code>{{ editCkTypeId }}</code>)
+          </span>
+          <mm-entity-selector-scope-path-editor
+            [sourceCkTypeId]="scopeSourceLeaderCkTypeId"
+            [lockedTargetCkTypeId]="editCkTypeId"
+            [hops]="editScopeSourceHops"
+            [description]="'Path of associations from the entity picked in ' + scopeSourceLeaderLabel + ' to the ' + editName + ' it contains (1 to ' + maxScopeHops + ' hops).'"
+            [sourceDescription]="'pick of ' + scopeSourceLeaderLabel"
+            [emptyText]="'Add at least one hop.'"
+            (hopsChange)="onScopeSourceHopsChanged($event)">
+          </mm-entity-selector-scope-path-editor>
+          <span class="field-hint" data-test="scope-source-hint">
+            The {{ editName }} picker lists only the {{ editName }} reached from the {{ scopeSourceLeaderLabel }} the user picked.
+            When the {{ scopeSourceLeaderLabel }} changes, a {{ editName }} outside it is replaced by the default or cleared.
+          </span>
+          @if (scopeSourceDisplayError; as error) {
+            <span class="field-error" data-test="scope-source-error">{{ error }}</span>
+          }
+          @switch (defaultScopeCheck.state) {
+            @case ('outside') {
+              <span class="field-warning" data-test="scope-source-default-warning">The default {{ editName }} is not inside the default {{ scopeSourceLeaderLabel }}. It is cleared when the board opens.</span>
+            }
+            @case ('error') {
+              <span class="field-hint" data-test="scope-source-default-warning">Could not check the default entity.</span>
+            }
+          }
         }
       </div>
       }

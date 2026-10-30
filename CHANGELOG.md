@@ -10,6 +10,22 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard selector editor: dependent selectors (AB#7917)
+
+- New (non-breaking): the selector editor has a section "List only entities inside" (after *Picker filter*, before
+  *Attribute Mappings*; wireframe agreed by the Studio PO). "Inside the pick of" lists other selectors that are
+  neither followers nor dependent; the path uses `mm-entity-selector-scope-path-editor` from the leader's CK type,
+  1–5 hops, with the last hop's target fixed to the selector's CK type. Validation follows
+  `utils/entity-selector-scope-source.ts` (unknown, self, follower or dependent leader; missing or incomplete hops;
+  path ending elsewhere) and blocks saving. A selector with dependents can neither pick a leader nor follow one.
+- Fix: saving in the editor keeps `scopeSource` (since AB#7915 the save rebuilt the selector without it and dropped
+  the setting). "(none)" removes it; a follower's `scopeSource` is removed on save with a notice.
+- The collapsed list shows `Inside: <leader> (<n> hops)`; removing a leader names its dependents. A debounced check
+  warns when the selector's default entity is not inside the leader's default pick ("Could not check the default
+  entity." on an error), never blocking save.
+- `mm-entity-selector-scope-path-editor` gets the inputs `lockedTargetCkTypeId` (last hop's target fixed: shown
+  read-only, new hops inserted before it, it never moves), `description`, `sourceDescription` and `emptyText`.
+  Without them it behaves as before.
 ### octo-meshboard dependent pick stays inside the leader's pick (AB#7916)
 
 - Behaviour change (no API break): a dependent selector (`scopeSource`, AB#7915) never keeps a pick outside its

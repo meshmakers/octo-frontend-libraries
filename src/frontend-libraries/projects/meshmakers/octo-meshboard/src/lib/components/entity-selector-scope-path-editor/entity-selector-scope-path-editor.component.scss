@@ -61,6 +61,13 @@ code {
   white-space: nowrap;
 }
 
+// AB#7917: the fixed target type of the last hop of a scope source path.
+.hop-target-fixed {
+  font-size: 0.85rem;
+  color: var(--kendo-color-subtle, #757575);
+  overflow-wrap: anywhere;
+}
+
 .hop-source {
   font-weight: 400;
   color: var(--kendo-color-subtle, #757575);
