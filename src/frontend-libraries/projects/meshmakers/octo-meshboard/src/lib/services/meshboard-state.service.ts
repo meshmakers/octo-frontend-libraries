@@ -880,6 +880,16 @@ export class MeshBoardStateService {
   }
 
   /**
+   * Marks a selector as "needs a pick" (AB#7916): a dependent selector — or a
+   * follower of one — has no pick while its leader has one. Bound widgets show
+   * no data and send no query (never the persisted scope, which would show
+   * entities outside the leader's pick); the view asks for a pick.
+   */
+  setEntitySelectorScopeNeedsPick(selectorId: string): void {
+    this.setEntitySelectorScope(selectorId, { status: 'needsPick' });
+  }
+
+  /**
    * Clears the scope state for an entity selector (its selection was cleared).
    * Bound widgets then query with the persisted scope again.
    */
@@ -906,6 +916,16 @@ export class MeshBoardStateService {
   readonly failedEntitySelectorScopeIds = computed(() =>
     Object.entries(this._entitySelectorScopes())
       .filter(([, state]) => state.status === 'failed')
+      .map(([id]) => id)
+  );
+
+  /**
+   * Ids of the selectors that need a pick (AB#7916), for the view's
+   * "Pick a <label> to see this data." notice.
+   */
+  readonly needsPickEntitySelectorIds = computed(() =>
+    Object.entries(this._entitySelectorScopes())
+      .filter(([, state]) => state.status === 'needsPick')
       .map(([id]) => id)
   );
 
@@ -940,6 +960,8 @@ export class MeshBoardStateService {
    *   (`QueryExecutionOptions.scopeRtIds`).
    * - `empty` — the pick has nothing in scope or the lookup failed: show the
    *   no-data state and send no query. Never fall back to the persisted scope.
+   *   Also a dependent selector without pick while its leader has one
+   *   (`noPick`, AB#7916).
    */
   resolveEntitySelectorScope(entitySelectorId?: string): StreamDataScope {
     if (!entitySelectorId) {
@@ -954,6 +976,8 @@ export class MeshBoardStateService {
         return { kind: 'pending' };
       case 'failed':
         return { kind: 'empty', reason: 'failed' };
+      case 'needsPick':
+        return { kind: 'empty', reason: 'noPick' };
       case 'resolved':
         return state.rtIds.length > 0
           ? { kind: 'scoped', rtIds: state.rtIds }

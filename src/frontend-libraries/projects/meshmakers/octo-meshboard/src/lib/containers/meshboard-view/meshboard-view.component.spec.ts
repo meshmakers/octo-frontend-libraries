@@ -49,6 +49,7 @@ describe('MeshBoardViewComponent — header mode and chrome', () => {
       persistedMeshBoardId: signal<string | null>(null),
       variableResolutionErrors: signal([]),
       failedEntitySelectorScopeIds: signal<string[]>([]),
+      needsPickEntitySelectorIds: signal<string[]>([]),
       timeZoneMode: signal('local'),
       isTimeFilterEnabled: () => false,
       getTimeFilterConfig: () => undefined,

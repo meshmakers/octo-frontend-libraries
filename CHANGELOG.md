@@ -10,6 +10,26 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard dependent pick stays inside the leader's pick (AB#7916)
+
+- Behaviour change (no API break): a dependent selector (`scopeSource`, AB#7915) never keeps a pick outside its
+  leader's pick. On a leader change the dependent (and its followers) is pending at once; once its picker scope is
+  resolved the pick is kept if it is in scope, else its `defaultRtId` if that is in scope, else cleared. Widgets
+  refresh once for the whole change; an overtaken change (two quick leader picks) applies nothing. Clearing the
+  leader keeps the dependent's pick.
+- **Narrowed AB#7721 rule (dependents only):** a dependent without pick while its leader has one shows no data and
+  sends no query (`StreamDataScope` `empty` / `noPick`), with the board notice "Pick a <label> to see this data."
+  (`MeshBoardMessages.scopePickRequired`). With the leader without pick the persisted scope applies as before. A
+  failed picker scope clears the pick and shows the scope-failed notice instead.
+- Board load: leaders resolve first; a dependent URL (`es_<id>`) or route-data pick outside the picker scope is
+  dropped (default if in scope, else no pick), logged once with `console.info`, and the URL is rewritten with
+  `replaceUrl`. Valid pairs restore both picks.
+- Host API: `setEntitySelector(dependentId, rtId)` with an rtId outside the picker scope is rejected with a console
+  warning and nothing re-queries; `setEntitySelector` / `clearEntitySelector` on a leader run the rules above.
+- New API: `EntitySelectorScopeState` status `needsPick`, `MeshBoardStateService.setEntitySelectorScopeNeedsPick`
+  and `needsPickEntitySelectorIds`, `StreamDataScope` reason `noPick`, `MeshBoardMessages.scopePickRequired`.
+  Boards without `scopeSource` behave and encode exactly as before.
+
 ### octo-meshboard dependent entity selectors (AB#7915)
 
 - New (non-breaking, additive): `EntitySelectorConfig.scopeSource = { selectorId, path }` makes a visible selector

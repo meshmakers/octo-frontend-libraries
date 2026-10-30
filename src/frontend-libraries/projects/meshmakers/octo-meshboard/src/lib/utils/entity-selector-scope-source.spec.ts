@@ -4,7 +4,9 @@ import type { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
 import {
   deferredPickerQuery,
   dependentsOf,
+  isInPickerScope,
   leaderDisplayName,
+  nextDependentPick,
   pickerScopeEmptyMessage,
   pickerScopeFailedMessage,
   pickerScopeView,
@@ -147,6 +149,52 @@ describe('entity-selector-scope-source (AB#7915)', () => {
 
       expect(fetch).not.toHaveBeenCalled();
       expect(values[0].data?.runtime?.runtimeEntities?.items).toEqual([]);
+    });
+  });
+
+  describe('nextDependentPick (AB#7916)', () => {
+    const scope = (...rtIds: string[]) => ({ status: 'resolved' as const, rtIds });
+
+    it('keeps the current pick while the leader has no pick (no picker scope)', () => {
+      expect(nextDependentPick('room-1', 'room-3', undefined)).toBe('room-1');
+      expect(nextDependentPick(undefined, 'room-3', undefined)).toBeNull();
+    });
+
+    it('keeps the current pick when it is in the scope', () => {
+      expect(nextDependentPick('room-1', 'room-2', scope('room-1', 'room-2'))).toBe('room-1');
+    });
+
+    it('falls back to the default when only the default is in the scope', () => {
+      expect(nextDependentPick('room-1', 'room-3', scope('room-2', 'room-3'))).toBe('room-3');
+      expect(nextDependentPick(undefined, 'room-3', scope('room-3'))).toBe('room-3');
+    });
+
+    it('has no pick when neither the pick nor the default is in the scope', () => {
+      expect(nextDependentPick('room-1', 'room-3', scope('room-9'))).toBeNull();
+      expect(nextDependentPick('room-1', undefined, scope('room-9'))).toBeNull();
+    });
+
+    it('has no pick for an empty, failed or pending scope', () => {
+      expect(nextDependentPick('room-1', 'room-1', scope())).toBeNull();
+      expect(nextDependentPick('room-1', 'room-1', { status: 'failed' })).toBeNull();
+      expect(nextDependentPick('room-1', 'room-1', { status: 'pending' })).toBeNull();
+    });
+  });
+
+  describe('isInPickerScope (AB#7916)', () => {
+    it('accepts anything while the leader has no pick', () => {
+      expect(isInPickerScope('room-9', undefined)).toBe(true);
+    });
+
+    it('accepts only an in-scope rtId of a resolved scope', () => {
+      expect(isInPickerScope('room-1', { status: 'resolved', rtIds: ['room-1'] })).toBe(true);
+      expect(isInPickerScope('room-9', { status: 'resolved', rtIds: ['room-1'] })).toBe(false);
+    });
+
+    it('accepts nothing while the scope is empty, failed or pending', () => {
+      expect(isInPickerScope('room-1', { status: 'resolved', rtIds: [] })).toBe(false);
+      expect(isInPickerScope('room-1', { status: 'failed' })).toBe(false);
+      expect(isInPickerScope('room-1', { status: 'pending' })).toBe(false);
     });
   });
 });
