@@ -91,7 +91,7 @@ export class EntitySelectorToolbarComponent implements OnChanges, OnDestroy {
   protected selectorMessages = new Map<string, Partial<EntitySelectInputMessages>>();
   // Selectors whose picker carries a filter (AB#7724): their dialog title says so
   private filteredSelectorIds = new Set<string>();
-  // Latest picker state per dependent selector; a pending picker's fetch waits on it (AB#7915)
+  // Latest picker state per selector; a pending dependent picker's fetch waits on it (AB#7915)
   private readonly settledPickers$ = new BehaviorSubject<Map<string, { view: PickerScopeView; filters: FieldFilterDto[] | undefined }>>(new Map());
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -167,9 +167,9 @@ export class EntitySelectorToolbarComponent implements OnChanges, OnDestroy {
     for (const selector of this.entitySelectors) {
       const filters = pickerFieldFilters(selector, this.variables, this.variableService);
       const view = pickerScopeView(this.entitySelectors, selector, this.pickerScopes[selector.id]);
-      if (view.kind !== 'unscoped') {
-        settled.set(selector.id, { view, filters });
-      }
+      // Every selector, unscoped ones included: a pending fetch that settles
+      // unscoped (leader cleared) still applies the current filter rows.
+      settled.set(selector.id, { view, filters });
       const filterKey = filters ? `${selector.ckTypeId}|${JSON.stringify(filters)}` : selector.ckTypeId;
       const scopeKey = pickerScopeKey(selector.id, view);
       const key = scopeKey ? `${filterKey}|${scopeKey}` : filterKey;

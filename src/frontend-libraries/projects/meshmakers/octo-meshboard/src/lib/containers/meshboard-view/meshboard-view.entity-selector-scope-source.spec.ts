@@ -165,6 +165,19 @@ describe('MeshBoardViewComponent — dependent selector picker scope (AB#7915)',
     expect(state.getPickerScopeState('room')).toEqual({ status: 'resolved', rtIds: ['room-5'] });
   });
 
+  it('a slow dependent hop never delays the leader pick (URL write and widget refresh)', async () => {
+    const fixture = setup([SITE, ROOM]);
+    await settle(fixture);
+    dataService.fetchAssociationTargetRtIds.mockReturnValueOnce(new Subject<string[]>());
+    const refresh = vi.spyOn(state, 'triggerRefresh');
+
+    await pick(fixture, 'site-1');
+
+    expect(refresh).toHaveBeenCalled();
+    expect(state.resolveEntitySelectorScope('site')).toEqual({ kind: 'scoped', rtIds: ['site-1'] });
+    expect(state.getPickerScopeState('room')).toEqual({ status: 'pending' });
+  });
+
   it('is resolved empty when the pick reaches no room, and requests no further hop', async () => {
     const fixture = setup([SITE, ROOM]);
     await settle(fixture);

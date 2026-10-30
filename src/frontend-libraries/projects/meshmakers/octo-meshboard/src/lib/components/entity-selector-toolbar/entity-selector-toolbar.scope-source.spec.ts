@@ -139,6 +139,20 @@ describe('EntitySelectorToolbarComponent — dependent picker (AB#7915)', () => 
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it('pending that settles unscoped (leader cleared) keeps the filter rows', async () => {
+    const filtered: EntitySelectorConfig = { ...ROOM, filters: [{ attributePath: 'usage', operator: 'EQUALS', comparisonValue: 'Office' }] };
+    const fixture = create([PICKED_SITE, filtered], { room: { status: 'pending' } });
+    const result = fixture.componentInstance.getDataSource(filtered).onFilter('off', 10);
+
+    fixture.componentRef.setInput('entitySelectors', [SITE, filtered]);
+    fixture.componentRef.setInput('pickerScopes', {});
+    fixture.detectChanges();
+    await result;
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(lastVariables().fieldFilters).toEqual([{ attributePath: 'usage', operator: 'EQUALS', comparisonValue: 'Office' }, search]);
+  });
+
   it('resolved empty: shows "No <label> in <leader>." and sends no query', async () => {
     const toolbar = create([PICKED_SITE, ROOM], { room: { status: 'resolved', rtIds: [] } }).componentInstance;
 

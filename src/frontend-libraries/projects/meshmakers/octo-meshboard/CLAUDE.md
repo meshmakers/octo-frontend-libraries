@@ -869,8 +869,10 @@ the texts, and the query wrappers `withoutListing` / `deferredPickerQuery`.
   dependent pending in the same synchronous step and walks its path with
   `resolveScopePath` + `MeshBoardDataService.fetchAssociationTargetRtIds` (one
   batched request per hop, distinct rtIds of the last hop, an empty hop ends
-  the walk). A per-dependent sequence number discards a late resolution of an
-  earlier leader pick. The result is kept in
+  the walk). It runs independently of the leader's own resolution — the
+  leader's variables, URL write and widget refresh never wait for the
+  dependents' hops. A per-dependent sequence number discards a late resolution
+  of an earlier leader pick. The result is kept in
   `MeshBoardStateService.pickerScopes` (`setPickerScopePending` /
   `setPickerScopeRtIds` / `setPickerScopeFailed` / `clearPickerScope`), next to
   the AB#7721 widget scopes and cleared on board switch. Clearing the leader
@@ -900,8 +902,9 @@ the texts, and the query wrappers `withoutListing` / `deferredPickerQuery`.
 - **Backend:** `runtimeEntities` resolves `rtId` field filters with collection
   values to an `_id $in` match (`RtEntityFieldFilterResolver` in the MongoDB
   engine), combined with the other field filters by AND. Checked on test-2
-  (2026-10-30, `EnergyIQ/Space`): `rtId IN` alone, with `rtDisplayName LIKE`
-  and with an attribute `EQUALS` row each returned exactly the expected subset.
+  (2026-10-30, a room type of a solution tenant): `rtId IN` alone, with
+  `rtDisplayName LIKE` and with an attribute `EQUALS` row each returned exactly
+  the expected subset.
 - **Not here (AB#7916):** what happens to a dependent pick that is out of scope
   after a leader change, URL validation of dependent picks, widget states of the
   dependent's own scope. **Editor (AB#7917):** the selector editor does not show

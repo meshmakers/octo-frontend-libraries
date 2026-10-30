@@ -1812,8 +1812,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     const seqs = targets.map(t => this.beginScopeResolution(t.id));
     const failAll = (): void => targets.forEach((t, i) => this.failScopeResolution(t.id, seqs[i]));
     // Dependents (AB#7915) list only what this pick reaches; marked pending in
-    // the same synchronous step, resolved in parallel with the entity fetch.
-    const pickerScopes = this.resolvePickerScopesOf(resolved, rtId);
+    // the same synchronous step and resolved independently: the leader's own
+    // pick (variables, URL, widget refresh) never waits for the dependents' hops.
+    void this.resolvePickerScopesOf(resolved, rtId);
     try {
       const entity = await firstValueFrom(
         this.dataService.fetchRuntimeEntity({
@@ -1864,8 +1865,6 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // Same as above: a failed pick is an empty scope, never the persisted one.
       failAll();
       return undefined;
-    } finally {
-      await pickerScopes;
     }
   }
 
