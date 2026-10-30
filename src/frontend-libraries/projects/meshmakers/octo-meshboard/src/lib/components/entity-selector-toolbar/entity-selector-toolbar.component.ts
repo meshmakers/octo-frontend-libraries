@@ -5,6 +5,7 @@ import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
 import { RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource, RuntimeEntityItem } from '../../utils/runtime-entity-data-sources';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { EntitySelectorConfig } from '../../models/meshboard.models';
+import { showsInToolbar } from '../../utils/entity-selector-follow';
 
 /**
  * Event emitted when an entity is selected in a selector.
@@ -56,6 +57,14 @@ export class EntitySelectorToolbarComponent implements OnChanges {
     if (changes['entitySelectors']) {
       this.updateDataSources();
     }
+  }
+
+  /**
+   * True when the selector renders a picker. Hidden selectors and followers
+   * (AB#7722) never do; a follower's pick is derived from its leader.
+   */
+  showsInToolbar(selector: EntitySelectorConfig): boolean {
+    return showsInToolbar(selector);
   }
 
   /**

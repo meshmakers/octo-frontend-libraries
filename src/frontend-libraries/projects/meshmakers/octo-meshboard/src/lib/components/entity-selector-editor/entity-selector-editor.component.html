@@ -6,7 +6,7 @@
         <div class="selector-item">
           <div class="selector-info">
             <span class="selector-label">{{ selector.label }}</span>
-            <span class="selector-mode">{{ getModeLabel(selector) }}</span>
+            <span class="selector-mode" [class.selector-mode-error]="isOrphanFollower(selector)">{{ getModeLabel(selector) }}</span>
             <span class="selector-ck-type">{{ selector.ckTypeId }}</span>
             <span class="selector-mappings">{{ getMappingSummary(selector) }}</span>
           </div>
@@ -80,17 +80,52 @@
       </div>
 
       <div class="form-field">
-        <label class="field-label">CK Type *</label>
-        <mm-ck-type-selector-input
-          [ngModel]="editCkTypeItem"
-          [placeholder]="'Select CK type...'"
-          (ckTypeSelected)="onCkTypeSelected($event)"
-          (ckTypeCleared)="onCkTypeCleared()">
-        </mm-ck-type-selector-input>
+        <label class="field-label" for="followsSelectorId">Follows</label>
+        <select
+          id="followsSelectorId"
+          class="follows-select"
+          [ngModel]="editFollowsSelectorId"
+          (ngModelChange)="onFollowsChanged($event)"
+          [disabled]="followedBy.length > 0 && !editFollowsSelectorId">
+          <option value="">— none (own picker / default entity) —</option>
+          @for (leader of leaderOptions; track leader.id) {
+            <option [value]="leader.id">{{ leader.label || leader.id }} ({{ leader.id }})</option>
+          }
+          @if (isLeaderUnavailable) {
+            <option [value]="editFollowsSelectorId">{{ editFollowsSelectorId }} (unavailable)</option>
+          }
+        </select>
+        @if (followError) {
+          <span class="field-error">{{ followError }}</span>
+        } @else if (followedBy.length > 0) {
+          <span class="field-hint">Followed by {{ followedByLabels }} — a selector that is followed cannot follow another one.</span>
+        }
+        @if (followNotice) {
+          <span class="field-hint follow-notice">{{ followNotice }}</span>
+        }
+        <span class="field-hint">
+          Takes the pick of the selected selector. The CK type is fixed to the leader's.
+          A follower never shows a picker and is not written to the URL.
+        </span>
       </div>
 
       <div class="form-field">
-        <label class="field-label">Attribute Mappings *</label>
+        <label class="field-label">CK Type *</label>
+        @if (isFollower) {
+          <kendo-textbox [value]="editCkTypeId" [readonly]="true"></kendo-textbox>
+          <span class="field-hint">Fixed to the leader's CK type.</span>
+        } @else {
+          <mm-ck-type-selector-input
+            [ngModel]="editCkTypeItem"
+            [placeholder]="'Select CK type...'"
+            (ckTypeSelected)="onCkTypeSelected($event)"
+            (ckTypeCleared)="onCkTypeCleared()">
+          </mm-ck-type-selector-input>
+        }
+      </div>
+
+      <div class="form-field">
+        <label class="field-label">Attribute Mappings{{ isFollower ? '' : ' *' }}</label>
         <button
           kendoButton
           (click)="selectAttributes()"
@@ -131,6 +166,7 @@
         }
       </div>
 
+      @if (!isFollower) {
       <div class="form-field">
         <div class="checkbox-row">
           <input
@@ -148,9 +184,10 @@
           }
         </span>
       </div>
+      }
 
       <div class="form-field">
-        <label class="field-label">Default Entity{{ !editShowInToolbar ? ' *' : '' }}</label>
+        <label class="field-label">Default Entity{{ !editShowInToolbar && !isFollower ? ' *' : '' }}</label>
         @if (defaultEntityDataSource) {
           <mm-entity-select-input
             [dataSource]="defaultEntityDataSource"
@@ -166,11 +203,13 @@
         @if (editDefaultRtId) {
           <span class="field-hint">Selected: {{ editDefaultRtId }}</span>
         }
-        @if (!editShowInToolbar && !editDefaultRtId) {
+        @if (!editShowInToolbar && !isFollower && !editDefaultRtId) {
           <span class="field-error">A default entity is required when not shown in toolbar.</span>
         }
         <span class="field-hint">
-          @if (editShowInToolbar) {
+          @if (isFollower) {
+            Optional — used only while the leader has no pick.
+          } @else if (editShowInToolbar) {
             Optional — pre-selected entity when the MeshBoard loads.
           } @else {
             This entity's attributes will be used to populate the variables.

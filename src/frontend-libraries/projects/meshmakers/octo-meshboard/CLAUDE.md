@@ -612,6 +612,7 @@ Entity selectors populate MeshBoard variables from a selected entity's attribute
 
 - **Toolbar mode** (`showInToolbar: true`, default): Users select an entity from a dropdown in the toolbar
 - **Fixed mode** (`showInToolbar: false`): Variables are resolved from a pre-configured default entity (no UI)
+- **Follower** (`followsSelectorId` set, AB#7722): no UI; takes the pick of another (leader) selector — see *Leader/follower selectors*
 
 This unified mechanism replaces both the old "runtime entity variables" and the toolbar entity selector concepts.
 
@@ -628,6 +629,7 @@ interface EntitySelectorConfig {
   showInToolbar?: boolean;     // Show in toolbar (default: true). If false, uses defaultRtId
   defaultRtId?: string;       // Pre-selected entity (required when showInToolbar=false)
   childScope?: EntitySelectorChildScope; // One-hop scope for stream-data widgets (see below)
+  followsSelectorId?: string; // Leader selector id (AB#7722) — see *Leader/follower selectors*
   selectedRtId?: string;      // Current selection (transient, not persisted)
   selectedDisplayName?: string; // Current display name (transient)
 }
@@ -652,6 +654,52 @@ the entity-selector editor (target CK type + role + direction). When set, a
 selection resolves to the child rtIds via `getAssociationTargets`; when absent,
 the picked entity's own rtId is the scope. These rtIds feed a widget's
 `entitySelectorId` asset-scope binding — see *PersistentQueryDataSource* above.
+
+### Leader/follower selectors (AB#7722)
+
+A widget binds exactly one selector and a selector has one child scope, so one
+visible pick could scope only widgets of one target type. A **follower**
+(`followsSelectorId: '<leader id>'`) closes that gap: one visible leader (e.g. a
+site) drives any number of hidden followers, each with its own `childScope`
+(e.g. site → devices, site → sensors), so one pick rescopes widgets of different
+target types. Helpers: `utils/entity-selector-follow.ts` (pure, unit-tested).
+
+Resolution contract (view, `resolveEntitySelectorVariables`):
+
+| Leader state | Follower |
+|---|---|
+| has a pick (route data, URL, its `defaultRtId`, or a toolbar pick) | takes that pick: same `selectedRtId` / display name; variables from its own `attributeMappings` + `<followerId>_rtId` / `_rtCkTypeId` of the leader's picked entity; scope from its own `childScope` |
+| pick pending | **pending** too (marked in the same synchronous step as the leader, AB#7721) |
+| pick has nothing on the follower's path | resolved **empty** (`noTargets`) — widgets show no data, no query |
+| pick fails (entity not found, lookup threw) | `failed` like the leader |
+| no pick | the follower's own `defaultRtId` (resolved standalone), else **no scope** (persisted scope, AB#7721) |
+| pick cleared | as "no pick" |
+
+Rules:
+- One entity fetch serves the leader and all its followers; each gets its own
+  scope sequence number, so a slower resolution of an older pick never
+  overwrites a follower's newer state (variables and selection included).
+- The follower's `ckTypeId` is the leader's: the editor fixes it, and the view
+  resolves with the leader's type even if a stale type is stored (`effectiveSelector`).
+- **One level only.** A follower cannot lead (`followersOf` ignores followers of a
+  follower). An unknown, self or chained `followsSelectorId` is treated as "leader
+  has no pick" plus one `console.warn` on board load; the editor prevents it.
+- Followers never render a picker (`showsInToolbar`), are never written to the URL
+  and ignore `es_<followerId>` params and route data: a URL with only the leader's
+  `es_` param restores every follower. `setEntitySelector` / `clearEntitySelector`
+  on a follower warn and do nothing.
+- Editor ("Follows" field, wireframe agreed in AB#7722): lists other non-follower
+  selectors; choosing a leader fixes the CK type (default entity and mappings of a
+  different previous type are cleared with a notice), hides "Show in Toolbar" and
+  makes mappings and the default entity optional; a followed selector cannot
+  follow (dropdown disabled, message names its followers); back to none = CK type
+  editable, "Show in Toolbar" unchecked. The list badge shows `Follows: <leader>`
+  or a `Follows: missing` error badge; removing a leader asks for confirmation
+  naming its followers (`ConfirmationService`, when the host provides it).
+- Persistence: `followsSelectorId` is in the selector whitelist of
+  `MeshBoardPersistenceService.encodeVariablesInDescription` and omitted when
+  empty, so boards without followers encode byte-identically; export/import
+  carries the description verbatim (`meshboard-persistence.entity-selector-follow.spec.ts`).
 
 ### Auto-exposed selected-entity rtId / rtCkTypeId
 
@@ -707,6 +755,9 @@ Entity selector selections are synced to URL query parameters for bookmarkabilit
 
 Example: `?es_mp=rt-123&es_anlage=rt-456`
 
+Followers (AB#7722) are derived from their leader and never serialized; an
+`es_<followerId>` param is ignored.
+
 ### URL Sync (`meshBoardSyncUrl`, AB#4457)
 
 `MeshBoardViewComponent` syncs the loaded board's rtId into the URL
@@ -757,6 +808,9 @@ When embedding a MeshBoard in another application, entity selectors can be pre-p
 ```
 
 **Priority order:** route data > URL params > defaultRtId > selectedRtId
+
+For a follower: the leader's pick (by the order above) > the follower's own
+`defaultRtId`; route data and URL params naming the follower are ignored.
 
 ### State Service Methods
 
@@ -985,6 +1039,10 @@ Current test files:
 - `meshboard-variable.service.spec.ts` - Variable resolution (67 tests)
 - `meshboard-state.service.spec.ts` - State management (includes entity selector management, stream-data time-arg binding and the scope states of AB#7721)
 - `meshboard-view.entity-selector-scope.spec.ts` - View scope resolution: empty / failed / pending / unscoped picks, URL picks, stale resolutions, clear (AB#7721)
+- `meshboard-view.entity-selector-follow.spec.ts` - Leader/follower selectors: follower scope and variables from the leader's pick, two target types, pending, empty, own default, clear, URL restore/write, no picker, unknown leader, stale picks (AB#7722)
+- `utils/entity-selector-follow.spec.ts` - Leader resolution, followers, toolbar visibility, editor validation messages (AB#7722)
+- `meshboard-persistence.entity-selector-follow.spec.ts` - `followsSelectorId` save/reload and export/import round trip; a pre-AB#7722 description imports and re-encodes byte-identically (AB#7722)
+- `entity-selector-editor.component.spec.ts` - Editor "Follows" option: leader list, CK type fixing, validation, list badges, removal confirmation (AB#7722)
 - `widgets/stream-data-scope.widgets.spec.ts` - Line chart, bar chart and table send no query for an empty or pending scope (AB#7721); KPI in `kpi-widget.component.spec.ts`, process binding in `process-data.service.spec.ts`
 - `meshboard-data.service.spec.ts` - Data fetching (32 tests)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)

@@ -10,6 +10,27 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard entity selectors (hidden selector follows a visible one, AB#7722)
+
+- New (non-breaking, additive): optional `EntitySelectorConfig.followsSelectorId`. A follower selector has no picker
+  of its own: it takes its leader's current pick as its picked entity (CK type = the leader's) and resolves its own
+  `childScope` and `attributeMappings` from it, so one visible pick (e.g. a site) rescopes widgets of different
+  target types bound to several hidden followers. Changing or clearing the leader's pick re-resolves all followers
+  and refreshes their widgets. Followers follow the AB#7721 scope contract: pending while the leader is pending,
+  resolved empty when the pick has nothing on the follower's path, and the follower's own `defaultRtId` (else no
+  scope) only while the leader has no pick. One level only; an unknown or chained leader counts as "leader has no
+  pick" plus a console warning.
+- Followers never render a toolbar picker, are not written to the URL and ignore `es_<followerId>` params and route
+  data; a URL with only the leader's `es_` param restores every follower. `MeshBoardViewComponent.setEntitySelector` /
+  `clearEntitySelector` on a follower warn and do nothing.
+- Selector editor (MeshBoard Settings → Entity Selectors): new "Follows" field (only non-follower selectors are
+  offered; choosing a leader fixes the CK type and makes attribute mappings and the default entity optional; a
+  followed selector cannot follow; validation messages say why), list badge `Follows: <leader>` / `Follows: missing`,
+  and a confirmation naming the followers before their leader is removed.
+- Persistence: `followsSelectorId` is saved in the board description (selector whitelist) and survives export /
+  import from "Manage MeshBoards". Boards without followers encode byte-identically, so boards exported before this
+  change import and behave unchanged.
+
 ### octo-meshboard entity-selector scope (empty scope shows no data, AB#7721)
 
 - Fix (behaviour): a stream-data widget bound to an entity selector (`entitySelectorId`) whose pick resolves to

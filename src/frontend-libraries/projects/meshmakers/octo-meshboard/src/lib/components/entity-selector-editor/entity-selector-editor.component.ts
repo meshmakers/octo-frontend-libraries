@@ -6,7 +6,7 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { plusIcon, pencilIcon } from '@progress/kendo-svg-icons';
-import { EntitySelectInputComponent, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
+import { ConfirmationService, EntitySelectInputComponent, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import {
   CkTypeSelectorInputComponent,
   AttributeSelectorDialogService
@@ -16,6 +16,13 @@ import { EntitySelectorConfig, EntitySelectorAttributeMapping, EntitySelectorChi
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource, RuntimeEntityItem } from '../../utils/runtime-entity-data-sources';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
+import {
+  eligibleLeaders,
+  followValidationError,
+  labelList,
+  resolveFollowLeader,
+  selectorsFollowing
+} from '../../utils/entity-selector-follow';
 
 /**
  * Component for editing entity selector configurations in MeshBoard settings.
@@ -44,6 +51,7 @@ export class EntitySelectorEditorComponent {
   private readonly attributeSelectorService = inject(AttributeSelectorDialogService);
   private readonly variableService = inject(MeshBoardVariableService);
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
+  private readonly confirmationService = inject(ConfirmationService, { optional: true });
 
   @Input() entitySelectors: EntitySelectorConfig[] = [];
   /** Existing variable names from other sources (static variables, other selectors) for duplicate detection */
@@ -77,6 +85,11 @@ export class EntitySelectorEditorComponent {
   // childScope that resolves a picked parent to its children.
   protected editChildScopeDirection: 'in' | 'out' = 'in';
 
+  // Leader/follower (AB#7722): id of the selector this one follows ('' = none).
+  protected editFollowsSelectorId = '';
+  /** Why choosing the leader changed the form (CK type fixed, mappings/default cleared). */
+  protected followNotice = '';
+
   // Data sources for the default entity picker (created when CK type is set)
   protected defaultEntityDataSource: RuntimeEntitySelectDataSource | null = null;
   protected defaultEntityDialogDataSource: RuntimeEntityDialogDataSource | null = null;
@@ -97,6 +110,8 @@ export class EntitySelectorEditorComponent {
     this.editChildScopeTargetCkTypeItem = null;
     this.editChildScopeRoleId = 'System/ParentChild';
     this.editChildScopeDirection = 'in';
+    this.editFollowsSelectorId = '';
+    this.followNotice = '';
     this.defaultEntityDataSource = null;
     this.defaultEntityDialogDataSource = null;
     this.isEditing = true;
@@ -133,6 +148,14 @@ export class EntitySelectorEditorComponent {
       : null;
     this.editChildScopeRoleId = selector.childScope?.roleId ?? 'System/ParentChild';
     this.editChildScopeDirection = selector.childScope?.direction ?? 'in';
+    this.editFollowsSelectorId = selector.followsSelectorId ?? '';
+    this.followNotice = '';
+    // A follower picks from its leader's CK type; re-sync it in case the leader's
+    // type changed after the follower was saved.
+    const leader = resolveFollowLeader(this.entitySelectors, selector);
+    if (leader.kind === 'leader' && leader.leader.ckTypeId !== this.editCkTypeId) {
+      this.applyLeaderCkType(leader.leader.ckTypeId);
+    }
     this.updateDefaultEntityDataSources();
     this.isEditing = true;
     this.editingStateChange.emit(true);
@@ -141,9 +164,88 @@ export class EntitySelectorEditorComponent {
   /**
    * Removes an entity selector at the given index.
    */
-  removeSelector(index: number): void {
+  async removeSelector(index: number): Promise<void> {
+    const selector = this.entitySelectors[index];
+    const followers = selector ? selectorsFollowing(this.entitySelectors, selector.id) : [];
+    if (followers.length > 0 && this.confirmationService) {
+      // AB#7722: removing a leader orphans its followers — name them.
+      const name = selector.label || selector.id;
+      const confirmed = await this.confirmationService.showDangerConfirm({
+        title: `Remove selector ${name}?`,
+        targetName: name,
+        consequence: `${labelList(followers)} ${followers.length === 1 ? 'follows' : 'follow'} this selector. `
+          + 'Without a leader they behave as if the leader had no pick until you choose another leader.',
+        confirmText: 'Remove selector'
+      });
+      if (!confirmed) return;
+    }
     this.entitySelectors = this.entitySelectors.filter((_, i) => i !== index);
     this.emitChange();
+  }
+
+  /** Selectors the edited selector may follow (non-followers, never itself). */
+  get leaderOptions(): EntitySelectorConfig[] {
+    return eligibleLeaders(this.entitySelectors, this.editId);
+  }
+
+  /** Selectors that follow the edited selector (it then cannot follow one itself). */
+  get followedBy(): EntitySelectorConfig[] {
+    return this.editingIndex === null ? [] : selectorsFollowing(this.entitySelectors, this.editId);
+  }
+
+  /** True when the stored leader is not among the selectable leaders (deleted or a follower). */
+  get isLeaderUnavailable(): boolean {
+    return !!this.editFollowsSelectorId && !this.leaderOptions.some(l => l.id === this.editFollowsSelectorId);
+  }
+
+  /** "A, B and C" of the selectors following the edited one. */
+  get followedByLabels(): string {
+    return labelList(this.followedBy);
+  }
+
+  /** Validation message of the "Follows" choice, or '' when it is valid. */
+  get followError(): string {
+    return followValidationError(this.entitySelectors, this.editId, this.editFollowsSelectorId || undefined) ?? '';
+  }
+
+  /** True while the edited selector follows another one. */
+  get isFollower(): boolean {
+    return !!this.editFollowsSelectorId;
+  }
+
+  /**
+   * Handles a change of the "Follows" choice. Choosing a leader fixes the CK type
+   * to the leader's (clearing default entity and mappings with a notice when the
+   * type changes) and hides the toolbar option; back to none makes the CK type
+   * editable again with "Show in Toolbar" unchecked.
+   */
+  onFollowsChanged(leaderId: string): void {
+    this.editFollowsSelectorId = leaderId;
+    this.followNotice = '';
+    this.editShowInToolbar = false;
+    if (!leaderId) return;
+    const leader = this.entitySelectors.find(s => s.id === leaderId);
+    if (leader && leader.ckTypeId !== this.editCkTypeId) {
+      const cleared = this.editMappings.length > 0 || !!this.editDefaultRtId;
+      this.applyLeaderCkType(leader.ckTypeId);
+      this.updateDefaultEntityDataSources();
+      if (cleared) {
+        this.followNotice = `The CK type is now the leader's (${leader.ckTypeId}); `
+          + 'the default entity and attribute mappings of the previous type were cleared.';
+      }
+    }
+  }
+
+  /** True when the selector names a leader that does not exist or is itself a follower. */
+  isOrphanFollower(selector: EntitySelectorConfig): boolean {
+    return resolveFollowLeader(this.entitySelectors, selector).kind === 'invalid';
+  }
+
+  private applyLeaderCkType(ckTypeId: string): void {
+    this.editCkTypeId = ckTypeId;
+    this.editCkTypeItem = { fullName: ckTypeId, rtCkTypeId: ckTypeId, isAbstract: false, isFinal: false };
+    this.editMappings = [];
+    this.editDefaultRtId = '';
   }
 
   /**
@@ -249,7 +351,9 @@ export class EntitySelectorEditorComponent {
       attributeMappings: this.editMappings,
       showInToolbar: this.editShowInToolbar,
       defaultRtId: this.editDefaultRtId.trim() || undefined,
-      childScope
+      childScope,
+      // A follower never renders a picker (AB#7722).
+      ...(this.editFollowsSelectorId ? { showInToolbar: false, followsSelectorId: this.editFollowsSelectorId } : {})
     };
 
     if (this.editingIndex !== null) {
@@ -283,7 +387,8 @@ export class EntitySelectorEditorComponent {
       this.editId.trim().length > 0 &&
       this.editLabel.trim().length > 0 &&
       this.editCkTypeId.length > 0 &&
-      this.editMappings.length > 0 &&
+      // A follower mostly exists for its child scope: mappings are optional (AB#7722).
+      (this.isFollower || this.editMappings.length > 0) &&
       this.editMappings.every(m =>
         m.variableName.trim().length > 0 &&
         this.isValidVariableName(m.variableName) &&
@@ -291,8 +396,13 @@ export class EntitySelectorEditorComponent {
       ) &&
       !this.isDuplicateId(this.editId, this.editingIndex);
 
-    // If not shown in toolbar, a default entity must be selected
-    if (!this.editShowInToolbar && !this.editDefaultRtId.trim()) {
+    // If not shown in toolbar, a default entity must be selected — except for a
+    // follower, which takes its leader's pick (AB#7722).
+    if (!this.isFollower && !this.editShowInToolbar && !this.editDefaultRtId.trim()) {
+      return false;
+    }
+
+    if (this.followError) {
       return false;
     }
 
@@ -319,6 +429,13 @@ export class EntitySelectorEditorComponent {
    * Gets a display label indicating the selector mode.
    */
   getModeLabel(selector: EntitySelectorConfig): string {
+    const leader = resolveFollowLeader(this.entitySelectors, selector);
+    if (leader.kind === 'leader') {
+      return `Follows: ${leader.leader.label || leader.leader.id}`;
+    }
+    if (leader.kind === 'invalid') {
+      return 'Follows: missing';
+    }
     return selector.showInToolbar !== false ? 'Toolbar' : 'Fixed';
   }
 

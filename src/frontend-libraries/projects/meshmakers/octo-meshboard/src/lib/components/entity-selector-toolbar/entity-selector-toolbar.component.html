@@ -1,6 +1,6 @@
 <div class="entity-selector-toolbar">
   @for (selector of entitySelectors; track selector.id) {
-    @if (selector.showInToolbar !== false) {
+    @if (showsInToolbar(selector)) {
     <div class="entity-selector-item">
       <kendo-label [text]="selector.label">
         <mm-entity-select-input
