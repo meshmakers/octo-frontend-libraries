@@ -36,6 +36,7 @@ import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, Entit
 import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows } from '../../utils/compact-layout';
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
+import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from '../../dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';
 import {
   EntitySelectorToolbarComponent,
@@ -269,6 +270,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   });
 
   constructor() {
+    this.messages = injectMeshBoardMessages();
+
     // Effect to sync URL when dashboard changes (after initial load)
     effect(() => {
       const currentRtId = this.stateService.persistedMeshBoardId();
@@ -390,6 +393,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         // Load MeshBoard by well-known name from route data
         const widgets = await this.stateService.switchToMeshBoardByWellKnownName(wellKnownName);
         if (widgets) {
+          this.primeEntitySelectorScopes();
           await this.preloadWidgetData(widgets);
         } else {
           // Show error if MeshBoard with well-known name not found
@@ -398,6 +402,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       } else {
         // Load initial MeshBoard (first available)
         const widgets = await this.stateService.loadInitialMeshBoard();
+        this.primeEntitySelectorScopes();
         await this.preloadWidgetData(widgets);
       }
 
@@ -469,10 +474,12 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     if (exists) {
       // Switch to the requested MeshBoard
       const switchedWidgets = await this.stateService.switchToMeshBoard(rtId);
+      this.primeEntitySelectorScopes();
       await this.preloadWidgetData(switchedWidgets);
     } else {
       // MeshBoard not found - use whatever was loaded initially
       console.warn(`MeshBoard with rtId ${rtId} not found, using default`);
+      this.primeEntitySelectorScopes();
       await this.preloadWidgetData(widgets);
     }
   }
@@ -852,11 +859,37 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   clearEntitySelector(selectorId: string): void {
     this.stateService.updateEntitySelectorSelection(selectorId, undefined);
     this.stateService.clearEntitySelectorVariables(selectorId);
+    // Without a pick bound widgets fall back to the persisted scope (AB#7721).
+    this.scopeRequestSeq.set(selectorId, (this.scopeRequestSeq.get(selectorId) ?? 0) + 1);
+    this.stateService.clearEntitySelectorRtIds(selectorId);
     this.stateService.triggerRefresh();
   }
 
   /** Resolution errors for runtime entity variables */
   readonly variableResolutionErrors = this.stateService.variableResolutionErrors;
+
+  // Assigned in the constructor: a field initialised from a relative import breaks under the
+  // Vitest module runner (see the frontend-libraries CLAUDE.md).
+  private readonly messages: ReturnType<typeof injectMeshBoardMessages>;
+
+  /**
+   * One notice per entity selector whose stream-data scope could not be
+   * resolved (AB#7721), so "nothing in scope" (empty widgets, no notice) and
+   * "lookup failed" (empty widgets plus this notice) are distinguishable.
+   */
+  protected readonly scopeResolutionErrors = computed(() => {
+    const template = this.messages().scopeResolutionFailed;
+    return this.stateService.failedEntitySelectorScopeIds().map(id => {
+      const label = this.stateService.getEntitySelector(id)?.label || id;
+      return { selectorId: id, message: template.split('{label}').join(label) };
+    });
+  });
+
+  /**
+   * Per-selector sequence number of the latest scope resolution, so a slower
+   * resolution of an earlier pick never overwrites the scope of a newer pick.
+   */
+  private readonly scopeRequestSeq = new Map<string, number>();
 
   // ============================================================================
   // Time Filter Event Handlers
@@ -1375,7 +1408,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     // Clear variables for this selector
     this.stateService.clearEntitySelectorVariables(selectorId);
 
-    // Clear the resolved stream-data scope rtIds for this selector
+    // Clear the resolved stream-data scope for this selector: without a pick
+    // bound widgets fall back to the persisted scope (AB#7721).
+    this.scopeRequestSeq.set(selectorId, (this.scopeRequestSeq.get(selectorId) ?? 0) + 1);
     this.stateService.clearEntitySelectorRtIds(selectorId);
 
     // Sync to URL
@@ -1389,23 +1424,58 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Initializes entity selectors from URL params, route data, or defaults.
    */
   private async initializeEntitySelectors(): Promise<void> {
-    const selectors = this.stateService.getEntitySelectors();
-    if (selectors.length === 0) return;
+    const picks = this.initialEntitySelectorPicks();
+    if (picks.length === 0) return;
 
-    // Read URL params
+    // Mark every picked scope pending before the first await, so no bound
+    // widget queries the persisted scope while the picks resolve (AB#7721).
+    this.primeEntitySelectorScopes();
+
+    for (const { selector, rtId } of picks) {
+      const displayName = await this.resolveEntitySelectorVariables(selector, rtId);
+      this.stateService.updateEntitySelectorSelection(selector.id, rtId, displayName);
+    }
+
+    // Widgets reload only when their config reference changes. Bound widgets
+    // rendered while their scope was pending must now load with the resolved
+    // scope (AB#7721).
+    this.stateService.triggerRefresh();
+  }
+
+  /**
+   * The initial pick of each entity selector. Priority: route data > URL
+   * params > defaultRtId. Selectors without a pick are left out.
+   */
+  private initialEntitySelectorPicks(): { selector: EntitySelectorConfig; rtId: string }[] {
+    const selectors = this.stateService.getEntitySelectors();
+    if (selectors.length === 0) return [];
+
     const urlSelections = this.readEntitySelectorsFromUrl();
-    // Read route data
     const routeData = this.route.snapshot.data['entitySelectors'] as Record<string, string> | undefined;
 
+    const picks: { selector: EntitySelectorConfig; rtId: string }[] = [];
     for (const selector of selectors) {
-      // Priority: route data > URL params > defaultRtId
       const rtId = routeData?.[selector.id]
         ?? urlSelections.get(selector.id)
         ?? selector.defaultRtId;
-
       if (rtId) {
-        const displayName = await this.resolveEntitySelectorVariables(selector, rtId);
-        this.stateService.updateEntitySelectorSelection(selector.id, rtId, displayName);
+        picks.push({ selector, rtId });
+      }
+    }
+    return picks;
+  }
+
+  /**
+   * Marks the scope of every selector that has an initial pick as pending
+   * (AB#7721). Called synchronously right after a board is loaded, before
+   * change detection renders its widgets, so a bound stream-data widget starts
+   * in its loading state instead of querying the persisted (unscoped) scope.
+   * Selectors without a pick stay without scope state (persisted scope).
+   */
+  private primeEntitySelectorScopes(): void {
+    for (const { selector } of this.initialEntitySelectorPicks()) {
+      if (!this.stateService.getEntitySelectorScopeState(selector.id)) {
+        this.stateService.setEntitySelectorScopePending(selector.id);
       }
     }
   }
@@ -1414,6 +1484,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Resolves variables for an entity selector by fetching entity attributes.
    */
   private async resolveEntitySelectorVariables(selector: EntitySelectorConfig, rtId: string): Promise<string | undefined> {
+    // The scope of the new pick is unknown until it resolves: bound widgets
+    // must neither keep the previous pick's scope nor fall back to the
+    // persisted one (AB#7721).
+    const seq = this.beginScopeResolution(selector.id);
     try {
       const entity = await firstValueFrom(
         this.dataService.fetchRuntimeEntity({
@@ -1425,6 +1499,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
       if (!entity) {
         console.warn(`Entity not found for selector '${selector.id}': ${rtId}`);
+        // The pick cannot be resolved: bound widgets show no data instead of
+        // waiting forever or falling back to the persisted scope (AB#7721).
+        this.failScopeResolution(selector.id, seq);
         return undefined;
       }
 
@@ -1465,7 +1542,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       // childScope traversal, or the picked entity itself). Runs alongside the
       // variable resolution so widgets bound to this selector can scope their
       // stream-data query by the resolved source rtIds.
-      await this.resolveEntitySelectorScopeRtIds(selector, rtId);
+      await this.resolveEntitySelectorScopeRtIds(selector, rtId, seq);
 
       // Label the selection the way the pick dialog does: by the engine's
       // display name (the type's displayNameRule — "2026" for a fiscal year),
@@ -1475,6 +1552,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       return entity.rtDisplayName || entity.rtWellKnownName || entity.rtId;
     } catch (error) {
       console.error(`Error resolving entity selector '${selector.id}':`, error);
+      // Same as above: a failed pick is an empty scope, never the persisted one.
+      this.failScopeResolution(selector.id, seq);
       return undefined;
     }
   }
@@ -1488,7 +1567,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * become the scope (e.g. MeteringPoint → its EnergyMeasurement rtIds). With
    * no childScope, the picked entity's own rtId is the scope (direct keying).
    */
-  private async resolveEntitySelectorScopeRtIds(selector: EntitySelectorConfig, rtId: string): Promise<void> {
+  private async resolveEntitySelectorScopeRtIds(selector: EntitySelectorConfig, rtId: string, seq: number): Promise<void> {
+    const isCurrent = (): boolean => this.scopeRequestSeq.get(selector.id) === seq;
+    if (!isCurrent()) return;
+
     const childScope = selector.childScope;
     if (!childScope?.targetCkTypeId || !childScope.roleId) {
       this.stateService.setEntitySelectorRtIds(selector.id, [rtId]);
@@ -1507,15 +1589,38 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
           childScope.direction ?? 'in'
         )
       );
+      if (!isCurrent()) return;
       const childRtIds = (targets ?? [])
         .map(t => String(t.rtId))
         .filter(id => id.length > 0);
+      // An empty list is a resolved EMPTY scope: bound widgets show no data and
+      // send no query — never the persisted scope, which would show rows of
+      // other entities (AB#7721).
       this.stateService.setEntitySelectorRtIds(selector.id, childRtIds);
     } catch (error) {
+      if (!isCurrent()) return;
+      // Logged once per failed resolution; the view shows a notice and bound
+      // widgets show no data (AB#7721).
       console.error(`Error resolving child scope for selector '${selector.id}':`, error);
-      // Empty scope is safer than a stale one: the bound widget falls back to
-      // its persisted scope rather than querying the wrong asset.
-      this.stateService.setEntitySelectorRtIds(selector.id, []);
+      this.stateService.setEntitySelectorScopeFailed(selector.id);
+    }
+  }
+
+  /**
+   * Starts the scope resolution of a new pick: marks the scope pending and
+   * returns the sequence number that identifies this resolution (AB#7721).
+   */
+  private beginScopeResolution(selectorId: string): number {
+    const seq = (this.scopeRequestSeq.get(selectorId) ?? 0) + 1;
+    this.scopeRequestSeq.set(selectorId, seq);
+    this.stateService.setEntitySelectorScopePending(selectorId);
+    return seq;
+  }
+
+  /** Marks the scope failed — unless a newer pick has started resolving meanwhile. */
+  private failScopeResolution(selectorId: string, seq: number): void {
+    if (this.scopeRequestSeq.get(selectorId) === seq) {
+      this.stateService.setEntitySelectorScopeFailed(selectorId);
     }
   }
 

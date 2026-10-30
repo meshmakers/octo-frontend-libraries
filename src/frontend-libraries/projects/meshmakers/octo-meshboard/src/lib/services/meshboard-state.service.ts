@@ -15,6 +15,8 @@ import {
   VariableResolutionError,
   EntitySelectorConfig
 } from '../models/meshboard.models';
+import { EntitySelectorScopeState, StreamDataScope } from '../utils/stream-data-scope';
+import type { QueryFamily } from '../utils/query-family';
 
 /** The CK model required for the MeshBoard feature */
 const REQUIRED_CK_MODEL = 'System.UI';
@@ -43,12 +45,14 @@ export class MeshBoardStateService {
   private readonly _isModelAvailable = signal<boolean | null>(null);
   private readonly _variableResolutionErrors = signal<VariableResolutionError[]>([]);
   /**
-   * Transient cache of the source rtIds resolved from each entity selector's
-   * current selection (keyed by selector id). Populated by the view component
-   * when a selection resolves (one-hop childScope traversal, or the picked
-   * entity's own rtId). Not persisted — derived fresh from each selection.
+   * Transient scope state of each entity selector's current selection (keyed
+   * by selector id): `pending` while the view resolves the pick, `resolved`
+   * with the source rtIds (one-hop childScope traversal, or the picked entity's
+   * own rtId; possibly none), or `failed`. No entry = no active pick. Not
+   * persisted — derived fresh from each selection, cleared on board switch
+   * (AB#7721).
    */
-  private readonly _entitySelectorRtIds = signal<Record<string, string[]>>({});
+  private readonly _entitySelectorScopes = signal<Record<string, EntitySelectorScopeState>>({});
   /**
    * Transient variables published by widgets (KPI output variables, AB#5364).
    * Kept apart from `_meshBoardConfig` so publishing triggers no persistence and
@@ -186,6 +190,7 @@ export class MeshBoardStateService {
         }
 
         this._widgetVariables.set([]);
+        this._entitySelectorScopes.set({});
         this._hiddenForViewer.set(new Set());
         this._widgetContentHeights.set(new Map());
         this._loadedTenantId.set(tenantId);
@@ -804,21 +809,43 @@ export class MeshBoardStateService {
   }
 
   /**
-   * Stores the source rtIds resolved from an entity selector's current
-   * selection. Called by the view component after a selection resolves (the
-   * one-hop childScope traversal, or the picked entity's own rtId when the
-   * selector has no childScope). Transient — not persisted.
+   * Marks an entity selector's scope as being resolved (AB#7721). Bound
+   * stream-data widgets show their loading state and send no query until the
+   * scope is resolved, failed or cleared — so they never flash rows of the
+   * query's persisted (unscoped) scope while a pick is resolving.
    */
-  setEntitySelectorRtIds(selectorId: string, rtIds: string[]): void {
-    this._entitySelectorRtIds.update(map => ({ ...map, [selectorId]: rtIds }));
+  setEntitySelectorScopePending(selectorId: string): void {
+    this.setEntitySelectorScope(selectorId, { status: 'pending' });
   }
 
   /**
-   * Clears the cached source rtIds for an entity selector (e.g. when its
-   * selection is cleared).
+   * Stores the source rtIds resolved from an entity selector's current
+   * selection. Called by the view component after a selection resolves (the
+   * one-hop childScope traversal, or the picked entity's own rtId when the
+   * selector has no childScope). An empty array is a resolved EMPTY scope:
+   * bound widgets show no data and send no query (AB#7721). Transient — not
+   * persisted.
+   */
+  setEntitySelectorRtIds(selectorId: string, rtIds: string[]): void {
+    this.setEntitySelectorScope(selectorId, { status: 'resolved', rtIds: [...rtIds] });
+  }
+
+  /**
+   * Marks an entity selector's scope resolution as failed (e.g. the association
+   * fetch threw). Bound widgets treat it like an empty scope — no data, no
+   * query — and the view tells the user the scope could not be resolved
+   * (AB#7721).
+   */
+  setEntitySelectorScopeFailed(selectorId: string): void {
+    this.setEntitySelectorScope(selectorId, { status: 'failed' });
+  }
+
+  /**
+   * Clears the scope state for an entity selector (its selection was cleared).
+   * Bound widgets then query with the persisted scope again.
    */
   clearEntitySelectorRtIds(selectorId: string): void {
-    this._entitySelectorRtIds.update(map => {
+    this._entitySelectorScopes.update(map => {
       if (!(selectorId in map)) {
         return map;
       }
@@ -828,18 +855,70 @@ export class MeshBoardStateService {
     });
   }
 
+  /** The raw scope state of a selector, or `undefined` when it has no active pick. */
+  getEntitySelectorScopeState(selectorId: string): EntitySelectorScopeState | undefined {
+    return this._entitySelectorScopes()[selectorId];
+  }
+
   /**
-   * Resolves the stream-data `rtIds` scope for a persistent-query widget bound
-   * to an entity selector. Returns the source rtIds cached from the selector's
-   * current selection, or `undefined` when the selector id is absent, unknown,
-   * or has no active selection (so the query keeps its persisted scope).
+   * Ids of the selectors whose scope resolution failed (for the view's
+   * "could not resolve the scope" notice, AB#7721).
+   */
+  readonly failedEntitySelectorScopeIds = computed(() =>
+    Object.entries(this._entitySelectorScopes())
+      .filter(([, state]) => state.status === 'failed')
+      .map(([id]) => id)
+  );
+
+  /**
+   * Decides how a widget bound to an entity selector runs its stream-data query
+   * (AB#7721):
+   *
+   * - `unscoped` — no binding, a runtime query (`family === 'runtime'`, the
+   *   binding is ignored there), or no active pick: keep the persisted scope.
+   * - `pending` — the pick is still resolving: show loading, send no query.
+   * - `scoped` — query with the resolved source rtIds.
+   * - `empty` — the pick has nothing in scope or the lookup failed: show the
+   *   no-data state and send no query. Never fall back to the persisted scope.
+   *
+   * A legacy config without `queryFamily` is treated as stream data.
+   */
+  resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily): StreamDataScope {
+    if (!entitySelectorId || family === 'runtime') {
+      return { kind: 'unscoped' };
+    }
+    const state = this._entitySelectorScopes()[entitySelectorId];
+    if (!state) {
+      return { kind: 'unscoped' };
+    }
+    switch (state.status) {
+      case 'pending':
+        return { kind: 'pending' };
+      case 'failed':
+        return { kind: 'empty', reason: 'failed' };
+      case 'resolved':
+        return state.rtIds.length > 0
+          ? { kind: 'scoped', rtIds: state.rtIds }
+          : { kind: 'empty', reason: 'noTargets' };
+    }
+  }
+
+  /**
+   * Resolves the stream-data `rtIds` for a persistent-query widget bound to an
+   * entity selector: the resolved source rtIds when the scope is `scoped`,
+   * otherwise `undefined`.
+   *
+   * `undefined` does NOT mean "query with the persisted scope" for a pending or
+   * empty scope — callers must check {@link resolveStreamDataScope} first and
+   * skip the query for `pending` / `empty` (AB#7721).
    */
   resolveStreamDataRtIds(entitySelectorId?: string): string[] | undefined {
-    if (!entitySelectorId) {
-      return undefined;
-    }
-    const rtIds = this._entitySelectorRtIds()[entitySelectorId];
-    return rtIds && rtIds.length > 0 ? rtIds : undefined;
+    const scope = this.resolveStreamDataScope(entitySelectorId);
+    return scope.kind === 'scoped' ? scope.rtIds : undefined;
+  }
+
+  private setEntitySelectorScope(selectorId: string, state: EntitySelectorScopeState): void {
+    this._entitySelectorScopes.update(map => ({ ...map, [selectorId]: state }));
   }
 
   /**

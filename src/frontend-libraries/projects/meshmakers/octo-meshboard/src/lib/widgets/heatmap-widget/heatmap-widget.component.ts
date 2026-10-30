@@ -6,6 +6,7 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
 import { ChartsModule } from '@progress/kendo-angular-charts';
 import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { emptyQueryExecutionResult } from '../../utils/stream-data-scope';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
@@ -341,19 +342,28 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       // queryFamily may be undefined for legacy widget configs — the executor
       // falls back to a one-time lookup by rtId. streamDataArgs is sent
       // unconditionally because the runtime path ignores it.
+      // Entity-selector scope (AB#7721): pending → stay in the loading state and
+      // send no query (the view refreshes once the scope is known); empty → render
+      // the empty grid without querying the persisted (unscoped) scope.
+      const scope = this.stateService.resolveStreamDataScope(queryDataSource.entitySelectorId, queryDataSource.queryFamily);
+      if (scope.kind === 'pending') {
+        return;
+      }
       const streamDataArgs = this.buildStreamDataArgs();
 
-      const result = await firstValueFrom(
-        this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
-          fieldFilter: fieldFilter ?? undefined,
-          streamDataArgs
-        }).pipe(
-          catchError(err => {
-            console.error('Error loading Heatmap data:', err);
-            throw err;
-          })
-        )
-      );
+      const result = scope.kind === 'empty'
+        ? emptyQueryExecutionResult(queryDataSource.queryFamily)
+        : await firstValueFrom(
+          this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
+            fieldFilter: fieldFilter ?? undefined,
+            streamDataArgs
+          }).pipe(
+            catchError(err => {
+              console.error('Error loading Heatmap data:', err);
+              throw err;
+            })
+          )
+        );
 
       const filteredRows = result.rows.filter(row =>
         HeatmapWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')

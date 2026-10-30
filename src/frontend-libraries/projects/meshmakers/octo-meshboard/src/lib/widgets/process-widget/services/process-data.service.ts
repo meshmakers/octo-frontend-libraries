@@ -18,6 +18,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
 import { MeshBoardDataService } from '../../../services/meshboard-data.service';
 import { MeshBoardVariableService } from '../../../services/meshboard-variable.service';
 import { MeshBoardStateService } from '../../../services/meshboard-state.service';
+import { emptyQueryExecutionResult } from '../../../utils/stream-data-scope';
 import { QueryExecutorService, QueryExecutionResult, StreamDataExecutionArgs } from '../../../services/query-executor.service';
 import { RuntimeEntityData, WidgetFilterConfig } from '../../../models/meshboard.models';
 import { ProcessWidgetConfig } from '../process-widget-config.model';
@@ -87,6 +88,13 @@ export interface BoundDataResult {
 
   /** Error message if data loading failed */
   error?: string;
+
+  /**
+   * `true` while the bound entity-selector scope is still resolving (AB#7721): no query was
+   * sent and there is no data yet; the widget stays in its loading state until the refresh that
+   * follows the resolution.
+   */
+  pending?: boolean;
 
   /** Timestamp of the data load */
   loadedAt: Date;
@@ -712,6 +720,22 @@ export class ProcessDataService {
 
     if (!bindingQueryRtId) {
       throw new Error('Persistent query binding requires a Query rtId');
+    }
+
+    // Entity-selector scope (AB#7721): NO query is sent while the scope is pending
+    // or empty — never the persisted (unscoped) scope. Pending → a `pending` result
+    // (the widget stays loading; a refresh follows once the scope resolves);
+    // empty → no rows.
+    const scope = this.stateService.resolveStreamDataScope(config.bindingEntitySelectorId, bindingQueryFamily);
+    if (scope.kind === 'pending') {
+      return { type: 'query', pending: true, loadedAt: new Date() };
+    }
+    if (scope.kind === 'empty') {
+      return {
+        type: 'query',
+        queryResult: this.mapExecutionResult(emptyQueryExecutionResult(bindingQueryFamily)),
+        loadedAt: new Date()
+      };
     }
 
     // Convert widget filters to GraphQL format with variable resolution
