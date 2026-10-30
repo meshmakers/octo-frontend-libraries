@@ -302,6 +302,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Entity Selector computed signals
   protected readonly entitySelectorsConfig = computed(() => this.stateService.getEntitySelectors());
+  /** Board variables substituted into the selectors' picker filters (AB#7724). */
+  protected readonly boardVariables = computed(() => this.stateService.getVariables());
   protected readonly hasEntitySelectors = computed(() =>
     !this.hideEntitySelectors() && (this.entitySelectorsConfig()?.some(es => showsInToolbar(es)) ?? false)
   );

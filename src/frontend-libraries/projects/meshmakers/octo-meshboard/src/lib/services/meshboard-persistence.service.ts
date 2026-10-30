@@ -551,7 +551,12 @@ export class MeshBoardPersistenceService {
           childScope: es.childScope,
           // AB#7722 — omitted (undefined → dropped by JSON.stringify) for
           // selectors that follow nobody, so older boards encode unchanged.
-          followsSelectorId: es.followsSelectorId || undefined
+          followsSelectorId: es.followsSelectorId || undefined,
+          // AB#7724 — omitted when empty, so older boards encode unchanged;
+          // rows are reduced to the persisted filter fields (no editor state).
+          filters: es.filters?.length
+            ? es.filters.map(f => ({ attributePath: f.attributePath, operator: f.operator, comparisonValue: f.comparisonValue }))
+            : undefined
         }));
       }
 

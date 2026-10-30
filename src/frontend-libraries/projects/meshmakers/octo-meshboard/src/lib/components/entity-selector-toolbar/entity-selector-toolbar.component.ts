@@ -1,11 +1,19 @@
 import { Component, Input, Output, EventEmitter, inject, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KENDO_LABELS } from '@progress/kendo-angular-label';
-import { EntitySelectInputComponent } from '@meshmakers/shared-ui';
+import { EntitySelectInputComponent, EntitySelectInputMessages } from '@meshmakers/shared-ui';
 import { RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource, RuntimeEntityItem } from '../../utils/runtime-entity-data-sources';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
-import { EntitySelectorConfig } from '../../models/meshboard.models';
+import { EntitySelectorConfig, MeshBoardVariable } from '../../models/meshboard.models';
 import { showsInToolbar } from '../../utils/entity-selector-follow';
+import {
+  filteredDialogTitle,
+  filteredNoEntitiesMessage,
+  pickerFieldFilters,
+  unresolvedFilterVariables,
+  withPickerFilters
+} from '../../utils/entity-selector-filter';
+import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 
 /**
  * Event emitted when an entity is selected in a selector.
@@ -24,7 +32,7 @@ export interface EntitySelectorClearEvent {
 
 /**
  * Toolbar component that renders entity select inputs for each configured entity selector.
- * Creates data sources per CK type and emits selection/clear events.
+ * Creates data sources per CK type and picker filter (AB#7724) and emits selection/clear events.
  */
 @Component({
   selector: 'mm-entity-selector-toolbar',
@@ -40,23 +48,41 @@ export interface EntitySelectorClearEvent {
 })
 export class EntitySelectorToolbarComponent implements OnChanges {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
+  private readonly variableService = inject(MeshBoardVariableService);
 
   @Input() entitySelectors: EntitySelectorConfig[] = [];
+  /**
+   * Board variables substituted into the selectors' picker filters (AB#7724),
+   * the same substitution widget filters get.
+   */
+  @Input() variables: MeshBoardVariable[] = [];
   @Output() entitySelected = new EventEmitter<EntitySelectorEvent>();
   @Output() entityCleared = new EventEmitter<EntitySelectorClearEvent>();
 
-  // Cached data sources per CK type
+  // Cached data sources per CK type and resolved picker filter
   private dataSourceCache = new Map<string, RuntimeEntitySelectDataSource>();
   private dialogDataSourceCache = new Map<string, RuntimeEntityDialogDataSource>();
 
   // Map of selector ID -> data sources for template
   protected selectorDataSources = new Map<string, RuntimeEntitySelectDataSource>();
   protected selectorDialogDataSources = new Map<string, RuntimeEntityDialogDataSource>();
+  // Picker texts of filtered selectors (absent ⇒ the input's defaults)
+  protected selectorMessages = new Map<string, Partial<EntitySelectInputMessages>>();
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['entitySelectors']) {
+    if (changes['entitySelectors'] || changes['variables']) {
       this.updateDataSources();
     }
+  }
+
+  /** Texts of the selector's picker: a filtered picker explains its empty list (AB#7724). */
+  getMessages(selector: EntitySelectorConfig): Partial<EntitySelectInputMessages> {
+    return this.selectorMessages.get(selector.id) ?? NO_MESSAGES;
+  }
+
+  /** Title of the selector's search dialog; marks a filtered picker (AB#7724). */
+  getDialogTitle(selector: EntitySelectorConfig): string {
+    return this.selectorMessages.has(selector.id) ? filteredDialogTitle(selector.label) : 'Select ' + selector.label;
   }
 
   /**
@@ -96,26 +122,45 @@ export class EntitySelectorToolbarComponent implements OnChanges {
   }
 
   /**
-   * Creates or retrieves cached data sources for each selector.
+   * Creates or retrieves cached data sources for each selector. Selectors of
+   * the same CK type and the same resolved filter share their data sources; a
+   * selector without filter uses the plain query, exactly as before AB#7724.
+   * Entries no selector uses any more (e.g. after a filter variable changed)
+   * are dropped, so the caches never outgrow the current selectors.
    */
   private updateDataSources(): void {
+    this.selectorMessages = new Map();
+    const usedKeys = new Set<string>();
     for (const selector of this.entitySelectors) {
-      // Reuse cached data source if same CK type
-      if (!this.dataSourceCache.has(selector.ckTypeId)) {
-        this.dataSourceCache.set(
-          selector.ckTypeId,
-          new RuntimeEntitySelectDataSource(this.getEntitiesByCkTypeGQL, selector.ckTypeId)
-        );
-      }
-      if (!this.dialogDataSourceCache.has(selector.ckTypeId)) {
-        this.dialogDataSourceCache.set(
-          selector.ckTypeId,
-          new RuntimeEntityDialogDataSource(this.getEntitiesByCkTypeGQL, selector.ckTypeId)
-        );
+      const filters = pickerFieldFilters(selector, this.variables, this.variableService);
+      const key = filters ? `${selector.ckTypeId}|${JSON.stringify(filters)}` : selector.ckTypeId;
+      usedKeys.add(key);
+      if (!this.dataSourceCache.has(key) || !this.dialogDataSourceCache.has(key)) {
+        const gql = withPickerFilters(this.getEntitiesByCkTypeGQL, filters);
+        this.dataSourceCache.set(key, new RuntimeEntitySelectDataSource(gql, selector.ckTypeId));
+        this.dialogDataSourceCache.set(key, new RuntimeEntityDialogDataSource(gql, selector.ckTypeId));
       }
 
-      this.selectorDataSources.set(selector.id, this.dataSourceCache.get(selector.ckTypeId)!);
-      this.selectorDialogDataSources.set(selector.id, this.dialogDataSourceCache.get(selector.ckTypeId)!);
+      this.selectorDataSources.set(selector.id, this.dataSourceCache.get(key)!);
+      this.selectorDialogDataSources.set(selector.id, this.dialogDataSourceCache.get(key)!);
+      if (filters) {
+        this.selectorMessages.set(selector.id, {
+          noEntitiesFound: filteredNoEntitiesMessage(selector.label, unresolvedFilterVariables(filters))
+        });
+      }
+    }
+    for (const key of [...this.dataSourceCache.keys()]) {
+      if (!usedKeys.has(key)) {
+        this.dataSourceCache.delete(key);
+        this.dialogDataSourceCache.delete(key);
+      }
     }
   }
+
+  /** Number of cached data source pairs (for tests). */
+  get cachedDataSourceCount(): number {
+    return this.dataSourceCache.size;
+  }
 }
+
+const NO_MESSAGES: Partial<EntitySelectInputMessages> = {};

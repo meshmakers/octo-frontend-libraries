@@ -8,7 +8,8 @@
           [dialogDataSource]="getDialogDataSource(selector)"
           [initialDisplayValue]="selector.selectedDisplayName"
           [placeholder]="'Select ' + selector.label + '...'"
-          [dialogTitle]="'Select ' + selector.label"
+          [dialogTitle]="getDialogTitle(selector)"
+          [messages]="getMessages(selector)"
           (entitySelected)="onEntitySelected(selector.id, $event)"
           (entityCleared)="onEntityCleared(selector.id)">
         </mm-entity-select-input>

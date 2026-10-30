@@ -1,4 +1,7 @@
-import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, of } from 'rxjs';
+import { catchError, debounceTime, map, switchMap } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
@@ -9,10 +12,19 @@ import { plusIcon, pencilIcon } from '@progress/kendo-svg-icons';
 import { ConfirmationService, EntitySelectInputComponent, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import {
   CkTypeSelectorInputComponent,
-  AttributeSelectorDialogService
+  AttributeSelectorDialogService,
+  FieldFilterEditorComponent,
+  type FieldFilterItem,
+  type FilterVariable
 } from '@meshmakers/octo-ui';
-import { CkTypeSelectorItem, type AttributeItem } from '@meshmakers/octo-services';
-import { EntitySelectorConfig, EntitySelectorAttributeMapping, EntitySelectorScopeHop } from '../../models/meshboard.models';
+import { CkTypeSelectorItem, FieldFilterOperatorsDto, type AttributeItem, type FieldFilterDto } from '@meshmakers/octo-services';
+import {
+  EntitySelectorConfig,
+  EntitySelectorAttributeMapping,
+  EntitySelectorScopeHop,
+  MeshBoardVariable,
+  WidgetFilterConfig
+} from '../../models/meshboard.models';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource, RuntimeEntityItem } from '../../utils/runtime-entity-data-sources';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
@@ -24,6 +36,7 @@ import {
   selectorsFollowing
 } from '../../utils/entity-selector-follow';
 import { childScopeFromHops, scopeHopsOf, scopeHopsValidationError } from '../../utils/entity-selector-scope-path';
+import { unresolvedFilterVariables, withPickerFilters } from '../../utils/entity-selector-filter';
 import { EntitySelectorScopePathEditorComponent } from '../entity-selector-scope-path-editor/entity-selector-scope-path-editor.component';
 
 /**
@@ -44,7 +57,8 @@ import { EntitySelectorScopePathEditorComponent } from '../entity-selector-scope
     SVGIconModule,
     CkTypeSelectorInputComponent,
     EntitySelectInputComponent,
-    EntitySelectorScopePathEditorComponent
+    EntitySelectorScopePathEditorComponent,
+    FieldFilterEditorComponent
   ],
   templateUrl: './entity-selector-editor.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -55,10 +69,17 @@ export class EntitySelectorEditorComponent {
   private readonly variableService = inject(MeshBoardVariableService);
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly confirmationService = inject(ConfirmationService, { optional: true });
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   @Input() entitySelectors: EntitySelectorConfig[] = [];
   /** Existing variable names from other sources (static variables, other selectors) for duplicate detection */
   @Input() existingVariableNames: string[] = [];
+  /**
+   * The board's static variables (AB#7724): offered in the picker filter and
+   * substituted when the editor lists default entities and checks the default.
+   */
+  @Input() variables: MeshBoardVariable[] = [];
   @Output() entitySelectorsChange = new EventEmitter<EntitySelectorConfig[]>();
   /** Emits true when entering edit mode, false when leaving — allows parent to hide its own buttons */
   @Output() editingStateChange = new EventEmitter<boolean>();
@@ -88,9 +109,30 @@ export class EntitySelectorEditorComponent {
   /** Why choosing the leader changed the form (CK type fixed, mappings/default cleared). */
   protected followNotice = '';
 
+  // Picker filter (AB#7724): attribute rows on the CK type, AND-combined.
+  protected editFilters: FieldFilterItem[] = [];
+  /** Filter rows a follower carries from hand-editing; ignored and dropped on save. */
+  protected followerFilterCount = 0;
+  /** Result of the server check whether the default entity matches the filter. */
+  protected defaultFilterCheck: DefaultFilterCheck = { state: 'none' };
+  private readonly defaultCheckRequests = new Subject<DefaultCheckRequest | DefaultFilterCheck>();
+
   // Data sources for the default entity picker (created when CK type is set)
   protected defaultEntityDataSource: RuntimeEntitySelectDataSource | null = null;
   protected defaultEntityDialogDataSource: RuntimeEntityDialogDataSource | null = null;
+
+  constructor() {
+    // Debounced so typing in the filter grid does not fire a request per key;
+    // switchMap drops the answer of an outdated check.
+    this.defaultCheckRequests.pipe(
+      debounceTime(DEFAULT_CHECK_DEBOUNCE_MS),
+      switchMap(request => 'state' in request ? of(request) : this.checkDefaultEntity(request)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(check => {
+      this.defaultFilterCheck = check;
+      this.cdr.markForCheck();
+    });
+  }
 
   /**
    * Starts adding a new entity selector.
@@ -107,6 +149,9 @@ export class EntitySelectorEditorComponent {
     this.editScopeHops = [];
     this.editFollowsSelectorId = '';
     this.followNotice = '';
+    this.editFilters = [];
+    this.followerFilterCount = 0;
+    this.defaultFilterCheck = { state: 'none' };
     this.defaultEntityDataSource = null;
     this.defaultEntityDialogDataSource = null;
     this.isEditing = true;
@@ -135,6 +180,14 @@ export class EntitySelectorEditorComponent {
     this.editScopeHops = scopeHopsOf(selector.childScope);
     this.editFollowsSelectorId = selector.followsSelectorId ?? '';
     this.followNotice = '';
+    this.editFilters = (selector.filters ?? []).map((f, i) => ({
+      id: i + 1,
+      attributePath: f.attributePath,
+      operator: f.operator as FieldFilterOperatorsDto,
+      comparisonValue: f.comparisonValue
+    }));
+    this.followerFilterCount = selector.followsSelectorId ? this.editFilters.length : 0;
+    this.defaultFilterCheck = { state: 'none' };
     // A follower picks from its leader's CK type; re-sync it in case the leader's
     // type changed after the follower was saved.
     const leader = resolveFollowLeader(this.entitySelectors, selector);
@@ -142,6 +195,7 @@ export class EntitySelectorEditorComponent {
       this.applyLeaderCkType(leader.leader.ckTypeId);
     }
     this.updateDefaultEntityDataSources();
+    this.requestDefaultCheck();
     this.isEditing = true;
     this.editingStateChange.emit(true);
   }
@@ -208,6 +262,10 @@ export class EntitySelectorEditorComponent {
     this.editFollowsSelectorId = leaderId;
     this.followNotice = '';
     this.editShowInToolbar = false;
+    // A follower has no picker: its filter rows are ignored and dropped on save (AB#7724).
+    this.followerFilterCount = leaderId ? this.editFilters.length : 0;
+    this.requestDefaultCheck();
+    this.updateDefaultEntityDataSources();
     if (!leaderId) return;
     const leader = this.entitySelectors.find(s => s.id === leaderId);
     if (leader && leader.ckTypeId !== this.editCkTypeId) {
@@ -231,6 +289,8 @@ export class EntitySelectorEditorComponent {
     this.editCkTypeItem = { fullName: ckTypeId, rtCkTypeId: ckTypeId, isAbstract: false, isFinal: false };
     this.editMappings = [];
     this.editDefaultRtId = '';
+    this.editFilters = [];
+    this.followerFilterCount = 0;
   }
 
   /**
@@ -239,10 +299,12 @@ export class EntitySelectorEditorComponent {
   onCkTypeSelected(ckType: CkTypeSelectorItem): void {
     this.editCkTypeId = ckType.rtCkTypeId;
     this.editCkTypeItem = ckType;
-    // Clear mappings and default entity when CK type changes
+    // Clear mappings, default entity and filter rows when CK type changes
     this.editMappings = [];
     this.editDefaultRtId = '';
+    this.editFilters = [];
     this.updateDefaultEntityDataSources();
+    this.requestDefaultCheck();
   }
 
   /**
@@ -253,8 +315,10 @@ export class EntitySelectorEditorComponent {
     this.editCkTypeItem = null;
     this.editMappings = [];
     this.editDefaultRtId = '';
+    this.editFilters = [];
     this.defaultEntityDataSource = null;
     this.defaultEntityDialogDataSource = null;
+    this.requestDefaultCheck();
   }
 
   /**
@@ -297,6 +361,7 @@ export class EntitySelectorEditorComponent {
    */
   onDefaultEntitySelected(entity: RuntimeEntityItem): void {
     this.editDefaultRtId = entity.rtId;
+    this.requestDefaultCheck();
   }
 
   /**
@@ -304,6 +369,54 @@ export class EntitySelectorEditorComponent {
    */
   onDefaultEntityCleared(): void {
     this.editDefaultRtId = '';
+    this.requestDefaultCheck();
+  }
+
+  /** Takes the rows of the picker filter editor (AB#7724). */
+  onFiltersChange(filters: FieldFilterItem[]): void {
+    this.editFilters = filters;
+    this.updateDefaultEntityDataSources();
+    this.requestDefaultCheck();
+  }
+
+  /**
+   * Variables offered in filter values: the board's static variables and the
+   * variables other selectors map. The edited selector's own mappings are
+   * left out — they are filled from its own pick.
+   */
+  get filterVariables(): FilterVariable[] {
+    const result = new Map<string, FilterVariable>();
+    for (const v of this.variables) {
+      result.set(v.name, { name: v.name, label: v.label || v.name, type: v.type });
+    }
+    this.entitySelectors
+      .filter((_, i) => i !== this.editingIndex)
+      .forEach(es => es.attributeMappings.forEach(m => {
+        if (!result.has(m.variableName)) {
+          result.set(m.variableName, { name: m.variableName, label: `${m.variableName} (${es.label || es.id})` });
+        }
+      }));
+    return [...result.values()];
+  }
+
+  /** "2 filters" chip of a selector in the list, or '' without filter. */
+  getFilterSummary(selector: EntitySelectorConfig): string {
+    const count = selector.followsSelectorId ? 0 : selector.filters?.length ?? 0;
+    if (count === 0) return '';
+    return count === 1 ? '1 filter' : `${count} filters`;
+  }
+
+  /** "$a, $b" of the variables the default-entity check cannot substitute. */
+  get uncheckedVariablesText(): string {
+    return this.defaultFilterCheck.state === 'unchecked'
+      ? this.defaultFilterCheck.variables.map(v => `$${v}`).join(', ')
+      : '';
+  }
+
+  /** Label of the leader the edited follower takes its pick from. */
+  get leaderLabel(): string {
+    const leader = this.entitySelectors.find(s => s.id === this.editFollowsSelectorId);
+    return leader ? (leader.label || leader.id) : this.editFollowsSelectorId;
   }
 
   /**
@@ -325,6 +438,8 @@ export class EntitySelectorEditorComponent {
       showInToolbar: this.editShowInToolbar,
       defaultRtId: this.editDefaultRtId.trim() || undefined,
       childScope,
+      // Picker filter (AB#7724); omitted when empty and never written for a follower.
+      filters: !this.editFollowsSelectorId && this.editFilters.length > 0 ? this.toFilterConfigs(this.editFilters) : undefined,
       // A follower never renders a picker (AB#7722).
       ...(this.editFollowsSelectorId ? { showInToolbar: false, followsSelectorId: this.editFollowsSelectorId } : {})
     };
@@ -471,21 +586,98 @@ export class EntitySelectorEditorComponent {
 
   private updateDefaultEntityDataSources(): void {
     if (this.editCkTypeId) {
-      this.defaultEntityDataSource = new RuntimeEntitySelectDataSource(
-        this.getEntitiesByCkTypeGQL,
-        this.editCkTypeId
-      );
-      this.defaultEntityDialogDataSource = new RuntimeEntityDialogDataSource(
-        this.getEntitiesByCkTypeGQL,
-        this.editCkTypeId
-      );
+      // The default-entity picker lists what the toolbar picker lists (AB#7724).
+      const gql = withPickerFilters(this.getEntitiesByCkTypeGQL, this.resolvedEditorFilters().filters);
+      this.defaultEntityDataSource = new RuntimeEntitySelectDataSource(gql, this.editCkTypeId);
+      this.defaultEntityDialogDataSource = new RuntimeEntityDialogDataSource(gql, this.editCkTypeId);
     } else {
       this.defaultEntityDataSource = null;
       this.defaultEntityDialogDataSource = null;
     }
   }
 
+  private toFilterConfigs(rows: FieldFilterItem[]): WidgetFilterConfig[] {
+    return rows.map(f => ({
+      attributePath: f.attributePath,
+      operator: f.operator,
+      comparisonValue: f.comparisonValue == null ? '' : String(f.comparisonValue)
+    }));
+  }
+
+  /**
+   * The filter rows that apply in the editor, with the board's static
+   * variables substituted. Rows whose value still names a variable without a
+   * value (e.g. one a selector pick fills at view time) are left out and
+   * reported in `unresolved`; the editor cannot know their value.
+   */
+  private resolvedEditorFilters(): { filters: FieldFilterDto[] | undefined; unresolved: string[] } {
+    if (this.isFollower || this.editFilters.length === 0) {
+      return { filters: undefined, unresolved: [] };
+    }
+    const converted = this.variableService.convertToFieldFilterDto(this.toFilterConfigs(this.editFilters), this.variables) ?? [];
+    const unresolved = unresolvedFilterVariables(converted);
+    const applicable = converted.filter(f => unresolvedFilterVariables([f]).length === 0);
+    return { filters: applicable.length > 0 ? applicable : undefined, unresolved };
+  }
+
+  /** Queues the (debounced) check whether the default entity matches the filter. */
+  private requestDefaultCheck(): void {
+    const rtId = this.editDefaultRtId.trim();
+    if (!rtId || !this.editCkTypeId || this.isFollower || this.editFilters.length === 0) {
+      this.defaultCheckRequests.next({ state: 'none' });
+      return;
+    }
+    const { filters, unresolved } = this.resolvedEditorFilters();
+    if (unresolved.length > 0) {
+      this.defaultCheckRequests.next({ state: 'unchecked', variables: unresolved });
+      return;
+    }
+    this.defaultCheckRequests.next({ ckTypeId: this.editCkTypeId, rtId, filters: filters ?? [] });
+  }
+
+  /** Asks the server whether the entity is among the filtered ones (rtId + filter, first 1). */
+  private checkDefaultEntity(request: DefaultCheckRequest) {
+    return this.getEntitiesByCkTypeGQL.fetch({
+      variables: {
+        ckTypeId: request.ckTypeId,
+        attributeNames: [],
+        rtId: request.rtId,
+        first: 1,
+        fieldFilters: request.filters
+      },
+      fetchPolicy: 'network-only'
+    }).pipe(
+      map(result => {
+        const count = result.data?.runtime?.runtimeEntities?.totalCount
+          ?? result.data?.runtime?.runtimeEntities?.items?.length ?? 0;
+        return (count > 0 ? { state: 'match' } : { state: 'mismatch' }) as DefaultFilterCheck;
+      }),
+      catchError(() => of<DefaultFilterCheck>({ state: 'error' }))
+    );
+  }
+
   private emitChange(): void {
     this.entitySelectorsChange.emit([...this.entitySelectors]);
   }
 }
+
+/** Debounce of the default-entity filter check (ms). */
+const DEFAULT_CHECK_DEBOUNCE_MS = 400;
+
+interface DefaultCheckRequest {
+  ckTypeId: string;
+  rtId: string;
+  filters: FieldFilterDto[];
+}
+
+/**
+ * Outcome of the default-entity filter check (AB#7724). Never blocks saving:
+ * `mismatch` warns, `error` says the check failed, `unchecked` names the
+ * variables the editor cannot substitute.
+ */
+export type DefaultFilterCheck =
+  | { state: 'none' }
+  | { state: 'match' }
+  | { state: 'mismatch' }
+  | { state: 'error' }
+  | { state: 'unchecked'; variables: string[] };
