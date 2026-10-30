@@ -50,6 +50,7 @@ import {
   resolveFollowLeader,
   showsInToolbar
 } from '../../utils/entity-selector-follow';
+import { resolveScopePath, scopePlan } from '../../utils/entity-selector-scope-path';
 import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
 import { MeshBoardEmptyStateComponent } from '../../components/meshboard-empty-state/meshboard-empty-state.component';
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
@@ -1617,8 +1618,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         }
       });
 
-      // Resolve the stream-data scope rtIds for this selection (one-hop
-      // childScope traversal, or the picked entity itself), per selector, so
+      // Resolve the stream-data scope rtIds for this selection (childScope
+      // hop or path, or the picked entity itself), per selector, so
       // widgets bound to the leader or any follower scope their stream-data
       // query by the resolved source rtIds.
       await Promise.all(targets.map((t, i) => this.resolveEntitySelectorScopeRtIds(t, rtId, seqs[i])));
@@ -1678,41 +1679,66 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Resolves the set of source rtIds that a stream-data widget bound to this
    * selector should be scoped to, and caches them on the state service.
    *
-   * When the selector defines a {@link EntitySelectorChildScope}, the picked
-   * entity's children of `targetCkTypeId` reached via `roleId`/`direction`
-   * become the scope (e.g. MeteringPoint → its EnergyMeasurement rtIds). With
-   * no childScope, the picked entity's own rtId is the scope (direct keying).
+   * - No {@link EntitySelectorChildScope}: the picked entity's own rtId is the
+   *   scope (direct keying).
+   * - One-hop form (top-level fields): the picked entity's targets of
+   *   `targetCkTypeId` reached via `roleId`/`direction` (e.g. MeteringPoint →
+   *   its EnergyMeasurement rtIds) — exactly as before AB#7723.
+   * - `path` (AB#7723): hop by hop, each hop one batched request over all
+   *   entities the previous hop reached; the scope is the distinct rtIds of the
+   *   last hop. An empty hop ends the resolution with an empty scope; a failed
+   *   hop, or an invalid path (more than 5 hops, a hop without role or target
+   *   type), is a failed scope (AB#7721).
    */
   private async resolveEntitySelectorScopeRtIds(selector: EntitySelectorConfig, rtId: string, seq: number): Promise<void> {
     const isCurrent = (): boolean => this.scopeRequestSeq.get(selector.id) === seq;
     if (!isCurrent()) return;
 
-    const childScope = selector.childScope;
-    if (!childScope?.targetCkTypeId || !childScope.roleId) {
+    const plan = scopePlan(selector.childScope);
+    if (plan.kind === 'none') {
       this.stateService.setEntitySelectorRtIds(selector.id, [rtId]);
+      return;
+    }
+    if (plan.kind === 'invalid') {
+      console.error(`Invalid child scope path for selector '${selector.id}': ${plan.reason}`);
+      this.stateService.setEntitySelectorScopeFailed(selector.id);
       return;
     }
 
     try {
-      const targets = await firstValueFrom(
-        this.dataService.fetchAssociationTargets(
+      let scopeRtIds: string[] | null;
+      if (plan.kind === 'single') {
+        // The original one-hop request, unchanged (AB#7723 keeps old boards byte-identical).
+        const targets = await firstValueFrom(
+          this.dataService.fetchAssociationTargets(
+            rtId,
+            selector.ckTypeId,
+            plan.hop.targetCkTypeId,
+            plan.hop.roleId,
+            // Parent → children via System/ParentChild is an INBOUND hop (the child
+            // owns the association to its parent), so 'in' is the default.
+            plan.hop.direction
+          )
+        );
+        scopeRtIds = isCurrent()
+          ? (targets ?? []).map(t => String(t.rtId)).filter(id => id.length > 0)
+          : null;
+      } else {
+        scopeRtIds = await resolveScopePath(
           rtId,
           selector.ckTypeId,
-          childScope.targetCkTypeId,
-          childScope.roleId,
-          // Parent → children via System/ParentChild is an INBOUND hop (the child
-          // owns the association to its parent), so 'in' is the default.
-          childScope.direction ?? 'in'
-        )
-      );
-      if (!isCurrent()) return;
-      const childRtIds = (targets ?? [])
-        .map(t => String(t.rtId))
-        .filter(id => id.length > 0);
+          plan.hops,
+          (sources, sourceCkTypeId, hop) => firstValueFrom(
+            this.dataService.fetchAssociationTargetRtIds(sources, sourceCkTypeId, hop.targetCkTypeId, hop.roleId, hop.direction)
+          ),
+          isCurrent
+        );
+      }
+      if (scopeRtIds === null || !isCurrent()) return;
       // An empty list is a resolved EMPTY scope: bound widgets show no data and
       // send no query — never the persisted scope, which would show rows of
       // other entities (AB#7721).
-      this.stateService.setEntitySelectorRtIds(selector.id, childRtIds);
+      this.stateService.setEntitySelectorRtIds(selector.id, scopeRtIds);
     } catch (error) {
       if (!isCurrent()) return;
       // Logged once per failed resolution; the view shows a notice and bound

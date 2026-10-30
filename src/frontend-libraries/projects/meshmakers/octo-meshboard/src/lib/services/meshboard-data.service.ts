@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, from, map, of, switchMap } from 'rxjs';
+import { Observable, forkJoin, from, map, of, switchMap } from 'rxjs';
 import { GetDashboardEntityDtoGQL } from '../graphQL/getDashboardEntity';
 import { GetCkModelsWithStateDtoGQL, GetCkModelsWithStateQueryDto } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
 import { QueryExecutorService, StreamDataExecutionArgs } from './query-executor.service';
 import { QueryFamily } from '../utils/query-family';
 import { GetAssociationTargetsDtoGQL } from '../graphQL/getAssociationTargets';
+import { GetAssociationTargetRtIdsDtoGQL } from '../graphQL/getAssociationTargetRtIds';
 import { GetCkTypeAttributesForMeshboardDtoGQL } from '../graphQL/getCkTypeAttributes';
 import {
   DataSource,
@@ -76,6 +77,11 @@ export interface RepeaterDataItem {
   attributes: Map<string, unknown>;
 }
 
+/** Source rtIds per request of one batched association hop (AB#7723). */
+export const ASSOCIATION_HOP_SOURCE_BATCH = 100;
+/** Targets read per source entity in one association hop (AB#7723). */
+export const ASSOCIATION_HOP_TARGETS_PER_SOURCE = 1000;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -85,6 +91,7 @@ export class MeshBoardDataService {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly getAssociationTargetsGQL = inject(GetAssociationTargetsDtoGQL);
+  private readonly getAssociationTargetRtIdsGQL = inject(GetAssociationTargetRtIdsDtoGQL);
   private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
   private readonly getCkTypeAttributesGQL = inject(GetCkTypeAttributesForMeshboardDtoGQL);
   private readonly apollo = inject(Apollo);
@@ -541,6 +548,63 @@ export class MeshBoardDataService {
           }));
       })
     );
+  }
+
+  /**
+   * One association hop for MANY source entities (AB#7723, multi-hop child
+   * scope): the rtIds of the `targetCkTypeId` entities reached from each of
+   * `sourceRtIds` (all of `sourceCkTypeId`) over `roleId` in `direction`.
+   *
+   * Query cost: the sources go out in batches of
+   * {@link ASSOCIATION_HOP_SOURCE_BATCH} rtIds per request (`runtimeEntities(rtIds:)`
+   * with the association targets nested), the batches of one hop in parallel —
+   * never one request per entity. Only rtIds are selected. Per source at most
+   * {@link ASSOCIATION_HOP_TARGETS_PER_SOURCE} targets are read; a truncated
+   * source is logged as a warning. Duplicates are not removed here.
+   * Errors propagate (the caller turns them into a failed scope).
+   */
+  fetchAssociationTargetRtIds(
+    sourceRtIds: readonly string[],
+    sourceCkTypeId: string,
+    targetCkTypeId: string,
+    roleId: string,
+    direction: 'in' | 'out'
+  ): Observable<string[]> {
+    if (sourceRtIds.length === 0) {
+      return of([]);
+    }
+    const graphDirection = direction === 'out' ? GraphDirectionDto.OutboundDto : GraphDirectionDto.InboundDto;
+    const batches: string[][] = [];
+    for (let i = 0; i < sourceRtIds.length; i += ASSOCIATION_HOP_SOURCE_BATCH) {
+      batches.push(sourceRtIds.slice(i, i + ASSOCIATION_HOP_SOURCE_BATCH));
+    }
+    return forkJoin(batches.map(batch => this.getAssociationTargetRtIdsGQL.fetch({
+      variables: {
+        rtIds: batch,
+        ckTypeId: sourceCkTypeId,
+        targetCkTypeId,
+        roleId,
+        direction: graphDirection,
+        first: batch.length,
+        targetsFirst: ASSOCIATION_HOP_TARGETS_PER_SOURCE
+      }
+    }).pipe(map(result => {
+      const rtIds: string[] = [];
+      for (const source of result.data?.runtime?.runtimeEntities?.items ?? []) {
+        const targets = source?.associations?.targets;
+        const items = targets?.items ?? [];
+        if ((targets?.totalCount ?? 0) > items.length) {
+          console.warn(`Child scope hop ${roleId} → ${targetCkTypeId}: source ${String(source?.rtId)} has `
+            + `${targets?.totalCount} targets, only the first ${items.length} are used.`);
+        }
+        for (const target of items) {
+          if (target?.rtId !== null && target?.rtId !== undefined) {
+            rtIds.push(String(target.rtId));
+          }
+        }
+      }
+      return rtIds;
+    })))).pipe(map(perBatch => perBatch.flat()));
   }
 
   /**

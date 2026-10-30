@@ -1,11 +1,17 @@
 import { TestBed } from '@angular/core/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { expectIconButtonsAccessible } from '@meshmakers/shared-ui/testing';
 import { ConfirmationService } from '@meshmakers/shared-ui';
-import { AttributeSelectorDialogService } from '@meshmakers/octo-ui';
+import { AttributeSelectorDialogService, CkTypeSelectorInputComponent } from '@meshmakers/octo-ui';
 import { EntitySelectorEditorComponent } from './entity-selector-editor.component';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
-import { EntitySelectorConfig } from '../../models/meshboard.models';
+import { EntitySelectorConfig, EntitySelectorScopeHop } from '../../models/meshboard.models';
+import { GetCkTypeAssociationRolesDtoGQL } from '../../graphQL/getCkTypeAssociationRoles';
+import { of } from 'rxjs';
+import { EntitySelectorScopePathEditorComponent } from '../entity-selector-scope-path-editor/entity-selector-scope-path-editor.component';
 
 /** Edit / remove buttons of the entity selector list are named per selector (AB#5580). */
 describe('EntitySelectorEditorComponent — actions (AB#5580)', () => {
@@ -163,5 +169,130 @@ describe('EntitySelectorEditorComponent — follows (AB#7722)', () => {
     await editor.removeSelector(0);
 
     expect(editor.entitySelectors.map(s => s.id)).toEqual(['site', 'grid']);
+  });
+});
+
+/** Stand-in for octo-ui's CK type picker (the real one needs Apollo); same selector, inputs and outputs. */
+@Component({
+  selector: 'mm-ck-type-selector-input',
+  standalone: true,
+  template: '',
+  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => CkTypeSelectorInputStubComponent), multi: true }]
+})
+class CkTypeSelectorInputStubComponent implements ControlValueAccessor {
+  @Input() placeholder = '';
+  @Input() derivedFromRtCkTypeId?: string;
+  @Input() dialogTitle = '';
+  @Input() disabled = false;
+  @Output() ckTypeSelected = new EventEmitter<unknown>();
+  @Output() ckTypeCleared = new EventEmitter<void>();
+  writeValue(): void { /* stub */ }
+  registerOnChange(): void { /* stub */ }
+  registerOnTouched(): void { /* stub */ }
+}
+
+/**
+ * Child scope hop list of the selector editor (AB#7723, wireframe agreed by
+ * Freya in the story comments). One hop saves in the original top-level form,
+ * two or more as `path`. Neutral fixtures only (Test/Site → Test/System → Test/Device).
+ */
+describe('EntitySelectorEditorComponent — child scope path (AB#7723)', () => {
+  interface EditorForm {
+    editScopeHops: EntitySelectorScopeHop[];
+    scopeHopsError: string;
+  }
+
+  const toSystem: EntitySelectorScopeHop = { roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: 'Test/System' };
+  const toDevice: EntitySelectorScopeHop = { roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: 'Test/Device' };
+  const base: EntitySelectorConfig = {
+    id: 'site', label: 'Site', ckTypeId: 'Test/Site', attributeMappings: [{ attributePath: 'name', variableName: 'siteName' }], showInToolbar: true
+  };
+
+  function create(selectors: EntitySelectorConfig[]) {
+    TestBed.configureTestingModule({
+      imports: [EntitySelectorEditorComponent],
+      providers: [
+        { provide: AttributeSelectorDialogService, useValue: {} },
+        { provide: MeshBoardVariableService, useValue: {} },
+        { provide: GetEntitiesByCkTypeDtoGQL, useValue: {} },
+        { provide: GetCkTypeAssociationRolesDtoGQL, useValue: { fetch: () => of({ data: null }) } },
+        provideNoopAnimations()
+      ]
+    });
+    for (const component of [EntitySelectorEditorComponent, EntitySelectorScopePathEditorComponent]) {
+      TestBed.overrideComponent(component, {
+        remove: { imports: [CkTypeSelectorInputComponent] },
+        add: { imports: [CkTypeSelectorInputStubComponent] }
+      });
+    }
+    const fixture = TestBed.createComponent(EntitySelectorEditorComponent);
+    fixture.componentInstance.entitySelectors = selectors;
+    const emitted: EntitySelectorConfig[][] = [];
+    fixture.componentInstance.entitySelectorsChange.subscribe(v => emitted.push(v));
+    return { fixture, editor: fixture.componentInstance, form: fixture.componentInstance as unknown as EditorForm, emitted };
+  }
+
+  it('shows an existing one-hop scope as one hop and saves it back in the top-level form', () => {
+    const { editor, form, emitted } = create([{ ...base, childScope: { targetCkTypeId: 'Test/Device', roleId: 'System/ParentChild', direction: 'in' } }]);
+    editor.editSelector(0);
+    expect(form.editScopeHops).toEqual([toDevice]);
+
+    editor.saveEdit();
+
+    expect(JSON.stringify(emitted[0][0].childScope)).toBe('{"targetCkTypeId":"Test/Device","roleId":"System/ParentChild","direction":"in"}');
+  });
+
+  it('saves two hops as path', () => {
+    const { editor, emitted } = create([base]);
+    editor.editSelector(0);
+
+    editor.onScopeHopsChanged([toSystem, toDevice]);
+    editor.saveEdit();
+
+    expect(emitted[0][0].childScope).toEqual({ path: [toSystem, toDevice] });
+  });
+
+  it('loads a saved path as its hops', () => {
+    const { editor, form } = create([{ ...base, childScope: { path: [toSystem, toDevice] } }]);
+
+    editor.editSelector(0);
+
+    expect(form.editScopeHops).toEqual([toSystem, toDevice]);
+  });
+
+  it('saves no hops as no child scope', () => {
+    const { editor, emitted } = create([{ ...base, childScope: { path: [toSystem, toDevice] } }]);
+    editor.editSelector(0);
+
+    editor.onScopeHopsChanged([]);
+    editor.saveEdit();
+
+    expect(emitted[0][0].childScope).toBeUndefined();
+  });
+
+  it('blocks saving while a hop lacks its association or target type', () => {
+    const { editor, form } = create([base]);
+    editor.editSelector(0);
+
+    editor.onScopeHopsChanged([toSystem, { roleId: 'System/ParentChild', direction: 'in', targetCkTypeId: '' }]);
+
+    expect(form.scopeHopsError).toBe('Hop 2 needs an association and a target type.');
+    expect(editor.isEditValid()).toBe(false);
+  });
+
+  it('renders the hop list in the edit form, also for a follower', async () => {
+    const leader: EntitySelectorConfig = base;
+    const follower: EntitySelectorConfig = {
+      id: 'devices', label: 'Devices', ckTypeId: 'Test/Site', attributeMappings: [], showInToolbar: false,
+      followsSelectorId: 'site', childScope: { path: [toSystem, toDevice] }
+    };
+    const { fixture, editor } = create([leader, follower]);
+    editor.editSelector(1);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('mm-entity-selector-scope-path-editor .hop-card').length).toBe(2);
+    expect(el.querySelector('[data-test="scope-path"]')?.textContent).toContain('Test/Site → Test/System → Test/Device');
   });
 });

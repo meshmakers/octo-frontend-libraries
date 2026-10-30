@@ -20,7 +20,7 @@ interface ScopeOption {
  * `StreamDataArguments.rtIds` override). This control lets the designer bind a
  * single widget to one of the MeshBoard's entity selectors: when the selector's
  * entity is picked, its resolved source rtIds (the selector's `childScope`
- * one-hop, or the picked entity itself) scope this widget's query.
+ * hop or path, or the picked entity itself) scope this widget's query.
  *
  * The control renders only when the selected query is a stream-data query
  * (`family === 'streamData'`); for runtime queries the binding has no effect and

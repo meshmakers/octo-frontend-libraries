@@ -192,6 +192,7 @@ export type { MeshBoardLabelKind, MeshBoardLabelRequest, MeshBoardLabelResolver 
 
 // Entity Selector Components
 export { EntitySelectorEditorComponent } from './lib/components/entity-selector-editor/entity-selector-editor.component';
+export { EntitySelectorScopePathEditorComponent } from './lib/components/entity-selector-scope-path-editor/entity-selector-scope-path-editor.component';
 export { EntitySelectorToolbarComponent } from './lib/components/entity-selector-toolbar/entity-selector-toolbar.component';
 export type { EntitySelectorEvent, EntitySelectorClearEvent } from './lib/components/entity-selector-toolbar/entity-selector-toolbar.component';
 
