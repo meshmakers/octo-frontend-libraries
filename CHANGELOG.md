@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services base types for the method handler diagnostics (AB#7877)
+
+- Additive: `schema.graphql` and `globalTypes.ts` now contain the system-admin query `methodHandlers` of the
+  asset repository (AB#7837): `MethodHandlersQueryDto`, `MethodHandlersAnsweredByDto`, `MethodHandlerMethodDto`,
+  `MethodHandlerInstanceDto` and the enums `MethodHandlerMethodStateDto`, `MethodHandlerTransportDto`,
+  `MethodHandlerInstanceStateDto`, `MethodHandlerSourceDto`, so the Studio view (AB#7841) imports them from
+  `@meshmakers/octo-services`. Nothing was removed or changed. The schema additions come from the SDL export of an
+  asset-repo build at 4b393d50 (`SchemaExportTests`, `OCTO_SCHEMA_EXPORT_PATH`), merged additively (sorted like the
+  introspected file) instead of a full re-introspection.
+
 ### octo-meshboard entity selectors (runtime and grouping queries follow the scope, AB#7725)
 
 - Behaviour change: a widget whose **runtime** persistent query (SimpleRtQuery, AggregationRtQuery,

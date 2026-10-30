@@ -21052,6 +21052,125 @@ export type LargeBinaryInfoDto = {
   size: Scalars['BigInt']['output'];
 };
 
+/** One handler instance of a CK method. Service data only. */
+export type MethodHandlerInstanceDto = {
+  __typename?: 'MethodHandlerInstance';
+  /** Highest wire contract version the instance understands. */
+  contractVersion: Scalars['Int']['output'];
+  /** Live until then. */
+  expiresUtc: Scalars['DateTime']['output'];
+  /** Handler instance id. */
+  instanceId: Scalars['String']['output'];
+  /** Last announcement or withdrawal received. */
+  lastSeenUtc: Scalars['DateTime']['output'];
+  /** Last seen of the row in the shared snapshot store, null if none or the store was not readable. */
+  persistedLastSeenUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Handler service name. */
+  serviceName: Scalars['String']['output'];
+  /** HEARTBEAT, or SNAPSHOT for a restored row no heartbeat has confirmed yet. */
+  source: MethodHandlerSourceDto;
+  /** State of the instance. */
+  state: MethodHandlerInstanceStateDto;
+  /** Tenant ids the instance serves ("*" = all). */
+  tenants: Array<Scalars['String']['output']>;
+  /** Informational version of the handler service. */
+  version?: Maybe<Scalars['String']['output']>;
+};
+
+/** State of one handler instance at the time of the query. */
+export enum MethodHandlerInstanceStateDto {
+  /** The announced TTL ran out without a heartbeat. */
+  ExpiredDto = 'EXPIRED',
+  /** Announced, not withdrawn, not expired. */
+  LiveDto = 'LIVE',
+  /** Treated as expired because the broker returned a mandatory send (no queue bound). */
+  NoQueueBoundDto = 'NO_QUEUE_BOUND',
+  /** The instance withdrew gracefully. */
+  WithdrawnDto = 'WITHDRAWN'
+}
+
+/** A CK method with its handler instances. */
+export type MethodHandlerMethodDto = {
+  __typename?: 'MethodHandlerMethod';
+  /** Every known handler instance, including expired and withdrawn ones. */
+  instances: Array<MethodHandlerInstanceDto>;
+  /** Latest last-seen time of any instance, null without instances. */
+  lastSeenUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Number of live handler instances (in-process methods have no instances). */
+  liveInstanceCount: Scalars['Int']['output'];
+  /** Qualified method id. */
+  methodId: Scalars['String']['output'];
+  /** State of the method. */
+  state: MethodHandlerMethodStateDto;
+  /** Transport of the method. */
+  transport: MethodHandlerTransportDto;
+};
+
+/** State of a CK method in the handler registry of the answering replica. */
+export enum MethodHandlerMethodStateDto {
+  /** At least one live handler instance, or served in-process. */
+  LiveDto = 'LIVE',
+  /** The system tenant defines the method with a service handler, but no instance announced it. */
+  NotAnnouncedDto = 'NOT_ANNOUNCED',
+  /** Handler instances are known, but all are expired, withdrawn or have no queue bound. */
+  NoLiveHandlerDto = 'NO_LIVE_HANDLER'
+}
+
+/** Where the registry row of an instance comes from. */
+export enum MethodHandlerSourceDto {
+  /** Received as an announcement (heartbeat or discovery answer) or withdrawal. */
+  HeartbeatDto = 'HEARTBEAT',
+  /** Restored from the persisted snapshot and not yet confirmed by the instance. */
+  SnapshotDto = 'SNAPSHOT'
+}
+
+/** Transport a CK method is served over. */
+export enum MethodHandlerTransportDto {
+  /** Message bus: handler instances of other services announce themselves. */
+  BusDto = 'BUS',
+  /** Served in-process by the answering service. */
+  InProcessDto = 'IN_PROCESS'
+}
+
+/** The gateway replica that answered. Every replica answers from its own memory; the snapshot columns show what the other replicas wrote. */
+export type MethodHandlersAnsweredByDto = {
+  __typename?: 'MethodHandlersAnsweredBy';
+  /** Id of the dispatcher instance of the answering replica. */
+  dispatcherInstanceId: Scalars['String']['output'];
+  /** Time the states were evaluated at. */
+  generatedAtUtc: Scalars['DateTime']['output'];
+  /** The most recent snapshot write failed (cleared by the next successful write). */
+  lastFlushFailed: Scalars['Boolean']['output'];
+  /** Time of the last successful snapshot write, null when none happened yet. */
+  lastFlushUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Version of the answering service. */
+  serviceVersion: Scalars['String']['output'];
+  /** A snapshot store is present and the persisted snapshot is enabled. */
+  snapshotEnabled: Scalars['Boolean']['output'];
+  /** The last snapshot load failed; the registry then fills from heartbeats. */
+  snapshotLoadFailed: Scalars['Boolean']['output'];
+  /** Time of the last snapshot load, null when none ran. */
+  snapshotLoadedAtUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Rows taken over from the snapshot by the last load, null when none ran. */
+  snapshotRowsRestored?: Maybe<Scalars['Int']['output']>;
+};
+
+/** Diagnostics of the CK method handler registry (system administrators only). Service data only. */
+export type MethodHandlersQueryDto = {
+  __typename?: 'MethodHandlersQuery';
+  /** The gateway replica that answered, with its snapshot health. */
+  answeredBy: MethodHandlersAnsweredByDto;
+  /** CK methods with their handler instances. */
+  methods: Array<MethodHandlerMethodDto>;
+};
+
+
+/** Diagnostics of the CK method handler registry (system administrators only). Service data only. */
+export type MethodHandlersQueryMethodsArgsDto = {
+  search?: InputMaybe<Scalars['String']['input']>;
+  states?: InputMaybe<Array<MethodHandlerMethodStateDto>>;
+};
+
 /** Enum of the availability states of models. */
 export enum ModelStateDto {
   AvailableDto = 'AVAILABLE',
@@ -21093,6 +21212,8 @@ export type OctoQueryDto = {
   availableArchivePaths: Array<ArchivePathInfoDto>;
   blueprints?: Maybe<BlueprintsQueryDto>;
   constructionKit?: Maybe<ConstructionKitQueryDto>;
+  /** Diagnostics of the CK method handler registry of the answering gateway replica: per method the handler instances, their state, last seen time, and heartbeat versus persisted snapshot. Requires a token of the system tenant (a user token also the AdminPanelManagement role). Service data only. */
+  methodHandlers?: Maybe<MethodHandlersQueryDto>;
   runtime?: Maybe<RuntimeModelQueryDto>;
   /** Secrets overview of the tenant: inventory, summary and pipeline usages of secret attributes. Requires the AdminPanelManagement role. Never returns values. */
   secrets?: Maybe<SecretsQueryDto>;
