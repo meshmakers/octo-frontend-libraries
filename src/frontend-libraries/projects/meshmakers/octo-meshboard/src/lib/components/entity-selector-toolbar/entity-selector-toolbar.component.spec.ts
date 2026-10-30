@@ -112,6 +112,16 @@ describe('EntitySelectorToolbarComponent — picker filter (AB#7724)', () => {
     expect(toolbar.getMessages(FILTERED_SYSTEMS).noEntitiesFound).toContain('The filter uses $region, which has no value yet.');
   });
 
+  it('drops cached data sources no selector uses after a filter variable changed', () => {
+    const fixture = create([FILTERED_SYSTEMS, SITE], [region]);
+    for (const value of ['South', 'East', 'West']) {
+      fixture.componentRef.setInput('variables', [{ ...region, value }]);
+      fixture.detectChanges();
+    }
+
+    expect(fixture.componentInstance.cachedDataSourceCount).toBe(2);
+  });
+
   it('does not share the data source of an unfiltered selector of the same CK type', () => {
     const unfiltered = { ...FILTERED_SYSTEMS, id: 'all', filters: undefined };
     const toolbar = create([FILTERED_SYSTEMS, unfiltered], [region]).componentInstance;

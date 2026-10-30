@@ -125,12 +125,16 @@ export class EntitySelectorToolbarComponent implements OnChanges {
    * Creates or retrieves cached data sources for each selector. Selectors of
    * the same CK type and the same resolved filter share their data sources; a
    * selector without filter uses the plain query, exactly as before AB#7724.
+   * Entries no selector uses any more (e.g. after a filter variable changed)
+   * are dropped, so the caches never outgrow the current selectors.
    */
   private updateDataSources(): void {
     this.selectorMessages = new Map();
+    const usedKeys = new Set<string>();
     for (const selector of this.entitySelectors) {
       const filters = pickerFieldFilters(selector, this.variables, this.variableService);
       const key = filters ? `${selector.ckTypeId}|${JSON.stringify(filters)}` : selector.ckTypeId;
+      usedKeys.add(key);
       if (!this.dataSourceCache.has(key) || !this.dialogDataSourceCache.has(key)) {
         const gql = withPickerFilters(this.getEntitiesByCkTypeGQL, filters);
         this.dataSourceCache.set(key, new RuntimeEntitySelectDataSource(gql, selector.ckTypeId));
@@ -145,6 +149,17 @@ export class EntitySelectorToolbarComponent implements OnChanges {
         });
       }
     }
+    for (const key of [...this.dataSourceCache.keys()]) {
+      if (!usedKeys.has(key)) {
+        this.dataSourceCache.delete(key);
+        this.dialogDataSourceCache.delete(key);
+      }
+    }
+  }
+
+  /** Number of cached data source pairs (for tests). */
+  get cachedDataSourceCount(): number {
+    return this.dataSourceCache.size;
   }
 }
 
