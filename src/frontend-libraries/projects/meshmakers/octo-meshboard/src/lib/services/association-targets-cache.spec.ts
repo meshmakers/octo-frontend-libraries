@@ -40,8 +40,8 @@ describe('getAssociationTargets with a host cache keyed by rtId (AB#7649)', () =
   it('writes and reads back the targets in a cache keyed by rtId', () => {
     const variables = {
       rtId: 'mp-1',
-      ckTypeId: 'Basic.Energy/MeteringPoint',
-      targetCkTypeId: 'Basic.Energy/EnergyMeasurement',
+      ckTypeId: 'TestModel/Parent',
+      targetCkTypeId: 'TestModel/Child',
       roleId: 'System/ParentChild',
       direction: 'INBOUND',
       first: 100,
@@ -64,7 +64,7 @@ describe('getAssociationTargets with a host cache keyed by rtId (AB#7649)', () =
                 items: ['em-1', 'em-2'].map(rtId => ({
                   __typename: 'RtEntity' as const,
                   rtId,
-                  ckTypeId: 'Basic.Energy/EnergyMeasurement',
+                  ckTypeId: 'TestModel/Child',
                   rtWellKnownName: null,
                   rtDisplayName: rtId,
                   attributes: { __typename: 'RtEntityAttributeDtoConnection' as const, items: [] }
