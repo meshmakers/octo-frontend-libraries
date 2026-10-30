@@ -7,6 +7,9 @@
           <div class="selector-info">
             <span class="selector-label">{{ selector.label }}</span>
             <span class="selector-mode" [class.selector-mode-error]="isOrphanFollower(selector)">{{ getModeLabel(selector) }}</span>
+            @if (getFilterSummary(selector); as filterSummary) {
+              <span class="selector-mode selector-filter-chip">{{ filterSummary }}</span>
+            }
             <span class="selector-ck-type">{{ selector.ckTypeId }}</span>
             <span class="selector-mappings">{{ getMappingSummary(selector) }}</span>
           </div>
@@ -124,6 +127,29 @@
         }
       </div>
 
+      @if (editCkTypeId) {
+      <div class="form-field picker-filter-field">
+        <label class="field-label">Picker filter</label>
+        @if (isFollower) {
+          <span class="field-hint">A follower takes the leader's pick. Set the filter on {{ leaderLabel }}.</span>
+          @if (followerFilterCount > 0) {
+            <span class="field-hint follow-notice">Filters on a follower are ignored and are removed when you save.</span>
+          }
+        } @else {
+          <span class="field-hint">
+            Only entities that match all rows are listed in the toolbar picker and in the default-entity picker below.
+          </span>
+          <mm-field-filter-editor
+            [ckTypeId]="editCkTypeId"
+            [filters]="editFilters"
+            [enableVariables]="filterVariables.length > 0"
+            [availableVariables]="filterVariables"
+            (filtersChange)="onFiltersChange($event)">
+          </mm-field-filter-editor>
+        }
+      </div>
+      }
+
       <div class="form-field">
         <label class="field-label">Attribute Mappings{{ isFollower ? '' : ' *' }}</label>
         <button
@@ -202,6 +228,17 @@
         }
         @if (editDefaultRtId) {
           <span class="field-hint">Selected: {{ editDefaultRtId }}</span>
+        }
+        @switch (defaultFilterCheck.state) {
+          @case ('mismatch') {
+            <span class="field-warning default-filter-warning">The default entity does not match the picker filter. It still loads, but users cannot pick it again.</span>
+          }
+          @case ('error') {
+            <span class="field-hint default-filter-warning">Could not check the default entity.</span>
+          }
+          @case ('unchecked') {
+            <span class="field-hint default-filter-warning">Cannot check the default entity: the filter uses {{ uncheckedVariablesText }}, which is filled at view time.</span>
+          }
         }
         @if (!editShowInToolbar && !isFollower && !editDefaultRtId) {
           <span class="field-error">A default entity is required when not shown in toolbar.</span>

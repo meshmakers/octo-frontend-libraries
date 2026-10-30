@@ -43,6 +43,11 @@
     color: var(--kendo-color-error, #d32f2f);
   }
 
+  // AB#7724: "2 filters" next to the mode label.
+  .selector-filter-chip {
+    color: var(--kendo-color-subtle, #757575);
+  }
+
   .selector-ck-type {
     font-size: 0.8rem;
     color: var(--kendo-color-subtle, #757575);
@@ -118,6 +123,12 @@
   .field-error {
     font-size: 0.75rem;
     color: var(--kendo-color-error, #f44336);
+  }
+
+  // AB#7724: the default entity does not match the picker filter (never blocks saving).
+  .field-warning {
+    font-size: 0.75rem;
+    color: var(--kendo-color-warning, #f57c00);
   }
 
   .checkbox-row {

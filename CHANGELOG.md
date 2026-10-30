@@ -34,6 +34,27 @@ starts a new empty "Unreleased" section.
 - Persistence is unchanged: the binding was already saved for both families, so existing boards load, save and
   export/import byte-identically. Boards that had a runtime widget bound to a selector start to follow it.
 
+### octo-meshboard entity selectors (picker filter, AB#7724)
+
+- New (non-breaking, additive): optional `EntitySelectorConfig.filters` of the widget filter type
+  `WidgetFilterConfig` (attribute, operator, value; rows AND-combined; every operator of the widget filter editor).
+  The toolbar dropdown, its search dialog and the editor's default-entity picker list only matching entities. The
+  rows are converted like widget filters (`MeshBoardVariableService.convertToFieldFilterDto`, board variables
+  substituted) and sent as GraphQL `fieldFilter` (server side, new helper `utils/entity-selector-filter.ts`,
+  `withPickerFilters`); the picker's text search stays on top as one more AND row. Without filter the picker sends
+  exactly the query it sent before.
+- A filtered picker explains an empty list ("No <label> found. This board only lists <label> that match its
+  filter.", naming a filter variable without value) and titles its dialog "Select <label> (filtered)".
+- `EntitySelectorToolbarComponent` has a new input `variables` (the view passes the board variables);
+  `EntitySelectorEditorComponent` has a new input `variables` (the settings dialog passes the static variables).
+- Followers have no picker and ignore filters; the editor hides the section for them and drops hand-edited rows.
+  A `defaultRtId` or URL pick that does not match the filter is still applied (the filter affects the listing
+  only); the editor warns about a non-matching default without blocking save (debounced server check).
+- Selector editor: new "Picker filter" section under CK Type (shared `mm-field-filter-editor`, wireframe approved
+  in AB#7724) and a "N filters" chip in the selector list.
+- Persistence: `filters` is in the selector whitelist of the board description and omitted when empty, so boards
+  without filters encode byte-identically and export / import round-trips the filter.
+
 ### octo-meshboard host-set period (`timeRange` / `timeFilterControl`, AB#7582)
 
 - New (non-breaking, additive) inputs on `mm-meshboard-view`: `timeRange` (`{ from, to }` as `Date` or RFC 3339

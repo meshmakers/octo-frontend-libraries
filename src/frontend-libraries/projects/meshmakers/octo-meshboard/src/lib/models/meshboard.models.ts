@@ -1502,6 +1502,22 @@ export interface EntitySelectorConfig {
    * See `utils/entity-selector-follow.ts`.
    */
   followsSelectorId?: string;
+  /**
+   * Optional picker filter (AB#7724): attribute filter rows on `ckTypeId`,
+   * combined with AND, the same type and variable substitution as widget
+   * filters (`MeshBoardVariableService.convertToFieldFilterDto`). The toolbar
+   * dropdown, its search dialog and the editor's default-entity picker send
+   * the rows as GraphQL `fieldFilter` (server side); the picker's text search
+   * is one more AND row. Absent or empty ⇒ the picker lists every entity of
+   * `ckTypeId`, as before.
+   *
+   * The filter affects the listing only: a `defaultRtId` or a URL pick that
+   * does not match is still applied (the editor warns about a non-matching
+   * `defaultRtId`). Followers have no picker; the editor writes no filter for
+   * them and a follower's filter is ignored at runtime.
+   * See `utils/entity-selector-filter.ts`.
+   */
+  filters?: WidgetFilterConfig[];
   /** Current selection (transient, not persisted) */
   selectedRtId?: string;
   /** Display name of the currently selected entity */

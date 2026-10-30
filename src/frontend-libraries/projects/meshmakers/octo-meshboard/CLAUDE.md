@@ -657,6 +657,7 @@ interface EntitySelectorConfig {
   defaultRtId?: string;       // Pre-selected entity (required when showInToolbar=false)
   childScope?: EntitySelectorChildScope; // One hop or a multi-hop path for stream-data widgets (see below)
   followsSelectorId?: string; // Leader selector id (AB#7722) — see *Leader/follower selectors*
+  filters?: WidgetFilterConfig[]; // Picker filter (AB#7724) — see *Picker filter*
   selectedRtId?: string;      // Current selection (transient, not persisted)
   selectedDisplayName?: string; // Current display name (transient)
 }
@@ -784,6 +785,60 @@ Rules:
   `MeshBoardPersistenceService.encodeVariablesInDescription` and omitted when
   empty, so boards without followers encode byte-identically; export/import
   carries the description verbatim (`meshboard-persistence.entity-selector-follow.spec.ts`).
+
+### Picker filter (AB#7724)
+
+`filters` narrows what a selector's pickers list (e.g. only the electrical
+systems of a type that also models heating circuits). Helpers:
+`utils/entity-selector-filter.ts` (`hasPickerFilter`, `pickerFieldFilters`,
+`withPickerFilters`, `unresolvedFilterVariables`, texts).
+
+- **Shape:** the widget filter type `WidgetFilterConfig` (`attributePath`,
+  `operator`, `comparisonValue`); rows combine with **AND**; every operator of
+  the shared `mm-field-filter-editor` (octo-ui) is allowed — the same set as
+  widget filters (GraphQL `FieldFilterOperators`).
+- **Server side:** the rows are converted with
+  `MeshBoardVariableService.convertToFieldFilterDto` (board variables
+  substituted, exactly like widget filters) and sent as GraphQL `fieldFilter`
+  of the `runtimeEntities` query. `withPickerFilters` wraps the query service so
+  every fetch of the octo-services data sources (`RuntimeEntitySelectDataSource`
+  dropdown, `RuntimeEntityDialogDataSource` search dialog) carries the rows in
+  front of its own text-search row — the search keeps working on top of the
+  filter, and nothing is filtered on the client. Without rows the original
+  query service is used, so an unfiltered picker sends the query it always sent.
+- **Variables:** the toolbar gets the board variables (`[variables]` from the
+  view, `MeshBoardStateService.getVariables()`) and rebuilds its data sources
+  when the resolved filter changes (cache key = CK type + resolved rows). A
+  variable without a value behaves as in widget filters: an empty value is sent
+  as `''`, an unknown/unset one keeps its `$name` placeholder (usually matches
+  nothing); the picker's empty-list text then names the variable.
+- **Toolbar texts** (wording agreed with the Studio PO): empty list
+  "No <label> found. This board only lists <label> that match its filter."
+  (+ "The filter uses $x, which has no value yet."); dialog title
+  "Select <label> (filtered)". The search dialog's grid keeps Kendo's
+  "No records available" (shared-ui has no message input for it).
+- **Followers** have no picker: `pickerFieldFilters` ignores their rows, the
+  editor hides the section ("A follower takes the leader's pick. Set the filter
+  on <leader>."), says that hand-edited rows are ignored and drops them on save.
+- **Defaults and URL picks:** the filter affects the listing only. A
+  `defaultRtId`, an `es_<id>` URL pick or route data that does not match is
+  applied exactly as before; the view never queries the filter to validate a
+  pick (`meshboard-view.entity-selector-filter.spec.ts`).
+- **Editor** (section "Picker filter" under CK Type, shown once a CK type is
+  chosen; wireframe approved by Freya with changes in AB#7724): the shared
+  `mm-field-filter-editor` with the board's static variables plus the other
+  selectors' mapped variables; the default-entity picker applies the filter too
+  (rows with a variable the editor cannot substitute are left out there). A
+  debounced server check (`runtimeEntities` with `rtId` + rows, `first: 1`)
+  warns "The default entity does not match the picker filter. It still loads,
+  but users cannot pick it again." — never blocking save; a failed check says
+  "Could not check the default entity.", a filter with a view-time variable
+  says the check is skipped. The list shows a "N filters" chip.
+- **Persistence:** `filters` is in the selector whitelist of
+  `encodeVariablesInDescription`, reduced to the three filter fields and omitted
+  when empty — boards without filters encode byte-identically; export/import
+  carries the description verbatim (`meshboard-persistence.entity-selector-filter.spec.ts`,
+  fixture `testing/entity-selector-filter.fixtures.ts`).
 
 ### Auto-exposed selected-entity rtId / rtCkTypeId
 
