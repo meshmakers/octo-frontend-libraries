@@ -117,10 +117,11 @@ function parseConfig(data: PersistedWidgetData): Record<string, unknown> {
 }
 
 /**
- * Row action and value markers of a persisted table config (AB#7728). Tolerates foreign values:
- * a row action without a label and markers without field or tooltip are dropped.
+ * Row action, value markers and label fields of a persisted table config (AB#7728). Tolerates
+ * foreign values: a row action without a label, markers without field or tooltip and label fields
+ * that are no non-empty strings are dropped.
  */
-export function parseTableRowExtras(config: Record<string, unknown>): Pick<TableWidgetConfig, 'rowAction' | 'valueMarkers'> {
+export function parseTableRowExtras(config: Record<string, unknown>): Pick<TableWidgetConfig, 'rowAction' | 'valueMarkers' | 'labelFields'> {
   const rawAction = config['rowAction'] as Record<string, unknown> | undefined;
   const label = typeof rawAction?.['label'] === 'string' ? rawAction['label'].trim() : '';
   const rawMarkers = Array.isArray(config['valueMarkers']) ? config['valueMarkers'] as Record<string, unknown>[] : [];
@@ -133,9 +134,12 @@ export function parseTableRowExtras(config: Record<string, unknown>): Pick<Table
       ...(typeof m['color'] === 'string' ? { color: m['color'] } : {}),
       ...(m['showValue'] === true ? { showValue: true } : {})
     }));
+  const rawLabelFields: unknown[] = Array.isArray(config['labelFields']) ? config['labelFields'] : [];
+  const labelFields = rawLabelFields.filter((f): f is string => typeof f === 'string' && f !== '');
   return {
     ...(label ? { rowAction: { label } } : {}),
-    ...(valueMarkers.length > 0 ? { valueMarkers } : {})
+    ...(valueMarkers.length > 0 ? { valueMarkers } : {}),
+    ...(labelFields.length > 0 ? { labelFields } : {})
   };
 }
 
@@ -766,6 +770,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           sortable: widget.sortable,
           ...(widget.rowAction?.label && { rowAction: { label: widget.rowAction.label } }),
           ...(widget.valueMarkers?.length && { valueMarkers: widget.valueMarkers }),
+          ...(widget.labelFields?.length && { labelFields: widget.labelFields }),
           ...(queryDataSource && {
             queryName: queryDataSource.queryName,
             queryRtId: queryDataSource.queryRtId,

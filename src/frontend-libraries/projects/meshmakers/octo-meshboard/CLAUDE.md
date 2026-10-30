@@ -523,6 +523,8 @@ interface AggregationQuery {
 > `isPositiveMarkerValue` (number / numeric string > 0), plus the value with `showValue`, empty otherwise — for configured and
 > query-derived columns. Both keys are written to the `Config` JSON only when set
 > (`parseTableRowExtras` drops foreign values) and edited in the table config dialog.
+> `labelFields: string[]` offers the named columns to `MESHBOARD_LABEL_RESOLVER` whatever their type
+> (string and number cells, `value` as text); `Config` JSON only, kept by a dialog save.
 
 ### Widget Configuration Interface
 

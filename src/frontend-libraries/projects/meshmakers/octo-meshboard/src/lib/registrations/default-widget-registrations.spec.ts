@@ -452,10 +452,28 @@ describe('Default widget registrations — table row action and value markers (A
       .toEqual({ valueMarkers: [{ field: 'f', tooltip: 't' }] });
   });
 
+  it('keeps labelFields through persistence and through a dialog save', () => {
+    const widget = table({ labelFields: ['dataquality_max'] });
+    expect(roundTrip(widget).persisted['labelFields']).toEqual(['dataquality_max']);
+    expect(roundTrip(widget).widget.labelFields).toEqual(['dataquality_max']);
+
+    const result: TableConfigResult = {
+      dataSourceType: 'persistentQuery', ckTypeId: '', columns: [], sorting: [], filters: [],
+      queryRtId: 'q1', queryName: 'daily', pageSize: 10, sortable: true
+    };
+    expect((registry.applyConfigResult(widget, result) as TableWidgetConfig).labelFields).toEqual(['dataquality_max']);
+  });
+
+  it('drops foreign labelFields', () => {
+    expect(parseTableRowExtras({ labelFields: 'x' })).toEqual({});
+    expect(parseTableRowExtras({ labelFields: [1, '', 'a'] })).toEqual({ labelFields: ['a'] });
+  });
+
   it('writes no new keys for a table without them', () => {
     const { persisted, widget } = roundTrip(table());
     expect('rowAction' in persisted).toBe(false);
     expect('valueMarkers' in persisted).toBe(false);
+    expect('labelFields' in persisted).toBe(false);
     expect(widget.rowAction).toBeUndefined();
     expect(widget.valueMarkers).toBeUndefined();
   });

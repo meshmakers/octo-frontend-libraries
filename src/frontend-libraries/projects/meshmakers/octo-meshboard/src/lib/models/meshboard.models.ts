@@ -449,6 +449,12 @@ export interface TableWidgetConfig extends WidgetConfig {
    * number above zero, and stays empty otherwise. Works for configured and query-derived columns.
    */
   valueMarkers?: TableValueMarkerConfig[];
+  /**
+   * Column fields offered to the host's `MESHBOARD_LABEL_RESOLVER` whatever their type (AB#7728):
+   * string and number cells, the value as text. Without it only strings of text columns that are
+   * untyped or ENUM are offered. Works for configured and query-derived columns.
+   */
+  labelFields?: string[];
 }
 
 /** Row action of a table widget (AB#7728). */

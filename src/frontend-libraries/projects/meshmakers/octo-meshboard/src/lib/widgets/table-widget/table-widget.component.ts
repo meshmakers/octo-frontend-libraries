@@ -242,17 +242,21 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     // With a host label resolver (AB#5622) string cells of those columns are offered to it as
     // well (enum values such as `PAID` → "Bezahlt"); columns whose query value type is known and
     // not an enum are skipped. Without a resolver the formatter is unchanged.
+    //
+    // Columns named in `labelFields` (AB#7728) opt in: any column type, string and number cells.
     const resolver = this.labelResolver;
     const dataSource = this.config?.dataSource;
     const ckTypeId = dataSource?.type === 'runtimeEntity' ? (dataSource as RuntimeEntityDataSource).ckTypeId || undefined : undefined;
     const valueTypes = this._queryColumnValueTypes();
+    const labelFields = new Set(this.config?.labelFields ?? []);
     const withDateFormatter = (column: ListViewTableColumn): ListViewTableColumn => {
       const isPlainText = !column.dataType || column.dataType === 'text';
-      if (!isPlainText || column.formatter) {
+      const optedIn = !!resolver && labelFields.has(column.field);
+      if ((!isPlainText && !optedIn) || column.formatter) {
         return column;
       }
       const valueType = valueTypes.get(column.field) || undefined;
-      const translate = !!resolver && (!valueType || /ENUM/i.test(valueType));
+      const translate = !!resolver && (optedIn || !valueType || /ENUM/i.test(valueType));
       if (!translate) {
         return { ...column, formatter: (value: unknown) => formatTableCellValue(value, mode) };
       }
@@ -260,10 +264,11 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
         ...column,
         formatter: (value: unknown) => {
           const text = formatTableCellValue(value, mode);
-          // String cells as before; numeric cells only when the query reports an enum value
-          // type (numeric enum codes, AB#7655) — the resolver gets the number as string.
-          const isEnumNumber = typeof value === 'number' && Number.isFinite(value) && !!valueType && /ENUM/i.test(valueType);
-          if (!isEnumNumber && (typeof value !== 'string' || value === '')) {
+          // String cells as before; numeric cells when the query reports an enum value type
+          // (numeric enum codes, AB#7655) or the column opted in via `labelFields` (AB#7728).
+          // The resolver gets the number as string.
+          const isOfferedNumber = typeof value === 'number' && Number.isFinite(value) && (optedIn || (!!valueType && /ENUM/i.test(valueType)));
+          if (!isOfferedNumber && (typeof value !== 'string' || value === '')) {
             return text;
           }
           return resolveMeshBoardLabel(resolver, {

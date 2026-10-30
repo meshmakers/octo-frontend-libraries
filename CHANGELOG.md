@@ -574,6 +574,8 @@ starts a new empty "Unreleased" section.
   cell shows the icon with tooltip when its value is above zero (`isPositiveMarkerValue`), with `showValue: true` also the value,
   else stays empty; works for query-derived columns.
 - Both are set in the table configuration dialog and stored in the widget `Config` JSON only when configured.
+- New (non-breaking, additive): `TableWidgetConfig.labelFields: string[]` — offers the named columns to
+  `MESHBOARD_LABEL_RESOLVER` whatever their type: string and number cells, `value` as text. Boards without the key are unchanged.
 
 ### shared-ui shell user menu (avatar, AB#7679)
 

@@ -107,6 +107,61 @@ describe('TableWidgetComponent — enum labels (AB#5622)', () => {
     expect(resolver).toHaveBeenCalledWith({ kind: 'tableCell', ckTypeId: 'Shop/Invoice', attribute: 'state', value: 'PAID', defaultText: 'PAID' });
   });
 
+  describe('labelFields (AB#7728)', () => {
+    const query = { dataSource: { type: 'persistentQuery', queryRtId: 'q1' } as never };
+
+    it('offers number and string cells of typed query columns that opted in', async () => {
+      const resolver = vi.fn((r: unknown) => (r as { value: string }).value === '3' ? 'L3 (Schätzwert)' : null);
+      const cmp = await create({ ...query, labelFields: ['dataquality_max', 'rtWellKnownName'] }, resolver);
+      cmp.onQueryColumnsLoaded([
+        { attributePath: 'dataquality_max', attributeValueType: 'INTEGER' },
+        { attributePath: 'rtWellKnownName', attributeValueType: 'STRING' },
+        { attributePath: 'other', attributeValueType: 'INTEGER' }
+      ]);
+      const [quality, name, other] = cmp.listViewColumns();
+      expect(quality.formatter!(3, {})).toBe('L3 (Schätzwert)');
+      expect(quality.formatter!(1, {})).toBe('1');
+      expect(resolver).toHaveBeenCalledWith({ kind: 'tableCell', attribute: 'dataquality_max', value: '3', valueType: 'INTEGER', defaultText: '3' });
+      expect(name.formatter!('mp-1-1.8.0', {})).toBe('mp-1-1.8.0');
+      expect(resolver).toHaveBeenCalledWith(expect.objectContaining({ attribute: 'rtWellKnownName', value: 'mp-1-1.8.0', valueType: 'STRING' }));
+
+      resolver.mockClear();
+      expect(other.formatter!(3, {})).toBe('3');
+      expect(resolver).not.toHaveBeenCalled();
+    });
+
+    it('offers zero, but no empty cells', async () => {
+      const resolver = vi.fn(() => 'translated');
+      const cmp = await create({ ...query, labelFields: ['quality'] }, resolver);
+      cmp.onQueryColumnsLoaded([{ attributePath: 'quality', attributeValueType: 'INTEGER' }]);
+      const [quality] = cmp.listViewColumns();
+      expect(quality.formatter!(0, {})).toBe('translated');
+      expect(quality.formatter!(null, {})).toBe('');
+      expect(quality.formatter!('', {})).toBe('');
+    });
+
+    it('offers a configured numeric column that opted in', async () => {
+      const resolver = vi.fn(() => 'translated');
+      const cmp = await create({ columns: [{ field: 'total', title: 'Total', dataType: 'numeric', format: '1.2-2' }], labelFields: ['total'] }, resolver);
+      expect(cmp.listViewColumns()[0].formatter!(5, {})).toBe('translated');
+    });
+
+    it('leaves a numeric column to its own rendering without a resolver', async () => {
+      const cmp = await create({ columns: [{ field: 'total', title: 'Total', dataType: 'numeric' }], labelFields: ['total'] });
+      expect(cmp.listViewColumns()[0].formatter).toBeUndefined();
+    });
+
+    it('lets a value marker win over the label', async () => {
+      const cmp = await create({
+        columns: [{ field: 'total', title: 'Total' }],
+        labelFields: ['total'],
+        valueMarkers: [{ field: 'total', tooltip: 'Total' }]
+      }, vi.fn(() => 'translated'));
+      expect(cmp.listViewColumns()[0].formatter).toBeUndefined();
+      expect(cmp.listViewColumns()[0].dataType).toBe('component');
+    });
+  });
+
   it('only offers ENUM columns of a persistent query to the resolver', async () => {
     const resolver = vi.fn(() => 'translated');
     const cmp = await create({ dataSource: { type: 'persistentQuery', queryRtId: 'q1' } as never }, resolver);
