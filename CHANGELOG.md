@@ -10,6 +10,34 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard table column titles per language and value labels (AB#7655)
+
+- New (non-breaking, additive): table columns take `titles` (header per culture code; lookup exact culture or
+  language, then for a culture its language part, for a bare language such as `de` the first authored key of that
+  language (`de-AT`), then `title` - `de-DE` never picks `de-AT`) and `valueLabels` (raw value as string →
+  `{ label, color? }`, `label` one text or a text per culture code). A value-label cell is plain text with the optional
+  text colour; an unlabelled value keeps the column's `dataType` / `format` rendering (`numeric`, `iso8601`), `null` an
+  empty cell; when no label applies for the current language the column renders as without `valueLabels`. Labels win
+  over `MESHBOARD_LABEL_RESOLVER`; `valueLabels` with `statusMapping` (status icons) is not supported (labels shown,
+  console warning). Unknown culture keys and malformed `titles` / `valueLabels` entries are ignored with one console
+  warning per widget, column and set of problems.
+- New host language source: `provideMeshBoard({ language })`, `provideMeshBoardLanguage(language)` or the token
+  `MESHBOARD_LANGUAGE` (culture code or `Signal<string | null>`; headers and labels follow a signal without a refetch).
+  Not provided = `title` / raw values as before; no fallback to `LOCALE_ID`. Also exported: `pickLocalizedText`,
+  type `MeshBoardLanguageSource`, `TableColumnValueLabel`.
+- **Behaviour change for `MESHBOARD_LABEL_RESOLVER` implementers:** numeric cells of persistent-query columns whose
+  value type is an enum now reach the resolver too, as `value: String(value)` (`2` → `'2'`) with `valueType`; string
+  cells behave as before. A resolver written for enum names that returns a generic fallback text for unknown values
+  now replaces such numbers with that text - return `null` / `undefined` / `''` for values it does not know to keep
+  the number.
+- Fix: a table widget picks up a new `config` on the same instance (headers, labels, columns); before, the column
+  definitions changed only when the language or the time-zone mode changed.
+- Fix: the table config dialog no longer erases hand-authored columns. Saving a persistent-query table on the same
+  query keeps its explicit `columns` the query still returns (was `[]`), drops the ones it no longer returns and adds
+  its other columns as derived columns; runtime-entity columns that stay selected on the same CK type keep
+  their properties (`titles`, `valueLabels`, `width`, `format`, `statusMapping`). Existing boards render unchanged;
+  Refinery Studio needs no change.
+
 ### octo-services base types for the method handler diagnostics (AB#7877)
 
 - Additive: `schema.graphql` and `globalTypes.ts` now contain the system-admin query `methodHandlers` of the

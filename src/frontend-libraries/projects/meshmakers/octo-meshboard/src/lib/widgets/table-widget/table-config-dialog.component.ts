@@ -34,7 +34,10 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { QueryExecutorService } from '../../services/query-executor.service';
+import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
+import { mergePersistentQueryColumns, mergeRuntimeEntityColumns } from './table-column-labels';
 
 /**
  * Data source type for table widget
@@ -464,6 +467,10 @@ export class TableConfigDialogComponent implements OnInit {
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
+  private readonly getRuntimeQueryColumnsGQL = inject(GetRuntimeQueryColumnsDtoGQL);
+  private readonly queryExecutor = inject(QueryExecutorService);
+  /** Fields the saved query returns now, loaded once per query rtId (AB#7655, kept explicit columns). */
+  private queryFieldsLoad?: { rtId: string; fields: Promise<string[] | null> };
 
   @ViewChild('ckTypeSelector') ckTypeSelectorInput?: CkTypeSelectorInputComponent;
   @ViewChild('filterEditor') filterEditor?: FieldFilterEditorComponent;
@@ -723,14 +730,49 @@ export class TableConfigDialogComponent implements OnInit {
     ).join(', ');
   }
 
-  onSave(): void {
+  /**
+   * The fields a persistent query returns now (`null` when unknown or the lookup failed). Runtime
+   * queries use the metadata-only column resolver; stream-data queries execute with `first: 1`
+   * (no column-introspection endpoint), like the chart dialogs.
+   */
+  private loadQueryFields(rtId: string): Promise<string[] | null> {
+    if (this.queryFieldsLoad?.rtId === rtId) {
+      return this.queryFieldsLoad.fields;
+    }
+    const fields = (async (): Promise<string[] | null> => {
+      try {
+        const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily
+          ?? await this.queryExecutor.resolveFamily(rtId);
+        if (family === 'runtime') {
+          // network-only: the query may have changed since its columns were cached.
+          const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
+            variables: { rtId },
+            fetchPolicy: 'network-only'
+          }));
+          const columns = result.data?.runtime?.runtimeQuery?.items?.[0]?.columns ?? [];
+          return columns
+            .map(c => c?.attributePath ?? '')
+            .filter(path => path !== '');
+        }
+        const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1, forceRefresh: true }));
+        return sdResult.columns.map(c => c.attributePath).filter(path => !!path);
+      } catch (error) {
+        console.error('Error loading query columns:', error);
+        return null;
+      }
+    })();
+    this.queryFieldsLoad = { rtId, fields };
+    return fields;
+  }
+
+  async onSave(): Promise<void> {
     if (this.dataSourceType === 'runtimeEntity' && this.selectedCkType) {
-      // Convert selected columns to TableColumn format
-      const columns: TableColumn[] = this.selectedColumns.map(field => ({
-        field,
-        title: this.formatColumnTitle(field),
-        width: undefined
-      }));
+      // Convert selected columns to TableColumn format. Columns that stay selected on the same
+      // CK type keep their authored properties (titles, valueLabels, width, format, ... — AB#7655).
+      const sameDataSource = this.initialDataSourceType !== 'persistentQuery'
+        && !!this.initialCkTypeId && this.selectedCkType.rtCkTypeId === this.initialCkTypeId;
+      const columns: TableColumn[] = mergeRuntimeEntityColumns(
+        this.selectedColumns, this.initialColumns, sameDataSource, field => this.formatColumnTitle(field));
 
       // Convert filters (remove IDs)
       const filterDtos: FieldFilterDto[] = this.filters.map(f => ({
@@ -758,16 +800,27 @@ export class TableConfigDialogComponent implements OnInit {
 
       // Derive family from the selected query's CK type so the runtime executor
       // can route correctly without an extra lookup.
-      const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
+      const query = this.selectedPersistentQuery;
+      const family = queryFamily(query.ckTypeId) ?? this.initialQueryFamily ?? undefined;
+
+      // Explicit (hand-authored) columns survive a save on the same query (AB#7655), minus the ones
+      // the query no longer returns, plus the query's other columns as derived columns; a new query
+      // starts without explicit columns (derived from the query at run time).
+      const sameQuery = this.initialDataSourceType === 'persistentQuery' && query.rtId === this.initialQueryRtId;
+      const queryFields = sameQuery && (this.initialColumns?.length ?? 0) > 0
+        ? await this.loadQueryFields(query.rtId)
+        : null;
+      const columns = mergePersistentQueryColumns(
+        this.initialColumns, sameQuery, queryFields, field => this.formatColumnTitle(field));
 
       this.windowRef.close({
         dataSourceType: 'persistentQuery',
         ckTypeId: '', // Not used for persistent query
-        columns: [], // Will be derived from query
+        columns,
         sorting: [],
         filters: queryFilterDtos,
-        queryRtId: this.selectedPersistentQuery.rtId,
-        queryName: this.selectedPersistentQuery.name,
+        queryRtId: query.rtId,
+        queryName: query.name,
         queryFamily: family,
         ignoreTimeFilter: this.ignoreTimeFilter,
         entitySelectorId: this.entitySelectorId,

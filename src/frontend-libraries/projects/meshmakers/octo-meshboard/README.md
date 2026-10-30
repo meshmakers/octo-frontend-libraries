@@ -390,6 +390,95 @@ is logged once and ignored. Tables offer string cells of text columns (persisten
 only when their value type is `ENUM`); pie / donut charts offer every category — the resolved text
 is the slice name in data labels, legend and tooltips, the status colour still follows the raw
 value. A resolver that reads a signal re-labels the charts when it changes.
+**Numeric enum cells (AB#7655):** a cell that holds a number in a persistent-query column whose
+value type is an enum (`valueType` matches `ENUM`) is offered too, with `value` = the number as
+string (`2` → `'2'`) and `valueType`; numbers of other columns are not. A column's `valueLabels`
+(below) wins over the resolver — such a column never calls it.
+
+**Column titles per language and value labels (AB#7655).** Board authors configure both in the
+board JSON/YAML (the table config dialog does not edit them):
+
+```typescript
+interface TableColumn {
+  field: string;
+  title: string;                                     // fallback header
+  titles?: Record<string, string>;                   // header per culture code
+  valueLabels?: Record<string, TableColumnValueLabel>; // raw value (as string) -> label
+  width?: number; dataType?: string; format?: string; statusMapping?: ...;
+}
+interface TableColumnValueLabel {
+  label: string | Record<string, string>;            // one text, or a text per culture code
+  color?: string;                                    // optional CSS text colour
+}
+```
+
+- **Host language.** The library does not know the host's UI language and never derives it from
+  `LOCALE_ID` (static in many apps). A host that wants per-language texts hands it over once — a
+  culture code or a `Signal<string | null>`; the widgets follow a signal without reloading the board
+  or refetching data:
+
+  ```typescript
+  providers: [
+    provideMeshBoard({ language: languageService.currentCulture }), // Signal<string>, e.g. 'de-AT'
+    // or, when the widgets are registered lazily (no provideMeshBoard()):
+    provideMeshBoardLanguage(languageService.currentCulture),
+    // or directly: { provide: MESHBOARD_LANGUAGE, useValue: 'en-GB' }
+  ]
+  ```
+
+  No language = every column shows `title` and per-language labels show the raw value, exactly as
+  before. `pickLocalizedText(texts, language)` is exported for hosts that need the same lookup.
+- **`titles`** — lookup order: the exact culture or language (`de-AT`, `de`; case-insensitive);
+  for a culture (`de-AT`) without an exact key, a key equal to its language part (`de`); for a bare
+  language (`de`, e.g. from a simple language switcher) without an exact key, the **first authored
+  key of that language** (`de-AT` in `{ "en-GB": …, "de-AT": …, "de-DE": … }`, in the order the keys
+  are written); then `title`. A culture never picks a sibling culture (`de-DE` does not take `de-AT`).
+  Columns derived from a persistent query (no explicit `columns`) keep their generated titles.
+- **`valueLabels`** — keys are the raw value as string; a number `2` and a string `"2"` both match
+  `"2"`. The cell shows the label as **plain text** like every other cell (no badge); `color`, when
+  set, is the text colour — use a theme token such as `var(--kendo-color-error)`; without it the
+  theme text colour applies. A per-language `label` follows the host language like `titles`. A value
+  without a label (unmapped, e.g. `4`, or a per-language label without a match) keeps the column's
+  rendering: `numeric` with `format` like the `number` pipe, `iso8601` with `format` like the `date`
+  pipe, plain text through the board's date-time formatter; `null` / missing is an empty cell. When
+  no label applies for the current language at all (e.g. only `de-AT` labels and the host language is
+  `en-GB`), the column renders exactly as without `valueLabels`, including `MESHBOARD_LABEL_RESOLVER`.
+  Otherwise `valueLabels` win over `MESHBOARD_LABEL_RESOLVER`. **`valueLabels` together with
+  `statusMapping` (status icons) is not supported:** the labels are shown, the status icons are not,
+  and the widget logs a console warning.
+- **Configuration errors** — a culture key that is not a culture code (`german`, `de_AT`), a
+  malformed `titles` entry (no object, non-string or empty text) or a malformed `valueLabels` entry
+  (no object, no usable `label`, non-string `color`) is ignored; the widget logs **one** console
+  warning per widget, column and set of problems naming them (a different problem after a config
+  edit is reported again), and the table still renders.
+- **Refinery Studio** — the table config dialog keeps hand-authored columns: saving a
+  persistent-query table without changing the query keeps its explicit `columns` that the query still
+  returns (unchanged, in their order), drops those whose field the query no longer returns and adds the
+  query's other columns with a generated title, like derived columns (when the query's columns cannot
+  be loaded, the explicit columns stay unchanged; a new query starts without explicit columns); for
+  runtime-entity tables, columns that stay selected on the same CK type keep all their properties
+  (`titles`, `valueLabels`, `width`, `format`, `statusMapping`, ...), newly selected ones get a
+  generated title. A new `config` on the same widget instance re-renders headers and labels.
+
+Example — the daily quality 1/2/3 shown as L1/L2/L3 with German and English headers:
+
+```json
+{
+  "columns": [
+    { "field": "day", "title": "Day", "titles": { "de-AT": "Tag", "en-GB": "Day" } },
+    {
+      "field": "dataquality_max",
+      "title": "Dataquality",
+      "titles": { "de-AT": "Datenqualität", "en-GB": "Data quality" },
+      "valueLabels": {
+        "1": { "label": "L1", "color": "var(--kendo-color-success)" },
+        "2": { "label": "L2", "color": "var(--kendo-color-warning)" },
+        "3": { "label": "L3", "color": "var(--kendo-color-error)" }
+      }
+    }
+  ]
+}
+```
 
 ### Pie Chart Widget
 Displays data as pie or donut chart.
