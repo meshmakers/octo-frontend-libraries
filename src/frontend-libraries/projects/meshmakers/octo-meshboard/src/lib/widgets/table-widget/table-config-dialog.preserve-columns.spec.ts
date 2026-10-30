@@ -96,7 +96,7 @@ describe('TableConfigDialogComponent — keeps authored columns (AB#7655 AC 6)',
 
     await dialog.onSave();
 
-    expect(fetchColumns).toHaveBeenCalledWith({ variables: { rtId: 'q-daily' } });
+    expect(fetchColumns).toHaveBeenCalledWith({ variables: { rtId: 'q-daily' }, fetchPolicy: 'network-only' });
     expect(savedResult(close).columns).toEqual([
       authoredColumns[0],
       { field: 'meterName', title: 'Meter Name' },
@@ -104,13 +104,14 @@ describe('TableConfigDialogComponent — keeps authored columns (AB#7655 AC 6)',
     ]);
   });
 
-  it('persistent query: a stream-data query is checked through the executor', async () => {
+  it('persistent query: a stream-data query is checked through the executor, bypassing the cache', async () => {
     const { dialog, close, fetchColumns } = createDialog({ streamDataFields: ['day'] });
     onSameQuery(dialog, 'System/SimpleSdQuery');
 
     await dialog.onSave();
 
     expect(fetchColumns).not.toHaveBeenCalled();
+    expect(TestBed.inject(QueryExecutorService).executeStreamData).toHaveBeenCalledWith('q-daily', { first: 1, forceRefresh: true });
     expect(savedResult(close).columns).toEqual([authoredColumns[1]]);
   });
 

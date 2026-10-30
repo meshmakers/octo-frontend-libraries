@@ -744,13 +744,17 @@ export class TableConfigDialogComponent implements OnInit {
         const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily
           ?? await this.queryExecutor.resolveFamily(rtId);
         if (family === 'runtime') {
-          const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({ variables: { rtId } }));
+          // network-only: the query may have changed since its columns were cached.
+          const result = await firstValueFrom(this.getRuntimeQueryColumnsGQL.fetch({
+            variables: { rtId },
+            fetchPolicy: 'network-only'
+          }));
           const columns = result.data?.runtime?.runtimeQuery?.items?.[0]?.columns ?? [];
           return columns
             .map(c => c?.attributePath ?? '')
             .filter(path => path !== '');
         }
-        const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
+        const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1, forceRefresh: true }));
         return sdResult.columns.map(c => c.attributePath).filter(path => !!path);
       } catch (error) {
         console.error('Error loading query columns:', error);

@@ -396,7 +396,7 @@ string (`2` → `'2'`) and `valueType`; numbers of other columns are not. A colu
 (below) wins over the resolver — such a column never calls it.
 
 **Column titles per language and value labels (AB#7655).** Board authors configure both in the
-board JSON/YAML (there is no editor in the table config dialog yet):
+board JSON/YAML (the table config dialog does not edit them):
 
 ```typescript
 interface TableColumn {
