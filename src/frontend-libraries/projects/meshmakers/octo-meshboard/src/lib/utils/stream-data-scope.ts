@@ -31,8 +31,9 @@ export type EntitySelectorScopeState =
  *   (`failed`) — show the no-data state and send NO query. Never fall back to
  *   the persisted scope: that would show rows of other entities.
  *   `invalidTimeRange` (AB#7582): the embedding host set a `timeRange` that is
- *   unparseable or empty (`from >= to`) — every stream-data query of the board
- *   is skipped, whatever its selector binding.
+ *   unparseable or empty (`from >= to`) — every stream-data query bound to the
+ *   time filter is skipped, whatever its selector binding; a widget with
+ *   `ignoreTimeFilter` is not affected.
  */
 export type StreamDataScope =
   | { kind: 'unscoped' }

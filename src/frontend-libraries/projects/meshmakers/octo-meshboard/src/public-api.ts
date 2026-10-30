@@ -198,7 +198,7 @@ export type { EntitySelectorEvent, EntitySelectorClearEvent } from './lib/compon
 
 // Container Components
 export { MeshBoardViewComponent } from './lib/containers/meshboard-view/meshboard-view.component';
-export type { MeshBoardHostTimeRange, MeshBoardTimeFilterControl, ParsedHostTimeRange } from './lib/containers/meshboard-view/host-time-range';
+export type { MeshBoardHostTimeRange, MeshBoardTimeFilterControl } from './lib/containers/meshboard-view/host-time-range';
 export { parseHostTimeRange } from './lib/containers/meshboard-view/host-time-range';
 
 // Dialogs

@@ -429,6 +429,113 @@ describe('MeshBoardViewComponent — host time range (AB#7582)', () => {
     });
   });
 
+  describe('lifecycle and ownership (review round 1)', () => {
+    it('a view destroyed during the initial load leaves no host period behind', async () => {
+      let releaseLoad!: () => void;
+      const loadGate = new Promise<void>(resolve => { releaseLoad = resolve; });
+      const fixture = setup({ timeRange: GAS_DAY });
+      const boards = [{ rtId: 'board-1', name: 'Host board', rtWellKnownName: 'host' }];
+      persistence.getMeshBoards.mockReset();
+      persistence.getMeshBoards
+        .mockImplementationOnce(() => loadGate.then(() => boards))
+        .mockResolvedValue(boards);
+
+      fixture.detectChanges(); // ngOnInit starts
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(persistence.getMeshBoards).toHaveBeenCalledTimes(1); // the board list is in flight
+      fixture.destroy();
+      releaseLoad();
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(state.hostTimeRange()).toBeNull();
+
+      // The next view without timeRange uses the board's own selection.
+      const next = TestBed.createComponent(MeshBoardViewComponent);
+      await settle(next);
+      expect(state.hostTimeRange()).toBeNull();
+      expect(variable('timeRangeFrom')).toBe(storedSelectionRange().from);
+      expect(state.resolveStreamDataTimeArgs()?.from.toISOString()).toBe(storedSelectionRange().from);
+    });
+
+    it('a destroyed view does not clear the period another view set (owner-aware)', async () => {
+      const first = setup({ timeRange: GAS_DAY });
+      await settle(first);
+      const second = TestBed.createComponent(MeshBoardViewComponent);
+      second.componentRef.setInput('timeRange', { from: '2026-04-01T00:00:00Z', to: '2026-04-02T00:00:00Z' });
+      await settle(second);
+
+      first.destroy();
+
+      expect(state.resolveCurrentTimeRange()?.from.toISOString()).toBe('2026-04-01T00:00:00.000Z');
+      second.destroy();
+      expect(state.hostTimeRange()).toBeNull();
+    });
+  });
+
+  describe('invalid range and the time-filter opt-out (review round 1)', () => {
+    it('does not blank a widget with ignoreTimeFilter=true and keeps its selector scope', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const fixture = setup({ timeRange: { from: GAS_TO, to: GAS_FROM } });
+      await settle(fixture);
+      state.setEntitySelectorRtIds('site', ['dev-1']);
+
+      expect(state.resolveStreamDataScope(undefined, 'streamData', true)).toEqual({ kind: 'unscoped' });
+      expect(state.resolveStreamDataScope('site', 'streamData', true)).toEqual({ kind: 'scoped', rtIds: ['dev-1'] });
+      expect(state.resolveStreamDataRtIds('site')).toEqual(['dev-1']);
+      expect(state.resolveStreamDataScope('site', 'streamData', false)).toEqual({ kind: 'empty', reason: 'invalidTimeRange' });
+      expect(state.isStreamDataBlockedByHostTimeRange(true)).toBe(false);
+      expect(state.isStreamDataBlockedByHostTimeRange()).toBe(true);
+    });
+
+    it('a settings change re-applies an invalid host period through the same path (reapplyTimeFilterRange)', async () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const fixture = setup({ timeFilter: undefined, timeRange: { from: 'x', to: GAS_TO } });
+      await settle(fixture);
+      expect(error).not.toHaveBeenCalled();
+
+      state.updateTimeFilterConfig({ ...STORED_TIME_FILTER });
+      (fixture.componentInstance as unknown as { reapplyTimeFilterRange(): void }).reapplyTimeFilterRange();
+
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(variable('timeRangeFrom')).toBeUndefined();
+      expect(state.resolveStreamDataScope(undefined, 'streamData')).toEqual({ kind: 'empty', reason: 'invalidTimeRange' });
+    });
+
+    it('a settings change re-publishes a valid host period unchanged', async () => {
+      const fixture = setup({ timeRange: GAS_DAY });
+      await settle(fixture);
+      state.updateTimeFilterConfig({ ...STORED_TIME_FILTER, pickerConfig: { showTime: true } } as MeshBoardTimeFilterConfig);
+
+      (fixture.componentInstance as unknown as { reapplyTimeFilterRange(): void }).reapplyTimeFilterRange();
+
+      expect(variable('timeRangeFrom')).toBe(GAS_FROM);
+      expect(variable('timeRangeTo')).toBe(GAS_TO);
+    });
+  });
+
+  describe('tf_* parameters (review round 1)', () => {
+    it('does not re-apply stale tf_* of the opening URL when the host drops its period', async () => {
+      const fixture = setup({ timeRange: GAS_DAY, queryParams: { tf_type: 'year', tf_year: '2025' } });
+      await settle(fixture);
+
+      fixture.componentRef.setInput('timeRange', undefined);
+      await settle(fixture);
+
+      expect(variable('timeRangeFrom')).toBe(storedSelectionRange().from);
+      expect(state.getTimeFilterConfig()?.selection).toEqual(STORED_TIME_FILTER.selection);
+      expect(tfUrlWrites()).toEqual([]);
+    });
+
+    it("with timeFilterControl='host' and no timeRange the board selection applies but no tf_* is written", async () => {
+      const fixture = setup({ timeFilterControl: 'host' });
+      await settle(fixture);
+
+      expect(variable('timeRangeFrom')).toBe(storedSelectionRange().from);
+      expect(tfUrlWrites()).toEqual([]);
+    });
+  });
+
   it('clears the host period when the view is destroyed (root-provided state service)', async () => {
     const fixture = setup({ timeRange: GAS_DAY });
     await settle(fixture);

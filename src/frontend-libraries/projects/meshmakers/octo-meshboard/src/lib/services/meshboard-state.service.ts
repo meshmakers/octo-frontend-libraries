@@ -24,12 +24,13 @@ const REQUIRED_CK_MODEL_MIN_VERSION = '1.0.1';
 
 /**
  * The period an embedding host sets on the board (AB#7582): two exact instants
- * (half-open `[from, to)`), or `invalid` when the host passed an unparseable or
- * empty range. Held transiently by {@link MeshBoardStateService.setHostTimeRange}.
+ * (half-open `[from, to)`), or `invalid` (with the reason) when the host passed an
+ * unparseable or empty range. Produced by `parseHostTimeRange`, held transiently by
+ * {@link MeshBoardStateService.setHostTimeRange}.
  */
 export type HostTimeRangeState =
   | { status: 'valid'; from: Date; to: Date }
-  | { status: 'invalid' };
+  | { status: 'invalid'; reason: string };
 
 /**
  * Service that manages MeshBoard state and persistence.
@@ -909,12 +910,21 @@ export class MeshBoardStateService {
    *   no-data state and send no query. Never fall back to the persisted scope.
    *
    * A legacy config without `queryFamily` is treated as stream data.
+   *
+   * AB#7582: while the embedding host's period is invalid, every stream-data
+   * query bound to the time filter is `empty` (`invalidTimeRange`), whatever its
+   * selector binding; pass the widget's `ignoreTimeFilter` so an opted-out widget,
+   * whose data does not depend on the period, keeps querying.
    */
-  resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily): StreamDataScope {
-    if (family !== 'runtime' && this.isHostTimeRangeInvalid()) {
-      // AB#7582: an unusable host period sends no stream-data query at all.
+  resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily, ignoreTimeFilter?: boolean): StreamDataScope {
+    if (family !== 'runtime' && this.isStreamDataBlockedByHostTimeRange(ignoreTimeFilter)) {
       return { kind: 'empty', reason: 'invalidTimeRange' };
     }
+    return this.resolveSelectorScope(entitySelectorId, family);
+  }
+
+  /** The entity-selector part of {@link resolveStreamDataScope} (AB#7721), without the host gate. */
+  private resolveSelectorScope(entitySelectorId?: string, family?: QueryFamily): StreamDataScope {
     if (!entitySelectorId || family === 'runtime') {
       return { kind: 'unscoped' };
     }
@@ -944,7 +954,7 @@ export class MeshBoardStateService {
    * skip the query for `pending` / `empty` (AB#7721).
    */
   resolveStreamDataRtIds(entitySelectorId?: string): string[] | undefined {
-    const scope = this.resolveStreamDataScope(entitySelectorId);
+    const scope = this.resolveSelectorScope(entitySelectorId);
     return scope.kind === 'scoped' ? scope.rtIds : undefined;
   }
 
@@ -959,16 +969,36 @@ export class MeshBoardStateService {
    * persisted, not written into the board config, so it never causes unsaved
    * changes. Only takes effect while the board's time filter is enabled.
    */
-  setHostTimeRange(state: HostTimeRangeState | null): void {
+  setHostTimeRange(state: HostTimeRangeState | null, owner?: object): void {
     this._hostTimeRange.set(state);
+    this.hostTimeRangeOwner = state ? owner ?? null : null;
   }
+
+  /**
+   * Clears the host period only if `owner` set it (AB#7582). The service is
+   * root-provided, so a view that is destroyed (or drops its `timeRange`) must not
+   * clear a period another view set in the meantime.
+   */
+  clearHostTimeRange(owner: object): void {
+    if (this.hostTimeRangeOwner === owner) {
+      this.setHostTimeRange(null);
+    }
+  }
+
+  /** The view (or other caller) that set the current host period, if it said so. */
+  private hostTimeRangeOwner: object | null = null;
 
   /** The period set by the embedding host, or `null` when the board's own selection applies. */
   readonly hostTimeRange = this._hostTimeRange.asReadonly();
 
-  /** True while the host's period is invalid and the board's time filter is enabled. */
-  private isHostTimeRangeInvalid(): boolean {
-    return this._hostTimeRange()?.status === 'invalid' && this.isTimeFilterEnabled();
+  /**
+   * True when an invalid host period blocks a stream-data query that is bound to
+   * the time filter (AB#7582): the period is invalid, the board's time filter is
+   * enabled and the caller did not opt out with `ignoreTimeFilter`. Such a query
+   * must not be sent — without a window it would read the whole archive.
+   */
+  isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?: boolean): boolean {
+    return !ignoreTimeFilter && this._hostTimeRange()?.status === 'invalid' && this.isTimeFilterEnabled();
   }
 
   /**

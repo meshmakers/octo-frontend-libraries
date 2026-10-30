@@ -2,9 +2,8 @@ import type { HostTimeRangeState } from '../../services/meshboard-state.service'
 
 /**
  * The period a host page sets on an embedded MeshBoard (`mm-meshboard-view [timeRange]`, AB#7582):
- * two exact instants, half-open `[from, to)`. A string must be ISO 8601 with a zone designator
- * (`Z` or `±hh:mm`) — a string without one would be read in the browser's zone, which is exactly
- * what the host wants to avoid.
+ * two exact instants, half-open `[from, to)`. A string must be an RFC 3339 date-time with an
+ * explicit offset - see {@link parseHostTimeRange}.
  */
 export interface MeshBoardHostTimeRange {
   from: Date | string;
@@ -17,30 +16,66 @@ export interface MeshBoardHostTimeRange {
  */
 export type MeshBoardTimeFilterControl = 'board' | 'host';
 
-/** Result of {@link parseHostTimeRange}: the state for the state service plus, when invalid, why. */
-export type ParsedHostTimeRange =
-  | { status: 'valid'; from: Date; to: Date }
-  | { status: 'invalid'; reason: string };
+/**
+ * RFC 3339 date-time: `YYYY-MM-DDTHH:MM:SS`, optional 1-3 fraction digits, then `Z` or `±HH:MM`.
+ * Uppercase `T`/`Z` only, seconds required, no compact offset (`+0100`): those forms parse
+ * differently across browsers (Safari), and a string without an offset would be read in the
+ * browser's own zone.
+ */
+const RFC3339 = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(?:(Z)|([+-])(\d{2}):(\d{2}))$/;
 
-/** ISO 8601 date-time with an explicit zone designator (`Z`, `+01:00`, `+0100`). */
-const ISO_WITH_ZONE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/i;
+function daysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/**
+ * The instant of an RFC 3339 string, computed from its fields (never from `Date.parse`, so every
+ * browser gets the same result), or `null` when the string is not RFC 3339 or names a date or time
+ * that does not exist (`2026-02-30`, `24:00`, `23:60`, leap second `:60`, offset hour > 23).
+ */
+function parseRfc3339(value: string): Date | null {
+  const m = RFC3339.exec(value);
+  if (!m) {
+    return null;
+  }
+  const [year, month, day, hour, minute, second] = m.slice(1, 7).map(Number);
+  const millis = m[7] ? Number(m[7].padEnd(3, '0')) : 0;
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)
+    || hour > 23 || minute > 59 || second > 59) {
+    return null;
+  }
+  let offsetMinutes = 0;
+  if (!m[8]) {
+    const offsetHours = Number(m[10]);
+    const offsetMins = Number(m[11]);
+    if (offsetHours > 23 || offsetMins > 59) {
+      return null;
+    }
+    offsetMinutes = (m[9] === '-' ? -1 : 1) * (offsetHours * 60 + offsetMins);
+  }
+  // setUTCFullYear (not Date.UTC, which maps years 0-99 to 1900-1999) for the wall-clock fields,
+  // then the offset: local wall clock = UTC + offset.
+  const date = new Date(0);
+  date.setUTCFullYear(year, month - 1, day);
+  date.setUTCHours(hour, minute, second, millis);
+  date.setTime(date.getTime() - offsetMinutes * 60_000);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
 
 function toInstant(value: unknown): Date | null {
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? null : new Date(value.getTime());
   }
-  if (typeof value === 'string' && ISO_WITH_ZONE.test(value.trim())) {
-    const date = new Date(value.trim());
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-  return null;
+  return typeof value === 'string' ? parseRfc3339(value) : null;
 }
 
 /**
- * Parses the host's `timeRange` input. `undefined`/`null` = the host does not set a period.
- * Never snaps or converts: the instants are taken as given.
+ * Parses the host's `timeRange` input. `undefined`/`null` = the host sets no period.
+ * Never snaps or converts: the instants are taken as given. `Date` objects are accepted as they
+ * are; strings must be RFC 3339 with an offset, e.g. `2026-03-28T05:00:00Z` or
+ * `2026-03-28T06:00:00+01:00` (see {@link RFC3339}).
  */
-export function parseHostTimeRange(value: MeshBoardHostTimeRange | null | undefined): ParsedHostTimeRange | undefined {
+export function parseHostTimeRange(value: MeshBoardHostTimeRange | null | undefined): HostTimeRangeState | undefined {
   if (value === undefined || value === null) {
     return undefined;
   }
@@ -49,7 +84,8 @@ export function parseHostTimeRange(value: MeshBoardHostTimeRange | null | undefi
   if (!from || !to) {
     return {
       status: 'invalid',
-      reason: 'from and to must be Date objects or ISO 8601 strings with a zone designator (Z or ±hh:mm)'
+      reason: 'from and to must be Date objects or RFC 3339 date-times with an offset '
+        + '(YYYY-MM-DDTHH:MM:SS[.sss] followed by Z or ±HH:MM)'
     };
   }
   if (from.getTime() >= to.getTime()) {
@@ -58,16 +94,8 @@ export function parseHostTimeRange(value: MeshBoardHostTimeRange | null | undefi
   return { status: 'valid', from, to };
 }
 
-/** Maps a parsed range to the state-service form (drops the reason). */
-export function toHostTimeRangeState(parsed: ParsedHostTimeRange | undefined): HostTimeRangeState | null {
-  if (!parsed) {
-    return null;
-  }
-  return parsed.status === 'valid' ? { status: 'valid', from: parsed.from, to: parsed.to } : { status: 'invalid' };
-}
-
 /** True when two parsed ranges mean the same period (same instants, or both invalid for the same reason). */
-export function sameHostTimeRange(a: ParsedHostTimeRange | undefined, b: ParsedHostTimeRange | undefined): boolean {
+export function sameHostTimeRange(a: HostTimeRangeState | undefined, b: HostTimeRangeState | undefined): boolean {
   if (!a || !b) {
     return a === b;
   }

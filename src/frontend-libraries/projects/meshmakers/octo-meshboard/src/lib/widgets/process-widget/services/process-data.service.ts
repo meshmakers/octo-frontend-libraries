@@ -486,6 +486,14 @@ export class ProcessDataService {
       throw new Error('Persistent query binding requires queryRtId');
     }
 
+    // AB#7582: while the embedding host's period is invalid, a stream-data query
+    // bound to the time filter is not sent (it would read the whole archive); the
+    // binding gets no value. Runtime queries are unaffected.
+    if (this.stateService.isStreamDataBlockedByHostTimeRange()
+      && await this.queryExecutor.resolveFamily(queryRtId) === 'streamData') {
+      return undefined;
+    }
+
     // Execute via the unified executor (family resolved lazily). The active time
     // filter is applied by default for stream-data queries; runtime queries
     // ignore it. The element binding has no asset-scope, so no rtIds override.
@@ -726,7 +734,7 @@ export class ProcessDataService {
     // or empty — never the persisted (unscoped) scope. Pending → a `pending` result
     // (the widget stays loading; a refresh follows once the scope resolves);
     // empty → no rows.
-    const scope = this.stateService.resolveStreamDataScope(config.bindingEntitySelectorId, bindingQueryFamily);
+    const scope = this.stateService.resolveStreamDataScope(config.bindingEntitySelectorId, bindingQueryFamily, config.bindingIgnoreTimeFilter);
     if (scope.kind === 'pending') {
       return { type: 'query', pending: true, loadedAt: new Date() };
     }

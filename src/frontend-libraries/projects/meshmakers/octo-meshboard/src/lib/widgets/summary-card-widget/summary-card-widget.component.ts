@@ -228,7 +228,7 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
   }
 
   private scopeOf(source: PersistentQueryCellSource): StreamDataScope {
-    return this.stateService.resolveStreamDataScope(source.entitySelectorId, source.queryFamily);
+    return this.stateService.resolveStreamDataScope(source.entitySelectorId, source.queryFamily, source.ignoreTimeFilter);
   }
 
   private buildStreamDataArgs(source: PersistentQueryCellSource): StreamDataExecutionArgs | undefined {
