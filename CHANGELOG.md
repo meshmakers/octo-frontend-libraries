@@ -10,6 +10,18 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-services: problem+json refusals show their title, no generic "Access denied" (AB#7969)
+
+- Changed: `MmHttpErrorInterceptor` shows the readable text of a 403/409 `application/problem+json` body
+  (`title` when the body carries the `code` extension, else `detail`) instead of the generic
+  "Access denied. You do not have permission to access this tenant or resource." — e.g. identity's role-change
+  refusals (`self-grant`, `role-not-held`, `last-administrator`, `built-in-role`). A 409 problem with a title was
+  not reported at all before.
+- `MmHttpErrorInterceptor.reportsToUser(error)` answers `true` for these, so pages that follow the existing rule
+  (skip the own toast when it is `true`) show the server's sentence exactly once.
+- Unchanged: a 403 without a body, with the tenant middleware's `{message}` body or with a default ASP.NET
+  problem (title "Forbidden", no `code`/`detail`) keeps its current text.
+
 ### octo-meshboard heatmap: weighted mean, bucket-end timestamps, own time window (AB#7956)
 
 - New (non-breaking): aggregation `weightedAvg` with `valueField` (sum column) and `weightField` (count column):

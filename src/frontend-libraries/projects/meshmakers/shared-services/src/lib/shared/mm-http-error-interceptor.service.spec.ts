@@ -301,6 +301,46 @@ describe('MmHttpErrorInterceptor', () => {
       }));
     });
 
+    describe('problem+json refusals (AB#7969)', () => {
+      function expectToast(status: number, body: unknown, expected: string): Promise<void> {
+        return new Promise<void>((done) => {
+          const req = new HttpRequest('PUT', '/t1/v1/groups/g1/roles', null);
+          const error = new HttpErrorResponse({ status, statusText: 'Refused', error: body });
+          httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+          interceptor.intercept(req, httpHandlerMock).subscribe({
+            error: (e) => {
+              expect(e).toBe(error);
+              expect(messageServiceMock.showError).toHaveBeenCalledTimes(1);
+              expect(messageServiceMock.showError).toHaveBeenCalledWith(expected);
+              expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
+              done();
+            }
+          });
+        });
+      }
+
+      it('shows the problem title of a 403 instead of the generic access-denied text', () =>
+        expectToast(403, { status: 403, title: 'You cannot grant additional roles to your own user.', code: 'self-grant' },
+          'You cannot grant additional roles to your own user.'));
+
+      it('shows the problem title of a 409 that carries no message field', () =>
+        expectToast(409, { status: 409, title: 'Built-in roles cannot be renamed or deleted: DashboardManagement.', code: 'built-in-role', roleNames: ['DashboardManagement'] },
+          'Built-in roles cannot be renamed or deleted: DashboardManagement.'));
+
+      it('falls back to the problem detail when the title is missing', () =>
+        expectToast(409, { status: 409, detail: 'The last administrator cannot be removed.', code: 'last-administrator' },
+          'The last administrator cannot be removed.'));
+
+      it('shows the detail of a default problem without code, never its reason-phrase title', () =>
+        expectToast(403, { type: 'https://tools.ietf.org/html/rfc9110#section-15.5.4', title: 'Forbidden', status: 403, detail: 'Tenant is read-only.' },
+          'Tenant is read-only.'));
+
+      it('keeps the generic access-denied text for a default 403 problem without code or detail', () =>
+        expectToast(403, { type: 'https://tools.ietf.org/html/rfc9110#section-15.5.4', title: 'Forbidden', status: 403 },
+          'Access denied. You do not have permission to access this tenant or resource.'));
+    });
+
     describe('other HTTP errors', () => {
       it('should not show message for 400 without statusCode in error body', () => new Promise<void>((done) => {
         const req = new HttpRequest('GET', '/api/data');
@@ -533,6 +573,24 @@ describe('MmHttpErrorInterceptor', () => {
       expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 401 }))).toBe(false);
       expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 404 }))).toBe(false);
       expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 500 }))).toBe(false);
+    });
+
+    it('reports a 403 or 409 problem body with a readable text (AB#7969)', () => {
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
+        status: 409, error: { status: 409, title: 'At least one user administrator must remain.', code: 'last-administrator' }
+      }))).toBe(true);
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
+        status: 403, error: { status: 403, title: 'You cannot grant additional roles to your own user.', code: 'self-grant' }
+      }))).toBe(true);
+    });
+
+    it('does not report a 409 problem body without a readable text, nor problems of other statuses', () => {
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
+        status: 409, error: { status: 409, title: 'Conflict' }
+      }))).toBe(false);
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
+        status: 404, error: { status: 404, title: 'Not found', code: 'missing' }
+      }))).toBe(false);
     });
 
     it('never reports anything that is not an HttpErrorResponse', () => {
