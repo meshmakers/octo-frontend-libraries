@@ -138,6 +138,15 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   });
 
   /**
+   * Tooltip of the value: the reason a formula result is shown as `-` although every
+   * variable has a value (non-finite result, e.g. division by zero; AB#7950), else `null`.
+   */
+  readonly valueTooltip = computed(() => {
+    const result = this.formulaResult();
+    return result?.status === 'nonFinite' ? result.reason : null;
+  });
+
+  /**
    * Unformatted value: the formula result, or the value taken from the loaded data
    * (query values already scaled by `valueMultiplier`).
    */

@@ -1,5 +1,5 @@
 import type { ExpressionContext, ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
-import { AnyWidgetConfig, KpiWidgetConfig, MeshBoardVariable } from '../models/meshboard.models';
+import { AnyWidgetConfig, EntitySelectorConfig, KpiWidgetConfig, MeshBoardVariable } from '../models/meshboard.models';
 
 /**
  * Formula support for MeshBoard widgets (AB#5364).
@@ -31,10 +31,25 @@ export interface FormulaValidationResult {
   unknownVariables: string[];
 }
 
+/**
+ * Outcome of evaluating a formula:
+ * - `ok`: a value;
+ * - `pending`: empty formula or a referenced variable has no value yet → the widget shows `-`, no error;
+ * - `nonFinite`: the result is `Infinity`/`NaN` (e.g. division by zero, PV = 0 at night) → the widget
+ *   shows `-` and the `reason` as tooltip, no error state (AB#7950);
+ * - `error`: syntax or evaluation error → the widget error state with the message.
+ */
 export type FormulaEvaluationResult =
   | { status: 'pending' }
   | { status: 'ok'; value: number | string | boolean }
+  | { status: 'nonFinite'; reason: string }
   | { status: 'error'; error: string };
+
+/** Tooltip reason shown with `-` for a non-finite formula result (AB#7950). */
+export const NON_FINITE_FORMULA_REASON = 'The formula result is not a finite number (e.g. division by zero).';
+
+/** Error of a formula whose result must be a number but is not (gauge). */
+export const NOT_A_NUMBER_FORMULA_ERROR = 'Result is not a number';
 
 const VARIABLE_REFERENCE = /\$\{([^}]+)\}|\$([a-zA-Z_]\w*)/g;
 const IDENTIFIER_PREFIX = '__v_';
@@ -102,6 +117,43 @@ export function validateFormula(
   return { valid: true, unknownVariables: [] };
 }
 
+/**
+ * Variable names that exist by configuration even while they carry no value yet: the outputs
+ * declared by other KPIs (e.g. still loading or in error) and the variables an entity selector
+ * exposes once an entity is picked. `excludeWidgetId` is the edited widget (its own output is
+ * not a valid operand).
+ */
+export function declaredFormulaVariableNames(
+  widgets: readonly AnyWidgetConfig[],
+  entitySelectors: readonly EntitySelectorConfig[],
+  excludeWidgetId?: string
+): string[] {
+  const outputs = widgets
+    .filter(w => w.id !== excludeWidgetId && w.type === 'kpi')
+    .map(w => (w as KpiWidgetConfig).outputVariableName?.trim())
+    .filter((name): name is string => !!name);
+  const selectorVariables = entitySelectors.flatMap(selector => [
+    ...(selector.attributeMappings ?? []).map(m => m.variableName),
+    `${selector.id}_rtId`,
+    `${selector.id}_rtCkTypeId`
+  ]);
+  return [...outputs, ...selectorVariables];
+}
+
+/**
+ * Validation of a formula field (AB#7950): `validateFormula` against the names of `variables`
+ * plus `declaredNames`. The shared formula field shows this result and the config dialogs use
+ * it to enable Save, so both always agree.
+ */
+export function validateFormulaField(
+  formula: string,
+  variables: readonly MeshBoardVariable[],
+  declaredNames: readonly string[],
+  evaluator: FormulaEvaluator
+): FormulaValidationResult {
+  return validateFormula(formula, formulaKnownNames(variables, declaredNames), evaluator);
+}
+
 /** Converts a variable's string value to the type expr-eval should see. */
 function toContextValue(value: string): number | string | boolean {
   const trimmed = value.trim();
@@ -118,7 +170,8 @@ function toContextValue(value: string): number | string | boolean {
  * Evaluates a formula against the given variables.
  *
  * Returns `pending` while the formula is empty or a referenced variable is missing or empty
- * (e.g. an upstream widget has not published yet), so the widget shows `-` instead of an error.
+ * (e.g. an upstream widget has not published yet), so the widget shows `-` instead of an error,
+ * and `nonFinite` for an `Infinity`/`NaN` result (shown as `-` with the reason as tooltip).
  */
 export function evaluateFormula(
   formula: string | undefined,
@@ -149,12 +202,48 @@ export function evaluateFormula(
   if (typeof value === 'number') {
     return Number.isFinite(value)
       ? { status: 'ok', value }
-      : { status: 'error', error: 'Result is not a finite number' };
+      : { status: 'nonFinite', reason: NON_FINITE_FORMULA_REASON };
   }
   if (typeof value === 'string' || typeof value === 'boolean') {
     return { status: 'ok', value };
   }
-  return { status: 'error', error: 'Result is not a number' };
+  return { status: 'error', error: NOT_A_NUMBER_FORMULA_ERROR };
+}
+
+/**
+ * Restricts a formula result to numbers, for widgets that can only show a number (gauge).
+ * A string or boolean result becomes the error *Result is not a number*; every other
+ * status passes through unchanged.
+ */
+export function requireNumericFormulaResult(result: FormulaEvaluationResult): FormulaEvaluationResult {
+  if (result.status === 'ok' && typeof result.value !== 'number') {
+    return { status: 'error', error: NOT_A_NUMBER_FORMULA_ERROR };
+  }
+  return result;
+}
+
+/**
+ * Preview text of the shared formula field for an evaluation result.
+ */
+export function formulaPreviewText(result: FormulaEvaluationResult): string {
+  switch (result.status) {
+    case 'ok': return String(result.value);
+    case 'pending': return '- (a referenced variable has no value yet)';
+    case 'nonFinite': return `- (${result.reason})`;
+    default: return result.error;
+  }
+}
+
+/**
+ * Names a formula may reference: the names of the given variables plus names that exist by
+ * configuration but carry no value yet (declared outputs, entity-selector variables),
+ * distinct, in order.
+ */
+export function formulaKnownNames(
+  variables: readonly MeshBoardVariable[],
+  declaredNames: readonly string[] = []
+): string[] {
+  return [...new Set([...variables.map(v => v.name), ...declaredNames])];
 }
 
 /** True when the widget is a KPI in formula mode. */

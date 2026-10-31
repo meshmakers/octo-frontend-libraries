@@ -30,7 +30,7 @@ npm run lint:octo-meshboard
 
 ```
 src/lib/
-├── components/               # Shared components (VariablesEditor, EntitySelectorEditor, EntitySelectorToolbar)
+├── components/               # Shared components (VariablesEditor, EntitySelectorEditor, EntitySelectorToolbar, FormulaField)
 ├── containers/               # Main container components
 │   └── meshboard-view/       # MeshBoard view component
 ├── dialogs/                  # Dialog components
@@ -436,7 +436,7 @@ interface AggregationQuery {
 | Type | Description | Data Sources |
 |------|-------------|--------------|
 | `kpi` | Single numeric value with optional trend. A `static` data source with `data` (widget-group children) reads `valueAttribute` from that entity data; without `data` the KPI shows `staticValue`. Optional `decimalPlaces` (integer number 0-3, normalised on load by `utils/kpi-decimal-places.ts`, anything else = automatic; an exact digit count, unlike the heatmap's maximum; also passed to widget-group KPI children) fixes the fraction digits of a numeric value, a negative value rounding to zero shows no sign (unset or invalid: two for a fractional value, none for a whole number; AB#7686). Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
-| `gauge` | Arc, Circular, Linear, or Radial gauge | runtimeEntity, persistentQuery, aggregation, static |
+| `gauge` | Arc, Circular, Linear, or Radial gauge. **Formula mode** (`valueMode: 'formula'` + `formula`, static data source; AB#7950) computes the value from a formula over variables exactly like the KPI — see *Widget Output Variables and KPI Formulas*. The pointer is clamped to `min`/`max` (it stops at the scale end), the label shows the real value | runtimeEntity, persistentQuery, aggregation, static |
 | `barChart` | Bar/Column chart | persistentQuery, constructionKitQuery |
 | `pieChart` | Pie/Donut chart | persistentQuery, constructionKitQuery |
 | `table` | Data grid with pagination | persistentQuery |
@@ -583,7 +583,7 @@ interface MeshBoardVariable {
 { attributePath: 'customerId', comparisonValue: '$customerId', operator: 'eq' }
 ```
 
-### Widget Output Variables and KPI Formulas (AB#5364)
+### Widget Output Variables and KPI Formulas (AB#5364, gauges AB#7950)
 
 **Output variables.** Any KPI widget (query, runtime entity, static or formula) can set
 `outputVariableName`. The widget then publishes its displayed **raw** value — for query
@@ -605,14 +605,40 @@ live in a `computed()` (no `loadData()`), using `utils/meshboard-formula.ts`:
 |---|---|
 | `rewriteFormula(formula)` | `${name}` / `$name` → safe identifier `__v_<name>` (no clash with built-ins like `max`, `E`) |
 | `validateFormula(formula, names, evaluator)` | Syntax + unknown variables (bare identifiers count as unknown) |
-| `evaluateFormula(formula, variables, evaluator)` | `ok` / `error` / `pending` (a referenced variable is missing or empty → the widget shows `-`) |
+| `evaluateFormula(formula, variables, evaluator)` | `ok` / `error` / `pending` (a referenced variable is missing or empty → the widget shows `-`) / `nonFinite` (see below) |
+| `requireNumericFormulaResult(result)` | Turns a string/boolean `ok` into the error *Result is not a number* (gauge) |
+| `validateFormulaField(formula, variables, declaredNames, evaluator)` | The ONE validation of the formula field: `validateFormula` against the variable names plus declared names |
+| `declaredFormulaVariableNames(widgets, selectors, excludeWidgetId)` | Names that exist without a value yet: other KPIs' outputs, entity-selector variables |
+| `formulaPreviewText(result)` | Preview text of the formula field |
 | `findVariableCycles(widgets)` | IDs of formula KPIs that depend on their own output, directly or indirectly |
 
 The evaluator is the `ExpressionEvaluatorService` of `@meshmakers/octo-process-diagrams`
 (expr-eval-fork): `+ - * / % ^`, parentheses, `min`, `max`, `abs`, `round`, `? :` plus the
 process-diagram helpers (`clamp`, `lerp`, …). Variable values are strings: numeric strings
-(dot as decimal separator) become numbers, `true`/`false` become booleans. A non-finite
-result (division by zero) is an error.
+(dot as decimal separator) become numbers, `true`/`false` become booleans.
+
+**Non-finite rule (AB#7950).** A result of `Infinity` or `NaN` (division by zero, e.g. PV = 0 at
+night) is status `nonFinite`, not an error: KPI and gauge show `-` with the reason
+(`NON_FINITE_FORMULA_REASON`) as tooltip on the value, and the KPI publishes no output value.
+Before AB#7950 it was the widget error state.
+
+**Gauge formulas (AB#7950).** `GaugeWidgetConfig.valueMode: 'formula'` + `formula`, data source
+`{ type: 'static' }`, evaluated live in a `computed()` like the KPI (no `loadData()`). The result must
+be a number (`requireNumericFormulaResult`); a gauge publishes no output variable, so it is never
+part of a cycle. What the gauge shows:
+
+| Situation | Gauge |
+|---|---|
+| referenced variable empty or not yet published | label `-`, pointer at the scale start, no error (linear gauge: label only) |
+| syntax / evaluation error | widget error state with the message |
+| non-finite result | label `-` with the reason as tooltip |
+| string / boolean result | error *Result is not a number* |
+| value outside `min`/`max` | pointer stops at the scale end (`pointerValue`), label shows the real value |
+
+Keep a percentage on its scale with the clamp pattern, e.g. Autarkie
+`max(0, min(100, (1 - ${import} / ${consumption}) * 100))`. Persistence: a formula gauge is written
+with `dataSourceType: 'static'` and `valueMode`/`formula` in the config; every other gauge keeps its
+encoding byte-identically, and switching away from Formula clears `valueMode`/`formula`.
 
 **Reactivity.** Formulas, the KPI comparison text and markdown content read
 `getVariables()` inside `computed()`s and update immediately. Query filters of other widgets
@@ -624,8 +650,17 @@ publishes nothing, so a cycle can never ping-pong values between widgets. A refe
 name is also a configured MeshBoard variable resolves to that variable (config wins) and
 therefore creates no dependency on the widget publishing the same name.
 
-**Config dialog.** A fourth data-source button **Formula** (formula field, syntax hint, list
-of available variables including other widgets' outputs, live validation and preview) and
+**Shared formula field (AB#7950).** `mm-meshboard-formula-field` (`components/formula-field/`,
+exported as `FormulaFieldComponent`) is the formula input of every config dialog: `[(formula)]`,
+`[variables]` (operands with their current values, drive the preview and the insert buttons),
+`[declaredNames]` (names known without a value), `[numericOnly]` (preview applies
+`requireNumericFormulaResult`), `[clampHint]` (shows the clamp pattern). It renders the hint, the
+validation message (`role="alert"`), the preview and the variable buttons; the label is linked to the
+input (`focusableId`) and the input is described by hint and message. Dialogs never re-implement the
+check: they call `validateFormulaField` with the same inputs for Save. The chart formula series
+(AB#7952/AB#7953) reuse it with series keys as variables.
+
+**Config dialog.** A fourth data-source button **Formula** (the shared formula field above) and
 an **Output Variable** field for all modes (`isValidVariableName`, no clash with a config
 variable or another widget's output). Formula validation also accepts names that are declared
 but carry no value yet — other KPIs' `outputVariableName` (still loading, pending or in error)
@@ -1359,6 +1394,10 @@ Current test files:
 - `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish, `decimalPlaces` formatting (incl. negative zero)
 - `kpi-decimal-places.spec.ts` - `decimalPlaces` normalisation (integer numbers 0-3 only, out-of-range and non-number values)
 - `kpi-config-dialog.component.spec.ts` - KPI dialog formula validation, output-name and cycle checks, `decimalPlaces` save
+- `components/formula-field/formula-field.component.spec.ts` - shared formula field: preview, syntax / unknown-variable messages, declared names, non-finite and non-numeric preview, clamp hint, insert, label/description wiring (AB#7950)
+- `widgets/gauge-widget/gauge-widget.formula.spec.ts` - gauge formula: ok, same value as the KPI, live updates, pending, error, non-numeric, non-finite tooltip, clamping, config change, existing gauges unchanged (AB#7950)
+- `widgets/gauge-widget/gauge-config-dialog.formula.spec.ts` / `gauge-config-dialog.formula-render.spec.ts` - gauge dialog Formula source: validation, Save state, result, rendered button/field/Save, keyboard reachability (AB#7950)
+- `registrations/default-widget-registrations.gauge-formula.spec.ts` - gauge formula round trip, switching clears, legacy gauges encode/load unchanged (AB#7950)
 - `widget-group-config-dialog.component.spec.ts` - widget-group dialog: KPI child `decimalPlaces` read, save, out-of-range (AB#7686)
 - `association-targets-cache.spec.ts` - `getAssociationTargets` selects `rtId` on every entity row; round trip through a cache keyed by `rtId` (AB#7649)
 - `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)

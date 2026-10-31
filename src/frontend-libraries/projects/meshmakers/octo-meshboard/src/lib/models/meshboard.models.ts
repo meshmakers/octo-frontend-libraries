@@ -540,6 +540,17 @@ export interface GaugeWidgetConfig extends WidgetConfig {
   queryCategoryValue?: string;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /**
+   * How the value is obtained, as on the KPI (AB#7950). `'formula'` computes it from
+   * {@link formula} over MeshBoard variables (the data source stays `{ type: 'static' }`);
+   * `'value'` or absent uses the data source.
+   */
+  valueMode?: KpiValueMode;
+  /**
+   * Formula over MeshBoard variables, e.g. `max(0, min(100, (1 - ${import} / ${consumption}) * 100))`.
+   * Used when `valueMode` is `'formula'`; the result must be a number.
+   */
+  formula?: string;
 }
 
 /**

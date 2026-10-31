@@ -763,19 +763,21 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     configDialogSize: { width: 750, height: 700, minWidth: 550, minHeight: 500 },
     configDialogTitle: 'Gauge Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
-    supportedDataSources: ['runtimeEntity', 'persistentQuery'],
+    supportedDataSources: ['runtimeEntity', 'persistentQuery', 'static'],
     getInitialConfig: (widget) => {
       const gaugeWidget = widget as GaugeWidgetConfig;
       const isPersistentQuery = gaugeWidget.dataSource.type === 'persistentQuery';
+      const isFormula = gaugeWidget.dataSource.type === 'static' && gaugeWidget.valueMode === 'formula';
 
       return {
+        initialWidgetId: gaugeWidget.id,
         // Runtime entity fields
         initialCkTypeId: getDataSourceInfo(widget).ckTypeId,
         initialRtId: getDataSourceInfo(widget).rtId,
         initialValueAttribute: gaugeWidget.valueAttribute,
         initialLabelAttribute: gaugeWidget.labelAttribute,
         // Persistent query fields
-        initialDataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
+        initialDataSourceType: isPersistentQuery ? 'persistentQuery' : isFormula ? 'formula' : 'runtimeEntity',
         initialQueryRtId: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryFamily : undefined,
@@ -785,6 +787,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryValueField: gaugeWidget.queryValueField,
         initialQueryCategoryField: gaugeWidget.queryCategoryField,
         initialQueryCategoryValue: gaugeWidget.queryCategoryValue,
+        // Formula (AB#7950)
+        initialFormula: gaugeWidget.formula,
         // Gauge options
         initialGaugeType: gaugeWidget.gaugeType,
         initialMin: gaugeWidget.min,
@@ -806,7 +810,29 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         comparisonValue: f.comparisonValue
       }));
 
-      if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
+      if (result.dataSourceType === 'formula') {
+        return {
+          ...widget,
+          dataSource: { type: 'static' as const },
+          valueMode: 'formula' as const,
+          formula: result.formula,
+          valueAttribute: '',
+          labelAttribute: undefined,
+          queryMode: undefined,
+          queryValueField: undefined,
+          queryCategoryField: undefined,
+          queryCategoryValue: undefined,
+          gaugeType: result.gaugeType,
+          min: result.min,
+          max: result.max,
+          ranges: result.ranges,
+          showLabel: result.showLabel,
+          prefix: result.prefix,
+          suffix: result.suffix,
+          reverse: result.reverse,
+          filters: undefined
+        };
+      } else if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
         // Create PersistentQueryDataSource
         const dataSource: PersistentQueryDataSource = {
           type: 'persistentQuery',
@@ -819,6 +845,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
 
         return {
           ...widget,
+          valueMode: undefined,
+          formula: undefined,
           dataSource,
           valueAttribute: '', // Not used for persistent queries
           queryMode: result.queryMode,
@@ -839,6 +867,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         // Create RuntimeEntityDataSource (default behavior)
         return {
           ...widget,
+          valueMode: undefined,
+          formula: undefined,
           dataSource: createDataSource(result, false),
           gaugeType: result.gaugeType,
           valueAttribute: result.valueAttribute,
@@ -874,8 +904,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     // SOLID: Serialization for persistence
     toPersistedConfig: (widget: GaugeWidgetConfig): WidgetPersistenceData => {
       const isPersistentQuery = widget.dataSource.type === 'persistentQuery';
+      // Only a formula gauge is stored as 'static' (AB#7950); every other gauge keeps its encoding.
+      const isFormula = widget.dataSource.type === 'static' && widget.valueMode === 'formula';
       return {
-        dataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
+        dataSourceType: isPersistentQuery ? 'persistentQuery' : isFormula ? 'static' : 'runtimeEntity',
         dataSourceCkTypeId: widget.dataSource.type === 'runtimeEntity' ? widget.dataSource.ckTypeId : undefined,
         dataSourceRtId: isPersistentQuery
           ? (widget.dataSource as PersistentQueryDataSource).queryRtId
@@ -896,6 +928,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryCategoryField: widget.queryCategoryField,
           queryCategoryValue: widget.queryCategoryValue,
           filters: widget.filters,
+          ...(isFormula && {
+            valueMode: 'formula',
+            formula: widget.formula
+          }),
           ...(isPersistentQuery && {
             queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
             queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
@@ -917,6 +953,27 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): GaugeWidgetConfig => {
       const config = parseConfig(data);
       const dataSource = buildDataSourceFromPersisted(data, config);
+
+      if (dataSource.type === 'static') {
+        // Formula gauge (AB#7950): the only gauge persisted with a static data source
+        return {
+          ...base,
+          rtId: data.rtId,
+          type: 'gauge',
+          dataSource,
+          valueMode: config['valueMode'] === 'formula' ? 'formula' : undefined,
+          formula: config['formula'] as string | undefined,
+          gaugeType: (config['gaugeType'] as GaugeWidgetConfig['gaugeType']) ?? 'arc',
+          valueAttribute: '',
+          min: (config['min'] as number) ?? 0,
+          max: (config['max'] as number) ?? 100,
+          ranges: config['ranges'] as GaugeWidgetConfig['ranges'],
+          showLabel: (config['showLabel'] as boolean) ?? true,
+          prefix: config['prefix'] as string | undefined,
+          suffix: config['suffix'] as string | undefined,
+          reverse: config['reverse'] as boolean | undefined
+        };
+      }
 
       if (dataSource.type === 'persistentQuery') {
         return {
