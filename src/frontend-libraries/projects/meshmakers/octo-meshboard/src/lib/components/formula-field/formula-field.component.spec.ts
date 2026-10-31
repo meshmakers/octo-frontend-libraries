@@ -144,4 +144,20 @@ describe('FormulaFieldComponent (AB#7950)', () => {
 
     expect(text()).toContain('No variables defined.');
   });
+
+  it('marks the touched input invalid for an invalid formula, valid otherwise (aria-invalid)', async () => {
+    render('${a} *');
+    const input = element().querySelector('input') as HTMLInputElement;
+    input.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+
+    fixture.componentRef.setInput('formula', '${a} * 2');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(input.getAttribute('aria-invalid')).not.toBe('true');
+  });
 });
