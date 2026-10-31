@@ -10,6 +10,21 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard gauge formula and shared formula field (AB#7950)
+
+- New (non-breaking): the gauge config dialog has the data source **Formula**, like the KPI. The gauge value is a
+  formula over MeshBoard variables (same engine, operators and validation as the KPI formula), e.g.
+  `max(0, min(100, (1 - ${import} / ${consumption}) * 100))`. Stored as `GaugeWidgetConfig.valueMode: 'formula'` +
+  `formula` with a static data source; switching to another data source clears both. Gauges without a formula load
+  and encode byte-identically (no migration).
+- New shared component `mm-meshboard-formula-field` (`FormulaFieldComponent`, exported): formula input, syntax hint,
+  validation message, live preview and insertable variables, used by the KPI and the gauge dialog. Validation is one
+  function, `validateFormulaField` in `utils/meshboard-formula.ts`, which the dialogs also use to enable Save.
+- Changed: a non-finite formula result (division by zero, `0 / 0`) is no longer an error. `evaluateFormula` returns
+  the new status `nonFinite` with a reason; KPI and gauge show `-` with the reason as tooltip and the KPI publishes no
+  output value. A gauge formula with a non-numeric result shows the error *Result is not a number*.
+- Gauge pointer: the pointer is clamped to the scale (it stops at min/max) while the label shows the real value.
+
 ### octo-meshboard selector editor: dependent selectors (AB#7917)
 
 - New (non-breaking): the selector editor has a section "List only entities inside" (after *Picker filter*, before

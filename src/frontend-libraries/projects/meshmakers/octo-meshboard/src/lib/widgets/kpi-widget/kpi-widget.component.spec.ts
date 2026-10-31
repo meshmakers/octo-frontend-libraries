@@ -8,6 +8,7 @@ import { MeshBoardPersistenceService } from '../../services/meshboard-persistenc
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { KpiWidgetConfig, MeshBoardConfig } from '../../models/meshboard.models';
+import { NON_FINITE_FORMULA_REASON } from '../../utils/meshboard-formula';
 
 describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => {
   let fixture: ComponentFixture<KpiWidgetComponent>;
@@ -98,10 +99,29 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
   });
 
   it('shows the error of an invalid formula', () => {
-    render(kpi({ valueMode: 'formula', formula: '${a} / 0' }));
+    render(kpi({ valueMode: 'formula', formula: '${a} *' }));
 
     expect(component.formulaError()).toBeTruthy();
     expect(text()).toContain(component.formulaError() as string);
+  });
+
+  it('shows "-" with the reason as tooltip for a non-finite result, no error (AB#7950)', () => {
+    render(kpi({ valueMode: 'formula', formula: '${a} / 0', outputVariableName: 'ratio' }));
+
+    expect(component.formulaError()).toBeNull();
+    expect(component.value()).toBe('-');
+    expect(component.valueTooltip()).toBe(NON_FINITE_FORMULA_REASON);
+    const value = (fixture.nativeElement as HTMLElement).querySelector('.kpi-value');
+    expect(value?.textContent?.trim()).toBe('-');
+    expect(value?.getAttribute('title')).toBe(NON_FINITE_FORMULA_REASON);
+    expect(stateService.getVariable('ratio')).toBeUndefined();
+  });
+
+  it('has no tooltip for a finite result (AB#7950)', () => {
+    render(kpi({ valueMode: 'formula', formula: '${a} / 2' }));
+
+    const value = (fixture.nativeElement as HTMLElement).querySelector('.kpi-value');
+    expect(value?.hasAttribute('title')).toBe(false);
   });
 
   it('publishes the raw value as output variable', () => {

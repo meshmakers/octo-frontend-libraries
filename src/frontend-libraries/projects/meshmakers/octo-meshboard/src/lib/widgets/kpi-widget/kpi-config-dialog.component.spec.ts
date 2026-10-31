@@ -69,12 +69,19 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     stateService = TestBed.inject(MeshBoardStateService);
   });
 
-  it('validates the formula and previews its result', async () => {
+  it('validates the formula', async () => {
     await open([kpi('self')], { initialFormula: '(${a} - ${b}) / 1000' });
 
     expect(component.formulaValidation.valid).toBe(true);
-    expect(component.formulaPreview).toBe('3');
     expect(component.isValid).toBe(true);
+  });
+
+  it('disables Save for a syntax error with the message the formula field shows (AB#7950)', async () => {
+    await open([kpi('self')], { initialFormula: '${a} *' });
+
+    expect(component.formulaValidation.valid).toBe(false);
+    expect(component.formulaValidation.error).toBeTruthy();
+    expect(component.isValid).toBe(false);
   });
 
   it('reports unknown variables', async () => {
@@ -90,7 +97,7 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     await open([kpi('self'), kpi('other')], { initialFormula: '${consumption} * 2' });
 
     expect(component.formulaVariables.map(v => v.name)).toEqual(['a', 'b', 'consumption']);
-    expect(component.formulaPreview).toBe('20');
+    expect(component.formulaValidation.valid).toBe(true);
   });
 
   it('picks up an output published while the dialog is open', async () => {
@@ -100,14 +107,13 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     stateService.setWidgetVariable('other', 'late', '41');
 
     expect(component.formulaValidation.valid).toBe(true);
-    expect(component.formulaPreview).toBe('42');
   });
 
   it('accepts a declared output that has no value yet, preview stays pending', async () => {
     await open([kpi('self'), kpi('other', { outputVariableName: 'loading' })], { initialFormula: '${loading} * 2' });
 
     expect(component.formulaValidation.valid).toBe(true);
-    expect(component.formulaPreview).toContain('no value yet');
+    expect(component.declaredVariableNames).toContain('loading');
     expect(component.isValid).toBe(true);
   });
 
@@ -231,13 +237,5 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
         expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ dataSourceType: mode, ...expected }));
       });
     }
-  });
-
-  it('inserts a variable reference', async () => {
-    await open([kpi('self')], { initialFormula: '1 +' });
-
-    component.insertVariable('a');
-
-    expect(component.form.formula).toBe('1 + ${a}');
   });
 });

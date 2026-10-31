@@ -68,6 +68,7 @@ export { QuerySelectorComponent } from './lib/components/query-selector/query-se
 export { RuntimeEntitySelectorComponent } from './lib/components/runtime-entity-selector/runtime-entity-selector.component';
 export type { RuntimeEntitySelectorValue } from './lib/components/runtime-entity-selector/runtime-entity-selector.component';
 export { WidgetNotConfiguredComponent } from './lib/components/widget-not-configured/widget-not-configured.component';
+export { FormulaFieldComponent } from './lib/components/formula-field/formula-field.component';
 
 // Services
 export * from './lib/services/meshboard-state.service';

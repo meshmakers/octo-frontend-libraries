@@ -11,6 +11,8 @@ import { QueryExecutionResult, QueryExecutorService, StreamDataExecutionArgs } f
 import {CollectionChangesService, KENDO_GAUGES} from '@progress/kendo-angular-gauges';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { evaluateFormula, FormulaEvaluationResult, requireNumericFormulaResult } from '../../utils/meshboard-formula';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 
 @Component({
   selector: 'mm-gauge-widget',
@@ -22,23 +24,23 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
   ],
   providers: [CollectionChangesService],
   template: `
-    <div class="gauge-widget" [class.loading]="isLoading()" [class.error]="error()">
+    <div class="gauge-widget" [class.loading]="isLoading()" [class.error]="error() || formulaError()">
       @if (isNotConfigured()) {
         <mm-widget-not-configured></mm-widget-not-configured>
       } @else if (isLoading()) {
         <div class="loading-indicator">
           <span>...</span>
         </div>
-      } @else if (error()) {
+      } @else if (error() || formulaError()) {
         <div class="error-message">
-          <span>{{ error() }}</span>
+          <span>{{ error() ?? formulaError() }}</span>
         </div>
       } @else {
         <div class="gauge-container">
           @switch (config.gaugeType) {
             @case ('arc') {
               <kendo-arcgauge
-                [value]="numericValue()"
+                [value]="pointerValue()"
                 [transitions]="true">
                 <kendo-arcgauge-scale
                   [min]="config.min ?? 0"
@@ -59,7 +61,7 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
                 @if (config.showLabel !== false) {
                   <ng-template kendoArcGaugeCenterTemplate let-value="value">
                     <div class="gauge-center-label">
-                      <span class="value-text">
+                      <span class="value-text" [attr.title]="valueTooltip()">
                         {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
                       </span>
                       @if (label()) {
@@ -72,7 +74,7 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
             }
             @case ('circular') {
               <kendo-circulargauge
-                [value]="numericValue()"
+                [value]="pointerValue()"
                 [transitions]="true">
                 <kendo-circulargauge-scale
                   [min]="config.min ?? 0"
@@ -82,7 +84,7 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
                 @if (config.showLabel !== false) {
                   <ng-template kendoCircularGaugeCenterTemplate let-value="value">
                     <div class="gauge-center-label">
-                      <span class="value-text">
+                      <span class="value-text" [attr.title]="valueTooltip()">
                         {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
                       </span>
                       @if (label()) {
@@ -111,11 +113,11 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
                     </kendo-radialgauge-scale-ranges>
                   }
                 </kendo-radialgauge-scale>
-                <kendo-radialgauge-pointer [value]="numericValue()">
+                <kendo-radialgauge-pointer [value]="pointerValue()">
                 </kendo-radialgauge-pointer>
               </kendo-radialgauge>
               @if (config.showLabel !== false) {
-                <div class="gauge-value-label">
+                <div class="gauge-value-label" [attr.title]="valueTooltip()">
                   {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
                   @if (label()) {
                     <span class="label-text">{{ label() }}</span>
@@ -125,7 +127,7 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
             }
             @case ('linear') {
               <div class="linear-gauge-wrapper">
-                @if (data()) {
+                @if (hasValue()) {
                   <kendo-lineargauge [transitions]="true">
                     <kendo-lineargauge-scale
                       [min]="config.min ?? 0"
@@ -147,13 +149,13 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
                     </kendo-lineargauge-scale>
                     <kendo-lineargauge-pointers>
                       <kendo-lineargauge-pointer
-                        [value]="numericValue()">
+                        [value]="pointerValue()">
                       </kendo-lineargauge-pointer>
                     </kendo-lineargauge-pointers>
                   </kendo-lineargauge>
                 }
                 @if (config.showLabel !== false) {
-                  <div class="gauge-value-label">
+                  <div class="gauge-value-label" [attr.title]="valueTooltip()">
                     {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
                     @if (label()) {
                       <span class="label-text">{{ label() }}</span>
@@ -165,7 +167,7 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
             @default {
               <!-- Fallback to arc gauge if gaugeType is unknown -->
               <kendo-arcgauge
-                [value]="numericValue()"
+                [value]="pointerValue()"
                 [transitions]="true">
                 <kendo-arcgauge-scale
                   [min]="config.min ?? 0"
@@ -175,7 +177,7 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
                 @if (config.showLabel !== false) {
                   <ng-template kendoArcGaugeCenterTemplate let-value="value">
                     <div class="gauge-center-label">
-                      <span class="value-text">
+                      <span class="value-text" [attr.title]="valueTooltip()">
                         {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
                       </span>
                       @if (label()) {
@@ -338,8 +340,20 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   ]);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
   @Input() config!: GaugeWidgetConfig;
+
+  /**
+   * Signal mirror of the `config` input, so the formula computeds re-run when the config
+   * changes (the input itself is a plain property). Falls back to the input before the
+   * first lifecycle hook.
+   */
+  private readonly _config = signal<GaugeWidgetConfig | undefined>(undefined);
+
+  private currentConfig(): GaugeWidgetConfig | undefined {
+    return this._config() ?? this.config;
+  }
 
   // Widget state signals
   private readonly _isLoading = signal(false);
@@ -364,19 +378,67 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
       return !dataSource.queryRtId;
     }
     if (dataSource.type === 'static') {
+      if (this.isFormulaMode()) {
+        return !this.config.formula?.trim();
+      }
       return false; // Static data is always "configured"
     }
     return false;
   }
 
+  /** True when the value is computed from a formula over MeshBoard variables (AB#7950). */
+  isFormulaMode(): boolean {
+    return this.currentConfig()?.valueMode === 'formula';
+  }
+
+  /**
+   * Formula evaluation result, live over the MeshBoard variables (AB#7950); `null` outside
+   * formula mode. Same engine and rules as the KPI, but the result must be a number.
+   * A gauge publishes no output variable, so it can never be part of a variable cycle.
+   */
+  private readonly formulaResult = computed<FormulaEvaluationResult | null>(() => {
+    const config = this.currentConfig();
+    if (config?.valueMode !== 'formula') return null;
+    return requireNumericFormulaResult(
+      evaluateFormula(config.formula, this.stateService.getVariables(), this.expressionEvaluator));
+  });
+
+  /** Error message of the formula (syntax, evaluation, non-numeric result). */
+  readonly formulaError = computed(() => {
+    const result = this.formulaResult();
+    return result?.status === 'error' ? result.error : null;
+  });
+
+  /**
+   * Tooltip of the value label: the reason a formula result is shown as `-` although every
+   * variable has a value (non-finite result, e.g. division by zero), else `null`.
+   */
+  readonly valueTooltip = computed(() => {
+    const result = this.formulaResult();
+    return result?.status === 'nonFinite' ? result.reason : null;
+  });
+
+  /** True when there is a value to show (data loaded, or a formula result). */
+  readonly hasValue = computed(() => {
+    const result = this.formulaResult();
+    return result ? result.status === 'ok' : this._data() !== null;
+  });
+
+  /** The real value, shown in the label (may lie outside the scale). */
   readonly numericValue = computed(() => {
+    const result = this.formulaResult();
+    if (result) {
+      return result.status === 'ok' ? result.value as number : 0;
+    }
+
     const data = this._data();
     if (!data?.attributes) return 0;
 
     // For persistent queries, look for _queryValue; otherwise use configured valueAttribute
-    const attributeName = this.config?.dataSource?.type === 'persistentQuery'
+    const config = this.currentConfig();
+    const attributeName = config?.dataSource?.type === 'persistentQuery'
       ? '_queryValue'
-      : this.config?.valueAttribute;
+      : config?.valueAttribute;
 
     const attr = data.attributes.find(a => a.attributeName === attributeName);
     if (!attr) return 0;
@@ -385,9 +447,25 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     return isNaN(numValue) ? 0 : numValue;
   });
 
+  /**
+   * Value of the pointer: the real value clamped to the scale, so the pointer stops at the
+   * scale end while the label shows the real value (AB#7950). Without a value it rests at
+   * the scale start.
+   */
+  readonly pointerValue = computed(() => {
+    const config = this.currentConfig();
+    const min = config?.min ?? 0;
+    const max = config?.max ?? 100;
+    const low = Math.min(min, max);
+    const high = Math.max(min, max);
+    if (!this.hasValue()) return low;
+    return Math.min(high, Math.max(low, this.numericValue()));
+  });
+
   readonly formattedValue = computed(() => {
-    // Nothing loaded (e.g. an empty entity-selector scope, AB#7721): no value, not "0".
-    if (!this._data()) return '-';
+    // Nothing loaded (e.g. an empty entity-selector scope, AB#7721), a pending or non-finite
+    // formula: no value, not "0".
+    if (!this.hasValue()) return '-';
     const value = this.numericValue();
     return value.toLocaleString('de-AT', {
       minimumFractionDigits: value % 1 !== 0 ? 1 : 0,
@@ -407,10 +485,14 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   });
 
   ngOnInit(): void {
+    this._config.set(this.config);
     this.loadData();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['config']) {
+      this._config.set(this.config);
+    }
     if (changes['config'] && !changes['config'].firstChange) {
       this.loadData();
     }
@@ -427,6 +509,14 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     }
 
     const dataSource = this.config?.dataSource;
+
+    if (this.isFormulaMode()) {
+      // Formula values are computed live from the variables (see formulaResult)
+      this._data.set(null);
+      this._error.set(null);
+      this._isLoading.set(false);
+      return;
+    }
 
     if (dataSource.type === 'static') {
       const staticData = dataSource.data as RuntimeEntityData;
