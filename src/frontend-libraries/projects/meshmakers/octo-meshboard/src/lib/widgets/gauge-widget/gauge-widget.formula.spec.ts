@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
 import { CkModelService } from '@meshmakers/octo-services';
 import { GaugeWidgetComponent } from './gauge-widget.component';
 import { KpiWidgetComponent } from '../kpi-widget/kpi-widget.component';
@@ -213,6 +214,22 @@ describe('GaugeWidgetComponent — formula mode (AB#7950)', () => {
     stateService.setWidgetVariable('kpi-x', 'missing', '5');
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).querySelector('kendo-lineargauge')).not.toBeNull();
+  });
+
+  it('ignores a data request that fails after the config switched to formula mode', () => {
+    const pending = new Subject<never>();
+    dataService.fetchEntityWithAssociations.mockReturnValue(pending);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    render(gauge({ valueMode: undefined, valueAttribute: 'level', dataSource: { type: 'runtimeEntity', ckTypeId: 'Test/Type', rtId: 'rt-1' } }));
+    expect(dataService.fetchEntityWithAssociations).toHaveBeenCalledTimes(1);
+
+    fixture.componentRef.setInput('config', gauge({ formula: '${import}' }));
+    fixture.detectChanges();
+    pending.error(new Error('late failure'));
+    fixture.detectChanges();
+
+    expect(component.error()).toBeNull();
+    expect(component.numericValue()).toBe(30);
   });
 
   describe('existing gauges are unchanged', () => {

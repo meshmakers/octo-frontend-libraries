@@ -1,7 +1,7 @@
 # Formula field (`mm-meshboard-formula-field`)
 
-Shared formula input of the MeshBoard widget config dialogs (KPI and gauge since AB#7950; the chart
-formula series of AB#7952/AB#7953 reuse it). It renders:
+Shared formula input of the MeshBoard widget config dialogs (KPI and gauge since AB#7950; the planned
+chart formula series of AB#7952/AB#7953 are meant to reuse it). It renders:
 
 - the formula input (label linked to the input, described by the hint and the message),
 - the syntax hint (operators, functions, `${variableName}`; with `clampHint` the clamp pattern

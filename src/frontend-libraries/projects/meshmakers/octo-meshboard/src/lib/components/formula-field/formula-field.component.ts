@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, model } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, Directive, inject, input, model, OnChanges } from '@angular/core';
+import { AbstractControl, FormsModule, NG_VALIDATORS, ValidationErrors, Validator } from '@angular/forms';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
@@ -14,6 +14,34 @@ import {
 } from '../../utils/meshboard-formula';
 
 let nextFormulaFieldId = 0;
+
+/**
+ * Puts the formula validation onto the textbox's `ngModel`, so Kendo marks the input invalid
+ * (`aria-invalid`, `k-invalid`) once it was touched. Kendo derives `aria-invalid` from the
+ * control state and ignores it in `inputAttributes`.
+ */
+@Directive({
+  selector: '[mmFormulaValidity]',
+  standalone: true,
+  providers: [{ provide: NG_VALIDATORS, useExisting: FormulaValidityDirective, multi: true }]
+})
+export class FormulaValidityDirective implements Validator, OnChanges {
+  readonly mmFormulaValidity = input<FormulaValidationResult | null>(null);
+  private onValidatorChange?: () => void;
+
+  validate(_control: AbstractControl): ValidationErrors | null {
+    const result = this.mmFormulaValidity();
+    return result && !result.valid ? { formula: result.error ?? 'Invalid formula' } : null;
+  }
+
+  registerOnValidatorChange(fn: () => void): void {
+    this.onValidatorChange = fn;
+  }
+
+  ngOnChanges(): void {
+    this.onValidatorChange?.();
+  }
+}
 
 /**
  * Formula field shared by the widget config dialogs (KPI, gauge; AB#7950): the formula input,
@@ -34,7 +62,7 @@ let nextFormulaFieldId = 0;
 @Component({
   selector: 'mm-meshboard-formula-field',
   standalone: true,
-  imports: [FormsModule, ButtonsModule, InputsModule],
+  imports: [FormsModule, ButtonsModule, InputsModule, FormulaValidityDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="form-field">
@@ -42,6 +70,7 @@ let nextFormulaFieldId = 0;
       <kendo-textbox
         [ngModel]="formula()"
         (ngModelChange)="formula.set($event ?? '')"
+        [mmFormulaValidity]="validation()"
         [placeholder]="placeholder()"
         [focusableId]="inputId"
         [inputAttributes]="inputAttributes()">
