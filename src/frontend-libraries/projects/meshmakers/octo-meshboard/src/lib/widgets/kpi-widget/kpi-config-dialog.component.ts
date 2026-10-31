@@ -1311,13 +1311,24 @@ export class KpiConfigDialogComponent implements OnInit {
         }));
     }
 
-    // Stream-data: execute with a tiny page just to surface columns.
-    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
-    return sdResult.columns.map(c => ({
+    // Stream-data: execute with a tiny page just to surface columns. An Integral
+    // column needs from/to (AB#7921), so the executor retries with the board's
+    // window — or the last 24 hours when the board has no time filter.
+    const columns = await this.queryExecutor.fetchStreamDataColumns(rtId, this.columnProbeWindow());
+    return columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null
     }));
+  }
+
+  private columnProbeWindow(): { from: Date; to: Date } {
+    const boardWindow = this.meshBoardStateService.resolveStreamDataTimeArgs();
+    if (boardWindow) {
+      return boardWindow;
+    }
+    const to = new Date();
+    return { from: new Date(to.getTime() - 24 * 60 * 60 * 1000), to };
   }
 
   async onCategoryFieldChange(categoryField: string): Promise<void> {

@@ -14,6 +14,7 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
   let component: KpiConfigDialogComponent;
   let stateService: MeshBoardStateService;
   let windowRef: { close: ReturnType<typeof vi.fn> };
+  let queryExecutor: { fetchStreamDataColumns: ReturnType<typeof vi.fn> };
 
   function kpi(id: string, overrides: Partial<KpiWidgetConfig> = {}): KpiWidgetConfig {
     return {
@@ -50,6 +51,7 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
 
   beforeEach(() => {
     windowRef = { close: vi.fn() };
+    queryExecutor = { fetchStreamDataColumns: vi.fn() };
     TestBed.configureTestingModule({
       imports: [KpiConfigDialogComponent],
       providers: [
@@ -59,7 +61,7 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
         { provide: CkModelService, useValue: {} },
         { provide: CkTypeSelectorService, useValue: {} },
         { provide: AttributeSelectorService, useValue: {} },
-        { provide: QueryExecutorService, useValue: {} },
+        { provide: QueryExecutorService, useValue: queryExecutor },
         { provide: GetEntitiesByCkTypeDtoGQL, useValue: {} },
         { provide: GetRuntimeQueryColumnsDtoGQL, useValue: {} },
         { provide: WindowRef, useValue: windowRef }
@@ -237,5 +239,33 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
         expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ dataSourceType: mode, ...expected }));
       });
     }
+  });
+  describe('value fields of an Integral query (AB#7921)', () => {
+    const integralQuery = { rtId: 'q-int', name: 'Netzbezug Energie', ckTypeId: 'System/AggregationSdQuery' };
+
+    it('lists the _integral column, probing the board window because Integral needs from/to', async () => {
+      const boardWindow = { from: new Date('2026-10-30T00:00:00Z'), to: new Date('2026-10-31T00:00:00Z') };
+      queryExecutor.fetchStreamDataColumns.mockResolvedValue([
+        { attributePath: 'importpower_integral', attributeValueType: 'DOUBLE', aggregationType: 'INTEGRAL' }
+      ]);
+      await open([kpi('self')], { initialDataSourceType: 'persistentQuery' as never });
+      vi.spyOn(stateService, 'resolveStreamDataTimeArgs').mockReturnValue(boardWindow);
+
+      await component.onQuerySelected(integralQuery);
+
+      expect(component.queryColumns.map(c => c.attributePath)).toEqual(['importpower_integral']);
+      expect(queryExecutor.fetchStreamDataColumns).toHaveBeenCalledWith('q-int', boardWindow);
+    });
+
+    it('probes the last 24 hours when the board has no time filter', async () => {
+      queryExecutor.fetchStreamDataColumns.mockResolvedValue([]);
+      await open([kpi('self')], { initialDataSourceType: 'persistentQuery' as never });
+      vi.spyOn(stateService, 'resolveStreamDataTimeArgs').mockReturnValue(undefined);
+
+      await component.onQuerySelected(integralQuery);
+
+      const probe = queryExecutor.fetchStreamDataColumns.mock.calls[0][1] as { from: Date; to: Date };
+      expect(probe.to.getTime() - probe.from.getTime()).toBe(24 * 60 * 60 * 1000);
+    });
   });
 });
