@@ -1,7 +1,8 @@
 import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { HeatmapWidgetComponent } from './heatmap-widget.component';
-import { QueryExecutorService } from '../../services/query-executor.service';
+import { QueryExecutorService, QueryResultRow } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { HeatmapWidgetConfig } from '../../models/meshboard.models';
@@ -197,5 +198,119 @@ describe('HeatmapWidgetComponent — value formatting through the shared formatt
       }
     }
     expect(compared).toBe(1536);
+  });
+});
+
+describe('HeatmapWidgetComponent — date source per row type (AB#7938)', () => {
+  let component: HeatmapWidgetComponent;
+  let execute: ReturnType<typeof vi.fn>;
+
+  // A stream-data row as QueryExecutorService.mapStreamDataRows builds it: the time is the
+  // top-level timestamp, the cells hold only the value columns.
+  function sdRow(timestamp: string, value: number): QueryResultRow {
+    return {
+      __typename: 'StreamDataQueryRow',
+      rtId: 'rt-1',
+      timestamp: timestamp as unknown as Date,
+      cells: [{ attributePath: 'presence', value }]
+    } as QueryResultRow;
+  }
+
+  function runtimeRow(cells: { attributePath: string; value: unknown }[], timestamp?: string): QueryResultRow {
+    return {
+      __typename: 'RtSimpleQueryRow',
+      rtId: 'rt-2',
+      timestamp: (timestamp ?? null) as unknown as Date,
+      cells
+    } as QueryResultRow;
+  }
+
+  async function render(partial: Partial<HeatmapWidgetConfig>, rows: QueryResultRow[]): Promise<void> {
+    execute.mockReturnValue(of({ rows, totalCount: rows.length }));
+    component.config = {
+      type: 'heatmap',
+      dateField: 'timestamp',
+      aggregation: 'count',
+      colorScheme: 'green',
+      dataSource: { type: 'persistentQuery', queryRtId: 'q1', queryFamily: 'streamData' },
+      ...partial
+    } as unknown as HeatmapWidgetConfig;
+    await component['loadData']();
+  }
+
+  function cell(date: string, hour: string): number | undefined {
+    return component.heatmapData().find(c => c.date === date && c.hour === hour)?.value;
+  }
+
+  beforeEach(() => {
+    execute = vi.fn().mockName('QueryExecutorService.execute');
+    TestBed.configureTestingModule({
+      imports: [HeatmapWidgetComponent],
+      providers: [
+        { provide: MeshBoardStateService, useValue: {
+          resolveStreamDataRtIds: vi.fn().mockReturnValue(undefined),
+          resolveStreamDataScope: vi.fn().mockReturnValue({ kind: 'unscoped' }),
+          resolveStreamDataTimeArgs: vi.fn().mockReturnValue(undefined),
+          timeZoneMode: vi.fn().mockReturnValue('utc'),
+          getVariables: vi.fn().mockReturnValue([])
+        } },
+        { provide: QueryExecutorService, useValue: { execute } },
+        { provide: MeshBoardVariableService, useValue: {
+          convertToFieldFilterDto: vi.fn().mockReturnValue(undefined)
+        } }
+      ]
+    });
+    component = TestBed.createComponent(HeatmapWidgetComponent).componentInstance;
+  });
+
+  it('counts stream-data rows per day x hour from the row timestamp when no cell carries it', async () => {
+    await render({}, [
+      sdRow('2026-10-28T08:15:00Z', 1),
+      sdRow('2026-10-28T08:45:00Z', 1),
+      sdRow('2026-10-28T09:10:00Z', 0),
+      sdRow('2026-10-29T08:05:00Z', 1)
+    ]);
+
+    expect(component.xCategories()).toEqual(['2026-10-28', '2026-10-29']);
+    expect(component.heatmapData()).toHaveLength(48);
+    expect(cell('2026-10-28', '08:00')).toBe(2);
+    expect(cell('2026-10-28', '09:00')).toBe(1);
+    expect(cell('2026-10-29', '08:00')).toBe(1);
+    expect(cell('2026-10-29', '09:00')).toBe(0);
+  });
+
+  it('pins a naive wire timestamp to UTC and sums the value field', async () => {
+    await render({ aggregation: 'sum', valueField: 'presence' }, [
+      sdRow('2026-10-28T08:15:00', 3),
+      sdRow('2026-10-28T08:45:00', 4)
+    ]);
+
+    expect(cell('2026-10-28', '08:00')).toBe(7);
+  });
+
+  it('prefers a matching cell over the row timestamp', async () => {
+    const row = sdRow('2026-10-28T08:15:00Z', 1);
+    row.cells.push({ attributePath: 'timestamp', value: '2026-10-30T14:00:00Z' } as QueryResultRow['cells'][number]);
+    await render({}, [row]);
+
+    expect(component.xCategories()).toEqual(['2026-10-30']);
+    expect(cell('2026-10-30', '14:00')).toBe(1);
+  });
+
+  it('does not use the row timestamp when the date field names another column', async () => {
+    await render({ dateField: 'window_start' }, [sdRow('2026-10-28T08:15:00Z', 1)]);
+
+    expect(component.heatmapData()).toEqual([]);
+  });
+
+  it('keeps runtime rows on their date cell only', async () => {
+    await render({ dateField: 'timestamp', dataSource: { type: 'persistentQuery', queryRtId: 'q1', queryFamily: 'runtime' } } as Partial<HeatmapWidgetConfig>, [
+      runtimeRow([{ attributePath: 'timestamp', value: '2026-10-28T10:30:00Z' }]),
+      runtimeRow([{ attributePath: 'name', value: 'x' }], '2026-10-28T11:30:00Z')
+    ]);
+
+    expect(component.xCategories()).toEqual(['2026-10-28']);
+    expect(cell('2026-10-28', '10:00')).toBe(1);
+    expect(cell('2026-10-28', '11:00')).toBe(0);
   });
 });

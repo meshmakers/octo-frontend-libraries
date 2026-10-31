@@ -10,6 +10,13 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard heatmap on stream-data queries (AB#7938)
+
+- Fix: the heatmap reads the date of a stream-data row (`StreamDataQueryRow`) from its top-level `timestamp` when
+  `dateField` is `timestamp` and no cell carries it. Stream-data cells hold only the value columns, so before the
+  fix every row was dropped and the widget showed "No data available". Runtime-query rows still take the date
+  only from their cells; a cell matching `dateField` still wins.
+
 ### octo-meshboard selector editor: dependent selectors (AB#7917)
 
 - New (non-breaking): the selector editor has a section "List only entities inside" (after *Picker filter*, before
