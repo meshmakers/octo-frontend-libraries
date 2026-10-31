@@ -360,6 +360,12 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   private readonly _data = signal<RuntimeEntityData | null>(null);
   private readonly _error = signal<string | null>(null);
 
+  /**
+   * Incremented on every load; a request that resolves after a newer load started (e.g. the
+   * config switched to formula mode meanwhile) must not overwrite the newer state.
+   */
+  private loadGeneration = 0;
+
   readonly isLoading = this._isLoading.asReadonly();
   readonly data = this._data.asReadonly();
   readonly error = this._error.asReadonly();
@@ -503,6 +509,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   }
 
   private loadData(): void {
+    const generation = ++this.loadGeneration;
     // Skip loading if widget is not configured - isNotConfigured() handles the display
     if (this.isNotConfigured()) {
       return;
@@ -526,7 +533,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     }
 
     if (dataSource.type === 'persistentQuery') {
-      this.loadPersistentQueryData();
+      this.loadPersistentQueryData(generation);
       return;
     }
 
@@ -539,18 +546,21 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
         .pipe(
           catchError(err => {
             console.error('Error loading Gauge data:', err);
-            this._error.set('Failed to load data');
+            if (generation === this.loadGeneration) {
+              this._error.set('Failed to load data');
+            }
             return of(null);
           })
         )
         .subscribe(entityData => {
+          if (generation !== this.loadGeneration) return;
           this._data.set(entityData);
           this._isLoading.set(false);
         });
     }
   }
 
-  private async loadPersistentQueryData(): Promise<void> {
+  private async loadPersistentQueryData(generation = ++this.loadGeneration): Promise<void> {
     // Note: isNotConfigured() check in loadData() ensures queryRtId is set
     const dataSource = this.config.dataSource as PersistentQueryDataSource;
 
@@ -608,6 +618,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
       }
 
       // Create a synthetic entity with the value
+      if (generation !== this.loadGeneration) return;
       const gaugeEntity: RuntimeEntityData = {
         rtId: 'query-entity',
         ckTypeId: 'system.query',
@@ -619,6 +630,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
 
     } catch (err) {
       console.error('Error loading Gauge query data:', err);
+      if (generation !== this.loadGeneration) return;
       this._error.set('Failed to load data');
       this._isLoading.set(false);
     }

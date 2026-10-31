@@ -676,8 +676,8 @@ exported as `FormulaFieldComponent`) is the formula input of every config dialog
 `requireNumericFormulaResult`), `[clampHint]` (shows the clamp pattern). It renders the hint, the
 validation message (`role="alert"`), the preview and the variable buttons; the label is linked to the
 input (`focusableId`) and the input is described by hint and message. Dialogs never re-implement the
-check: they call `validateFormulaField` with the same inputs for Save. The chart formula series
-(AB#7952/AB#7953) reuse it with series keys as variables.
+check: they call `validateFormulaField` with the same inputs for Save. The planned chart formula
+series (AB#7952/AB#7953, not built yet) are meant to reuse it with series keys as variables.
 
 **Config dialog.** A fourth data-source button **Formula** (the shared formula field above) and
 an **Output Variable** field for all modes (`isValidVariableName`, no clash with a config
