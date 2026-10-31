@@ -765,9 +765,22 @@ export type HeatmapColorScheme = 'green' | 'redGreen' | 'blue' | 'heat';
 export type HeatmapColorMode = 'gradient' | 'threshold';
 
 /**
- * Client-side aggregation function for simple queries
+ * Client-side aggregation function for simple queries.
+ * `weightedAvg` (AB#7956): cell = Σ valueField / Σ weightField, for rollup archives that store a
+ * mean as a sum column plus a count column; a cell without rows is empty, not 0.
  */
-export type HeatmapAggregation = 'count' | 'sum' | 'avg';
+export type HeatmapAggregation = 'count' | 'sum' | 'avg' | 'weightedAvg';
+
+/**
+ * Widget-level relative time window of a heatmap (AB#7956), e.g. the last 30 days.
+ * Overrides the board time filter for this widget's stream-data query.
+ */
+export interface HeatmapTimeWindow {
+  /** Number of units, a positive integer */
+  value: number;
+  /** Unit of the window */
+  unit: RelativeTimeUnit;
+}
 
 
 /**
@@ -786,10 +799,25 @@ export interface HeatmapWidgetConfig extends WidgetConfig {
   /** Optional end-of-interval field (e.g. timeRange.to). When set, the interval width is auto-detected
    *  and sub-hour columns are shown (e.g. 00-15, 15-30, 30-45, 45-60 for 15-min data). */
   dateEndField?: string;
-  /** Field containing the numeric value to aggregate (for sum/avg) */
+  /** Field containing the numeric value to aggregate (for sum/avg; the sum column for weightedAvg) */
   valueField?: string;
   /** Client-side aggregation function for simple queries */
   aggregation: HeatmapAggregation;
+  /** `weightedAvg` only: the weight (count) column; cell = Σ valueField / Σ weightField (AB#7956) */
+  weightField?: string;
+  /**
+   * The date field marks the END of a bucket (rollup archives) (AB#7956). Each row is shifted back by
+   * {@link bucketWidthMinutes} to its bucket start before hour/day bucketing, so the last bucket of an
+   * hour stays in that hour. Ignored when {@link dateEndField} is set.
+   */
+  timestampIsBucketEnd?: boolean;
+  /** Bucket width in minutes for {@link timestampIsBucketEnd} (e.g. 5 for a 5-min rollup) */
+  bucketWidthMinutes?: number;
+  /**
+   * Own relative time window (AB#7956). When set, it overrides the board time filter for this
+   * widget's stream-data query, and the widget shows the window in a badge. Unset = board filter.
+   */
+  timeWindow?: HeatmapTimeWindow;
   /** Color scheme for the heatmap (used in `gradient` color mode) */
   colorScheme: HeatmapColorScheme;
   /** Coloring mode — relative `gradient` (default) or absolute `threshold` bands */

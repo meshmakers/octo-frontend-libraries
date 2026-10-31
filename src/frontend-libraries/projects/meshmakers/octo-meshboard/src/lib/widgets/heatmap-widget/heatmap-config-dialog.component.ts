@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { HeatmapColorScheme, HeatmapColorMode, HeatmapAggregation, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
+import { HeatmapColorScheme, HeatmapColorMode, HeatmapAggregation, HeatmapTimeWindow, RelativeTimeUnit, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -35,6 +35,13 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
   dateEndField?: string;
   valueField?: string;
   aggregation: HeatmapAggregation;
+  /** `weightedAvg` only: the weight (count) column (AB#7956) */
+  weightField?: string;
+  /** The date field marks the bucket end; shift rows by {@link bucketWidthMinutes} (AB#7956) */
+  timestampIsBucketEnd?: boolean;
+  bucketWidthMinutes?: number;
+  /** Own relative time window that overrides the board time filter (AB#7956) */
+  timeWindow?: HeatmapTimeWindow;
   colorScheme: HeatmapColorScheme;
   colorMode?: HeatmapColorMode;
   thresholdTarget?: number;
@@ -83,10 +90,46 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
             </mm-query-selector>
           </div>
 
-          <mm-sd-time-filter-toggle
-            [family]="selectedQueryFamily"
-            [(ignoreTimeFilter)]="ignoreTimeFilter">
-          </mm-sd-time-filter-toggle>
+          @if (selectedQueryFamily !== 'runtime') {
+            <div class="form-field checkbox-field">
+              <label>
+                <input type="checkbox" [(ngModel)]="form.useTimeWindow" kendoCheckBox />
+                Own time window (instead of the board time filter)
+              </label>
+            </div>
+            @if (form.useTimeWindow) {
+              <div class="form-row">
+                <div class="form-field">
+                  <label>Last <span class="required">*</span></label>
+                  <kendo-numerictextbox
+                    [(ngModel)]="form.timeWindowValue"
+                    [min]="1"
+                    [step]="1"
+                    [decimals]="0"
+                    format="n0">
+                  </kendo-numerictextbox>
+                </div>
+                <div class="form-field">
+                  <label>Unit</label>
+                  <kendo-dropdownlist
+                    [data]="timeWindowUnitOptions"
+                    [textField]="'label'"
+                    [valueField]="'value'"
+                    [valuePrimitive]="true"
+                    [(ngModel)]="form.timeWindowUnit">
+                  </kendo-dropdownlist>
+                </div>
+              </div>
+              <p class="field-hint">The widget always shows this rolling window (e.g. the last 30 days) and ignores the board time filter. The window is shown in the widget.</p>
+            }
+          }
+
+          @if (!form.useTimeWindow || selectedQueryFamily === 'runtime') {
+            <mm-sd-time-filter-toggle
+              [family]="selectedQueryFamily"
+              [(ignoreTimeFilter)]="ignoreTimeFilter">
+            </mm-sd-time-filter-toggle>
+          }
 
           <mm-entity-selector-scope-picker
             [family]="selectedQueryFamily"
@@ -139,6 +182,28 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
               <p class="field-hint">Optional: end-of-interval field (e.g. timeRange.to). When set, sub-hour intervals are auto-detected.</p>
             </div>
 
+            @if (!form.dateEndField) {
+              <div class="form-field checkbox-field">
+                <label>
+                  <input type="checkbox" [(ngModel)]="form.timestampIsBucketEnd" kendoCheckBox />
+                  Date marks the end of a bucket (rollup archives)
+                </label>
+              </div>
+              @if (form.timestampIsBucketEnd) {
+                <div class="form-field">
+                  <label>Bucket width (minutes) <span class="required">*</span></label>
+                  <kendo-numerictextbox
+                    [(ngModel)]="form.bucketWidthMinutes"
+                    [min]="1"
+                    [step]="1"
+                    [decimals]="0"
+                    format="n0">
+                  </kendo-numerictextbox>
+                  <p class="field-hint">Each row is moved back by this width to its bucket start before it is put into an hour, so the bucket ending at 09:00 counts for 08:00.</p>
+                </div>
+              }
+            }
+
             <div class="form-field">
               <label>Value Field</label>
               <kendo-combobox
@@ -170,6 +235,28 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
               </kendo-dropdownlist>
               <p class="field-hint">How to aggregate values within each time slot.</p>
             </div>
+
+            @if (form.aggregation === 'weightedAvg') {
+              <div class="form-field">
+                <label>Weight Field <span class="required">*</span></label>
+                <kendo-combobox
+                  [data]="numericColumns"
+                  [textField]="'attributePath'"
+                  [valueField]="'attributePath'"
+                  [valuePrimitive]="true"
+                  [(ngModel)]="form.weightField"
+                  [clearButton]="true"
+                  placeholder="Select weight (count) field...">
+                  <ng-template kendoComboBoxItemTemplate let-dataItem>
+                    <div class="column-item">
+                      <span class="column-path">{{ dataItem.attributePath }}</span>
+                      <span class="column-type">{{ dataItem.attributeValueType }}</span>
+                    </div>
+                  </ng-template>
+                </kendo-combobox>
+                <p class="field-hint">Cell = sum of the value field / sum of this field, e.g. value_sum / value_count of a rollup. A cell without rows stays empty.</p>
+              </div>
+            }
           </div>
         }
 
@@ -310,6 +397,10 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
         </div>
       </div>
 
+      @if (selectedPersistentQuery && optionsError; as message) {
+        <p class="options-error" role="alert">{{ message }}</p>
+      }
+
       <div class="action-bar mm-dialog-actions">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
         <button
@@ -444,6 +535,12 @@ export interface HeatmapConfigResult extends WidgetConfigResult {
       font-weight: 500;
     }
 
+    .options-error {
+      margin: 0 16px 8px;
+      font-size: 0.85rem;
+      color: var(--kendo-color-error, #dc3545);
+    }
+
     .column-type {
       font-size: 0.8rem;
       color: var(--kendo-color-subtle, #6c757d);
@@ -468,6 +565,10 @@ export class HeatmapConfigDialogComponent implements OnInit {
   @Input() initialDateEndField?: string;
   @Input() initialValueField?: string;
   @Input() initialAggregation?: HeatmapAggregation;
+  @Input() initialWeightField?: string;
+  @Input() initialTimestampIsBucketEnd?: boolean;
+  @Input() initialBucketWidthMinutes?: number;
+  @Input() initialTimeWindow?: HeatmapTimeWindow;
   @Input() initialColorScheme?: HeatmapColorScheme;
   @Input() initialColorMode?: HeatmapColorMode;
   @Input() initialThresholdTarget?: number;
@@ -498,7 +599,16 @@ export class HeatmapConfigDialogComponent implements OnInit {
   aggregationOptions = [
     { value: 'count', label: 'Count (number of rows)' },
     { value: 'sum', label: 'Sum (total of values)' },
-    { value: 'avg', label: 'Average (mean of values)' }
+    { value: 'avg', label: 'Average (mean of values)' },
+    { value: 'weightedAvg', label: 'Weighted mean (sum of values / sum of weights)' }
+  ];
+
+  // Own time window units (AB#7956)
+  timeWindowUnitOptions: { value: RelativeTimeUnit; label: string }[] = [
+    { value: 'hours', label: 'Hours' },
+    { value: 'days', label: 'Days' },
+    { value: 'weeks', label: 'Weeks' },
+    { value: 'months', label: 'Months' }
   ];
 
   // Color mode options
@@ -536,6 +646,12 @@ export class HeatmapConfigDialogComponent implements OnInit {
     dateEndField: '' as string | undefined,
     valueField: '' as string | undefined,
     aggregation: 'count' as HeatmapAggregation,
+    weightField: undefined as string | undefined,
+    timestampIsBucketEnd: false,
+    bucketWidthMinutes: undefined as number | undefined,
+    useTimeWindow: false,
+    timeWindowValue: 30 as number | undefined,
+    timeWindowUnit: 'days' as RelativeTimeUnit,
     colorScheme: 'green' as HeatmapColorScheme,
     colorMode: 'gradient' as HeatmapColorMode,
     thresholdTarget: undefined as number | undefined,
@@ -547,7 +663,21 @@ export class HeatmapConfigDialogComponent implements OnInit {
   };
 
   get isValid(): boolean {
-    return this.selectedPersistentQuery !== null && this.form.dateField !== '';
+    return this.selectedPersistentQuery !== null && this.form.dateField !== '' && this.optionsError === null;
+  }
+
+  /** Why the AB#7956 options block saving, or `null`. */
+  get optionsError(): string | null {
+    if (this.form.aggregation === 'weightedAvg' && (!this.form.valueField || !this.form.weightField)) {
+      return 'Weighted mean needs a value field and a weight field.';
+    }
+    if (this.form.timestampIsBucketEnd && !this.form.dateEndField && !isPositiveInteger(this.form.bucketWidthMinutes)) {
+      return 'Enter the bucket width in whole minutes.';
+    }
+    if (this.form.useTimeWindow && this.selectedQueryFamily !== 'runtime' && !isPositiveInteger(this.form.timeWindowValue)) {
+      return 'Enter the time window as a whole number greater than 0.';
+    }
+    return null;
   }
 
   /** Entity selectors available on the current MeshBoard (for the scope picker). */
@@ -572,6 +702,12 @@ export class HeatmapConfigDialogComponent implements OnInit {
     this.form.dateEndField = this.initialDateEndField;
     this.form.valueField = this.initialValueField;
     this.form.aggregation = this.initialAggregation ?? 'count';
+    this.form.weightField = this.initialWeightField;
+    this.form.timestampIsBucketEnd = this.initialTimestampIsBucketEnd ?? false;
+    this.form.bucketWidthMinutes = this.initialBucketWidthMinutes;
+    this.form.useTimeWindow = !!this.initialTimeWindow;
+    this.form.timeWindowValue = this.initialTimeWindow?.value ?? 30;
+    this.form.timeWindowUnit = this.initialTimeWindow?.unit ?? 'days';
     this.form.colorScheme = this.initialColorScheme ?? 'green';
     this.form.colorMode = this.initialColorMode ?? 'gradient';
     this.form.thresholdTarget = this.initialThresholdTarget;
@@ -618,6 +754,7 @@ export class HeatmapConfigDialogComponent implements OnInit {
     this.form.dateField = '';
     this.form.dateEndField = undefined;
     this.form.valueField = undefined;
+    this.form.weightField = undefined;
 
     if (query) {
       await this.loadQueryColumns(query.rtId);
@@ -708,6 +845,11 @@ export class HeatmapConfigDialogComponent implements OnInit {
       : undefined;
 
     const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
+    const weighted = this.form.aggregation === 'weightedAvg';
+    const bucketEnd = this.form.timestampIsBucketEnd && !this.form.dateEndField;
+    const timeWindow: HeatmapTimeWindow | undefined = this.form.useTimeWindow && family !== 'runtime' && isPositiveInteger(this.form.timeWindowValue)
+      ? { value: this.form.timeWindowValue, unit: this.form.timeWindowUnit }
+      : undefined;
 
     const result: HeatmapConfigResult = {
       ckTypeId: '',
@@ -721,6 +863,10 @@ export class HeatmapConfigDialogComponent implements OnInit {
       dateEndField: this.form.dateEndField || undefined,
       valueField: this.form.valueField || undefined,
       aggregation: this.form.aggregation,
+      weightField: weighted ? (this.form.weightField || undefined) : undefined,
+      timestampIsBucketEnd: bucketEnd ? true : undefined,
+      bucketWidthMinutes: bucketEnd ? this.form.bucketWidthMinutes : undefined,
+      timeWindow,
       colorScheme: this.form.colorScheme,
       colorMode: this.form.colorMode,
       thresholdTarget: this.form.colorMode === 'threshold' ? (this.form.thresholdTarget ?? undefined) : undefined,
@@ -738,4 +884,8 @@ export class HeatmapConfigDialogComponent implements OnInit {
   onCancel(): void {
     this.windowRef.close();
   }
+}
+
+function isPositiveInteger(value: number | null | undefined): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
 }

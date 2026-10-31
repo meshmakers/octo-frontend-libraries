@@ -10,6 +10,25 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard heatmap: weighted mean, bucket-end timestamps, own time window (AB#7956)
+
+- New (non-breaking): aggregation `weightedAvg` with `valueField` (sum column) and `weightField` (count column):
+  cell = Σ sum / Σ count, the exact mean of the raw rows behind a rollup. A cell without rows stays empty (no
+  colour, no label, tooltip "No data") instead of 0; a real mean of 0 is coloured. Rows without a usable value or
+  weight are skipped.
+- New: `timestampIsBucketEnd` + `bucketWidthMinutes` move each row back to its bucket start before hour/day
+  bucketing (rollup rows carry the bucket end, so the bucket ending at 09:00 counts for 08:00). Ignored when
+  `dateEndField` is set.
+- Changed: hour and day follow the board time zone incl. DST for every aggregation; a fall-back day keeps its
+  repeated hour as its own row `02:00 (2)` (2026-10-25 in Europe/Vienna shows 25 hours) instead of merging two
+  real hours into one cell.
+- New: `timeWindow` (`{ value, unit }`, e.g. last 30 days) — a rolling window for the widget's stream-data query
+  that overrides the board time filter (`from` floored to the full hour); the widget shows it as a badge
+  ("Last 30 days"). Heatmaps without it follow the board filter as before.
+- Config dialog: "Weighted mean" aggregation with a Weight Field, "Date marks the end of a bucket" with the bucket
+  width, "Own time window" (stream-data queries only); invalid combinations block saving with a message. All new
+  keys are omitted from the persisted config when unset, so existing heatmaps encode byte-identically.
+
 ### octo-meshboard gauge formula and shared formula field (AB#7950)
 
 - New (non-breaking): the gauge config dialog has the data source **Formula**, like the KPI. The gauge value is a

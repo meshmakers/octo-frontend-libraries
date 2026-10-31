@@ -238,7 +238,7 @@ describe('HeatmapWidgetComponent — date source per row type (AB#7938)', () => 
     await component['loadData']();
   }
 
-  function cell(date: string, hour: string): number | undefined {
+  function cell(date: string, hour: string): number | null | undefined {
     return component.heatmapData().find(c => c.date === date && c.hour === hour)?.value;
   }
 
