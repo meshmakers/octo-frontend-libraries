@@ -56,7 +56,7 @@ export const MM_OPTIONAL_REQUEST = new HttpContextToken<boolean>(() => false);
  * How the interceptor reports a failed response to the user. `null` means it stays silent and the
  * caller is the only one who can tell the user anything.
  */
-type ReportedErrorKind = 'connection-lost' | 'access-denied' | 'api-error';
+type ReportedErrorKind = 'connection-lost' | 'access-denied' | 'problem' | 'api-error';
 
 /** The part of an `HttpErrorResponse` the classification looks at. */
 type HttpErrorLike = Pick<HttpErrorResponse, 'status' | 'error' | 'url'>;
@@ -73,6 +73,33 @@ function isHttpErrorResponse(error: unknown): error is HttpErrorLike {
     && typeof (error as { status?: unknown }).status === 'number';
 }
 
+/**
+ * The readable text of an RFC 9457 problem body (`application/problem+json`), or `null` when the body
+ * is no problem or carries no deliberate text. Identity refuses role changes this way (AB#7914):
+ * `{ status: 403, title: 'You cannot grant additional roles to your own user.', code: 'self-grant' }`.
+ *
+ * - `title` counts only when the body carries the `code` extension: ASP.NET fills `title` of a
+ *   default problem with the bare reason phrase ("Forbidden"), which says less than the generic text.
+ * - `detail` is always written on purpose and is the fallback.
+ *
+ * A body counts as a problem when it is an object with a numeric `status` or a string `type`/`code`.
+ */
+function problemMessage(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null) {
+    return null;
+  }
+  const problem = body as { status?: unknown; type?: unknown; code?: unknown; title?: unknown; detail?: unknown };
+  const hasCode = typeof problem.code === 'string' && problem.code.length > 0;
+  const isProblem = typeof problem.status === 'number' || typeof problem.type === 'string' || hasCode;
+  if (!isProblem) {
+    return null;
+  }
+  if (hasCode && typeof problem.title === 'string' && problem.title.length > 0) {
+    return problem.title;
+  }
+  return typeof problem.detail === 'string' && problem.detail.length > 0 ? problem.detail : null;
+}
+
 @Injectable()
 export class MmHttpErrorInterceptor implements HttpInterceptor {
 
@@ -82,6 +109,14 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
    * recognises these by identity — the interceptor rethrows the very same object.
    */
   private static readonly silencedOptionalErrors = new WeakSet<object>();
+
+  /**
+   * Errors whose status the request marked as caller-handled (`MM_CALLER_HANDLED_STATUSES`): the
+   * interceptor stayed silent, so `reportsToUser` must answer `false` for them, or a caller that skips
+   * its own toast on `true` would leave the user with no message at all. Recognised by identity, like
+   * `silencedOptionalErrors`.
+   */
+  private static readonly silencedCallerHandledErrors = new WeakSet<object>();
 
   private readonly messageService = inject(MessageService);
   private readonly onConnectionLost = inject(ON_CONNECTION_LOST, { optional: true });
@@ -97,6 +132,7 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
   public static reportsToUser(error: unknown): boolean {
     return isHttpErrorResponse(error)
       && !MmHttpErrorInterceptor.silencedOptionalErrors.has(error)
+      && !MmHttpErrorInterceptor.silencedCallerHandledErrors.has(error)
       && MmHttpErrorInterceptor.classify(error, error.url) !== null;
   }
 
@@ -106,6 +142,7 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
 
         if (request.context.get(MM_CALLER_HANDLED_STATUSES).includes(error.status)) {
+          MmHttpErrorInterceptor.silencedCallerHandledErrors.add(error);
           return throwError(() => error);
         }
 
@@ -135,6 +172,13 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
               : 'Access denied. You do not have permission to access this tenant or resource.');
             break;
           }
+
+          case 'problem':
+            // A 403 refusal with a readable problem title (AB#7969): show that sentence, once, instead of
+            // the generic access-denied text. Pages that catch the error skip their own toast because
+            // reportsToUser answers true for it.
+            this.messageService.showError(problemMessage(error.error) ?? '');
+            break;
 
           case 'api-error': {
             const apiError = error.error as ApiErrorDto;
@@ -174,6 +218,15 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
     if (error.status === 0) {
       const isHealthCheck = requestUrl?.endsWith('/health') ?? false;
       return isHealthCheck ? null : 'connection-lost';
+    }
+
+    // A 403 problem body with a readable text (identity's role-change refusals, AB#7969) is shown as is
+    // instead of the generic "Access denied", which reads as a missing permission it is not. A 409
+    // problem stays the caller's job, as before: pages show it in place (identity's last-administrator /
+    // built-in-role refusals) or in a dialog (the CK upgrade guard's CK_UPGRADE_BLOCKED). A 403 with the
+    // middleware's {message} body is no problem and keeps the access-denied branch.
+    if (error.status === 403 && problemMessage(error.error) !== null) {
+      return 'problem';
     }
 
     if (error.status === 403) {
