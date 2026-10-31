@@ -53,6 +53,7 @@ export enum AggregationInputTypesDto {
 export enum AggregationTypeDto {
   AvgDto = 'AVG',
   CountDto = 'COUNT',
+  IntegralDto = 'INTEGRAL',
   MaxDto = 'MAX',
   MinDto = 'MIN',
   StateDurationDto = 'STATE_DURATION',
@@ -64,6 +65,7 @@ export enum AggregationTypeDto {
 export enum AggregationTypesDto {
   AverageDto = 'AVERAGE',
   CountDto = 'COUNT',
+  IntegralDto = 'INTEGRAL',
   MaximumDto = 'MAXIMUM',
   MinimumDto = 'MINIMUM',
   NoneDto = 'NONE',
@@ -29003,6 +29005,8 @@ export enum SystemAggregationTypesDto {
   AverageDto = 'AVERAGE',
   /** Counts the number of items */
   CountDto = 'COUNT',
+  /** Step integral of a numeric event-based signal over the half-open query window [from, to), in value unit x hours (kW gives kWh, W gives Wh). Last observation carried forward - each value holds until the next row of the same entity or the window end, and the last row before the window opens it (looked up at most 35 days back; an older row is not carried, so a window without rows then yields null). Several entities in scope are summed; an empty window, or one whose rows all carry no value, yields null; from and to are required. Served over raw event archives at query time (rollup archives with a TimeWeightedAvg aggregation follow in AB#7920). AB#7918. */
+  IntegralDto = 'INTEGRAL',
   /** Finds the maximum value */
   MaximumDto = 'MAXIMUM',
   /** Finds the minimum value */

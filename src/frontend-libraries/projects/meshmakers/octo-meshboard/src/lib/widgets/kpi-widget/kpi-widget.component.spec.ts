@@ -560,4 +560,87 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
       expect(queryExecutor.execute.mock.calls[0][2].streamDataArgs?.rtIds).toBeUndefined();
     });
   });
+  describe('energy KPI over an Integral query (AB#7921)', () => {
+    const integralKpi = (overrides: Partial<KpiWidgetConfig> = {}): KpiWidgetConfig => kpi({
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-int', queryFamily: 'streamData', entitySelectorId: 'site' },
+      queryMode: 'aggregation',
+      queryValueField: 'importpower_integral',
+      valueMultiplier: 1,
+      suffix: ' kWh',
+      decimalPlaces: 2,
+      ...overrides
+    });
+
+    const integralResult = (value: unknown, withSum = false) => of({
+      totalCount: 1,
+      columns: [],
+      rows: [{
+        __typename: 'StreamDataQueryRow',
+        cells: [
+          ...(withSum ? [{ attributePath: 'importpower_sum', value: 7200 }] : []),
+          { attributePath: 'importpower_integral', value }
+        ]
+      }]
+    });
+
+    async function settle(): Promise<void> {
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('shows the integral of the board window and re-queries when the window changes', async () => {
+      const day1 = { from: new Date('2026-10-30T00:00:00Z'), to: new Date('2026-10-31T00:00:00Z') };
+      const day2 = { from: new Date('2026-10-31T00:00:00Z'), to: new Date('2026-11-01T00:00:00Z') };
+      const timeArgs = vi.spyOn(stateService, 'resolveStreamDataTimeArgs').mockReturnValue(day1);
+      queryExecutor.execute.mockReturnValue(integralResult(12.345, true));
+      render(integralKpi());
+      await settle();
+
+      expect(queryExecutor.execute.mock.calls[0][2].streamDataArgs).toMatchObject(day1);
+      expect(component.rawValue()).toBe(12.345);
+      expect(component.value()).toBe('12,35');
+
+      timeArgs.mockReturnValue(day2);
+      queryExecutor.execute.mockReturnValue(integralResult(3.5));
+      component.refresh();
+      await settle();
+
+      expect(queryExecutor.execute.mock.calls[1][2].streamDataArgs).toMatchObject(day2);
+      expect(component.value()).toBe('3,50');
+    });
+
+    it('applies the unit factor (0.001 for W to kWh)', async () => {
+      queryExecutor.execute.mockReturnValue(integralResult(2500));
+      render(integralKpi({ valueMultiplier: 0.001 }));
+      await settle();
+
+      expect(component.rawValue()).toBe(2.5);
+    });
+
+    it('shows the same configuration per site of the entity selector', async () => {
+      queryExecutor.execute.mockReturnValue(integralResult(4.2));
+      stateService.setEntitySelectorRtIds('site', ['site-5s']);
+      render(integralKpi());
+      await settle();
+      expect(component.value()).toBe('4,20');
+
+      queryExecutor.execute.mockReturnValue(integralResult(0.7));
+      stateService.setEntitySelectorRtIds('site', ['site-on-change']);
+      component.refresh();
+      await settle();
+
+      expect(queryExecutor.execute.mock.calls.at(-1)?.[2].streamDataArgs.rtIds).toEqual(['site-on-change']);
+      expect(component.value()).toBe('0,70');
+    });
+
+    it('shows the empty state, not 0, for an empty window (null integral)', async () => {
+      queryExecutor.execute.mockReturnValue(integralResult(null));
+      render(integralKpi({ outputVariableName: 'energy' }));
+      await settle();
+
+      expect(component.rawValue()).toBeNull();
+      expect(component.value()).toBe('-');
+      expect(stateService.getVariable('energy')).toBeUndefined();
+    });
+  });
 });

@@ -274,6 +274,66 @@ describe('QueryExecutorService', () => {
   });
 
   // ==========================================================================
+  // fetchStreamDataColumns — column metadata for config pickers (AB#7921)
+  // ==========================================================================
+
+  describe('fetchStreamDataColumns (AB#7921)', () => {
+    const window = { from: new Date('2026-10-30T00:00:00Z'), to: new Date('2026-10-31T00:00:00Z') };
+    const integralColumn = { attributePath: 'importpower_integral', attributeValueType: 'DOUBLE', aggregationType: 'INTEGRAL' };
+    const withColumns = (columns: unknown[]) => of(makeApolloResult({
+      streamData: {
+        streamDataQuery: {
+          items: [{
+            queryRtId: 'q', associatedCkTypeId: null, columns,
+            rows: { totalCount: 0, pageInfo: { hasNextPage: false, endCursor: null }, items: [] }
+          }]
+        }
+      }
+    }));
+    const argOfCall = (n: number) =>
+      (vi.mocked(streamDataGqlSpy.fetch).mock.calls[n][0] as { variables: Record<string, unknown> }).variables['arg'] as Record<string, unknown> | undefined;
+
+    it('lists the columns of a query that runs with its own window, in one call', async () => {
+      streamDataGqlSpy.fetch.mockReturnValue(withColumns([{ attributePath: 'activepower_sum', attributeValueType: 'DOUBLE', aggregationType: 'SUM' }]) as never);
+
+      const columns = await service.fetchStreamDataColumns('q', window);
+
+      expect(columns.map(c => c.attributePath)).toEqual(['activepower_sum']);
+      expect(streamDataGqlSpy.fetch).toHaveBeenCalledTimes(1);
+      expect(argOfCall(0)).toBeUndefined();
+    });
+
+    it('retries with the given window when the query refuses to run without from/to (Integral)', async () => {
+      streamDataGqlSpy.fetch
+        .mockReturnValueOnce(throwError(() => new Error('Integral over a raw archive requires From and To')) as never)
+        .mockReturnValueOnce(withColumns([integralColumn]) as never);
+
+      const columns = await service.fetchStreamDataColumns('q', window);
+
+      expect(columns).toEqual([integralColumn]);
+      expect(streamDataGqlSpy.fetch).toHaveBeenCalledTimes(2);
+      expect(argOfCall(1)).toMatchObject({ from: window.from, to: window.to });
+    });
+
+    it('retries with the given window when the first call returns no columns', async () => {
+      streamDataGqlSpy.fetch
+        .mockReturnValueOnce(of(makeApolloResult({ streamData: { streamDataQuery: null } })) as never)
+        .mockReturnValueOnce(withColumns([integralColumn]) as never);
+
+      const columns = await service.fetchStreamDataColumns('q', window);
+
+      expect(columns).toEqual([integralColumn]);
+      expect(argOfCall(1)).toMatchObject({ from: window.from, to: window.to });
+    });
+
+    it('rejects when the windowed retry fails too', async () => {
+      streamDataGqlSpy.fetch.mockReturnValue(throwError(() => new Error('boom')) as never);
+
+      await expect(service.fetchStreamDataColumns('q', window)).rejects.toThrow('boom');
+    });
+  });
+
+  // ==========================================================================
   // execute() — family dispatch
   // ==========================================================================
 

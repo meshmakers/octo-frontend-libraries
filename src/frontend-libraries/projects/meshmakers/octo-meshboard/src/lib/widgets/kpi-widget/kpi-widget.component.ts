@@ -497,7 +497,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         )
       );
 
-      let value: number | string = 0;
+      let value: number | string | null = 0;
       const queryMode = this.config.queryMode ?? 'simpleCount';
 
       switch (queryMode) {
@@ -514,8 +514,8 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
           break;
       }
 
-      // Optional scale factor (e.g. Σ(kW samples) × sampleInterval → kWh).
-      // Applied to numeric values only; strings pass through unchanged.
+      // Optional unit factor (e.g. 1 for an Integral over kW → kWh, 0.001 for W → kWh).
+      // Applied to numeric values only; strings and null (no data) pass through unchanged.
       value = applyValueMultiplier(value, this.config.valueMultiplier);
 
       // Create a synthetic entity with the value
@@ -545,7 +545,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return { ...timeArgs, rtIds };
   }
 
-  private extractAggregationValue(queryResult: QueryExecutionResult): number | string {
+  private extractAggregationValue(queryResult: QueryExecutionResult): number | string | null {
     const firstRow = queryResult.rows.find(row =>
       KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
     );
@@ -562,7 +562,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return firstRow.cells.length > 0 ? this.extractCellValue(firstRow.cells[0].value) : 0;
   }
 
-  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number | string {
+  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number | string | null {
     const categoryField = this.config.queryCategoryField;
     const categoryValue = this.config.queryCategoryValue;
     const valueField = this.config.queryValueField;
@@ -575,7 +575,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       if (!KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')) continue;
 
       let categoryMatch = false;
-      let value: number | string = 0;
+      let value: number | string | null = 0;
 
       for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
@@ -597,9 +597,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   /**
    * Extracts a cell value, preserving strings and converting numbers.
    * Returns the value as-is if it's a string, or parses it as a number.
+   * A null cell is "no data" (e.g. an Integral over an empty window, AB#7921) and
+   * stays null, so the KPI shows its empty state instead of a misleading 0.
    */
-  private extractCellValue(value: unknown): number | string {
-    if (value === null || value === undefined) return 0;
+  private extractCellValue(value: unknown): number | string | null {
+    if (value === null || value === undefined) return null;
     if (typeof value === 'number') return value;
     if (typeof value === 'string') {
       if (normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces) !== undefined) {

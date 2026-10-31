@@ -295,6 +295,29 @@ export class QueryExecutorService {
   }
 
   /**
+   * Column metadata of a persisted stream-data query for the widget config pickers.
+   * Runs the query with `first: 1` and its own window first; a query that cannot run
+   * without a window — an `Integral` column over a raw archive requires from/to
+   * (AB#7921) — fails or returns no columns, so it is run once more with `window`
+   * (the board's time window or a recent default). The error of the retry propagates.
+   */
+  async fetchStreamDataColumns(queryRtId: string, window: { from: Date; to: Date }): Promise<QueryColumnInfo[]> {
+    try {
+      const result = await firstValueFrom(this.executeStreamData(queryRtId, { first: 1 }));
+      if (result.columns.length > 0) {
+        return result.columns;
+      }
+    } catch {
+      // Fall through to the windowed retry below.
+    }
+    const windowed = await firstValueFrom(this.executeStreamData(queryRtId, {
+      first: 1,
+      streamDataArgs: { from: window.from, to: window.to }
+    }));
+    return windowed.columns;
+  }
+
+  /**
    * Resolution-aware series routing (AB#4290): asks the backend which archive/rollup to
    * query for a base archive family, time window and target point count — so a widget can
    * render ~`targetPoints` points without knowing which physical archive holds the data at a

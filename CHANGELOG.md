@@ -10,6 +10,22 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard KPI: energy (kWh) from a stream-data Integral query (AB#7921)
+
+- New (non-breaking): a KPI in aggregation mode bound to a persisted stream-data aggregation query with an
+  `Integral` column shows the energy over the board's time window, correct for every sampling rate (5 s, 10 s,
+  on change). `queryValueField` is the `_integral` column (e.g. `importpower_integral`); `valueMultiplier` is
+  only the unit factor (1 for kW → kWh, 0.001 for W → kWh).
+- New: `QueryExecutorService.fetchStreamDataColumns(rtId, window)` lists the columns of a stream-data query and
+  retries with a window when the query cannot run without from/to (Integral). The KPI config dialog uses it with
+  the board's time window (last 24 h without a time filter), so the `_integral` column appears as value field.
+- Changed: `matchesAttributePath` treats `_integral` as an aggregation suffix, so an Integral column never
+  cross-matches the plain attribute, the `_sum` column or another attribute whose name ends in "Integral".
+- Changed: a KPI query cell that is `null` (e.g. an Integral over an empty window) shows the empty state `-`
+  instead of `0`; `applyValueMultiplier` passes `null` through.
+- Schema: `INTEGRAL` added to `AggregationType`, `AggregationTypes` and `SystemAggregationTypes`
+  (`schema.graphql`, `globalTypes.ts` via codegen).
+
 ### shared-services: 403 problem+json refusals show their title, no generic "Access denied" (AB#7969)
 
 - Changed: `MmHttpErrorInterceptor` shows the readable text of a 403 `application/problem+json` body (`title`

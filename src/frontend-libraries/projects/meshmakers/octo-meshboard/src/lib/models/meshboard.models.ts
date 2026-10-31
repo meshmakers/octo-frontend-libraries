@@ -375,12 +375,14 @@ export interface KpiWidgetConfig extends WidgetConfig {
   decimalPlaces?: number;
   /**
    * Scale factor applied to a NUMERIC query value before display (non-numeric
-   * values pass through unchanged). Use case: cumulated energy from uniformly
-   * sampled power — a stream-data SUM aggregation over kW samples taken every
-   * 10 s becomes kWh with `valueMultiplier: 10/3600 ≈ 0.0027778` (the factor is
-   * window-independent because SUM is linear, so the KPI stays correct for any
-   * dashboard time-filter range). Negate to display signed magnitudes (e.g.
-   * battery discharge from a `< 0`-filtered SUM).
+   * values and null pass through unchanged). Energy KPIs (AB#7921): bind the KPI
+   * to a stream-data aggregation query with an `Integral` column
+   * (`queryValueField: 'importpower_integral'`) — the Integral is in value × hours
+   * over the board's time window, whatever the sampling rate of the site — and use
+   * the factor only as the unit factor: `1` for kW → kWh, `0.001` for W → kWh.
+   * Do not use `SUM × interval/3600` (e.g. `10/3600`): it is only correct for
+   * strictly uniform rows and is off for sites that write every 5 s or on change.
+   * Negate to display signed magnitudes (e.g. battery discharge).
    */
   valueMultiplier?: number;
   /**
