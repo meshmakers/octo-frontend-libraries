@@ -450,7 +450,7 @@ interface AggregationQuery {
 | `markdown` | Static markdown content with themed styling | static |
 | `attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions` | Cockpit widgets (AB#5558) — see *Cockpit Widgets* | none (static) |
 | `recentItems` | The viewer's recently opened places from the host (`COCKPIT_RECENT_ITEMS`, AB#5558) — see *Cockpit Widgets* | none (static) |
-| `heatmap` | Day × time-slot density grid (count/sum/avg per slot). Date: the cell matching `dateField`; for stream-data rows with `dateField` `timestamp` the row's top-level `timestamp` (stream-data cells hold only value columns, AB#7938) | persistentQuery (runtime + stream-data) |
+| `heatmap` | Day × time-slot density grid (count/sum/avg/weightedAvg per slot, see *Heatmap rollups and own window*). Date: the cell matching `dateField`; for stream-data rows with `dateField` `timestamp` the row's top-level `timestamp` (stream-data cells hold only value columns, AB#7938) | persistentQuery (runtime + stream-data) |
 
 > **Heatmap color modes.** `HeatmapWidgetConfig.colorMode` selects how cells are
 > colored:
@@ -463,6 +463,25 @@ interface AggregationQuery {
 >   e.g. the EnergyMeasurements under a picked MeteringPoint, so a "healthy" 15-min
 >   slot holds exactly one value per source. Falls back to gradient when no target
 >   can be resolved.
+
+> **Heatmap rollups and own window (AB#7956).** Pure helpers in
+> `widgets/heatmap-widget/heatmap-buckets.ts` (unit-tested):
+> - `aggregation: 'weightedAvg'` with `valueField` (sum column) and `weightField` (count column):
+>   cell = Σ sum / Σ count (`aggregateHeatmapEntries`); both fields resolve with `findCellForField`
+>   (exact name first), rows without a finite value or weight are skipped. An empty cell is `null`
+>   (transparent, no label, tooltip "No data"); for count/sum/avg an empty cell stays 0 as before,
+>   and `isEmptyCell` treats 0 as empty only for those.
+> - `timestampIsBucketEnd` + `bucketWidthMinutes`: rows move back by the width to their bucket start
+>   before bucketing (`heatmapBucketShiftMs`); ignored with `dateEndField`.
+> - Hour slots (`heatmapHourSlot`) follow the board time zone incl. DST: the repeated wall-clock
+>   hour of a fall-back day is its own y row `HH:00 (2)` (slot index `2 × hour + 1`), so the day has
+>   25 hours; ordinary days keep 24 rows.
+> - `timeWindow: { value, unit }` (`hours|days|weeks|months`): `resolveHeatmapTimeWindow` gives the
+>   rolling `{from, to}` (`TimeRangeUtils.getRelativeRange`, `from` floored to the full hour) that
+>   replaces `resolveStreamDataTimeArgs`; the scope check is then called with `ignoreTimeFilter`
+>   true (the AB#7582 host gate does not apply). Stream data only; the widget shows a
+>   `Last N <unit>` badge in its body (the tile header belongs to the view).
+> - Persistence omits all four keys when unset; an invalid stored window is dropped on load.
 
 > **Per-cell persistent queries (stats-grid / summary-card).** Each stat / tile can
 > draw its value from a persistent query instead of a runtime aggregation. The
@@ -1389,6 +1408,7 @@ Current test files:
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
 - `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation; date source per row type: stream-data rows use the top-level `timestamp` when `dateField` is `timestamp`, runtime rows only their cells (AB#7938)
+- `widgets/heatmap-widget/heatmap-buckets.spec.ts`, `heatmap-widget.weighted.spec.ts`, `heatmap-widget.registration.spec.ts`, `heatmap-config-dialog.component.spec.ts` - weighted mean equals the exact raw mean on a rollup fixture, empty vs. 0 cells, bucket-end shift, 25-hour DST day, own window vs. board filter, persistence round trip and byte-identical old configs, dialog validation (AB#7956)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
 - `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
 - `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish, `decimalPlaces` formatting (incl. negative zero)

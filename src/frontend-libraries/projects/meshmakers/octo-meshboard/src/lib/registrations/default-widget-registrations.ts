@@ -17,6 +17,7 @@ import {
   BarChartWidgetConfig,
   LineChartWidgetConfig,
   HeatmapWidgetConfig,
+  HeatmapTimeWindow,
   StatsGridWidgetConfig,
   StatusIndicatorWidgetConfig,
   ServiceHealthWidgetConfig,
@@ -74,6 +75,7 @@ import { ServiceHealthConfigDialogComponent, ServiceHealthConfigResult } from '.
 import { WidgetGroupConfigDialogComponent, WidgetGroupConfigResult } from '../widgets/widget-group/widget-group-config-dialog.component';
 import { MarkdownConfigDialogComponent, MarkdownConfigResult } from '../widgets/markdown-widget/markdown-config-dialog.component';
 import { HeatmapConfigDialogComponent, HeatmapConfigResult } from '../widgets/heatmap-widget/heatmap-config-dialog.component';
+import { isValidHeatmapTimeWindow } from '../widgets/heatmap-widget/heatmap-buckets';
 
 /**
  * Helper to extract data source info from widget config
@@ -1988,6 +1990,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialDateEndField: heatmapWidget.dateEndField,
         initialValueField: heatmapWidget.valueField,
         initialAggregation: heatmapWidget.aggregation,
+        initialWeightField: heatmapWidget.weightField,
+        initialTimestampIsBucketEnd: heatmapWidget.timestampIsBucketEnd,
+        initialBucketWidthMinutes: heatmapWidget.bucketWidthMinutes,
+        initialTimeWindow: heatmapWidget.timeWindow,
         initialColorScheme: heatmapWidget.colorScheme,
         initialColorMode: heatmapWidget.colorMode,
         initialThresholdTarget: heatmapWidget.thresholdTarget,
@@ -2022,6 +2028,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dateEndField: result.dateEndField,
         valueField: result.valueField,
         aggregation: result.aggregation,
+        weightField: result.weightField,
+        timestampIsBucketEnd: result.timestampIsBucketEnd,
+        bucketWidthMinutes: result.bucketWidthMinutes,
+        timeWindow: result.timeWindow,
         colorScheme: result.colorScheme,
         colorMode: result.colorMode,
         thresholdTarget: result.thresholdTarget,
@@ -2057,6 +2067,13 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dateEndField: widget.dateEndField,
         valueField: widget.valueField,
         aggregation: widget.aggregation,
+        // AB#7956 options: omitted when unset, so existing heatmaps encode byte-identically.
+        ...(widget.weightField && { weightField: widget.weightField }),
+        ...(widget.timestampIsBucketEnd && { timestampIsBucketEnd: true }),
+        ...(widget.bucketWidthMinutes != null && { bucketWidthMinutes: widget.bucketWidthMinutes }),
+        ...(isValidHeatmapTimeWindow(widget.timeWindow) && {
+          timeWindow: { value: widget.timeWindow.value, unit: widget.timeWindow.unit }
+        }),
         colorScheme: widget.colorScheme,
         ...(widget.colorMode && { colorMode: widget.colorMode }),
         ...(widget.thresholdTarget != null && { thresholdTarget: widget.thresholdTarget }),
@@ -2094,6 +2111,12 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dateEndField: config['dateEndField'] as string | undefined,
         valueField: config['valueField'] as string | undefined,
         aggregation: (config['aggregation'] as HeatmapWidgetConfig['aggregation']) ?? 'count',
+        weightField: config['weightField'] as string | undefined,
+        timestampIsBucketEnd: config['timestampIsBucketEnd'] === true ? true : undefined,
+        bucketWidthMinutes: typeof config['bucketWidthMinutes'] === 'number' ? config['bucketWidthMinutes'] : undefined,
+        timeWindow: isValidHeatmapTimeWindow(config['timeWindow'] as HeatmapTimeWindow | undefined)
+          ? config['timeWindow'] as HeatmapTimeWindow
+          : undefined,
         colorScheme: (config['colorScheme'] as HeatmapWidgetConfig['colorScheme']) ?? 'green',
         colorMode: config['colorMode'] as HeatmapWidgetConfig['colorMode'] | undefined,
         thresholdTarget: config['thresholdTarget'] as number | undefined,
