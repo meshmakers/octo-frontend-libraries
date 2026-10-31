@@ -110,6 +110,14 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
    */
   private static readonly silencedOptionalErrors = new WeakSet<object>();
 
+  /**
+   * Errors whose status the request marked as caller-handled (`MM_CALLER_HANDLED_STATUSES`): the
+   * interceptor stayed silent, so `reportsToUser` must answer `false` for them, or a caller that skips
+   * its own toast on `true` would leave the user with no message at all. Recognised by identity, like
+   * `silencedOptionalErrors`.
+   */
+  private static readonly silencedCallerHandledErrors = new WeakSet<object>();
+
   private readonly messageService = inject(MessageService);
   private readonly onConnectionLost = inject(ON_CONNECTION_LOST, { optional: true });
 
@@ -124,6 +132,7 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
   public static reportsToUser(error: unknown): boolean {
     return isHttpErrorResponse(error)
       && !MmHttpErrorInterceptor.silencedOptionalErrors.has(error)
+      && !MmHttpErrorInterceptor.silencedCallerHandledErrors.has(error)
       && MmHttpErrorInterceptor.classify(error, error.url) !== null;
   }
 
@@ -133,6 +142,7 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
 
         if (request.context.get(MM_CALLER_HANDLED_STATUSES).includes(error.status)) {
+          MmHttpErrorInterceptor.silencedCallerHandledErrors.add(error);
           return throwError(() => error);
         }
 
@@ -164,7 +174,7 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
           }
 
           case 'problem':
-            // A refusal with a readable problem title (AB#7969): show that sentence, once, instead of
+            // A 403 refusal with a readable problem title (AB#7969): show that sentence, once, instead of
             // the generic access-denied text. Pages that catch the error skip their own toast because
             // reportsToUser answers true for it.
             this.messageService.showError(problemMessage(error.error) ?? '');
@@ -210,10 +220,12 @@ export class MmHttpErrorInterceptor implements HttpInterceptor {
       return isHealthCheck ? null : 'connection-lost';
     }
 
-    // A 403/409 problem body with a readable text (identity's role-change refusals, AB#7969) is shown
-    // as is. Checked before the generic 403 branch so the user never sees "Access denied" next to the
-    // real reason; a 403 with the middleware's {message} body is no problem and keeps its branch.
-    if ((error.status === 403 || error.status === 409) && problemMessage(error.error) !== null) {
+    // A 403 problem body with a readable text (identity's role-change refusals, AB#7969) is shown as is
+    // instead of the generic "Access denied", which reads as a missing permission it is not. A 409
+    // problem stays the caller's job, as before: pages show it in place (identity's last-administrator /
+    // built-in-role refusals) or in a dialog (the CK upgrade guard's CK_UPGRADE_BLOCKED). A 403 with the
+    // middleware's {message} body is no problem and keeps the access-denied branch.
+    if (error.status === 403 && problemMessage(error.error) !== null) {
       return 'problem';
     }
 

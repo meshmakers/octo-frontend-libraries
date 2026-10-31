@@ -324,13 +324,28 @@ describe('MmHttpErrorInterceptor', () => {
         expectToast(403, { status: 403, title: 'You cannot grant additional roles to your own user.', code: 'self-grant' },
           'You cannot grant additional roles to your own user.'));
 
-      it('shows the problem title of a 409 that carries no message field', () =>
-        expectToast(409, { status: 409, title: 'Built-in roles cannot be renamed or deleted: DashboardManagement.', code: 'built-in-role', roleNames: ['DashboardManagement'] },
-          'Built-in roles cannot be renamed or deleted: DashboardManagement.'));
-
       it('falls back to the problem detail when the title is missing', () =>
-        expectToast(409, { status: 409, detail: 'The last administrator cannot be removed.', code: 'last-administrator' },
-          'The last administrator cannot be removed.'));
+        expectToast(403, { status: 403, detail: 'You cannot grant built-in roles you do not hold yourself.', code: 'role-not-held' },
+          'You cannot grant built-in roles you do not hold yourself.'));
+
+      it('leaves a 409 problem to the caller, as before (role refusals, CK_UPGRADE_BLOCKED dialog)', () => new Promise<void>((done) => {
+        const req = new HttpRequest('DELETE', '/t1/v1/roles/DashboardManagement');
+        const error = new HttpErrorResponse({
+          status: 409,
+          error: { status: 409, title: 'Built-in roles cannot be renamed or deleted: DashboardManagement.', code: 'built-in-role' }
+        });
+        httpHandlerMock.handle.mockReturnValue(throwError(() => error));
+
+        interceptor.intercept(req, httpHandlerMock).subscribe({
+          error: (e) => {
+            expect(e).toBe(error);
+            expect(MmHttpErrorInterceptor.reportsToUser(e)).toBe(false);
+            expect(messageServiceMock.showError).not.toHaveBeenCalled();
+            expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
+            done();
+          }
+        });
+      }));
 
       it('shows the detail of a default problem without code, never its reason-phrase title', () =>
         expectToast(403, { type: 'https://tools.ietf.org/html/rfc9110#section-15.5.4', title: 'Forbidden', status: 403, detail: 'Tenant is read-only.' },
@@ -401,6 +416,8 @@ describe('MmHttpErrorInterceptor', () => {
           error: (e) => {
             expect(e).toBe(error);
             expect(messageServiceMock.showError).not.toHaveBeenCalled();
+            // The caller shows the message: reportsToUser must not tell it the interceptor did (AB#7969).
+            expect(MmHttpErrorInterceptor.reportsToUser(e)).toBe(false);
             done();
           }
         });
@@ -575,18 +592,18 @@ describe('MmHttpErrorInterceptor', () => {
       expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({ status: 500 }))).toBe(false);
     });
 
-    it('reports a 403 or 409 problem body with a readable text (AB#7969)', () => {
-      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
-        status: 409, error: { status: 409, title: 'At least one user administrator must remain.', code: 'last-administrator' }
-      }))).toBe(true);
+    it('reports a 403 problem body with a readable text (AB#7969)', () => {
       expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
         status: 403, error: { status: 403, title: 'You cannot grant additional roles to your own user.', code: 'self-grant' }
       }))).toBe(true);
     });
 
-    it('does not report a 409 problem body without a readable text, nor problems of other statuses', () => {
+    it('does not report a 409 problem body, nor problems of other statuses (the caller shows them)', () => {
       expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
-        status: 409, error: { status: 409, title: 'Conflict' }
+        status: 409, error: { status: 409, title: 'At least one user administrator must remain.', code: 'last-administrator' }
+      }))).toBe(false);
+      expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
+        status: 409, error: { status: 409, title: 'Upgrade blocked', detail: 'Use force ...', code: 'CK_UPGRADE_BLOCKED' }
       }))).toBe(false);
       expect(MmHttpErrorInterceptor.reportsToUser(new HttpErrorResponse({
         status: 404, error: { status: 404, title: 'Not found', code: 'missing' }
