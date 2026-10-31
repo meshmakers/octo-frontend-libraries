@@ -450,7 +450,7 @@ interface AggregationQuery {
 | `markdown` | Static markdown content with themed styling | static |
 | `attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions` | Cockpit widgets (AB#5558) — see *Cockpit Widgets* | none (static) |
 | `recentItems` | The viewer's recently opened places from the host (`COCKPIT_RECENT_ITEMS`, AB#5558) — see *Cockpit Widgets* | none (static) |
-| `heatmap` | Day × time-slot density grid (count/sum/avg per slot) | persistentQuery (runtime + stream-data) |
+| `heatmap` | Day × time-slot density grid (count/sum/avg per slot). Date: the cell matching `dateField`; for stream-data rows with `dateField` `timestamp` the row's top-level `timestamp` (stream-data cells hold only value columns, AB#7938) | persistentQuery (runtime + stream-data) |
 
 > **Heatmap color modes.** `HeatmapWidgetConfig.colorMode` selects how cells are
 > colored:
@@ -1388,7 +1388,7 @@ Current test files:
 - `meshboard-data.service.spec.ts` - Data fetching, incl. batched association hops (AB#7723)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
-- `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation
+- `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation; date source per row type: stream-data rows use the top-level `timestamp` when `dateField` is `timestamp`, runtime rows only their cells (AB#7938)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
 - `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
 - `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish, `decimalPlaces` formatting (incl. negative zero)

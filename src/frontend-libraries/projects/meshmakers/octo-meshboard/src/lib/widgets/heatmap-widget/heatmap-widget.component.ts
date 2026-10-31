@@ -410,9 +410,11 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       let dateFrom: Date | null = null;
       let dateTo: Date | null = null;
       let numericValue = 1; // default for count
+      let dateCellMatched = false;
 
       for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, dateField)) {
+          dateCellMatched = true;
           dateFrom = this.parseDate(cell.value);
         } else if (dateEndField && matchesAttributePath(cell.attributePath, dateEndField)) {
           dateTo = this.parseDate(cell.value);
@@ -421,6 +423,14 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
           numericValue = typeof val === 'number' ? val : parseFloat(String(val));
           if (isNaN(numericValue)) numericValue = 0;
         }
+      }
+
+      // Stream-data rows carry their time at top level (`row.timestamp`, see
+      // QueryExecutorService.mapStreamDataRows); the cells only hold the value
+      // columns. Same source the line chart uses for the bin time (AB#7938).
+      // Only when no cell matched: a matching cell without a usable value drops the row.
+      if (!dateCellMatched && row.timestamp && HeatmapWidgetComponent.isRowTimestampField(row, dateField)) {
+        dateFrom = this.parseDate(row.timestamp);
       }
 
       if (dateFrom) {
@@ -449,6 +459,14 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     } else {
       this.processHourlyData(parsedRows, aggregation, mode);
     }
+  }
+
+  /**
+   * True when `dateField` refers to the top-level timestamp of a stream-data row.
+   * Runtime rows are excluded so their date keeps coming only from the cells.
+   */
+  private static isRowTimestampField(row: QueryResultRow, dateField: string): boolean {
+    return row.__typename === 'StreamDataQueryRow' && matchesAttributePath('timestamp', dateField);
   }
 
   /**
