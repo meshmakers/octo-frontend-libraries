@@ -410,9 +410,11 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       let dateFrom: Date | null = null;
       let dateTo: Date | null = null;
       let numericValue = 1; // default for count
+      let dateCellMatched = false;
 
       for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, dateField)) {
+          dateCellMatched = true;
           dateFrom = this.parseDate(cell.value);
         } else if (dateEndField && matchesAttributePath(cell.attributePath, dateEndField)) {
           dateTo = this.parseDate(cell.value);
@@ -426,7 +428,8 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       // Stream-data rows carry their time at top level (`row.timestamp`, see
       // QueryExecutorService.mapStreamDataRows); the cells only hold the value
       // columns. Same source the line chart uses for the bin time (AB#7938).
-      if (!dateFrom && row.timestamp && HeatmapWidgetComponent.isRowTimestampField(row, dateField)) {
+      // Only when no cell matched: a matching cell without a usable value drops the row.
+      if (!dateCellMatched && row.timestamp && HeatmapWidgetComponent.isRowTimestampField(row, dateField)) {
         dateFrom = this.parseDate(row.timestamp);
       }
 

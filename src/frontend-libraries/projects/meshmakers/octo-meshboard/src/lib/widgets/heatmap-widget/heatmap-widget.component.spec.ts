@@ -297,6 +297,15 @@ describe('HeatmapWidgetComponent — date source per row type (AB#7938)', () => 
     expect(cell('2026-10-30', '14:00')).toBe(1);
   });
 
+  it('drops a row whose matching date cell has no value instead of using the row timestamp', async () => {
+    const row = sdRow('2026-10-28T08:15:00Z', 1);
+    row.cells.push({ attributePath: 'timestamp', value: null } as QueryResultRow['cells'][number]);
+    await render({}, [row, sdRow('2026-10-29T09:00:00Z', 1)]);
+
+    expect(component.xCategories()).toEqual(['2026-10-29']);
+    expect(cell('2026-10-29', '09:00')).toBe(1);
+  });
+
   it('does not use the row timestamp when the date field names another column', async () => {
     await render({ dateField: 'window_start' }, [sdRow('2026-10-28T08:15:00Z', 1)]);
 
