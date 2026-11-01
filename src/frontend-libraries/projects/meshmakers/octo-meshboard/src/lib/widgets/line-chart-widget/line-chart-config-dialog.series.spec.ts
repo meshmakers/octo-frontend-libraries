@@ -74,6 +74,28 @@ describe('LineChartConfigDialogComponent — series (AB#7951)', () => {
     expect(cmp.isValid).toBe(false);
   });
 
+  it('saves formula series and the primary display options (AB#7952)', async () => {
+    const direct = { kind: 'formula' as const, key: 'pvDirect', formula: 'min(${pv}, 3)' };
+    await open({ initialAdditionalSeries: [PV, direct], initialStacked: true, initialPrimarySeries: { stacked: false } });
+
+    expect(cmp.isValid).toBe(true);
+    cmp.onSave();
+    expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({
+      additionalSeries: [PV, direct], stacked: true, primarySeries: { stacked: false }
+    }));
+  });
+
+  it('a circular, unknown or empty formula disables Save (AB#7952)', async () => {
+    await open({ initialAdditionalSeries: [PV, { kind: 'formula', key: 'a', formula: '${a} + ${pv}' }] });
+    expect(cmp.isValid).toBe(false);
+    cmp.additionalSeries = [PV, { kind: 'formula', key: 'a', formula: '${nope}' }];
+    expect(cmp.isValid).toBe(false);
+    cmp.additionalSeries = [PV, { kind: 'formula', key: 'a', formula: '' }];
+    expect(cmp.isValid).toBe(false);
+    cmp.additionalSeries = [PV, { kind: 'formula', key: 'a', formula: '${pv} * 2' }];
+    expect(cmp.isValid).toBe(true);
+  });
+
   /*
    * AB#7951 reopen, gap B: the field pickers offer what the backend types. A correctly typed DOUBLE column
    * is a value field and a STRING column a group field. On test-2 the EnergyIQ simple stream-data
@@ -117,7 +139,10 @@ describe('LineChartConfigDialogComponent — series (AB#7951)', () => {
   it('offers Stacked only for an area chart and never saves it for a line chart', async () => {
     await open({ initialChartType: 'line', initialStacked: true });
 
-    expect(Array.from(el().querySelectorAll('label')).some(l => l.textContent?.trim() === 'Stacked')).toBe(false);
+    // The chart-level option (the per-series Stacked checkboxes of AB#7952 live in the series editor).
+    expect(Array.from(el().querySelectorAll('label'))
+      .filter(l => !l.closest('mm-line-chart-series-editor'))
+      .some(l => l.textContent?.trim() === 'Stacked')).toBe(false);
     cmp.onSave();
     expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ stacked: undefined, additionalSeries: undefined }));
   });

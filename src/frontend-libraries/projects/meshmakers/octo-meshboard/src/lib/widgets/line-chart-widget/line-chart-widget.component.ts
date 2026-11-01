@@ -13,8 +13,14 @@ import { findCellForField, matchesAttributePath } from '../../utils/widget-data-
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { alignOnTimeGrid, TimeGridSourceInput } from '../../utils/time-grid-alignment';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import {
+  composeChartSeries,
+  ComposedChartSeries,
+  isCompleteFormulaSeries,
   isCompleteQuerySeries,
+  LineChartSourceHint,
+  LineChartSourceProblem,
   PRIMARY_SOURCE_KEY,
   primaryRowsToSeries,
   queryRowsToSeries,
@@ -45,17 +51,13 @@ interface LineSeriesData {
   unit?: string;
   axisName?: string;
   color?: string;
+  /** Multi-source path (AB#7952): stacked with the other stacked series. */
+  stacked?: boolean;
+  /** Multi-source path (AB#7952): drawn as a line over the stack of a stacked area chart. */
+  asLine?: boolean;
 }
 
-/**
- * A per-source hint of a multi-source chart (AB#7951): a failed source, a source without data,
- * or a source whose buckets do not sit on the chart's time grid.
- */
-export interface LineChartSourceHint {
-  kind: 'error' | 'noData' | 'misaligned';
-  sourceLabel: string;
-  text: string;
-}
+export type { LineChartSourceHint } from './line-chart-multi-source';
 
 /** One source of a multi-source load (AB#7951): the primary data source or a query series. */
 interface MultiSourceEntry {
@@ -120,8 +122,8 @@ interface ValueAxisConfig {
         }
         @if (sourceHints().length > 0) {
           <ul class="source-hints" aria-live="polite">
-            @for (hint of sourceHints(); track hint.sourceLabel + hint.kind) {
-              <li class="source-hint" [class.error]="hint.kind === 'error'" [class.warn]="hint.kind === 'misaligned'">
+            @for (hint of sourceHints(); track hint.text) {
+              <li class="source-hint" [class.error]="hint.kind === 'error'" [class.warn]="hint.kind === 'misaligned' || hint.kind === 'dependency'">
                 @if (hint.kind !== 'noData') {<span aria-hidden="true">⚠ </span>}{{ hint.text }}
               </li>
             }
@@ -198,14 +200,14 @@ interface ValueAxisConfig {
                 </kendo-chart-series-item>
               }
               <kendo-chart-series-item
-                [type]="chartType()"
+                [type]="series.asLine ? 'line' : chartType()"
                 [style]="'smooth'"
                 [data]="series.data"
                 [name]="series.name"
                 [axis]="series.axisName ?? ''"
                 [color]="series.color"
-                [opacity]="0.7"
-                [stack]="stackSeries()"
+                [opacity]="series.asLine ? 1 : 0.7"
+                [stack]="series.stacked ?? stackSeries()"
                 [missingValues]="missingValues()"
                 [markers]="{ visible: config.showMarkers ?? false }">
               </kendo-chart-series-item>
@@ -229,9 +231,16 @@ interface ValueAxisConfig {
             <ng-template kendoChartSharedTooltipTemplate let-category="category" let-points="points">
               <div class="chart-tooltip">
                 <strong>{{ category }}</strong>
-                @for (point of points; track point.series.name) {
-                  @if (!isBandSeries(point.series.name)) {
-                    <br/>{{ point.series.name }}: {{ formatValue(point.value) }}{{ getUnitForSeries(point.series.name) }}
+                @if (isMultiSource()) {
+                  <!-- Multi-source (AB#7952): every drawn series, a gap as "–" (Kendo leaves gap points out of points). -->
+                  @for (row of tooltipRows(category); track row.name) {
+                    <br/>{{ row.name }}: {{ row.text }}
+                  }
+                } @else {
+                  @for (point of points; track point.series.name) {
+                    @if (!isBandSeries(point.series.name)) {
+                      <br/>{{ point.series.name }}: {{ formatValue(point.value) }}{{ getUnitForSeries(point.series.name) }}
+                    }
                   }
                 }
               </div>
@@ -428,6 +437,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   ]);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
   @Input() config!: LineChartWidgetConfig;
 
@@ -623,9 +633,29 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     return this.chartType() === 'area' ? 'zero' : 'interpolate';
   }
 
-  /** Whether the chart reads series from more than its primary query (AB#7951). */
+  /** Whether the chart reads series from more than its primary query (AB#7951) or has formula series (AB#7952). */
   hasAdditionalSeries(): boolean {
-    return (this.config?.additionalSeries ?? []).some(isCompleteQuerySeries);
+    return (this.config?.additionalSeries ?? []).some(s => isCompleteQuerySeries(s) || isCompleteFormulaSeries(s));
+  }
+
+  /** Whether the last load went through the multi-source path (aligned grid, AB#7951/AB#7952). */
+  private readonly _multiSource = signal(false);
+  readonly isMultiSource = this._multiSource.asReadonly();
+
+  /**
+   * Shared tooltip rows of the multi-source path (AB#7952): one row per drawn series for the
+   * hovered category; a gap (null) shows "–".
+   */
+  tooltipRows(category: string): { name: string; text: string }[] {
+    const index = this._categories().indexOf(category);
+    if (index < 0) return [];
+    return this._seriesData().map(s => {
+      const value = s.data[index];
+      return {
+        name: s.name,
+        text: value === null || value === undefined ? '–' : `${this.formatValue(value)}${this.getUnitForSeries(s.name)}`
+      };
+    });
   }
 
   readonly labelRotation = computed(() => {
@@ -732,6 +762,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   private async loadData(): Promise<void> {
     if (this.isNotConfigured()) return;
+    this._multiSource.set(this.hasAdditionalSeries());
     if (this.hasAdditionalSeries()) {
       await this.loadMultiSource();
       return;
@@ -1011,10 +1042,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
     try {
       const hints: LineChartSourceHint[] = [];
+      const problems = new Map<string, { label: string; problem: LineChartSourceProblem }>();
       const active: MultiSourceEntry[] = [];
       sources.forEach((source, i) => {
         if (scopes[i].kind === 'empty') {
           hints.push({ kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+          problems.set(source.key, { label: source.label, problem: 'noData' });
         } else {
           active.push(source);
         }
@@ -1047,6 +1080,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         if (f.status === 'rejected') {
           console.error(`Error loading Line Chart source "${source.label}":`, f.reason);
           hints.push({ kind: 'error', sourceLabel: source.label, text: `${source.label}: ${this.errorMessage(f.reason)}` });
+          problems.set(source.key, { label: source.label, problem: 'error' });
           return;
         }
         rowCount += f.value.rows.length;
@@ -1056,6 +1090,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         const withData = series.filter(s => s.points.size > 0);
         if (withData.length === 0) {
           hints.push({ kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+          problems.set(source.key, { label: source.label, problem: 'noData' });
           return;
         }
         gridSources.push({ sourceKey: source.key, sourceLabel: source.label, series: withData });
@@ -1068,9 +1103,22 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
           sourceLabel: m.sourceLabel,
           text: `${m.sourceLabel}: its buckets do not match the chart's time grid and are not shown`
         });
+        problems.set(m.sourceKey, { label: m.sourceLabel, problem: 'misaligned' });
       }
 
-      this.applyAlignedGrid(grid.instants, grid.series);
+      // Formula series, per-series visibility and stacking (AB#7952).
+      const composed = composeChartSeries({
+        gridSeries: grid.series,
+        length: grid.instants.length,
+        definitions: this.config.additionalSeries ?? [],
+        primary: this.config.primarySeries,
+        stackedChart: this.stackSeries(),
+        sourceProblems: problems,
+        evaluator: this.expressionEvaluator
+      });
+      hints.push(...composed.hints);
+
+      this.applyAlignedGrid(grid.instants, composed.series);
       this._sourceHints.set(hints);
       this._resolutionSignal.set(signal);
       this._resolutionTarget.set(signal ? targetPoints : null);
@@ -1173,7 +1221,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   }
 
   /** Writes aligned series into the chart signals (multi-source path, AB#7951). */
-  private applyAlignedGrid(instants: number[], series: { name: string; data: (number | null)[]; unit?: string }[]): void {
+  private applyAlignedGrid(instants: number[], series: ComposedChartSeries[]): void {
     const mode = this.stateService.timeZoneMode();
     const days = new Set(instants.map(t => formatInstant(new Date(t), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '?'));
     const needsTime = days.size < instants.length;
@@ -1182,7 +1230,14 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const unitMap = new Map<string, string>();
     const seriesData: LineSeriesData[] = series.map((s, index) => {
       if (s.unit) unitMap.set(s.name, s.unit);
-      return { name: s.name, data: s.data, unit: s.unit, color: SERIES_PALETTE[index % SERIES_PALETTE.length] };
+      return {
+        name: s.name,
+        data: s.data,
+        unit: s.unit,
+        color: SERIES_PALETTE[index % SERIES_PALETTE.length],
+        stacked: s.stacked,
+        asLine: s.asLine
+      };
     });
 
     this._categories.set(categories);
