@@ -10,6 +10,23 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: several data bindings per process widget, each with its own entity selector (AB#8023)
+
+- New (non-breaking): `ProcessWidgetConfig.bindings` — named `ProcessWidgetBinding`s (`name`, `mode`
+  `runtimeEntity` | `persistentQuery`, `ckTypeId`/`rtId` or `queryRtId`/`queryFamily`, `entitySelectorId`,
+  `ignoreTimeFilter`, `filters`) and `DiagramPropertyMapping.bindingName`. One flow picture can show values of
+  several CK types of the picked site; all bindings load in parallel and re-query in the refresh that follows a
+  leader-selector change. A pending binding gets no value without blanking the others (the widget stays loading
+  only while every binding is pending); an empty scope gives no value; a failing binding is named in a small error
+  badge on the widget. A runtime-entity binding without `rtId` loads the current entity of its selector.
+  Config problems (e.g. a runtime-entity binding with neither `rtId` nor selector, a mapping with an unknown
+  `bindingName`) are reported once in the console (`validateProcessWidgetBindings`).
+- Compatibility: a config without `bindings` is read as one binding named `default` from the legacy fields and
+  loads, refreshes and saves byte-identically; mappings without `bindingName` use `default`; a widget with exactly
+  one binding named `default` is saved in the legacy shape. The legacy config dialog keeps the bindings and
+  mappings of a widget that has named bindings (it edits only diagram and display options there; the binding
+  editor follows in AB#8025).
+
 ### octo-meshboard: gauges, tables and charts bind to Integral (kWh) columns (AB#7975)
 
 - New (non-breaking): the config dialogs of gauge, table, bar chart, pie chart, line chart, heatmap and widget group

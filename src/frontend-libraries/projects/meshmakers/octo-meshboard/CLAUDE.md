@@ -396,7 +396,7 @@ Rules:
   line / bar / pie / heatmap render the empty chart (`emptyQueryExecutionResult`); the
   table lists no rows (pending: the fetch observable never emits, so the list stays
   loading until the refresh cancels it); stats grid / summary card show `-` per cell
-  and send no query while the cell's scope is pending or empty (pending: the whole widget stays loading); the process binding gets no rows (pending: `BoundDataResult.pending`, the widget stays loading).
+  and send no query while the cell's scope is pending or empty (pending: the whole widget stays loading); the process binding gets no rows (pending: `BoundDataResult.pending`; the widget stays loading only while every binding is pending, AB#8023).
 - A custom widget that reads `resolveStreamDataRtIds` must check
   `resolveStreamDataScope` first — `undefined` from `resolveStreamDataRtIds` is not
   "query unscoped" for a pending or empty scope.
@@ -466,7 +466,7 @@ interface AggregationQuery {
 | `serviceHealth` | Backend service health | serviceCall |
 | `statsGrid` | Multiple KPIs in a grid | aggregation, persistentQuery (per stat; runtime + stream-data) |
 | `summaryCard` | Compact data tiles | runtimeEntity, aggregation, persistentQuery (per tile; runtime + stream-data) |
-| `process` | Process diagram (HMI) | runtimeEntity, persistentQuery (runtime + stream-data) |
+| `process` | Process diagram (HMI); several named data bindings, each with its own entity selector (AB#8023) — see *Process Widget data bindings* | runtimeEntity, persistentQuery (runtime + stream-data) |
 | `markdown` | Static markdown content with themed styling | static |
 | `attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions` | Cockpit widgets (AB#5558) — see *Cockpit Widgets* | none (static) |
 | `recentItems` | The viewer's recently opened places from the host (`COCKPIT_RECENT_ITEMS`, AB#5558) — see *Cockpit Widgets* | none (static) |
@@ -1429,6 +1429,7 @@ Current test files:
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
 - `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation; date source per row type: stream-data rows use the top-level `timestamp` when `dateField` is `timestamp`, runtime rows only their cells (AB#7938)
 - `widgets/heatmap-widget/heatmap-buckets.spec.ts`, `heatmap-widget.weighted.spec.ts`, `heatmap-widget.registration.spec.ts`, `heatmap-config-dialog.component.spec.ts` - weighted mean equals the exact raw mean on a rollup fixture, empty vs. 0 cells, bucket-end shift, 25-hour DST day, own window vs. board filter, persistence round trip and byte-identical old configs, dialog validation (AB#7956)
+- `widgets/process-widget/process-widget-bindings.spec.ts`, `services/process-data.service.bindings.spec.ts`, `process-widget.bindings.spec.ts`, `registrations/process-widget-registration.spec.ts` - named process bindings: legacy read, parallel load, own scope per binding, selector switch, pending / empty / error per binding, runtime entity from the selector, validator, error badge, unknown binding warned once, legacy byte-identical save and multi-binding round trip (AB#8023)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
 - `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
 - `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish, `decimalPlaces` formatting (incl. negative zero)
@@ -1657,6 +1658,62 @@ cockpit/
   `utils/adapter-online.spec.ts`, `utils/pipeline-executions.spec.ts`.
 
 ---
+
+## Process Widget data bindings (AB#8023)
+
+A process widget maps diagram properties (`transformProperties`) to runtime values through
+`propertyMappings`. Since AB#8023 the values can come from **several named bindings**, each scoped by its
+own entity selector — e.g. one EnergyIQ flow picture with the followers `netz`, `pv`, `batterie`,
+`wallboxen`, `geraete` of the leader selector `standort`.
+
+```yaml
+# MeshBoardWidget config (JSON in the seed; shown as YAML)
+processDiagramRtId: 65a1b2c3d4e5f60123456789
+bindings:
+  - { name: netz,      mode: persistentQuery, queryRtId: <rtId>, queryFamily: streamData, entitySelectorId: netz }
+  - { name: pv,        mode: persistentQuery, queryRtId: <rtId>, queryFamily: streamData, entitySelectorId: pv }
+  - { name: batterie,  mode: runtimeEntity,   ckTypeId: <domain-model>/Battery, entitySelectorId: batterie }  # no rtId: selector's entity
+  - { name: wallboxen, mode: persistentQuery, queryRtId: <rtId>, queryFamily: runtime, entitySelectorId: wallboxen }
+  - { name: geraete,   mode: persistentQuery, queryRtId: <rtId>, queryFamily: runtime, entitySelectorId: geraete }
+propertyMappings:
+  - { propertyId: gridPower,    sourceType: column,    sourcePath: power_avg,     bindingName: netz }
+  - { propertyId: pvPower,      sourceType: column,    sourcePath: power_avg,     bindingName: pv }
+  - { propertyId: batterySoc,   sourceType: attribute, sourcePath: stateOfCharge, bindingName: batterie }
+  - { propertyId: wallboxPower, sourceType: column,    sourcePath: power,         bindingName: wallboxen }
+```
+
+- **Model** (`process-widget-config.model.ts`): `ProcessWidgetBinding` (`name` unique, `mode`, `ckTypeId` /
+  `rtId` or `queryRtId` / `queryName` / `queryFamily`, `ignoreTimeFilter`, `entitySelectorId`, `filters`) and
+  `DiagramPropertyMapping.bindingName`. Helpers in `process-widget-bindings.ts` (pure, unit-tested):
+  `resolveProcessBindings`, `legacyProcessBinding`, `mappingBindingName`, `processBindingConfigError`,
+  `validateProcessWidgetBindings`, `parsePersistedProcessBindings`, `toPersistedProcessBindings`.
+- **Compatibility:** a config without `bindings` (or with an empty list) is read as one binding named
+  `default` (`DEFAULT_PROCESS_BINDING_NAME`) from the legacy fields `dataBindingMode`, `bindingCkTypeId`, …;
+  a mapping without `bindingName` reads `default`. Legacy widgets load, refresh and save byte-identically.
+  A widget saved with exactly one binding named `default` is written in the legacy shape; any other
+  binding list is written as `bindings` (only set keys).
+- **Loading** (`ProcessDataService.loadBindings`): all bindings in parallel, one `BoundDataResult` per name
+  (with `bindingName`). Per binding the AB#7721 scope contract applies: `pending` → result `pending`, no
+  query; `empty` → no rows / no entity (no value, never a stale one); `scoped` → query with `scopeRtIds`.
+  A runtime-entity binding with `rtId` loads that entity (variables resolved); without `rtId` it loads the
+  first rtId of its selector's resolved scope (CK type from `ckTypeId`, else from a selector without
+  `childScope`); no pick → no entity. A thrown error becomes the binding's `error` — never the others'.
+  `loadBoundData(config)` still loads the legacy binding only.
+- **Widget:** each mapping reads from its binding (`boundDataByBinding`); pending bindings are left out, so
+  their properties keep the default while the others render. The widget stays loading only while every
+  binding is pending (a legacy widget: its one binding — as before). A failing binding is named in a small
+  badge (`bindingErrors`, `Binding pv: <message>`, Kendo error colour variables); legacy widgets show no
+  badge (unchanged). Config issues — duplicate or empty names, a runtime-entity binding with neither `rtId`
+  nor selector, a missing query rtId / CK type, an unknown selector, a mapping with an unknown
+  `bindingName` — are logged once per widget instance with `console.warn`; the affected property keeps its
+  default.
+- **Refresh:** bindings reload when the view calls `triggerRefresh()` (after every pick change and after the
+  initial picks resolved), so a leader switch re-queries all bindings in one refresh.
+- **Dialog:** the legacy config dialog still edits the single-binding fields. For a widget with named
+  bindings `applyConfigResult` applies only diagram and display options and keeps `bindings` and
+  `propertyMappings` (the binding editor is AB#8025).
+- **Aggregation** (sum / avg / min / max over the scope) is per mapped value and follows in AB#8024; query
+  bindings already return all rows of the scope (`queryResult.rows`), mappings read the first row today.
 
 ## Process Designer
 
