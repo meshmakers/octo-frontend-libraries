@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, firstValueFrom, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
-import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
+import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, OCTO_SILENT_ERRORS, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
@@ -107,6 +107,12 @@ export interface QueryExecutionOptions {
   scopeRtIds?: string[] | null;
   /** Force a network round-trip instead of using the Apollo cache. */
   forceRefresh?: boolean;
+  /**
+   * Stream-data only (AB#7985): errors of this call are logged to the console, never
+   * toasted by the global GraphQL error link ({@link OCTO_SILENT_ERRORS}). For probe calls
+   * whose caller handles the failure itself (e.g. a retry with a time window).
+   */
+  silentErrors?: boolean;
 }
 
 export interface QueryColumnInfo {
@@ -273,7 +279,8 @@ export class QueryExecutorService {
         fieldFilter: options.fieldFilter ?? undefined,
         arg
       },
-      fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first'
+      fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first',
+      ...(options.silentErrors ? { context: { [OCTO_SILENT_ERRORS]: true } } : {})
     }).pipe(
       map(result => {
         const queryItem = result.data?.streamData?.streamDataQuery?.items?.[0];
@@ -299,22 +306,53 @@ export class QueryExecutorService {
    * Runs the query with `first: 1` and its own window first; a query that cannot run
    * without a window — an `Integral` column over a raw archive requires from/to
    * (AB#7921) — fails or returns no columns, so it is run once more with `window`
-   * (the board's time window or a recent default). The error of the retry propagates.
+   * (the board's time window or a recent default, see `columnProbeWindow`). The error of
+   * the retry propagates. `options.forceRefresh` bypasses the Apollo cache for both calls.
+   *
+   * The first, window-less attempt is a probe: its error is expected for such queries
+   * and is not shown as an error toast (AB#7985). Only the retry's error reaches the
+   * global error handler.
    */
-  async fetchStreamDataColumns(queryRtId: string, window: { from: Date; to: Date }): Promise<QueryColumnInfo[]> {
+  async fetchStreamDataColumns(
+    queryRtId: string,
+    window: { from: Date; to: Date },
+    options: Pick<QueryExecutionOptions, 'forceRefresh'> = {}
+  ): Promise<QueryColumnInfo[]> {
+    const result = await this.executeWithProbeWindow('streamData', queryRtId,
+      { first: 1, forceRefresh: options.forceRefresh ?? false }, window);
+    return result.columns;
+  }
+
+  /**
+   * Runs a persisted query for a config picker (column list, category values, AB#7975).
+   * Runtime queries run once as {@link execute}. A stream-data query runs with its own
+   * window first — silently, its refusal is expected for an Integral query without from/to
+   * (AB#7985) — and, when that fails or returns no columns, once more with `window`
+   * (`columnProbeWindow`). The error of the retry propagates and is shown.
+   */
+  async executeWithProbeWindow(
+    family: QueryFamily | undefined,
+    queryRtId: string,
+    options: QueryExecutionOptions,
+    window: { from: Date; to: Date }
+  ): Promise<QueryExecutionResult> {
+    const resolved = family ?? await this.resolveFamily(queryRtId);
+    if (resolved !== 'streamData') {
+      return firstValueFrom(this.executeRuntime(queryRtId, options));
+    }
     try {
-      const result = await firstValueFrom(this.executeStreamData(queryRtId, { first: 1 }));
+      const result = await firstValueFrom(this.executeStreamData(queryRtId, { ...options, silentErrors: true }));
       if (result.columns.length > 0) {
-        return result.columns;
+        return result;
       }
     } catch {
       // Fall through to the windowed retry below.
     }
-    const windowed = await firstValueFrom(this.executeStreamData(queryRtId, {
-      first: 1,
-      streamDataArgs: { from: window.from, to: window.to }
+    return firstValueFrom(this.executeStreamData(queryRtId, {
+      ...options,
+      silentErrors: false,
+      streamDataArgs: { ...options.streamDataArgs, from: window.from, to: window.to }
     }));
-    return windowed.columns;
   }
 
   /**

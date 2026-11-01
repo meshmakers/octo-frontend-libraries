@@ -397,7 +397,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
    */
   private processStaticSeriesData(filteredRows: QueryResultRow[]): void {
     const categories: string[] = [];
-    const seriesMap = new Map<string, number[]>();
+    const seriesMap = new Map<string, (number | null)[]>();
 
     // Initialize series map from config
     for (const seriesConfig of (this.config.series ?? [])) {
@@ -411,12 +411,11 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       const categoryCell = findCellForField(row.cells, this.config.categoryField);
       const categoryValue = categoryCell ? this.formatCategoryValue(categoryCell.value) : '';
 
-      const rowValues = new Map<string, number>();
+      const rowValues = new Map<string, number | null>();
       for (const seriesConfig of (this.config.series ?? [])) {
         const seriesCell = findCellForField(row.cells, seriesConfig.field);
         if (seriesCell) {
-          const numValue = typeof seriesCell.value === 'number' ? seriesCell.value : parseFloat(String(seriesCell.value));
-          rowValues.set(seriesConfig.field, isNaN(numValue) ? 0 : numValue);
+          rowValues.set(seriesConfig.field, BarChartWidgetComponent.toBarValue(seriesCell.value));
         }
       }
 
@@ -425,7 +424,9 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
 
         // Add values for each series
         for (const seriesConfig of (this.config.series ?? [])) {
-          const value = rowValues.get(seriesConfig.field) ?? 0;
+          // A null cell (no data, e.g. an Integral over an empty day) stays null: no bar
+          // instead of a 0 bar (AB#7975). A missing cell is still 0.
+          const value = rowValues.has(seriesConfig.field) ? rowValues.get(seriesConfig.field)! : 0;
           seriesMap.get(seriesConfig.field)?.push(value);
         }
       }
@@ -466,7 +467,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const valueField = this.config.valueField!;
 
     // Build a map: category -> seriesGroup -> value
-    const dataMap = new Map<string, Map<string, number>>();
+    const dataMap = new Map<string, Map<string, number | null>>();
     const allCategories = new Set<string>();
     const allSeriesGroups = new Set<string>();
 
@@ -478,12 +479,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
 
       const categoryValue = categoryCell ? this.formatCategoryValue(categoryCell.value) : '';
       const seriesGroupValue = seriesGroupCell ? String(seriesGroupCell.value ?? '') : '';
-      let numericValue = 0;
-      if (valueCell) {
-        const val = valueCell.value;
-        numericValue = typeof val === 'number' ? val : parseFloat(String(val));
-        if (isNaN(numericValue)) numericValue = 0;
-      }
+      const numericValue = valueCell ? BarChartWidgetComponent.toBarValue(valueCell.value) : 0;
 
       if (categoryValue && seriesGroupValue) {
         allCategories.add(categoryValue);
@@ -504,7 +500,11 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const valueScale = this.config?.valueScale ?? 1;
     const seriesData: SeriesData[] = seriesGroups.map(seriesGroup => {
       const rawData = categories.map(category => {
-        return (dataMap.get(category)?.get(seriesGroup) ?? 0) * valueScale;
+        const cell = dataMap.get(category);
+        // Missing combination → 0; a null cell (no data, AB#7975) → no bar.
+        if (!cell?.has(seriesGroup)) return 0;
+        const value = cell.get(seriesGroup)!;
+        return value === null ? null : value * valueScale;
       });
 
       return {
@@ -530,13 +530,23 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     return (this.config?.colorThresholds?.length ?? 0) > 0;
   }
 
-  private applyColorThresholds(data: number[]): unknown[] {
+  private applyColorThresholds(data: (number | null)[]): unknown[] {
     const thresholds = this.config.colorThresholds ?? [];
     const defaultColor = this.config.defaultBarColor ?? '#6b7280';
-    return data.map(val => ({
+    return data.map(val => val === null ? { value: null } : ({
       value: val,
       _color: this.getColorForValue(val, thresholds, defaultColor)
     }));
+  }
+
+  /**
+   * Bar value of a cell: a number, `null` for a null cell ("no data" — Kendo draws no
+   * bar, AB#7975), and 0 for text that is not a number.
+   */
+  private static toBarValue(value: unknown): number | null {
+    if (value === null || value === undefined) return null;
+    const numValue = typeof value === 'number' ? value : parseFloat(String(value));
+    return isNaN(numValue) ? 0 : numValue;
   }
 
   private getColorForValue(val: number, thresholds: { value: number; color: string }[], defaultColor: string): string {

@@ -490,6 +490,21 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
         }
       }
 
+      // A null value cell is "no data" (e.g. an Integral over an empty window, AB#7975): the
+      // row is skipped instead of counting as 0 in its bucket (sum/avg). The value cell is
+      // resolved exactly (`findCellForField`), so a null `<field>_integral` never hides or
+      // overwrites a usable `<field>`.
+      // A count ignores the value; a weighted mean validates value and weight below.
+      if (valueField && aggregation !== 'count' && !weighted) {
+        const valueCell = findCellForField(row.cells, valueField);
+        if (valueCell) {
+          const val = valueCell.value;
+          if (val === null || val === undefined) continue;
+          numericValue = typeof val === 'number' ? val : parseFloat(String(val));
+          if (isNaN(numericValue)) numericValue = 0;
+        }
+      }
+
       // Stream-data rows carry their time at top level (`row.timestamp`, see
       // QueryExecutorService.mapStreamDataRows); the cells only hold the value
       // columns. Same source the line chart uses for the bin time (AB#7938).

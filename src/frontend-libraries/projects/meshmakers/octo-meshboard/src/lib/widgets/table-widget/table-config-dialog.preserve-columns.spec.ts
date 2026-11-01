@@ -51,14 +51,15 @@ function createDialog(mocks: DialogMocks = {}): {
       { provide: AttributeSortSelectorDialogService, useValue: {} },
       { provide: NotificationService, useValue: {} },
       { provide: GetCkTypeAvailableQueryColumnsDtoGQL, useValue: {} },
-      { provide: MeshBoardStateService, useValue: { getEntitySelectors: () => [], getVariables: () => [] } },
+      { provide: MeshBoardStateService, useValue: { getEntitySelectors: () => [], getVariables: () => [], resolveStreamDataTimeArgs: () => undefined } },
       { provide: WindowRef, useValue: { close } },
       { provide: GetRuntimeQueryColumnsDtoGQL, useValue: { fetch: fetchColumns } },
       {
         provide: QueryExecutorService,
         useValue: {
           resolveFamily: vi.fn(async () => 'runtime'),
-          executeStreamData: vi.fn(() => of({ columns: (mocks.streamDataFields ?? []).map(attributePath => ({ attributePath })) }))
+          // Column probe with the window retry for Integral queries (AB#7975).
+          fetchStreamDataColumns: vi.fn(async () => (mocks.streamDataFields ?? []).map(attributePath => ({ attributePath })))
         }
       }
     ]
@@ -111,7 +112,8 @@ describe('TableConfigDialogComponent — keeps authored columns (AB#7655 AC 6)',
     await dialog.onSave();
 
     expect(fetchColumns).not.toHaveBeenCalled();
-    expect(TestBed.inject(QueryExecutorService).executeStreamData).toHaveBeenCalledWith('q-daily', { first: 1, forceRefresh: true });
+    expect(TestBed.inject(QueryExecutorService).fetchStreamDataColumns)
+      .toHaveBeenCalledWith('q-daily', expect.objectContaining({ from: expect.any(Date), to: expect.any(Date) }), { forceRefresh: true });
     expect(savedResult(close).columns).toEqual([authoredColumns[1]]);
   });
 

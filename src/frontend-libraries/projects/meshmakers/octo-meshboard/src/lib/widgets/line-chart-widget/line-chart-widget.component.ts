@@ -9,7 +9,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { CkRollupFunctionDto, FieldFilterDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
-import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
 
@@ -920,9 +920,15 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
             else if (lower.endsWith('_max')) maxValue = this.toNumber(cell.value);
             else lineValue = this.toNumber(cell.value); // _avg (or an unsuffixed value)
           } else {
-            const val = cell.value;
-            lineValue = typeof val === 'number' ? val : parseFloat(String(val));
-            if (isNaN(lineValue)) lineValue = 0;
+            // Exact cell first, so a null `<field>_integral` never overrides a usable `<field>`.
+            const val = (findCellForField(row.cells, valueField) ?? cell).value;
+            if (val === null || val === undefined) {
+              // No data (e.g. an Integral over an empty bucket, AB#7975): no point, not 0.
+              lineValue = null;
+            } else {
+              lineValue = typeof val === 'number' ? val : parseFloat(String(val));
+              if (isNaN(lineValue)) lineValue = 0;
+            }
           }
         } else if (unitField && matchesAttributePath(path, unitField)) {
           unitValue = String(cell.value ?? '');
