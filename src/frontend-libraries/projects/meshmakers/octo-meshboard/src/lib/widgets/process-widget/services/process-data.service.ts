@@ -21,7 +21,8 @@ import { MeshBoardStateService } from '../../../services/meshboard-state.service
 import { emptyQueryExecutionResult } from '../../../utils/stream-data-scope';
 import { QueryExecutorService, QueryExecutionResult, StreamDataExecutionArgs } from '../../../services/query-executor.service';
 import { RuntimeEntityData, WidgetFilterConfig } from '../../../models/meshboard.models';
-import { ProcessWidgetConfig } from '../process-widget-config.model';
+import { ProcessWidgetBinding, ProcessWidgetConfig } from '../process-widget-config.model';
+import { legacyProcessBinding, processBindingConfigError, resolveProcessBindings } from '../process-widget-bindings';
 
 /**
  * Process Data Service
@@ -79,6 +80,9 @@ export interface QueryResultData {
 export interface BoundDataResult {
   /** Type of data binding that produced this result */
   type: 'entity' | 'query';
+
+  /** Name of the binding that produced this result (AB#8023; `default` for the legacy fields). */
+  bindingName?: string;
 
   /** Single entity data (when type is 'entity' and bindingRtId was specified) */
   entity?: RuntimeEntityData;
@@ -656,31 +660,55 @@ export class ProcessDataService {
   // ============================================================================
 
   /**
-   * Loads bound data based on widget configuration.
-   * Supports both runtimeEntity and persistentQuery data binding modes.
+   * Loads data based on the widget's legacy single-binding configuration —
+   * the implicit binding named `default` (see {@link legacyProcessBinding}).
    *
    * @param config - The process widget configuration with data binding settings
    * @returns BoundDataResult containing the loaded data, or null if no binding configured
    */
   async loadBoundData(config: ProcessWidgetConfig): Promise<BoundDataResult | null> {
-    if (!config.dataBindingMode || config.dataBindingMode === 'none') {
-      return null;
-    }
+    const binding = legacyProcessBinding(config);
+    return binding ? this.loadBinding(binding) : null;
+  }
 
+  /**
+   * Loads every binding of the widget in parallel (AB#8023): the named
+   * `bindings`, or the implicit legacy binding `default`. One result per
+   * binding name (first binding wins on a duplicate name). A failing binding
+   * yields a result with `error`, a binding whose selector scope is still
+   * resolving a result with `pending` — neither blocks the others.
+   */
+  async loadBindings(config: ProcessWidgetConfig): Promise<Map<string, BoundDataResult>> {
+    const bindings = resolveProcessBindings(config);
+    const results = await Promise.all(bindings.map(binding => this.loadBinding(binding)));
+    const byName = new Map<string, BoundDataResult>();
+    bindings.forEach((binding, index) => {
+      if (!byName.has(binding.name)) {
+        byName.set(binding.name, results[index]);
+      }
+    });
+    return byName;
+  }
+
+  /**
+   * Loads one binding. Never throws: errors are returned as `error` result.
+   */
+  async loadBinding(binding: ProcessWidgetBinding): Promise<BoundDataResult> {
+    const type: BoundDataResult['type'] = binding.mode === 'runtimeEntity' ? 'entity' : 'query';
     try {
-      if (config.dataBindingMode === 'runtimeEntity') {
-        return await this.loadBoundRuntimeEntityData(config);
+      const configError = processBindingConfigError(binding);
+      if (configError) {
+        throw new Error(configError);
       }
-
-      if (config.dataBindingMode === 'persistentQuery') {
-        return await this.loadBoundQueryData(config);
-      }
-
-      return null;
+      const result = binding.mode === 'runtimeEntity'
+        ? await this.loadBoundRuntimeEntityData(binding)
+        : await this.loadBoundQueryData(binding);
+      return { ...result, bindingName: binding.name };
     } catch (error) {
-      console.error('[ProcessDataService] Error loading bound data:', error);
+      console.error(`[ProcessDataService] Error loading binding '${binding.name}':`, error);
       return {
-        type: config.dataBindingMode === 'runtimeEntity' ? 'entity' : 'query',
+        type,
+        bindingName: binding.name,
         error: error instanceof Error ? error.message : 'Unknown error',
         loadedAt: new Date()
       };
@@ -688,29 +716,40 @@ export class ProcessDataService {
   }
 
   /**
-   * Loads data from a runtime entity binding
+   * Loads data from a runtime entity binding. A fixed `rtId` (variables
+   * resolved) wins; without one the current entity of the bound selector is
+   * loaded (AB#8023): the first rtId of its resolved scope. A pending scope
+   * gives a `pending` result, an empty scope or a selector without pick no
+   * entity (no value, never the previous one).
    */
-  private async loadBoundRuntimeEntityData(config: ProcessWidgetConfig): Promise<BoundDataResult> {
-    const { bindingCkTypeId, bindingRtId } = config;
+  private async loadBoundRuntimeEntityData(binding: ProcessWidgetBinding): Promise<BoundDataResult> {
+    let rtId: string | undefined;
+    if (binding.rtId) {
+      // Resolve variables in rtId (e.g., ${selectedEntity})
+      rtId = this.resolveVariables(binding.rtId);
+    } else {
+      const scope = this.stateService.resolveEntitySelectorScope(binding.entitySelectorId);
+      if (scope.kind === 'pending') {
+        return { type: 'entity', pending: true, loadedAt: new Date() };
+      }
+      if (scope.kind !== 'scoped') {
+        return { type: 'entity', loadedAt: new Date() };
+      }
+      rtId = scope.rtIds[0];
+    }
 
-    if (!bindingCkTypeId) {
+    const ckTypeId = binding.ckTypeId ?? this.selectorCkTypeId(binding.entitySelectorId);
+    if (!ckTypeId) {
       throw new Error('Runtime entity binding requires a CK Type ID');
     }
 
-    if (!bindingRtId) {
-      throw new Error('Runtime entity binding requires a Runtime ID');
-    }
-
-    // Resolve variables in rtId (e.g., ${selectedEntity})
-    const resolvedRtId = this.resolveVariables(bindingRtId);
-
     // Fetch the entity
     const entity = await firstValueFrom(
-      this.dataService.fetchEntityWithAssociations(resolvedRtId, bindingCkTypeId)
+      this.dataService.fetchEntityWithAssociations(rtId, ckTypeId)
     );
 
     if (!entity) {
-      throw new Error(`Entity not found: ${resolvedRtId}`);
+      throw new Error(`Entity not found: ${rtId}`);
     }
 
     return {
@@ -721,12 +760,24 @@ export class ProcessDataService {
   }
 
   /**
+   * CK type of the entity a selector's scope consists of — known only for a
+   * selector without `childScope` (its scope is the picked entity itself).
+   */
+  private selectorCkTypeId(selectorId?: string): string | undefined {
+    if (!selectorId) {
+      return undefined;
+    }
+    const selector = this.stateService.getConfig().entitySelectors?.find(s => s.id === selectorId);
+    return selector && !selector.childScope ? selector.ckTypeId : undefined;
+  }
+
+  /**
    * Loads data from a persistent query binding
    */
-  private async loadBoundQueryData(config: ProcessWidgetConfig): Promise<BoundDataResult> {
-    const { bindingQueryRtId, bindingFilters, bindingQueryFamily } = config;
+  private async loadBoundQueryData(binding: ProcessWidgetBinding): Promise<BoundDataResult> {
+    const { queryRtId, filters, queryFamily } = binding;
 
-    if (!bindingQueryRtId) {
+    if (!queryRtId) {
       throw new Error('Persistent query binding requires a Query rtId');
     }
 
@@ -734,30 +785,30 @@ export class ProcessDataService {
     // or empty — never the persisted (unscoped) scope. Pending → a `pending` result
     // (the widget stays loading; a refresh follows once the scope resolves);
     // empty → no rows.
-    const scope = this.stateService.resolveStreamDataScope(config.bindingEntitySelectorId, bindingQueryFamily, config.bindingIgnoreTimeFilter);
+    const scope = this.stateService.resolveStreamDataScope(binding.entitySelectorId, queryFamily, binding.ignoreTimeFilter);
     if (scope.kind === 'pending') {
       return { type: 'query', pending: true, loadedAt: new Date() };
     }
     if (scope.kind === 'empty') {
       return {
         type: 'query',
-        queryResult: this.mapExecutionResult(emptyQueryExecutionResult(bindingQueryFamily)),
+        queryResult: this.mapExecutionResult(emptyQueryExecutionResult(queryFamily)),
         loadedAt: new Date()
       };
     }
 
     // Convert widget filters to GraphQL format with variable resolution
-    const fieldFilters = this.convertFiltersToDto(bindingFilters);
+    const fieldFilters = this.convertFiltersToDto(filters);
 
     // Execute via the unified executor — it routes runtime vs stream-data from
     // the persisted family (or a one-time lookup when absent). Stream-data
     // queries additionally consume the time-filter / asset-scope overrides built
     // below; runtime queries ignore `streamDataArgs`.
     const result = await firstValueFrom(
-      this.queryExecutor.execute(bindingQueryFamily, bindingQueryRtId, {
+      this.queryExecutor.execute(queryFamily, queryRtId, {
         first: 1000, // Reasonable limit for process diagram data
         fieldFilter: fieldFilters,
-        streamDataArgs: this.buildBindingStreamDataArgs(config),
+        streamDataArgs: this.buildBindingStreamDataArgs(binding),
         // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
         scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
       })
@@ -776,9 +827,9 @@ export class ProcessDataService {
    * Returns `undefined` when neither override applies (e.g. runtime query, no
    * time filter, opted out). Runtime queries ignore the result.
    */
-  private buildBindingStreamDataArgs(config: ProcessWidgetConfig): StreamDataExecutionArgs | undefined {
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(config.bindingIgnoreTimeFilter);
-    const rtIds = this.stateService.resolveStreamDataRtIds(config.bindingEntitySelectorId);
+  private buildBindingStreamDataArgs(binding: ProcessWidgetBinding): StreamDataExecutionArgs | undefined {
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(binding.ignoreTimeFilter);
+    const rtIds = this.stateService.resolveStreamDataRtIds(binding.entitySelectorId);
 
     if (!timeArgs && !rtIds) {
       return undefined;
