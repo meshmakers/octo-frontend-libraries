@@ -696,8 +696,9 @@ exported as `FormulaFieldComponent`) is the formula input of every config dialog
 `requireNumericFormulaResult`), `[clampHint]` (shows the clamp pattern). It renders the hint, the
 validation message (`role="alert"`), the preview and the variable buttons; the label is linked to the
 input (`focusableId`) and the input is described by hint and message. Dialogs never re-implement the
-check: they call `validateFormulaField` with the same inputs for Save. The planned chart formula
-series (AB#7952/AB#7953, not built yet) are meant to reuse it with series keys as variables.
+check: they call `validateFormulaField` with the same inputs for Save. The line chart formula
+series (AB#7952) reuse it with the series keys as variables and `[showPreview]="false"`; the optional
+inputs `variablesLabel`, `namesNoun`, `syntaxHint`, `emptyVariablesText` adapt the wording.
 
 **Config dialog.** A fourth data-source button **Formula** (the shared formula field above) and
 an **Output Variable** field for all modes (`isValidVariableName`, no clash with a config
@@ -1355,16 +1356,16 @@ A line / area chart can plot series from more than its primary query: `additiona
 row validation), editor `mm-line-chart-series-editor`.
 
 **Series model.** `LineChartSeriesDefinition` is a union discriminated by `kind`. Today only
-`LineChartQuerySeries` (`kind: 'query'`): `key` (letters, digits, `_`, not starting with a digit,
+`LineChartQuerySeries` (`kind: 'query'`) and, since AB#7952, `LineChartFormulaSeries` (`kind: 'formula'`, see
+*Line chart: formula series* below). Query series: `key` (letters, digits, `_`, not starting with a digit,
 unique; formula series of AB#7952 reference it), optional `label` (legend; the key when empty), its own
 `PersistentQueryDataSource` (stream-data query, `entitySelectorId`, `ignoreTimeFilter`,
 `resolutionAware` + `requiredAggregation`; `aggregateSeriesByGroup` is ignored — one source is one
 series) and `valueField`. The primary data source and its field mapping stay exactly as before; its
-series come first, then `additionalSeries` in their order (legend and stacking order). AB#7952 adds
-`kind: 'formula'` to the union and per-series display options; AB#7953 reuses the editor for the bar
-chart with category instead of time alignment.
+series come first, then `additionalSeries` in their order (legend and stacking order). AB#7953 reuses
+the editor for the bar chart with category instead of time alignment.
 
-**Loading (`loadMultiSource`, only when at least one complete query series exists):**
+**Loading (`loadMultiSource`, when at least one complete query or formula series exists):**
 
 1. Scope per source (`resolveStreamDataScope` with the source's own selector): any `pending` → the
    widget stays loading and sends no query; `empty` → no series for that source and a
@@ -1413,6 +1414,66 @@ time filter and selector change, DST fixture, stacking, single-query regression)
 `line-chart-series-editor.component.spec.ts` (add / remove / reorder with focus, validation, wrap),
 `line-chart-config-dialog.series.spec.ts`, `registrations/default-widget-registrations.line-chart-series.spec.ts`
 (round trip, byte-identical legacy configs).
+
+---
+
+## Line chart: formula series (AB#7952)
+
+A formula series is computed per time bucket from other series of the same chart — no extra query.
+EnergyIQ daily profile (AB#7944): operands as hidden query series, the split as stacked formula series,
+PV of the primary query as a line over the stack:
+
+```
+additionalSeries:
+  { kind: 'query', key: 'pv', …, visible: false }            // also gridImport, gridExport, batteryCharge, batteryDischarge
+  { kind: 'formula', key: 'consumption', visible: false,
+    formula: '${pv} + ${gridImport} - ${gridExport} - ${batteryCharge} + ${batteryDischarge}' }
+  { kind: 'formula', key: 'pvDirect', label: 'PV direct',
+    formula: 'min(${pv} - ${gridExport} - ${batteryCharge}, ${consumption})' }
+  { kind: 'formula', key: 'battery', formula: '${batteryDischarge}' }
+  { kind: 'formula', key: 'grid', formula: '${gridImport}' }
+stacked: true, chartType: 'area', primarySeries: { stacked: false }
+```
+
+- **Engine:** `utils/meshboard-series-formula.ts` on top of `meshboard-formula.ts` (`${key}` operands rewritten
+  by `rewriteFormula`, evaluated by `ExpressionEvaluatorService`, expr-eval) — the same syntax and evaluator as
+  the KPI / gauge formula mode, no second expression engine. Pure functions on value arrays, so the bar chart
+  (AB#7953, categories instead of buckets) reuses them: `evaluateSeriesFormulas`, `orderSeriesFormulas`
+  (Kahn, stable; `cyclic` names the series of a cycle), `validateSeriesFormulas` (`validateFormula` with all
+  series keys as names, then cycles: *Circular reference between series: a, b*).
+- **Operands:** the keys of the other additional series (query or formula, a formula may use another formula).
+  The primary query's series are **not** operands: their names are `seriesGroupField` values known only at run
+  time, so the dialog could not validate them. Configure every operand as a query series (hidden if needed).
+- **Gap rule:** a bucket in which any operand is `null`, or whose result is not a finite number (division by
+  zero, boolean/string result, evaluation error), is `null` — a gap, never 0. The aligned operands come from
+  `alignOnTimeGrid(...).series`, so hidden operands are aligned like every other series. The multi-source
+  tooltip lists every drawn series and shows `–` for a gap (`tooltipRows`).
+- **What goes wrong visibly:** an operand source that failed or is misaligned → hint
+  `<series>: depends on <source>, which failed` (`… which is not on the chart's time grid`), transitive through
+  other formulas, only for visible formula series; a visible formula series without any valid bucket keeps its
+  legend entry as `<label> (no data)`. A formula in a cycle or with an unknown key cannot be saved; at run time
+  it is all gaps.
+- **Display options** (`LineChartSeriesDisplayOptions`, on every additional series and as
+  `primarySeries` for the primary query's series): `visible: false` = not drawn, not in the legend, still an
+  operand; `stacked: false` = in a stacked area chart drawn as a line over the stack (`composeChartSeries`
+  in `line-chart-multi-source.ts` moves such series behind the stacked ones so Kendo draws them on top). Both
+  default to `true` and are stored only as `false`. Line charts ignore `stacked`.
+- **Editor:** "Add formula series" rows in `mm-line-chart-series-editor` with the shared formula field (other
+  rows' keys as insert buttons, no preview); Visible / Stacked checkboxes per row and on the primary row
+  (Stacked enabled only for a stacked area chart). Syntax / unknown-key messages are shown by the field, the
+  row repeats only key and cycle messages. The dialog's Save uses `querySeriesErrors(series, evaluator)`.
+- **Persistence:** formula series are kept on load when they have a string `key` and `formula`; `primarySeries`
+  is written only when non-default. A library version before AB#7952 drops formula series on load and ignores
+  the display options — saving the board there loses the formulas (release note in the CHANGELOG).
+- **Not verified visually yet:** Kendo's stacked area with `missingValues: 'gap'` at a gap in a lower series
+  (handover point 7 of AB#7951) — check on test-2 with AB#7944.
+
+Specs: `utils/meshboard-series-formula.spec.ts` (5-series fixture, every bucket, gaps, non-finite, cycles,
+order, validation), `line-chart-widget.formula-series.spec.ts` (daily profile: every bucket, hidden operands,
+stacked vs line, tooltip `–`, failed operand hint, no-data legend, time filter without extra query, hidden
+primary), `line-chart-series-editor.formula.spec.ts`, `line-chart-config-dialog.series.spec.ts`,
+`registrations/default-widget-registrations.line-chart-series.spec.ts` (round trip, byte-identical AB#7951
+and legacy configs, unknown kinds dropped).
 
 ---
 

@@ -743,20 +743,57 @@ export interface LineChartWidgetConfig extends WidgetConfig {
    * {@link additionalSeries}). Ignored for line charts. Omitted when `false`.
    */
   stacked?: boolean;
+  /**
+   * Display options of the primary query's series as a group (AB#7952): hidden, or drawn as a line
+   * over the stack of a stacked area chart. Omitted when both are default (visible, stacked).
+   */
+  primarySeries?: LineChartSeriesDisplayOptions;
 }
 
 /**
- * A line chart series that does not come from the primary data source (AB#7951). The union is
- * discriminated by `kind` so AB#7952 can add formula series (`kind: 'formula'`) and the bar chart
- * (AB#7953) can reuse the same shape.
+ * Per-series display options (AB#7952). Both default to `true` and are omitted when default, so a
+ * chart that does not use them encodes exactly as before.
  */
-export type LineChartSeriesDefinition = LineChartQuerySeries;
+export interface LineChartSeriesDisplayOptions {
+  /**
+   * `false`: the series is not drawn and not in the legend, but stays usable as formula operand.
+   */
+  visible?: boolean;
+  /**
+   * `false`: in a stacked area chart the series is not stacked but drawn as a line over the stack.
+   * Ignored when the chart does not stack.
+   */
+  stacked?: boolean;
+}
+
+/**
+ * A line chart series that does not come from the primary data source (AB#7951), discriminated by
+ * `kind`: a series of its own stream-data query, or a formula over other series (AB#7952). The bar
+ * chart (AB#7953) can reuse the same shape.
+ */
+export type LineChartSeriesDefinition = LineChartQuerySeries | LineChartFormulaSeries;
+
+/**
+ * A series computed per time bucket from other series of the same chart (AB#7952), e.g.
+ * `min(${pv} - ${gridExport} - ${batteryCharge}, ${consumption})`. Operands are the keys of the
+ * other additional series (query or formula); the primary query's series are not operands. A null
+ * operand or a non-finite result makes the bucket a gap.
+ */
+export interface LineChartFormulaSeries extends LineChartSeriesDisplayOptions {
+  kind: 'formula';
+  /** Stable key, same rules as {@link LineChartQuerySeries.key}; other formulas reference it. */
+  key: string;
+  /** Legend label; the key when absent. */
+  label?: string;
+  /** Formula with `${key}` operands, evaluated by the board formula evaluator (expr-eval). */
+  formula: string;
+}
 
 /**
  * A series read from its own stream-data query (AB#7951): one line per source, scoped by its
  * own entity selector, aligned with all other series on the widget's time grid.
  */
-export interface LineChartQuerySeries {
+export interface LineChartQuerySeries extends LineChartSeriesDisplayOptions {
   kind: 'query';
   /**
    * Stable key, unique within the widget; letters, digits and `_`, starting with a letter or `_`.

@@ -35,7 +35,7 @@ describe('LineChartSeriesEditorComponent (AB#7951)', () => {
     fixture = TestBed.createComponent(LineChartSeriesEditorComponent);
     cmp = fixture.componentInstance;
     emitted = [];
-    cmp.seriesChange.subscribe(s => emitted.push(s));
+    cmp.seriesChange.subscribe(s => emitted.push(s as LineChartQuerySeries[]));
     fixture.componentRef.setInput('series', series);
     fixture.detectChanges();
     await fixture.whenStable();

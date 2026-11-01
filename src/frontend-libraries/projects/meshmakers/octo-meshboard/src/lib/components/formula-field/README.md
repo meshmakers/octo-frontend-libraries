@@ -1,7 +1,7 @@
 # Formula field (`mm-meshboard-formula-field`)
 
-Shared formula input of the MeshBoard widget config dialogs (KPI and gauge since AB#7950; the planned
-chart formula series of AB#7952/AB#7953 are meant to reuse it). It renders:
+Shared formula input of the MeshBoard widget config dialogs (KPI and gauge since AB#7950, line chart
+formula series since AB#7952 with the series keys as names). It renders:
 
 - the formula input (label linked to the input, described by the hint and the message),
 - the syntax hint (operators, functions, `${variableName}`; with `clampHint` the clamp pattern
@@ -19,6 +19,10 @@ chart formula series of AB#7952/AB#7953 are meant to reuse it). It renders:
 | `numericOnly` | `boolean` | The widget needs a number: a string/boolean preview shows *Result is not a number* |
 | `clampHint` | `boolean` | Show the clamp pattern in the hint (widgets with a scale) |
 | `label` / `placeholder` | `string` | Defaults `Formula` / `e.g., (${a} - ${b}) / 1000` |
+| `showPreview` | `boolean` | Default `true`. Chart formula series turn it off (one value per bucket, AB#7952) |
+| `variablesLabel` | `string` | Heading of the insert buttons, default `Available Variables` |
+| `namesNoun` / `syntaxHint` | `string` | Hint wording, defaults `variables` / `${variableName}` |
+| `emptyVariablesText` | `string` | Text when there is nothing to insert |
 
 ## Validation
 
