@@ -318,21 +318,41 @@ export class QueryExecutorService {
     window: { from: Date; to: Date },
     options: Pick<QueryExecutionOptions, 'forceRefresh'> = {}
   ): Promise<QueryColumnInfo[]> {
-    const forceRefresh = options.forceRefresh ?? false;
+    const result = await this.executeWithProbeWindow('streamData', queryRtId,
+      { first: 1, forceRefresh: options.forceRefresh ?? false }, window);
+    return result.columns;
+  }
+
+  /**
+   * Runs a persisted query for a config picker (column list, category values, AB#7975).
+   * Runtime queries run once as {@link execute}. A stream-data query runs with its own
+   * window first — silently, its refusal is expected for an Integral query without from/to
+   * (AB#7985) — and, when that fails or returns no columns, once more with `window`
+   * (`columnProbeWindow`). The error of the retry propagates and is shown.
+   */
+  async executeWithProbeWindow(
+    family: QueryFamily | undefined,
+    queryRtId: string,
+    options: QueryExecutionOptions,
+    window: { from: Date; to: Date }
+  ): Promise<QueryExecutionResult> {
+    const resolved = family ?? await this.resolveFamily(queryRtId);
+    if (resolved !== 'streamData') {
+      return firstValueFrom(this.executeRuntime(queryRtId, options));
+    }
     try {
-      const result = await firstValueFrom(this.executeStreamData(queryRtId, { first: 1, forceRefresh, silentErrors: true }));
+      const result = await firstValueFrom(this.executeStreamData(queryRtId, { ...options, silentErrors: true }));
       if (result.columns.length > 0) {
-        return result.columns;
+        return result;
       }
     } catch {
       // Fall through to the windowed retry below.
     }
-    const windowed = await firstValueFrom(this.executeStreamData(queryRtId, {
-      first: 1,
-      forceRefresh,
-      streamDataArgs: { from: window.from, to: window.to }
+    return firstValueFrom(this.executeStreamData(queryRtId, {
+      ...options,
+      silentErrors: false,
+      streamDataArgs: { ...options.streamDataArgs, from: window.from, to: window.to }
     }));
-    return windowed.columns;
   }
 
   /**

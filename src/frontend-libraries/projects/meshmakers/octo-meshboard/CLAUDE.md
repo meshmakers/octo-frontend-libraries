@@ -422,10 +422,12 @@ query's own window first and retries with the probe window when that fails or re
 - The first attempt is sent with `silentErrors: true` (`OCTO_SILENT_ERRORS` context): its refusal is
   expected and must not toast (AB#7985). Only the retry's error reaches `OctoErrorLink`.
 - Used by the KPI, gauge, table (`{ forceRefresh: true }`), bar, pie, line, heatmap and widget-group
-  dialogs. Spec: `widgets/widget-config-dialogs.integral-columns.spec.ts` (every dialog against the real
+  dialogs. The gauge and KPI dialogs load the category values of a grouped query with
+  `executeWithProbeWindow(family, rtId, { first: 100 }, window)` — the same rule for any picker query
+  (runtime queries run once, unchanged). Spec: `widgets/widget-config-dialogs.integral-columns.spec.ts` (every dialog against the real
   executor: board window, 24 h fallback, no toast for the probe).
 - A null cell is "no data", never 0: KPI / gauge `-`, bar chart no bar, pie chart no slice, line chart
-  a gap, heatmap skips the row (count ignores the value). A real 0 stays 0; a missing cell keeps 0.
+  no point (not 0), heatmap skips the row (count ignores the value). A real 0 stays 0; a missing cell keeps 0.
   Spec: `widgets/integral-empty-window.widgets.spec.ts`.
 
 ### AggregationDataSource

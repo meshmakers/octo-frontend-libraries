@@ -188,6 +188,29 @@ describe('widgets over an Integral column — empty window is no data, not 0 (AB
 
       expect(cmp.seriesData()[0].data).toEqual([4, null, 0]);
     });
+
+    it('reads the exact value cell, so a null <field>_integral never hides a usable <field>', () => {
+      TestBed.configureTestingModule({
+        imports: [LineChartWidgetComponent],
+        providers: [
+          { provide: QueryExecutorService, useValue: { execute: vi.fn() } },
+          { provide: MeshBoardStateService, useValue: { timeZoneMode: vi.fn().mockReturnValue('utc'), getVariables: vi.fn().mockReturnValue([]) } },
+          { provide: MeshBoardVariableService, useValue: { convertToFieldFilterDto: vi.fn() } }
+        ]
+      });
+      const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
+      cmp.config = {
+        id: 'l', type: 'lineChart', title: 'kW', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+        dataSource: STREAM, categoryField: 'day', seriesGroupField: 'site', valueField: 'importpower'
+      } as LineChartWidgetConfig;
+
+      (cmp as unknown as { processData(rows: QueryResultRow[], downsample: boolean): void }).processData([
+        row([{ attributePath: 'day', value: '2026-10-29T00:00:00Z' }, { attributePath: 'site', value: 'A' },
+          { attributePath: 'importpower', value: 0 }, { attributePath: 'importpower_integral', value: null }])
+      ], false);
+
+      expect(cmp.seriesData()[0].data).toEqual([0]);
+    });
   });
 
   describe('heatmap (sum)', () => {
@@ -228,6 +251,38 @@ describe('widgets over an Integral column — empty window is no data, not 0 (AB
       // avg over the real rows only: the null row does not pull 08:00 down to 1.
       expect(cell('08:00')?.value).toBe(2);
       expect(cell('09:00')?.value ?? 0).toBe(0);
+    });
+
+    it('keeps a row whose exact value cell is usable although a loose-matching cell is null', async () => {
+      const execute = vi.fn();
+      TestBed.configureTestingModule({
+        imports: [HeatmapWidgetComponent],
+        providers: [
+          {
+            provide: MeshBoardStateService,
+            useValue: {
+              resolveStreamDataRtIds: vi.fn().mockReturnValue(undefined),
+              resolveStreamDataScope: vi.fn().mockReturnValue({ kind: 'unscoped' }),
+              resolveStreamDataTimeArgs: vi.fn().mockReturnValue(undefined),
+              timeZoneMode: vi.fn().mockReturnValue('utc'),
+              getVariables: vi.fn().mockReturnValue([])
+            }
+          },
+          { provide: QueryExecutorService, useValue: { execute } },
+          { provide: MeshBoardVariableService, useValue: { convertToFieldFilterDto: vi.fn().mockReturnValue(undefined) } }
+        ]
+      });
+      const cmp = TestBed.createComponent(HeatmapWidgetComponent).componentInstance;
+      const rows = [row([{ attributePath: 'reading', value: 4 }, { attributePath: 'reading_sum', value: null }], '2026-10-28T08:10:00Z')];
+      execute.mockReturnValue(of({ rows, totalCount: rows.length }));
+      cmp.config = {
+        type: 'heatmap', dateField: 'timestamp', valueField: 'reading', aggregation: 'sum',
+        colorScheme: 'green', dataSource: STREAM
+      } as unknown as HeatmapWidgetConfig;
+
+      await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+      expect(cmp.heatmapData().find(c => c.date === '2026-10-28' && c.hour === '08:00')?.value).not.toBe(0);
     });
   });
 });

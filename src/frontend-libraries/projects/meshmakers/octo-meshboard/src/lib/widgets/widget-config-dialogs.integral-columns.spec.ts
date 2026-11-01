@@ -105,7 +105,7 @@ describe('Widget config dialogs list Integral columns (AB#7975, AB#7985)', () =>
 
   beforeEach(() => {
     fetch = vi.fn();
-    const unused = { fetch: vi.fn() };
+    const unused = { fetch: vi.fn(() => throwError(() => new Error('unexpected GraphQL call in a column probe'))) };
     TestBed.configureTestingModule({
       providers: [
         QueryExecutorService,
@@ -156,6 +156,47 @@ describe('Widget config dialogs list Integral columns (AB#7975, AB#7985)', () =>
         expect(toastSuppressed(0)).toBe(true);
         expect(toastSuppressed(1)).toBe(false);
       });
+    });
+  }
+
+  // Gauge and KPI load the category values of a grouped query by running it; a grouped
+  // Integral query needs the same window retry as the column list (AB#7975 review).
+  const withDayRows = () => of({
+    data: {
+      streamData: {
+        streamDataQuery: {
+          items: [{
+            queryRtId: 'q-int', associatedCkTypeId: null, columns: integralColumns,
+            rows: {
+              totalCount: 2, pageInfo: { hasNextPage: false, endCursor: null },
+              items: ['Mo', 'Di'].map(day => ({
+                __typename: 'StreamDataQueryRow', rtId: 'rt-1', timestamp: null,
+                cells: { items: [{ attributePath: 'day', value: day }, { attributePath: 'importpower_integral', value: 1 }] }
+              }))
+            }
+          }]
+        }
+      }
+    },
+    loading: false,
+    networkStatus: 7
+  });
+
+  for (const [name, ctor] of [['gauge', GaugeConfigDialogComponent], ['KPI', KpiConfigDialogComponent]] as const) {
+    it(`${name}: lists the category values of a grouped Integral query, silently probing first`, async () => {
+      fetch.mockReturnValueOnce(integralRefusal()).mockReturnValueOnce(withDayRows());
+      const dialog = Object.assign(Object.create(ctor.prototype) as object, {
+        queryExecutor: executor,
+        meshBoardStateService: { resolveStreamDataTimeArgs: () => boardWindow },
+        selectedPersistentQuery: { rtId: 'q-int', name: 'Energie je Tag', ckTypeId: 'System/GroupingAggregationSdQuery' },
+        categoryValues: []
+      }) as unknown as { loadCategoryValuesForField(rtId: string, field: string): Promise<void>; categoryValues: { value: string }[] };
+
+      await dialog.loadCategoryValuesForField('q-int', 'day');
+
+      expect(dialog.categoryValues.map(v => v.value)).toEqual(['Mo', 'Di']);
+      expect(toastSuppressed(0)).toBe(true);
+      expect(call(1).variables.arg).toMatchObject({ from: boardWindow.from, to: boardWindow.to });
     });
   }
 });

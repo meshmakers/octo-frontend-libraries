@@ -1340,7 +1340,9 @@ export class KpiConfigDialogComponent implements OnInit {
     try {
       // family may be undefined here — the executor falls back to a lookup.
       const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily;
-      const result = await firstValueFrom(this.queryExecutor.execute(family, queryRtId, { first: 100 }));
+      // A grouped Integral query needs from/to like its column list (AB#7975).
+      const result = await this.queryExecutor.executeWithProbeWindow(
+        family, queryRtId, { first: 100 }, columnProbeWindow(this.meshBoardStateService.resolveStreamDataTimeArgs()));
 
       const values = new Set<string>();
       for (const row of result.rows) {
