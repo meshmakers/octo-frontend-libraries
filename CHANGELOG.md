@@ -10,6 +10,14 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: no error toast for the Integral column probe (AB#7985)
+
+- Fixed: selecting a query with an `Integral` column in a widget config dialog no longer shows the error toast
+  "TimeWeightedAverage, StateDuration and Integral over a raw archive require From and To" when the column list
+  then loads. The window-less first attempt of `fetchStreamDataColumns` runs with the `OCTO_SILENT_ERRORS`
+  context (logged to the console only); the error of the windowed retry is still shown.
+- New (non-breaking): `QueryExecutionOptions.silentErrors` for stream-data calls whose caller handles the failure.
+
 ### octo-meshboard KPI: energy (kWh) from a stream-data Integral query (AB#7921)
 
 - New (non-breaking): a KPI in aggregation mode bound to a persisted stream-data aggregation query with an

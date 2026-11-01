@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, firstValueFrom, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
-import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
+import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, OCTO_SILENT_ERRORS, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
@@ -107,6 +107,12 @@ export interface QueryExecutionOptions {
   scopeRtIds?: string[] | null;
   /** Force a network round-trip instead of using the Apollo cache. */
   forceRefresh?: boolean;
+  /**
+   * Stream-data only (AB#7985): errors of this call are logged to the console, never
+   * toasted by the global GraphQL error link ({@link OCTO_SILENT_ERRORS}). For probe calls
+   * whose caller handles the failure itself (e.g. a retry with a time window).
+   */
+  silentErrors?: boolean;
 }
 
 export interface QueryColumnInfo {
@@ -273,7 +279,8 @@ export class QueryExecutorService {
         fieldFilter: options.fieldFilter ?? undefined,
         arg
       },
-      fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first'
+      fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first',
+      ...(options.silentErrors ? { context: { [OCTO_SILENT_ERRORS]: true } } : {})
     }).pipe(
       map(result => {
         const queryItem = result.data?.streamData?.streamDataQuery?.items?.[0];
@@ -300,10 +307,14 @@ export class QueryExecutorService {
    * without a window — an `Integral` column over a raw archive requires from/to
    * (AB#7921) — fails or returns no columns, so it is run once more with `window`
    * (the board's time window or a recent default). The error of the retry propagates.
+   *
+   * The first, window-less attempt is a probe: its error is expected for such queries
+   * and is not shown as an error toast (AB#7985). Only the retry's error reaches the
+   * global error handler.
    */
   async fetchStreamDataColumns(queryRtId: string, window: { from: Date; to: Date }): Promise<QueryColumnInfo[]> {
     try {
-      const result = await firstValueFrom(this.executeStreamData(queryRtId, { first: 1 }));
+      const result = await firstValueFrom(this.executeStreamData(queryRtId, { first: 1, silentErrors: true }));
       if (result.columns.length > 0) {
         return result.columns;
       }

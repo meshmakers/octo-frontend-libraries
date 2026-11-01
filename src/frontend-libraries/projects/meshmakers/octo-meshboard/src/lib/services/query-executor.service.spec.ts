@@ -2,7 +2,7 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { firstValueFrom, of, throwError } from 'rxjs';
-import { CkRollupFunctionDto, FieldFilterOperatorsDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
+import { CkRollupFunctionDto, FieldFilterOperatorsDto, OctoErrorLink, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { QueryExecutorService } from './query-executor.service';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
@@ -324,6 +324,41 @@ describe('QueryExecutorService', () => {
 
       expect(columns).toEqual([integralColumn]);
       expect(argOfCall(1)).toMatchObject({ from: window.from, to: window.to });
+    });
+
+    // AB#7985: the window-less probe fails by design for an Integral query; that failure
+    // must not reach the global error link (toast) when the windowed retry succeeds.
+    const contextOfCall = (n: number) =>
+      (vi.mocked(streamDataGqlSpy.fetch).mock.calls[n][0] as { context?: Record<string, unknown> }).context;
+    const isToastSuppressed = (context: Record<string, unknown> | undefined) =>
+      OctoErrorLink.isSilent({ getContext: () => context ?? {} } as never);
+
+    it('sends the window-less probe silently, so its failure raises no error toast when the retry succeeds (AB#7985)', async () => {
+      streamDataGqlSpy.fetch
+        .mockReturnValueOnce(throwError(() => new Error('Integral over a raw archive requires From and To')) as never)
+        .mockReturnValueOnce(withColumns([integralColumn]) as never);
+
+      const columns = await service.fetchStreamDataColumns('q', window);
+
+      expect(columns).toEqual([integralColumn]);
+      expect(isToastSuppressed(contextOfCall(0))).toBe(true);
+    });
+
+    it('lets the error of the windowed retry reach the global error handler (AB#7985)', async () => {
+      streamDataGqlSpy.fetch
+        .mockReturnValueOnce(throwError(() => new Error('probe')) as never)
+        .mockReturnValueOnce(throwError(() => new Error('boom')) as never);
+
+      await expect(service.fetchStreamDataColumns('q', window)).rejects.toThrow('boom');
+      expect(isToastSuppressed(contextOfCall(1))).toBe(false);
+    });
+
+    it('keeps ordinary query executions toasting their errors (AB#7985)', async () => {
+      streamDataGqlSpy.fetch.mockReturnValue(withColumns([]) as never);
+
+      await firstValueFrom(service.executeStreamData('q', { first: 1 }));
+
+      expect(isToastSuppressed(contextOfCall(0))).toBe(false);
     });
 
     it('rejects when the windowed retry fails too', async () => {
