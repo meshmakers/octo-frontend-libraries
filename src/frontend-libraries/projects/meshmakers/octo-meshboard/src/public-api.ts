@@ -116,6 +116,10 @@ export type { BarChartConfigResult } from './lib/widgets/bar-chart-widget/bar-ch
 export { LineChartWidgetComponent } from './lib/widgets/line-chart-widget/line-chart-widget.component';
 export { LineChartConfigDialogComponent } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
 export type { LineChartConfigResult } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
+export type { LineChartSourceHint } from './lib/widgets/line-chart-widget/line-chart-widget.component';
+export { LineChartSeriesEditorComponent } from './lib/widgets/line-chart-widget/line-chart-series-editor.component';
+export { alignOnTimeGrid, bucketStepMs } from './lib/utils/time-grid-alignment';
+export type { AlignedTimeGrid, AlignedTimeSeries, MisalignedTimeSource, TimeGridSeriesInput, TimeGridSourceInput } from './lib/utils/time-grid-alignment';
 
 export { HeatmapWidgetComponent } from './lib/widgets/heatmap-widget/heatmap-widget.component';
 export { HeatmapConfigDialogComponent } from './lib/widgets/heatmap-widget/heatmap-config-dialog.component';
