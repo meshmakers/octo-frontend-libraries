@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BarChartWidgetConfig, BarChartType, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
+import { BarChartWidgetConfig, BarChartType, LineChartQuerySeries, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
@@ -13,6 +13,35 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField } from '../../utils/widget-data-utils';
 import { isIsoDateTime, formatInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
+import {
+  composeChartSeries,
+  isCompleteFormulaSeries,
+  isCompleteQuerySeries,
+  LineChartSourceHint,
+  LineChartSourceProblem,
+  PRIMARY_SOURCE_KEY,
+  querySeriesLabel
+} from '../line-chart-widget/line-chart-multi-source';
+import {
+  alignOnCategories,
+  CategorySourceInput,
+  CategoryValue,
+  primaryRowsToCategorySeries,
+  queryRowsToCategorySeries,
+  uniqueLabels
+} from './bar-chart-multi-source';
+
+/** One source of a multi-source bar chart (AB#7953): the primary query or a query series. */
+interface BarChartSourceEntry {
+  key: string;
+  label: string;
+  dataSource: PersistentQueryDataSource;
+  primary: boolean;
+  /** Query series only. */
+  categoryField?: string;
+  valueField?: string;
+}
 
 /**
  * Series data for the bar chart
@@ -61,6 +90,15 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
           <span>{{ error() }}</span>
         </div>
       } @else {
+        @if (sourceHints().length > 0) {
+          <ul class="source-hints" aria-live="polite">
+            @for (hint of sourceHints(); track hint.text) {
+              <li class="source-hint" [class.error]="hint.kind === 'error'" [class.warn]="hint.kind === 'dependency'">
+                @if (hint.kind !== 'noData') {<span aria-hidden="true">⚠ </span>}{{ hint.text }}
+              </li>
+            }
+          </ul>
+        }
         <kendo-chart class="chart-container" [plotArea]="{ background: 'transparent', margin: plotAreaMargin() }">
           <kendo-chart-area [background]="'transparent'"></kendo-chart-area>
           <kendo-chart-category-axis>
@@ -113,14 +151,28 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
             [labels]="{ color: chartTheme().text }">
           </kendo-chart-legend>
 
-          <kendo-chart-tooltip>
-            <ng-template kendoChartSeriesTooltipTemplate let-value="value" let-category="category" let-series="series">
-              <div class="chart-tooltip">
-                <strong>{{ category }}</strong><br/>
-                {{ series.name }}: {{ formatValue(value) }}
-              </div>
-            </ng-template>
-          </kendo-chart-tooltip>
+          @if (isMultiSource()) {
+            <!-- Multi-source (AB#7953): one tooltip per category with every drawn series; no bar shows "–". -->
+            <kendo-chart-tooltip [shared]="true">
+              <ng-template kendoChartSharedTooltipTemplate let-category="category">
+                <div class="chart-tooltip">
+                  <strong>{{ category }}</strong>
+                  @for (row of tooltipRows(category); track row.name) {
+                    <br/>{{ row.name }}: {{ row.text }}
+                  }
+                </div>
+              </ng-template>
+            </kendo-chart-tooltip>
+          } @else {
+            <kendo-chart-tooltip>
+              <ng-template kendoChartSeriesTooltipTemplate let-value="value" let-category="category" let-series="series">
+                <div class="chart-tooltip">
+                  <strong>{{ category }}</strong><br/>
+                  {{ series.name }}: {{ formatValue(value) }}
+                </div>
+              </ng-template>
+            </kendo-chart-tooltip>
+          }
         </kendo-chart>
       }
     </div>
@@ -134,6 +186,7 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
     }
 
     .bar-chart-widget {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -187,6 +240,35 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
     .chart-tooltip {
       padding: 4px 8px;
     }
+
+    /* Per-source hints of a multi-source chart (AB#7953), same look as the line chart's. */
+    .source-hints {
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      z-index: 2;
+      max-width: calc(100% - 12px);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-size: 0.7rem;
+      line-height: 1.4;
+      color: var(--kendo-color-subtle, #6c757d);
+    }
+
+    .source-hint {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .source-hint.error {
+      color: var(--kendo-color-error, #dc3545);
+    }
+
+    .source-hint.warn {
+      color: var(--kendo-color-warning, #b8860b);
+    }
   `]
 })
 export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetConfig, SeriesData[]>, OnInit, OnChanges {
@@ -203,6 +285,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   ]);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
   @Input() config!: BarChartWidgetConfig;
 
@@ -216,6 +299,12 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   readonly categories = this._categories.asReadonly();
   readonly seriesData = this._seriesData.asReadonly();
   readonly error = this._error.asReadonly();
+
+  // Multi-source path (AB#7953): per-source hints and whether the last load went through it.
+  private readonly _sourceHints = signal<LineChartSourceHint[]>([]);
+  readonly sourceHints = this._sourceHints.asReadonly();
+  private readonly _multiSource = signal(false);
+  readonly isMultiSource = this._multiSource.asReadonly();
 
   readonly data = computed(() => this._seriesData());
 
@@ -313,6 +402,29 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     return !!(this.config.seriesGroupField && this.config.valueField);
   }
 
+  /** Whether the chart reads series from more than its primary query or has formula series (AB#7953). */
+  hasAdditionalSeries(): boolean {
+    return (this.config?.additionalSeries ?? []).some(s => this.isLoadableQuerySeries(s) || isCompleteFormulaSeries(s));
+  }
+
+  private isLoadableQuerySeries(s: unknown): s is LineChartQuerySeries {
+    return isCompleteQuerySeries(s as LineChartQuerySeries) && !!(s as LineChartQuerySeries).categoryField;
+  }
+
+  /**
+   * Shared tooltip rows of the multi-source path (AB#7953): one row per drawn series for the
+   * hovered category; no bar (null) shows "–".
+   */
+  tooltipRows(category: string): { name: string; text: string }[] {
+    const index = this._categories().indexOf(category);
+    if (index < 0) return [];
+    return this._seriesData().map(s => {
+      const raw = s.data[index];
+      const value = raw !== null && typeof raw === 'object' ? (raw as { value: number | null }).value : raw as number | null | undefined;
+      return { name: s.name, text: value === null || value === undefined ? '–' : this.formatValue(value) };
+    });
+  }
+
   formatValue(value: number): string {
     return value.toLocaleString('de-AT', {
       minimumFractionDigits: 0,
@@ -325,6 +437,13 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     if (this.isNotConfigured()) {
       return;
     }
+
+    if (this.hasAdditionalSeries()) {
+      await this.loadMultiSource();
+      return;
+    }
+    this._multiSource.set(false);
+    this._sourceHints.set([]);
 
     // Note: isNotConfigured() check ensures dataSource and queryRtId are set
     const queryDataSource = this.config.dataSource as PersistentQueryDataSource;
@@ -379,6 +498,152 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       this._error.set('Failed to load data');
       this._isLoading.set(false);
     }
+  }
+
+  /**
+   * Multi-source load (AB#7953): the primary query plus every complete query series, each with its
+   * own scope and time-filter opt-out, matched per category value.
+   *
+   * 1. Scope per source: any `pending` → stay loading, no query; `empty` → no series for that
+   *    source and a "No data for <source>" hint.
+   * 2. All sources load in parallel; a failing source gives an error hint, the others render.
+   * 3. `valueScale` is applied to every source value, then {@link alignOnCategories} builds the
+   *    union of categories (chronological when all are date-times); a category a source lacks is
+   *    no bar for its series.
+   * 4. `composeChartSeries` (shared with the line chart) evaluates formula series per category,
+   *    drops hidden series and adds "depends on <source>, which failed" hints.
+   */
+  private async loadMultiSource(): Promise<void> {
+    const primaryDs = this.config.dataSource as PersistentQueryDataSource;
+    const sources: BarChartSourceEntry[] = [
+      { key: PRIMARY_SOURCE_KEY, label: primaryDs.queryName?.trim() || 'Primary query', dataSource: primaryDs, primary: true },
+      ...(this.config.additionalSeries ?? [])
+        .filter((s): s is LineChartQuerySeries => this.isLoadableQuerySeries(s))
+        .map(def => ({
+          key: def.key,
+          label: querySeriesLabel(def),
+          dataSource: def.dataSource,
+          primary: false,
+          categoryField: def.categoryField,
+          valueField: def.valueField
+        }))
+    ];
+
+    this._isLoading.set(true);
+    this._error.set(null);
+    this._multiSource.set(true);
+
+    const scopes = sources.map(s =>
+      this.stateService.resolveStreamDataScope(s.dataSource.entitySelectorId, s.dataSource.queryFamily, s.dataSource.ignoreTimeFilter));
+    if (scopes.some(s => s.kind === 'pending')) {
+      return;
+    }
+
+    try {
+      const hints: LineChartSourceHint[] = [];
+      const problems = new Map<string, { label: string; problem: LineChartSourceProblem }>();
+      const noData = (source: BarChartSourceEntry): void => {
+        hints.push({ kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+        problems.set(source.key, { label: source.label, problem: 'noData' });
+      };
+
+      const active: { source: BarChartSourceEntry; rtIds?: string[] }[] = [];
+      sources.forEach((source, i) => {
+        const scope = scopes[i];
+        if (scope.kind === 'empty') noData(source);
+        else active.push({ source, rtIds: scope.kind === 'scoped' ? scope.rtIds : undefined });
+      });
+
+      const fetched = await Promise.allSettled(active.map(a => this.fetchSourceRows(a.source, a.rtIds)));
+
+      const valueScale = this.config.valueScale ?? 1;
+      const categorySources: CategorySourceInput[] = [];
+      fetched.forEach((f, i) => {
+        const source = active[i].source;
+        if (f.status === 'rejected') {
+          console.error(`Error loading Bar Chart source "${source.label}":`, f.reason);
+          hints.push({ kind: 'error', sourceLabel: source.label, text: `${source.label}: ${this.errorMessage(f.reason)}` });
+          problems.set(source.key, { label: source.label, problem: 'error' });
+          return;
+        }
+        const converted = source.primary
+          ? primaryRowsToCategorySeries(f.value, this.config, valueScale)
+          : (r => ({ categories: r.categories, series: [r.series] }))(
+            queryRowsToCategorySeries(f.value, source.label, source.categoryField as string, source.valueField as string, valueScale));
+        if (converted.categories.length === 0 || converted.series.length === 0) {
+          noData(source);
+          return;
+        }
+        categorySources.push({ sourceKey: source.key, sourceLabel: source.label, ...converted });
+      });
+
+      const aligned = alignOnCategories(categorySources);
+      const composed = composeChartSeries({
+        gridSeries: aligned.series,
+        length: aligned.categories.length,
+        definitions: this.config.additionalSeries ?? [],
+        primary: this.config.primarySeries,
+        stackedChart: false,
+        sourceProblems: problems,
+        evaluator: this.expressionEvaluator
+      });
+      hints.push(...composed.hints);
+
+      const colors = new Map((this.config.series ?? []).map(s => [s.name ?? s.field, s.color]));
+      this._categories.set(this.categoryLabels(aligned.categories));
+      this._seriesData.set(composed.series.map(s => ({
+        name: s.name,
+        data: this.hasColorThresholds() ? this.applyColorThresholds(s.data) : s.data,
+        color: colors.get(s.name)
+      })));
+      this._sourceHints.set(hints);
+      this._isLoading.set(false);
+    } catch (err) {
+      console.error('Error loading Bar Chart data:', err);
+      this._error.set('Failed to load data');
+      this._sourceHints.set([]);
+      this._isLoading.set(false);
+    }
+  }
+
+  /** Rows of one source of the multi-source path; widget filters apply to the primary query only. */
+  private async fetchSourceRows(source: BarChartSourceEntry, scopeRtIds: string[] | undefined): Promise<QueryResultRow[]> {
+    const ds = source.dataSource;
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
+    const streamDataArgs: StreamDataExecutionArgs | undefined = timeArgs || rtIds ? { ...timeArgs, rtIds } : undefined;
+    const result = await firstValueFrom(this.queryExecutor.execute(ds.queryFamily, ds.queryRtId, {
+      fieldFilter: source.primary ? this.convertFiltersToDto(this.config.filters) ?? undefined : undefined,
+      streamDataArgs,
+      scopeRtIds
+    }));
+    return result.rows.filter(row => BarChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? ''));
+  }
+
+  /**
+   * Category labels of the multi-source path: date-times as dates when every category is a
+   * different day (daily bars), else date and time as the single-query chart shows them; other
+   * values as text. Repeated labels get " (2)" so every category keeps its slot.
+   */
+  private categoryLabels(categories: readonly CategoryValue[]): string[] {
+    const mode = this.stateService.timeZoneMode();
+    const allInstants = categories.length > 0 && categories.every(c => c.instant !== null);
+    const dayOf = (c: CategoryValue): string =>
+      formatInstant(new Date(c.instant as number), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '';
+    const byDay = allInstants && new Set(categories.map(dayOf)).size === categories.length;
+    return uniqueLabels(categories.map(c => {
+      if (byDay) return dayOf(c);
+      if (c.instant !== null) {
+        return formatInstant(new Date(c.instant), mode, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) ?? String(c.raw);
+      }
+      return String(c.raw ?? '');
+    }));
+  }
+
+  /** Short message of a failed source for its hint. */
+  private errorMessage(reason: unknown): string {
+    const message = reason instanceof Error ? reason.message : typeof reason === 'string' ? reason : '';
+    return message ? `Failed to load data (${message})` : 'Failed to load data';
   }
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {

@@ -674,7 +674,26 @@ export interface BarChartWidgetConfig extends WidgetConfig {
   colorThresholds?: BarChartColorThreshold[];
   /** Default bar color when value exceeds all thresholds */
   defaultBarColor?: string;
+  /**
+   * Series from other stream-data queries and formula series, drawn after the primary query's
+   * series and matched per category value (AB#7953). Same model as the line chart
+   * ({@link LineChartSeriesDefinition}); query series carry their own
+   * {@link LineChartQuerySeries.categoryField}. `stacked` is ignored (the chart type stacks).
+   * Omitted when empty, so a single-query chart encodes exactly as before.
+   */
+  additionalSeries?: BarChartSeriesDefinition[];
+  /**
+   * Display options of the primary query's series as a group (AB#7953): only `visible`.
+   * Omitted when default.
+   */
+  primarySeries?: Pick<LineChartSeriesDisplayOptions, 'visible'>;
 }
+
+/**
+ * An additional series of a bar chart (AB#7953): the line chart series model, aligned per
+ * category value instead of per time bucket.
+ */
+export type BarChartSeriesDefinition = LineChartSeriesDefinition;
 
 /**
  * Color threshold for conditional bar coloring.
@@ -810,6 +829,11 @@ export interface LineChartQuerySeries extends LineChartSeriesDisplayOptions {
   dataSource: PersistentQueryDataSource;
   /** Numeric column plotted for this series (doubles as the resolver's source path). */
   valueField: string;
+  /**
+   * Bar chart only (AB#7953): column whose value is the category of a row; rows of all sources
+   * are matched by this value. Ignored by the line chart (it aligns on the time grid).
+   */
+  categoryField?: string;
 }
 
 /**

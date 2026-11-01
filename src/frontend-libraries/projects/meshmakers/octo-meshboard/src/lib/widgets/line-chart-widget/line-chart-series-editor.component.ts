@@ -47,6 +47,8 @@ interface SeriesRow {
   series: LineChartSeriesDefinition;
   query: PersistentQueryItem | null;
   numericColumns: QueryColumnItem[];
+  /** Every column of the query (category field picker of the bar chart, AB#7953). */
+  allColumns: QueryColumnItem[];
   loadingColumns: boolean;
 }
 
@@ -62,6 +64,10 @@ interface SeriesRow {
  *   unchecked = drawn as a line over the stack).
  *
  * Rows can be added, removed and moved by keyboard; the focus stays on a moved row's button.
+ *
+ * `alignment="category"` (bar chart, AB#7953): rows are matched per category value, so every query
+ * row gets its own category field; Resolution-aware and Stacked are not shown (the chart type
+ * stacks).
  */
 @Component({
   selector: 'mm-line-chart-series-editor',
@@ -81,18 +87,20 @@ interface SeriesRow {
     <div class="series-editor">
       <div class="series-row primary" role="group" aria-label="Series of the primary query">
         <span class="tag">primary</span>
-        <span>Series of the primary query (one per series group value), edited above</span>
+        <span>{{ categoryMode ? 'Series of the primary query, edited above' : 'Series of the primary query (one per series group value), edited above' }}</span>
         <span class="display-options">
           <label class="checkbox">
             <input type="checkbox" kendoCheckBox data-series-primary="visible" [ngModel]="primary?.visible !== false"
                    (ngModelChange)="setPrimaryOption('visible', $event)" />
             Visible
           </label>
+          @if (!categoryMode) {
           <label class="checkbox" [title]="stackedChart ? '' : stackedDisabledHint">
             <input type="checkbox" kendoCheckBox data-series-primary="stacked" [disabled]="!stackedChart"
                    [ngModel]="primary?.stacked !== false" (ngModelChange)="setPrimaryOption('stacked', $event)" />
             Stacked
           </label>
+          }
         </span>
       </div>
 
@@ -127,6 +135,16 @@ interface SeriesRow {
                                (querySelected)="onQuerySelected(row, $event)"
                                placeholder="Select a stream-data query..."></mm-query-selector>
           </div>
+          @if (categoryMode) {
+          <div class="field category">
+            <label [for]="'series-category-' + row.uid">Category field <span class="required">*</span></label>
+            <kendo-combobox [id]="'series-category-' + row.uid" [attr.data-series-category]="i" [data]="row.allColumns"
+                            [textField]="'attributePath'" [valueField]="'attributePath'" [valuePrimitive]="true"
+                            [loading]="row.loadingColumns" [allowCustom]="true"
+                            [(ngModel)]="q.categoryField" (valueChange)="emit()"
+                            placeholder="e.g. timestamp"></kendo-combobox>
+          </div>
+          }
           <div class="field value">
             <label [for]="'series-value-' + row.uid">Value field <span class="required">*</span></label>
             <kendo-combobox [id]="'series-value-' + row.uid" [data]="row.numericColumns"
@@ -146,12 +164,14 @@ interface SeriesRow {
                                       [ignoreTimeFilter]="!!q.dataSource.ignoreTimeFilter"
                                       (ignoreTimeFilterChange)="q.dataSource.ignoreTimeFilter = $event || undefined; emit()">
             </mm-sd-time-filter-toggle>
+            @if (!categoryMode) {
             <label class="checkbox">
               <input type="checkbox" kendoCheckBox [ngModel]="!!q.dataSource.resolutionAware"
                      (ngModelChange)="onResolutionAwareChange(row, $event)" />
               Resolution-aware
             </label>
-            @if (q.dataSource.resolutionAware) {
+            }
+            @if (!categoryMode && q.dataSource.resolutionAware) {
               <kendo-dropdownlist [data]="aggregationOptions" [textField]="'label'" [valueField]="'value'"
                                   [valuePrimitive]="true" [attr.aria-label]="'Aggregation'"
                                   [(ngModel)]="q.dataSource.requiredAggregation" (valueChange)="emit()">
@@ -180,11 +200,13 @@ interface SeriesRow {
                      (ngModelChange)="setOption(row, 'visible', $event)" />
               Visible
             </label>
+            @if (!categoryMode) {
             <label class="checkbox" [title]="stackedChart ? '' : stackedDisabledHint">
               <input type="checkbox" kendoCheckBox [attr.data-series-stacked]="i" [disabled]="!stackedChart"
                      [ngModel]="row.series.stacked !== false" (ngModelChange)="setOption(row, 'stacked', $event)" />
               Stacked
             </label>
+            }
           </div>
           <button kendoButton type="button" fillMode="flat" size="small" class="remove" [svgIcon]="trashIcon"
                   data-series-action="remove"
@@ -238,6 +260,7 @@ interface SeriesRow {
     .field.label { flex: 1 1 140px; }
     .field.query { flex: 2 1 220px; }
     .field.value { flex: 1 1 160px; }
+    .field.category { flex: 1 1 160px; }
     .field.scope { flex: 1 1 200px; }
     .field.formula { flex: 1 1 100%; }
     .field.display-options, .display-options { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
@@ -266,6 +289,13 @@ export class LineChartSeriesEditorComponent implements OnChanges {
   @Output() primaryChange = new EventEmitter<LineChartSeriesDisplayOptions | undefined>();
   /** Entity selectors of the board (scope picker). */
   @Input() selectors: EntitySelectorConfig[] = [];
+  /**
+   * How the chart matches series (AB#7953): `timeGrid` (line chart, default) or `category` (bar
+   * chart: per-row category field, no Resolution-aware, no Stacked).
+   */
+  @Input() alignment: 'timeGrid' | 'category' = 'timeGrid';
+  /** Category field preset for a new query row in category mode (the primary query's category field). */
+  @Input() defaultCategoryField: string | undefined;
   /** Emits a new array on every change. */
   @Output() seriesChange = new EventEmitter<LineChartSeriesDefinition[]>();
 
@@ -290,6 +320,11 @@ export class LineChartSeriesEditorComponent implements OnChanges {
     { value: 'TIME_WEIGHTED_AVG', label: 'Time-weighted average' }
   ];
 
+  /** Rows are matched per category value (bar chart, AB#7953). */
+  get categoryMode(): boolean {
+    return this.alignment === 'category';
+  }
+
   rows: SeriesRow[] = [];
   errors: (string | null)[] = [];
   private nextUid = 1;
@@ -300,10 +335,12 @@ export class LineChartSeriesEditorComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['series'] && this.series !== this.lastEmitted) {
       this.rows = (this.series ?? []).map(s => this.createRow(structuredClone(s)));
-      this.errors = querySeriesErrors(this.rows.map(r => r.series), this.evaluator);
+      this.errors = querySeriesErrors(this.rows.map(r => r.series), this.evaluator, this.validationOptions());
       for (const row of this.rows) {
         if (row.series.kind === 'query' && row.series.dataSource.queryRtId) void this.loadColumns(row);
       }
+    } else if (changes['alignment']) {
+      this.errors = querySeriesErrors(this.rows.map(r => r.series), this.evaluator, this.validationOptions());
     }
   }
 
@@ -409,9 +446,32 @@ export class LineChartSeriesEditorComponent implements OnChanges {
       queryFamily: 'streamData'
     };
     row.series.valueField = '';
+    if (this.categoryMode) row.series.categoryField = '';
     row.numericColumns = [];
+    row.allColumns = [];
     this.emit();
-    if (query) await this.loadColumns(row);
+    if (query) {
+      await this.loadColumns(row);
+      this.presetCategoryField(row);
+    }
+  }
+
+  /**
+   * Category mode: a row without a category field gets the primary query's category field when
+   * its query has that column, else `timestamp` when it has one (AB#7953).
+   */
+  private presetCategoryField(row: SeriesRow): void {
+    if (!this.categoryMode || row.series.kind !== 'query' || row.series.categoryField) return;
+    const paths = row.allColumns.map(c => c.attributePath);
+    const preset = [this.defaultCategoryField, 'timestamp'].find(f => !!f && paths.includes(f));
+    if (preset) {
+      row.series.categoryField = preset;
+      this.emit();
+    }
+  }
+
+  private validationOptions(): { requireCategoryField: boolean } {
+    return { requireCategoryField: this.categoryMode };
   }
 
   onResolutionAwareChange(row: SeriesRow, on: boolean): void {
@@ -426,7 +486,7 @@ export class LineChartSeriesEditorComponent implements OnChanges {
 
   emit(): void {
     const series = this.rows.map(r => ({ ...r.series, key: r.series.key?.trim() ?? '', label: r.series.label?.trim() || undefined }));
-    this.errors = querySeriesErrors(series, this.evaluator);
+    this.errors = querySeriesErrors(series, this.evaluator, this.validationOptions());
     this.lastEmitted = series;
     this.seriesChange.emit(series);
     this.cdr.markForCheck();
@@ -439,6 +499,7 @@ export class LineChartSeriesEditorComponent implements OnChanges {
       series,
       query: ds?.queryRtId ? { rtId: ds.queryRtId, name: ds.queryName || ds.queryRtId } : null,
       numericColumns: [],
+      allColumns: [],
       loadingColumns: false
     };
   }
@@ -452,12 +513,13 @@ export class LineChartSeriesEditorComponent implements OnChanges {
     try {
       const columns = await this.queryExecutor.fetchStreamDataColumns(
         queryRtId, columnProbeWindow(this.stateService.resolveStreamDataTimeArgs()));
-      row.numericColumns = columns
-        .filter(c => NUMERIC_TYPES.includes(c.attributeValueType ?? ''))
+      row.allColumns = columns
         .map(c => ({ attributePath: c.attributePath, attributeValueType: c.attributeValueType ?? '', aggregationType: c.aggregationType ?? null }));
+      row.numericColumns = row.allColumns.filter(c => NUMERIC_TYPES.includes(c.attributeValueType));
     } catch (error) {
       console.warn('Could not load the columns of the series query:', error);
       row.numericColumns = [];
+      row.allColumns = [];
     } finally {
       row.loadingColumns = false;
       this.cdr.markForCheck();

@@ -176,11 +176,13 @@ export function uniqueCategoryLabels(instants: readonly number[], format: (insta
  * AB#7952), `null` when the row is valid. Keys must match {@link SERIES_KEY_PATTERN} and be unique
  * across all rows; query rows need a query and a value field; formula rows are validated like the
  * KPI formula field (syntax, unknown keys — every series key is an available name) and must not be
- * part of a circular reference.
+ * part of a circular reference. With `requireCategoryField` (bar chart, AB#7953) query rows also
+ * need a category field.
  */
 export function querySeriesErrors(
   series: readonly LineChartSeriesDefinition[],
-  evaluator?: FormulaEvaluator
+  evaluator?: FormulaEvaluator,
+  options?: { requireCategoryField?: boolean }
 ): (string | null)[] {
   const counts = new Map<string, number>();
   for (const s of series) {
@@ -212,6 +214,7 @@ export function querySeriesErrors(
       return formulaErrorByIndex.get(index) ?? null;
     }
     if (!s.dataSource?.queryRtId) return 'Select a stream-data query.';
+    if (options?.requireCategoryField && !s.categoryField) return 'Select a category field.';
     if (!s.valueField) return 'Select a value field.';
     if (s.dataSource.resolutionAware && !s.dataSource.requiredAggregation) return 'Select the aggregation.';
     return null;
