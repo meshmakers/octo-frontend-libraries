@@ -16,6 +16,47 @@ import { ProcessWidgetConfig } from '../models/meshboard.models';
 // Process Widget Components (these pull in @meshmakers/octo-process-diagrams)
 import { ProcessWidgetComponent } from '../widgets/process-widget/process-widget.component';
 import { ProcessConfigDialogComponent, ProcessConfigResult } from '../widgets/process-widget/process-config-dialog.component';
+import { DEFAULT_PROCESS_BINDING_NAME, ProcessWidgetBinding } from '../widgets/process-widget/process-widget-config.model';
+import {
+  hasNamedProcessBindings,
+  parsePersistedProcessBindings,
+  toPersistedProcessBindings
+} from '../widgets/process-widget/process-widget-bindings';
+
+/**
+ * The legacy single-binding fields of one binding named `default` (AB#8023):
+ * a widget with exactly that one binding is saved in the legacy shape, so no
+ * existing board is migrated silently.
+ */
+function legacyFieldsOf(binding: ProcessWidgetBinding): Partial<ProcessWidgetConfig> {
+  return {
+    dataBindingMode: binding.mode,
+    bindingCkTypeId: binding.ckTypeId,
+    bindingRtId: binding.rtId,
+    bindingQueryRtId: binding.queryRtId,
+    bindingQueryName: binding.queryName,
+    bindingQueryFamily: binding.queryFamily,
+    bindingIgnoreTimeFilter: binding.ignoreTimeFilter,
+    bindingEntitySelectorId: binding.entitySelectorId,
+    bindingFilters: binding.filters
+  };
+}
+
+/**
+ * Normalizes the binding fields before persisting: a single binding named
+ * `default` collapses into the legacy fields; anything else keeps `bindings`.
+ */
+function normalizeBindings(widget: ProcessWidgetConfig): ProcessWidgetConfig {
+  if (!hasNamedProcessBindings(widget)) {
+    return widget;
+  }
+  const bindings = widget.bindings!;
+  if (bindings.length === 1 && bindings[0].name === DEFAULT_PROCESS_BINDING_NAME) {
+    const { bindings: _dropped, ...rest } = widget;
+    return { ...rest, ...legacyFieldsOf(bindings[0]) };
+  }
+  return widget;
+}
 
 /**
  * Registers the Process Widget with the widget registry.
@@ -74,7 +115,19 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
       initialPropertyMappings: widget.propertyMappings
     }),
 
-    applyConfigResult: (widget, result) => ({
+    // A widget with named bindings (AB#8023) keeps its bindings and mappings: the
+    // legacy dialog edits only the single-binding fields and would drop the
+    // mappings when its own mode is 'none' (the editor for bindings is AB#8025).
+    applyConfigResult: (widget, result) => hasNamedProcessBindings(widget) ? {
+      ...widget,
+      processDiagramRtId: result.processDiagramRtId,
+      inlineConfig: result.inlineConfig,
+      fitToBounds: result.fitToBounds,
+      allowZoom: result.allowZoom,
+      allowPan: result.allowPan,
+      showToolbar: result.showToolbar,
+      initialZoom: result.initialZoom
+    } : ({
       ...widget,
       // Diagram selection
       processDiagramRtId: result.processDiagramRtId,
@@ -116,36 +169,43 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
     }),
 
     // SOLID: Serialization for persistence
-    toPersistedConfig: (widget: ProcessWidgetConfig): WidgetPersistenceData => ({
-      dataSourceType: 'static',
-      config: {
-        // Diagram selection
-        processDiagramRtId: widget.processDiagramRtId,
-        inlineConfig: widget.inlineConfig,
-        // Display options
-        fitToBounds: widget.fitToBounds,
-        allowZoom: widget.allowZoom,
-        allowPan: widget.allowPan,
-        showToolbar: widget.showToolbar,
-        initialZoom: widget.initialZoom,
-        // Data binding
-        dataBindingMode: widget.dataBindingMode,
-        bindingCkTypeId: widget.bindingCkTypeId,
-        bindingRtId: widget.bindingRtId,
-        bindingQueryRtId: widget.bindingQueryRtId,
-        bindingQueryName: widget.bindingQueryName,
-        // Stream-data binding — written only when set.
-        ...(widget.bindingQueryFamily && { bindingQueryFamily: widget.bindingQueryFamily }),
-        ...(widget.bindingIgnoreTimeFilter && { bindingIgnoreTimeFilter: true }),
-        ...(widget.bindingEntitySelectorId && { bindingEntitySelectorId: widget.bindingEntitySelectorId }),
-        bindingFilters: widget.bindingFilters,
-        propertyMappings: widget.propertyMappings
-      }
-    }),
+    toPersistedConfig: (input: ProcessWidgetConfig): WidgetPersistenceData => {
+      const widget = normalizeBindings(input);
+      return {
+        dataSourceType: 'static',
+        config: {
+          // Diagram selection
+          processDiagramRtId: widget.processDiagramRtId,
+          inlineConfig: widget.inlineConfig,
+          // Display options
+          fitToBounds: widget.fitToBounds,
+          allowZoom: widget.allowZoom,
+          allowPan: widget.allowPan,
+          showToolbar: widget.showToolbar,
+          initialZoom: widget.initialZoom,
+          // Data binding
+          dataBindingMode: widget.dataBindingMode,
+          bindingCkTypeId: widget.bindingCkTypeId,
+          bindingRtId: widget.bindingRtId,
+          bindingQueryRtId: widget.bindingQueryRtId,
+          bindingQueryName: widget.bindingQueryName,
+          // Stream-data binding — written only when set.
+          ...(widget.bindingQueryFamily && { bindingQueryFamily: widget.bindingQueryFamily }),
+          ...(widget.bindingIgnoreTimeFilter && { bindingIgnoreTimeFilter: true }),
+          ...(widget.bindingEntitySelectorId && { bindingEntitySelectorId: widget.bindingEntitySelectorId }),
+          bindingFilters: widget.bindingFilters,
+          propertyMappings: widget.propertyMappings,
+          // Named bindings (AB#8023) — written only when present, so legacy
+          // widgets encode byte-identically.
+          ...(hasNamedProcessBindings(widget) && { bindings: toPersistedProcessBindings(widget.bindings!) })
+        }
+      };
+    },
 
     // SOLID: Deserialization from persistence
     fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): ProcessWidgetConfig => {
       const config = parseConfig(data);
+      const bindings = parsePersistedProcessBindings(config['bindings']);
       return {
         ...base,
         rtId: data.rtId,
@@ -173,7 +233,9 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
         bindingIgnoreTimeFilter: config['bindingIgnoreTimeFilter'] as boolean | undefined,
         bindingEntitySelectorId: config['bindingEntitySelectorId'] as string | undefined,
         bindingFilters: config['bindingFilters'] as ProcessWidgetConfig['bindingFilters'],
-        propertyMappings: config['propertyMappings'] as ProcessWidgetConfig['propertyMappings']
+        propertyMappings: config['propertyMappings'] as ProcessWidgetConfig['propertyMappings'],
+        // Named bindings (AB#8023); absent key stays absent.
+        ...(bindings && { bindings })
       };
     }
   });
