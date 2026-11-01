@@ -10,6 +10,15 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services: admin password reset sends the password in the request body (AB#8008, Security)
+
+- `IdentityService.resetPassword(userName, password)` now posts `{ userName, password }` as the JSON body of
+  `POST {tenant}/v1/users/ResetPassword` instead of URL query parameters (URLs end up in request logs, traces and proxy
+  access logs). New exported interface `ResetUserPasswordRequestDto`. The method signature is unchanged.
+- **Compatibility:** identity services with AB#8008 refuse the query form with 400, older identity services do not
+  accept the body form — ship this library (and the Refinery Studio build that uses it) in the same release train as
+  the identity service.
+
 ### octo-meshboard: line / stacked area chart with series from several stream-data queries (AB#7951)
 
 - New (non-breaking): `LineChartWidgetConfig.additionalSeries` — query series (`kind: 'query'`, `key`, `label`,
