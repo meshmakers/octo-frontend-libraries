@@ -1622,6 +1622,7 @@ Current test files:
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
 - `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation; date source per row type: stream-data rows use the top-level `timestamp` when `dateField` is `timestamp`, runtime rows only their cells (AB#7938)
 - `widgets/heatmap-widget/heatmap-buckets.spec.ts`, `heatmap-widget.weighted.spec.ts`, `heatmap-widget.registration.spec.ts`, `heatmap-config-dialog.component.spec.ts` - weighted mean equals the exact raw mean on a rollup fixture, empty vs. 0 cells, bucket-end shift, 25-hour DST day, own window vs. board filter, persistence round trip and byte-identical old configs, dialog validation (AB#7956)
+- `widgets/process-widget/process-widget.text-value.spec.ts` - `text.value` bindings: de-AT / en-GB / host language switch, connection text with `abs(value)`, "–" for no data / null / non-numeric / missing attribute, text inside a symbol via pass-through, diagrams without a text binding unchanged (AB#8022)
 - `widgets/process-widget/process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts` - process value aggregation sum / avg / min / max, expression order, empty and partial scope, validator fallbacks (AB#8024)
 - `widgets/process-widget/process-widget-bindings.spec.ts`, `services/process-data.service.bindings.spec.ts`, `process-widget.bindings.spec.ts`, `registrations/process-widget-registration.spec.ts` - named process bindings: legacy read, parallel load, own scope per binding, selector switch, pending / empty / error per binding, runtime entity from the selector, validator, error badge, unknown binding warned once, legacy byte-identical save and multi-binding round trip (AB#8023)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
@@ -1921,7 +1922,9 @@ propertyMappings:
 
   0 and "no value" (pending or empty binding → the property default, 0; an `animation.enabled` context
   without a value is 0) give no flow and a hidden or neutral line. Show the absolute value with a second
-  property on the same column with expression `abs(value)` (text display: AB#8022). Legacy element
+  property on the same column with expression `abs(value)` and bind a text on the line with the
+  `text.value` effect (AB#8022): it shows `1,8 kW`, the line's effects carry the sign, and while the
+  property has no value the text shows "–" (the line effects still see the default). Legacy element
   connections (`ProcessConnection.animation.dataBinding`) keep their own element binding (unchanged).
   Spec: `process-widget.bindings.spec.ts` *connections driven by any binding*.
 - **Aggregation (AB#8024)** sits on the mapped value, not on the binding, so one binding gives both the sum of

@@ -487,4 +487,47 @@ describe('SymbolRenderer', () => {
       expect(nestedValues?.['displayValue']).toBe(75);
     });
   });
+
+  describe('text.value bindings (AB#8022)', () => {
+    const textDefinition = (): SymbolDefinition => createTestSymbolDefinition({
+      primitives: [{
+        id: 'txt-value', name: 'Value', type: PrimitiveType.Text, position: { x: 0, y: 0 }, config: { content: 'static' }
+      } as unknown as SymbolDefinition['primitives'][number]],
+      transformProperties: [{ id: 'power', name: 'Power', type: 'number', defaultValue: 0, unit: 'kW' }],
+      propertyBindings: [{
+        propertyId: 'power', targetType: 'primitive', targetId: 'txt-value', effectType: 'text.value',
+        expression: 'abs(value)', textFormat: { decimals: 1 }
+      }]
+    });
+
+    const renderedContent = (): string => {
+      const call = primitiveRegistry.render.mock.calls.find(c => c[0].id === 'txt-value');
+      return (call?.[0] as unknown as { config: { content: string } }).config.content;
+    };
+
+    it('replaces the text with the formatted value in the context locale', () => {
+      renderer.render(createTestSymbolInstance({ propertyValues: { power: -14.425 } }), textDefinition(), { locale: 'en-GB' });
+      expect(renderedContent()).toBe('14.4 kW');
+    });
+
+    it('uses de-AT without a locale', () => {
+      renderer.render(createTestSymbolInstance({ propertyValues: { power: 14.425 } }), textDefinition());
+      expect(renderedContent()).toBe('14,4 kW');
+    });
+
+    it('shows "–" for an override without a value, the formatted default without an override', () => {
+      renderer.render(createTestSymbolInstance({ propertyValues: { power: null } }), textDefinition());
+      expect(renderedContent()).toBe(String.fromCharCode(0x2013));
+
+      primitiveRegistry.render.mockClear();
+      renderer.render(createTestSymbolInstance(), textDefinition());
+      expect(renderedContent()).toBe('0,0 kW');
+    });
+
+    it('does not change the stored definition', () => {
+      const definition = textDefinition();
+      renderer.render(createTestSymbolInstance({ propertyValues: { power: 3 } }), definition);
+      expect((definition.primitives[0] as unknown as { config: { content: string } }).config.content).toBe('static');
+    });
+  });
 });

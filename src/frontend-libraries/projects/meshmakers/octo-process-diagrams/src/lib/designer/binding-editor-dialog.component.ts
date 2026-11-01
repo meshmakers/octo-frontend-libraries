@@ -35,6 +35,12 @@ import { PrimitiveBase } from '../primitives';
 import { SymbolInstance, SymbolDefinition } from '../primitives/models/symbol.model';
 import { AnimationDefinition } from '../primitives/models/animation.models';
 import { ExpressionEvaluatorService } from '../services/expression-evaluator.service';
+import {
+  evaluateTextValue,
+  TEXT_VALUE_DEFAULT_NO_VALUE,
+  TEXT_VALUE_MAX_DECIMALS,
+  textValueDecimals
+} from '../services/text-value-formatter';
 import { MmDialogActionsDirective } from '@meshmakers/shared-ui';
 
 /**
@@ -125,7 +131,7 @@ interface TargetOption {
                       <div class="form-row">
                         <label>Effect</label>
                         <select (change)="updateBinding(i, 'effectType', $any($event.target).value)">
-                          @for (group of effectTypeGroups; track group.name) {
+                          @for (group of effectGroupsFor(binding); track group.name) {
                             <optgroup [label]="group.name">
                               @for (effect of group.effects; track effect.value) {
                                 <option [value]="effect.value"
@@ -187,6 +193,31 @@ interface TargetOption {
                         </div>
                       }
 
+                      @if (binding.effectType === 'text.value') {
+                        <div class="form-row text-format-row">
+                          <label [attr.for]="'tv-unit-' + i">Unit</label>
+                          <input type="text" class="tv-unit" [id]="'tv-unit-' + i"
+                                 [value]="binding.textFormat?.unit ?? ''"
+                                 (input)="updateTextFormat(i, 'unit', $any($event.target).value)"
+                                 placeholder="kW"/>
+                          <label [attr.for]="'tv-decimals-' + i">Decimals</label>
+                          <select class="tv-decimals" [id]="'tv-decimals-' + i"
+                                  (change)="updateTextFormat(i, 'decimals', $any($event.target).value)">
+                            @for (d of decimalOptions; track d) {
+                              <option [value]="d" [selected]="decimalsOf(binding) === d">{{ d }}</option>
+                            }
+                          </select>
+                          <label [attr.for]="'tv-novalue-' + i">No value shows</label>
+                          <input type="text" class="tv-novalue" [id]="'tv-novalue-' + i"
+                                 [value]="binding.textFormat?.noValueText ?? defaultNoValueText"
+                                 (input)="updateTextFormat(i, 'noValueText', $any($event.target).value)"/>
+                        </div>
+                        <div class="expression-hint text-format-hint">
+                          Number format follows the board language (host language, fallback de-AT).
+                          Use <code>abs(value)</code> to show a flow without its sign; the arrow direction carries the sign.
+                        </div>
+                      }
+
                       <div class="form-row expression-row">
                         <label>Expression</label>
                         <div class="expression-input">
@@ -219,10 +250,21 @@ interface TargetOption {
                             }
                           </div>
                           <div class="preview-arrow">→</div>
-                          <div class="preview-output" [class.error]="previewError(i)">
-                            <span>Output:</span>
-                            <span class="output-value">{{ getPreviewOutput(binding.expression) }}</span>
-                          </div>
+                          @if (binding.effectType === 'text.value') {
+                            <div class="preview-output text-value-preview">
+                              <span class="output-value tv-preview-de">{{ textPreview(binding, 'de-AT') }}</span>
+                              <span class="tv-locale">de-AT</span>
+                              <span class="output-value tv-preview-en">{{ textPreview(binding, 'en-GB') }}</span>
+                              <span class="tv-locale">en-GB</span>
+                              <span class="output-value tv-preview-none">{{ textPreview(binding, 'de-AT', true) }}</span>
+                              <span class="tv-locale">no value</span>
+                            </div>
+                          } @else {
+                            <div class="preview-output" [class.error]="previewError(i)">
+                              <span>Output:</span>
+                              <span class="output-value">{{ getPreviewOutput(binding.expression) }}</span>
+                            </div>
+                          }
                         </div>
                       </div>
                     </div>
@@ -397,6 +439,40 @@ interface TargetOption {
       padding: 0.125rem 0.25rem;
       border-radius: 3px;
       font-family: 'Consolas', 'Monaco', monospace;
+    }
+
+    .text-format-row {
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .text-format-row label {
+      flex: none;
+      padding-top: 0;
+    }
+
+    .text-format-row .tv-unit,
+    .text-format-row .tv-novalue {
+      flex: 1 1 4rem;
+      min-width: 3rem;
+    }
+
+    .text-format-row .tv-decimals {
+      flex: 0 0 auto;
+    }
+
+    .text-value-preview {
+      flex-wrap: wrap;
+    }
+
+    .text-value-preview .output-value {
+      font-weight: 600;
+    }
+
+    .text-value-preview .tv-locale {
+      font-size: 10px;
+      color: var(--kendo-color-subtle, #6a737d);
     }
 
     .expression-preview {
@@ -662,6 +738,12 @@ export class BindingEditorDialogComponent implements OnInit {
       ]
     },
     {
+      name: 'Text',
+      effects: [
+        { value: 'text.value' as BindingEffectType, label: 'Text value' }
+      ]
+    },
+    {
       name: 'Other',
       effects: [
         { value: 'visible' as BindingEffectType, label: 'Visibility' },
@@ -699,6 +781,16 @@ export class BindingEditorDialogComponent implements OnInit {
     'dimension.width',
     'dimension.height'
   ];
+
+  /** Decimals offered for a text value (0–6). */
+  get decimalOptions(): number[] {
+    return Array.from({ length: TEXT_VALUE_MAX_DECIMALS + 1 }, (_, i) => i);
+  }
+
+  /** Default "no value" text (en dash). */
+  get defaultNoValueText(): string {
+    return TEXT_VALUE_DEFAULT_NO_VALUE;
+  }
 
   // Computed target options
   primitiveTargets = computed<TargetOption[]>(() => {
@@ -748,6 +840,53 @@ export class BindingEditorDialogComponent implements OnInit {
       }
     }
     return effectType;
+  }
+
+  /**
+   * Whether a binding targets a text primitive — the only target of `text.value` (AB#8022).
+   * Text inside a symbol is a primitive of the symbol definition, bound in the symbol editor.
+   */
+  isTextTarget(binding: Pick<PropertyBinding, 'targetType' | 'targetId'>): boolean {
+    return binding.targetType === 'primitive' && this.primitives.find(p => p.id === binding.targetId)?.type === 'text';
+  }
+
+  /** Effect groups for a binding: the "Text" group only for text targets. */
+  effectGroupsFor(binding: PropertyBinding): typeof this.effectTypeGroups {
+    return this.isTextTarget(binding) ? this.effectTypeGroups : this.effectTypeGroups.filter(g => g.name !== 'Text');
+  }
+
+  /** Decimals of a text value binding (0 when unset). */
+  decimalsOf(binding: PropertyBinding): number {
+    return textValueDecimals(binding.textFormat);
+  }
+
+  /**
+   * Preview of a text value binding with the preview input as sample value,
+   * formatted for `locale`; `noValue` shows what the board shows without a value.
+   */
+  textPreview(binding: PropertyBinding, locale: string, noValue = false): string {
+    return evaluateTextValue(noValue ? undefined : this._previewInputValue(), binding, {
+      evaluator: this.expressionEvaluator,
+      locale,
+      property: this._property() ?? undefined
+    });
+  }
+
+  /** Update one field of a text value format. */
+  updateTextFormat(index: number, field: 'unit' | 'decimals' | 'noValueText', value: string): void {
+    this._bindings.update(bindings => {
+      const updated = [...bindings];
+      const binding = { ...updated[index] };
+      const format = { ...binding.textFormat };
+      if (field === 'decimals') {
+        format.decimals = textValueDecimals({ decimals: Number(value) });
+      } else {
+        format[field] = value;
+      }
+      binding.textFormat = format;
+      updated[index] = binding;
+      return updated;
+    });
   }
 
   /**
@@ -841,8 +980,23 @@ export class BindingEditorDialogComponent implements OnInit {
         const [type, id] = value.split(':');
         binding.targetType = type as BindingTargetType;
         binding.targetId = id;
+        if (binding.effectType === 'text.value' && !this.isTextTarget(binding)) {
+          // Text value only applies to text targets
+          binding.effectType = 'dimension.width';
+          delete binding.textFormat;
+        }
       } else if (field === 'effectType') {
         binding.effectType = value as BindingEffectType;
+        if (binding.effectType === 'text.value') {
+          // Defaults: the property's unit, 0 decimals, "–" (AB#8022)
+          binding.textFormat = binding.textFormat ?? {
+            unit: this._property()?.unit ?? '',
+            decimals: 0,
+            noValueText: TEXT_VALUE_DEFAULT_NO_VALUE
+          };
+        } else {
+          delete binding.textFormat;
+        }
       } else if (field === 'expression') {
         binding.expression = value;
       } else if (field === 'targetPropertyId') {
