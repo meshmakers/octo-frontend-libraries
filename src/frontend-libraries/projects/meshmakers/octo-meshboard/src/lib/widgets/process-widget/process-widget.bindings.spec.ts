@@ -175,6 +175,28 @@ describe('ProcessWidgetComponent — named bindings (AB#8023)', () => {
     expect(offsets(component)).toEqual({ grid: 4, pv: 0, soc: 0 });
   });
 
+  it('a slower load of the previous site never overwrites the values of the newer pick', async () => {
+    let releaseOld!: (v: Map<string, BoundDataResult>) => void;
+    loadBindings.mockReturnValueOnce(new Promise(resolve => (releaseOld = resolve)));
+    loadBindings.mockResolvedValueOnce(new Map([['netz', queryResult('netz', 4)], ['pv', queryResult('pv', 0)], ['batterie', entityResult('batterie', 20)]]));
+
+    const fixture = TestBed.createComponent(ProcessWidgetComponent);
+    const component = fixture.componentInstance;
+    component.config = config();
+    component.ngOnInit();                 // load 1 (Firmianstraße) — still running
+    await vi.waitFor(() => expect(loadBindings).toHaveBeenCalledTimes(1));
+    component.refresh();                  // load 2 (Fusch) — finishes first
+    await vi.waitFor(() => expect(loadBindings).toHaveBeenCalledTimes(2));
+    await new Promise(resolve => setTimeout(resolve));
+    expect(offsets(component)).toEqual({ grid: 4, pv: 0, soc: 20 });
+
+    releaseOld(new Map([['netz', queryResult('netz', 2)], ['pv', queryResult('pv', 14)], ['batterie', entityResult('batterie', 63)]]));
+    await new Promise(resolve => setTimeout(resolve));
+
+    expect(offsets(component)).toEqual({ grid: 4, pv: 0, soc: 20 });
+    expect(component.isLoading()).toBe(false);
+  });
+
   it('names a failing binding in the error badge and renders the others', async () => {
     loadBindings.mockResolvedValue(new Map([
       ['netz', queryResult('netz', 2)],

@@ -1297,6 +1297,11 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private readonly _boundDataByBinding = signal<ReadonlyMap<string, BoundDataResult>>(new Map());
   /** Console messages already written by this widget instance (each is reported once). */
   private readonly reportedWarnings = new Set<string>();
+  /**
+   * Generation of the latest `loadDiagram()` call: a slower, older load (e.g. of
+   * the previous leader pick) never overwrites the bound data of a newer one.
+   */
+  private loadGeneration = 0;
 
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
@@ -1455,6 +1460,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * Loads the process diagram configuration and data
    */
   private async loadDiagram(): Promise<void> {
+    const generation = ++this.loadGeneration;
     this._isLoading.set(true);
     this._error.set(null);
     this._boundData.set(null);
@@ -1469,7 +1475,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
         this._diagramConfig.set(this.config.inlineConfig);
         await this.loadSymbolDefinitions(this.config.inlineConfig);
         await this.loadRuntimeData();
-        scopePending = await this.loadBoundData();
+        scopePending = await this.loadBoundData(generation);
         return;
       }
 
@@ -1479,7 +1485,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
         this._diagramConfig.set(diagram);
         await this.loadSymbolDefinitions(diagram);
         await this.loadRuntimeData();
-        scopePending = await this.loadBoundData();
+        scopePending = await this.loadBoundData(generation);
         return;
       }
 
@@ -1489,7 +1495,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       console.error('Error loading process diagram:', err);
       this._error.set('Failed to load process diagram');
     } finally {
-      if (!scopePending) {
+      if (!scopePending && generation === this.loadGeneration) {
         this._isLoading.set(false);
       }
     }
@@ -1499,13 +1505,17 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * Loads bound data based on widget data binding configuration.
    * Returns `true` when the bound entity-selector scope is still resolving (AB#7721).
    */
-  private async loadBoundData(): Promise<boolean> {
+  private async loadBoundData(generation: number): Promise<boolean> {
     this.reportBindingIssues();
 
     try {
       // Every binding loads in parallel (AB#8023): the named `bindings`, or the
       // implicit legacy binding `default`. No binding configured → nothing to load.
       const results = await this.dataService.loadBindings(this.config);
+      if (generation !== this.loadGeneration) {
+        // A newer load started meanwhile (e.g. leader pick changed): drop this result.
+        return false;
+      }
       if (results.size === 0) {
         return false;
       }
