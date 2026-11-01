@@ -142,6 +142,24 @@ describe('Process widget registration — bindings (AB#8023)', () => {
       expect(saveJson(load(saved))).toBe(JSON.stringify(saved));
     });
 
+    it('round-trips mapping aggregates unchanged (AB#8024)', () => {
+      const stored = {
+        ...energyFlowStored,
+        propertyMappings: [
+          ...energyFlowStored.propertyMappings,
+          { propertyId: 'devicesPower', sourceType: 'column', sourcePath: 'activePower', bindingName: 'geraete', aggregate: 'sum', expression: 'value / 1000' },
+          { propertyId: 'wallboxMax', sourceType: 'column', sourcePath: 'power', bindingName: 'wallboxen', aggregate: 'max' }
+        ]
+      };
+
+      const widget = load(stored);
+      expect(widget.propertyMappings?.[3].aggregate).toBe('sum');
+
+      const saved = registry.serializeWidget(widget).config as Record<string, unknown>;
+      expect(JSON.stringify(saved['propertyMappings'])).toBe(JSON.stringify(stored.propertyMappings));
+      expect(saveJson(load(saved))).toBe(JSON.stringify(saved));
+    });
+
     it('drops entries with an unknown mode and leaves no empty bindings key', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 

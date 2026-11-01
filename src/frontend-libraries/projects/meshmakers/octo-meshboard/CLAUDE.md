@@ -1566,6 +1566,7 @@ Current test files:
 - `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
 - `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation; date source per row type: stream-data rows use the top-level `timestamp` when `dateField` is `timestamp`, runtime rows only their cells (AB#7938)
 - `widgets/heatmap-widget/heatmap-buckets.spec.ts`, `heatmap-widget.weighted.spec.ts`, `heatmap-widget.registration.spec.ts`, `heatmap-config-dialog.component.spec.ts` - weighted mean equals the exact raw mean on a rollup fixture, empty vs. 0 cells, bucket-end shift, 25-hour DST day, own window vs. board filter, persistence round trip and byte-identical old configs, dialog validation (AB#7956)
+- `widgets/process-widget/process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts` - process value aggregation sum / avg / min / max, expression order, empty and partial scope, validator fallbacks (AB#8024)
 - `widgets/process-widget/process-widget-bindings.spec.ts`, `services/process-data.service.bindings.spec.ts`, `process-widget.bindings.spec.ts`, `registrations/process-widget-registration.spec.ts` - named process bindings: legacy read, parallel load, own scope per binding, selector switch, pending / empty / error per binding, runtime entity from the selector, validator, error badge, unknown binding warned once, legacy byte-identical save and multi-binding round trip (AB#8023)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
 - `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
@@ -1867,8 +1868,37 @@ propertyMappings:
   property on the same column with expression `abs(value)` (text display: AB#8022). Legacy element
   connections (`ProcessConnection.animation.dataBinding`) keep their own element binding (unchanged).
   Spec: `process-widget.bindings.spec.ts` *connections driven by any binding*.
-- **Aggregation** (sum / avg / min / max over the scope) is per mapped value and follows in AB#8024; query
-  bindings already return all rows of the scope (`queryResult.rows`), mappings read the first row today.
+- **Aggregation (AB#8024)** sits on the mapped value, not on the binding, so one binding gives both the sum of
+  power and the average state of charge:
+
+  ```yaml
+  propertyMappings:
+    - { propertyId: devicesPower, sourceType: column, sourcePath: activePower, bindingName: geraete, aggregate: sum, expression: value / 1000 }
+    - { propertyId: socAvg,       sourceType: column, sourcePath: stateOfCharge, bindingName: geraete, aggregate: avg }
+  ```
+
+  | `aggregate` | Value |
+  |---|---|
+  | absent / `first` | cell of the first row, unchanged (legacy behaviour) |
+  | `sum` / `avg` / `min` / `max` | over the numeric cells of all rows of the scope (numbers and numeric strings; null, undefined, other text skipped) |
+
+  Rules (pure helpers in `process-value-aggregation.ts`: `aggregateQueryColumn`, `isPartialAggregate`,
+  `processAggregateIssue`; `mappingAggregateIssue` in `process-widget-bindings.ts`):
+  - Order: aggregate over the rows, then the mapping `expression` on the result, then type coercion.
+  - Zero rows or no numeric cell ⇒ the property is `undefined` (no value): its effects are skipped, a bound text
+    shows "–", a connection's `animation.enabled` sees 0. Not 0 and not the property default.
+  - `totalCount` > loaded rows (query limit `first: 1000`) ⇒ the aggregate is computed over the loaded rows and
+    one `console.warn` per widget instance names the binding and the counts.
+  - **Query bindings only.** A runtime-entity binding loads one entity (the first of its selector's scope), so
+    there is nothing to aggregate; to aggregate over all entities of a scope bind a runtime persistent query with
+    the selector (decided in AB#8024, matching the AB#7941 need: sum over the wallboxes and devices of the picked
+    site, both query bindings). An aggregate other than `first` on a runtime-entity binding, an `attribute`
+    mapping or a non-`number` property is reported once by `validateProcessWidgetBindings` (the widget passes the
+    diagram's property types) and falls back to the first row.
+  - Persistence: mappings are stored verbatim, so `aggregate` round-trips; mappings without it encode unchanged.
+    Legacy element bindings (`process-data.service.ts`) are not affected. Editor control: AB#8025.
+  - Specs: `process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts`, the aggregate round trip in
+    `registrations/process-widget-registration.spec.ts`.
 
 ## Process Designer
 

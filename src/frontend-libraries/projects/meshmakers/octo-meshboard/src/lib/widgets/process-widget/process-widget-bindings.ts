@@ -6,6 +6,7 @@ import {
   ProcessWidgetBinding,
   ProcessWidgetConfig
 } from './process-widget-config.model';
+import { processAggregateIssue } from './process-value-aggregation';
 
 /**
  * Helpers for the named data bindings of the Process Widget (AB#8023):
@@ -97,10 +98,18 @@ export function processBindingConfigError(binding: ProcessWidgetBinding): string
  * (only checked when `knownSelectorIds` is given), and mappings that refer to an
  * unknown binding. A legacy config is validated like its implicit binding; a
  * config without any binding has no issues.
+ *
+ * Aggregates (AB#8024): an unknown aggregate, or one other than `first` on a
+ * runtime-entity binding, an `attribute` mapping or — when `propertyTypes` is
+ * given — a non-`number` property, is reported; the widget then reads the
+ * first row.
+ *
+ * @param propertyTypes Type per diagram property id (`transformProperties`), when the diagram is known.
  */
 export function validateProcessWidgetBindings(
   config: ProcessWidgetConfig,
-  knownSelectorIds?: readonly string[]
+  knownSelectorIds?: readonly string[],
+  propertyTypes?: ReadonlyMap<string, string>
 ): ProcessBindingIssue[] {
   const issues: ProcessBindingIssue[] = [];
   const bindings = resolveProcessBindings(config);
@@ -140,10 +149,38 @@ export function validateProcessWidgetBindings(
           message: `Mapping of '${mapping.propertyId}' refers to unknown binding '${name}'`
         });
       }
+      const aggregateIssue = mappingAggregateIssue(mapping, bindings.find(b => b.name === name), propertyTypes);
+      if (aggregateIssue) {
+        issues.push({
+          bindingName: name,
+          propertyId: mapping.propertyId,
+          message: `Mapping of '${mapping.propertyId}': ${aggregateIssue}; the first row is used`
+        });
+      }
     }
   }
 
   return issues;
+}
+
+/**
+ * Why a mapping's `aggregate` cannot apply (AB#8024), or `undefined`. Besides
+ * {@link processAggregateIssue} an `attribute` mapping cannot aggregate: it
+ * reads one entity.
+ */
+export function mappingAggregateIssue(
+  mapping: DiagramPropertyMapping,
+  binding: ProcessWidgetBinding | undefined,
+  propertyTypes?: ReadonlyMap<string, string>
+): string | undefined {
+  const issue = processAggregateIssue(mapping.aggregate, propertyTypes?.get(mapping.propertyId), binding?.mode);
+  if (issue) {
+    return issue;
+  }
+  if (mapping.aggregate && mapping.aggregate !== 'first' && mapping.sourceType === 'attribute') {
+    return `Aggregate '${mapping.aggregate}' needs a column mapping; an attribute mapping reads one entity`;
+  }
+  return undefined;
 }
 
 /**

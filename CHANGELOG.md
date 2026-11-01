@@ -10,6 +10,22 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: process values summed, averaged or reduced to min/max over a binding's scope (AB#8024)
+
+- New (non-breaking): `DiagramPropertyMapping.aggregate` — `'first' | 'sum' | 'avg' | 'min' | 'max'`
+  (type `ProcessValueAggregate`), default `first`. A column mapping of a persistent-query binding reduces the
+  numeric cells of all rows of the binding's selector scope (e.g. the sum of `activePower` over all appliances of
+  the picked site); null, undefined and non-numeric cells are skipped. Zero rows or no numeric cell give the
+  property no value (its effects are skipped), not 0. The mapping `expression` runs on the aggregate
+  (`sum`, then `value / 1000`). When the query's `totalCount` exceeds the loaded rows, the aggregate is still
+  computed and one console warning names the binding and the counts.
+- Aggregation works on **query bindings only**: a runtime-entity binding loads one entity. An aggregate other than
+  `first` on a runtime-entity binding, an attribute mapping or a non-number property is reported by
+  `validateProcessWidgetBindings` (new optional `propertyTypes` argument) and falls back to the first row.
+  To aggregate over all entities of a scope, bind a runtime persistent query with the entity selector.
+- Compatibility: mappings without `aggregate` read the first row as before; `aggregate` is persisted verbatim with
+  the mapping. The editor control follows in AB#8025.
+
 ### octo-services: admin password reset sends the password in the request body (AB#8008, Security)
 
 - `IdentityService.resetPassword(userName, password)` now posts `{ userName, password }` as the JSON body of
