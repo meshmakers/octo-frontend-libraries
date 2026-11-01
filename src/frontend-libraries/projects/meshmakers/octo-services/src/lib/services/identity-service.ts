@@ -16,6 +16,7 @@ import {EmailDomainGroupRuleDto, EmailDomainGroupRulesResult} from '../shared/em
 import {CreateEmailIdentifierBindingDto, EmailIdentifierBindingDto} from '../shared/emailIdentifierBindingDto';
 import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
+import {ResetUserPasswordRequestDto} from '../shared/resetUserPasswordRequestDto';
 import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
 import {CreateExternalTenantUserMappingDto, ExternalTenantUserMappingDto} from '../shared/externalTenantUserMappingDto';
 import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
@@ -353,14 +354,16 @@ export class IdentityService {
     }
   }
 
+  /**
+   * Sets a new password for a user (administrator reset). User name and password travel only in the JSON body;
+   * the identity service refuses the password as a URL query parameter (400).
+   */
   async resetPassword(userName: string, password: string): Promise<unknown> {
-    const params = new HttpParams().set('userName', userName).set('password', password);
-
     const baseUrl = await this.getApiBaseUrl();
     if (baseUrl) {
+      const request: ResetUserPasswordRequestDto = { userName, password };
       const response = await firstValueFrom(
-        this.httpClient.post<unknown>(baseUrl + 'users/ResetPassword', null, {
-          params,
+        this.httpClient.post<unknown>(baseUrl + 'users/ResetPassword', request, {
           observe: 'response'
         })
       );
