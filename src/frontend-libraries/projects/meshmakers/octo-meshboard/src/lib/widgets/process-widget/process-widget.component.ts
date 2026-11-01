@@ -14,7 +14,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DashboardWidget } from '../widget.interface';
-import { ProcessWidgetConfig } from './process-widget-config.model';
+import { DEFAULT_PROCESS_BINDING_NAME, ProcessWidgetConfig } from './process-widget-config.model';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { hasNamedProcessBindings, mappingBindingName, validateProcessWidgetBindings } from './process-widget-bindings';
 import { ProcessDataService, BoundDataResult } from './services/process-data.service';
 import type {
   ProcessDiagramConfig,
@@ -1086,6 +1088,12 @@ import { QueryResultData } from './services/process-data.service';
           <span>No process diagram configured</span>
         </div>
       }
+      @if (!isLoading() && !error() && bindingErrors().length > 0) {
+        <div class="binding-error-badge" role="status" [attr.title]="bindingErrorText()">
+          <span class="binding-error-icon" aria-hidden="true">⚠</span>
+          <span class="binding-error-text">{{ bindingErrorText() }}</span>
+        </div>
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -1097,6 +1105,7 @@ import { QueryResultData } from './services/process-data.service';
     }
 
     .process-widget {
+      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1157,6 +1166,30 @@ import { QueryResultData } from './services/process-data.service';
     .diagram-container {
       position: relative;
       overflow: hidden;
+    }
+
+    /* Names the bindings that failed (AB#8023); the diagram keeps rendering. */
+    .binding-error-badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      max-width: calc(100% - 8px);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: var(--kendo-color-error, #d32f2f);
+      background-color: var(--kendo-color-surface-alt, #ffffff);
+      border: 1px solid var(--kendo-color-error, #d32f2f);
+      z-index: 1;
+    }
+
+    .binding-error-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .diagram-container.fit-to-bounds {
@@ -1245,6 +1278,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   @ViewChild('containerRef') containerRef!: ElementRef<HTMLDivElement>;
 
   private readonly dataService = inject(ProcessDataService);
+  private readonly stateService = inject(MeshBoardStateService);
   private readonly symbolLibraryService = inject(SymbolLibraryService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
@@ -1259,6 +1293,15 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private readonly _runtimeState = signal<ProcessDiagramRuntimeState | null>(null);
   private readonly _symbolDefinitions = signal<Map<string, SymbolDefinition>>(new Map());
   private readonly _boundData = signal<BoundDataResult | null>(null);
+  /** Loaded results per binding name (AB#8023); pending bindings are absent. */
+  private readonly _boundDataByBinding = signal<ReadonlyMap<string, BoundDataResult>>(new Map());
+  /** Console messages already written by this widget instance (each is reported once). */
+  private readonly reportedWarnings = new Set<string>();
+  /**
+   * Generation of the latest `loadDiagram()` call: a slower, older load (e.g. of
+   * the previous leader pick) never overwrites the bound data of a newer one.
+   */
+  private loadGeneration = 0;
 
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
@@ -1270,6 +1313,33 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * Contains entity or query data that can be used for dynamic values in the diagram.
    */
   readonly boundData = this._boundData.asReadonly();
+
+  /** Loaded results per binding name (AB#8023). Pending bindings have no entry. */
+  readonly boundDataByBinding = this._boundDataByBinding.asReadonly();
+
+  /**
+   * Bindings whose load failed, for the error badge (AB#8023). Only for widgets
+   * with named `bindings`: a legacy single-binding widget keeps its previous
+   * behaviour (diagram without values, no badge).
+   */
+  readonly bindingErrors = computed<{ name: string; message: string }[]>(() => {
+    const errors: { name: string; message: string }[] = [];
+    const results = this._boundDataByBinding();
+    if (!hasNamedProcessBindings(this.config)) {
+      return errors;
+    }
+    for (const [name, result] of results) {
+      if (result.error) {
+        errors.push({ name, message: result.error });
+      }
+    }
+    return errors;
+  });
+
+  /** Text of the error badge: "Binding pv: <message>; Binding netz: …". */
+  readonly bindingErrorText = computed(() =>
+    this.bindingErrors().map(e => `Binding ${e.name}: ${e.message}`).join('; ')
+  );
 
   // Computed SVG properties
   readonly viewBox = computed(() => {
@@ -1295,7 +1365,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   readonly animationEnabledStates = computed<Record<string, boolean>>(() => {
     const states: Record<string, boolean> = {};
     const diagram = this._diagramConfig();
-    const boundData = this._boundData();
+    const boundData = this._boundDataByBinding();
 
     if (!diagram?.propertyBindings || diagram.propertyBindings.length === 0) {
       return states;
@@ -1311,7 +1381,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     }
 
     // Build property values from bound data
-    const propertyValues = boundData
+    const propertyValues = boundData.size > 0
       ? this.buildPropertyValuesFromBoundData(
         diagram.transformProperties ?? [],
         this.config.propertyMappings ?? [],
@@ -1346,14 +1416,14 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    */
   readonly boundPrimitives = computed<PrimitiveBase[]>(() => {
     const diagram = this._diagramConfig();
-    const boundData = this._boundData();
+    const boundData = this._boundDataByBinding();
 
     if (!diagram?.primitives) {
       return [];
     }
 
     // If no bindings or no bound data, return original primitives
-    if (!diagram.propertyBindings || diagram.propertyBindings.length === 0 || !boundData) {
+    if (!diagram.propertyBindings || diagram.propertyBindings.length === 0 || boundData.size === 0) {
       return diagram.primitives;
     }
 
@@ -1390,9 +1460,11 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * Loads the process diagram configuration and data
    */
   private async loadDiagram(): Promise<void> {
+    const generation = ++this.loadGeneration;
     this._isLoading.set(true);
     this._error.set(null);
     this._boundData.set(null);
+    this._boundDataByBinding.set(new Map());
     // A bound entity-selector scope that is still resolving keeps the widget loading
     // until the refresh that follows the resolution (AB#7721).
     let scopePending = false;
@@ -1403,7 +1475,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
         this._diagramConfig.set(this.config.inlineConfig);
         await this.loadSymbolDefinitions(this.config.inlineConfig);
         await this.loadRuntimeData();
-        scopePending = await this.loadBoundData();
+        scopePending = await this.loadBoundData(generation);
         return;
       }
 
@@ -1413,7 +1485,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
         this._diagramConfig.set(diagram);
         await this.loadSymbolDefinitions(diagram);
         await this.loadRuntimeData();
-        scopePending = await this.loadBoundData();
+        scopePending = await this.loadBoundData(generation);
         return;
       }
 
@@ -1423,7 +1495,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       console.error('Error loading process diagram:', err);
       this._error.set('Failed to load process diagram');
     } finally {
-      if (!scopePending) {
+      if (!scopePending && generation === this.loadGeneration) {
         this._isLoading.set(false);
       }
     }
@@ -1433,23 +1505,58 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    * Loads bound data based on widget data binding configuration.
    * Returns `true` when the bound entity-selector scope is still resolving (AB#7721).
    */
-  private async loadBoundData(): Promise<boolean> {
-    // Only load if data binding is configured
-    if (!this.config.dataBindingMode || this.config.dataBindingMode === 'none') {
-      return false;
-    }
+  private async loadBoundData(generation: number): Promise<boolean> {
+    this.reportBindingIssues();
 
     try {
-      const boundData = await this.dataService.loadBoundData(this.config);
-      if (boundData?.pending) {
+      // Every binding loads in parallel (AB#8023): the named `bindings`, or the
+      // implicit legacy binding `default`. No binding configured → nothing to load.
+      const results = await this.dataService.loadBindings(this.config);
+      if (generation !== this.loadGeneration) {
+        // A newer load started meanwhile (e.g. leader pick changed): drop this result.
+        return false;
+      }
+      if (results.size === 0) {
+        return false;
+      }
+
+      // A pending binding (selector scope still resolving) gets no value and does
+      // not blank the others. Only when every binding is pending does the widget
+      // stay loading until the refresh that follows the resolution (AB#7721) —
+      // for a legacy widget that is exactly its single binding.
+      const loaded = new Map<string, BoundDataResult>();
+      for (const [name, result] of results) {
+        if (!result.pending) {
+          loaded.set(name, result);
+        }
+      }
+      if (loaded.size === 0) {
         return true;
       }
-      this._boundData.set(boundData);
+
+      this._boundDataByBinding.set(loaded);
+      this._boundData.set(loaded.get(DEFAULT_PROCESS_BINDING_NAME) ?? null);
     } catch (err) {
       console.error('Error loading bound data:', err);
       // Don't set error - diagram still displays, just without bound data
     }
     return false;
+  }
+
+  /** Writes the config issues of the bindings to the console, each once per widget instance. */
+  private reportBindingIssues(): void {
+    const selectorIds = (this.stateService.getConfig().entitySelectors ?? []).map(s => s.id);
+    for (const issue of validateProcessWidgetBindings(this.config, selectorIds)) {
+      this.warnOnce(`[ProcessWidget] ${this.config.title || this.config.id}: ${issue.message}`);
+    }
+  }
+
+  private warnOnce(message: string): void {
+    if (this.reportedWarnings.has(message)) {
+      return;
+    }
+    this.reportedWarnings.add(message);
+    console.warn(message);
   }
 
   /**
@@ -2311,9 +2418,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
 
     // Override with values from parent diagram bindings (via 'property' effect type)
     const diagram = this._diagramConfig();
-    const boundData = this._boundData();
+    const boundData = this._boundDataByBinding();
 
-    if (diagram?.propertyBindings && boundData) {
+    if (diagram?.propertyBindings && boundData.size > 0) {
       // Get parent property values
       const parentPropertyValues = this.buildPropertyValuesFromBoundData(
         diagram.transformProperties ?? [],
@@ -2832,7 +2939,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private buildPropertyValuesFromBoundData(
     transformProperties: TransformProperty[],
     mappings: DiagramPropertyMapping[],
-    boundData: BoundDataResult
+    boundDataByBinding: ReadonlyMap<string, BoundDataResult>
   ): Record<string, unknown> {
     const values: Record<string, unknown> = {};
 
@@ -2845,6 +2952,13 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     for (const mapping of mappings) {
       const prop = transformProperties.find(p => p.id === mapping.propertyId);
       if (!prop) continue;
+
+      // Each mapping reads from its own binding (AB#8023). A pending binding has
+      // no entry and leaves the default; an unknown name is reported once.
+      const boundData = boundDataByBinding.get(mappingBindingName(mapping));
+      if (!boundData) {
+        continue;
+      }
 
       let rawValue: unknown = undefined;
 
