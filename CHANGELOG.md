@@ -32,6 +32,15 @@ starts a new empty "Unreleased" section.
   context (logged to the console only); the error of the windowed retry is still shown.
 - New (non-breaking): `QueryExecutionOptions.silentErrors` for stream-data calls whose caller handles the failure.
 
+### shared-ui EntitySelectInput: the input follows the host pick (AB#7916)
+
+- Fixed: `mm-entity-select-input` `initialDisplayValue` now follows every change of the host's pick. An empty
+  value clears the text and the selection; a new name replaces the text. Before, both were ignored once a value
+  had been shown or picked, so the MeshBoard toolbar kept showing a dependent pick (e.g. a room) that a leader
+  change had cleared or replaced. Host changes emit no `entitySelected` / `entityCleared`.
+- Fixed: the clear button also clears a pick that was only shown by name (restored from the URL), emitting
+  `entityCleared`.
+
 ### octo-meshboard KPI: energy (kWh) from a stream-data Integral query (AB#7921)
 
 - New (non-breaking): a KPI in aggregation mode bound to a persisted stream-data aggregation query with an

@@ -221,11 +221,30 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   @Input() debounceMs = 300;
   @Input() prefix = '';
 
-  // Initial display value (e.g. when restoring a previously selected entity by name)
+  /**
+   * Display name of the entity the host holds as the current pick (e.g. a pick restored from
+   * the URL, or set by the host). The input follows every change (AB#7916):
+   * - a new name replaces the text; when it differs from the text of the entity picked in
+   *   this input, that selection is dropped (the host replaced the pick);
+   * - `undefined` / empty clears the text and the selection (the host cleared the pick).
+   * Host changes emit no `entitySelected` / `entityCleared` and do not call the form
+   * `onChange`: the host made the change itself. Before AB#7916 empty values and any value
+   * after a pick in this input were ignored, so the input kept showing a stale pick.
+   */
   @Input() set initialDisplayValue(value: string | undefined) {
-    if (value && !this.selectedEntity) {
-      this.searchFormControl.setValue(value, { emitEvent: false });
+    const next = value ?? '';
+    const previous = this.hostDisplayValue;
+    this.hostDisplayValue = next;
+    if (next === previous) {
+      return;
     }
+    if (next === (this.searchFormControl.value ?? '')) {
+      // The host confirms what the input already shows (e.g. the entity just picked here).
+      return;
+    }
+    this.selectedEntity = null;
+    this.filteredEntities = [];
+    this.searchFormControl.setValue(next, { emitEvent: false });
   }
 
   // Dialog inputs
@@ -285,6 +304,8 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
   private entityMap = new Map<string, unknown>();
 
   // Private members
+  /** Last value of {@link initialDisplayValue}; a host pick is shown while it is non-empty. */
+  private hostDisplayValue = '';
   private searchSubject = new Subject<string>();
   private typedText = '';
   private destroy$ = new Subject<void>();
@@ -366,7 +387,10 @@ export class EntitySelectInputComponent implements OnInit, OnDestroy, ControlVal
 
   onSelectionChange(value: string): void {
     if (!value) {
-      if (this.selectedEntity) {
+      // Clearing the input clears the pick — also a pick the host showed by name only
+      // (restored from the URL or set by the host, AB#7916), which has no entity object here.
+      if (this.selectedEntity || this.hostDisplayValue) {
+        this.hostDisplayValue = '';
         this.clearSelection();
       }
       return;

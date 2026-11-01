@@ -227,4 +227,36 @@ describe('EntitySelectorToolbarComponent — dependent picker (AB#7915)', () => 
       variables: { ckTypeId: 'Test/Site', attributeNames: [], first: 10, fieldFilters: [search] }
     });
   });
+
+  describe('rendered dependent input follows the pick (AB#7916)', () => {
+    const PICKED_ROOM: EntitySelectorConfig = { ...ROOM, selectedRtId: 'room-1', selectedDisplayName: 'Office 1' };
+    const OTHER_SITE: EntitySelectorConfig = { ...SITE, selectedRtId: 'site-2', selectedDisplayName: 'South Campus' };
+
+    function roomInputValue(fixture: ReturnType<typeof create>): string {
+      const inputs = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>('.entity-selector-item input');
+      return inputs[1].value;
+    }
+
+    function update(fixture: ReturnType<typeof create>, selectors: EntitySelectorConfig[]): void {
+      fixture.componentRef.setInput('entitySelectors', selectors);
+      fixture.detectChanges();
+    }
+
+    it('empties the room input when a leader change clears the dependent pick', () => {
+      const fixture = create([PICKED_SITE, PICKED_ROOM], { room: { status: 'resolved', rtIds: S1_ROOMS } });
+      expect(roomInputValue(fixture)).toBe('Office 1');
+
+      update(fixture, [OTHER_SITE, ROOM]);
+
+      expect(roomInputValue(fixture)).toBe('');
+    });
+
+    it('shows the new room when a leader change replaces the dependent pick with its default', () => {
+      const fixture = create([PICKED_SITE, PICKED_ROOM], { room: { status: 'resolved', rtIds: S1_ROOMS } });
+
+      update(fixture, [OTHER_SITE, { ...ROOM, selectedRtId: 'room-9', selectedDisplayName: 'Lobby' }]);
+
+      expect(roomInputValue(fixture)).toBe('Lobby');
+    });
+  });
 });
