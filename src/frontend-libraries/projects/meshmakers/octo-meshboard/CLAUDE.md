@@ -1406,6 +1406,13 @@ on a common grid — give multi-source charts a time filter.
 known `kind` or query are dropped (a newer library may store formula series). The dialog shows the
 Series section only for a stream-data primary query.
 
+**Query picker of a series row** (`acceptFamilies: ['streamData']`): autocomplete and "Browse Queries"
+dialog both classify a query by the query entity's own `ckTypeId` (`System/SimpleSdQuery`, …), so both
+data sources must map it (`persistent-query-data-sources.spec.ts`; the dialog dropped it until the AB#7951
+reopen). The value-field picker offers the column types as the backend reports them; stream-data queries
+whose stored column paths are not camelCase came back as STRING until AB#8030 (backend), and the dialog
+deliberately does not guess a type.
+
 Specs: `utils/time-grid-alignment.spec.ts` (rungs, anchors, gaps, fill-in, DST quarter hours and
 days), `line-chart-multi-source.spec.ts`, `line-chart-widget.multi-source.spec.ts` (three archives,
 common bucket count incl. resolution-aware, failing / empty / pending / misaligned source, reload on
