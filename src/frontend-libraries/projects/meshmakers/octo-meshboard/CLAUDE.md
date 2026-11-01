@@ -457,7 +457,7 @@ interface AggregationQuery {
 |------|-------------|--------------|
 | `kpi` | Single numeric value with optional trend. A `static` data source with `data` (widget-group children) reads `valueAttribute` from that entity data; without `data` the KPI shows `staticValue`. Optional `decimalPlaces` (integer number 0-3, normalised on load by `utils/kpi-decimal-places.ts`, anything else = automatic; an exact digit count, unlike the heatmap's maximum; also passed to widget-group KPI children) fixes the fraction digits of a numeric value, a negative value rounding to zero shows no sign (unset or invalid: two for a fractional value, none for a whole number; AB#7686). Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
 | `gauge` | Arc, Circular, Linear, or Radial gauge. **Formula mode** (`valueMode: 'formula'` + `formula`, static data source; AB#7950) computes the value from a formula over variables exactly like the KPI — see *Widget Output Variables and KPI Formulas*. The pointer is clamped to `min`/`max` (it stops at the scale end), the label shows the real value | runtimeEntity, persistentQuery, aggregation, static |
-| `barChart` | Bar/Column chart | persistentQuery, constructionKitQuery |
+| `barChart` | Bar/Column chart; series from several queries and formula series matched per category (AB#7953) — see *Bar chart: series from several queries* | persistentQuery, constructionKitQuery |
 | `pieChart` | Pie/Donut chart | persistentQuery, constructionKitQuery |
 | `table` | Data grid with pagination | persistentQuery |
 | `entityCard` | UML-style entity display | runtimeEntity |
@@ -1363,7 +1363,7 @@ unique; formula series of AB#7952 reference it), optional `label` (legend; the k
 `resolutionAware` + `requiredAggregation`; `aggregateSeriesByGroup` is ignored — one source is one
 series) and `valueField`. The primary data source and its field mapping stay exactly as before; its
 series come first, then `additionalSeries` in their order (legend and stacking order). AB#7953 reuses
-the editor for the bar chart with category instead of time alignment.
+the editor for the bar chart with category instead of time alignment (`alignment="category"`).
 
 **Loading (`loadMultiSource`, when at least one complete query or formula series exists):**
 
@@ -1481,6 +1481,62 @@ stacked vs line, tooltip `–`, failed operand hint, no-data legend, time filter
 primary), `line-chart-series-editor.formula.spec.ts`, `line-chart-config-dialog.series.spec.ts`,
 `registrations/default-widget-registrations.line-chart-series.spec.ts` (round trip, byte-identical AB#7951
 and legacy configs, unknown kinds dropped).
+
+---
+
+## Bar chart: series from several queries and formula series per category (AB#7953)
+
+A bar chart (column, bar, stacked, 100 % stacked) can draw series from more than its primary query plus
+formula series over them, matched **per category value** (wireframe section 4, agreed in AB#7951). EnergyIQ
+daily values (AB#7945), one group per day:
+
+```
+categoryField: day, series: [importEnergy, exportEnergy]           // primary query: grid per day
+additionalSeries:
+  { kind: 'query', key: 'pv', label: 'PV', categoryField: 'timestamp', valueField: 'energy', dataSource: { … entitySelectorId: 'pv' } }
+  { kind: 'query', key: 'gridImport', categoryField: 'day', valueField: 'importEnergy', visible: false, dataSource: <grid query> }
+  { kind: 'query', key: 'gridExport', …, visible: false }           // also batteryCharge, batteryDischarge
+  { kind: 'formula', key: 'consumption', label: 'Consumption',
+    formula: '${pv} + ${gridImport} - ${gridExport} + ${batteryDischarge} - ${batteryCharge}' }
+```
+
+- **Model:** `additionalSeries: BarChartSeriesDefinition[]` (= `LineChartSeriesDefinition`), query series with
+  their own `categoryField` (column whose value is the category of a row; `timestamp` falls back to the row
+  property of a stream-data row), `primarySeries: { visible: false }`. `stacked` is ignored — the chart type stacks.
+  As in the line chart, the primary query's series are **not** formula operands; configure operands as query series
+  (hidden if needed, the same query may serve several).
+- **Path:** `hasAdditionalSeries()` (a complete query series with category field, or a formula series) switches
+  the widget to `loadMultiSource`; otherwise the single-query code runs unchanged.
+- **Loading:** scope per source (`resolveStreamDataScope` with its own selector; any `pending` → loading and no
+  query, `empty` → "No data for <source>"); all sources in parallel (`Promise.allSettled`), widget `filters` only on
+  the primary query, a failing source gives `<source>: Failed to load data (<message>)` and the others render
+  (also when the primary fails).
+- **Alignment** (`widgets/bar-chart-widget/bar-chart-multi-source.ts`, pure): `categoryOf` keys date-times by
+  instant (`t:<ms>`, naive ISO = UTC) and other values by text; the primary is grouped exactly like the single-query
+  chart (static: missing cell 0, dynamic: missing combination 0, later row wins); query series sum several rows of one
+  category (all-null stays null). `alignOnCategories`: union of categories in first-appearance order (primary first),
+  sorted chronologically when every category is a date-time; a category a source lacks is `null` = no bar.
+- **valueScale** is applied to every source value before formulas see them (multi-source path only; the single-query
+  static chart still ignores it, AB#7923).
+- **Formulas, visibility, hints:** `composeChartSeries` of `line-chart-multi-source.ts` with `stackedChart: false` —
+  the same evaluation (`evaluateSeriesFormulas`, gap rule), hidden series, "depends on <source>, which failed" and
+  " (no data)" as the line chart. The multi-source chart uses a shared tooltip (`tooltipRows`, "–" for no bar).
+- **Labels:** date-time categories show as `dd.MM.yyyy` when each category is a different day, else date and time;
+  repeated labels get ` (2)`. Static series keep their configured colour; other series use the Kendo palette;
+  colour thresholds apply to every series.
+- **Editor:** the bar chart dialog shows the Series section for a stream-data primary query with
+  `mm-line-chart-series-editor alignment="category"`: per query row Category field (before Value field, preset from the
+  primary category field or `timestamp` when the query has the column), no Resolution-aware, no Stacked; Visible per
+  row and on the primary row. Save uses `querySeriesErrors(series, evaluator, { requireCategoryField: true })`.
+- **Persistence:** `additionalSeries` / `primarySeries` are written only when set; on load the line chart rules apply
+  (unknown kinds dropped) and only `visible: false` of the primary options is kept. Existing bar charts encode
+  byte-identically.
+
+Specs: `bar-chart-multi-source.spec.ts`, `bar-chart-widget.multi-source.spec.ts` (daily fixture: alignment, no 0
+bar, formula per category, tooltip `–`, hidden operands and primary, valueScale before formulas, all six chart types,
+failing source and failing primary, pending / empty / scoped selectors; static and dynamic single-query regression),
+`line-chart-series-editor.category.spec.ts`, `bar-chart-config-dialog.series.spec.ts`,
+`registrations/default-widget-registrations.bar-chart-series.spec.ts`.
 
 ---
 
