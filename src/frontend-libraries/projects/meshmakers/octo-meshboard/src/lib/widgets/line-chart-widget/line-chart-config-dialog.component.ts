@@ -8,7 +8,8 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartQuerySeries } from '../../models/meshboard.models';
+import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartSeriesDefinition, LineChartSeriesDisplayOptions } from '../../models/meshboard.models';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -49,8 +50,10 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   showDataBadge: boolean;
   filters?: FieldFilterDto[];
   referenceLines?: ChartReferenceLine[];
-  /** Query series after the primary query's series (AB#7951); absent when none. */
-  additionalSeries?: LineChartQuerySeries[];
+  /** Query and formula series after the primary query's series (AB#7951, AB#7952); absent when none. */
+  additionalSeries?: LineChartSeriesDefinition[];
+  /** Display options of the primary query's series (AB#7952); absent when default. */
+  primarySeries?: LineChartSeriesDisplayOptions;
   /** Stack the series of an area chart (AB#7951). */
   stacked?: boolean;
 }
@@ -225,7 +228,10 @@ export interface LineChartConfigResult extends WidgetConfigResult {
             <mm-line-chart-series-editor
               [series]="additionalSeries"
               [selectors]="availableEntitySelectors"
-              (seriesChange)="additionalSeries = $event">
+              [primary]="primarySeries"
+              [stackedChart]="form.chartType === 'area' && form.stacked"
+              (seriesChange)="additionalSeries = $event"
+              (primaryChange)="primarySeries = $event">
             </mm-line-chart-series-editor>
           </div>
         }
@@ -483,6 +489,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
   @ViewChild('querySelector') querySelector?: QuerySelectorComponent;
 
@@ -505,11 +512,14 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialShowDataBadge?: boolean;
   @Input() initialReferenceLines?: ChartReferenceLine[];
   @Input() initialFilters?: WidgetFilterConfig[];
-  @Input() initialAdditionalSeries?: LineChartQuerySeries[];
+  @Input() initialAdditionalSeries?: LineChartSeriesDefinition[];
   @Input() initialStacked?: boolean;
+  @Input() initialPrimarySeries?: LineChartSeriesDisplayOptions;
 
-  /** Query series of the Series section (AB#7951). */
-  additionalSeries: LineChartQuerySeries[] = [];
+  /** Query and formula series of the Series section (AB#7951, AB#7952). */
+  additionalSeries: LineChartSeriesDefinition[] = [];
+  /** Display options of the primary query's series (AB#7952). */
+  primarySeries: LineChartSeriesDisplayOptions | undefined;
 
   // State
   isLoadingInitial = false;
@@ -584,11 +594,11 @@ export class LineChartConfigDialogComponent implements OnInit {
       && this.form.categoryField !== ''
       && this.form.seriesGroupField !== ''
       && this.form.valueField !== ''
-      && querySeriesErrors(this.effectiveAdditionalSeries).every(e => e === null);
+      && querySeriesErrors(this.effectiveAdditionalSeries, this.expressionEvaluator).every(e => e === null);
   }
 
   /** The query series that are saved: none unless the primary query is a stream-data query. */
-  get effectiveAdditionalSeries(): LineChartQuerySeries[] {
+  get effectiveAdditionalSeries(): LineChartSeriesDefinition[] {
     return this.selectedQueryFamily === 'streamData' ? this.additionalSeries : [];
   }
 
@@ -617,6 +627,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.form.referenceLines = this.initialReferenceLines ? [...this.initialReferenceLines] : [];
     this.form.stacked = this.initialStacked ?? false;
     this.additionalSeries = this.initialAdditionalSeries ? [...this.initialAdditionalSeries] : [];
+    this.primarySeries = this.initialPrimarySeries ? { ...this.initialPrimarySeries } : undefined;
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -758,7 +769,8 @@ export class LineChartConfigDialogComponent implements OnInit {
       referenceLines: this.form.referenceLines.length > 0 ? this.form.referenceLines : undefined,
       filters: filtersDto,
       additionalSeries: this.effectiveAdditionalSeries.length > 0 ? this.effectiveAdditionalSeries : undefined,
-      stacked: this.form.chartType === 'area' && this.form.stacked ? true : undefined
+      stacked: this.form.chartType === 'area' && this.form.stacked ? true : undefined,
+      primarySeries: this.selectedQueryFamily === 'streamData' ? this.primarySeries : undefined
     };
 
     this.windowRef.close(result);

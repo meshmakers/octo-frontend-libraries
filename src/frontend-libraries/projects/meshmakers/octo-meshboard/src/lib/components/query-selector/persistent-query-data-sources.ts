@@ -118,6 +118,9 @@ export class PersistentQueryDialogDataSource implements EntitySelectDialogDataSo
             rtId: item.rtId,
             name: item.name ?? '',
             description: item.description,
+            // The family filter classifies by the query entity's own CK type (AB#7951):
+            // without it every item counts as unknown and a stream-data-only dialog lists nothing.
+            ckTypeId: item.ckTypeId,
             queryCkTypeId: item.queryCkTypeId
           }));
 

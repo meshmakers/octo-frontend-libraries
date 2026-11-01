@@ -19,6 +19,42 @@ starts a new empty "Unreleased" section.
   accept the body form — ship this library (and the Refinery Studio build that uses it) in the same release train as
   the identity service.
 
+### octo-meshboard: formula series in line / stacked area charts (AB#7952)
+
+- New (non-breaking): `LineChartFormulaSeries` (`kind: 'formula'`, `key`, `label`, `formula`) in
+  `additionalSeries` — a series computed per time bucket from other series of the chart, e.g.
+  `consumption = ${pv} + ${gridImport} - ${gridExport} - ${batteryCharge} + ${batteryDischarge}` and
+  `pvDirect = min(${pv} - ${gridExport} - ${batteryCharge}, ${consumption})`. Operands are the keys of the other
+  additional series (query or formula); the primary query's series are not operands. Same syntax and evaluator as the
+  KPI / gauge formulas (expr-eval via `ExpressionEvaluatorService`), no new expression engine. New pure util
+  `utils/meshboard-series-formula.ts` (`evaluateSeriesFormulas`, `orderSeriesFormulas`, `validateSeriesFormulas`),
+  exported for the bar chart (AB#7953).
+- Gap rule: a bucket with a `null` operand or a non-finite result (division by zero) is a gap, never 0; the tooltip
+  shows "–". A formula series whose operand source failed shows "<series>: depends on <source>, which failed"; a
+  formula series without any valid bucket keeps its legend entry with " (no data)".
+- New per-series display options `visible` / `stacked` (query and formula series) and `primarySeries` for the
+  primary query's series: a hidden series stays usable as operand but is absent from chart and legend; in a stacked
+  area chart a series with `stacked: false` is drawn as a line over the stack. All keys are written only when not
+  default, so existing boards encode byte-identically.
+- Config dialog: "Add formula series" rows with the shared formula field (series keys as insertable names, no
+  preview), Visible / Stacked checkboxes per row and on the primary row; circular references are rejected with the
+  names involved. `FormulaFieldComponent` got the optional inputs `showPreview`, `variablesLabel`, `namesNoun`,
+  `syntaxHint` and `emptyVariablesText` (defaults unchanged).
+- **Note for downgrades:** a library version before this one drops formula series when it loads a board, and ignores
+  `visible` / `stacked` / `primarySeries` (hidden operands would be drawn). Saving the board with such an older
+  library removes the formula series for good. Roll out this library to every app that edits the board before
+  authors add formula series.
+
+### octo-meshboard: "Browse Queries" lists stream-data queries in a stream-data-only picker (AB#7951)
+
+- Fix: `PersistentQueryDialogDataSource` (the query picker's "Browse Queries" dialog) now keeps the query entity's
+  `ckTypeId`, so its family filter can classify the queries. Before, every query counted as unknown, and a
+  stream-data-only picker (a series row of the line chart) listed nothing although the pager counted the queries.
+  Latent since AB#4187; the autocomplete was not affected.
+- Note: empty value-field pickers for stream-data queries whose stored column paths are not camelCase (EnergyIQ seed:
+  `ActivePower`) come from the backend typing those columns STRING. That is fixed in the asset repository (AB#8030);
+  the dialogs offer the column types as the backend reports them.
+
 ### octo-meshboard: several data bindings per process widget, each with its own entity selector (AB#8023)
 
 - New (non-breaking): `ProcessWidgetConfig.bindings` — named `ProcessWidgetBinding`s (`name`, `mode`
