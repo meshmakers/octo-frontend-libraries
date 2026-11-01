@@ -204,6 +204,159 @@ describe('ProcessWidgetComponent — named bindings (AB#8023)', () => {
     expect(unknown.length).toBe(1);
   });
 
+  /**
+   * Connections (flow lines PV→Haus, Netz↔Haus, …) are line primitives driven by
+   * `propertyBindings`. Direction comes from the sign of the bound value: two flow
+   * animations (forward / reverse) gated by `animation.enabled`, plus two arrow
+   * lines (markerEnd / markerStart) toggled by `visible`, a colour by sign and
+   * `visible` for the line itself — 0 or no value = hidden / neutral.
+   * The value comes from the SECOND binding (`netz`), not the first (`pv`).
+   */
+  describe('connections driven by any binding (AB#8023, wireframe approval)', () => {
+    function connectionDiagram(): ProcessDiagramConfig {
+      const line = (id: string, extra: Record<string, unknown> = {}) => ({
+        id,
+        type: 'line',
+        name: id,
+        position: { x: 0, y: 0 },
+        style: { stroke: { color: '#888888', width: 2 } },
+        config: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+        ...extra
+      });
+      return {
+        id: 'd2',
+        name: 'Energiefluss',
+        version: '1.0',
+        canvas: { width: 400, height: 200 },
+        elements: [],
+        connections: [],
+        primitives: [
+          line('grid-line', {
+            animations: [
+              { id: 'toHouse', animation: { type: 'animate', attributeName: 'stroke-dashoffset', from: '15', to: '0', dur: '0.5s', repeatCount: 'indefinite' } },
+              { id: 'toGrid', animation: { type: 'animate', attributeName: 'stroke-dashoffset', from: '0', to: '15', dur: '0.5s', repeatCount: 'indefinite' } }
+            ]
+          }),
+          line('grid-arrow-house', { config: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 }, markerEnd: 'arrow' } }),
+          line('grid-arrow-grid', { config: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 }, markerStart: 'arrow' } })
+        ],
+        transformProperties: [
+          { id: 'pvPower', name: 'PV', type: 'number', defaultValue: 0 },
+          { id: 'gridPower', name: 'Netz', type: 'number', defaultValue: 0 }
+        ],
+        propertyBindings: [
+          { propertyId: 'gridPower', targetType: 'primitive', targetId: 'grid-line', effectType: 'animation.enabled', animationId: 'toHouse', expression: 'value > 0' },
+          { propertyId: 'gridPower', targetType: 'primitive', targetId: 'grid-line', effectType: 'animation.enabled', animationId: 'toGrid', expression: 'value < 0' },
+          { propertyId: 'gridPower', targetType: 'primitive', targetId: 'grid-line', effectType: 'visible', expression: 'value != 0' },
+          { propertyId: 'gridPower', targetType: 'primitive', targetId: 'grid-line', effectType: 'style.stroke.color', expression: "value > 0 ? '#c62828' : (value < 0 ? '#2e7d32' : '#888888')" },
+          { propertyId: 'gridPower', targetType: 'primitive', targetId: 'grid-arrow-house', effectType: 'visible', expression: 'value > 0' },
+          { propertyId: 'gridPower', targetType: 'primitive', targetId: 'grid-arrow-grid', effectType: 'visible', expression: 'value < 0' }
+        ]
+      } as unknown as ProcessDiagramConfig;
+    }
+
+    function connectionConfig(): ProcessWidgetConfig {
+      return config({
+        inlineConfig: connectionDiagram(),
+        bindings: [
+          { name: 'pv', mode: 'persistentQuery', queryRtId: 'q-pv', entitySelectorId: 'pv' },
+          { name: 'netz', mode: 'persistentQuery', queryRtId: 'q-netz', entitySelectorId: 'netz' }
+        ],
+        propertyMappings: [
+          { propertyId: 'pvPower', sourceType: 'column', sourcePath: 'power', bindingName: 'pv' },
+          { propertyId: 'gridPower', sourceType: 'column', sourcePath: 'power', bindingName: 'netz' }
+        ]
+      });
+    }
+
+    function line(component: ProcessWidgetComponent, id: string) {
+      const p = component.boundPrimitives().find(x => x.id === id)!;
+      return { visible: p.visible, stroke: p.style?.stroke?.color };
+    }
+
+    it('import (positive value of the second binding): flow and arrow towards the house', async () => {
+      loadBindings.mockResolvedValue(new Map([['pv', queryResult('pv', 6)], ['netz', queryResult('netz', 2.5)]]));
+
+      const component = await render(connectionConfig());
+
+      expect(component.animationEnabledStates()).toEqual({ 'grid-line:toHouse': true, 'grid-line:toGrid': false });
+      expect(line(component, 'grid-line')).toEqual({ visible: true, stroke: '#c62828' });
+      expect(line(component, 'grid-arrow-house').visible).toBe(true);
+      expect(line(component, 'grid-arrow-grid').visible).toBe(false);
+    });
+
+    it('export (negative value): reverse flow and arrow towards the grid', async () => {
+      loadBindings.mockResolvedValue(new Map([['pv', queryResult('pv', 6)], ['netz', queryResult('netz', -3.1)]]));
+
+      const component = await render(connectionConfig());
+
+      expect(component.animationEnabledStates()).toEqual({ 'grid-line:toHouse': false, 'grid-line:toGrid': true });
+      expect(line(component, 'grid-line')).toEqual({ visible: true, stroke: '#2e7d32' });
+      expect(line(component, 'grid-arrow-house').visible).toBe(false);
+      expect(line(component, 'grid-arrow-grid').visible).toBe(true);
+    });
+
+    it('zero: no flow, line hidden and neutral', async () => {
+      loadBindings.mockResolvedValue(new Map([['pv', queryResult('pv', 6)], ['netz', queryResult('netz', 0)]]));
+
+      const component = await render(connectionConfig());
+
+      expect(component.animationEnabledStates()).toEqual({ 'grid-line:toHouse': false, 'grid-line:toGrid': false });
+      expect(line(component, 'grid-line')).toEqual({ visible: false, stroke: '#888888' });
+      expect(line(component, 'grid-arrow-house').visible).toBe(false);
+      expect(line(component, 'grid-arrow-grid').visible).toBe(false);
+    });
+
+    it('no value (second binding pending or empty): no flow, line hidden — even when the first binding has data', async () => {
+      loadBindings.mockResolvedValueOnce(new Map([
+        ['pv', queryResult('pv', 6)],
+        ['netz', { type: 'query', bindingName: 'netz', pending: true, loadedAt: new Date() } as BoundDataResult]
+      ]));
+      const pending = await render(connectionConfig());
+
+      expect(pending.animationEnabledStates()).toEqual({ 'grid-line:toHouse': false, 'grid-line:toGrid': false });
+      expect(line(pending, 'grid-line').visible).toBe(false);
+
+      loadBindings.mockResolvedValueOnce(new Map([
+        ['pv', queryResult('pv', 6)],
+        ['netz', { type: 'query', bindingName: 'netz', queryResult: { columns: [], rows: [], totalCount: 0 }, loadedAt: new Date() } as BoundDataResult]
+      ]));
+      const empty = await render(connectionConfig());
+
+      expect(empty.animationEnabledStates()).toEqual({ 'grid-line:toHouse': false, 'grid-line:toGrid': false });
+      expect(line(empty, 'grid-line').visible).toBe(false);
+    });
+
+    it('a leader switch from import to export flips the direction in one refresh', async () => {
+      loadBindings.mockResolvedValueOnce(new Map([['pv', queryResult('pv', 6)], ['netz', queryResult('netz', 2.5)]]));
+      const component = await render(connectionConfig());
+      expect(component.animationEnabledStates()['grid-line:toHouse']).toBe(true);
+
+      loadBindings.mockResolvedValueOnce(new Map([['pv', queryResult('pv', 9)], ['netz', queryResult('netz', -1)]]));
+      component.refresh();
+      await vi.waitFor(() => expect(loadBindings).toHaveBeenCalledTimes(2));
+      await new Promise(resolve => setTimeout(resolve));
+
+      expect(component.animationEnabledStates()).toEqual({ 'grid-line:toHouse': false, 'grid-line:toGrid': true });
+      expect(line(component, 'grid-arrow-grid').visible).toBe(true);
+    });
+
+    it('a legacy diagram drives the same connection effects from its single binding unchanged', async () => {
+      loadBindings.mockResolvedValue(new Map([['default', queryResult('default', -2)]]));
+
+      const component = await render(config({
+        inlineConfig: connectionDiagram(),
+        bindings: undefined,
+        dataBindingMode: 'persistentQuery',
+        bindingQueryRtId: 'q-netz',
+        propertyMappings: [{ propertyId: 'gridPower', sourceType: 'column', sourcePath: 'power' }]
+      }));
+
+      expect(component.animationEnabledStates()).toEqual({ 'grid-line:toHouse': false, 'grid-line:toGrid': true });
+      expect(line(component, 'grid-line')).toEqual({ visible: true, stroke: '#2e7d32' });
+    });
+  });
+
   describe('legacy single-binding widget', () => {
     function legacyConfig(): ProcessWidgetConfig {
       return config({

@@ -1712,6 +1712,24 @@ propertyMappings:
 - **Dialog:** the legacy config dialog still edits the single-binding fields. For a widget with named
   bindings `applyConfigResult` applies only diagram and display options and keeps `bindings` and
   `propertyMappings` (the binding editor is AB#8025).
+- **Connections** (flow lines such as PV→Haus, Netz↔Haus, Haus↔Batterie) are line / polyline / path
+  primitives whose effects come from `propertyBindings`. Their property can be mapped to **any** binding,
+  so `animation.enabled`, `visible` and `style.stroke.color` follow the binding the author picked, not
+  the first one. Direction from the sign of the value, with existing effects only:
+
+  | Effect on the line | Expression |
+  |---|---|
+  | forward flow animation (`stroke-dashoffset` 15 → 0), `animation.enabled` | `value > 0` |
+  | reverse flow animation (0 → 15), `animation.enabled` | `value < 0` |
+  | line `visible` | `value != 0` |
+  | `style.stroke.color` | `value > 0 ? '#c62828' : (value < 0 ? '#2e7d32' : '#888888')` |
+  | arrow line with `markerEnd` / with `markerStart`, `visible` | `value > 0` / `value < 0` |
+
+  0 and "no value" (pending or empty binding → the property default, 0; an `animation.enabled` context
+  without a value is 0) give no flow and a hidden or neutral line. Show the absolute value with a second
+  property on the same column with expression `abs(value)` (text display: AB#8022). Legacy element
+  connections (`ProcessConnection.animation.dataBinding`) keep their own element binding (unchanged).
+  Spec: `process-widget.bindings.spec.ts` *connections driven by any binding*.
 - **Aggregation** (sum / avg / min / max over the scope) is per mapped value and follows in AB#8024; query
   bindings already return all rows of the scope (`queryResult.rows`), mappings read the first row today.
 

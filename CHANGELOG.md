@@ -21,6 +21,9 @@ starts a new empty "Unreleased" section.
   badge on the widget. A runtime-entity binding without `rtId` loads the current entity of its selector.
   Config problems (e.g. a runtime-entity binding with neither `rtId` nor selector, a mapping with an unknown
   `bindingName`) are reported once in the console (`validateProcessWidgetBindings`).
+  Connection effects (flow direction via forward / reverse `animation.enabled`, `visible`, stroke colour) follow
+  whichever binding their property is mapped to, so flow lines show the direction from the sign of their value;
+  0 or no value gives no flow (pattern in octo-meshboard `CLAUDE.md`).
 - Compatibility: a config without `bindings` is read as one binding named `default` from the legacy fields and
   loads, refreshes and saves byte-identically; mappings without `bindingName` use `default`; a widget with exactly
   one binding named `default` is saved in the legacy shape. The legacy config dialog keeps the bindings and
