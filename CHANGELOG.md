@@ -10,6 +10,26 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: bar charts combine series from several queries and formula series, matched per category (AB#7953)
+
+- New (non-breaking): `BarChartWidgetConfig.additionalSeries` (`BarChartSeriesDefinition` = the line chart series model)
+  and `primarySeries` (`{ visible: false }` only). Query series carry their own `categoryField`
+  (`LineChartQuerySeries.categoryField`, new, optional, ignored by the line chart), stream-data query, entity selector
+  and time-filter opt-out. Bars of all sources are matched by category value (date-times by instant), the categories
+  are the union of all sources (chronological when all are date-times, else first appearance, primary first), and a
+  category a source lacks has no bar for its series — never a 0 bar. Daily date-time categories are labelled as dates.
+- Formula series are evaluated per category with the line chart's util and composition (`composeChartSeries`):
+  missing operand or non-finite result = no bar and "–" in the (shared) tooltip; cycles and unknown keys are rejected in
+  the dialog; hidden operands work in formulas; "depends on <source>, which failed" hints and per-source error hints.
+- `valueScale` is applied to every source value (primary static and dynamic, query series) before formulas see it — in
+  the multi-source path only; a single-query static chart is unchanged (AB#7923 stays open for that).
+- Config dialog: Series section (stream-data primary query) with `mm-line-chart-series-editor` in the new
+  `alignment="category"` mode (category field per query row, preset from the primary category field or `timestamp`;
+  no Resolution-aware, no Stacked). The line chart dialog is unchanged.
+- Existing bar charts (static and dynamic) render and encode byte-identically: both keys are written only when set.
+- **Note for downgrades:** a library version before this one ignores `additionalSeries` on bar charts and drops it when
+  the board is saved there. Roll out this library to every app that edits the board before authors add series.
+
 ### octo-meshboard: process values summed, averaged or reduced to min/max over a binding's scope (AB#8024)
 
 - New (non-breaking): `DiagramPropertyMapping.aggregate` — `'first' | 'sum' | 'avg' | 'min' | 'max'`

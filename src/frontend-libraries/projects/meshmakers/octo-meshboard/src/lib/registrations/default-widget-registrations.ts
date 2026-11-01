@@ -1247,7 +1247,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowDataLabels: barWidget.showDataLabels,
         initialColorThresholds: barWidget.colorThresholds,
         initialDefaultBarColor: barWidget.defaultBarColor,
-        initialFilters: barWidget.filters
+        initialFilters: barWidget.filters,
+        initialAdditionalSeries: barWidget.additionalSeries,
+        initialPrimarySeries: barWidget.primarySeries
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1280,7 +1282,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showDataLabels: result.showDataLabels,
         colorThresholds: result.colorThresholds,
         defaultBarColor: result.defaultBarColor,
-        filters
+        filters,
+        additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
+        primarySeries: barPrimaryOrUndefined(result.primarySeries)
       } as BarChartWidgetConfig;
     },
 
@@ -1316,6 +1320,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         valueScale: widget.valueScale,
         colorThresholds: widget.colorThresholds,
         defaultBarColor: widget.defaultBarColor,
+        // AB#7953: written only when set, so a single-query bar chart encodes exactly as before.
+        ...(widget.additionalSeries?.length && { additionalSeries: widget.additionalSeries }),
+        ...(barPrimaryOrUndefined(widget.primarySeries) && { primarySeries: barPrimaryOrUndefined(widget.primarySeries) }),
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
         ...((widget.dataSource as PersistentQueryDataSource).queryFamily && {
@@ -1353,7 +1360,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         valueScale: config['valueScale'] as number | undefined,
         colorThresholds: config['colorThresholds'] as BarChartWidgetConfig['colorThresholds'],
         defaultBarColor: config['defaultBarColor'] as string | undefined,
-        filters: config['filters'] as WidgetFilterConfig[] | undefined
+        filters: config['filters'] as WidgetFilterConfig[] | undefined,
+        ...barChartSeriesFromPersisted(config)
       };
     }
   });
@@ -2711,6 +2719,25 @@ function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<Lin
     if (options) out.primarySeries = options;
   }
   return out;
+}
+
+/**
+ * Reads `additionalSeries` / `primarySeries` of a persisted bar chart (AB#7953) with the line chart
+ * rules (unknown kinds dropped, display options only as `false`). The bar chart keeps only
+ * `visible` of the primary options. Both keys are absent on a single-query bar chart.
+ */
+function barChartSeriesFromPersisted(config: Record<string, unknown>): Pick<BarChartWidgetConfig, 'additionalSeries' | 'primarySeries'> {
+  const line = lineChartSeriesFromPersisted({ additionalSeries: config['additionalSeries'], primarySeries: config['primarySeries'] });
+  const out: Pick<BarChartWidgetConfig, 'additionalSeries' | 'primarySeries'> = {};
+  if (line.additionalSeries) out.additionalSeries = line.additionalSeries;
+  const primary = barPrimaryOrUndefined(line.primarySeries);
+  if (primary) out.primarySeries = primary;
+  return out;
+}
+
+/** Bar chart primary options: `{ visible: false }` or `undefined`. */
+function barPrimaryOrUndefined(options: LineChartSeriesDisplayOptions | undefined): BarChartWidgetConfig['primarySeries'] {
+  return options?.visible === false ? { visible: false } : undefined;
 }
 
 /** Display options reduced to their non-default (`false`) values; `undefined` when all are default. */
