@@ -117,6 +117,14 @@ export { LineChartWidgetComponent } from './lib/widgets/line-chart-widget/line-c
 export { LineChartConfigDialogComponent } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
 export type { LineChartConfigResult } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
 export type { LineChartSourceHint } from './lib/widgets/line-chart-widget/line-chart-widget.component';
+export {
+  circularReferenceMessage,
+  evaluateSeriesFormulas,
+  orderSeriesFormulas,
+  seriesFormulaOperands,
+  validateSeriesFormulas
+} from './lib/utils/meshboard-series-formula';
+export type { SeriesFormula, SeriesFormulaOrder } from './lib/utils/meshboard-series-formula';
 export { LineChartSeriesEditorComponent } from './lib/widgets/line-chart-widget/line-chart-series-editor.component';
 export { alignOnTimeGrid, bucketStepMs } from './lib/utils/time-grid-alignment';
 export type { AlignedTimeGrid, AlignedTimeSeries, MisalignedTimeSource, TimeGridSeriesInput, TimeGridSourceInput } from './lib/utils/time-grid-alignment';

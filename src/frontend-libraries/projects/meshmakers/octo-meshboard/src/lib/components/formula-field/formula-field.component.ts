@@ -76,7 +76,7 @@ export class FormulaValidityDirective implements Validator, OnChanges {
         [inputAttributes]="inputAttributes()">
       </kendo-textbox>
       <p class="field-hint" [id]="hintId">
-        Reference variables with <code>{{ variableSyntaxHint }}</code>. Supported: <code>+ - * / % ^</code>, parentheses,
+        Reference {{ namesNoun() }} with <code>{{ syntaxHint() }}</code>. Supported: <code>+ - * / % ^</code>, parentheses,
         <code>min</code>, <code>max</code>, <code>abs</code>, <code>round</code>, <code>clamp</code>, <code>? :</code>.
         Numbers use a dot as decimal separator.
         @if (clampHint()) {
@@ -85,24 +85,24 @@ export class FormulaValidityDirective implements Validator, OnChanges {
       </p>
       @if (formula().trim() && validation().error) {
         <p class="field-error" [id]="messageId" role="alert">{{ validation().error }}</p>
-      } @else if (formula().trim()) {
+      } @else if (formula().trim() && showPreview()) {
         <p class="field-hint" [id]="messageId" aria-live="polite">Preview: <strong>{{ preview() }}</strong></p>
       }
     </div>
     <div class="form-field">
-      <span class="field-label" [id]="variablesLabelId">Available Variables</span>
+      <span class="field-label" [id]="variablesLabelId">{{ variablesLabel() }}</span>
       @if (variables().length > 0) {
         <div class="variable-list" role="group" [attr.aria-labelledby]="variablesLabelId">
           @for (variable of variables(); track variable.name) {
             <button kendoButton fillMode="flat" size="small" type="button"
-                    [title]="'Insert ' + variable.name + ' (current value: ' + (variable.value || '-') + ')'"
+                    [title]="showPreview() ? 'Insert ' + variable.name + ' (current value: ' + (variable.value || '-') + ')' : 'Insert ' + variable.name"
                     (click)="insertVariable(variable.name)">
               {{ variable.name }}@if (variable.source === 'widget') { <span class="variable-source">(widget)</span> }
             </button>
           }
         </div>
       } @else {
-        <p class="field-hint">No variables defined. Add variables in the MeshBoard settings or publish a widget value as output variable.</p>
+        <p class="field-hint">{{ emptyVariablesText() }}</p>
       }
     </div>
   `,
@@ -163,9 +163,21 @@ export class FormulaFieldComponent {
   /** Show the clamp pattern in the hint (widgets with a scale) */
   readonly clampHint = input(false);
   readonly label = input('Formula');
+  /**
+   * Show the live preview (default). Chart formula series (AB#7952) turn it off: their operands
+   * have one value per bucket, so a single preview value means nothing.
+   */
+  readonly showPreview = input(true);
+  /** Heading of the insertable names (chart formula series: "Available series"). */
+  readonly variablesLabel = input('Available Variables');
+  /** What the operands are called in the hint ("variables" / "series"). */
+  readonly namesNoun = input('variables');
+  /** Reference syntax shown in the hint. */
+  readonly syntaxHint = input('${variableName}');
+  /** Text shown when there is nothing to insert. */
+  readonly emptyVariablesText = input('No variables defined. Add variables in the MeshBoard settings or publish a widget value as output variable.');
   readonly placeholder = input('e.g., (${a} - ${b}) / 1000');
 
-  readonly variableSyntaxHint = '${variableName}';
   readonly clampExample = 'max(0, min(100, …))';
 
   private readonly id = nextFormulaFieldId++;

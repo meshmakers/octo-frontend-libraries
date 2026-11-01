@@ -16,7 +16,8 @@ import {
   PieChartWidgetConfig,
   BarChartWidgetConfig,
   LineChartWidgetConfig,
-  LineChartQuerySeries,
+  LineChartSeriesDefinition,
+  LineChartSeriesDisplayOptions,
   HeatmapWidgetConfig,
   HeatmapTimeWindow,
   StatsGridWidgetConfig,
@@ -1392,7 +1393,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialReferenceLines: lineWidget.referenceLines,
         initialFilters: lineWidget.filters,
         initialAdditionalSeries: lineWidget.additionalSeries,
-        initialStacked: lineWidget.stacked
+        initialStacked: lineWidget.stacked,
+        initialPrimarySeries: lineWidget.primarySeries
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1432,7 +1434,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         referenceLines: result.referenceLines,
         filters,
         additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
-        stacked: result.stacked || undefined
+        stacked: result.stacked || undefined,
+        primarySeries: displayOptionsOrUndefined(result.primarySeries)
       } as LineChartWidgetConfig;
     },
 
@@ -1488,7 +1491,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         filters: widget.filters,
         // AB#7951: written only when set, so a single-query chart encodes exactly as before.
         ...(widget.additionalSeries?.length && { additionalSeries: widget.additionalSeries }),
-        ...(widget.stacked && { stacked: true })
+        ...(widget.stacked && { stacked: true }),
+        // AB#7952: written only when a primary display option is not default.
+        ...(displayOptionsOrUndefined(widget.primarySeries) && { primarySeries: displayOptionsOrUndefined(widget.primarySeries) })
       }
     }),
 
@@ -2678,23 +2683,42 @@ export function provideWidgetRegistrations(
 export type { WidgetRegistration } from '../services/widget-registry.service';
 
 /**
- * Reads `additionalSeries` / `stacked` of a persisted line chart (AB#7951). Both keys are absent
- * on a single-query chart, so the result is `{}` and the loaded config has no such keys. Entries
- * without a known `kind` or without a data source are dropped (a newer library may store kinds
- * this version does not know, e.g. formula series of AB#7952).
+ * Reads `additionalSeries` / `stacked` / `primarySeries` of a persisted line chart (AB#7951,
+ * AB#7952). All keys are absent on a single-query chart, so the result is `{}` and the loaded config
+ * has no such keys. Kept entries: query series with a key and a data source, formula series with a
+ * key and a formula string (AB#7952). Entries of an unknown `kind` are dropped (a newer library may
+ * store kinds this version does not know). The display options `visible` / `stacked` are kept only
+ * as `false`.
  */
-function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked'> {
-  const out: Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked'> = {};
+function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries'> {
+  const out: Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries'> = {};
   const raw = config['additionalSeries'];
   if (Array.isArray(raw)) {
-    const series = raw.filter((s): s is LineChartQuerySeries =>
-      !!s && typeof s === 'object'
-      && (s as { kind?: unknown }).kind === 'query'
-      && typeof (s as { key?: unknown }).key === 'string'
-      && !!(s as { dataSource?: unknown }).dataSource
-      && typeof (s as { dataSource: { queryRtId?: unknown } }).dataSource.queryRtId === 'string');
+    const series = raw.filter((s): s is LineChartSeriesDefinition => {
+      if (!s || typeof s !== 'object') return false;
+      const entry = s as { kind?: unknown; key?: unknown; dataSource?: { queryRtId?: unknown }; formula?: unknown };
+      if (typeof entry.key !== 'string') return false;
+      if (entry.kind === 'query') return !!entry.dataSource && typeof entry.dataSource.queryRtId === 'string';
+      if (entry.kind === 'formula') return typeof entry.formula === 'string';
+      return false;
+    });
     if (series.length > 0) out.additionalSeries = series;
   }
   if (config['stacked'] === true) out.stacked = true;
+  const primary = config['primarySeries'];
+  if (primary && typeof primary === 'object') {
+    const options = displayOptionsOrUndefined(primary as LineChartSeriesDisplayOptions);
+    if (options) out.primarySeries = options;
+  }
   return out;
+}
+
+/** Display options reduced to their non-default (`false`) values; `undefined` when all are default. */
+function displayOptionsOrUndefined(options: LineChartSeriesDisplayOptions | undefined): LineChartSeriesDisplayOptions | undefined {
+  if (!options) return undefined;
+  const out: LineChartSeriesDisplayOptions = {
+    ...(options.visible === false && { visible: false }),
+    ...(options.stacked === false && { stacked: false })
+  };
+  return Object.keys(out).length > 0 ? out : undefined;
 }
