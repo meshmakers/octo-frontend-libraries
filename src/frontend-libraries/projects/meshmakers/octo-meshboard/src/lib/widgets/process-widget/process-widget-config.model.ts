@@ -78,7 +78,23 @@ export interface DiagramPropertyMapping {
    * the console and leaves the property at its default value.
    */
   bindingName?: string;
+
+  /**
+   * How a column value is reduced over all rows of the binding's selector scope
+   * (AB#8024). Absent or `first` ⇒ the first row, exactly as before. `sum`,
+   * `avg`, `min`, `max` reduce the numeric cells (null / non-numeric cells are
+   * skipped; no numeric cell ⇒ no value). The mapping `expression` is applied to
+   * the aggregated value. Only for `column` mappings of a persistent-query
+   * binding and `number` properties; otherwise the validator reports it and the
+   * widget falls back to `first`.
+   */
+  aggregate?: ProcessValueAggregate;
 }
+
+/**
+ * Reduction of a mapped value over the rows of a query binding (AB#8024).
+ */
+export type ProcessValueAggregate = 'first' | 'sum' | 'avg' | 'min' | 'max';
 
 /**
  * Name of the implicit binding a config without `bindings` is read as: the

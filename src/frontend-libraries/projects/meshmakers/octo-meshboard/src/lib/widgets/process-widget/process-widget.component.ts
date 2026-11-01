@@ -17,6 +17,7 @@ import { DashboardWidget } from '../widget.interface';
 import { DEFAULT_PROCESS_BINDING_NAME, ProcessWidgetConfig } from './process-widget-config.model';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { hasNamedProcessBindings, mappingBindingName, validateProcessWidgetBindings } from './process-widget-bindings';
+import { aggregateQueryColumn, isPartialAggregate, isReducingAggregate } from './process-value-aggregation';
 import { ProcessDataService, BoundDataResult } from './services/process-data.service';
 import type {
   ProcessDiagramConfig,
@@ -60,7 +61,6 @@ import {
 } from '@meshmakers/octo-process-diagrams';
 import { DiagramPropertyMapping } from './process-widget-config.model';
 import { RuntimeEntityData } from '../../models/meshboard.models';
-import { QueryResultData } from './services/process-data.service';
 
 /**
  * Process Widget Component
@@ -1546,7 +1546,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   /** Writes the config issues of the bindings to the console, each once per widget instance. */
   private reportBindingIssues(): void {
     const selectorIds = (this.stateService.getConfig().entitySelectors ?? []).map(s => s.id);
-    for (const issue of validateProcessWidgetBindings(this.config, selectorIds)) {
+    const properties = this._diagramConfig()?.transformProperties;
+    const propertyTypes = properties ? new Map(properties.map(p => [p.id, p.type as string])) : undefined;
+    for (const issue of validateProcessWidgetBindings(this.config, selectorIds, propertyTypes)) {
       this.warnOnce(`[ProcessWidget] ${this.config.title || this.config.id}: ${issue.message}`);
     }
   }
@@ -2966,8 +2968,24 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
         // Extract value from entity attribute
         rawValue = this.extractAttributeValue(boundData.entity, mapping.sourcePath);
       } else if (mapping.sourceType === 'column' && boundData.type === 'query' && boundData.queryResult) {
-        // Extract value from query result (first row)
-        rawValue = this.extractQueryColumnValue(boundData.queryResult, mapping.sourcePath);
+        // First row, or the aggregate over all rows of the scope (AB#8024).
+        // An aggregate on a non-number property falls back to the first row;
+        // the validator has reported it once.
+        const aggregate = prop.type === 'number' ? mapping.aggregate : undefined;
+        rawValue = aggregateQueryColumn(boundData.queryResult, mapping.sourcePath, aggregate);
+        if (isReducingAggregate(aggregate) && isPartialAggregate(boundData.queryResult)) {
+          this.warnOnce(
+            `[ProcessWidget] ${this.config.title || this.config.id}: aggregate '${aggregate}' of binding ` +
+            `'${mappingBindingName(mapping)}' covers ${boundData.queryResult.rows.length} of ` +
+            `${boundData.queryResult.totalCount} rows`
+          );
+        }
+        if (isReducingAggregate(aggregate) && rawValue === undefined) {
+          // No row / no numeric cell: the property has no value (not 0, not
+          // its default), so its effects are skipped and a text shows "–".
+          values[mapping.propertyId] = undefined;
+          continue;
+        }
       }
 
       if (rawValue !== undefined) {
@@ -3041,18 +3059,6 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       }
     }
 
-    return value;
-  }
-
-  /**
-   * Extracts a column value from query results (first row).
-   */
-  private extractQueryColumnValue(queryResult: QueryResultData, columnName: string): unknown {
-    if (!queryResult.rows || queryResult.rows.length === 0) return undefined;
-
-    const firstRow = queryResult.rows[0];
-    // Try both the column name and sanitized version (dots -> underscores)
-    const value = firstRow.cells.get(columnName) ?? firstRow.cells.get(columnName.replace(/\./g, '_'));
     return value;
   }
 
