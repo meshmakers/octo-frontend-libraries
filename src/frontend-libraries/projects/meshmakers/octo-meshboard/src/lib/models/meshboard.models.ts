@@ -732,6 +732,47 @@ export interface LineChartWidgetConfig extends WidgetConfig {
   valueAxisTitle?: string;
   /** Horizontal reference/threshold lines displayed on the value axis */
   referenceLines?: ChartReferenceLine[];
+  /**
+   * Series from other stream-data queries, plotted after the primary query's series on one
+   * time grid (AB#7951). Their order is the legend and stacking order. Omitted when empty, so a
+   * single-query chart encodes exactly as before.
+   */
+  additionalSeries?: LineChartSeriesDefinition[];
+  /**
+   * Stack the series of an area chart in their order (primary series first, then
+   * {@link additionalSeries}). Ignored for line charts. Omitted when `false`.
+   */
+  stacked?: boolean;
+}
+
+/**
+ * A line chart series that does not come from the primary data source (AB#7951). The union is
+ * discriminated by `kind` so AB#7952 can add formula series (`kind: 'formula'`) and the bar chart
+ * (AB#7953) can reuse the same shape.
+ */
+export type LineChartSeriesDefinition = LineChartQuerySeries;
+
+/**
+ * A series read from its own stream-data query (AB#7951): one line per source, scoped by its
+ * own entity selector, aligned with all other series on the widget's time grid.
+ */
+export interface LineChartQuerySeries {
+  kind: 'query';
+  /**
+   * Stable key, unique within the widget; letters, digits and `_`, starting with a letter or `_`.
+   * Formula series (AB#7952) reference a series by this key.
+   */
+  key: string;
+  /** Legend label; the key when absent. */
+  label?: string;
+  /**
+   * The stream-data query of this series with its own time-filter opt-out, entity-selector scope
+   * and resolution-aware routing (same fields as the primary data source; `aggregateSeriesByGroup`
+   * is ignored — one source is one series).
+   */
+  dataSource: PersistentQueryDataSource;
+  /** Numeric column plotted for this series (doubles as the resolver's source path). */
+  valueField: string;
 }
 
 /**

@@ -30,6 +30,22 @@ starts a new empty "Unreleased" section.
   mappings of a widget that has named bindings (it edits only diagram and display options there; the binding
   editor follows in AB#8025).
 
+### octo-meshboard: line / stacked area chart with series from several stream-data queries (AB#7951)
+
+- New (non-breaking): `LineChartWidgetConfig.additionalSeries` — query series (`kind: 'query'`, `key`, `label`,
+  own `PersistentQueryDataSource` with entity selector, time-filter opt-out and resolution-aware routing,
+  `valueField`) plotted after the primary query's series on one time grid. `LineChartSeriesDefinition` is a union
+  discriminated by `kind`, ready for formula series (AB#7952). New `stacked` for area charts (series stack in their order).
+  Config dialog: new "Series" section (`mm-line-chart-series-editor`: add, remove, reorder by keyboard) and a
+  "Stacked" option for area charts.
+- Alignment: all sources are downsampled over the same window with one bucket count (the smallest of the pixel
+  target and every resolved rollup `points`), then aligned by `utils/time-grid-alignment.ts` (`alignOnTimeGrid`):
+  a missing bucket is `null` (gap, never 0); a source whose buckets do not sit on the grid is left out with a hint.
+- Widget states: per-source hints for a failed source (name + message), a source without data ("No data for …")
+  and a misaligned source; loading until every source answered. A stacked or multi-source chart sets Kendo
+  `missingValues: 'gap'` explicitly; single-query charts bind Kendo's defaults and render unchanged. Both new keys
+  are persisted only when set, so existing boards encode byte-identically.
+
 ### octo-meshboard: gauges, tables and charts bind to Integral (kWh) columns (AB#7975)
 
 - New (non-breaking): the config dialogs of gauge, table, bar chart, pie chart, line chart, heatmap and widget group
