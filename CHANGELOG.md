@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: "Browse Queries" lists stream-data queries in a stream-data-only picker (AB#7951)
+
+- Fix: `PersistentQueryDialogDataSource` (the query picker's "Browse Queries" dialog) now keeps the query entity's
+  `ckTypeId`, so its family filter can classify the queries. Before, every query counted as unknown, and a
+  stream-data-only picker (a series row of the line chart) listed nothing although the pager counted the queries.
+  Latent since AB#4187; the autocomplete was not affected.
+- Note: empty value-field pickers for stream-data queries whose stored column paths are not camelCase (EnergyIQ seed:
+  `ActivePower`) come from the backend typing those columns STRING. That is fixed in the asset repository (AB#8030);
+  the dialogs offer the column types as the backend reports them.
+
 ### octo-meshboard: line / stacked area chart with series from several stream-data queries (AB#7951)
 
 - New (non-breaking): `LineChartWidgetConfig.additionalSeries` — query series (`kind: 'query'`, `key`, `label`,

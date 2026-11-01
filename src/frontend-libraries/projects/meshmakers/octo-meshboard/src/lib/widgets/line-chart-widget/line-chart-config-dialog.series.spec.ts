@@ -14,6 +14,7 @@ describe('LineChartConfigDialogComponent — series (AB#7951)', () => {
   let fixture: ComponentFixture<LineChartConfigDialogComponent>;
   let cmp: LineChartConfigDialogComponent;
   let windowRef: { close: ReturnType<typeof vi.fn> };
+  let fetchStreamDataColumns: ReturnType<typeof vi.fn>;
 
   const PV: LineChartQuerySeries = {
     kind: 'query', key: 'pv', label: 'PV', valueField: 'power',
@@ -40,12 +41,13 @@ describe('LineChartConfigDialogComponent — series (AB#7951)', () => {
 
   beforeEach(() => {
     windowRef = { close: vi.fn() };
+    fetchStreamDataColumns = vi.fn().mockResolvedValue([]);
     TestBed.configureTestingModule({
       imports: [LineChartConfigDialogComponent],
       providers: [
         provideNoopAnimations(),
         { provide: WindowRef, useValue: windowRef },
-        { provide: QueryExecutorService, useValue: { fetchStreamDataColumns: vi.fn().mockResolvedValue([]), resolveFamily: vi.fn() } },
+        { provide: QueryExecutorService, useValue: { fetchStreamDataColumns, resolveFamily: vi.fn() } },
         {
           provide: MeshBoardStateService, useValue: {
             getVariables: vi.fn(() => []), getEntitySelectors: vi.fn(() => []), resolveStreamDataTimeArgs: vi.fn(() => undefined)
@@ -70,6 +72,38 @@ describe('LineChartConfigDialogComponent — series (AB#7951)', () => {
   it('an invalid series row disables Save', async () => {
     await open({ initialAdditionalSeries: [{ ...PV, valueField: '' }] });
     expect(cmp.isValid).toBe(false);
+  });
+
+  /*
+   * AB#7951 reopen, gap B: the field pickers offer what the backend types. A correctly typed DOUBLE column
+   * is a value field and a STRING column a group field. On test-2 the EnergyIQ simple stream-data
+   * queries store PascalCase column paths (`ActivePower`), the backend matched them case-sensitively against
+   * the camelCase CK paths and typed every column STRING, so no value field was offered. Fixed in the
+   * backend (AB#8030); the dialog deliberately does not guess a type.
+   */
+  it('offers a correctly typed DOUBLE column as value field and a STRING column as group field (gap B)', async () => {
+    fetchStreamDataColumns.mockResolvedValue([
+      { attributePath: 'activePower', attributeValueType: 'DOUBLE', aggregationType: 'NONE' },
+      { attributePath: 'name', attributeValueType: 'STRING', aggregationType: 'NONE' }
+    ]);
+    await open({});
+
+    await cmp.onQuerySelected({ rtId: 'q-wallbox', name: 'Wallboxen (Archiv)', ckTypeId: 'System/SimpleSdQuery' });
+
+    expect(fetchStreamDataColumns).toHaveBeenCalledWith('q-wallbox', expect.anything());
+    expect(cmp.numericColumns.map(c => c.attributePath)).toEqual(['activePower']);
+    expect(cmp.nonNumericColumns.map(c => c.attributePath)).toEqual(['name']);
+  });
+
+  it('a column the backend types STRING is not offered as value field (gap B, fixed by AB#8030 in the backend)', async () => {
+    fetchStreamDataColumns.mockResolvedValue([
+      { attributePath: 'ActivePower', attributeValueType: 'STRING', aggregationType: 'NONE' }
+    ]);
+    await open({});
+
+    await cmp.onQuerySelected({ rtId: 'q-wallbox', name: 'Wallboxen (Archiv)', ckTypeId: 'System/SimpleSdQuery' });
+
+    expect(cmp.numericColumns).toEqual([]);
   });
 
   it('hides the Series section for a runtime query and saves no series', async () => {
