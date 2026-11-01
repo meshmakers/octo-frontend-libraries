@@ -25,6 +25,7 @@ import { matchesAttributePath } from '../../utils/widget-data-utils';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { declaredFormulaVariableNames, FormulaValidationResult, validateFormulaField } from '../../utils/meshboard-formula';
 import { FormulaFieldComponent } from '../../components/formula-field/formula-field.component';
+import { columnProbeWindow } from '../../utils/column-probe-window';
 
 /**
  * Data source type for Gauge. `'formula'` computes the value from a formula over MeshBoard
@@ -1283,8 +1284,11 @@ export class GaugeConfigDialogComponent implements OnInit {
         }));
     }
 
-    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
-    return sdResult.columns.map(c => ({
+    // An Integral column needs from/to (AB#7921): the executor retries with the board's
+    // window, or the last 24 hours when the board has no time filter (AB#7975).
+    const columns = await this.queryExecutor.fetchStreamDataColumns(
+      rtId, columnProbeWindow(this.meshBoardStateService.resolveStreamDataTimeArgs()));
+    return columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null

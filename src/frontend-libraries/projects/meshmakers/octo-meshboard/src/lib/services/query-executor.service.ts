@@ -306,15 +306,21 @@ export class QueryExecutorService {
    * Runs the query with `first: 1` and its own window first; a query that cannot run
    * without a window — an `Integral` column over a raw archive requires from/to
    * (AB#7921) — fails or returns no columns, so it is run once more with `window`
-   * (the board's time window or a recent default). The error of the retry propagates.
+   * (the board's time window or a recent default, see `columnProbeWindow`). The error of
+   * the retry propagates. `options.forceRefresh` bypasses the Apollo cache for both calls.
    *
    * The first, window-less attempt is a probe: its error is expected for such queries
    * and is not shown as an error toast (AB#7985). Only the retry's error reaches the
    * global error handler.
    */
-  async fetchStreamDataColumns(queryRtId: string, window: { from: Date; to: Date }): Promise<QueryColumnInfo[]> {
+  async fetchStreamDataColumns(
+    queryRtId: string,
+    window: { from: Date; to: Date },
+    options: Pick<QueryExecutionOptions, 'forceRefresh'> = {}
+  ): Promise<QueryColumnInfo[]> {
+    const forceRefresh = options.forceRefresh ?? false;
     try {
-      const result = await firstValueFrom(this.executeStreamData(queryRtId, { first: 1, silentErrors: true }));
+      const result = await firstValueFrom(this.executeStreamData(queryRtId, { first: 1, forceRefresh, silentErrors: true }));
       if (result.columns.length > 0) {
         return result.columns;
       }
@@ -323,6 +329,7 @@ export class QueryExecutorService {
     }
     const windowed = await firstValueFrom(this.executeStreamData(queryRtId, {
       first: 1,
+      forceRefresh,
       streamDataArgs: { from: window.from, to: window.to }
     }));
     return windowed.columns;

@@ -38,6 +38,7 @@ import { QueryExecutorService } from '../../services/query-executor.service';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { mergePersistentQueryColumns, mergeRuntimeEntityColumns } from './table-column-labels';
+import { columnProbeWindow } from '../../utils/column-probe-window';
 
 /**
  * Data source type for table widget
@@ -733,7 +734,8 @@ export class TableConfigDialogComponent implements OnInit {
   /**
    * The fields a persistent query returns now (`null` when unknown or the lookup failed). Runtime
    * queries use the metadata-only column resolver; stream-data queries execute with `first: 1`
-   * (no column-introspection endpoint), like the chart dialogs.
+   * (no column-introspection endpoint) through `fetchStreamDataColumns`, which retries with a
+   * time window for queries that need one (Integral, AB#7975), like the chart dialogs.
    */
   private loadQueryFields(rtId: string): Promise<string[] | null> {
     if (this.queryFieldsLoad?.rtId === rtId) {
@@ -754,8 +756,11 @@ export class TableConfigDialogComponent implements OnInit {
             .map(c => c?.attributePath ?? '')
             .filter(path => path !== '');
         }
-        const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1, forceRefresh: true }));
-        return sdResult.columns.map(c => c.attributePath).filter(path => !!path);
+        // An Integral column needs from/to (AB#7921): the executor retries with the board's
+        // window, or the last 24 hours when the board has no time filter (AB#7975).
+        const columns = await this.queryExecutor.fetchStreamDataColumns(
+          rtId, columnProbeWindow(this.stateService.resolveStreamDataTimeArgs()), { forceRefresh: true });
+        return columns.map(c => c.attributePath).filter(path => !!path);
       } catch (error) {
         console.error('Error loading query columns:', error);
         return null;

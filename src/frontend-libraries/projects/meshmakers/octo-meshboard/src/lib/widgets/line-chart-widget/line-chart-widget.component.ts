@@ -921,8 +921,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
             else lineValue = this.toNumber(cell.value); // _avg (or an unsuffixed value)
           } else {
             const val = cell.value;
-            lineValue = typeof val === 'number' ? val : parseFloat(String(val));
-            if (isNaN(lineValue)) lineValue = 0;
+            if (val === null || val === undefined) {
+              // No data (e.g. an Integral over an empty bucket, AB#7975): a gap, not 0.
+              lineValue = null;
+            } else {
+              lineValue = typeof val === 'number' ? val : parseFloat(String(val));
+              if (isNaN(lineValue)) lineValue = 0;
+            }
           }
         } else if (unitField && matchesAttributePath(path, unitField)) {
           unitValue = String(cell.value ?? '');

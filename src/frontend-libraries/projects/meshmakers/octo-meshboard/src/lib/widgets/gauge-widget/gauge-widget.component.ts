@@ -600,7 +600,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
         )
       );
 
-      let value = 0;
+      let value: number | null = 0;
       const queryMode = this.config.queryMode ?? 'simpleCount';
 
       switch (queryMode) {
@@ -617,8 +617,15 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
           break;
       }
 
-      // Create a synthetic entity with the value
       if (generation !== this.loadGeneration) return;
+      // A null cell is "no data" (e.g. an Integral over an empty window, AB#7975): the gauge
+      // shows its empty state ("-", pointer at the scale start), not a misleading 0.
+      if (value === null) {
+        this._data.set(null);
+        this._isLoading.set(false);
+        return;
+      }
+      // Create a synthetic entity with the value
       const gaugeEntity: RuntimeEntityData = {
         rtId: 'query-entity',
         ckTypeId: 'system.query',
@@ -646,7 +653,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     return { ...timeArgs, rtIds };
   }
 
-  private extractAggregationValue(queryResult: QueryExecutionResult): number {
+  private extractAggregationValue(queryResult: QueryExecutionResult): number | null {
     const firstRow = queryResult.rows.find(row =>
       GaugeWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
     );
@@ -662,7 +669,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     return firstRow.cells.length > 0 ? this.parseNumericValue(firstRow.cells[0].value) : 0;
   }
 
-  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number {
+  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number | null {
     const categoryField = this.config.queryCategoryField;
     const categoryValue = this.config.queryCategoryValue;
     const valueField = this.config.queryValueField;
@@ -675,7 +682,7 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
       if (!GaugeWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')) continue;
 
       let categoryMatch = false;
-      let value = 0;
+      let value: number | null = 0;
 
       for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
@@ -694,7 +701,9 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
     return 0;
   }
 
-  private parseNumericValue(value: unknown): number {
+  /** Parses a cell value; a null cell stays null ("no data", AB#7975), unparsable text is 0. */
+  private parseNumericValue(value: unknown): number | null {
+    if (value === null || value === undefined) return null;
     if (typeof value === 'number') return value;
     const parsed = parseFloat(String(value));
     return isNaN(parsed) ? 0 : parsed;

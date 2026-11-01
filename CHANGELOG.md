@@ -10,6 +10,18 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: gauges, tables and charts bind to Integral (kWh) columns (AB#7975)
+
+- New (non-breaking): the config dialogs of gauge, table, bar chart, pie chart, line chart, heatmap and widget group
+  list the `<attr>_integral` column of a stream-data Integral query, like the KPI since AB#7921. They load the
+  columns through `QueryExecutorService.fetchStreamDataColumns` with `columnProbeWindow(boardWindow)` (new util:
+  the board's time window, else the last 24 hours). `fetchStreamDataColumns` takes an optional
+  `{ forceRefresh }` (table dialog).
+- Changed: a `null` query cell (e.g. an Integral over an empty window) is "no data" in the widgets, not `0`:
+  the gauge shows its empty state `-`, a bar chart draws no bar, a pie chart leaves the slice out, a line chart
+  draws a gap and the heatmap skips the row (sum/avg; a count ignores the value). A real `0` stays `0`, and a
+  missing cell or missing category/series combination keeps its old `0`.
+
 ### octo-meshboard: no error toast for the Integral column probe (AB#7985)
 
 - Fixed: selecting a query with an `Integral` column in a widget config dialog no longer shows the error toast

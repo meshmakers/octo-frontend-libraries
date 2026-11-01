@@ -476,6 +476,7 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       let dateTo: Date | null = null;
       let numericValue = 1; // default for count
       let dateCellMatched = false;
+      let noData = false;
 
       for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, dateField)) {
@@ -485,10 +486,14 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
           dateTo = this.parseDate(cell.value);
         } else if (valueField && matchesAttributePath(cell.attributePath, valueField)) {
           const val = cell.value;
+          // A null cell is "no data" (e.g. an Integral over an empty window, AB#7975):
+          // the row is skipped instead of counting as 0 in its bucket. A count ignores the value.
+          noData = aggregation !== 'count' && (val === null || val === undefined);
           numericValue = typeof val === 'number' ? val : parseFloat(String(val));
           if (isNaN(numericValue)) numericValue = 0;
         }
       }
+      if (noData) continue;
 
       // Stream-data rows carry their time at top level (`row.timestamp`, see
       // QueryExecutorService.mapStreamDataRows); the cells only hold the value

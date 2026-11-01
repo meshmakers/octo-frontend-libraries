@@ -24,6 +24,7 @@ import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { KPI_MAX_DECIMAL_PLACES, normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
+import { columnProbeWindow } from '../../utils/column-probe-window';
 
 /**
  * Data source type selection
@@ -750,8 +751,11 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
         }));
     }
 
-    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
-    return sdResult.columns.map(c => ({
+    // An Integral column needs from/to (AB#7921): the executor retries with the board's
+    // window, or the last 24 hours when the board has no time filter (AB#7975).
+    const columns = await this.queryExecutor.fetchStreamDataColumns(
+      rtId, columnProbeWindow(this.meshBoardStateService.resolveStreamDataTimeArgs()));
+    return columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null
