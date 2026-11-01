@@ -470,9 +470,13 @@ describe('IdentityService', () => {
         const resultPromise = service.resetPassword('john.doe', 'newPassword123');
         await tick();
 
-        const req = httpMock.expectOne(`${apiPrefix}users/ResetPassword?userName=john.doe&password=newPassword123`);
+        // The password travels only in the body, never in the URL.
+        const req = httpMock.expectOne(`${apiPrefix}users/ResetPassword`);
         expect(req.request.method).toBe('POST');
-        expect(req.request.body).toBeNull();
+        expect(req.request.urlWithParams).toBe(`${apiPrefix}users/ResetPassword`);
+        expect(req.request.urlWithParams).not.toContain('newPassword123');
+        expect(req.request.params.keys().length).toBe(0);
+        expect(req.request.body).toEqual({ userName: 'john.doe', password: 'newPassword123' });
         req.flush({ success: true });
 
         const result = await resultPromise;

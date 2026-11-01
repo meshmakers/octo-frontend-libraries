@@ -30,6 +30,15 @@ starts a new empty "Unreleased" section.
 - **Note for downgrades:** a library version before this one ignores `additionalSeries` on bar charts and drops it when
   the board is saved there. Roll out this library to every app that edits the board before authors add series.
 
+### octo-services: admin password reset sends the password in the request body (AB#8008, Security)
+
+- `IdentityService.resetPassword(userName, password)` now posts `{ userName, password }` as the JSON body of
+  `POST {tenant}/v1/users/ResetPassword` instead of URL query parameters (URLs end up in request logs, traces and proxy
+  access logs). New exported interface `ResetUserPasswordRequestDto`. The method signature is unchanged.
+- **Compatibility:** identity services with AB#8008 refuse the query form with 400, older identity services do not
+  accept the body form — ship this library (and the Refinery Studio build that uses it) in the same release train as
+  the identity service.
+
 ### octo-meshboard: formula series in line / stacked area charts (AB#7952)
 
 - New (non-breaking): `LineChartFormulaSeries` (`kind: 'formula'`, `key`, `label`, `formula`) in
