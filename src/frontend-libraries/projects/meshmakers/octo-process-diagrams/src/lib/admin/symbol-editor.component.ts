@@ -26,6 +26,7 @@ import { BindingEditorDialogComponent } from '../designer/binding-editor-dialog.
 import { SimulationPanelComponent, SimulationValueChange } from '../designer/simulation-panel.component';
 import { TransformProperty, PropertyBinding, BindingEffectType, TransformAnchor } from '../primitives/models/transform-property.models';
 import { ExpressionEvaluatorService } from '../services/expression-evaluator.service';
+import { applyTextValueToPrimitive, evaluateTextValue, textValueInput } from '../services/text-value-formatter';
 
 /**
  * Symbol Editor Component
@@ -743,6 +744,13 @@ export class SymbolEditorComponent implements OnChanges {
       for (const prop of properties) {
         const val = simValues[prop.id] ?? prop.defaultValue;
         context[prop.id] = this.toPrimitiveValue(val);
+      }
+
+      if (binding.effectType === 'text.value') {
+        // Formatted value; an emptied simulation field shows "–" (AB#8022)
+        const input = textValueInput(simValues, property);
+        modified = applyTextValueToPrimitive(modified, evaluateTextValue(input, binding, { evaluator: this.expressionEvaluator, property, context }));
+        continue;
       }
 
       // Evaluate expression

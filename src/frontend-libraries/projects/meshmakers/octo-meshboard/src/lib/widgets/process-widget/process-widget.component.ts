@@ -57,8 +57,12 @@ import {
   renderAnimations,
   AnimationRenderContext,
   renderFlowParticles,
-  getFlowParticlesAnimation
+  getFlowParticlesAnimation,
+  evaluateTextValue,
+  applyTextValueToPrimitive
 } from '@meshmakers/octo-process-diagrams';
+import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
 import { DiagramPropertyMapping } from './process-widget-config.model';
 import { RuntimeEntityData } from '../../models/meshboard.models';
 
@@ -1282,6 +1286,8 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private readonly symbolLibraryService = inject(SymbolLibraryService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
+  /** Host language for `text.value` bindings (AB#8022); no language = de-AT. */
+  private readonly hostLanguage = injectMeshBoardLanguage();
 
   // Math reference for template
   protected readonly Math = Math;
@@ -1422,23 +1428,32 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       return [];
     }
 
-    // If no bindings or no bound data, return original primitives
-    if (!diagram.propertyBindings || diagram.propertyBindings.length === 0 || boundData.size === 0) {
+    // If no bindings, return original primitives. Without bound data only a
+    // text.value binding changes anything: it shows "–" instead of the static
+    // design-time text (AB#8022); every other effect waits for data as before.
+    if (!diagram.propertyBindings || diagram.propertyBindings.length === 0) {
+      return diagram.primitives;
+    }
+    if (boundData.size === 0 && !diagram.propertyBindings.some(b => b.effectType === 'text.value')) {
       return diagram.primitives;
     }
 
     // Build property values from bound data using mappings
+    const noValue = new Set<string>();
     const propertyValues = this.buildPropertyValuesFromBoundData(
       diagram.transformProperties ?? [],
       this.config.propertyMappings ?? [],
-      boundData
+      boundData,
+      noValue
     );
 
     // Apply bindings to primitives
     return this.applyBindingsToPrimitives(
       diagram.primitives,
       diagram.propertyBindings,
-      propertyValues
+      propertyValues,
+      diagram.transformProperties,
+      noValue
     );
   });
 
@@ -2193,7 +2208,8 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     }
 
     // Get property values for this symbol instance
-    const propertyValues = this.getSymbolInstancePropertyValues(symbolInstance, definition);
+    const noValue = new Set<string>();
+    const propertyValues = this.getSymbolInstancePropertyValues(symbolInstance, definition, noValue);
 
     // If there are bindings, apply them
     let primitives: PrimitiveBase[];
@@ -2201,7 +2217,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       primitives = this.applyBindingsToPrimitives(
         definition.primitives,
         definition.propertyBindings,
-        propertyValues
+        propertyValues,
+        definition.transformProperties,
+        noValue
       );
     } else {
       primitives = [...definition.primitives];
@@ -2210,7 +2228,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     // Add primitives from nested symbol instances (recursively)
     const nestedInstances = definition.symbolInstances ?? [];
     for (const nestedInst of nestedInstances) {
-      const nestedPrimitives = this.getNestedSymbolPrimitives(nestedInst, definition, propertyValues);
+      const nestedPrimitives = this.getNestedSymbolPrimitives(nestedInst, definition, propertyValues, noValue);
       primitives.push(...nestedPrimitives);
     }
 
@@ -2223,7 +2241,8 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private getNestedSymbolPrimitives(
     nestedInst: SymbolInstance,
     parentDef: SymbolDefinition,
-    parentPropertyValues: Record<string, unknown>
+    parentPropertyValues: Record<string, unknown>,
+    parentNoValue: ReadonlySet<string> = new Set()
   ): PrimitiveBase[] {
     const definitions = this._symbolDefinitions();
     const nestedDef = definitions.get(nestedInst.symbolRtId);
@@ -2233,10 +2252,13 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     }
 
     // Calculate property values for the nested instance using "Pass to child property" bindings
+    const nestedNoValue = new Set<string>();
     const nestedPropertyValues = this.calculateNestedPropertyValues(
       parentDef,
       nestedInst,
-      parentPropertyValues
+      parentPropertyValues,
+      parentNoValue,
+      nestedNoValue
     );
 
     // Apply bindings to nested primitives
@@ -2245,7 +2267,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       nestedPrimitives = this.applyBindingsToPrimitives(
         nestedDef.primitives,
         nestedDef.propertyBindings,
-        nestedPropertyValues
+        nestedPropertyValues,
+        nestedDef.transformProperties,
+        nestedNoValue
       );
     } else {
       nestedPrimitives = [...nestedDef.primitives];
@@ -2266,7 +2290,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     // Recursively handle nested instances within the nested symbol
     const deepNestedInstances = nestedDef.symbolInstances ?? [];
     for (const deepNestedInst of deepNestedInstances) {
-      const deepPrimitives = this.getNestedSymbolPrimitives(deepNestedInst, nestedDef, nestedPropertyValues);
+      const deepPrimitives = this.getNestedSymbolPrimitives(deepNestedInst, nestedDef, nestedPropertyValues, nestedNoValue);
       // Apply the parent offset to deep nested primitives
       const deepOffsetPrimitives = deepPrimitives.map(prim => ({
         ...prim,
@@ -2287,7 +2311,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private calculateNestedPropertyValues(
     parentDef: SymbolDefinition,
     nestedInst: SymbolInstance,
-    parentPropertyValues: Record<string, unknown>
+    parentPropertyValues: Record<string, unknown>,
+    parentNoValue: ReadonlySet<string> = new Set(),
+    nestedNoValue?: Set<string>
   ): Record<string, unknown> {
     const nestedPropertyValues: Record<string, unknown> = {};
 
@@ -2313,6 +2339,10 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     ) ?? [];
 
     for (const binding of passThroughBindings) {
+      // A parent property without a value leaves the child property without one (AB#8022)
+      if (binding.targetPropertyId && parentNoValue.has(binding.propertyId)) {
+        nestedNoValue?.add(binding.targetPropertyId);
+      }
       const sourceValue = parentPropertyValues[binding.propertyId];
       if (sourceValue !== undefined && binding.targetPropertyId) {
         // Evaluate expression if present
@@ -2409,7 +2439,8 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
    */
   private getSymbolInstancePropertyValues(
     symbolInstance: SymbolInstance,
-    definition: SymbolDefinition
+    definition: SymbolDefinition,
+    noValue?: Set<string>
   ): Record<string, unknown> {
     const values: Record<string, unknown> = {};
 
@@ -2422,12 +2453,14 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     const diagram = this._diagramConfig();
     const boundData = this._boundDataByBinding();
 
-    if (diagram?.propertyBindings && boundData.size > 0) {
+    if (diagram?.propertyBindings) {
       // Get parent property values
+      const parentNoValue = new Set<string>();
       const parentPropertyValues = this.buildPropertyValuesFromBoundData(
         diagram.transformProperties ?? [],
         this.config.propertyMappings ?? [],
-        boundData
+        boundData,
+        parentNoValue
       );
 
       // Find bindings that pass values to this symbol instance
@@ -2439,6 +2472,15 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       );
 
       for (const binding of propertyBindings) {
+        // A parent property without a value leaves the symbol property without one,
+        // so a text.value binding inside the symbol shows "–" (AB#8022)
+        if (parentNoValue.has(binding.propertyId)) {
+          noValue?.add(binding.targetPropertyId!);
+        }
+        // Without bound data the symbol keeps its defaults, as before
+        if (boundData.size === 0) {
+          continue;
+        }
         const parentValue = parentPropertyValues[binding.propertyId];
         if (parentValue === undefined) {
           continue;
@@ -2941,7 +2983,8 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private buildPropertyValuesFromBoundData(
     transformProperties: TransformProperty[],
     mappings: DiagramPropertyMapping[],
-    boundDataByBinding: ReadonlyMap<string, BoundDataResult>
+    boundDataByBinding: ReadonlyMap<string, BoundDataResult>,
+    noValue?: Set<string>
   ): Record<string, unknown> {
     const values: Record<string, unknown> = {};
 
@@ -2959,6 +3002,8 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       // no entry and leaves the default; an unknown name is reported once.
       const boundData = boundDataByBinding.get(mappingBindingName(mapping));
       if (!boundData) {
+        // No data yet: a text.value binding shows "–", other effects keep the default
+        noValue?.add(mapping.propertyId);
         continue;
       }
 
@@ -2984,8 +3029,15 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
           // No row / no numeric cell: the property has no value (not 0, not
           // its default), so its effects are skipped and a text shows "–".
           values[mapping.propertyId] = undefined;
+          noValue?.add(mapping.propertyId);
           continue;
         }
+      }
+
+      if (rawValue === undefined || rawValue === null) {
+        // Missing attribute or empty cell (AB#8022). The values map keeps its
+        // legacy content (default, or null coerced) for every other effect.
+        noValue?.add(mapping.propertyId);
       }
 
       if (rawValue !== undefined) {
@@ -3009,6 +3061,12 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
           } catch (err) {
             console.warn(`[ProcessWidget] Expression error for ${mapping.propertyId}:`, err);
           }
+        }
+
+        // A number property whose value is not numeric has no value for a text
+        // (coerceToType turns it into 0, which a text must never show)
+        if (prop.type === 'number' && !isNumericValue(finalValue)) {
+          noValue?.add(mapping.propertyId);
         }
 
         // Convert to expected type
@@ -3096,7 +3154,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private applyBindingsToPrimitives(
     primitives: PrimitiveBase[],
     bindings: PropertyBinding[],
-    propertyValues: Record<string, unknown>
+    propertyValues: Record<string, unknown>,
+    properties?: TransformProperty[],
+    noValue?: ReadonlySet<string>
   ): PrimitiveBase[] {
     return primitives.map(primitive => {
       // Find bindings for this primitive
@@ -3113,6 +3173,19 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
 
       for (const binding of primitiveBindings) {
         const propertyValue = propertyValues[binding.propertyId];
+
+        if (binding.effectType === 'text.value') {
+          // Formatted live value; "–" without a value, never 0 or the static text (AB#8022)
+          const input = noValue?.has(binding.propertyId) ? undefined : propertyValue;
+          const text = evaluateTextValue(input, binding, {
+            evaluator: this.expressionEvaluator,
+            locale: this.hostLanguage() ?? WIDGET_NUMBER_LOCALE,
+            property: properties?.find(p => p.id === binding.propertyId)
+          });
+          modified = applyTextValueToPrimitive(modified, text);
+          continue;
+        }
+
         if (propertyValue === undefined) continue;
 
         // Build expression context
@@ -3237,4 +3310,15 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
 
     return primitive;
   }
+}
+
+/** Whether a mapped value is a finite number or a numeric string (AB#8022). */
+function isNumericValue(value: unknown): boolean {
+  if (typeof value === 'number') {
+    return Number.isFinite(value);
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    return Number.isFinite(Number(value.trim()));
+  }
+  return false;
 }

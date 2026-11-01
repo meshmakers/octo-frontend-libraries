@@ -10,6 +10,31 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-process-diagrams / octo-meshboard: text element bound to a live value with unit, decimals and the board language (AB#8022)
+
+- New (non-breaking): binding effect `text.value` (`BindingEffectType`) with the optional
+  `PropertyBinding.textFormat` (`TextValueFormat`: `unit`, `decimals` 0–6, `noValueText`). It replaces the content of
+  a text primitive with the formatted value: expression first (e.g. `abs(value)`), then the number in the board
+  language with fixed decimals and the unit (`14,4 kW` de-AT, `14.4 kW` en-GB; grouping per locale, CLDR de-AT
+  groups with a non-breaking space like the KPI widgets). A string result is shown as it is plus unit. No value
+  (no data yet, null/empty cell, missing attribute, non-numeric input of a number property, failed expression) shows
+  `noValueText` (default "–") — never 0 and never the static design-time text.
+- New exports of `@meshmakers/octo-process-diagrams`: `evaluateTextValue`, `formatTextValue`,
+  `applyTextValueToPrimitive`, `textValueInput`, `textValueDecimals`, `textValueNoValueText`,
+  `TEXT_VALUE_DEFAULT_LOCALE` (de-AT), `TEXT_VALUE_DEFAULT_NO_VALUE`, `TEXT_VALUE_MAX_DECIMALS`;
+  `SymbolRenderContext.locale`. The formatter has no MeshBoard dependency; the process widget hands in the host
+  language (`MESHBOARD_LANGUAGE`, fallback `WIDGET_NUMBER_LOCALE`).
+- Binding editor: group "Text" › "Text value", offered only for text primitives (text inside a symbol is bound in
+  the symbol editor), with Unit (default = the property's unit), Decimals, "No value shows" and a preview in de-AT,
+  en-GB and without value. Designer simulation, designer symbol preview and symbol editor simulation show the
+  formatted text live.
+- Text on a connection: bind it with `abs(value)`; the line's direction effects carry the sign.
+- Behaviour change (simulation only): an emptied number field in the simulation panel now means "no value"
+  (`null`) instead of 0; other effects then use the property default.
+- Compatibility: diagrams without a `text.value` binding render exactly as before (same primitives, no format
+  fields written); legacy Label/Display/Gauge elements keep `toFixed` and "--". A library version before AB#8022
+  ignores `text.value` bindings (the static text stays).
+
 ### octo-meshboard: process values summed, averaged or reduced to min/max over a binding's scope (AB#8024)
 
 - New (non-breaking): `DiagramPropertyMapping.aggregate` — `'first' | 'sum' | 'avg' | 'min' | 'max'`

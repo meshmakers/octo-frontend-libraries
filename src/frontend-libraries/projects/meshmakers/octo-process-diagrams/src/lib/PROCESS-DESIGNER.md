@@ -468,6 +468,54 @@ Symbols are rendered in multiple places:
 | Symbol list (small) | `symbol-library-admin.component.ts` | Preview in list |
 | Symbol details (large) | `symbol-library-admin.component.ts` | Large preview |
 
+## Text Value Bindings (AB#8022)
+
+A text primitive can show a live value: binding effect `text.value` with an optional
+`PropertyBinding.textFormat` (`TextValueFormat`). The static `config.content` stays in the file; the
+bound value replaces it only at runtime (process widget) and in the previews (designer simulation,
+symbol editor simulation, `SymbolRenderer`).
+
+```json
+{ "propertyId": "pvPower", "targetType": "primitive", "targetId": "txt-pv-value",
+  "effectType": "text.value", "expression": "value",
+  "textFormat": { "unit": "kW", "decimals": 1, "noValueText": "–" } }
+```
+
+| Step | Rule |
+|------|------|
+| Input | `undefined`, `null`, NaN, or a non-numeric string of a `number` property = **no value**; a numeric string is parsed |
+| Expression | runs only on a value (`abs(value)`, `value / 1000`, `value >= 0 ? 'Bezug' : 'Einspeisung'`); failure = no value |
+| Number result | `Intl.NumberFormat(locale)` with exactly `decimals` (0–6, default 0) fraction digits, a value rounding to zero has no sign, then `" " + unit` |
+| String / boolean result | shown as it is, plus unit, no number formatting; an empty string = no value |
+| No value | `noValueText` (default "–", en dash) — never 0, never the static text |
+| Unit | `textFormat.unit`; `undefined` = the property's `unit`, `''` = none |
+| Locale | the host's board language (process widget: `MESHBOARD_LANGUAGE`), fallback `de-AT`; the designer previews use de-AT |
+
+Implementation: `services/text-value-formatter.ts` (pure, no MeshBoard dependency):
+`evaluateTextValue(input, binding, { evaluator, locale, property, context })`, `formatTextValue`,
+`applyTextValueToPrimitive` (clone-safe content replacement), `textValueInput(values, property)` (a key
+present with `null`/`undefined` is no value, an absent key the default). Every place that applies effects
+calls these: `process-widget.component.ts` (octo-meshboard), `symbol.renderer.ts`,
+`process-designer.component.ts` (diagram simulation + symbol preview), `symbol-editor.component.ts`.
+
+- **Process widget:** a mapped property without a value (binding pending, empty cell, missing attribute,
+  non-numeric value, empty aggregate) is tracked separately (`noValue`), so other effects keep their legacy
+  behaviour (default / coerced value) while the text shows "–". Without any bound data a diagram with a
+  `text.value` binding still runs its bindings (texts show "–"); a diagram without one returns its primitives
+  untouched, as before. Symbol properties fed by a pass-through (`property`) binding inherit "no value" from
+  the parent property.
+- **Binding editor:** group "Text" › "Text value", offered only when the target is a text primitive (text
+  inside a symbol is a primitive of the symbol definition, bound in the symbol editor). Fields Unit (default
+  = the property's unit), Decimals (0–6), "No value shows" (default "–"), preview with the sample value in
+  de-AT, en-GB and without value. Moving the binding to a non-text target or another effect drops `textFormat`.
+- **Simulation panel:** an emptied number field emits `null` (no value) instead of 0.
+- **Connections:** a text on a connection uses `abs(value)`; the direction effects on the line
+  (`animation.enabled`, `visible`, `style.stroke.color`) carry the sign.
+- Legacy Label/Display/Gauge elements are not affected (`toFixed`, "--").
+- Specs: `services/text-value-formatter.spec.ts`, `designer/text-value-simulation.spec.ts`,
+  `designer/binding-editor-dialog.text-value.spec.ts`, `symbol.renderer.spec.ts` (*text.value bindings*),
+  octo-meshboard `process-widget.text-value.spec.ts`.
+
 ## Styling & Opacity
 
 ### Style Structure

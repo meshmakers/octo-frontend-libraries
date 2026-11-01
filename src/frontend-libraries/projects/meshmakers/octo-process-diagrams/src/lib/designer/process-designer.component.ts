@@ -93,6 +93,7 @@ import { renderAnimations, AnimationRenderContext, renderFlowParticles, getFlowP
 import { SymbolLibraryService } from '../services/symbol-library.service';
 import { SvgImportService } from '../services/svg-import.service';
 import { ExpressionEvaluatorService } from '../services/expression-evaluator.service';
+import { applyTextValueToPrimitive, evaluateTextValue, textValueInput } from '../services/text-value-formatter';
 import {
   DesignerSelectionService,
   DesignerClipboardService,
@@ -6584,6 +6585,13 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
           continue;
         }
 
+        if (binding.effectType === 'text.value') {
+          // Formatted value; a property set to null/undefined shows "–" (AB#8022)
+          const input = textValueInput(propertyValues, property);
+          modified = applyTextValueToPrimitive(modified, evaluateTextValue(input, binding, { evaluator: this.expressionEvaluator, property, context }));
+          continue;
+        }
+
         // Set 'value' to the current property value
         const propValue = propertyValues[property.id] ?? property.defaultValue;
         if (typeof propValue === 'number') context['value'] = propValue;
@@ -6646,6 +6654,13 @@ export class ProcessDesignerComponent implements OnInit, OnDestroy, AfterViewIni
       for (const binding of relevantBindings) {
         const property = properties.find(p => p.id === binding.propertyId);
         if (!property) {
+          continue;
+        }
+
+        if (binding.effectType === 'text.value') {
+          // Formatted value; an emptied simulation field shows "–" (AB#8022)
+          const input = textValueInput(simValues, property);
+          modified = applyTextValueToPrimitive(modified, evaluateTextValue(input, binding, { evaluator: this.expressionEvaluator, property, context }));
           continue;
         }
 

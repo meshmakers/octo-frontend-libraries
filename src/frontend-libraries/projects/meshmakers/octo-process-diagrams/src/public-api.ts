@@ -19,6 +19,18 @@ export { ExpressionEvaluatorService } from './lib/services/expression-evaluator.
 export type { ExpressionContext, ExpressionResult, ValidationResult } from './lib/services/expression-evaluator.service';
 export { createMappingExpressionValidator } from './lib/services/mapping-expression-validator';
 export type { MappingExpressionValidatorFn, MappingExpressionValidationResult } from './lib/services/mapping-expression-validator';
+export {
+  evaluateTextValue,
+  formatTextValue,
+  applyTextValueToPrimitive,
+  textValueInput,
+  textValueDecimals,
+  textValueNoValueText,
+  TEXT_VALUE_DEFAULT_LOCALE,
+  TEXT_VALUE_DEFAULT_NO_VALUE,
+  TEXT_VALUE_MAX_DECIMALS
+} from './lib/services/text-value-formatter';
+export type { TextValueEvaluationOptions, TextValueExpressionEvaluator } from './lib/services/text-value-formatter';
 
 // Designer Components
 export { ProcessDesignerComponent } from './lib/designer/process-designer.component';
