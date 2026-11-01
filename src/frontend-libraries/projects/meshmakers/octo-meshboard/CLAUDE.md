@@ -1347,6 +1347,75 @@ the widget is configured with. Only meaningful with `resolutionAware`; stream-da
 
 ---
 
+## Line chart: series from several queries on one time grid (AB#7951)
+
+A line / area chart can plot series from more than its primary query: `additionalSeries`
+(wireframe agreed in AB#7951). Helpers: `utils/time-grid-alignment.ts` (`alignOnTimeGrid`,
+`bucketStepMs`), `widgets/line-chart-widget/line-chart-multi-source.ts` (rows → series, labels,
+row validation), editor `mm-line-chart-series-editor`.
+
+**Series model.** `LineChartSeriesDefinition` is a union discriminated by `kind`. Today only
+`LineChartQuerySeries` (`kind: 'query'`): `key` (letters, digits, `_`, not starting with a digit,
+unique; formula series of AB#7952 reference it), optional `label` (legend; the key when empty), its own
+`PersistentQueryDataSource` (stream-data query, `entitySelectorId`, `ignoreTimeFilter`,
+`resolutionAware` + `requiredAggregation`; `aggregateSeriesByGroup` is ignored — one source is one
+series) and `valueField`. The primary data source and its field mapping stay exactly as before; its
+series come first, then `additionalSeries` in their order (legend and stacking order). AB#7952 adds
+`kind: 'formula'` to the union and per-series display options; AB#7953 reuses the editor for the bar
+chart with category instead of time alignment.
+
+**Loading (`loadMultiSource`, only when at least one complete query series exists):**
+
+1. Scope per source (`resolveStreamDataScope` with the source's own selector): any `pending` → the
+   widget stays loading and sends no query; `empty` → no series for that source and a
+   `No data for <source>` hint.
+2. Resolution-aware sources resolve their rung (`resolveSeriesQuery` with the source's `valueField`).
+3. **Common bucket count** = min(pixel target, every resolved `points`) — the coarsest effective
+   bucket. Every source is downsampled with this count over the same window (plain sources through
+   the persisted query with `queryMode: DOWNSAMPLING`, resolution-aware query series with ONE
+   `downsampleByArchive` call over their whole scope, the resolution-aware primary with its usual
+   per-rtId / per-group fan-out), so all sources get the same bucket width.
+4. All sources load in parallel (`Promise.allSettled`): a failing source gives an error hint
+   `<source>: Failed to load data (<message>)` and the other series render.
+5. `alignOnTimeGrid` builds the shared categories.
+
+**Alignment rule.** A source's step is its most frequent distance between consecutive bucket
+instants (gaps do not change it; a source needs 3 instants to count). The coarsest step is the grid,
+its source the reference (primary first on a tie). Fixed grids up to one hour: every instant must be a
+whole number of steps from the reference anchor; missing grid instants between the first and the last
+are filled in. Calendar grids (longer steps): no instant may lie strictly inside a reference bucket;
+no fill-in (DST days are 23 / 25 h). A source that breaks the rule is left out with the hint
+`<source>: its buckets do not match the chart's time grid and are not shown` — never plotted shifted.
+Categories are keyed by instant (epoch ms); a repeated wall-clock label (the doubled hour of a DST
+fall-back day) gets ` (2)`, so 2026-10-25 shows 100 quarter hours.
+
+**Gap rule.** A bucket a source has no data for is `null`. A stacked or multi-source chart binds
+Kendo `missingValues: 'gap'` explicitly (Kendo's default is `'zero'` for area / stacked series and
+`'interpolate'` for lines), so a gap is never drawn, stacked or bridged as a value. Single-query
+unstacked charts bind exactly Kendo's defaults and render as before. Rows of one query series in one
+bucket (several source entities) are summed; all-null stays null.
+
+**Other rules.** Widget `filters` apply to the primary query only. A multi-source chart has one value
+axis (per-unit axes stay a single-query feature; units still show in the tooltip) and no min/max
+bands. `stacked` only affects area charts. The data badge counts the rows of all sources. Without a
+time range nothing can be downsampled; raw rows are aligned by their timestamps and usually do not sit
+on a common grid — give multi-source charts a time filter.
+
+**Persistence.** `additionalSeries` and `stacked` are written only when set
+(`toPersistedConfig`), so a single-query chart encodes byte-identically; on load, entries without a
+known `kind` or query are dropped (a newer library may store formula series). The dialog shows the
+Series section only for a stream-data primary query.
+
+Specs: `utils/time-grid-alignment.spec.ts` (rungs, anchors, gaps, fill-in, DST quarter hours and
+days), `line-chart-multi-source.spec.ts`, `line-chart-widget.multi-source.spec.ts` (three archives,
+common bucket count incl. resolution-aware, failing / empty / pending / misaligned source, reload on
+time filter and selector change, DST fixture, stacking, single-query regression),
+`line-chart-series-editor.component.spec.ts` (add / remove / reorder with focus, validation, wrap),
+`line-chart-config-dialog.series.spec.ts`, `registrations/default-widget-registrations.line-chart-series.spec.ts`
+(round trip, byte-identical legacy configs).
+
+---
+
 ## Testing
 
 ### Test Structure

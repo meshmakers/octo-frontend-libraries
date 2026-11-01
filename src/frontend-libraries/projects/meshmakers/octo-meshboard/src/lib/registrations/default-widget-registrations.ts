@@ -16,6 +16,7 @@ import {
   PieChartWidgetConfig,
   BarChartWidgetConfig,
   LineChartWidgetConfig,
+  LineChartQuerySeries,
   HeatmapWidgetConfig,
   HeatmapTimeWindow,
   StatsGridWidgetConfig,
@@ -1389,7 +1390,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowMarkers: lineWidget.showMarkers,
         initialShowDataBadge: lineWidget.showDataBadge,
         initialReferenceLines: lineWidget.referenceLines,
-        initialFilters: lineWidget.filters
+        initialFilters: lineWidget.filters,
+        initialAdditionalSeries: lineWidget.additionalSeries,
+        initialStacked: lineWidget.stacked
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1427,7 +1430,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showMarkers: result.showMarkers,
         showDataBadge: result.showDataBadge,
         referenceLines: result.referenceLines,
-        filters
+        filters,
+        additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
+        stacked: result.stacked || undefined
       } as LineChartWidgetConfig;
     },
 
@@ -1480,7 +1485,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...((widget.dataSource as PersistentQueryDataSource).aggregateSeriesByGroup && {
           aggregateSeriesByGroup: true
         }),
-        filters: widget.filters
+        filters: widget.filters,
+        // AB#7951: written only when set, so a single-query chart encodes exactly as before.
+        ...(widget.additionalSeries?.length && { additionalSeries: widget.additionalSeries }),
+        ...(widget.stacked && { stacked: true })
       }
     }),
 
@@ -1503,7 +1511,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showMarkers: (config['showMarkers'] as boolean) ?? false,
         showDataBadge: (config['showDataBadge'] as boolean | undefined) ?? true,
         referenceLines: config['referenceLines'] as LineChartWidgetConfig['referenceLines'],
-        filters: config['filters'] as WidgetFilterConfig[] | undefined
+        filters: config['filters'] as WidgetFilterConfig[] | undefined,
+        ...lineChartSeriesFromPersisted(config)
       };
     }
   });
@@ -2667,3 +2676,25 @@ export function provideWidgetRegistrations(
  * Re-export WidgetRegistration type for convenience
  */
 export type { WidgetRegistration } from '../services/widget-registry.service';
+
+/**
+ * Reads `additionalSeries` / `stacked` of a persisted line chart (AB#7951). Both keys are absent
+ * on a single-query chart, so the result is `{}` and the loaded config has no such keys. Entries
+ * without a known `kind` or without a data source are dropped (a newer library may store kinds
+ * this version does not know, e.g. formula series of AB#7952).
+ */
+function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked'> {
+  const out: Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked'> = {};
+  const raw = config['additionalSeries'];
+  if (Array.isArray(raw)) {
+    const series = raw.filter((s): s is LineChartQuerySeries =>
+      !!s && typeof s === 'object'
+      && (s as { kind?: unknown }).kind === 'query'
+      && typeof (s as { key?: unknown }).key === 'string'
+      && !!(s as { dataSource?: unknown }).dataSource
+      && typeof (s as { dataSource: { queryRtId?: unknown } }).dataSource.queryRtId === 'string');
+    if (series.length > 0) out.additionalSeries = series;
+  }
+  if (config['stacked'] === true) out.stacked = true;
+  return out;
+}

@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction } from '../../models/meshboard.models';
+import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartQuerySeries } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -21,6 +21,8 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { columnProbeWindow } from '../../utils/column-probe-window';
+import { LineChartSeriesEditorComponent } from './line-chart-series-editor.component';
+import { querySeriesErrors } from './line-chart-multi-source';
 
 /**
  * Configuration result from the Line Chart dialog
@@ -47,6 +49,10 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   showDataBadge: boolean;
   filters?: FieldFilterDto[];
   referenceLines?: ChartReferenceLine[];
+  /** Query series after the primary query's series (AB#7951); absent when none. */
+  additionalSeries?: LineChartQuerySeries[];
+  /** Stack the series of an area chart (AB#7951). */
+  stacked?: boolean;
 }
 
 /**
@@ -67,7 +73,8 @@ export interface LineChartConfigResult extends WidgetConfigResult {
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
     EntitySelectorScopePickerComponent,
-    LoadingOverlayComponent
+    LoadingOverlayComponent,
+    LineChartSeriesEditorComponent
   ],
   template: `
     <div class="config-container">
@@ -210,6 +217,19 @@ export interface LineChartConfigResult extends WidgetConfigResult {
           </div>
         }
 
+        <!-- Series Section (AB#7951): query series from other stream-data queries on one time grid -->
+        @if (selectedQueryFamily === 'streamData') {
+          <div class="config-section">
+            <h3 class="section-title">Series</h3>
+            <p class="section-hint">The primary query's series come first, then the series below in this order (in a stacked area chart: bottom to top). All series share one time axis; each query can follow its own entity selector.</p>
+            <mm-line-chart-series-editor
+              [series]="additionalSeries"
+              [selectors]="availableEntitySelectors"
+              (seriesChange)="additionalSeries = $event">
+            </mm-line-chart-series-editor>
+          </div>
+        }
+
         <!-- Filters Section -->
         @if (selectedPersistentQuery?.queryCkTypeId) {
           <div class="config-section">
@@ -250,6 +270,16 @@ export interface LineChartConfigResult extends WidgetConfigResult {
               </label>
             </div>
           </div>
+
+          @if (form.chartType === 'area') {
+            <div class="form-field checkbox-field">
+              <label>
+                <input type="checkbox" [(ngModel)]="form.stacked" kendoCheckBox />
+                Stacked
+              </label>
+            </div>
+            <p class="field-hint">Series stack in their order; a bucket without data stays a gap.</p>
+          }
 
           <div class="form-row">
             <div class="form-field checkbox-field">
@@ -475,6 +505,11 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialShowDataBadge?: boolean;
   @Input() initialReferenceLines?: ChartReferenceLine[];
   @Input() initialFilters?: WidgetFilterConfig[];
+  @Input() initialAdditionalSeries?: LineChartQuerySeries[];
+  @Input() initialStacked?: boolean;
+
+  /** Query series of the Series section (AB#7951). */
+  additionalSeries: LineChartQuerySeries[] = [];
 
   // State
   isLoadingInitial = false;
@@ -540,6 +575,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     legendPosition: 'right' as 'top' | 'bottom' | 'left' | 'right',
     showMarkers: false,
     showDataBadge: true,
+    stacked: false,
     referenceLines: [] as ChartReferenceLine[]
   };
 
@@ -547,7 +583,13 @@ export class LineChartConfigDialogComponent implements OnInit {
     return this.selectedPersistentQuery !== null
       && this.form.categoryField !== ''
       && this.form.seriesGroupField !== ''
-      && this.form.valueField !== '';
+      && this.form.valueField !== ''
+      && querySeriesErrors(this.effectiveAdditionalSeries).every(e => e === null);
+  }
+
+  /** The query series that are saved: none unless the primary query is a stream-data query. */
+  get effectiveAdditionalSeries(): LineChartQuerySeries[] {
+    return this.selectedQueryFamily === 'streamData' ? this.additionalSeries : [];
   }
 
   async ngOnInit(): Promise<void> {
@@ -573,6 +615,8 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.form.showMarkers = this.initialShowMarkers ?? false;
     this.form.showDataBadge = this.initialShowDataBadge ?? true;
     this.form.referenceLines = this.initialReferenceLines ? [...this.initialReferenceLines] : [];
+    this.form.stacked = this.initialStacked ?? false;
+    this.additionalSeries = this.initialAdditionalSeries ? [...this.initialAdditionalSeries] : [];
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -712,7 +756,9 @@ export class LineChartConfigDialogComponent implements OnInit {
       showMarkers: this.form.showMarkers,
       showDataBadge: this.form.showDataBadge,
       referenceLines: this.form.referenceLines.length > 0 ? this.form.referenceLines : undefined,
-      filters: filtersDto
+      filters: filtersDto,
+      additionalSeries: this.effectiveAdditionalSeries.length > 0 ? this.effectiveAdditionalSeries : undefined,
+      stacked: this.form.chartType === 'area' && this.form.stacked ? true : undefined
     };
 
     this.windowRef.close(result);
