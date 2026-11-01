@@ -16,7 +16,7 @@ import { ProcessWidgetConfig } from '../models/meshboard.models';
 // Process Widget Components (these pull in @meshmakers/octo-process-diagrams)
 import { ProcessWidgetComponent } from '../widgets/process-widget/process-widget.component';
 import { ProcessConfigDialogComponent, ProcessConfigResult } from '../widgets/process-widget/process-config-dialog.component';
-import { DEFAULT_PROCESS_BINDING_NAME, ProcessWidgetBinding } from '../widgets/process-widget/process-widget-config.model';
+import { DEFAULT_PROCESS_BINDING_NAME, ProcessConnectionDirection, ProcessWidgetBinding } from '../widgets/process-widget/process-widget-config.model';
 import {
   hasNamedProcessBindings,
   parsePersistedProcessBindings,
@@ -56,6 +56,18 @@ function normalizeBindings(widget: ProcessWidgetConfig): ProcessWidgetConfig {
     return { ...rest, ...legacyFieldsOf(bindings[0]) };
   }
   return widget;
+}
+
+/** Reads persisted `connectionDirections`; drops malformed entries, `undefined` when none is left. */
+function parseConnectionDirections(raw: unknown): ProcessConnectionDirection[] | undefined {
+  if (!Array.isArray(raw)) {
+    return undefined;
+  }
+  const directions = raw
+    .filter((e): e is Record<string, unknown> => !!e && typeof e === 'object')
+    .filter(e => typeof e['connectionId'] === 'string' && typeof e['propertyId'] === 'string')
+    .map(e => ({ connectionId: e['connectionId'] as string, propertyId: e['propertyId'] as string }));
+  return directions.length > 0 ? directions : undefined;
 }
 
 /**
@@ -112,44 +124,44 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
       initialBindingIgnoreTimeFilter: widget.bindingIgnoreTimeFilter,
       initialBindingEntitySelectorId: widget.bindingEntitySelectorId,
       initialBindingFilters: widget.bindingFilters,
-      initialPropertyMappings: widget.propertyMappings
+      initialPropertyMappings: widget.propertyMappings,
+      // Named bindings (AB#8023) and connection directions (AB#8025)
+      initialBindings: widget.bindings,
+      initialConnectionDirections: widget.connectionDirections
     }),
 
-    // A widget with named bindings (AB#8023) keeps its bindings and mappings: the
-    // legacy dialog edits only the single-binding fields and would drop the
-    // mappings when its own mode is 'none' (the editor for bindings is AB#8025).
-    applyConfigResult: (widget, result) => hasNamedProcessBindings(widget) ? {
-      ...widget,
-      processDiagramRtId: result.processDiagramRtId,
-      inlineConfig: result.inlineConfig,
-      fitToBounds: result.fitToBounds,
-      allowZoom: result.allowZoom,
-      allowPan: result.allowPan,
-      showToolbar: result.showToolbar,
-      initialZoom: result.initialZoom
-    } : ({
-      ...widget,
-      // Diagram selection
-      processDiagramRtId: result.processDiagramRtId,
-      inlineConfig: result.inlineConfig,
-      // Display options
-      fitToBounds: result.fitToBounds,
-      allowZoom: result.allowZoom,
-      allowPan: result.allowPan,
-      showToolbar: result.showToolbar,
-      initialZoom: result.initialZoom,
-      // Data binding
-      dataBindingMode: result.dataBindingMode,
-      bindingCkTypeId: result.bindingCkTypeId,
-      bindingRtId: result.bindingRtId,
-      bindingQueryRtId: result.bindingQueryRtId,
-      bindingQueryName: result.bindingQueryName,
-      bindingQueryFamily: result.bindingQueryFamily,
-      bindingIgnoreTimeFilter: result.bindingIgnoreTimeFilter,
-      bindingEntitySelectorId: result.bindingEntitySelectorId,
-      bindingFilters: result.bindingFilters,
-      propertyMappings: result.propertyMappings
-    }),
+    // The dialog edits every binding (AB#8025): a result with `bindings` replaces
+    // the legacy fields, a result without them (none, or one card named
+    // `default`) writes the legacy fields and drops `bindings`.
+    applyConfigResult: (widget, result) => {
+      const named = Array.isArray(result.bindings) && result.bindings.length > 0;
+      const { bindings: _bindings, connectionDirections: _directions, ...rest } = widget;
+      return {
+        ...rest,
+        // Diagram selection
+        processDiagramRtId: result.processDiagramRtId,
+        inlineConfig: result.inlineConfig,
+        // Display options
+        fitToBounds: result.fitToBounds,
+        allowZoom: result.allowZoom,
+        allowPan: result.allowPan,
+        showToolbar: result.showToolbar,
+        initialZoom: result.initialZoom,
+        // Data binding (legacy fields; absent when named bindings are used)
+        dataBindingMode: result.dataBindingMode,
+        bindingCkTypeId: result.bindingCkTypeId,
+        bindingRtId: result.bindingRtId,
+        bindingQueryRtId: result.bindingQueryRtId,
+        bindingQueryName: result.bindingQueryName,
+        bindingQueryFamily: result.bindingQueryFamily,
+        bindingIgnoreTimeFilter: result.bindingIgnoreTimeFilter,
+        bindingEntitySelectorId: result.bindingEntitySelectorId,
+        bindingFilters: result.bindingFilters,
+        propertyMappings: result.propertyMappings,
+        ...(named && { bindings: result.bindings }),
+        ...(result.connectionDirections && result.connectionDirections.length > 0 && { connectionDirections: result.connectionDirections })
+      };
+    },
 
     // SOLID: Factory function
     createDefaultConfig: (base: BaseWidgetConfig): ProcessWidgetConfig => ({
@@ -197,7 +209,11 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
           propertyMappings: widget.propertyMappings,
           // Named bindings (AB#8023) — written only when present, so legacy
           // widgets encode byte-identically.
-          ...(hasNamedProcessBindings(widget) && { bindings: toPersistedProcessBindings(widget.bindings!) })
+          ...(hasNamedProcessBindings(widget) && { bindings: toPersistedProcessBindings(widget.bindings!) }),
+          // Connection directions (AB#8025) — written only when set.
+          ...(widget.connectionDirections && widget.connectionDirections.length > 0 && {
+            connectionDirections: widget.connectionDirections.map(d => ({ connectionId: d.connectionId, propertyId: d.propertyId }))
+          })
         }
       };
     },
@@ -206,6 +222,7 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
     fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): ProcessWidgetConfig => {
       const config = parseConfig(data);
       const bindings = parsePersistedProcessBindings(config['bindings']);
+      const connectionDirections = parseConnectionDirections(config['connectionDirections']);
       return {
         ...base,
         rtId: data.rtId,
@@ -235,7 +252,9 @@ export function registerProcessWidget(registry: WidgetRegistryService): void {
         bindingFilters: config['bindingFilters'] as ProcessWidgetConfig['bindingFilters'],
         propertyMappings: config['propertyMappings'] as ProcessWidgetConfig['propertyMappings'],
         // Named bindings (AB#8023); absent key stays absent.
-        ...(bindings && { bindings })
+        ...(bindings && { bindings }),
+        // Connection directions (AB#8025); absent key stays absent.
+        ...(connectionDirections && { connectionDirections })
       };
     }
   });

@@ -1390,8 +1390,8 @@ export interface RecentItemsWidgetConfig extends WidgetConfig {
 
 // Process Widget Config is defined in the process-widget module
 // Re-exported here for AnyWidgetConfig union
-import type { ProcessWidgetConfig, DiagramPropertyMapping, ProcessWidgetBinding, ProcessValueAggregate } from '../widgets/process-widget/process-widget-config.model';
-export type { ProcessWidgetConfig, DiagramPropertyMapping, ProcessWidgetBinding, ProcessValueAggregate };
+import type { ProcessWidgetConfig, DiagramPropertyMapping, ProcessWidgetBinding, ProcessValueAggregate, ProcessConnectionDirection } from '../widgets/process-widget/process-widget-config.model';
+export type { ProcessWidgetConfig, DiagramPropertyMapping, ProcessWidgetBinding, ProcessValueAggregate, ProcessConnectionDirection };
 
 export type AnyWidgetConfig =
   | EntityCardWidgetConfig
