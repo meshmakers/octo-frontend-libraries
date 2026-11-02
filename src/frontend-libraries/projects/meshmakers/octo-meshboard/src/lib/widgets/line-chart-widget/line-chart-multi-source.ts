@@ -13,6 +13,7 @@ import { QueryResultRow } from '../../services/query-executor.service';
 import { AlignedTimeSeries, TimeGridSeriesInput } from '../../utils/time-grid-alignment';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
 import { toInstant } from '../../utils/meshboard-datetime';
+import { streamDataRowFieldValue } from '../../utils/stream-data-row-fields';
 
 /**
  * Pure helpers of the multi-source line chart (AB#7951): turn the rows of each source into
@@ -111,7 +112,7 @@ function toNumberOrNull(value: unknown): number | null {
 function rowInstant(row: QueryResultRow, categoryField: string | undefined, useTimestamp: boolean): number | null {
   let raw: unknown = useTimestamp ? row.timestamp : undefined;
   if ((raw === undefined || raw === null) && categoryField) {
-    raw = findCellForField(row.cells, categoryField)?.value;
+    raw = findCellForField(row.cells, categoryField)?.value ?? streamDataRowFieldValue(row, categoryField);
   }
   const instant = toInstant(raw);
   return instant ? instant.getTime() : null;
@@ -147,7 +148,8 @@ export function primaryRowsToSeries(
   for (const row of rows) {
     const instant = rowInstant(row, downsampled ? undefined : fields.categoryField, downsampled);
     if (instant === null) continue;
-    const group = findCellForField(row.cells, fields.seriesGroupField)?.value;
+    // Stream-data rows carry the source entity as row property (`rtId`), not as cell (AB#8069).
+    const group = findCellForField(row.cells, fields.seriesGroupField)?.value ?? streamDataRowFieldValue(row, fields.seriesGroupField);
     if (group === null || group === undefined || String(group) === '') continue;
     const name = String(group);
     let entry = series.get(name);

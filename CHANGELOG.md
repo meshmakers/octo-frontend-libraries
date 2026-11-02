@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: a new stream-data line chart can be completed in the dialog — Field Mapping offers `timestamp` and `rtId` (AB#8069)
+
+- Fix: stream-data rows carry their time stamp and source entity as row properties, not as columns, so the line
+  chart's Field Mapping offered neither a category (time) field nor a grouping field for a new stream-data chart.
+  The dialog now adds `timestamp` (DATE_TIME) and `rtId` (STRING) in front of the query's columns
+  (`withStreamDataRowFields`, only when the query has no column of that name; runtime queries unchanged).
+- The line chart reads `timestamp` / `rtId` from the row when no cell of that name exists
+  (`streamDataRowFieldValue`; single-query raw and downsampled rows, multi-source primary), so
+  `categoryField: timestamp`, `seriesGroupField: rtId` gives one line per source entity.
+
 ### octo-meshboard: per-series options in line and bar charts — missing values as 0 or last value, colour, line style, a fixed bucket size, bar series as line (AB#8046)
 
 - New (non-breaking) series options on `LineChartSeriesDisplayOptions` (additional series of line and bar charts, and

@@ -1407,6 +1407,13 @@ on a common grid — give multi-source charts a time filter.
 known `kind` or query are dropped (a newer library may store formula series). The dialog shows the
 Series section only for a stream-data primary query.
 
+**Primary field mapping of a stream-data query (AB#8069).** Stream-data rows carry `timestamp` and `rtId` as row
+properties, not as columns, so `fetchStreamDataColumns` does not list them. The dialog adds both in front of the
+columns (`utils/stream-data-row-fields.ts` `withStreamDataRowFields`, skipped when the query has such a column), and
+the widget falls back to the row property when no cell of that name exists (`streamDataRowFieldValue` in
+`processData` and `primaryRowsToSeries`/`rowInstant`). `categoryField: timestamp` + `seriesGroupField: rtId` = one
+line per source entity. Spec: `line-chart-widget.stream-data-row-fields.spec.ts`.
+
 **Query picker of a series row** (`acceptFamilies: ['streamData']`): autocomplete and "Browse Queries"
 dialog both classify a query by the query entity's own `ckTypeId` (`System/SimpleSdQuery`, …), so both
 data sources must map it (`persistent-query-data-sources.spec.ts`; the dialog dropped it until the AB#7951

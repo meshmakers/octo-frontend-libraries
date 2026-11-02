@@ -11,6 +11,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { CkRollupFunctionDto, FieldFilterDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
+import { streamDataRowFieldValue } from '../../utils/stream-data-row-fields';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { alignOnTimeGrid, TimeGridSourceInput } from '../../utils/time-grid-alignment';
 import { alignOnFixedGrid, FixedBucketWindow, lastValue, snapWindowToBuckets } from '../../utils/series-options';
@@ -1418,6 +1419,10 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         }
       }
 
+      // Stream-data rows carry time stamp and source entity as row properties, not cells (AB#8069).
+      if (!categoryValue) categoryValue = rowFieldText(row, categoryField);
+      if (!seriesGroupValue) seriesGroupValue = rowFieldText(row, seriesGroupField);
+
       if (categoryValue && seriesGroupValue) {
         // Parse date for sorting. toInstant treats a naive wire timestamp (no zone designator)
         // as UTC — a bare `new Date(...)` would reinterpret it as browser-local time and shift
@@ -1548,4 +1553,11 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const variables = this.stateService.getVariables();
     return this.variableService.convertToFieldFilterDto(filters, variables);
   }
+}
+
+/** Text of a stream-data row field (`timestamp` / `rtId`, AB#8069), '' when the field is none or empty. */
+function rowFieldText(row: QueryResultRow, field: string): string {
+  const value = streamDataRowFieldValue(row, field);
+  if (value === null || value === undefined) return '';
+  return value instanceof Date ? value.toISOString() : String(value);
 }
