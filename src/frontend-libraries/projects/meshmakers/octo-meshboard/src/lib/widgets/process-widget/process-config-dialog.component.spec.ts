@@ -254,6 +254,19 @@ describe('ProcessConfigDialogComponent — bindings editor (AB#8025)', () => {
       expect(aggregateOfLevel?.getAttribute('aria-disabled') === 'true' || aggregateOfLevel?.classList.contains('k-disabled')).toBe(true);
     });
 
+    it('narrow layout never gives the Field input the 55 px type column and shows the full name as tooltip', async () => {
+      await open(namedStored);
+      await selectTab(2);
+      const styles = ((ProcessConfigDialogComponent as unknown as { ɵcmp: { styles: string[] } }).ɵcmp.styles ?? []).join('\n').replace(/\[_ngcontent-%COMP%\]/g, '').replace(/%NS%/g, '');
+      const narrow = styles.slice(styles.indexOf('@container (max-width: 560px)'));
+
+      expect(narrow).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))');
+      expect(narrow).not.toMatch(/grid-template-columns:\s*1fr 55px 1fr/);
+      expect(narrow).toMatch(/\.mapping-row\s+\.col-path\s*\{\s*grid-column: 1;/);
+      const pathCell = el().querySelector('[data-mapping-row] .col-path');
+      expect(pathCell?.hasAttribute('title')).toBe(true);
+    });
+
     it('choosing a runtime-entity binding sets the attribute source type and drops the aggregate', async () => {
       await open(namedStored);
 

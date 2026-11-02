@@ -2071,6 +2071,15 @@ connection condition on AB#7954) edits the AB#8023/AB#8024 model without YAML.
   picked property, so the sign of that value carries the direction exactly as described in *Connections* above.
   Unknown connection / property → one `console.warn`, ignored (`connectionDirectionIssues`). Changing the diagram in
   the dialog drops the overrides.
+- **Layout rules (AB#8025 layout fixes):** the dialog is ~600 px wide at any viewport, so its tab content is a
+  `container-type: inline-size` and the layout switches on the container (560 px). Mapping rows use two equal columns
+  there (property + type, Binding | Aggregate, Field | Expression), never a fixed narrow column for an input; the
+  Field input shows its value as tooltip. The delete confirmation uses `--kendo-color-surface-alt` /
+  `--kendo-color-on-app-surface` with an error-coloured edge (the `error-subtle` token stays light in the dark
+  theme). The shared `mm-field-filter-editor` (octo-ui) keeps its grid at 680 px minimum inside a horizontally
+  scrolling frame (`.filter-grid-scroll`), so a narrow card scrolls instead of cutting off Value and the row actions.
+  Plain connections between elements are not flow lines: they carry no property-driven direction, so only
+  line / polyline / path primitives with a direction binding are listed (the empty hint says so).
 - **Save** is blocked while `bindingDraftIssues` reports anything (empty / duplicate name, selector not on the board,
   incomplete source); the messages are listed above the dialog actions. `bindingResultFields`: no card → no binding
   (`dataBindingMode` stays absent when it was absent), one card named `default` → legacy fields, otherwise `bindings`.

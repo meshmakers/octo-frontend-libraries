@@ -1091,4 +1091,15 @@ describe('FieldFilterEditorComponent', () => {
       expect(attributeServiceMock.getAvailableAttributes).not.toHaveBeenCalled();
     });
   });
+  describe('narrow host (AB#8025)', () => {
+    it('keeps the grid in a horizontally scrolling frame so Value and row actions stay reachable', () => {
+      const root = fixture.nativeElement as HTMLElement;
+      const scroll = root.querySelector('.filter-grid-scroll');
+
+      expect(scroll).toBeTruthy();
+      expect(scroll?.querySelector('kendo-grid.filter-grid')).toBeTruthy();
+      const styles = ((FieldFilterEditorComponent as unknown as { ɵcmp: { styles: string[] } }).ɵcmp.styles ?? []).join('\n').replace(/\[_ngcontent-%COMP%\]/g, '').replace(/%NS%/g, '');
+      expect(styles).toMatch(/\.filter-grid-scroll\s*\{[^}]*overflow-x:\s*auto/);
+    });
+  });
 });

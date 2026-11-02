@@ -10,6 +10,17 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard / octo-ui: process widget dialog layout fixes — readable Field column, dark-theme delete confirmation, scrolling filter grid (AB#8025)
+
+- Fix: at the dialog's ~600 px width the Mappings tab squeezed the Field input into the 55 px type column
+  ("ca…"); the narrow layout now uses two equal columns and the Field input carries its value as tooltip.
+- Fix: the delete confirmation of a binding card was light text on a light pink fill in the dark theme (~1.1:1); it
+  now uses the theme surface and text colours with an error-coloured edge.
+- Fix (octo-ui `mm-field-filter-editor`, shared by all widget dialogs): the filter grid is 680 px minimum and scrolls
+  horizontally inside its frame in narrow hosts; the Value column and the row actions are no longer cut off.
+- The empty "Connections" hint now says that only line / polyline / path shapes with a direction binding are listed
+  (plain connections between elements have no direction to pick).
+
 ### octo-meshboard: a new stream-data line chart can be completed in the dialog — Field Mapping offers `timestamp` and `rtId` (AB#8069)
 
 - Fix: stream-data rows carry their time stamp and source entity as row properties, not as columns, so the line
