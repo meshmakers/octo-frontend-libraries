@@ -21,6 +21,7 @@ import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
+import { withStreamDataRowFields } from '../../utils/stream-data-row-fields';
 import { columnProbeWindow } from '../../utils/column-probe-window';
 import { LineChartSeriesEditorComponent } from './line-chart-series-editor.component';
 import { querySeriesErrors } from './line-chart-multi-source';
@@ -723,11 +724,13 @@ export class LineChartConfigDialogComponent implements OnInit {
     // window, or the last 24 hours when the board has no time filter (AB#7975).
     const columns = await this.queryExecutor.fetchStreamDataColumns(
       rtId, columnProbeWindow(this.stateService.resolveStreamDataTimeArgs()));
-    return columns.map(c => ({
+    // Time stamp and source entity are row properties of stream-data rows, not columns (AB#8069):
+    // offer them so the category and series group fields can be completed in the dialog.
+    return withStreamDataRowFields(columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null
-    }));
+    })));
   }
 
   onFiltersChange(updatedFilters: FieldFilterItem[]): void {

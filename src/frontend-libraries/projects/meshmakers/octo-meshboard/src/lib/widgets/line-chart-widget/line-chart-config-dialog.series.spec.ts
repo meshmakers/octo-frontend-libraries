@@ -114,7 +114,8 @@ describe('LineChartConfigDialogComponent — series (AB#7951)', () => {
 
     expect(fetchStreamDataColumns).toHaveBeenCalledWith('q-wallbox', expect.anything());
     expect(cmp.numericColumns.map(c => c.attributePath)).toEqual(['activePower']);
-    expect(cmp.nonNumericColumns.map(c => c.attributePath)).toEqual(['name']);
+    // timestamp / rtId are the stream-data row fields the dialog adds (AB#8069).
+    expect(cmp.nonNumericColumns.map(c => c.attributePath)).toEqual(['timestamp', 'rtId', 'name']);
   });
 
   it('a column the backend types STRING is not offered as value field (gap B, fixed by AB#8030 in the backend)', async () => {
