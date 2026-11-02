@@ -272,4 +272,13 @@ describe('ProcessBindingCardsComponent (AB#8025)', () => {
 
     expect(list[0]).toEqual(expect.objectContaining({ queryRtId: 'q9', queryName: 'Wallboxen', queryFamily: 'runtime', queryCkTypeId: 'Test/Wallbox', ignoreTimeFilter: undefined }));
   });
+  it('delete confirmation uses theme text and surface colours, not the light error-subtle fill (dark theme contrast)', async () => {
+    await open(drafts());
+    const styles = ((ProcessBindingCardsComponent as unknown as { ɵcmp: { styles: string[] } }).ɵcmp.styles ?? []).join('\n').replace(/\[_ngcontent-%COMP%\]/g, '').replace(/%NS%/g, '');
+    const rule = /\.delete-confirm\s*\{[^}]*\}/.exec(styles)?.[0] ?? '';
+
+    expect(rule).toContain('color: var(--kendo-color-on-app-surface');
+    expect(rule).toContain('background: var(--kendo-color-surface-alt');
+    expect(rule).not.toContain('error-subtle');
+  });
 });

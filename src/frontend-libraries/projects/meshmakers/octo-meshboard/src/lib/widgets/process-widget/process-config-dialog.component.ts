@@ -251,6 +251,7 @@ export interface ProcessConfigResult extends WidgetConfigResult {
                           <kendo-combobox
                             class="col-path"
                             [attr.aria-label]="'Field of ' + prop.name"
+                            [title]="getMappingSourcePath(prop.id) || ''"
                             [data]="attributes"
                             textField="attributePath"
                             valueField="attributePath"
@@ -265,6 +266,7 @@ export interface ProcessConfigResult extends WidgetConfigResult {
                           <kendo-textbox
                             class="col-path"
                             [attr.aria-label]="'Field of ' + prop.name"
+                            [title]="getMappingSourcePath(prop.id) || ''"
                             [value]="getMappingSourcePath(prop.id)"
                             (valueChange)="onMappingSourcePathChange(prop.id, $event)"
                             [placeholder]="bindingModeOf(prop.id) === 'runtimeEntity' ? 'Attribute...' : 'Column...'">
@@ -302,7 +304,7 @@ export interface ProcessConfigResult extends WidgetConfigResult {
                   <div class="connections-section" data-connections>
                     <h4 class="section-title">Connections</h4>
                     @if (connections.length === 0) {
-                      <p class="field-hint">This diagram has no connection lines with a flow binding. Bind the flow animation, visibility or colour of a line to a property in the Process Designer to show its direction here.</p>
+                      <p class="field-hint">This diagram has no flow lines with a direction binding. Only line, polyline and path shapes whose flow animation, visibility or colour is bound to a property in the Process Designer are listed; plain connections between elements have no direction to pick.</p>
                     } @else {
                       <p class="section-hint">Each line takes its direction from the sign of a mapped value: positive flows forward, negative backward, 0 or no value shows no flow.</p>
                       <div class="connection-list" role="list" aria-label="Connections">
@@ -580,7 +582,7 @@ export interface ProcessConfigResult extends WidgetConfigResult {
 
     .mapping-header {
       display: grid;
-      grid-template-columns: minmax(70px, 1fr) 55px minmax(80px, 0.9fr) minmax(80px, 1fr) minmax(90px, 0.9fr) minmax(80px, 1fr);
+      grid-template-columns: minmax(70px, 1fr) 55px minmax(90px, 0.9fr) minmax(130px, 1.2fr) minmax(100px, 0.9fr) minmax(80px, 1fr);
       gap: 6px;
       padding: 6px 10px;
       background: var(--kendo-color-surface-alt, #f8f9fa);
@@ -592,7 +594,7 @@ export interface ProcessConfigResult extends WidgetConfigResult {
 
     .mapping-row {
       display: grid;
-      grid-template-columns: minmax(70px, 1fr) 55px minmax(80px, 0.9fr) minmax(80px, 1fr) minmax(90px, 0.9fr) minmax(80px, 1fr);
+      grid-template-columns: minmax(70px, 1fr) 55px minmax(90px, 0.9fr) minmax(130px, 1.2fr) minmax(100px, 0.9fr) minmax(80px, 1fr);
       gap: 6px;
       padding: 6px 10px;
       background: var(--kendo-color-surface, #ffffff);
@@ -638,8 +640,16 @@ export interface ProcessConfigResult extends WidgetConfigResult {
     .tab-content { container-type: inline-size; }
     @container (max-width: 560px) {
       .mapping-header { display: none; }
-      .mapping-row { grid-template-columns: 1fr 55px 1fr; }
-      .mapping-row .col-property { grid-column: 1 / 3; }
+      /* Two equal columns (never the 55 px type column for an input): the
+         property name and its type on the first line, then Binding | Aggregate
+         and Field | Expression, each at least ~200 px wide. */
+      .mapping-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mapping-row .col-property { grid-column: 1; }
+      .mapping-row .col-type { grid-column: 2; justify-self: end; min-width: 55px; }
+      .mapping-row .col-binding { grid-column: 1; }
+      .mapping-row .col-aggregate { grid-column: 2; }
+      .mapping-row .col-path { grid-column: 1; }
+      .mapping-row .col-expression { grid-column: 2; }
     }
 
     .connections-section { margin-top: 20px; }

@@ -326,7 +326,12 @@ export interface ProcessBindingRename {
       gap: 8px;
       padding: 8px 10px;
       border-bottom: 1px solid var(--kendo-color-border, #dee2e6);
-      background: var(--kendo-color-error-subtle, var(--kendo-color-surface-alt, #f8f9fa));
+      /* Neutral surface + theme text colour: readable in light and dark (the
+         error-subtle token stayed light pink in the dark theme, ~1.1:1). The
+         error colour only marks the edge. */
+      background: var(--kendo-color-surface-alt, #f8f9fa);
+      color: var(--kendo-color-on-app-surface, #212529);
+      border-left: 4px solid var(--kendo-color-error, #dc3545);
       font-size: 0.85rem;
     }
     .confirm-actions { display: inline-flex; gap: 6px; }
