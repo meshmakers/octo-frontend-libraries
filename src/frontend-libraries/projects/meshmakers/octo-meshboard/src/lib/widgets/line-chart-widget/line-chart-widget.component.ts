@@ -947,22 +947,22 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * Group-aggregation fan-out (AB#4714): buckets the source entities by `seriesGroupField` and runs
    * one downsampling call per group with the group's rtIds. The transient downsampling reduces over
    * the group's members server-side, yielding one aggregate line per distinct group value. Falls
-   * back to a single merged series when no group can be resolved, unless series group values are
-   * excluded (AB#8128): then the excluded groups are not queried and nothing is merged.
+   * back to a single merged series when no group can be resolved. Excluded series group values
+   * (AB#8128) are not queried; when they remove every group, nothing is queried and there is no data.
    */
   private async loadGroupAggregatedRows(
     ckTypeId: string,
     sourceRtIds: string[] | undefined,
     downsample: (rtIds: string[] | undefined, label: string) => Promise<QueryResultRow[]>
   ): Promise<QueryResultRow[]> {
-    const excluded = this.excludedSeriesGroups();
-    const groups = Array.from(
-      (await this.queryExecutor.fetchEntityGroups(ckTypeId, this.config.seriesGroupField, sourceRtIds)).entries()
-    ).filter(([groupValue]) => !excluded.has(groupValue));
-    if (groups.length === 0) {
-      // No group left. Without exclusions: a single merged line over the whole (optionally scoped) set.
-      return excluded.size > 0 ? [] : downsample(sourceRtIds, this.config.seriesGroupField);
+    const allGroups = await this.queryExecutor.fetchEntityGroups(ckTypeId, this.config.seriesGroupField, sourceRtIds);
+    if (allGroups.size === 0) {
+      // No group attribute resolved → a single merged line over the whole (optionally scoped) set.
+      return downsample(sourceRtIds, this.config.seriesGroupField);
     }
+    const excluded = this.excludedSeriesGroups();
+    const groups = Array.from(allGroups.entries()).filter(([groupValue]) => !excluded.has(groupValue));
+    if (groups.length === 0) return [];
     const perGroup = await Promise.all(groups.map(([groupValue, rtIds]) => downsample(rtIds, groupValue)));
     return perGroup.flat();
   }
@@ -970,9 +970,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   /**
    * Default resolution-aware fan-out (AB#4290): one downsampling call per source rtId so each
    * register stays its own line, labeled from its `seriesGroupField` attribute. With no source
-   * scope a single merged series is produced (labeled by the series-group field name); when series
-   * group values are excluded (AB#8128) that series covers only the source entities of the other values.
-   * Scoped sources whose label is excluded are not queried.
+   * scope a single merged series is produced (labeled by the series-group field name); when an
+   * excluded series group value (AB#8128) occurs among the source entities, that series covers only
+   * the source entities of the other values. Scoped sources whose label is excluded are not queried.
    */
   private async loadPerRtIdRows(
     ckTypeId: string | null,
@@ -983,6 +983,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     if (!sourceRtIds || sourceRtIds.length === 0) {
       if (excluded.size === 0 || !ckTypeId) return downsample(undefined, this.config.seriesGroupField);
       const groups = await this.queryExecutor.fetchEntityGroups(ckTypeId, this.config.seriesGroupField);
+      if (!Array.from(groups.keys()).some(groupValue => excluded.has(groupValue))) {
+        return downsample(undefined, this.config.seriesGroupField);
+      }
       const remaining = Array.from(groups.entries()).filter(([groupValue]) => !excluded.has(groupValue)).flatMap(([, rtIds]) => rtIds);
       return remaining.length > 0 ? downsample(remaining, this.config.seriesGroupField) : [];
     }

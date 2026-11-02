@@ -64,10 +64,8 @@ function config(ds: Partial<PersistentQueryDataSource>, overrides: Partial<LineC
 interface Setup {
   cmp: LineChartWidgetComponent;
   qe: {
-    execute: ReturnType<typeof vi.fn>;
     downsampleByArchive: ReturnType<typeof vi.fn>;
     fetchEntityGroups: ReturnType<typeof vi.fn>;
-    fetchSeriesLabels: ReturnType<typeof vi.fn>;
   };
   load(): Promise<void>;
   /** Downsampled scopes in call order (sorted for comparison). */
@@ -162,14 +160,13 @@ describe('LineChartWidgetComponent excluded series group values (AB#8128)', () =
       expect(s.cmp.error()).toBeNull();
     });
 
-    it('never falls back to a merged series over the whole scope while values are excluded', async () => {
+    it('keeps the merged fallback when no group resolves at all: the exclusion matches nothing', async () => {
       const s = setup(config({ aggregateSeriesByGroup: true }, { excludedSeriesGroupValues: [G03R] }));
       s.qe.fetchEntityGroups.mockResolvedValue(new Map());
 
       await s.load();
 
-      expect(s.qe.downsampleByArchive).not.toHaveBeenCalled();
-      expect(s.cmp.seriesData()).toEqual([]);
+      expect(s.scopes()).toEqual([undefined]);
     });
 
     it('keeps the merged fallback for charts without the key', async () => {
@@ -230,6 +227,21 @@ describe('LineChartWidgetComponent excluded series group values (AB#8128)', () =
       expect(s.scopes()).toHaveLength(1);
       expect([...s.scopes()[0]!].sort()).toEqual(['mp-g01', 'mp-g02', 'mp-g03']);
       expect(s.series()).toEqual({ obisCode: [24.75, 28, 20] });
+    });
+
+    it('without a scope and an excluded value that does not occur: one merged call over the whole archive', async () => {
+      const s = await loaded(config({}, { excludedSeriesGroupValues: ['1-1:9.9.9 G.99'] }));
+
+      expect(s.scopes()).toEqual([undefined]);
+    });
+
+    it('without a scope and no group resolved: one merged call over the whole archive', async () => {
+      const s = setup(config({}, { excludedSeriesGroupValues: [G03R] }));
+      s.qe.fetchEntityGroups.mockResolvedValue(new Map());
+
+      await s.load();
+
+      expect(s.scopes()).toEqual([undefined]);
     });
 
     it('without a scope and every value excluded: no downsampling call, no data', async () => {

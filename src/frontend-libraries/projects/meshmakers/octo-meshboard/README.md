@@ -625,14 +625,16 @@ row filter on the group column fails). Board JSON of a widget config:
 ```
 
 - Matching is exact on the stored `seriesGroupField` value: case and blanks as stored, before any display
-  label. A value that does not occur changes nothing, with one exception: a resolution-aware chart without
-  an entity scope and without `aggregateSeriesByGroup` draws one merged line, and any exclusion limits that
-  line to the source entities that carry a value of the group field.
-- When every value is excluded, or no value is left, the chart shows its normal no-data state.
+  label. A value that does not occur changes nothing.
+- A resolution-aware chart without an entity scope and without `aggregateSeriesByGroup` draws one merged
+  line. When an excluded value occurs among the source entities, that line covers only the source entities
+  of the other values (at most 5000 entities are read; entities without a value of the group field drop out).
+- When every value is excluded, or the exclusion leaves no value, the chart shows its normal no-data state.
 - The entity-selector scope still applies to the remaining series. Additional series are not affected
   (hide them with `visible: false`).
 - The key is written only when the list is not empty; charts without it load and save unchanged.
-- In the dialog: *Field Mapping → Excluded series*, shown once a series group field is set.
+- In the dialog: *Field Mapping → Excluded series*, shown once a series group field is set. Choosing another
+  series group field or another query clears the list.
 
 ### Stats Grid Widget
 Displays multiple KPIs in a grid layout.

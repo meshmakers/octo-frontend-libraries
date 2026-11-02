@@ -1552,7 +1552,6 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...(displayOptionsOrUndefined(widget.primarySeries) && { primarySeries: displayOptionsOrUndefined(widget.primarySeries) }),
         // AB#8046: written only when a fixed bucket size is set.
         ...(bucketMinutesOrUndefined(widget.bucketMinutes) && { bucketMinutes: bucketMinutesOrUndefined(widget.bucketMinutes) }),
-        // AB#8128: written only when values are excluded.
         ...(excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues) && {
           excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues)
         })

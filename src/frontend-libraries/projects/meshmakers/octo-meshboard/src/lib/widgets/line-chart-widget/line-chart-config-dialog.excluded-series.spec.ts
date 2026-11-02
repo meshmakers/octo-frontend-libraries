@@ -1,5 +1,6 @@
 import { ElementRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { POPUP_CONTAINER } from '@progress/kendo-angular-popup';
@@ -60,7 +61,7 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
   }
 
   function key(target: HTMLElement, name: string): void {
-    const keyCode = ({ Enter: 13, Backspace: 8, Delete: 46, ArrowDown: 40 } as Record<string, number>)[name];
+    const keyCode = ({ Enter: 13, Backspace: 8, Delete: 46, ArrowDown: 40, ArrowLeft: 37 } as Record<string, number>)[name];
     target.dispatchEvent(new KeyboardEvent('keydown', { key: name, code: name, keyCode, bubbles: true } as KeyboardEventInit));
   }
 
@@ -204,6 +205,39 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
     key(input(), 'Enter');
     await render();
     expect(cmp.excludedSeriesGroupValues).toEqual([G03R]);
+  });
+
+  it('keyboard only: moves to a chip with ArrowLeft and removes it with Delete', async () => {
+    await open({ initialExcludedSeriesGroupValues: [G01, G03R] });
+    input().focus();
+
+    key(input(), 'ArrowLeft');
+    await render();
+    key(input(), 'Delete');
+    await render();
+
+    expect(chips()).toEqual([G01]);
+    expect(cmp.excludedSeriesGroupValues).toEqual([G01]);
+  });
+
+  it('choosing another series group field clears the list and loads the values of the new field', async () => {
+    await open({ initialExcludedSeriesGroupValues: [G03R] });
+    qe['fetchEntityGroups'].mockClear();
+
+    fixture.debugElement.query(By.css('kendo-combobox[placeholder="Select grouping field..."]'))
+      .triggerEventHandler('ngModelChange', 'unit');
+    await render();
+
+    expect(cmp.form.seriesGroupField).toBe('unit');
+    expect(cmp.excludedSeriesGroupValues).toEqual([]);
+    expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('Basic.Energy/EnergyMeasurement', 'unit');
+  });
+
+  it('reopening a saved config keeps the excluded values', async () => {
+    await open({ initialExcludedSeriesGroupValues: [G03R] });
+
+    expect(cmp.excludedSeriesGroupValues).toEqual([G03R]);
+    expect(chips()).toEqual([G03R]);
   });
 
   it('choosing another query clears the list', async () => {

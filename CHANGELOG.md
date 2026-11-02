@@ -45,9 +45,11 @@ starts a new empty "Unreleased" section.
   whose series the chart leaves out — not queried, not drawn, not in the legend. Exact match on the stored value.
   Works on the raw archive and on rollups, in every mode of the primary query (entity groups, per-source
   fan-out, plain grouping). Example: `["1-1:2.9.0 G.03R"]` hides the series of that OBIS code.
-- All values excluded, or none left: the chart's normal no-data state; the group mode no longer falls back to
-  one merged series. The entity-selector scope still applies to the remaining series.
-- Line chart dialog: *Field Mapping → Excluded series* (pick a value or type one).
+- All values excluded, or none left: the chart's normal no-data state, never one merged series over the whole
+  scope. A value that does not occur changes nothing. The entity-selector scope still applies to the remaining
+  series.
+- Line chart dialog: *Field Mapping → Excluded series* (pick a value or type one); choosing another series group
+  field or query clears the list.
 - The key is written only when not empty; existing boards encode byte-identically.
 
 ### octo-meshboard: a new stream-data line chart can be completed in the dialog — Field Mapping offers `timestamp` and `rtId` (AB#8069)

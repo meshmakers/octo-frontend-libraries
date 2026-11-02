@@ -173,7 +173,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
                 [valueField]="'attributePath'"
                 [valuePrimitive]="true"
                 [(ngModel)]="form.seriesGroupField"
-                (ngModelChange)="loadSeriesGroupValues()"
+                (ngModelChange)="onSeriesGroupFieldChange()"
                 placeholder="Select grouping field...">
                 <ng-template kendoComboBoxItemTemplate let-dataItem>
                   <div class="column-item">
@@ -819,7 +819,10 @@ export class LineChartConfigDialogComponent implements OnInit {
     const field = this.form.seriesGroupField;
     this.seriesGroupValues = [];
     this.seriesGroupValuesFailed = false;
-    if (!query || !field) return;
+    if (!query || !field) {
+      this.isLoadingSeriesGroupValues = false;
+      return;
+    }
     this.isLoadingSeriesGroupValues = true;
     try {
       const family = queryFamily(query.ckTypeId) ?? this.initialQueryFamily ?? await this.queryExecutor.resolveFamily(query.rtId);
@@ -837,8 +840,14 @@ export class LineChartConfigDialogComponent implements OnInit {
       console.error('Error loading series group values:', error);
       if (field === this.form.seriesGroupField) this.seriesGroupValuesFailed = true;
     } finally {
-      this.isLoadingSeriesGroupValues = false;
+      if (field === this.form.seriesGroupField) this.isLoadingSeriesGroupValues = false;
     }
+  }
+
+  /** The author picked another series group field: the values excluded for the old field no longer apply. */
+  async onSeriesGroupFieldChange(): Promise<void> {
+    this.excludedSeriesGroupValues = [];
+    await this.loadSeriesGroupValues();
   }
 
   onFiltersChange(updatedFilters: FieldFilterItem[]): void {
