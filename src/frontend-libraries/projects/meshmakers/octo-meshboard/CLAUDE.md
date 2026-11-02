@@ -1540,6 +1540,65 @@ failing source and failing primary, pending / empty / scoped selectors; static a
 
 ---
 
+## Line and bar chart: per-series options and fixed bucket size (AB#8046)
+
+Options of every additional series (and of `primarySeries`) on `LineChartSeriesDisplayOptions`, all omitted when
+default. Pure helpers in `utils/series-options.ts` (`fillMissingValues`, `snapWindowToBuckets`, `fixedGridInstants`,
+`alignOnFixedGrid`, `lastValue`); applied by `composeChartSeries` (`line-chart-multi-source.ts`) for both charts.
+Editor: wireframe section 6 of the AB#7951 series-editor wireframe (Display line per row).
+
+| Option | Applies to | Effect |
+|---|---|---|
+| `missingValues: 'zero'` | query series, primary | empty bucket / category → 0; a query series without data (empty selector scope, no rows) → all zeros, no "No data" hint |
+| `missingValues: 'carryForward'` | query series, primary | empty bucket → last value of the series (step / LOCF for on-change signals); line chart query series: start value from the look-back |
+| `carryForwardLookbackMinutes` | line chart, with `carryForward` | look-back before the window (default `DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES` = 1440, 0 = none) |
+| `color` | every series except the primary | `resolveChartColor` (CSS colour, `--var`, `var(--x, fallback)`, status name); unresolvable = palette |
+| `dashType` | series drawn as a line: line chart, `stacked: false` series of a stacked area chart, bar chart `asLine` | `'solid'` (default) / `'dash'` / `'dot'`; Kendo has no dash style for area series |
+| `asLine`, `secondaryAxis` | bar chart, column types | draw over the columns as a line, optionally on a second value axis on the right (`axisCrossingValue [0, max]`); ignored for horizontal bars (Kendo cannot mix them) |
+
+Rules:
+
+- **Order in `composeChartSeries`:** fill first, then formulas — filled values are the operands (e.g. Fusch without
+  battery: `charge`/`discharge` with `zero` make `battery = ${discharge}` 0 and `pvDirect = max(0, ${pv} - ${export} - ${charge})`
+  defined, so PV direct + battery + grid = consumption).
+- **Never invent the future:** buckets / categories whose instant is after `Date.now()` stay `null` (a "today"
+  window ends at midnight). Categories that are no date-time are filled throughout.
+- **Never hide a failure:** a failed or misaligned source is not turned into zeros; dependent formulas show
+  "depends on <source>, which failed".
+- **Look-back (line chart, `carryForward` query series):** one extra request per series over
+  `[from - n × bucket, from)` with the chart's bucket width (`n = ceil(lookback / bucket)`, max 4000), same scope and
+  routing as the series (resolution-aware: the same resolved archive); the last non-null bucket is the seed. A
+  failed look-back only means no seed (console warning). The primary series carries within the window only.
+- **Fixed bucket size** `LineChartWidgetConfig.bucketMinutes` (`LINE_CHART_BUCKET_MINUTES`: 1, 5, 10, 15, 30, 60 — all
+  divide one hour, so bucket starts stay wall-clock multiples across DST): `snapWindowToBuckets` floors `from` and
+  ceils `to` in the board's time zone (`getZonedDateParts`; half-hour zones align hour buckets at :30 UTC), every source
+  gets `limit = count` over the snapped window (single-query and multi-source path, resolution-aware `targetPoints`
+  too), and the multi-source grid is every bucket of the window (`alignOnFixedGrid`: a point goes into the bucket that
+  contains it, finer points are averaged, no source is "misaligned"). 2026-10-25 Europe/Vienna = 100 quarter hours.
+  Sources with `ignoreTimeFilter` or a chart without time range keep the data-derived grid. The resize re-query is a
+  no-op (the count does not depend on the width).
+  Backend limits: a resolution-aware source whose coarsest rung is coarser than the bucket fills only every n-th bucket;
+  a raw archive with fewer distinct timestamps than buckets is clamped (`DownsamplingBinQuantizer.Quantize`, AB#4246)
+  and fills only the buckets its bins start in — combine with `carryForward` for on-change signals.
+- **Multi-source path only:** the series options are applied by `composeChartSeries`, i.e. when the chart has at
+  least one complete additional series. A single-query chart ignores `primarySeries` (as for `visible`/`stacked`);
+  `bucketMinutes` works in both paths.
+- **Hints of hidden series:** `isSourceHintShown` — no "No data", error or misaligned hint for a hidden source
+  (`visible: false`, primary via `primarySeries.visible`) and no "No data" for a `zero` source. Failures of hidden
+  operands surface only through the dependent formula series.
+- **Persistence:** series entries are stored as they are, so the series options round-trip; `primarySeries` keeps
+  `visible`/`stacked` (only `false`), `missingValues` (not `gap`), `carryForwardLookbackMinutes` (with `carryForward`),
+  `dashType` (not `solid`) — the bar chart only `visible` and `missingValues`; `bucketMinutes` only when supported.
+  Charts without the options encode byte-identically.
+
+Specs: `utils/series-options.spec.ts` (fill modes, on-change fixture, future, snapping incl. DST and half-hour zones,
+fixed grid), `line-chart-widget.series-options.spec.ts` (Fusch zero, failed zero source, carryForward with look-back
+request, future, fixed buckets single / multi, colour / dash, hidden primary hints),
+`bar-chart-widget.series-options.spec.ts`, `line-chart-series-editor.options.spec.ts`,
+`line-chart-config-dialog.series.spec.ts` (Bucket size), `registrations/default-widget-registrations.series-options.spec.ts`.
+
+---
+
 ## Testing
 
 ### Test Structure

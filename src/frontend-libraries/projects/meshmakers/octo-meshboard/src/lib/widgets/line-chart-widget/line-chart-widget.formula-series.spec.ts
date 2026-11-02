@@ -182,7 +182,9 @@ describe('LineChartWidgetComponent formula series (AB#7952)', () => {
     await s.load();
 
     const texts = s.cmp.sourceHints().map(h => h.text);
-    expect(texts).toContain('gridExport: Failed to load data (timeout)');
+    // gridExport is a hidden operand: no chart-level error hint of its own (AB#8046), only the
+    // dependent formula series reports it.
+    expect(texts).not.toContain('gridExport: Failed to load data (timeout)');
     expect(texts).toContain('PV direct: depends on gridExport, which failed');
     // Grid and Battery do not use gridExport.
     expect(texts.some(t => t.startsWith('Grid:') || t.startsWith('Battery:'))).toBe(false);

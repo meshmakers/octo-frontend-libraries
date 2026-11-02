@@ -239,6 +239,7 @@ export interface BarChartConfigResult extends WidgetConfigResult {
               [selectors]="availableEntitySelectors"
               [primary]="primarySeries"
               [defaultCategoryField]="form.categoryField"
+              [linesAllowed]="!form.chartType.toLowerCase().includes('bar')"
               (seriesChange)="additionalSeries = $event"
               (primaryChange)="primarySeries = $event">
             </mm-line-chart-series-editor>
@@ -836,7 +837,7 @@ export class BarChartConfigDialogComponent implements OnInit {
       defaultBarColor: this.form.defaultBarColor || undefined,
       filters: filtersDto,
       additionalSeries: this.effectiveAdditionalSeries.length > 0 ? this.effectiveAdditionalSeries : undefined,
-      primarySeries: this.selectedQueryFamily === 'streamData' && this.primarySeries?.visible === false ? { visible: false } : undefined
+      primarySeries: this.selectedQueryFamily === 'streamData' ? barPrimaryOptions(this.primarySeries) : undefined
     };
 
     // Add dynamic series fields if in dynamic mode
@@ -859,4 +860,13 @@ export class BarChartConfigDialogComponent implements OnInit {
   onCancel(): void {
     this.windowRef.close();
   }
+}
+
+/** Primary options a bar chart keeps (AB#7953, AB#8046): `visible: false` and `missingValues`; `undefined` when default. */
+function barPrimaryOptions(options: LineChartSeriesDisplayOptions | undefined): BarChartWidgetConfig['primarySeries'] {
+  const out: BarChartWidgetConfig['primarySeries'] = {
+    ...(options?.visible === false && { visible: false }),
+    ...((options?.missingValues === 'zero' || options?.missingValues === 'carryForward') && { missingValues: options.missingValues })
+  };
+  return Object.keys(out).length > 0 ? out : undefined;
 }
