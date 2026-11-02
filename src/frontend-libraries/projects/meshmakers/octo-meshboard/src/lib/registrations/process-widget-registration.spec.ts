@@ -197,8 +197,9 @@ describe('Process widget registration — bindings (AB#8023)', () => {
       expect(saved['bindings']).toEqual([energyFlowStored.bindings[0]]);
     });
 
-    it('the legacy dialog keeps bindings and mappings, applying only diagram and display options', () => {
+    it('a dialog result with bindings replaces them and clears the legacy fields (AB#8025)', () => {
       const widget = load(energyFlowStored);
+      const bindings = [energyFlowStored.bindings[0], energyFlowStored.bindings[1]] as ProcessWidgetConfig['bindings'];
 
       const applied = registry.applyConfigResult(widget, {
         diagramSource: 'stored',
@@ -208,14 +209,45 @@ describe('Process widget registration — bindings (AB#8023)', () => {
         allowPan: true,
         showToolbar: true,
         initialZoom: 2,
-        dataBindingMode: 'none'
+        bindings,
+        propertyMappings: [energyFlowStored.propertyMappings[0]]
       } as ProcessConfigResult) as ProcessWidgetConfig;
 
       expect(applied.processDiagramRtId).toBe('other-diagram');
       expect(applied.allowZoom).toBe(true);
-      expect(applied.bindings).toEqual(widget.bindings);
-      expect(applied.propertyMappings).toEqual(widget.propertyMappings);
+      expect(applied.bindings).toEqual(bindings);
+      expect(applied.propertyMappings).toEqual([energyFlowStored.propertyMappings[0]]);
       expect(applied.dataBindingMode).toBeUndefined();
+    });
+
+    it('a dialog result without bindings collapses a named widget to the legacy fields', () => {
+      const widget = load(energyFlowStored);
+
+      const applied = registry.applyConfigResult(widget, {
+        diagramSource: 'stored',
+        processDiagramRtId: widget.processDiagramRtId,
+        fitToBounds: true, allowZoom: false, allowPan: false, showToolbar: false, initialZoom: 1,
+        dataBindingMode: 'persistentQuery',
+        bindingQueryRtId: 'q1'
+      } as ProcessConfigResult) as ProcessWidgetConfig;
+
+      expect(applied.bindings).toBeUndefined();
+      expect(applied.dataBindingMode).toBe('persistentQuery');
+      expect((registry.serializeWidget(applied).config as Record<string, unknown>)['bindings']).toBeUndefined();
+    });
+  });
+
+  describe('connection directions (AB#8025)', () => {
+    it('round-trip; malformed entries are dropped; absent stays absent', () => {
+      const stored = { ...energyFlowStored, connectionDirections: [{ connectionId: 'grid-line', propertyId: 'grid' }, { connectionId: 3 }, 'x'] };
+
+      const widget = load(stored);
+      expect(widget.connectionDirections).toEqual([{ connectionId: 'grid-line', propertyId: 'grid' }]);
+      const saved = registry.serializeWidget(widget).config as Record<string, unknown>;
+      expect(saved['connectionDirections']).toEqual([{ connectionId: 'grid-line', propertyId: 'grid' }]);
+
+      expect(load(energyFlowStored).connectionDirections).toBeUndefined();
+      expect(saveJson(load(legacyStored))).toBe(JSON.stringify(legacyStored));
     });
   });
 });
