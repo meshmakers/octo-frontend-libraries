@@ -146,4 +146,26 @@ describe('LineChartConfigDialogComponent — series (AB#7951)', () => {
     cmp.onSave();
     expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ stacked: undefined, additionalSeries: undefined }));
   });
+
+  it('Bucket size (AB#8046): loads, saves a fixed size and saves nothing for Automatic', async () => {
+    await open({ initialBucketMinutes: 15 });
+    expect(el().querySelector('[data-chart-option="bucketMinutes"]')).not.toBeNull();
+    expect(cmp.form.bucketMinutes).toBe(15);
+    expect(cmp.bucketSizeOptions.map(o => o.value)).toEqual([null, 1, 5, 10, 15, 30, 60]);
+    cmp.onSave();
+    expect(windowRef.close).toHaveBeenLastCalledWith(expect.objectContaining({ bucketMinutes: 15 }));
+
+    cmp.form.bucketMinutes = null;
+    cmp.onSave();
+    expect(windowRef.close).toHaveBeenLastCalledWith(expect.objectContaining({ bucketMinutes: undefined }));
+  });
+
+  it('Bucket size (AB#8046): an unsupported stored size shows Automatic; hidden for a runtime query', async () => {
+    await open({ initialBucketMinutes: 7 });
+    expect(cmp.form.bucketMinutes).toBeNull();
+    await open({ initialBucketMinutes: 15 }, 'System/SimpleRtQuery');
+    expect(el().querySelector('[data-chart-option="bucketMinutes"]')).toBeNull();
+    cmp.onSave();
+    expect(windowRef.close).toHaveBeenLastCalledWith(expect.objectContaining({ bucketMinutes: undefined }));
+  });
 });

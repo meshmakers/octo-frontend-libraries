@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LineChartQuerySeries, LineChartWidgetConfig, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
+import { DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES, LineChartQuerySeries, LineChartWidgetConfig, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
@@ -13,12 +13,14 @@ import { findCellForField, matchesAttributePath } from '../../utils/widget-data-
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { alignOnTimeGrid, TimeGridSourceInput } from '../../utils/time-grid-alignment';
+import { alignOnFixedGrid, FixedBucketWindow, lastValue, snapWindowToBuckets } from '../../utils/series-options';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import {
   composeChartSeries,
   ComposedChartSeries,
   isCompleteFormulaSeries,
   isCompleteQuerySeries,
+  isSourceHintShown,
   LineChartSourceHint,
   LineChartSourceProblem,
   PRIMARY_SOURCE_KEY,
@@ -55,6 +57,8 @@ interface LineSeriesData {
   stacked?: boolean;
   /** Multi-source path (AB#7952): drawn as a line over the stack of a stacked area chart. */
   asLine?: boolean;
+  /** Multi-source path (AB#8046): line style of a series drawn as a line. */
+  dashType?: SeriesDashType;
 }
 
 export type { LineChartSourceHint } from './line-chart-multi-source';
@@ -209,6 +213,7 @@ interface ValueAxisConfig {
                 [opacity]="series.asLine ? 1 : 0.7"
                 [stack]="series.stacked ?? stackSeries()"
                 [missingValues]="missingValues()"
+                [dashType]="series.dashType ?? 'solid'"
                 [markers]="{ visible: config.showMarkers ?? false }">
               </kendo-chart-series-item>
             }
@@ -797,7 +802,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       // window + target point count, then downsample each source series against it. Requires a
       // stream-data query, a resolved time range, and a value field (which doubles as the series'
       // source path — the resolver matches it against the rollup's aggregation spec, case-insensitively).
-      const timeArgs = this.stateService.resolveStreamDataTimeArgs(queryDataSource.ignoreTimeFilter);
+      const timeArgs = this.streamDataTimeArgs(queryDataSource.ignoreTimeFilter);
       if (queryDataSource.resolutionAware && queryDataSource.queryFamily === 'streamData'
           && this.config.valueField && timeArgs?.from && timeArgs?.to) {
         const sourceRtIds = this.stateService.resolveStreamDataRtIds(queryDataSource.entitySelectorId);
@@ -1042,11 +1047,16 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
     try {
       const hints: LineChartSourceHint[] = [];
+      const definitions = this.config.additionalSeries ?? [];
+      // Hidden sources and zero-filled empty sources give no chart-level hint (AB#8046).
+      const pushHint = (sourceKey: string, hint: LineChartSourceHint): void => {
+        if (isSourceHintShown(sourceKey, hint.kind, definitions, this.config.primarySeries)) hints.push(hint);
+      };
       const problems = new Map<string, { label: string; problem: LineChartSourceProblem }>();
       const active: MultiSourceEntry[] = [];
       sources.forEach((source, i) => {
         if (scopes[i].kind === 'empty') {
-          hints.push({ kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+          pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
           problems.set(source.key, { label: source.label, problem: 'noData' });
         } else {
           active.push(source);
@@ -1073,13 +1083,17 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
           : Promise.reject(p.reason);
       }));
 
+      // carryForward (AB#8046): the last value before the window is the start value of the series.
+      const fixed = this.fixedBucketWindow();
+      const seeds = await this.loadCarryForwardSeeds(active, prepared, limit, fixed);
+
       const gridSources: TimeGridSourceInput[] = [];
       let rowCount = 0;
       fetched.forEach((f, i) => {
         const source = active[i];
         if (f.status === 'rejected') {
           console.error(`Error loading Line Chart source "${source.label}":`, f.reason);
-          hints.push({ kind: 'error', sourceLabel: source.label, text: `${source.label}: ${this.errorMessage(f.reason)}` });
+          pushHint(source.key, { kind: 'error', sourceLabel: source.label, text: `${source.label}: ${this.errorMessage(f.reason)}` });
           problems.set(source.key, { label: source.label, problem: 'error' });
           return;
         }
@@ -1089,16 +1103,18 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
           : [queryRowsToSeries(f.value.rows, source.label, source.valueField, f.value.downsampled)];
         const withData = series.filter(s => s.points.size > 0);
         if (withData.length === 0) {
-          hints.push({ kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+          pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
           problems.set(source.key, { label: source.label, problem: 'noData' });
           return;
         }
         gridSources.push({ sourceKey: source.key, sourceLabel: source.label, series: withData });
       });
 
-      const grid = alignOnTimeGrid(gridSources);
+      // Fixed bucket size (AB#8046): the grid is every bucket of the snapped window; otherwise it
+      // is derived from the data (AB#7951).
+      const grid = fixed ? alignOnFixedGrid(gridSources, fixed) : alignOnTimeGrid(gridSources);
       for (const m of grid.misaligned) {
-        hints.push({
+        pushHint(m.sourceKey, {
           kind: 'misaligned',
           sourceLabel: m.sourceLabel,
           text: `${m.sourceLabel}: its buckets do not match the chart's time grid and are not shown`
@@ -1110,11 +1126,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       const composed = composeChartSeries({
         gridSeries: grid.series,
         length: grid.instants.length,
-        definitions: this.config.additionalSeries ?? [],
+        definitions,
         primary: this.config.primarySeries,
         stackedChart: this.stackSeries(),
         sourceProblems: problems,
-        evaluator: this.expressionEvaluator
+        evaluator: this.expressionEvaluator,
+        instants: grid.instants,
+        seeds
       });
       hints.push(...composed.hints);
 
@@ -1135,10 +1153,50 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     }
   }
 
+  /**
+   * Start values of `carryForward` query series (AB#8046): for each such series one extra
+   * downsampling request over `[from - lookback, from)` with the chart's bucket width; the last
+   * non-null bucket is the value at the window start. A failed look-back only means no start value.
+   */
+  private async loadCarryForwardSeeds(
+    active: readonly MultiSourceEntry[],
+    prepared: readonly PromiseSettledResult<PreparedSource>[],
+    limit: number,
+    fixed: FixedBucketWindow | null
+  ): Promise<Map<string, number | null>> {
+    const seeds = new Map<string, number | null>();
+    const definitions = this.config.additionalSeries ?? [];
+    await Promise.all(active.map(async (source, i) => {
+      if (source.primary) return;
+      const def = definitions.find(d => d.kind === 'query' && d.key === source.key);
+      const p = prepared[i];
+      if (def?.missingValues !== 'carryForward' || p.status !== 'fulfilled') return;
+      const lookbackMs = Math.max(0, def.carryForwardLookbackMinutes ?? DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES) * 60_000;
+      const range = p.value.resolutionAware ?? p.value.timeArgs;
+      if (!lookbackMs || !range?.from || !range?.to) return;
+      const from = range.from;
+      const bucketMs = fixed?.bucketMs ?? Math.max(1, (range.to.getTime() - from.getTime()) / Math.max(1, limit));
+      const lookbackLimit = Math.min(4000, Math.max(1, Math.ceil(lookbackMs / bucketMs)));
+      const lookbackFrom = new Date(from.getTime() - lookbackLimit * bucketMs);
+      const shifted: PreparedSource = {
+        ...p.value,
+        timeArgs: { from: lookbackFrom, to: from },
+        resolutionAware: p.value.resolutionAware ? { ...p.value.resolutionAware, from: lookbackFrom, to: from } : undefined
+      };
+      try {
+        const rows = await this.fetchSource(source, shifted, lookbackLimit);
+        seeds.set(source.key, lastValue(queryRowsToSeries(rows.rows, source.label, source.valueField, rows.downsampled).points));
+      } catch (err) {
+        console.warn(`Line Chart: no start value for "${source.label}" (look-back failed):`, err);
+      }
+    }));
+    return seeds;
+  }
+
   /** Resolution-aware sources resolve their rung first (step 2 of {@link loadMultiSource}). */
   private async prepareSource(source: MultiSourceEntry): Promise<PreparedSource> {
     const ds = source.dataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!(ds.resolutionAware && ds.queryFamily === 'streamData' && source.valueField && timeArgs?.from && timeArgs?.to)) {
       return { timeArgs, rtIds };
@@ -1234,9 +1292,10 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         name: s.name,
         data: s.data,
         unit: s.unit,
-        color: SERIES_PALETTE[index % SERIES_PALETTE.length],
+        color: s.color ?? SERIES_PALETTE[index % SERIES_PALETTE.length],
         stacked: s.stacked,
-        asLine: s.asLine
+        asLine: s.asLine,
+        dashType: s.dashType
       };
     });
 
@@ -1255,7 +1314,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;
@@ -1270,10 +1329,33 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   }
 
   /**
+   * The board window snapped to the fixed bucket size (AB#8046), `null` without `bucketMinutes`, without
+   * a time range or for an invalid size. `ignoreTimeFilter` sources have no window and get `null`.
+   */
+  private fixedBucketWindow(ignoreTimeFilter?: boolean): FixedBucketWindow | null {
+    const minutes = this.config?.bucketMinutes;
+    if (!minutes) return null;
+    const range = this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter);
+    if (!range?.from || !range?.to) return null;
+    return snapWindowToBuckets(range.from, range.to, minutes, this.stateService.timeZoneMode());
+  }
+
+  /**
+   * Stream-data window of a source: the board window, snapped to whole buckets when the chart has a
+   * fixed bucket size (AB#8046), so `(to - from) / limit` is exactly the bucket size.
+   */
+  private streamDataTimeArgs(ignoreTimeFilter?: boolean): { from: Date; to: Date } | undefined {
+    const fixed = this.fixedBucketWindow(ignoreTimeFilter);
+    return fixed ? { from: fixed.from, to: fixed.to } : this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter);
+  }
+
+  /**
    * Bucket count for backend downsampling, sized to the rendered width (~1 bucket / 2 px),
    * clamped to [50, 4000]. Falls back to 1500 before the host has a measured width.
    */
   private computeDownsampleLimit(): number {
+    const fixed = this.fixedBucketWindow();
+    if (fixed) return fixed.count;
     const width = (this.elementRef.nativeElement as HTMLElement)?.offsetWidth ?? 0;
     const effective = width > 50 ? width : 1500;
     return Math.min(4000, Math.max(50, Math.round(effective / 2)));

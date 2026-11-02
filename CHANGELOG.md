@@ -10,6 +10,33 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: per-series options in line and bar charts — missing values as 0 or last value, colour, line style, a fixed bucket size, bar series as line (AB#8046)
+
+- New (non-breaking) series options on `LineChartSeriesDisplayOptions` (additional series of line and bar charts, and
+  `primarySeries`): `missingValues` (`'gap'` default, `'zero'`, `'carryForward'`; query and primary series),
+  `carryForwardLookbackMinutes` (line chart, default 1440), `color` (CSS colour, custom property or status name;
+  not for the primary series), `dashType` (`'solid' | 'dash' | 'dot'`), bar chart only `asLine` and `secondaryAxis`.
+  All are omitted when default, so existing charts encode byte-identically.
+- Missing values: `zero` turns an empty selector scope (a site without battery) into a series of zeros and fills
+  single empty buckets; `carryForward` takes the last value of the series (on-change signals), and the line chart
+  fetches the value at the window start with one extra downsampling request over the look-back. Filled values are
+  the formula operands too. Buckets after "now" are never filled; a failed source is never shown as zeros.
+- `LineChartWidgetConfig.bucketMinutes` (1, 5, 10, 15, 30, 60; `LINE_CHART_BUCKET_MINUTES`): the window is snapped to
+  whole buckets in the board's time zone, every source is downsampled with `(to - from) / bucket` buckets and the
+  chart shows every bucket of the window (`alignOnFixedGrid`; 96 quarter hours per day, 100 on 2026-10-25). Without
+  it the bucket count follows the chart width as before. Note: a raw archive with fewer distinct timestamps than
+  buckets is still clamped by the backend; such a source fills only the buckets its points start in.
+- Bar chart: a series can be drawn as a line over the columns (column types), optionally on a second value axis
+  on the right, with colour and line style.
+- Hidden series (also a hidden primary) never produce chart-level hints ("No data", error, grid); their failure shows
+  only on the dependent formula series ("depends on <source>, which failed").
+- Series editor: a "Display" line per row (Missing values + look-back, Colour, Line style, bar: Draw as line /
+  Second axis) and Missing values / Line style on the primary row; line chart dialog: Bucket size. Wireframe
+  section 6 of the AB#7951 series-editor wireframe.
+- New exports: `SeriesMissingValues`, `SeriesDashType`, `LINE_CHART_BUCKET_MINUTES`,
+  `DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES`. A library version before AB#8046 ignores the new keys; when it saves the
+  board it drops `bucketMinutes` and the new primary options (series entries are stored as they are).
+
 ### octo-process-diagrams / octo-meshboard: text element bound to a live value with unit, decimals and the board language (AB#8022)
 
 - New (non-breaking): binding effect `text.value` (`BindingEffectType`) with the optional

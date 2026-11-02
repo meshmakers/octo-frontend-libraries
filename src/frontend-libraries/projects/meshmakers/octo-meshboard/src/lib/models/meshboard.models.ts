@@ -683,10 +683,10 @@ export interface BarChartWidgetConfig extends WidgetConfig {
    */
   additionalSeries?: BarChartSeriesDefinition[];
   /**
-   * Display options of the primary query's series as a group (AB#7953): only `visible`.
-   * Omitted when default.
+   * Display options of the primary query's series as a group (AB#7953): `visible` and, since
+   * AB#8046, `missingValues`. Omitted when default.
    */
-  primarySeries?: Pick<LineChartSeriesDisplayOptions, 'visible'>;
+  primarySeries?: Pick<LineChartSeriesDisplayOptions, 'visible' | 'missingValues'>;
 }
 
 /**
@@ -767,11 +767,37 @@ export interface LineChartWidgetConfig extends WidgetConfig {
    * over the stack of a stacked area chart. Omitted when both are default (visible, stacked).
    */
   primarySeries?: LineChartSeriesDisplayOptions;
+  /**
+   * Fixed bucket size in minutes (AB#8046): one of {@link LINE_CHART_BUCKET_MINUTES}. The window is
+   * snapped to whole buckets in the board's time zone, every source is downsampled with
+   * `(to - from) / bucket` buckets, and the chart shows one category per bucket of the window
+   * (a 15-minute day has 96 buckets, the DST day 2026-10-25 has 100). Omitted: the bucket count
+   * follows the chart width, as before.
+   */
+  bucketMinutes?: number;
 }
 
+/** Fixed bucket sizes of a line chart in minutes (AB#8046). All divide one hour, so they stay on the wall-clock grid across DST changes. */
+export const LINE_CHART_BUCKET_MINUTES: readonly number[] = [1, 5, 10, 15, 30, 60];
+
 /**
- * Per-series display options (AB#7952). Both default to `true` and are omitted when default, so a
- * chart that does not use them encodes exactly as before.
+ * How a series fills a bucket (or category) without a value (AB#8046):
+ * - `gap` (default, omitted): no value — a gap in a line, no bar (AB#7951 gap rule).
+ * - `zero`: 0. An empty selector scope (the site has no such device) gives a series of zeros.
+ * - `carryForward`: the last known value of the series (step / LOCF), for signals written on
+ *   change; the line chart looks back {@link LineChartSeriesDisplayOptions.carryForwardLookbackMinutes}
+ *   before the window for the value at its start.
+ *
+ * Filled values are used for display and as formula operands. Buckets after "now" stay gaps.
+ */
+export type SeriesMissingValues = 'gap' | 'zero' | 'carryForward';
+
+/** Line style of a series drawn as a line (AB#8046). */
+export type SeriesDashType = 'solid' | 'dash' | 'dot';
+
+/**
+ * Per-series display options (AB#7952, AB#8046). All are omitted when default, so a chart that
+ * does not use them encodes exactly as before.
  */
 export interface LineChartSeriesDisplayOptions {
   /**
@@ -783,7 +809,35 @@ export interface LineChartSeriesDisplayOptions {
    * Ignored when the chart does not stack.
    */
   stacked?: boolean;
+  /**
+   * Filling of buckets without a value (AB#8046); query series and the primary series only.
+   * Omitted = `gap`.
+   */
+  missingValues?: SeriesMissingValues;
+  /**
+   * Line chart, `missingValues: 'carryForward'` (AB#8046): how far before the window the value at
+   * the window start is looked up, in minutes. Default {@link DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES}; 0 = no look-back.
+   */
+  carryForwardLookbackMinutes?: number;
+  /**
+   * Series colour (AB#8046): a CSS colour (`#c77700`), a custom property (`--brand-pv` or
+   * `var(--brand-pv, #c77700)`) or a status name (`success` …). Omitted = the series palette.
+   * Not used for the primary series (one per group value).
+   */
+  color?: string;
+  /** Line style when the series is drawn as a line (AB#8046). Omitted = solid. */
+  dashType?: SeriesDashType;
+  /**
+   * Bar chart only (AB#8046): draw this series as a line over the bars (column chart types; a
+   * horizontal bar chart cannot mix lines).
+   */
+  asLine?: boolean;
+  /** Bar chart only, with {@link asLine} (AB#8046): plot the line on a second value axis on the right. */
+  secondaryAxis?: boolean;
 }
+
+/** Default look-back of `carryForward` in minutes (one day, AB#8046). */
+export const DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES = 1440;
 
 /**
  * A line chart series that does not come from the primary data source (AB#7951), discriminated by

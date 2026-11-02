@@ -18,6 +18,8 @@ import {
   LineChartWidgetConfig,
   LineChartSeriesDefinition,
   LineChartSeriesDisplayOptions,
+  LINE_CHART_BUCKET_MINUTES,
+  SeriesMissingValues,
   HeatmapWidgetConfig,
   HeatmapTimeWindow,
   StatsGridWidgetConfig,
@@ -1402,7 +1404,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialFilters: lineWidget.filters,
         initialAdditionalSeries: lineWidget.additionalSeries,
         initialStacked: lineWidget.stacked,
-        initialPrimarySeries: lineWidget.primarySeries
+        initialPrimarySeries: lineWidget.primarySeries,
+        initialBucketMinutes: lineWidget.bucketMinutes
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1443,7 +1446,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         filters,
         additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
         stacked: result.stacked || undefined,
-        primarySeries: displayOptionsOrUndefined(result.primarySeries)
+        primarySeries: displayOptionsOrUndefined(result.primarySeries),
+        bucketMinutes: bucketMinutesOrUndefined(result.bucketMinutes)
       } as LineChartWidgetConfig;
     },
 
@@ -1501,7 +1505,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...(widget.additionalSeries?.length && { additionalSeries: widget.additionalSeries }),
         ...(widget.stacked && { stacked: true }),
         // AB#7952: written only when a primary display option is not default.
-        ...(displayOptionsOrUndefined(widget.primarySeries) && { primarySeries: displayOptionsOrUndefined(widget.primarySeries) })
+        ...(displayOptionsOrUndefined(widget.primarySeries) && { primarySeries: displayOptionsOrUndefined(widget.primarySeries) }),
+        // AB#8046: written only when a fixed bucket size is set.
+        ...(bucketMinutesOrUndefined(widget.bucketMinutes) && { bucketMinutes: bucketMinutesOrUndefined(widget.bucketMinutes) })
       }
     }),
 
@@ -2698,8 +2704,8 @@ export type { WidgetRegistration } from '../services/widget-registry.service';
  * store kinds this version does not know). The display options `visible` / `stacked` are kept only
  * as `false`.
  */
-function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries'> {
-  const out: Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries'> = {};
+function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries' | 'bucketMinutes'> {
+  const out: Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries' | 'bucketMinutes'> = {};
   const raw = config['additionalSeries'];
   if (Array.isArray(raw)) {
     const series = raw.filter((s): s is LineChartSeriesDefinition => {
@@ -2718,7 +2724,14 @@ function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<Lin
     const options = displayOptionsOrUndefined(primary as LineChartSeriesDisplayOptions);
     if (options) out.primarySeries = options;
   }
+  const bucketMinutes = bucketMinutesOrUndefined(config['bucketMinutes']);
+  if (bucketMinutes) out.bucketMinutes = bucketMinutes;
   return out;
+}
+
+/** A supported fixed bucket size of a line chart (AB#8046), else `undefined` (pixel-driven buckets). */
+function bucketMinutesOrUndefined(value: unknown): number | undefined {
+  return typeof value === 'number' && LINE_CHART_BUCKET_MINUTES.includes(value) ? value : undefined;
 }
 
 /**
@@ -2735,17 +2748,36 @@ function barChartSeriesFromPersisted(config: Record<string, unknown>): Pick<BarC
   return out;
 }
 
-/** Bar chart primary options: `{ visible: false }` or `undefined`. */
+/** Bar chart primary options: `visible: false` and `missingValues` (AB#8046) when set, else `undefined`. */
 function barPrimaryOrUndefined(options: LineChartSeriesDisplayOptions | undefined): BarChartWidgetConfig['primarySeries'] {
-  return options?.visible === false ? { visible: false } : undefined;
+  const missingValues = missingValuesOrUndefined(options?.missingValues);
+  const out: BarChartWidgetConfig['primarySeries'] = {
+    ...(options?.visible === false && { visible: false }),
+    ...(missingValues && { missingValues })
+  };
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
-/** Display options reduced to their non-default (`false`) values; `undefined` when all are default. */
+/** `zero` / `carryForward`, else `undefined` (gap, the default, and unknown values). */
+function missingValuesOrUndefined(value: unknown): SeriesMissingValues | undefined {
+  return value === 'zero' || value === 'carryForward' ? value : undefined;
+}
+
+/**
+ * Display options of the primary series reduced to their non-default values; `undefined` when all are
+ * default: `visible` / `stacked` only as `false`, `missingValues` (+ its look-back) and `dashType`
+ * (AB#8046) only when not the default. No colour: the primary query yields one series per group value.
+ */
 function displayOptionsOrUndefined(options: LineChartSeriesDisplayOptions | undefined): LineChartSeriesDisplayOptions | undefined {
   if (!options) return undefined;
+  const missingValues = missingValuesOrUndefined(options.missingValues);
+  const lookback = options.carryForwardLookbackMinutes;
   const out: LineChartSeriesDisplayOptions = {
     ...(options.visible === false && { visible: false }),
-    ...(options.stacked === false && { stacked: false })
+    ...(options.stacked === false && { stacked: false }),
+    ...(missingValues && { missingValues }),
+    ...(missingValues === 'carryForward' && typeof lookback === 'number' && lookback >= 0 && { carryForwardLookbackMinutes: lookback }),
+    ...((options.dashType === 'dash' || options.dashType === 'dot') && { dashType: options.dashType })
   };
   return Object.keys(out).length > 0 ? out : undefined;
 }
