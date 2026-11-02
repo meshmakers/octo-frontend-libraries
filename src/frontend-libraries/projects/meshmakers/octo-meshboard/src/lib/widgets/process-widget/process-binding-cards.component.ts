@@ -59,8 +59,6 @@ interface CardUi {
   entityDialogDataSource?: RuntimeEntityDialogDataSource;
   query: ProcessBindingQueryItem | null;
   filterItems: FieldFilterItem[];
-  /** Name the mappings currently refer to; follows the card name while it is valid. */
-  committedName: string;
 }
 
 interface SelectorOption {
@@ -456,7 +454,7 @@ export class ProcessBindingCardsComponent {
   }
 
   affectedProperties(draft: ProcessBindingDraft): string[] {
-    return mappingsUsingBinding(this.mappings, this.ui(draft).committedName);
+    return mappingsUsingBinding(this.mappings, this.committedName(draft));
   }
 
   /** Picker objects of a card, created from its draft on first use. */
@@ -472,8 +470,7 @@ export class ProcessBindingCardsComponent {
           displayName: draft.rtDisplayName ?? draft.rtId
         } : null,
         query: draft.queryRtId ? this.queryItem(draft) : null,
-        filterItems: this.toFilterItems(draft.filters),
-        committedName: draft.name.trim()
+        filterItems: this.toFilterItems(draft.filters)
       };
       if (draft.ckTypeId) {
         this.setEntityDataSources(state, draft.ckTypeId);
@@ -528,6 +525,7 @@ export class ProcessBindingCardsComponent {
       mode: 'persistentQuery',
       expanded: true
     };
+    draft.committedName = draft.name;
     this.drafts.push(draft);
     this.changed();
     this.focusLater(`[data-binding-name="${this.drafts.length - 1}"] input`);
@@ -541,6 +539,7 @@ export class ProcessBindingCardsComponent {
       filters: draft.filters ? draft.filters.map(f => ({ ...f })) : undefined,
       expanded: true
     };
+    copy.committedName = copy.name;
     const index = this.drafts.indexOf(draft);
     this.drafts.splice(index + 1, 0, copy);
     this.changed();
@@ -577,11 +576,12 @@ export class ProcessBindingCardsComponent {
 
   confirmDelete(draft: ProcessBindingDraft): void {
     const index = this.drafts.indexOf(draft);
-    const name = this.ui(draft).committedName;
+    const name = this.committedName(draft);
     this.confirmUid = null;
     this.drafts.splice(index, 1);
     this.cardUi.delete(draft.uid);
     this.bindingDeleted.emit(name);
+    this.commitValidNames();
     this.changed();
     if (this.drafts.length === 0) {
       this.focusLater('[data-binding-action="add"]');
@@ -596,16 +596,44 @@ export class ProcessBindingCardsComponent {
 
   onNameChange(draft: ProcessBindingDraft, name: string): void {
     draft.name = name ?? '';
-    // Mappings follow the name only while it is valid, so a name that briefly
-    // equals another binding's never merges the two bindings' mappings.
-    const state = this.ui(draft);
-    const trimmed = draft.name.trim();
-    if (!bindingNameError(this.drafts, draft) && trimmed !== state.committedName) {
-      const oldName = state.committedName;
-      state.committedName = trimmed;
-      this.bindingRenamed.emit({ oldName, newName: trimmed });
-    }
+    this.commitValidNames();
     this.changed();
+  }
+
+  /**
+   * Mappings follow a card's name only while it is valid, so a name that briefly
+   * equals another binding's never merges two bindings' mappings. Every card is
+   * checked, because a clash can also be resolved by renaming or deleting the
+   * other card. A card moves to its new name only once no other card's mappings
+   * still use that name; moves are repeated until nothing changes, so swaps
+   * through a free name resolve in order.
+   */
+  private commitValidNames(): void {
+    for (const d of this.drafts) {
+      d.committedName ??= d.name.trim();
+    }
+    let moved = true;
+    while (moved) {
+      moved = false;
+      for (const d of this.drafts) {
+        const trimmed = d.name.trim();
+        if (bindingNameError(this.drafts, d) || trimmed === d.committedName) {
+          continue;
+        }
+        if (this.drafts.some(o => o !== d && o.committedName === trimmed)) {
+          continue;
+        }
+        const oldName = d.committedName!;
+        d.committedName = trimmed;
+        this.bindingRenamed.emit({ oldName, newName: trimmed });
+        moved = true;
+      }
+    }
+  }
+
+  /** Name the card's mappings use. */
+  private committedName(draft: ProcessBindingDraft): string {
+    return draft.committedName ?? draft.name.trim();
   }
 
   onSourceChange(draft: ProcessBindingDraft, mode: ProcessBindingSource): void {

@@ -195,6 +195,8 @@ describe('process-binding-editor (AB#8025)', () => {
       expect(applyConnectionDirections(original, undefined)).toBe(original);
       expect(applyConnectionDirections(original, [{ connectionId: 'l1', propertyId: 'unknown' }])).toBe(original);
       expect(applyConnectionDirections(original, [{ connectionId: 'l1', propertyId: 'pv' }])).toBe(original);
+      // r1 is a rectangle, not a connection: reported and not re-pointed
+      expect(applyConnectionDirections(original, [{ connectionId: 'r1', propertyId: 'grid' }])).toBe(original);
     });
 
     it('reports unknown connections and properties', () => {

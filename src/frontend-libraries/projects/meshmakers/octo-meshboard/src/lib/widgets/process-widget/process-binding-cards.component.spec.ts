@@ -38,8 +38,8 @@ describe('ProcessBindingCardsComponent (AB#8025)', () => {
 
   function drafts(): ProcessBindingDraft[] {
     return [
-      { uid: 1, name: 'netz', mode: 'persistentQuery', queryRtId: 'q1', queryName: 'Netz', queryFamily: 'streamData', entitySelectorId: 'netz', expanded: false },
-      { uid: 2, name: 'geraete', mode: 'persistentQuery', queryRtId: 'q2', entitySelectorId: 'geraete_alt', expanded: false }
+      { uid: 1, name: 'netz', mode: 'persistentQuery', queryRtId: 'q1', queryName: 'Netz', queryFamily: 'streamData', entitySelectorId: 'netz', expanded: false, committedName: 'netz' },
+      { uid: 2, name: 'geraete', mode: 'persistentQuery', queryRtId: 'q2', entitySelectorId: 'geraete_alt', expanded: false, committedName: 'geraete' }
     ];
   }
 
@@ -137,6 +137,31 @@ describe('ProcessBindingCardsComponent (AB#8025)', () => {
     fixture.detectChanges();
     expect(q('[data-binding-card="0"] .field-error')).toBeNull();
     expect(renames).toEqual([{ oldName: 'netz', newName: 'grid' }]);
+  });
+
+  it('a name made valid by renaming the other card is committed (mappings follow)', async () => {
+    const list = drafts();
+    await open(list);
+
+    cmp.onNameChange(list[0], 'geraete');    // clash: nothing committed
+    expect(renames).toEqual([]);
+    cmp.onNameChange(list[1], 'battery');    // clash resolved by the other card
+    expect(renames).toEqual([
+      { oldName: 'geraete', newName: 'battery' },
+      { oldName: 'netz', newName: 'geraete' }
+    ]);
+  });
+
+  it('a name made valid by deleting the other card is committed', async () => {
+    const list = drafts();
+    await open(list);
+
+    cmp.onNameChange(list[0], 'geraete');
+    cmp.requestDelete(list[1]);
+    cmp.confirmDelete(list[1]);
+
+    expect(deleted).toEqual(['geraete']);
+    expect(renames).toEqual([{ oldName: 'netz', newName: 'geraete' }]);
   });
 
   it('duplicate inserts a copy after the card with a free name', async () => {

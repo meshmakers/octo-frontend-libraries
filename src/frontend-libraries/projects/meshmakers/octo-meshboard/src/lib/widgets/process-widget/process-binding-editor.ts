@@ -44,6 +44,11 @@ export interface ProcessBindingDraft {
   filters?: WidgetFilterConfig[];
   /** Card body shown. */
   expanded: boolean;
+  /**
+   * Name the mappings currently refer to (editor state). Follows `name` only while
+   * the name is valid; absent = `name` as the card was created.
+   */
+  committedName?: string;
 }
 
 /** The legacy single-binding fields plus `bindings`, as the dialog hands them to the registration. */
@@ -80,7 +85,8 @@ export function draftsFromBindings(bindings: readonly ProcessWidgetBinding[], ne
     entitySelectorId: b.entitySelectorId,
     filters: b.filters,
     // A single card opens expanded; with several, the author opens the one to edit.
-    expanded: bindings.length === 1
+    expanded: bindings.length === 1,
+    committedName: b.name
   }));
 }
 
@@ -338,9 +344,11 @@ export function applyConnectionDirections(
     return diagram;
   }
   const propertyIds = new Set((diagram.transformProperties ?? []).map(p => p.id));
+  // Only lines the editor lists as connections (same rule as connectionDirectionIssues).
+  const connectionIds = new Set(findDiagramConnections(diagram).map(c => c.id));
   const byConnection = new Map<string, string>();
   for (const d of directions) {
-    if (d.connectionId && propertyIds.has(d.propertyId)) {
+    if (connectionIds.has(d.connectionId) && propertyIds.has(d.propertyId)) {
       byConnection.set(d.connectionId, d.propertyId);
     }
   }
