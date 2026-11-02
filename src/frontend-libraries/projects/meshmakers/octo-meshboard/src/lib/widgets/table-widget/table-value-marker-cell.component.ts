@@ -5,7 +5,8 @@ import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
 
 /**
  * Cell of a marker column (AB#7728): an icon with tooltip when the value is a number above zero,
- * nothing otherwise. Rendered by `mm-list-view` as a `dataType: 'component'` cell.
+ * nothing otherwise. With `showValue` the value follows the icon as text, outside the image, so
+ * screen readers announce it after the tooltip. Rendered by `mm-list-view` as a `dataType: 'component'` cell.
  */
 @Component({
   selector: 'mm-table-value-marker-cell',
@@ -13,13 +14,15 @@ import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
   imports: [SVGIconModule],
   template: `
     @if (marked) {
-      <span
-        class="value-marker"
-        role="img"
-        [title]="tooltip"
-        [attr.aria-label]="tooltip || null"
-        [style.color]="color">
-        <kendo-svgicon [icon]="icon!"></kendo-svgicon>
+      <!-- Only the icon is the image; the value stays outside it, so screen readers announce it. -->
+      <span class="value-marker" [title]="tooltip" [style.color]="color">
+        <span
+          class="value-marker-icon"
+          [attr.role]="tooltip ? 'img' : null"
+          [attr.aria-label]="tooltip || null"
+          [attr.aria-hidden]="tooltip ? null : 'true'">
+          <kendo-svgicon [icon]="icon!"></kendo-svgicon>
+        </span>
         @if (showValue) {
           <span class="value-marker-value">{{ value }}</span>
         }
@@ -32,6 +35,9 @@ import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
       align-items: center;
       gap: 4px;
       cursor: default;
+    }
+    .value-marker-icon {
+      display: inline-flex;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -14,12 +14,12 @@ describe('isPositiveMarkerValue (AB#7728)', () => {
 });
 
 describe('TableValueMarkerCellComponent (AB#7728)', () => {
-  function render(value: unknown, showValue?: boolean): HTMLElement {
+  function render(value: unknown, showValue?: boolean, tooltip = 'Contains manual values'): HTMLElement {
     TestBed.configureTestingModule({ imports: [TableValueMarkerCellComponent] });
     const fixture = TestBed.createComponent(TableValueMarkerCellComponent);
     fixture.componentRef.setInput('value', value);
     fixture.componentRef.setInput('icon', exclamationCircleIcon);
-    fixture.componentRef.setInput('tooltip', 'Contains manual values');
+    fixture.componentRef.setInput('tooltip', tooltip);
     if (showValue !== undefined) {
       fixture.componentRef.setInput('showValue', showValue);
     }
@@ -31,7 +31,24 @@ describe('TableValueMarkerCellComponent (AB#7728)', () => {
     const marker = render(2).querySelector('.value-marker');
     expect(marker).not.toBeNull();
     expect(marker!.getAttribute('title')).toBe('Contains manual values');
-    expect(marker!.getAttribute('aria-label')).toBe('Contains manual values');
+    const image = marker!.querySelector('[role="img"]');
+    expect(image!.getAttribute('aria-label')).toBe('Contains manual values');
+    expect(image!.querySelector('kendo-svgicon')).not.toBeNull();
+  });
+
+  it('keeps the shown value outside the image, so it is announced', () => {
+    const marker = render(2, true).querySelector('.value-marker')!;
+    expect(marker.getAttribute('role')).toBeNull();
+    const value = marker.querySelector('.value-marker-value')!;
+    expect(value.closest('[role="img"]')).toBeNull();
+    expect(value.closest('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it('hides an icon without tooltip from screen readers instead of an unnamed image', () => {
+    const marker = render(2, true, '').querySelector('.value-marker')!;
+    expect(marker.querySelector('[role="img"]')).toBeNull();
+    expect(marker.querySelector('.value-marker-icon')!.getAttribute('aria-hidden')).toBe('true');
+    expect(marker.querySelector('.value-marker-value')!.textContent).toBe('2');
   });
 
   it('shows only the icon by default', () => {

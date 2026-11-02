@@ -1,4 +1,6 @@
+import { Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { WindowRef } from '@progress/kendo-angular-dialog';
 import { NotificationService } from '@progress/kendo-angular-notification';
 import { AttributeSelectorDialogService, AttributeSortSelectorDialogService } from '@meshmakers/octo-ui';
@@ -7,25 +9,30 @@ import { TableConfigDialogComponent } from './table-config-dialog.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
+import { GetSystemPersistentQueriesDtoGQL } from '../../graphQL/getSystemPersistentQueries';
+import { of } from 'rxjs';
 
 describe('TableConfigDialogComponent — row action and value markers (AB#7728)', () => {
   let windowRef: { close: ReturnType<typeof vi.fn> };
 
+  function dialogProviders(): Provider[] {
+    return [
+      { provide: NotificationService, useValue: { show: vi.fn() } },
+      { provide: AttributeSelectorDialogService, useValue: {} },
+      { provide: AttributeSortSelectorDialogService, useValue: {} },
+      { provide: CkTypeSelectorService, useValue: {} },
+      { provide: GetCkTypeAvailableQueryColumnsDtoGQL, useValue: {} },
+      { provide: MeshBoardStateService, useValue: { getVariables: () => [], getEntitySelectors: () => [] } },
+      // The dialog loads the fields of a kept query (AB#7655); these tests start without one.
+      { provide: GetRuntimeQueryColumnsDtoGQL, useValue: { fetch: vi.fn() } },
+      { provide: QueryExecutorService, useValue: { resolveFamily: vi.fn(async () => 'streamData'), fetchStreamDataColumns: vi.fn(async () => []) } }
+    ];
+  }
+
   async function open(inputs: Partial<TableConfigDialogComponent> = {}): Promise<TableConfigDialogComponent> {
     windowRef = { close: vi.fn() };
     TestBed.configureTestingModule({
-      providers: [
-        { provide: WindowRef, useValue: windowRef },
-        { provide: NotificationService, useValue: { show: vi.fn() } },
-        { provide: AttributeSelectorDialogService, useValue: {} },
-        { provide: AttributeSortSelectorDialogService, useValue: {} },
-        { provide: CkTypeSelectorService, useValue: {} },
-        { provide: GetCkTypeAvailableQueryColumnsDtoGQL, useValue: {} },
-        { provide: MeshBoardStateService, useValue: { getVariables: () => [], getEntitySelectors: () => [] } },
-        // The dialog loads the fields of a kept query (AB#7655); these tests start without one.
-        { provide: GetRuntimeQueryColumnsDtoGQL, useValue: { fetch: vi.fn() } },
-        { provide: QueryExecutorService, useValue: { resolveFamily: vi.fn(async () => 'streamData'), fetchStreamDataColumns: vi.fn(async () => []) } }
-      ]
+      providers: [{ provide: WindowRef, useValue: windowRef }, ...dialogProviders()]
     });
     const component = TestBed.runInInjectionContext(() => new TableConfigDialogComponent());
     Object.assign(component, { initialDataSourceType: 'persistentQuery', ...inputs });
@@ -102,5 +109,33 @@ describe('TableConfigDialogComponent — row action and value markers (AB#7728)'
     component.onSave();
 
     expect('rowAction' in windowRef.close.mock.calls[0][0]).toBe(false);
+  });
+
+  it('names every marker control for screen readers', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: WindowRef, useValue: { close: vi.fn() } },
+        provideNoopAnimations(),
+        ...dialogProviders(),
+        { provide: GetSystemPersistentQueriesDtoGQL, useValue: { fetch: vi.fn(() => of({ data: { runtime: { systemPersistentQuery: { items: [], totalCount: 0 } } } })) } }
+      ]
+    });
+    const fixture = TestBed.createComponent(TableConfigDialogComponent);
+    Object.assign(fixture.componentInstance, {
+      initialDataSourceType: 'persistentQuery',
+      initialValueMarkers: [{ field: 'manualCount', tooltip: 'Manual', icon: 'warning-triangle' }]
+    });
+    await fixture.componentInstance.ngOnInit();
+    // The marker card belongs to a picked query.
+    fixture.componentInstance.selectedPersistentQuery = { rtId: 'q1', name: 'daily', ckTypeId: 'System/StreamDataQuery' } as never;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const row = (fixture.nativeElement as HTMLElement).querySelector('.marker-row')!;
+
+    expect(row.querySelector('kendo-dropdownlist.marker-icon')!.getAttribute('aria-label')).toBe('Marker icon');
+    expect(row.querySelector('kendo-combobox.marker-field input')!.getAttribute('aria-label')).toBe('Marker column field');
+    expect(row.querySelector('kendo-textbox.marker-tooltip input')!.getAttribute('aria-label')).toBe('Marker tooltip');
+    expect(row.querySelector('button[title="Remove marker"]')!.getAttribute('aria-label')).toBe('Remove marker');
   });
 });

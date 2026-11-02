@@ -340,16 +340,20 @@ export const TABLE_VALUE_MARKER_ICONS: readonly string[] = [
                   [allowCustom]="true"
                   [(ngModel)]="marker.field"
                   [ngModelOptions]="{ standalone: true }"
+                  [inputAttributes]="{ 'aria-label': 'Marker column field' }"
                   placeholder="Column field">
                 </kendo-combobox>
                 <kendo-textbox
                   class="marker-tooltip"
                   [(ngModel)]="marker.tooltip"
                   [ngModelOptions]="{ standalone: true }"
+                  [inputAttributes]="{ 'aria-label': 'Marker tooltip' }"
                   placeholder="Tooltip">
                 </kendo-textbox>
                 <kendo-dropdownlist
                   class="marker-icon"
+                  aria-label="Marker icon"
+                  title="Marker icon"
                   [data]="markerIcons"
                   [(ngModel)]="marker.icon"
                   [ngModelOptions]="{ standalone: true }">
@@ -358,7 +362,7 @@ export const TABLE_VALUE_MARKER_ICONS: readonly string[] = [
                   <input type="checkbox" [(ngModel)]="marker.showValue" [ngModelOptions]="{ standalone: true }" kendoCheckBox />
                   Show value
                 </label>
-                <button kendoButton fillMode="flat" [svgIcon]="removeIcon" title="Remove marker" (click)="removeValueMarker(i)"></button>
+                <button kendoButton fillMode="flat" [svgIcon]="removeIcon" title="Remove marker" aria-label="Remove marker" (click)="removeValueMarker(i)"></button>
               </div>
             }
             <div>
