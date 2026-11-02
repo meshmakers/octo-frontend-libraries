@@ -11,6 +11,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { GetSystemPersistentQueriesDtoGQL } from '../../graphQL/getSystemPersistentQueries';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
+import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 
 const G01 = '1-1:1.9.0 G.01';
 const G03 = '1-1:2.9.0 G.03';
@@ -63,6 +64,30 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
   function key(target: HTMLElement, name: string): void {
     const keyCode = ({ Enter: 13, Backspace: 8, Delete: 46, ArrowDown: 40, ArrowLeft: 37 } as Record<string, number>)[name];
     target.dispatchEvent(new KeyboardEvent('keydown', { key: name, code: name, keyCode, bubbles: true } as KeyboardEventInit));
+  }
+
+  /** The author picks a series group field in the combobox. */
+  function pickGroupField(field: string): void {
+    fixture.debugElement.query(By.css('kendo-combobox[placeholder="Select grouping field..."]'))
+      .triggerEventHandler('ngModelChange', field);
+  }
+
+  function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reject: (error: unknown) => void } {
+    let resolve!: (value: T) => void;
+    let reject!: (error: unknown) => void;
+    const promise = new Promise<T>((res, rej) => { resolve = res; reject = rej; });
+    return { promise, resolve, reject };
+  }
+
+  /** Group reads that the test answers by hand, per series group field. */
+  function groupReadsByField(...fields: string[]): Record<string, ReturnType<typeof deferred<Map<string, string[]>>>> {
+    const reads = Object.fromEntries(fields.map(f => [f, deferred<Map<string, string[]>>()]));
+    qe['fetchEntityGroups'].mockImplementation((_ck: string, field: string) => reads[field].promise);
+    return reads;
+  }
+
+  function failureHint(): Element | null {
+    return el().querySelector('[data-hint="series-group-values-failed"]');
   }
 
   async function type(text: string): Promise<void> {
@@ -233,19 +258,149 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
     expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('Basic.Energy/EnergyMeasurement', 'unit');
   });
 
-  it('reopening a saved config keeps the excluded values', async () => {
-    await open({ initialExcludedSeriesGroupValues: [G03R] });
+  it('reopening a saved config loads the offered values of its query and keeps the excluded values', async () => {
+    vi.useFakeTimers();
+    try {
+      fixture = TestBed.createComponent(LineChartConfigDialogComponent);
+      cmp = fixture.componentInstance;
+      Object.assign(cmp, {
+        initialQueryRtId: SD_QUERY.rtId,
+        initialCategoryField: 'window_start', initialSeriesGroupField: 'obisCode', initialValueField: 'amount.value',
+        initialExcludedSeriesGroupValues: [G03R]
+      });
+      const selectByRtId = vi.fn().mockResolvedValue(SD_QUERY);
+      cmp.querySelector = { selectByRtId } as unknown as QuerySelectorComponent;
 
-    expect(cmp.excludedSeriesGroupValues).toEqual([G03R]);
+      await cmp.ngOnInit();
+      await vi.advanceTimersByTimeAsync(100);
+      await vi.waitFor(() => expect(cmp.isLoadingInitial).toBe(false));
+
+      expect(selectByRtId).toHaveBeenCalledWith(SD_QUERY.rtId);
+      expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('Basic.Energy/EnergyMeasurement', 'obisCode');
+      expect(cmp.seriesGroupValues).toEqual([G01, G03, G03R]);
+      expect(cmp.excludedSeriesGroupValues).toEqual([G03R]);
+    } finally {
+      vi.useRealTimers();
+    }
+    await render();
     expect(chips()).toEqual([G03R]);
   });
 
-  it('choosing another query clears the list', async () => {
+  it('offers a runtime value exactly as stored, surrounding blanks included', async () => {
+    qe['execute'].mockReturnValue(of({
+      family: 'runtime', queryRtId: 'q-runtime', associatedCkTypeId: null, columns: [], totalCount: 2, hasNextPage: false, endCursor: null,
+      rows: [` ${G03R} `, G03].map(v => ({ __typename: 'RtSimpleQueryRow', rtId: 'x', cells: [{ attributePath: 'obisCode', value: v }] }))
+    }));
+
+    await open({}, RUNTIME_QUERY);
+
+    expect(cmp.seriesGroupValues).toEqual([` ${G03R} `, G03]);
+  });
+
+  it('shows the loading state while the values of the field are read', async () => {
+    await open({});
+    const reads = groupReadsByField('unit');
+
+    pickGroupField('unit');
+    await render();
+    expect(cmp.isLoadingSeriesGroupValues).toBe(true);
+
+    reads['unit'].resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+    expect(cmp.isLoadingSeriesGroupValues).toBe(false);
+    expect(cmp.seriesGroupValues).toEqual(['kWh']);
+  });
+
+  it('switching the field twice quickly: a late answer for the first field does not replace the values of the second', async () => {
+    await open({});
+    const reads = groupReadsByField('unit', 'direction');
+
+    pickGroupField('unit');
+    pickGroupField('direction');
+    await render();
+    reads['direction'].resolve(new Map([['export', ['mp-g03']]]));
+    await render();
+    reads['unit'].resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+
+    expect(cmp.form.seriesGroupField).toBe('direction');
+    expect(cmp.seriesGroupValues).toEqual(['export']);
+    expect(cmp.isLoadingSeriesGroupValues).toBe(false);
+  });
+
+  it('switching the field twice quickly: the first field answering first does not end the loading of the second', async () => {
+    await open({});
+    const reads = groupReadsByField('unit', 'direction');
+
+    pickGroupField('unit');
+    pickGroupField('direction');
+    await render();
+    reads['unit'].resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+
+    expect(cmp.seriesGroupValues).toEqual([]);
+    expect(cmp.isLoadingSeriesGroupValues).toBe(true);
+
+    reads['direction'].resolve(new Map([['export', ['mp-g03']]]));
+    await render();
+    expect(cmp.seriesGroupValues).toEqual(['export']);
+    expect(cmp.isLoadingSeriesGroupValues).toBe(false);
+  });
+
+  it('switching the field twice quickly: a late failure for the first field shows no failure hint for the second', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await open({});
+    const reads = groupReadsByField('unit', 'direction');
+
+    pickGroupField('unit');
+    pickGroupField('direction');
+    await render();
+    reads['direction'].resolve(new Map([['export', ['mp-g03']]]));
+    await render();
+    reads['unit'].reject(new Error('network'));
+    await render();
+
+    expect(cmp.seriesGroupValuesFailed).toBe(false);
+    expect(failureHint()).toBeNull();
+    expect(cmp.seriesGroupValues).toEqual(['export']);
+  });
+
+  it('clearing the field while its values are still read ends the loading state', async () => {
+    await open({});
+    const reads = groupReadsByField('unit');
+
+    pickGroupField('unit');
+    await render();
+    pickGroupField('');
+    await render();
+    reads['unit'].resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+
+    expect(cmp.isLoadingSeriesGroupValues).toBe(false);
+    expect(cmp.seriesGroupValues).toEqual([]);
+  });
+
+  it('choosing another query clears the list and the offered values', async () => {
     await open({ initialExcludedSeriesGroupValues: [G03R] });
+    expect(cmp.seriesGroupValues).toEqual([G01, G03, G03R]);
 
     await cmp.onQuerySelected({ rtId: 'q-other', name: 'other', ckTypeId: 'System/SimpleSdQuery' });
 
     expect(cmp.excludedSeriesGroupValues).toEqual([]);
+    expect(cmp.seriesGroupValues).toEqual([]);
+  });
+
+  it('after a failed load, choosing another query clears the failure state', async () => {
+    qe['fetchEntityGroups'].mockRejectedValue(new Error('network'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await open({});
+    expect(failureHint()).not.toBeNull();
+
+    await cmp.onQuerySelected({ rtId: 'q-other', name: 'other', ckTypeId: 'System/SimpleSdQuery' });
+    await render();
+
+    expect(cmp.seriesGroupValuesFailed).toBe(false);
+    expect(failureHint()).toBeNull();
   });
 
   it('keeps the shared dialog action bar', async () => {

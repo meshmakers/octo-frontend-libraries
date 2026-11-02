@@ -18,6 +18,8 @@ const G01 = '1-1:1.9.0 G.01';
 const G02 = '1-1:2.9.0 G.02';
 const G03 = '1-1:2.9.0 G.03';
 const G03R = '1-1:2.9.0 G.03R';
+/** G.03R as a board author might type it: other case, a leading blank. Neither is the stored value. */
+const G03R_MISSPELT = ['1-1:2.9.0 g.03r', ` ${G03R}`];
 
 const ENTITY_OF: Record<string, string> = { [G01]: 'mp-g01', [G02]: 'mp-g02', [G03]: 'mp-g03', [G03R]: 'mp-g03r' };
 const GROUP_OF: Record<string, string> = Object.fromEntries(Object.entries(ENTITY_OF).map(([g, e]) => [e, g]));
@@ -66,6 +68,7 @@ interface Setup {
   qe: {
     downsampleByArchive: ReturnType<typeof vi.fn>;
     fetchEntityGroups: ReturnType<typeof vi.fn>;
+    fetchQueryArchive: ReturnType<typeof vi.fn>;
   };
   load(): Promise<void>;
   /** Downsampled scopes in call order (sorted for comparison). */
@@ -76,15 +79,22 @@ interface Setup {
 
 function setup(
   cfg: LineChartWidgetConfig,
-  opts: { window?: typeof WINDOWS[number]; scope?: StreamDataScope; pin?: string[] | null; plainRows?: QueryResultRow[] } = {}
+  opts: {
+    window?: typeof WINDOWS[number]; scope?: StreamDataScope; pin?: string[] | null; plainRows?: QueryResultRow[];
+    /** Rows per persistent query rtId; queries not listed answer with `plainRows`. */
+    rowsByQuery?: Record<string, QueryResultRow[]>;
+  } = {}
 ): Setup {
   const window = opts.window ?? WINDOWS[0];
   const scope = opts.scope ?? { kind: 'unscoped' };
   const qe = {
-    execute: vi.fn(() => of({
-      family: 'streamData' as const, queryRtId: 'q-energy', associatedCkTypeId: null, columns: [],
-      rows: opts.plainRows ?? [], totalCount: opts.plainRows?.length ?? 0, hasNextPage: false, endCursor: null
-    })),
+    execute: vi.fn((_family: string, queryRtId: string) => {
+      const rows = opts.rowsByQuery?.[queryRtId] ?? opts.plainRows ?? [];
+      return of({
+        family: 'streamData' as const, queryRtId, associatedCkTypeId: null, columns: [],
+        rows, totalCount: rows.length, hasNextPage: false, endCursor: null
+      });
+    }),
     fetchQueryArchive: vi.fn().mockResolvedValue({ archiveRtId: 'archive-raw', ckTypeId: 'Basic.Energy/EnergyMeasurement', rtIds: opts.pin ?? null }),
     resolveSeriesQuery: vi.fn().mockResolvedValue({
       archiveRtId: window.archive, effectiveBucketMs: 86400000, points: 3,
@@ -191,7 +201,7 @@ describe('LineChartWidgetComponent excluded series group values (AB#8128)', () =
     });
 
     it('matches exactly on the stored value: other case or surrounding blanks exclude nothing', async () => {
-      const s = await loaded(config({ aggregateSeriesByGroup: true }, { excludedSeriesGroupValues: ['1-1:2.9.0 g.03r', ` ${G03R}`] }));
+      const s = await loaded(config({ aggregateSeriesByGroup: true }, { excludedSeriesGroupValues: G03R_MISSPELT }));
 
       expect(Object.keys(s.series()).sort()).toEqual([G01, G02, G03, G03R]);
     });
@@ -251,6 +261,32 @@ describe('LineChartWidgetComponent excluded series group values (AB#8128)', () =
       expect(s.cmp.seriesData()).toEqual([]);
     });
 
+    it('scoped: other case or surrounding blanks exclude nothing, the G.03R source is still drawn', async () => {
+      const pin = ['mp-g01', 'mp-g03', 'mp-g03r'];
+      const s = await loaded(config({}, { excludedSeriesGroupValues: G03R_MISSPELT }), { pin });
+
+      expect(s.scopes()).toEqual([['mp-g01'], ['mp-g03'], ['mp-g03r']]);
+      expect(Object.keys(s.series()).sort()).toEqual([G01, G03, G03R]);
+    });
+
+    it('without a scope: other case or surrounding blanks exclude nothing, one merged call over the whole archive', async () => {
+      const s = await loaded(config({}, { excludedSeriesGroupValues: G03R_MISSPELT }));
+
+      expect(s.scopes()).toEqual([undefined]);
+      expect(s.series()).toEqual({ obisCode: [33.5, 39.5, 26.25] });
+    });
+
+    it('an archive without a CK type cannot be grouped: one merged call over the whole archive, the exclusion is ignored', async () => {
+      const s = setup(config({}, { excludedSeriesGroupValues: [G03R] }));
+      s.qe.fetchQueryArchive.mockResolvedValue({ archiveRtId: 'archive-raw', ckTypeId: null, rtIds: null });
+
+      await s.load();
+
+      expect(s.scopes()).toEqual([undefined]);
+      expect(s.qe.fetchEntityGroups).not.toHaveBeenCalled();
+      expect(s.series()).toEqual({ obisCode: [33.5, 39.5, 26.25] });
+    });
+
     it('without the key queries exactly as before: one merged call over the whole archive, no entity read', async () => {
       const s = await loaded(config({}));
 
@@ -283,6 +319,12 @@ describe('LineChartWidgetComponent excluded series group values (AB#8128)', () =
       expect(s.series()).toEqual({ [G01]: expected[G01], [G03]: expected[G03] });
     });
 
+    it('matches exactly on the stored value: other case or surrounding blanks exclude nothing', async () => {
+      const s = await loaded(plain({ excludedSeriesGroupValues: G03R_MISSPELT }), { plainRows: rows });
+
+      expect(Object.keys(s.series()).sort()).toEqual([G01, G03, G03R]);
+    });
+
     it('all values excluded: the normal no-data state', async () => {
       const s = await loaded(plain({ excludedSeriesGroupValues: [G01, G03, G03R] }), { plainRows: rows });
 
@@ -290,15 +332,20 @@ describe('LineChartWidgetComponent excluded series group values (AB#8128)', () =
       expect(s.cmp.error()).toBeNull();
     });
 
-    it('also in a chart with additional series (multi-source path)', async () => {
+    it('in a chart with additional series: excluded from the primary query only, the additional series is untouched', async () => {
       const extra: LineChartQuerySeries = {
         kind: 'query', key: 'pv', label: 'PV', valueField: 'amount.value',
         dataSource: { type: 'persistentQuery', queryRtId: 'q-pv', queryFamily: 'streamData' }
       };
-      const s = await loaded(plain({ additionalSeries: [extra], excludedSeriesGroupValues: [G03R] }), { plainRows: rows });
+      // The PV query has its own rows; per bucket one of them carries the excluded group value.
+      const pvRows = BUCKETS.flatMap((b, i) => [rawRow(b, G03R, i + 1), rawRow(b, G01, 10 * (i + 1))]);
 
-      expect(s.cmp.seriesData().map(x => x.name)).not.toContain(G03R);
-      expect(s.cmp.seriesData().map(x => x.name)).toEqual(expect.arrayContaining([G01, G03]));
+      const s = await loaded(
+        plain({ additionalSeries: [extra], excludedSeriesGroupValues: [G03R] }),
+        { rowsByQuery: { 'q-energy': rows, 'q-pv': pvRows } }
+      );
+
+      expect(s.series()).toEqual({ [G01]: VALUES['mp-g01'], [G03]: VALUES['mp-g03'], PV: [11, 22, 33] });
     });
   });
 });
