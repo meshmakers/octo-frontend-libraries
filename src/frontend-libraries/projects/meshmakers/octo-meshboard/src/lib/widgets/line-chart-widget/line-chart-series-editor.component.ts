@@ -26,7 +26,9 @@ import {
   LineChartSeriesDefinition,
   LineChartSeriesDisplayOptions,
   MeshBoardVariable,
-  SeriesAggregationFunction
+  SeriesAggregationFunction,
+  SeriesDashType,
+  SeriesMissingValues
 } from '../../models/meshboard.models';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -40,6 +42,19 @@ import { validateFormula } from '../../utils/meshboard-formula';
 import { querySeriesErrors, SERIES_KEY_PATTERN } from './line-chart-multi-source';
 
 const NUMERIC_TYPES = ['INTEGER', 'FLOAT', 'DOUBLE', 'DECIMAL', 'LONG'];
+
+/** Default look-back of "Last value" in hours (= DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES / 60, AB#8046). */
+const DEFAULT_CARRY_FORWARD_LOOKBACK_HOURS = 24;
+
+/** Copy of `target` with `patch` applied; keys whose patch value is `undefined` are removed. */
+function applyPatch<T extends object>(target: T, patch: Partial<LineChartSeriesDisplayOptions>): T {
+  const next = { ...target } as Record<string, unknown>;
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) delete next[key];
+    else next[key] = value;
+  }
+  return next as T;
+}
 
 /** One editor row: the series plus the transient picker state. */
 interface SeriesRow {
@@ -100,6 +115,24 @@ interface SeriesRow {
                    [ngModel]="primary?.stacked !== false" (ngModelChange)="setPrimaryOption('stacked', $event)" />
             Stacked
           </label>
+          }
+          <span class="field option-field">
+            <label for="series-primary-missing">Missing values</label>
+            <kendo-dropdownlist id="series-primary-missing" data-series-primary="missingValues" [data]="missingValueOptions"
+                                [textField]="'label'" [valueField]="'value'" [valuePrimitive]="true"
+                                [ngModel]="primary?.missingValues ?? 'gap'"
+                                (ngModelChange)="patchPrimary({ missingValues: $event === 'gap' ? undefined : $event })">
+            </kendo-dropdownlist>
+          </span>
+          @if (drawsAsLine(primary)) {
+          <span class="field option-field">
+            <label for="series-primary-dash">Line style</label>
+            <kendo-dropdownlist id="series-primary-dash" data-series-primary="dashType" [data]="dashTypeOptions"
+                                [textField]="'label'" [valueField]="'value'" [valuePrimitive]="true"
+                                [ngModel]="primary?.dashType ?? 'solid'"
+                                (ngModelChange)="patchPrimary({ dashType: $event === 'solid' ? undefined : $event })">
+            </kendo-dropdownlist>
+          </span>
           }
         </span>
       </div>
@@ -194,7 +227,8 @@ interface SeriesRow {
               </mm-meshboard-formula-field>
             </div>
           }
-          <div class="field display-options">
+          <div class="field display-options" role="group" [attr.aria-label]="'Display of series ' + (row.series.key || (i + 1))">
+            <span class="display-label">Display</span>
             <label class="checkbox">
               <input type="checkbox" kendoCheckBox [attr.data-series-visible]="i" [ngModel]="row.series.visible !== false"
                      (ngModelChange)="setOption(row, 'visible', $event)" />
@@ -206,6 +240,56 @@ interface SeriesRow {
                      [ngModel]="row.series.stacked !== false" (ngModelChange)="setOption(row, 'stacked', $event)" />
               Stacked
             </label>
+            }
+            @if (row.series.kind === 'query') {
+            <span class="field option-field">
+              <label [for]="'series-missing-' + row.uid">Missing values</label>
+              <kendo-dropdownlist [id]="'series-missing-' + row.uid" [attr.data-series-missing]="i" [data]="missingValueOptions"
+                                  [textField]="'label'" [valueField]="'value'" [valuePrimitive]="true"
+                                  [ngModel]="row.series.missingValues ?? 'gap'"
+                                  (ngModelChange)="setMissingValues(row, $event)">
+              </kendo-dropdownlist>
+            </span>
+            @if (!categoryMode && row.series.missingValues === 'carryForward') {
+            <span class="field option-field narrow">
+              <label [for]="'series-lookback-' + row.uid">Look back (hours)</label>
+              <kendo-numerictextbox [id]="'series-lookback-' + row.uid" [attr.data-series-lookback]="i"
+                                    [min]="0" [max]="720" [decimals]="0" [format]="'n0'" [spinners]="false"
+                                    [ngModel]="lookbackHours(row)" (ngModelChange)="setLookbackHours(row, $event)">
+              </kendo-numerictextbox>
+            </span>
+            }
+            }
+            <span class="field option-field narrow">
+              <label [for]="'series-color-' + row.uid">Colour</label>
+              <kendo-colorpicker [id]="'series-color-' + row.uid" [attr.data-series-color]="i" format="hex" [clearButton]="true"
+                                 [value]="$any(colorPickerValue(row))" (valueChange)="patchRow(row, { color: $event || undefined })">
+              </kendo-colorpicker>
+            </span>
+            @if (categoryMode) {
+            <label class="checkbox" [title]="linesAllowed ? '' : linesDisabledHint">
+              <input type="checkbox" kendoCheckBox [attr.data-series-as-line]="i" [disabled]="!linesAllowed"
+                     [ngModel]="row.series.asLine === true" (ngModelChange)="setAsLine(row, $event)" />
+              Draw as line
+            </label>
+            @if (row.series.asLine) {
+            <label class="checkbox">
+              <input type="checkbox" kendoCheckBox [attr.data-series-secondary-axis]="i"
+                     [ngModel]="row.series.secondaryAxis === true"
+                     (ngModelChange)="patchRow(row, { secondaryAxis: $event ? true : undefined })" />
+              Second axis
+            </label>
+            }
+            }
+            @if (drawsAsLine(row.series)) {
+            <span class="field option-field">
+              <label [for]="'series-dash-' + row.uid">Line style</label>
+              <kendo-dropdownlist [id]="'series-dash-' + row.uid" [attr.data-series-dash]="i" [data]="dashTypeOptions"
+                                  [textField]="'label'" [valueField]="'value'" [valuePrimitive]="true"
+                                  [ngModel]="row.series.dashType ?? 'solid'"
+                                  (ngModelChange)="patchRow(row, { dashType: $event === 'solid' ? undefined : $event })">
+              </kendo-dropdownlist>
+            </span>
             }
           </div>
           <button kendoButton type="button" fillMode="flat" size="small" class="remove" [svgIcon]="trashIcon"
@@ -264,6 +348,15 @@ interface SeriesRow {
     .field.scope { flex: 1 1 200px; }
     .field.formula { flex: 1 1 100%; }
     .field.display-options, .display-options { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+    .field.display-options {
+      flex: 1 1 100%;
+      align-items: flex-end;
+      padding-top: 6px;
+      border-top: 1px dotted var(--kendo-color-border, #dee2e6);
+    }
+    .display-label { align-self: center; font-size: 0.8rem; font-weight: 600; color: var(--kendo-color-subtle, #6c757d); }
+    .field.option-field { flex: 0 1 170px; }
+    .field.option-field.narrow { flex: 0 1 110px; }
     .add-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .field.toggles { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
     .checkbox { display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.85rem; }
@@ -294,6 +387,10 @@ export class LineChartSeriesEditorComponent implements OnChanges {
    * chart: per-row category field, no Resolution-aware, no Stacked).
    */
   @Input() alignment: 'timeGrid' | 'category' = 'timeGrid';
+  /** Time-grid mode (AB#8046): the chart draws areas, so only `stacked: false` series of a stacked area chart are lines. */
+  @Input() areaChart = false;
+  /** Category mode (AB#8046): the chart type can mix lines with bars (column types; not horizontal bars). */
+  @Input() linesAllowed = true;
   /** Category field preset for a new query row in category mode (the primary query's category field). */
   @Input() defaultCategoryField: string | undefined;
   /** Emits a new array on every change. */
@@ -308,6 +405,21 @@ export class LineChartSeriesEditorComponent implements OnChanges {
 
   readonly streamDataOnly = ['streamData'] as const;
   readonly stackedDisabledHint = 'Only a stacked area chart stacks series.';
+  readonly linesDisabledHint = 'A horizontal bar chart cannot draw lines; choose a column chart type.';
+
+  /** Options of "Missing values" (AB#8046). */
+  readonly missingValueOptions: { value: SeriesMissingValues; label: string }[] = [
+    { value: 'gap', label: 'No value (gap)' },
+    { value: 'zero', label: '0' },
+    { value: 'carryForward', label: 'Last value' }
+  ];
+
+  /** Options of "Line style" (AB#8046). */
+  readonly dashTypeOptions: { value: SeriesDashType; label: string }[] = [
+    { value: 'solid', label: 'Solid' },
+    { value: 'dash', label: 'Dashed' },
+    { value: 'dot', label: 'Dotted' }
+  ];
   readonly keySyntaxHint = '${key}';
   readonly formulaPlaceholder = 'e.g. min(${pv} - ${gridExport}, ${consumption})';
 
@@ -409,12 +521,65 @@ export class LineChartSeriesEditorComponent implements OnChanges {
   }
 
   setPrimaryOption(option: 'visible' | 'stacked', on: boolean): void {
-    const next: LineChartSeriesDisplayOptions = { ...(this.primary ?? {}) };
-    if (on) delete next[option];
-    else next[option] = false;
+    this.patchPrimary({ [option]: on ? undefined : false });
+  }
+
+  /**
+   * Sets display options of a row (AB#8046); a key with value `undefined` is removed, so defaults
+   * are never stored.
+   */
+  patchRow(row: SeriesRow, patch: Partial<LineChartSeriesDisplayOptions>): void {
+    row.series = applyPatch(row.series, patch);
+    this.emit();
+  }
+
+  /** Sets display options of the primary row (AB#8046); `undefined` removes a key. */
+  patchPrimary(patch: Partial<LineChartSeriesDisplayOptions>): void {
+    const next = applyPatch({ ...(this.primary ?? {}) }, patch);
+    if (next.missingValues !== 'carryForward') delete next.carryForwardLookbackMinutes;
     this.primary = Object.keys(next).length > 0 ? next : undefined;
     this.primaryChange.emit(this.primary);
     this.cdr.markForCheck();
+  }
+
+  /** "Missing values" of a query row; leaving `carryForward` drops its look-back. */
+  setMissingValues(row: SeriesRow, mode: SeriesMissingValues): void {
+    this.patchRow(row, {
+      missingValues: mode === 'gap' ? undefined : mode,
+      ...(mode !== 'carryForward' && { carryForwardLookbackMinutes: undefined })
+    });
+  }
+
+  /** Look-back of `carryForward` in hours (stored in minutes); empty = default. */
+  lookbackHours(row: SeriesRow): number | null {
+    const minutes = row.series.carryForwardLookbackMinutes;
+    return minutes === undefined ? DEFAULT_CARRY_FORWARD_LOOKBACK_HOURS : minutes / 60;
+  }
+
+  setLookbackHours(row: SeriesRow, hours: number | null): void {
+    const minutes = hours === null || hours === undefined ? undefined : Math.max(0, Math.round(hours * 60));
+    this.patchRow(row, { carryForwardLookbackMinutes: minutes === DEFAULT_CARRY_FORWARD_LOOKBACK_HOURS * 60 ? undefined : minutes });
+  }
+
+  /** "Draw as line" of a bar chart row; off drops the line-only options. */
+  setAsLine(row: SeriesRow, on: boolean): void {
+    this.patchRow(row, on ? { asLine: true } : { asLine: undefined, secondaryAxis: undefined, dashType: undefined });
+  }
+
+  /**
+   * Whether a series is drawn as a line, i.e. "Line style" applies (AB#8046): bar chart `asLine`; line
+   * chart always; area chart only a non-stacked series of a stacked area chart (Kendo has no dash style
+   * for areas).
+   */
+  drawsAsLine(options: LineChartSeriesDisplayOptions | undefined): boolean {
+    if (this.categoryMode) return options?.asLine === true;
+    return !this.areaChart || (this.stackedChart && options?.stacked === false);
+  }
+
+  /** The colour picker shows hex colours only; a custom property or status name (hand-edited JSON) shows as empty. */
+  colorPickerValue(row: SeriesRow): string | null {
+    const color = row.series.color?.trim() ?? '';
+    return /^#[0-9a-f]{3,8}$/i.test(color) ? color : null;
   }
 
   remove(index: number): void {

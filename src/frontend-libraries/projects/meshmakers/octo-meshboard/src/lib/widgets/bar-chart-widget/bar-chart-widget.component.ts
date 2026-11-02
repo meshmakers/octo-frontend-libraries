@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BarChartWidgetConfig, BarChartType, LineChartQuerySeries, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
+import { BarChartWidgetConfig, BarChartType, LineChartQuerySeries, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
@@ -18,6 +18,7 @@ import {
   composeChartSeries,
   isCompleteFormulaSeries,
   isCompleteQuerySeries,
+  isSourceHintShown,
   LineChartSourceHint,
   LineChartSourceProblem,
   PRIMARY_SOURCE_KEY,
@@ -50,7 +51,16 @@ interface SeriesData {
   name: string;
   data: unknown[];
   color?: string;
+  /** Multi-source path (AB#8046): drawn as a line over the bars. */
+  asLine?: boolean;
+  /** Multi-source path (AB#8046): line style of a line series. */
+  dashType?: SeriesDashType;
+  /** Multi-source path (AB#8046): the line uses the second value axis. */
+  secondaryAxis?: boolean;
 }
+
+/** Name of the second value axis of a bar chart with a line on it (AB#8046). */
+const SECONDARY_AXIS = 'secondary';
 
 /**
  * Mapping from our chart types to Kendo chart configuration
@@ -104,6 +114,7 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
           <kendo-chart-category-axis>
             <kendo-chart-category-axis-item
               [categories]="categories()"
+              [axisCrossingValue]="axisCrossingValues()"
               [line]="{ visible: false }"
               [majorGridLines]="{ visible: false }">
               <kendo-chart-category-axis-item-labels
@@ -120,20 +131,33 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
               [labels]="{ color: chartTheme().muted }"
               [majorGridLines]="{ color: chartTheme().grid }">
             </kendo-chart-value-axis-item>
+            @if (hasSecondaryAxis()) {
+              <!-- Second value axis on the right for line series (AB#8046). -->
+              <kendo-chart-value-axis-item
+                [name]="secondaryAxisName"
+                [line]="{ visible: false }"
+                [labels]="{ color: chartTheme().muted }"
+                [majorGridLines]="{ visible: false }">
+              </kendo-chart-value-axis-item>
+            }
           </kendo-chart-value-axis>
 
           <kendo-chart-series>
             @for (series of seriesData(); track series.name) {
               <kendo-chart-series-item
-                [type]="kendoChartType()"
+                [type]="series.asLine ? 'line' : kendoChartType()"
                 [data]="series.data"
                 [name]="series.name"
                 [color]="series.color"
                 [field]="hasColorThresholds() ? 'value' : ''"
-                [colorField]="hasColorThresholds() ? '_color' : ''"
+                [colorField]="hasColorThresholds() && !series.asLine ? '_color' : ''"
                 [border]="{ width: 0 }"
                 [gap]="0.8"
-                [stack]="stackConfig()">
+                [axis]="series.secondaryAxis ? secondaryAxisName : ''"
+                [dashType]="series.dashType ?? 'solid'"
+                [missingValues]="'gap'"
+                [markers]="{ visible: !!series.asLine }"
+                [stack]="series.asLine ? false : stackConfig()">
                 @if (config.showDataLabels) {
                   <kendo-chart-series-item-labels
                     [visible]="true"
@@ -307,6 +331,19 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   readonly isMultiSource = this._multiSource.asReadonly();
 
   readonly data = computed(() => this._seriesData());
+
+  /** Name of the second value axis (template binding, AB#8046). */
+  get secondaryAxisName(): string { return SECONDARY_AXIS; }
+
+  /** A drawn line series uses the second value axis (AB#8046). */
+  readonly hasSecondaryAxis = computed(() => this._seriesData().some(s => s.secondaryAxis));
+
+  /**
+   * Where the value axes cross the category axis: with a second axis it sits at the far end (right),
+   * otherwise Kendo's default.
+   */
+  readonly axisCrossingValues = computed((): number[] | undefined =>
+    this.hasSecondaryAxis() ? [0, Number.MAX_SAFE_INTEGER] : undefined);
 
   /**
    * Check if widget is not configured (needs data source setup).
@@ -542,8 +579,13 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     try {
       const hints: LineChartSourceHint[] = [];
       const problems = new Map<string, { label: string; problem: LineChartSourceProblem }>();
+      const definitions = this.config.additionalSeries ?? [];
+      // Hidden sources and zero-filled empty sources give no chart-level hint (AB#8046).
+      const pushHint = (sourceKey: string, hint: LineChartSourceHint): void => {
+        if (isSourceHintShown(sourceKey, hint.kind, definitions, this.config.primarySeries)) hints.push(hint);
+      };
       const noData = (source: BarChartSourceEntry): void => {
-        hints.push({ kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+        pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
         problems.set(source.key, { label: source.label, problem: 'noData' });
       };
 
@@ -562,7 +604,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
         const source = active[i].source;
         if (f.status === 'rejected') {
           console.error(`Error loading Bar Chart source "${source.label}":`, f.reason);
-          hints.push({ kind: 'error', sourceLabel: source.label, text: `${source.label}: ${this.errorMessage(f.reason)}` });
+          pushHint(source.key, { kind: 'error', sourceLabel: source.label, text: `${source.label}: ${this.errorMessage(f.reason)}` });
           problems.set(source.key, { label: source.label, problem: 'error' });
           return;
         }
@@ -581,11 +623,14 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       const composed = composeChartSeries({
         gridSeries: aligned.series,
         length: aligned.categories.length,
-        definitions: this.config.additionalSeries ?? [],
+        definitions,
         primary: this.config.primarySeries,
         stackedChart: false,
         sourceProblems: problems,
-        evaluator: this.expressionEvaluator
+        evaluator: this.expressionEvaluator,
+        instants: aligned.categories.map(c => c.instant),
+        // A horizontal bar chart cannot mix lines: `asLine` applies to column types only.
+        barChart: this.kendoChartType() === 'column'
       });
       hints.push(...composed.hints);
 
@@ -594,7 +639,10 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       this._seriesData.set(composed.series.map(s => ({
         name: s.name,
         data: this.hasColorThresholds() ? this.applyColorThresholds(s.data) : s.data,
-        color: colors.get(s.name)
+        color: s.color ?? colors.get(s.name),
+        ...(s.asLine && { asLine: true }),
+        ...(s.dashType && { dashType: s.dashType }),
+        ...(s.secondaryAxis && { secondaryAxis: true })
       })));
       this._sourceHints.set(hints);
       this._isLoading.set(false);

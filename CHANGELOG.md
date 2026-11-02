@@ -20,6 +20,56 @@ starts a new empty "Unreleased" section.
   (`streamDataRowFieldValue`; single-query raw and downsampled rows, multi-source primary), so
   `categoryField: timestamp`, `seriesGroupField: rtId` gives one line per source entity.
 
+### octo-meshboard: per-series options in line and bar charts — missing values as 0 or last value, colour, line style, a fixed bucket size, bar series as line (AB#8046)
+
+- New (non-breaking) series options on `LineChartSeriesDisplayOptions` (additional series of line and bar charts, and
+  `primarySeries`): `missingValues` (`'gap'` default, `'zero'`, `'carryForward'`; query and primary series),
+  `carryForwardLookbackMinutes` (line chart, default 1440), `color` (CSS colour, custom property or status name;
+  not for the primary series), `dashType` (`'solid' | 'dash' | 'dot'`), bar chart only `asLine` and `secondaryAxis`.
+  All are omitted when default, so existing charts encode byte-identically.
+- Missing values: `zero` turns an empty selector scope (a site without battery) into a series of zeros and fills
+  single empty buckets; `carryForward` takes the last value of the series (on-change signals), and the line chart
+  fetches the value at the window start with one extra downsampling request over the look-back. Filled values are
+  the formula operands too. Buckets after "now" are never filled; a failed source is never shown as zeros.
+- `LineChartWidgetConfig.bucketMinutes` (1, 5, 10, 15, 30, 60; `LINE_CHART_BUCKET_MINUTES`): the window is snapped to
+  whole buckets in the board's time zone, every source is downsampled with `(to - from) / bucket` buckets and the
+  chart shows every bucket of the window (`alignOnFixedGrid`; 96 quarter hours per day, 100 on 2026-10-25). Without
+  it the bucket count follows the chart width as before. Note: a raw archive with fewer distinct timestamps than
+  buckets is still clamped by the backend; such a source fills only the buckets its points start in.
+- Bar chart: a series can be drawn as a line over the columns (column types), optionally on a second value axis
+  on the right, with colour and line style.
+- Hidden series (also a hidden primary) never produce chart-level hints ("No data", error, grid); their failure shows
+  only on the dependent formula series ("depends on <source>, which failed").
+- Series editor: a "Display" line per row (Missing values + look-back, Colour, Line style, bar: Draw as line /
+  Second axis) and Missing values / Line style on the primary row; line chart dialog: Bucket size. Wireframe
+  section 6 of the AB#7951 series-editor wireframe.
+- New exports: `SeriesMissingValues`, `SeriesDashType`, `LINE_CHART_BUCKET_MINUTES`,
+  `DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES`. A library version before AB#8046 ignores the new keys; when it saves the
+  board it drops `bucketMinutes` and the new primary options (series entries are stored as they are).
+
+### octo-meshboard: process widget dialog edits several data bindings, the aggregate of each mapped value and the direction of each connection (AB#8025)
+
+- New (non-breaking): the Data Binding tab of the process widget dialog is a list of binding cards — add, rename,
+  duplicate and delete bindings; per card the name (required, unique, inline error), the source (runtime entity /
+  persistent query), the entity selector it follows (all selectors of the board plus "None") and filters. Duplicate
+  and delete are icon actions on the card header; deleting a binding that mappings use asks first, lists the affected
+  properties and clears their mappings. A card that follows a selector not on the board shows a warning tag and blocks
+  Save with a message naming binding and selector. Keyboard: every card header is a tab stop (Enter toggles, Delete
+  starts the confirmation); the dialog wraps at 600 px.
+- Mappings tab: Binding and Aggregate columns (First row, Sum, Average, Minimum, Maximum; fixed to First row for
+  non-number properties and runtime-entity bindings). The source type of a mapping follows its binding (entity →
+  attribute, query → column); the former Source column is gone. Renaming a binding moves its mappings along.
+- Connections (wireframe approval condition on AB#7954): the Mappings tab lists the diagram's connection lines
+  (line / polyline / path primitives with a direction effect: `animation.enabled`, `visible`, `style.stroke.*`,
+  `style.opacity`) and lets the author pick per line which mapped value drives its direction. Stored as the new
+  optional `ProcessWidgetConfig.connectionDirections` (`ProcessConnectionDirection`: `connectionId`, `propertyId`);
+  the widget re-points the line's direction effects at that property at load time (`applyConnectionDirections`), the
+  stored diagram stays unchanged. Unknown connections / properties are reported once and ignored.
+- Compatibility: an existing widget opens with one card "Default" and saves byte-identically; exactly one card named
+  `default` is still written in the legacy single-binding fields, anything else as `bindings`. `connectionDirections`
+  is written only when set. A library version before AB#8025 ignores `connectionDirections` (the lines follow the
+  diagram's own bindings).
+
 ### octo-process-diagrams / octo-meshboard: text element bound to a live value with unit, decimals and the board language (AB#8022)
 
 - New (non-breaking): binding effect `text.value` (`BindingEffectType`) with the optional

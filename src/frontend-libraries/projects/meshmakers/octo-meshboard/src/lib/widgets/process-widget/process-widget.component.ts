@@ -17,6 +17,7 @@ import { DashboardWidget } from '../widget.interface';
 import { DEFAULT_PROCESS_BINDING_NAME, ProcessWidgetConfig } from './process-widget-config.model';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { hasNamedProcessBindings, mappingBindingName, validateProcessWidgetBindings } from './process-widget-bindings';
+import { applyConnectionDirections, connectionDirectionIssues } from './process-binding-editor';
 import { aggregateQueryColumn, isPartialAggregate, isReducingAggregate } from './process-value-aggregation';
 import { ProcessDataService, BoundDataResult } from './services/process-data.service';
 import type {
@@ -1487,7 +1488,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     try {
       // Check for inline config first
       if (this.config.inlineConfig) {
-        this._diagramConfig.set(this.config.inlineConfig);
+        this._diagramConfig.set(applyConnectionDirections(this.config.inlineConfig, this.config.connectionDirections));
         await this.loadSymbolDefinitions(this.config.inlineConfig);
         await this.loadRuntimeData();
         scopePending = await this.loadBoundData(generation);
@@ -1497,7 +1498,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
       // Load from backend by rtId
       if (this.config.processDiagramRtId) {
         const diagram = await this.dataService.loadDiagram(this.config.processDiagramRtId);
-        this._diagramConfig.set(diagram);
+        // Connection directions picked in the widget (AB#8025) re-point the
+        // direction effects of their lines; the stored diagram stays unchanged.
+        this._diagramConfig.set(applyConnectionDirections(diagram, this.config.connectionDirections));
         await this.loadSymbolDefinitions(diagram);
         await this.loadRuntimeData();
         scopePending = await this.loadBoundData(generation);
@@ -1565,6 +1568,12 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     const propertyTypes = properties ? new Map(properties.map(p => [p.id, p.type as string])) : undefined;
     for (const issue of validateProcessWidgetBindings(this.config, selectorIds, propertyTypes)) {
       this.warnOnce(`[ProcessWidget] ${this.config.title || this.config.id}: ${issue.message}`);
+    }
+    const diagram = this._diagramConfig();
+    if (diagram) {
+      for (const message of connectionDirectionIssues(diagram, this.config.connectionDirections)) {
+        this.warnOnce(`[ProcessWidget] ${this.config.title || this.config.id}: ${message}`);
+      }
     }
   }
 

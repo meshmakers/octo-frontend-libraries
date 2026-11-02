@@ -1547,6 +1547,65 @@ failing source and failing primary, pending / empty / scoped selectors; static a
 
 ---
 
+## Line and bar chart: per-series options and fixed bucket size (AB#8046)
+
+Options of every additional series (and of `primarySeries`) on `LineChartSeriesDisplayOptions`, all omitted when
+default. Pure helpers in `utils/series-options.ts` (`fillMissingValues`, `snapWindowToBuckets`, `fixedGridInstants`,
+`alignOnFixedGrid`, `lastValue`); applied by `composeChartSeries` (`line-chart-multi-source.ts`) for both charts.
+Editor: wireframe section 6 of the AB#7951 series-editor wireframe (Display line per row).
+
+| Option | Applies to | Effect |
+|---|---|---|
+| `missingValues: 'zero'` | query series, primary | empty bucket / category → 0; a query series without data (empty selector scope, no rows) → all zeros, no "No data" hint |
+| `missingValues: 'carryForward'` | query series, primary | empty bucket → last value of the series (step / LOCF for on-change signals); line chart query series: start value from the look-back |
+| `carryForwardLookbackMinutes` | line chart, with `carryForward` | look-back before the window (default `DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES` = 1440, 0 = none) |
+| `color` | every series except the primary | `resolveChartColor` (CSS colour, `--var`, `var(--x, fallback)`, status name); unresolvable = palette |
+| `dashType` | series drawn as a line: line chart, `stacked: false` series of a stacked area chart, bar chart `asLine` | `'solid'` (default) / `'dash'` / `'dot'`; Kendo has no dash style for area series |
+| `asLine`, `secondaryAxis` | bar chart, column types | draw over the columns as a line, optionally on a second value axis on the right (`axisCrossingValue [0, max]`); ignored for horizontal bars (Kendo cannot mix them) |
+
+Rules:
+
+- **Order in `composeChartSeries`:** fill first, then formulas — filled values are the operands (e.g. Fusch without
+  battery: `charge`/`discharge` with `zero` make `battery = ${discharge}` 0 and `pvDirect = max(0, ${pv} - ${export} - ${charge})`
+  defined, so PV direct + battery + grid = consumption).
+- **Never invent the future:** buckets / categories whose instant is after `Date.now()` stay `null` (a "today"
+  window ends at midnight). Categories that are no date-time are filled throughout.
+- **Never hide a failure:** a failed or misaligned source is not turned into zeros; dependent formulas show
+  "depends on <source>, which failed".
+- **Look-back (line chart, `carryForward` query series):** one extra request per series over
+  `[from - n × bucket, from)` with the chart's bucket width (`n = ceil(lookback / bucket)`, max 4000), same scope and
+  routing as the series (resolution-aware: the same resolved archive); the last non-null bucket is the seed. A
+  failed look-back only means no seed (console warning). The primary series carries within the window only.
+- **Fixed bucket size** `LineChartWidgetConfig.bucketMinutes` (`LINE_CHART_BUCKET_MINUTES`: 1, 5, 10, 15, 30, 60 — all
+  divide one hour, so bucket starts stay wall-clock multiples across DST): `snapWindowToBuckets` floors `from` and
+  ceils `to` in the board's time zone (`getZonedDateParts`; half-hour zones align hour buckets at :30 UTC), every source
+  gets `limit = count` over the snapped window (single-query and multi-source path, resolution-aware `targetPoints`
+  too), and the multi-source grid is every bucket of the window (`alignOnFixedGrid`: a point goes into the bucket that
+  contains it, finer points are averaged, no source is "misaligned"). 2026-10-25 Europe/Vienna = 100 quarter hours.
+  Sources with `ignoreTimeFilter` or a chart without time range keep the data-derived grid. The resize re-query is a
+  no-op (the count does not depend on the width).
+  Backend limits: a resolution-aware source whose coarsest rung is coarser than the bucket fills only every n-th bucket;
+  a raw archive with fewer distinct timestamps than buckets is clamped (`DownsamplingBinQuantizer.Quantize`, AB#4246)
+  and fills only the buckets its bins start in — combine with `carryForward` for on-change signals.
+- **Multi-source path only:** the series options are applied by `composeChartSeries`, i.e. when the chart has at
+  least one complete additional series. A single-query chart ignores `primarySeries` (as for `visible`/`stacked`);
+  `bucketMinutes` works in both paths.
+- **Hints of hidden series:** `isSourceHintShown` — no "No data", error or misaligned hint for a hidden source
+  (`visible: false`, primary via `primarySeries.visible`) and no "No data" for a `zero` source. Failures of hidden
+  operands surface only through the dependent formula series.
+- **Persistence:** series entries are stored as they are, so the series options round-trip; `primarySeries` keeps
+  `visible`/`stacked` (only `false`), `missingValues` (not `gap`), `carryForwardLookbackMinutes` (with `carryForward`),
+  `dashType` (not `solid`) — the bar chart only `visible` and `missingValues`; `bucketMinutes` only when supported.
+  Charts without the options encode byte-identically.
+
+Specs: `utils/series-options.spec.ts` (fill modes, on-change fixture, future, snapping incl. DST and half-hour zones,
+fixed grid), `line-chart-widget.series-options.spec.ts` (Fusch zero, failed zero source, carryForward with look-back
+request, future, fixed buckets single / multi, colour / dash, hidden primary hints),
+`bar-chart-widget.series-options.spec.ts`, `line-chart-series-editor.options.spec.ts`,
+`line-chart-config-dialog.series.spec.ts` (Bucket size), `registrations/default-widget-registrations.series-options.spec.ts`.
+
+---
+
 ## Testing
 
 ### Test Structure
@@ -1631,6 +1690,7 @@ Current test files:
 - `widgets/heatmap-widget/heatmap-buckets.spec.ts`, `heatmap-widget.weighted.spec.ts`, `heatmap-widget.registration.spec.ts`, `heatmap-config-dialog.component.spec.ts` - weighted mean equals the exact raw mean on a rollup fixture, empty vs. 0 cells, bucket-end shift, 25-hour DST day, own window vs. board filter, persistence round trip and byte-identical old configs, dialog validation (AB#7956)
 - `widgets/process-widget/process-widget.text-value.spec.ts` - `text.value` bindings: de-AT / en-GB / host language switch, connection text with `abs(value)`, "–" for no data / null / non-numeric / missing attribute, text inside a symbol via pass-through, diagrams without a text binding unchanged (AB#8022)
 - `widgets/process-widget/process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts` - process value aggregation sum / avg / min / max, expression order, empty and partial scope, validator fallbacks (AB#8024)
+- `widgets/process-widget/process-binding-editor.spec.ts`, `process-binding-cards.component.spec.ts`, `process-config-dialog.component.spec.ts`, `process-widget.connection-direction.spec.ts` - process widget editor: binding cards (add / rename / duplicate / delete, keyboard, missing selector), legacy and named round trip, Binding / Aggregate columns, connection direction pick and runtime override (AB#8025)
 - `widgets/process-widget/process-widget-bindings.spec.ts`, `services/process-data.service.bindings.spec.ts`, `process-widget.bindings.spec.ts`, `registrations/process-widget-registration.spec.ts` - named process bindings: legacy read, parallel load, own scope per binding, selector switch, pending / empty / error per binding, runtime entity from the selector, validator, error badge, unknown binding warned once, legacy byte-identical save and multi-binding round trip (AB#8023)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
 - `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
@@ -1911,9 +1971,7 @@ propertyMappings:
   default.
 - **Refresh:** bindings reload when the view calls `triggerRefresh()` (after every pick change and after the
   initial picks resolved), so a leader switch re-queries all bindings in one refresh.
-- **Dialog:** the legacy config dialog still edits the single-binding fields. For a widget with named
-  bindings `applyConfigResult` applies only diagram and display options and keeps `bindings` and
-  `propertyMappings` (the binding editor is AB#8025).
+- **Dialog:** see *Process widget editor (AB#8025)* below.
 - **Connections** (flow lines such as PV→Haus, Netz↔Haus, Haus↔Batterie) are line / polyline / path
   primitives whose effects come from `propertyBindings`. Their property can be mapped to **any** binding,
   so `animation.enabled`, `visible` and `style.stroke.color` follow the binding the author picked, not
@@ -1962,9 +2020,53 @@ propertyMappings:
     mapping or a non-`number` property is reported once by `validateProcessWidgetBindings` (the widget passes the
     diagram's property types) and falls back to the first row.
   - Persistence: mappings are stored verbatim, so `aggregate` round-trips; mappings without it encode unchanged.
-    Legacy element bindings (`process-data.service.ts`) are not affected. Editor control: AB#8025.
+    Legacy element bindings (`process-data.service.ts`) are not affected. Editor control: the Aggregate column (AB#8025).
   - Specs: `process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts`, the aggregate round trip in
     `registrations/process-widget-registration.spec.ts`.
+
+## Process widget editor (AB#8025)
+
+The process widget dialog (`process-config-dialog.component.ts`, wireframe sections B/C agreed with the
+connection condition on AB#7954) edits the AB#8023/AB#8024 model without YAML.
+
+- **Data Binding tab** = `mm-process-binding-cards` (`process-binding-cards.component.ts`): one card per binding
+  (`ProcessBindingDraft`, built by `draftsFromBindings` from `resolveProcessBindings`, so a legacy widget opens with
+  one card "Default" = the implicit `default` binding). Card fields: name (required, unique; `bindingNameError`
+  inline), source (persistent query / runtime entity), CK type + entity or persistent query (+ the stream-data
+  time-filter toggle), "Follows entity selector" (all selectors of the board plus "None"; a follower is labelled
+  `(follower of <leader>)`), filters. Header: name, source tag, `selector: <id>`, warning tag *Selector not on this
+  board*, icon buttons duplicate / delete (`MM_ACTION_ICONS`). Delete opens an inline confirmation that lists the
+  properties whose mappings will be cleared (`mappingsUsingBinding`). Empty state: "No data binding yet…" with one
+  "Add binding" action. Keyboard: the header is a tab stop (`role="button"`, `aria-expanded`); Enter / Space toggles,
+  Delete starts the confirmation (keys on the header buttons are theirs); focus moves to the new card's name, to the
+  confirmation, back to the header or to "Add binding". Narrow dialog (container < 560 px): one column, the selector
+  meta under the name.
+- **Renames:** mappings follow a card's name only while the name is valid (`committedName`), so a name that briefly
+  equals another binding's never merges two bindings' mappings (`renameBindingInMappings`); delete clears the
+  binding's mappings (`clearMappingsOfBinding`).
+- **Mappings tab** (disabled until a binding exists): Property · Type · Binding · Field · Aggregate · Expression.
+  Binding = card names (an unknown stored name stays visible as `(unknown binding)`); Field = attribute combobox for
+  runtime-entity bindings (attributes of the CK type, loaded once per type), else a column text box; Aggregate =
+  `PROCESS_AGGREGATE_OPTIONS`, fixed to "First row" by `isAggregateFixed` (non-number property or runtime-entity
+  binding). `first` is written as no `aggregate`, `default` as no `bindingName` (`withAggregate`, `withBindingName`).
+  On Save the `sourceType` of each mapping follows its binding's source (`sourceTypeForMode`).
+- **Connections** (same tab): `findDiagramConnections` lists top-level line / polyline / path primitives with a
+  direction effect (`CONNECTION_DIRECTION_EFFECTS`: `animation.enabled`, `visible`, `style.stroke.color`,
+  `style.stroke.opacity`, `style.opacity`). Per line a "Direction from" dropdown: "As in diagram (<property>)" or any
+  number property; the row says which mapped value it follows (`Direction from grid ← netz · power (Sum)`). Stored as
+  `connectionDirections: [{ connectionId, propertyId }]` (only overrides). At load the widget calls
+  `applyConnectionDirections` (pure, never mutates the diagram): every direction effect of that line is bound to the
+  picked property, so the sign of that value carries the direction exactly as described in *Connections* above.
+  Unknown connection / property → one `console.warn`, ignored (`connectionDirectionIssues`). Changing the diagram in
+  the dialog drops the overrides.
+- **Save** is blocked while `bindingDraftIssues` reports anything (empty / duplicate name, selector not on the board,
+  incomplete source); the messages are listed above the dialog actions. `bindingResultFields`: no card → no binding
+  (`dataBindingMode` stays absent when it was absent), one card named `default` → legacy fields, otherwise `bindings`.
+  `applyConfigResult` writes the legacy fields and sets `bindings` / `connectionDirections` only when present.
+- Pure helpers: `process-binding-editor.ts`. Specs: `process-binding-editor.spec.ts`,
+  `process-binding-cards.component.spec.ts`, `process-config-dialog.component.spec.ts` (legacy and named round trip
+  through the registry, missing selector, rename / delete, mapping columns, connections),
+  `process-widget.connection-direction.spec.ts`, `registrations/process-widget-registration.spec.ts`.
 
 ## Process Designer
 

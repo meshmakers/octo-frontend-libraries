@@ -170,7 +170,9 @@ describe('BarChartWidgetComponent multi-source (AB#7953)', () => {
     await s.load();
 
     const texts = s.cmp.sourceHints().map(h => h.text);
-    expect(texts).toContain('batteryCharge: Failed to load data (timeout)');
+    // batteryCharge is a hidden operand: no chart-level error hint of its own (AB#8046), only the
+    // dependent formula series reports it.
+    expect(texts).not.toContain('batteryCharge: Failed to load data (timeout)');
     expect(texts).toContain('Consumption: depends on batteryCharge, which failed');
     expect(data(s.cmp, 'PV')).toEqual([5, 8, 6]);
     expect(s.cmp.seriesData().map(x => x.name)).toContain('Consumption (no data)');
@@ -178,7 +180,15 @@ describe('BarChartWidgetComponent multi-source (AB#7953)', () => {
     const el = await s.render();
     const rendered = Array.from(el.querySelectorAll('.source-hint')).map(h => h.textContent?.trim());
     expect(rendered).toContain('⚠ Consumption: depends on batteryCharge, which failed');
-    expect(el.querySelector('.source-hint.error')?.textContent).toContain('batteryCharge: Failed to load data');
+    expect(el.querySelector('.source-hint.error')).toBeNull();
+  });
+
+  it('a failing visible query series still shows its own error hint', async () => {
+    const cfg = dailyConfig();
+    cfg.additionalSeries = cfg.additionalSeries!.map(d => (d.key === 'batteryCharge' ? { ...d, visible: true } : d));
+    const s = setup(cfg, { ...ROWS, 'q-batteryCharge': new Error('timeout') });
+    await s.load();
+    expect(s.cmp.sourceHints().map(h => h.text)).toContain('batteryCharge: Failed to load data (timeout)');
   });
 
   it('a failing primary query: the query series still render', async () => {
