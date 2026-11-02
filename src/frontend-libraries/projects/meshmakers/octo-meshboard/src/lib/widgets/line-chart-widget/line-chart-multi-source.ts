@@ -135,6 +135,37 @@ function rowValue(row: QueryResultRow, valueField: string, downsampled: boolean)
   return toNumberOrNull(findCellForField(row.cells, valueField)?.value);
 }
 
+/** Raw `seriesGroupField` value of a row: its cell, else the stream-data row property (`rtId`, AB#8069). */
+function rowSeriesGroupValue(row: QueryResultRow, seriesGroupField: string): unknown {
+  return findCellForField(row.cells, seriesGroupField)?.value ?? streamDataRowFieldValue(row, seriesGroupField);
+}
+
+/**
+ * The rows whose raw `seriesGroupField` value is not excluded (AB#8128), matched exactly on the stored
+ * value. Returns the rows unchanged when nothing is excluded.
+ */
+export function withoutExcludedSeriesGroups(
+  rows: QueryResultRow[],
+  seriesGroupField: string,
+  excluded: ReadonlySet<string>
+): QueryResultRow[] {
+  if (excluded.size === 0) return rows;
+  return rows.filter(row => {
+    const group = rowSeriesGroupValue(row, seriesGroupField);
+    return group === null || group === undefined || !excluded.has(String(group));
+  });
+}
+
+/** The distinct non-empty raw `seriesGroupField` values of the rows, sorted (AB#8128: values offered for exclusion). */
+export function distinctSeriesGroupValues(rows: readonly QueryResultRow[], seriesGroupField: string): string[] {
+  const values = new Set<string>();
+  for (const row of rows) {
+    const group = rowSeriesGroupValue(row, seriesGroupField);
+    if (group !== null && group !== undefined && String(group) !== '') values.add(String(group));
+  }
+  return [...values].sort();
+}
+
 /**
  * Rows of the primary source → one series per `seriesGroupField` value, exactly the grouping of
  * the single-query chart (a later row of the same series and bucket wins).
@@ -149,7 +180,7 @@ export function primaryRowsToSeries(
     const instant = rowInstant(row, downsampled ? undefined : fields.categoryField, downsampled);
     if (instant === null) continue;
     // Stream-data rows carry the source entity as row property (`rtId`), not as cell (AB#8069).
-    const group = findCellForField(row.cells, fields.seriesGroupField)?.value ?? streamDataRowFieldValue(row, fields.seriesGroupField);
+    const group = rowSeriesGroupValue(row, fields.seriesGroupField);
     if (group === null || group === undefined || String(group) === '') continue;
     const name = String(group);
     let entry = series.get(name);

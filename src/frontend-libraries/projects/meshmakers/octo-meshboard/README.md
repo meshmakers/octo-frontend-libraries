@@ -587,6 +587,53 @@ interface BarChartWidgetConfig {
 }
 ```
 
+### Line Chart Widget
+Displays time series as line or area charts; every value of `seriesGroupField` becomes one line.
+Series from further queries, formula series and per-series options are described in the library's
+`CLAUDE.md` (section *Line-chart resolution-aware fan-out* and the sections starting with *Line chart:* and
+*Line and bar chart:*).
+
+```typescript
+interface LineChartWidgetConfig {
+  type: 'lineChart';
+  chartType: 'line' | 'area';
+  categoryField: string;          // date/time field of the X axis
+  seriesGroupField: string;       // one line per value
+  valueField: string;
+  unitField?: string;
+  excludedSeriesGroupValues?: string[];  // series group values left out (see below)
+  // ... legend, markers, filters, additionalSeries, primarySeries, stacked, bucketMinutes
+}
+```
+
+**Leaving series out (`excludedSeriesGroupValues`).** A grouped chart can leave out chosen series of its
+primary query, for example a register that duplicates another one. The values are not queried, not drawn
+and not in the legend, on the raw archive as on rollups (no query column is needed, so it works where a
+row filter on the group column fails). Board JSON of a widget config:
+
+```json
+{
+  "chartType": "line",
+  "categoryField": "window_start",
+  "seriesGroupField": "obisCode",
+  "valueField": "amount.value",
+  "resolutionAware": true,
+  "requiredAggregation": "SUM",
+  "aggregateSeriesByGroup": true,
+  "excludedSeriesGroupValues": ["1-1:2.9.0 G.03R"]
+}
+```
+
+- Matching is exact on the stored `seriesGroupField` value: case and blanks as stored, before any display
+  label. A value that does not occur changes nothing, with one exception: a resolution-aware chart without
+  an entity scope and without `aggregateSeriesByGroup` draws one merged line, and any exclusion limits that
+  line to the source entities that carry a value of the group field.
+- When every value is excluded, or no value is left, the chart shows its normal no-data state.
+- The entity-selector scope still applies to the remaining series. Additional series are not affected
+  (hide them with `visible: false`).
+- The key is written only when the list is not empty; charts without it load and save unchanged.
+- In the dialog: *Field Mapping → Excluded series*, shown once a series group field is set.
+
 ### Stats Grid Widget
 Displays multiple KPIs in a grid layout.
 

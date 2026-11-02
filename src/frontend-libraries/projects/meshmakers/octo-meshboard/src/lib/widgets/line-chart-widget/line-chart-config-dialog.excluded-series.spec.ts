@@ -1,0 +1,222 @@
+import { ElementRef } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { WindowRef } from '@progress/kendo-angular-dialog';
+import { POPUP_CONTAINER } from '@progress/kendo-angular-popup';
+import { of } from 'rxjs';
+import { LineChartConfigDialogComponent } from './line-chart-config-dialog.component';
+import { QueryExecutorService } from '../../services/query-executor.service';
+import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
+import { GetSystemPersistentQueriesDtoGQL } from '../../graphQL/getSystemPersistentQueries';
+import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
+
+const G01 = '1-1:1.9.0 G.01';
+const G03 = '1-1:2.9.0 G.03';
+const G03R = '1-1:2.9.0 G.03R';
+
+const SD_QUERY: PersistentQueryItem = { rtId: 'q-energy', name: 'energy_measurements', ckTypeId: 'System/SimpleSdQuery' };
+const RUNTIME_QUERY: PersistentQueryItem = { rtId: 'q-runtime', name: 'measurements', ckTypeId: 'System/SimpleRtQuery' };
+
+/** Line chart dialog: Field Mapping → Excluded series (AB#8128). */
+describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
+  let fixture: ComponentFixture<LineChartConfigDialogComponent>;
+  let cmp: LineChartConfigDialogComponent;
+  let windowRef: { close: ReturnType<typeof vi.fn> };
+  let qe: Record<string, ReturnType<typeof vi.fn>>;
+
+  async function open(initial: Partial<LineChartConfigDialogComponent>, query: PersistentQueryItem = SD_QUERY): Promise<void> {
+    fixture = TestBed.createComponent(LineChartConfigDialogComponent);
+    cmp = fixture.componentInstance;
+    Object.assign(cmp, {
+      initialCategoryField: 'window_start', initialSeriesGroupField: 'obisCode', initialValueField: 'amount.value',
+      ...initial
+    });
+    await cmp.ngOnInit();
+    cmp.selectedPersistentQuery = query;
+    cmp.queryColumns = [{ attributePath: 'obisCode', attributeValueType: 'STRING', aggregationType: null }];
+    cmp.nonNumericColumns = cmp.queryColumns;
+    await cmp.loadSeriesGroupValues();
+    await render();
+  }
+
+  async function render(): Promise<void> {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  function el(): HTMLElement {
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  function input(): HTMLInputElement {
+    return el().querySelector('[data-chart-option="excludedSeriesGroupValues"] input') as HTMLInputElement;
+  }
+
+  function chips(): string[] {
+    return Array.from(el().querySelectorAll('[data-chart-option="excludedSeriesGroupValues"] .k-chip'))
+      .map(c => (c.textContent ?? '').trim());
+  }
+
+  function key(target: HTMLElement, name: string): void {
+    const keyCode = ({ Enter: 13, Backspace: 8, Delete: 46, ArrowDown: 40 } as Record<string, number>)[name];
+    target.dispatchEvent(new KeyboardEvent('keydown', { key: name, code: name, keyCode, bubbles: true } as KeyboardEventInit));
+  }
+
+  async function type(text: string): Promise<void> {
+    const box = input();
+    box.focus();
+    box.value = text;
+    box.dispatchEvent(new Event('input', { bubbles: true }));
+    await render();
+  }
+
+  beforeEach(() => {
+    windowRef = { close: vi.fn() };
+    qe = {
+      fetchStreamDataColumns: vi.fn().mockResolvedValue([]),
+      resolveFamily: vi.fn(),
+      fetchQueryArchive: vi.fn().mockResolvedValue({ archiveRtId: 'archive-raw', ckTypeId: 'Basic.Energy/EnergyMeasurement', rtIds: null }),
+      fetchEntityGroups: vi.fn().mockResolvedValue(new Map([[G03R, ['mp-g03r']], [G01, ['mp-g01']], [G03, ['mp-g03']]])),
+      execute: vi.fn()
+    };
+    TestBed.configureTestingModule({
+      imports: [LineChartConfigDialogComponent],
+      providers: [
+        provideNoopAnimations(),
+        { provide: POPUP_CONTAINER, useFactory: () => new ElementRef(document.body) },
+        { provide: WindowRef, useValue: windowRef },
+        { provide: QueryExecutorService, useValue: qe },
+        {
+          provide: MeshBoardStateService, useValue: {
+            getVariables: vi.fn(() => []), getEntitySelectors: vi.fn(() => []), resolveStreamDataTimeArgs: vi.fn(() => undefined)
+          }
+        },
+        { provide: GetRuntimeQueryColumnsDtoGQL, useValue: {} },
+        { provide: GetSystemPersistentQueriesDtoGQL, useValue: { fetch: vi.fn(() => of({ data: { runtime: { systemPersistentQuery: { items: [] } } } })) } }
+      ]
+    });
+  });
+
+  it('offers the group values of the source entities of a stream-data query (the widget\'s own grouping read)', async () => {
+    await open({});
+
+    expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('Basic.Energy/EnergyMeasurement', 'obisCode');
+    expect(cmp.seriesGroupValues).toEqual([G01, G03, G03R]);
+  });
+
+  it('offers the distinct column values of a runtime query', async () => {
+    qe['execute'].mockReturnValue(of({
+      family: 'runtime', queryRtId: 'q-runtime', associatedCkTypeId: null, columns: [], totalCount: 3, hasNextPage: false, endCursor: null,
+      rows: [G03, G03R, G03].map(v => ({ __typename: 'RtSimpleQueryRow', rtId: 'x', cells: [{ attributePath: 'obisCode', value: v }] }))
+    }));
+
+    await open({}, RUNTIME_QUERY);
+
+    expect(cmp.seriesGroupValues).toEqual([G03, G03R]);
+  });
+
+  it('shows the field only when a series group field is set, with a label linked to the input', async () => {
+    await open({ initialSeriesGroupField: '' });
+    expect(el().querySelector('[data-chart-option="excludedSeriesGroupValues"]')).toBeNull();
+
+    cmp.form.seriesGroupField = 'obisCode';
+    await render();
+
+    const label = el().querySelector('label[for="line-chart-excluded-series"]');
+    expect(label?.textContent?.trim()).toBe('Excluded series');
+    expect(input().id).toBe('line-chart-excluded-series');
+  });
+
+  it('an empty list shows a one-line hint, not a blank area', async () => {
+    await open({});
+
+    expect(input().placeholder).toBe('No series excluded - pick or type a value');
+    expect(el().textContent).toContain('Values of obisCode whose line is left out. Exact match on the stored value.');
+  });
+
+  it('shows the saved values as chips and saves them', async () => {
+    await open({ initialExcludedSeriesGroupValues: [G03R] });
+
+    expect(chips()).toEqual([G03R]);
+    cmp.onSave();
+    expect(windowRef.close).toHaveBeenCalledWith(expect.objectContaining({ excludedSeriesGroupValues: [G03R] }));
+  });
+
+  it('keyboard only: type a value that is not listed and press Enter, then remove it with Backspace', async () => {
+    await open({});
+
+    await type('1-1:9.9.9 G.99');
+    key(input(), 'Enter');
+    await render();
+    expect(chips()).toEqual(['1-1:9.9.9 G.99']);
+    expect(cmp.excludedSeriesGroupValues).toEqual(['1-1:9.9.9 G.99']);
+
+    key(input(), 'Backspace');
+    await render();
+    expect(chips()).toEqual([]);
+    expect(cmp.excludedSeriesGroupValues).toEqual([]);
+  });
+
+  it('keyboard only: picks a listed value by typing it and pressing Enter', async () => {
+    await open({});
+
+    await type(G03R);
+    key(input(), 'Enter');
+    await render();
+
+    expect(cmp.excludedSeriesGroupValues).toEqual([G03R]);
+  });
+
+  it('typing narrows the offered values; arrow keys and Enter pick one', async () => {
+    await open({});
+
+    await type('03r');
+    expect(cmp.filteredSeriesGroupValues).toEqual([G03R]);
+    key(input(), 'ArrowDown');
+    key(input(), 'Enter');
+    await render();
+
+    expect(cmp.excludedSeriesGroupValues).toEqual([G03R]);
+  });
+
+  it('removing every chip saves no key', async () => {
+    await open({ initialExcludedSeriesGroupValues: [G03R] });
+
+    key(input(), 'Backspace');
+    await render();
+    cmp.onSave();
+
+    expect(windowRef.close.mock.lastCall![0].excludedSeriesGroupValues).toBeUndefined();
+  });
+
+  it('when the values cannot be loaded the field still accepts typed values and says so', async () => {
+    qe['fetchEntityGroups'].mockRejectedValue(new Error('network'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await open({});
+
+    expect(cmp.seriesGroupValuesFailed).toBe(true);
+    expect(el().querySelector('[data-hint="series-group-values-failed"]')?.textContent)
+      .toContain('Could not load the values of obisCode - type a value and press Enter.');
+    await type(G03R);
+    key(input(), 'Enter');
+    await render();
+    expect(cmp.excludedSeriesGroupValues).toEqual([G03R]);
+  });
+
+  it('choosing another query clears the list', async () => {
+    await open({ initialExcludedSeriesGroupValues: [G03R] });
+
+    await cmp.onQuerySelected({ rtId: 'q-other', name: 'other', ckTypeId: 'System/SimpleSdQuery' });
+
+    expect(cmp.excludedSeriesGroupValues).toEqual([]);
+  });
+
+  it('keeps the shared dialog action bar', async () => {
+    await open({});
+
+    expect(el().querySelector('.mm-dialog-actions')).not.toBeNull();
+  });
+});

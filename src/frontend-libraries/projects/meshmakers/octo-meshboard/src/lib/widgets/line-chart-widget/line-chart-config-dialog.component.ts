@@ -24,7 +24,7 @@ import { EntitySelectorScopePickerComponent } from '../../components/entity-sele
 import { withStreamDataRowFields } from '../../utils/stream-data-row-fields';
 import { columnProbeWindow } from '../../utils/column-probe-window';
 import { LineChartSeriesEditorComponent } from './line-chart-series-editor.component';
-import { querySeriesErrors } from './line-chart-multi-source';
+import { distinctSeriesGroupValues, querySeriesErrors } from './line-chart-multi-source';
 
 /**
  * Configuration result from the Line Chart dialog
@@ -59,6 +59,8 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   stacked?: boolean;
   /** Fixed bucket size in minutes (AB#8046); absent = follows the chart width. */
   bucketMinutes?: number;
+  /** Raw series group values left out of the chart (AB#8128); absent when none. */
+  excludedSeriesGroupValues?: string[];
 }
 
 /**
@@ -171,6 +173,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
                 [valueField]="'attributePath'"
                 [valuePrimitive]="true"
                 [(ngModel)]="form.seriesGroupField"
+                (ngModelChange)="loadSeriesGroupValues()"
                 placeholder="Select grouping field...">
                 <ng-template kendoComboBoxItemTemplate let-dataItem>
                   <div class="column-item">
@@ -181,6 +184,28 @@ export interface LineChartConfigResult extends WidgetConfigResult {
               </kendo-combobox>
               <p class="field-hint">Each unique value becomes a separate line (e.g., OBIS code).</p>
             </div>
+
+            @if (form.seriesGroupField) {
+              <div class="form-field">
+                <label for="line-chart-excluded-series">Excluded series</label>
+                <kendo-multiselect
+                  focusableId="line-chart-excluded-series"
+                  data-chart-option="excludedSeriesGroupValues"
+                  [data]="filteredSeriesGroupValues"
+                  [allowCustom]="true"
+                  [filterable]="true"
+                  (filterChange)="seriesGroupValueFilter = $event"
+                  [loading]="isLoadingSeriesGroupValues"
+                  [(ngModel)]="excludedSeriesGroupValues"
+                  placeholder="No series excluded - pick or type a value">
+                </kendo-multiselect>
+                @if (seriesGroupValuesFailed) {
+                  <p class="field-hint" data-hint="series-group-values-failed">Could not load the values of {{ form.seriesGroupField }} - type a value and press Enter.</p>
+                } @else {
+                  <p class="field-hint">Values of {{ form.seriesGroupField }} whose line is left out. Exact match on the stored value.</p>
+                }
+              </div>
+            }
 
             <div class="form-field">
               <label>Value Field (Y-Axis) <span class="required">*</span></label>
@@ -536,6 +561,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialStacked?: boolean;
   @Input() initialPrimarySeries?: LineChartSeriesDisplayOptions;
   @Input() initialBucketMinutes?: number;
+  @Input() initialExcludedSeriesGroupValues?: string[];
 
   /** Options of the bucket size dropdown (AB#8046): automatic (`null`) plus the fixed sizes. */
   get bucketSizeOptions(): { value: number | null; label: string }[] {
@@ -549,6 +575,21 @@ export class LineChartConfigDialogComponent implements OnInit {
   additionalSeries: LineChartSeriesDefinition[] = [];
   /** Display options of the primary query's series (AB#7952). */
   primarySeries: LineChartSeriesDisplayOptions | undefined;
+  /** Raw series group values left out of the chart (AB#8128). */
+  excludedSeriesGroupValues: string[] = [];
+  /** Values of the series group field offered for exclusion (AB#8128). */
+  seriesGroupValues: string[] = [];
+  isLoadingSeriesGroupValues = false;
+  /** The offered values could not be loaded; typed values still work. */
+  seriesGroupValuesFailed = false;
+  /** Text typed into the Excluded series field; narrows the offered values. */
+  seriesGroupValueFilter = '';
+
+  /** The offered values that contain the typed text (case-insensitive). */
+  get filteredSeriesGroupValues(): string[] {
+    const filter = this.seriesGroupValueFilter.trim().toLowerCase();
+    return filter ? this.seriesGroupValues.filter(v => v.toLowerCase().includes(filter)) : this.seriesGroupValues;
+  }
 
   // State
   isLoadingInitial = false;
@@ -659,6 +700,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.form.bucketMinutes = this.initialBucketMinutes && LINE_CHART_BUCKET_MINUTES.includes(this.initialBucketMinutes) ? this.initialBucketMinutes : null;
     this.additionalSeries = this.initialAdditionalSeries ? [...this.initialAdditionalSeries] : [];
     this.primarySeries = this.initialPrimarySeries ? { ...this.initialPrimarySeries } : undefined;
+    this.excludedSeriesGroupValues = this.initialExcludedSeriesGroupValues ? [...this.initialExcludedSeriesGroupValues] : [];
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -679,6 +721,7 @@ export class LineChartConfigDialogComponent implements OnInit {
           if (query) {
             this.selectedPersistentQuery = query;
             await this.loadQueryColumns(query.rtId);
+            await this.loadSeriesGroupValues();
           }
         }
         this.isLoadingInitial = false;
@@ -696,6 +739,9 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.form.seriesGroupField = '';
     this.form.valueField = '';
     this.form.unitField = '';
+    this.excludedSeriesGroupValues = [];
+    this.seriesGroupValues = [];
+    this.seriesGroupValuesFailed = false;
 
     if (query) {
       await this.loadQueryColumns(query.rtId);
@@ -763,6 +809,38 @@ export class LineChartConfigDialogComponent implements OnInit {
     })));
   }
 
+  /**
+   * Loads the values of the series group field offered for exclusion (AB#8128): for a stream-data query the
+   * group values of the source entities (the `fetchEntityGroups` read the widget groups by), for a runtime
+   * query the distinct values of that column in the query result.
+   */
+  async loadSeriesGroupValues(): Promise<void> {
+    const query = this.selectedPersistentQuery;
+    const field = this.form.seriesGroupField;
+    this.seriesGroupValues = [];
+    this.seriesGroupValuesFailed = false;
+    if (!query || !field) return;
+    this.isLoadingSeriesGroupValues = true;
+    try {
+      const family = queryFamily(query.ckTypeId) ?? this.initialQueryFamily ?? await this.queryExecutor.resolveFamily(query.rtId);
+      let values: string[];
+      if (family === 'streamData') {
+        const ckTypeId = (await this.queryExecutor.fetchQueryArchive(query.rtId))?.ckTypeId;
+        if (!ckTypeId) throw new Error('The query archive has no CK type.');
+        values = [...(await this.queryExecutor.fetchEntityGroups(ckTypeId, field)).keys()].sort();
+      } else {
+        const result = await firstValueFrom(this.queryExecutor.execute(family, query.rtId));
+        values = distinctSeriesGroupValues(result.rows, field);
+      }
+      if (field === this.form.seriesGroupField) this.seriesGroupValues = values;
+    } catch (error) {
+      console.error('Error loading series group values:', error);
+      if (field === this.form.seriesGroupField) this.seriesGroupValuesFailed = true;
+    } finally {
+      this.isLoadingSeriesGroupValues = false;
+    }
+  }
+
   onFiltersChange(updatedFilters: FieldFilterItem[]): void {
     this.filters = updatedFilters;
   }
@@ -804,7 +882,8 @@ export class LineChartConfigDialogComponent implements OnInit {
       additionalSeries: this.effectiveAdditionalSeries.length > 0 ? this.effectiveAdditionalSeries : undefined,
       stacked: this.form.chartType === 'area' && this.form.stacked ? true : undefined,
       primarySeries: this.selectedQueryFamily === 'streamData' ? this.primarySeries : undefined,
-      bucketMinutes: this.selectedQueryFamily === 'streamData' && this.form.bucketMinutes ? this.form.bucketMinutes : undefined
+      bucketMinutes: this.selectedQueryFamily === 'streamData' && this.form.bucketMinutes ? this.form.bucketMinutes : undefined,
+      excludedSeriesGroupValues: this.excludedSeriesGroupValues.length > 0 ? [...this.excludedSeriesGroupValues] : undefined
     };
 
     this.windowRef.close(result);

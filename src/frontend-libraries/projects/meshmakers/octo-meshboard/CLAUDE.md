@@ -1358,6 +1358,30 @@ rollup archive does not carry the `seriesGroupField` column.
 The mechanism is domain-neutral: it groups by whatever `seriesGroupField` / `requiredAggregation`
 the widget is configured with. Only meaningful with `resolutionAware`; stream-data only.
 
+**Excluded series group values (AB#8128).** `LineChartWidgetConfig.excludedSeriesGroupValues` (raw
+`seriesGroupField` values, exact match on the stored value) is applied where the groups are formed, so an
+excluded value is never queried — a widget row filter on the group column cannot do that, because rollups
+have no such column ("Invalid column paths"). Per mode:
+
+| Mode | Where | Effect |
+|---|---|---|
+| `aggregateSeriesByGroup` | `loadGroupAggregatedRows` | excluded entries of the `fetchEntityGroups` map are dropped before the per-group calls; no group left → no call, no data (the merged fallback runs only without exclusions) |
+| default, scoped | `loadPerRtIdRows` | sources whose `fetchSeriesLabels` label is excluded are not downsampled |
+| default, unscoped | `loadPerRtIdRows` | without exclusions one merged call over the whole archive as before; with exclusions the entities are read (`fetchEntityGroups`, capped at 5000) and the one merged call is scoped to the entities of the other values, so entities without a group value drop out too (none left → no call) |
+| plain grouping, primary query of the multi-source path | `loadData` / `fetchSource` | `withoutExcludedSeriesGroups` drops the rows before `processData` / `primaryRowsToSeries` |
+
+The resolution-aware rows need the CK type of the query archive (`fetchQueryArchive().ckTypeId`): without it
+the unscoped merged call runs without the exclusion and scoped sources are labelled, and so matched, by rtId.
+
+Applies to the primary data source only (multi-source path included); additional series are untouched.
+
+Dialog: *Field Mapping → Excluded series* (`kendo-multiselect` with `allowCustom`), shown only while
+`seriesGroupField` is set. `loadSeriesGroupValues` offers, for a stream-data query, the keys of
+`fetchEntityGroups` on the archive's CK type, for a runtime query the `distinctSeriesGroupValues` of one query
+run; if that load fails, a hint asks to type the value. Changing the query clears the list; changing the group
+field only reloads the offered values. Specs: `line-chart-widget.excluded-series.spec.ts`,
+`default-widget-registrations.line-chart-excluded-series.spec.ts`, `line-chart-config-dialog.excluded-series.spec.ts`.
+
 ---
 
 ## Line chart: series from several queries on one time grid (AB#7951)
