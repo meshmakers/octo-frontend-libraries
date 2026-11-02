@@ -1683,6 +1683,7 @@ Current test files:
 - `widgets/heatmap-widget/heatmap-buckets.spec.ts`, `heatmap-widget.weighted.spec.ts`, `heatmap-widget.registration.spec.ts`, `heatmap-config-dialog.component.spec.ts` - weighted mean equals the exact raw mean on a rollup fixture, empty vs. 0 cells, bucket-end shift, 25-hour DST day, own window vs. board filter, persistence round trip and byte-identical old configs, dialog validation (AB#7956)
 - `widgets/process-widget/process-widget.text-value.spec.ts` - `text.value` bindings: de-AT / en-GB / host language switch, connection text with `abs(value)`, "–" for no data / null / non-numeric / missing attribute, text inside a symbol via pass-through, diagrams without a text binding unchanged (AB#8022)
 - `widgets/process-widget/process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts` - process value aggregation sum / avg / min / max, expression order, empty and partial scope, validator fallbacks (AB#8024)
+- `widgets/process-widget/process-binding-editor.spec.ts`, `process-binding-cards.component.spec.ts`, `process-config-dialog.component.spec.ts`, `process-widget.connection-direction.spec.ts` - process widget editor: binding cards (add / rename / duplicate / delete, keyboard, missing selector), legacy and named round trip, Binding / Aggregate columns, connection direction pick and runtime override (AB#8025)
 - `widgets/process-widget/process-widget-bindings.spec.ts`, `services/process-data.service.bindings.spec.ts`, `process-widget.bindings.spec.ts`, `registrations/process-widget-registration.spec.ts` - named process bindings: legacy read, parallel load, own scope per binding, selector switch, pending / empty / error per binding, runtime entity from the selector, validator, error badge, unknown binding warned once, legacy byte-identical save and multi-binding round trip (AB#8023)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
 - `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
@@ -1963,9 +1964,7 @@ propertyMappings:
   default.
 - **Refresh:** bindings reload when the view calls `triggerRefresh()` (after every pick change and after the
   initial picks resolved), so a leader switch re-queries all bindings in one refresh.
-- **Dialog:** the legacy config dialog still edits the single-binding fields. For a widget with named
-  bindings `applyConfigResult` applies only diagram and display options and keeps `bindings` and
-  `propertyMappings` (the binding editor is AB#8025).
+- **Dialog:** see *Process widget editor (AB#8025)* below.
 - **Connections** (flow lines such as PV→Haus, Netz↔Haus, Haus↔Batterie) are line / polyline / path
   primitives whose effects come from `propertyBindings`. Their property can be mapped to **any** binding,
   so `animation.enabled`, `visible` and `style.stroke.color` follow the binding the author picked, not
@@ -2014,9 +2013,53 @@ propertyMappings:
     mapping or a non-`number` property is reported once by `validateProcessWidgetBindings` (the widget passes the
     diagram's property types) and falls back to the first row.
   - Persistence: mappings are stored verbatim, so `aggregate` round-trips; mappings without it encode unchanged.
-    Legacy element bindings (`process-data.service.ts`) are not affected. Editor control: AB#8025.
+    Legacy element bindings (`process-data.service.ts`) are not affected. Editor control: the Aggregate column (AB#8025).
   - Specs: `process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts`, the aggregate round trip in
     `registrations/process-widget-registration.spec.ts`.
+
+## Process widget editor (AB#8025)
+
+The process widget dialog (`process-config-dialog.component.ts`, wireframe sections B/C agreed with the
+connection condition on AB#7954) edits the AB#8023/AB#8024 model without YAML.
+
+- **Data Binding tab** = `mm-process-binding-cards` (`process-binding-cards.component.ts`): one card per binding
+  (`ProcessBindingDraft`, built by `draftsFromBindings` from `resolveProcessBindings`, so a legacy widget opens with
+  one card "Default" = the implicit `default` binding). Card fields: name (required, unique; `bindingNameError`
+  inline), source (persistent query / runtime entity), CK type + entity or persistent query (+ the stream-data
+  time-filter toggle), "Follows entity selector" (all selectors of the board plus "None"; a follower is labelled
+  `(follower of <leader>)`), filters. Header: name, source tag, `selector: <id>`, warning tag *Selector not on this
+  board*, icon buttons duplicate / delete (`MM_ACTION_ICONS`). Delete opens an inline confirmation that lists the
+  properties whose mappings will be cleared (`mappingsUsingBinding`). Empty state: "No data binding yet…" with one
+  "Add binding" action. Keyboard: the header is a tab stop (`role="button"`, `aria-expanded`); Enter / Space toggles,
+  Delete starts the confirmation (keys on the header buttons are theirs); focus moves to the new card's name, to the
+  confirmation, back to the header or to "Add binding". Narrow dialog (container < 560 px): one column, the selector
+  meta under the name.
+- **Renames:** mappings follow a card's name only while the name is valid (`committedName`), so a name that briefly
+  equals another binding's never merges two bindings' mappings (`renameBindingInMappings`); delete clears the
+  binding's mappings (`clearMappingsOfBinding`).
+- **Mappings tab** (disabled until a binding exists): Property · Type · Binding · Field · Aggregate · Expression.
+  Binding = card names (an unknown stored name stays visible as `(unknown binding)`); Field = attribute combobox for
+  runtime-entity bindings (attributes of the CK type, loaded once per type), else a column text box; Aggregate =
+  `PROCESS_AGGREGATE_OPTIONS`, fixed to "First row" by `isAggregateFixed` (non-number property or runtime-entity
+  binding). `first` is written as no `aggregate`, `default` as no `bindingName` (`withAggregate`, `withBindingName`).
+  On Save the `sourceType` of each mapping follows its binding's source (`sourceTypeForMode`).
+- **Connections** (same tab): `findDiagramConnections` lists top-level line / polyline / path primitives with a
+  direction effect (`CONNECTION_DIRECTION_EFFECTS`: `animation.enabled`, `visible`, `style.stroke.color`,
+  `style.stroke.opacity`, `style.opacity`). Per line a "Direction from" dropdown: "As in diagram (<property>)" or any
+  number property; the row says which mapped value it follows (`Direction from grid ← netz · power (Sum)`). Stored as
+  `connectionDirections: [{ connectionId, propertyId }]` (only overrides). At load the widget calls
+  `applyConnectionDirections` (pure, never mutates the diagram): every direction effect of that line is bound to the
+  picked property, so the sign of that value carries the direction exactly as described in *Connections* above.
+  Unknown connection / property → one `console.warn`, ignored (`connectionDirectionIssues`). Changing the diagram in
+  the dialog drops the overrides.
+- **Save** is blocked while `bindingDraftIssues` reports anything (empty / duplicate name, selector not on the board,
+  incomplete source); the messages are listed above the dialog actions. `bindingResultFields`: no card → no binding
+  (`dataBindingMode` stays absent when it was absent), one card named `default` → legacy fields, otherwise `bindings`.
+  `applyConfigResult` writes the legacy fields and sets `bindings` / `connectionDirections` only when present.
+- Pure helpers: `process-binding-editor.ts`. Specs: `process-binding-editor.spec.ts`,
+  `process-binding-cards.component.spec.ts`, `process-config-dialog.component.spec.ts` (legacy and named round trip
+  through the registry, missing selector, rename / delete, mapping columns, connections),
+  `process-widget.connection-direction.spec.ts`, `registrations/process-widget-registration.spec.ts`.
 
 ## Process Designer
 

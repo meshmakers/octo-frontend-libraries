@@ -37,6 +37,29 @@ starts a new empty "Unreleased" section.
   `DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES`. A library version before AB#8046 ignores the new keys; when it saves the
   board it drops `bucketMinutes` and the new primary options (series entries are stored as they are).
 
+### octo-meshboard: process widget dialog edits several data bindings, the aggregate of each mapped value and the direction of each connection (AB#8025)
+
+- New (non-breaking): the Data Binding tab of the process widget dialog is a list of binding cards — add, rename,
+  duplicate and delete bindings; per card the name (required, unique, inline error), the source (runtime entity /
+  persistent query), the entity selector it follows (all selectors of the board plus "None") and filters. Duplicate
+  and delete are icon actions on the card header; deleting a binding that mappings use asks first, lists the affected
+  properties and clears their mappings. A card that follows a selector not on the board shows a warning tag and blocks
+  Save with a message naming binding and selector. Keyboard: every card header is a tab stop (Enter toggles, Delete
+  starts the confirmation); the dialog wraps at 600 px.
+- Mappings tab: Binding and Aggregate columns (First row, Sum, Average, Minimum, Maximum; fixed to First row for
+  non-number properties and runtime-entity bindings). The source type of a mapping follows its binding (entity →
+  attribute, query → column); the former Source column is gone. Renaming a binding moves its mappings along.
+- Connections (wireframe approval condition on AB#7954): the Mappings tab lists the diagram's connection lines
+  (line / polyline / path primitives with a direction effect: `animation.enabled`, `visible`, `style.stroke.*`,
+  `style.opacity`) and lets the author pick per line which mapped value drives its direction. Stored as the new
+  optional `ProcessWidgetConfig.connectionDirections` (`ProcessConnectionDirection`: `connectionId`, `propertyId`);
+  the widget re-points the line's direction effects at that property at load time (`applyConnectionDirections`), the
+  stored diagram stays unchanged. Unknown connections / properties are reported once and ignored.
+- Compatibility: an existing widget opens with one card "Default" and saves byte-identically; exactly one card named
+  `default` is still written in the legacy single-binding fields, anything else as `bindings`. `connectionDirections`
+  is written only when set. A library version before AB#8025 ignores `connectionDirections` (the lines follow the
+  diagram's own bindings).
+
 ### octo-process-diagrams / octo-meshboard: text element bound to a live value with unit, decimals and the board language (AB#8022)
 
 - New (non-breaking): binding effect `text.value` (`BindingEffectType`) with the optional

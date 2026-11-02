@@ -176,6 +176,30 @@ export interface ProcessWidgetBinding {
 }
 
 /**
+ * Which diagram property drives the flow direction of one connection line
+ * (AB#8025, wireframe approval on AB#7954).
+ *
+ * A connection is a line / polyline / path primitive of the diagram whose
+ * direction effects (`animation.enabled`, `visible`, `style.stroke.color`,
+ * `style.stroke.opacity`, `style.opacity`) are bound to a diagram property in
+ * the Process Designer. The widget can point those effects at another property
+ * (and so at another mapped value / binding) without changing the stored
+ * diagram: the sign of the value carries the direction as before.
+ *
+ * @example
+ * ```yaml
+ * connectionDirections:
+ *   - { connectionId: line-grid-house, propertyId: gridPower }
+ * ```
+ */
+export interface ProcessConnectionDirection {
+  /** Id of the line / polyline / path primitive of the diagram. */
+  connectionId: string;
+  /** Diagram property (`transformProperties`) whose value drives the direction. */
+  propertyId: string;
+}
+
+/**
  * Data binding mode for Process Widget
  * - 'none': No data binding (static diagram)
  * - 'runtimeEntity': Bind to a runtime entity
@@ -307,6 +331,16 @@ export interface ProcessWidgetConfig extends WidgetConfig, ProcessWidgetSpecific
    * the others.
    */
   bindings?: ProcessWidgetBinding[];
+
+  // --- Connection directions (AB#8025) ---
+
+  /**
+   * Per connection line, the diagram property that drives its direction
+   * effects, overriding the property the diagram binds them to (AB#8025).
+   * Absent ⇒ the diagram's own bindings, unchanged. Unknown connections or
+   * properties are reported once in the console and ignored.
+   */
+  connectionDirections?: ProcessConnectionDirection[];
 }
 
 /**
