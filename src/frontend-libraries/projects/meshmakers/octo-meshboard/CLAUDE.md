@@ -514,6 +514,18 @@ interface AggregationQuery {
 > (simpleCount / aggregation / groupedAggregation) is shared via
 > `utils/persistent-query-cell.ts`.
 
+> **Table row action and value markers (AB#7728).** `TableWidgetConfig.rowAction: { label }` is
+> offered as an `mm-list-view` row action (`rowActions` / `(rowAction)`, eye icon) only when the host
+> provides `MESHBOARD_TABLE_ROW_ACTION_HANDLER` (`utils/meshboard-table-row-action.ts`, same pattern as
+> `MESHBOARD_LABEL_RESOLVER`); the handler gets `{ widgetId, widgetTitle, meshBoardRtId, actionLabel, row }`.
+> `valueMarkers: [{ field, tooltip, icon?, color?, showValue? }]` renders the field's cells with
+> `TableValueMarkerCellComponent` (`dataType: 'component'`): icon + tooltip when
+> `isPositiveMarkerValue` (number / numeric string > 0), plus the value with `showValue`, empty otherwise — for configured and
+> query-derived columns. Both keys are written to the `Config` JSON only when set
+> (`parseTableRowExtras` drops foreign values) and edited in the table config dialog.
+> `labelFields: string[]` offers the named columns to `MESHBOARD_LABEL_RESOLVER` whatever their type
+> (string and number cells, `value` as text); `Config` JSON only, kept by a dialog save.
+
 ### Widget Configuration Interface
 
 ```typescript

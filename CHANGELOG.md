@@ -565,6 +565,18 @@ starts a new empty "Unreleased" section.
   `formatWidgetNumber` (KPI: exact digit count; heatmap: maximum, unchanged output). The KPI display fields are
   copied through one helper per path (dialog result, persisted config, dialog save).
 
+### octo-meshboard table widget (row action and value markers, AB#7728)
+
+- New (non-breaking, additive): `TableWidgetConfig.rowAction: { label }` — a row action the host app handles. Offered only
+  when the host provides `MESHBOARD_TABLE_ROW_ACTION_HANDLER` (`MeshBoardTableRowActionHandler`, receives
+  `MeshBoardTableRowActionEvent { widgetId, widgetTitle, meshBoardRtId, actionLabel, row }`); without a handler nothing changes.
+- New (non-breaking, additive): `TableWidgetConfig.valueMarkers: [{ field, tooltip, icon?, color?, showValue? }]` — the column's
+  cell shows the icon with tooltip when its value is above zero (`isPositiveMarkerValue`), with `showValue: true` also the value,
+  else stays empty; works for query-derived columns.
+- Both are set in the table configuration dialog and stored in the widget `Config` JSON only when configured.
+- New (non-breaking, additive): `TableWidgetConfig.labelFields: string[]` — offers the named columns to
+  `MESHBOARD_LABEL_RESOLVER` whatever their type: string and number cells, `value` as text. Boards without the key are unchanged.
+
 ### shared-ui shell user menu (avatar, AB#7679)
 
 - Fix (non-breaking): the large avatar in the user menu panel no longer shrinks into an ellipse beside a long account name

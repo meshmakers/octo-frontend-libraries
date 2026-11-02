@@ -206,6 +206,9 @@ export type { MeshBoardLabelKind, MeshBoardLabelRequest, MeshBoardLabelResolver 
 // Host UI language for per-language board texts (table column titles / value labels, AB#7655)
 export { MESHBOARD_LANGUAGE, pickLocalizedText } from './lib/utils/meshboard-language';
 export type { MeshBoardLanguageSource } from './lib/utils/meshboard-language';
+// Host handling of table row actions and the marker rule (AB#7728)
+export { MESHBOARD_TABLE_ROW_ACTION_HANDLER, isPositiveMarkerValue } from './lib/utils/meshboard-table-row-action';
+export type { MeshBoardTableRowActionEvent, MeshBoardTableRowActionHandler } from './lib/utils/meshboard-table-row-action';
 
 // Entity Selector Components
 export { EntitySelectorEditorComponent } from './lib/components/entity-selector-editor/entity-selector-editor.component';

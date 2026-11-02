@@ -365,8 +365,48 @@ interface TableWidgetConfig {
   filters?: WidgetFilterConfig[];
   pageSize?: number;
   sortable?: boolean;
+  labelFields?: string[];                                                         // AB#7728
+  rowAction?: { label: string };                                                  // AB#7728
+  valueMarkers?: { field: string; tooltip: string; icon?: string; color?: string; showValue?: boolean }[]; // AB#7728
 }
 ```
+
+**Row action (AB#7728).** A board author switches on *Row Action* in the table's configuration
+dialog and gives it a label (e.g. "Details"); it is stored as `rowAction: { label }` in the widget's
+`Config` JSON. The table offers it as a row action button **only when the host app provides
+`MESHBOARD_TABLE_ROW_ACTION_HANDLER`** — without a handler (other apps, the Refinery Studio) the
+table looks as before. The handler receives which widget the action came from and the row's values:
+
+```typescript
+import { MESHBOARD_TABLE_ROW_ACTION_HANDLER, MeshBoardTableRowActionEvent } from '@meshmakers/octo-meshboard';
+
+providers: [
+  // app-wide, or on the component that embeds <mm-meshboard-view>
+  {
+    provide: MESHBOARD_TABLE_ROW_ACTION_HANDLER,
+    useFactory: () => {
+      const details = inject(DailyDetailsDialogService);
+      return (e: MeshBoardTableRowActionEvent) => {
+        // e = { widgetId (rtId, else local id), widgetTitle, meshBoardRtId, actionLabel, row }
+        if (e.widgetTitle === 'Energiedaten täglich') {
+          details.open(e.row['rtWellKnownName'] as string, e.row['day'] as string);
+        }
+      };
+    }
+  }
+]
+```
+
+`row` is keyed by column field (attribute path / query column), a copy of the list row. A handler that
+throws (or rejects) is logged and does not break the table.
+
+**Value markers (AB#7728).** `valueMarkers` turns a column into a marker column: the cell shows the
+icon (status icon set: `exclamation-circle` (default), `warning-triangle`, `check-circle`, `x-circle`,
+`minus-circle`, `question-circle`, `circle`) with `tooltip` as title and accessible name when the value
+is a number (or numeric string) above zero, and stays empty otherwise (`isPositiveMarkerValue`). It
+works for configured columns and for columns derived from a persistent query; set it in the dialog's
+*Value Markers* card. With `showValue: true` the cell shows the value next to the icon (default: icon
+only); a value of zero or below still leaves the cell empty.
 
 **Texts (AB#5622).** The list inside the table (`mm-list-view`) takes its texts from
 `MESHBOARD_MESSAGES` — "No records available.", pager texts, toolbar labels — merged over the
@@ -479,6 +519,14 @@ Example — the daily quality 1/2/3 shown as L1/L2/L3 with German and English he
   ]
 }
 ```
+
+**Label fields (AB#7728).** `labelFields: ['dataquality_max', 'rtWellKnownName']` on a table offers
+these columns to the resolver whatever their type, also numeric or typed text query columns that are
+otherwise skipped. The resolver gets the same `tableCell` request for string and number cells, with
+`value` as text (`3` arrives as `'3'`, zero included; empty cells are not offered), and `valueType`
+when the query reports it. Returning `null` keeps the plain text, which also replaces a numeric
+`format` of that column; a value marker on the same column wins. Without a resolver the key has no
+effect. The key is set in the widget's `Config` JSON (no dialog field); a dialog save keeps it.
 
 ### Pie Chart Widget
 Displays data as pie or donut chart.

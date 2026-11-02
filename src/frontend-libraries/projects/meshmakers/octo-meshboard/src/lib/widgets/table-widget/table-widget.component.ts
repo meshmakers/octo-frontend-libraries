@@ -1,8 +1,8 @@
 import { Component, Input, OnChanges, SimpleChanges, ViewChild, inject, signal, computed, ChangeDetectionStrategy, Signal, LOCALE_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TableWidgetConfig, PersistentQueryDataSource, RuntimeEntityDataSource, TableColumnStatusIconMapping, TableColumn } from '../../models/meshboard.models';
+import { TableWidgetConfig, PersistentQueryDataSource, RuntimeEntityDataSource, TableColumnStatusIconMapping, TableColumn, TableValueMarkerConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
-import { ListViewComponent, TableColumn as ListViewTableColumn, StatusMapping } from '@meshmakers/shared-ui';
+import { ListViewComponent, TableColumn as ListViewTableColumn, StatusMapping, MmListRowAction, MmListRowActionEvent, MM_ACTION_ICONS } from '@meshmakers/shared-ui';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { formatTableCellValue } from '../../utils/meshboard-datetime';
 import { TableWidgetDataSourceDirective, QueryColumn } from './table-widget-data-source.directive';
@@ -18,6 +18,8 @@ import {
   resolveValueLabels
 } from './table-column-labels';
 import { TableValueLabelCellComponent } from './table-value-label-cell.component';
+import { MESHBOARD_TABLE_ROW_ACTION_HANDLER } from '../../utils/meshboard-table-row-action';
+import { TableValueMarkerCellComponent } from './table-value-marker-cell.component';
 import { SVGIcon, checkCircleIcon, xCircleIcon, exclamationCircleIcon, questionCircleIcon, minusCircleIcon, warningTriangleIcon, circleIcon } from '@progress/kendo-svg-icons';
 
 const ICON_MAP: Record<string, SVGIcon> = {
@@ -38,6 +40,9 @@ function resolveStatusMapping(config: Record<string, TableColumnStatusIconMappin
     ])
   );
 }
+
+/** Id of the configured row action in `mm-list-view` (AB#7728). */
+const ROW_ACTION_ID = 'meshboardRowAction';
 
 /** Per-instance fallback for the warning key of widgets without an id. */
 let nextTableWidgetInstance = 0;
@@ -71,6 +76,25 @@ function readCellValue(item: unknown, field: string): unknown {
   return value;
 }
 
+/** Turns a column into a marker column (AB#7728): icon + tooltip when the value is above zero. */
+function withValueMarker(column: ListViewTableColumn, marker: TableValueMarkerConfig): ListViewTableColumn {
+  const icon = ICON_MAP[marker.icon ?? ''] ?? exclamationCircleIcon;
+  return {
+    ...column,
+    dataType: 'component',
+    formatter: undefined,
+    format: undefined,
+    cellComponent: TableValueMarkerCellComponent,
+    cellInputs: (row: unknown) => ({
+      value: readCellValue(row, column.field),
+      icon,
+      tooltip: marker.tooltip,
+      color: marker.color,
+      showValue: marker.showValue === true
+    })
+  };
+}
+
 @Component({
   selector: 'mm-table-widget',
   standalone: true,
@@ -95,7 +119,10 @@ function readCellValue(item: unknown, field: string): unknown {
           [showRowCheckBoxes]="false"
           [showRowSelectAllCheckBox]="false"
           [rowIsClickable]="false"
+          [rowActions]="rowActions()"
+          [actionsColumnWidth]="90"
           [messages]="texts().tableList"
+          (rowAction)="onRowAction($event)"
           (queryColumnsLoaded)="onQueryColumnsLoaded($event)">
         </mm-list-view>
       } @else {
@@ -142,6 +169,8 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   protected readonly texts = injectMeshBoardMessages();
   /** Host translation of enum cell values (`MESHBOARD_LABEL_RESOLVER`, AB#5622); absent = raw text. */
   private readonly labelResolver = inject(MESHBOARD_LABEL_RESOLVER, { optional: true });
+  /** Host handler of the configured row action (`MESHBOARD_TABLE_ROW_ACTION_HANDLER`, AB#7728); absent = no action. */
+  private readonly rowActionHandler = inject(MESHBOARD_TABLE_ROW_ACTION_HANDLER, { optional: true });
   /** CK value type per derived column field (persistent queries), for the label resolver. */
   private readonly _queryColumnValueTypes = signal<ReadonlyMap<string, string>>(new Map());
   /** Host UI language (`MESHBOARD_LANGUAGE`, AB#7655) for column `titles` / `valueLabels`; `null` = `title` / raw texts. */
@@ -213,17 +242,21 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     // With a host label resolver (AB#5622) string cells of those columns are offered to it as
     // well (enum values such as `PAID` → "Bezahlt"); columns whose query value type is known and
     // not an enum are skipped. Without a resolver the formatter is unchanged.
+    //
+    // Columns named in `labelFields` (AB#7728) opt in: any column type, string and number cells.
     const resolver = this.labelResolver;
     const dataSource = this.config?.dataSource;
     const ckTypeId = dataSource?.type === 'runtimeEntity' ? (dataSource as RuntimeEntityDataSource).ckTypeId || undefined : undefined;
     const valueTypes = this._queryColumnValueTypes();
+    const labelFields = new Set(this.config?.labelFields ?? []);
     const withDateFormatter = (column: ListViewTableColumn): ListViewTableColumn => {
       const isPlainText = !column.dataType || column.dataType === 'text';
-      if (!isPlainText || column.formatter) {
+      const optedIn = !!resolver && labelFields.has(column.field);
+      if ((!isPlainText && !optedIn) || column.formatter) {
         return column;
       }
       const valueType = valueTypes.get(column.field) || undefined;
-      const translate = !!resolver && (!valueType || /ENUM/i.test(valueType));
+      const translate = !!resolver && (optedIn || !valueType || /ENUM/i.test(valueType));
       if (!translate) {
         return { ...column, formatter: (value: unknown) => formatTableCellValue(value, mode) };
       }
@@ -231,10 +264,11 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
         ...column,
         formatter: (value: unknown) => {
           const text = formatTableCellValue(value, mode);
-          // String cells as before; numeric cells only when the query reports an enum value
-          // type (numeric enum codes, AB#7655) — the resolver gets the number as string.
-          const isEnumNumber = typeof value === 'number' && Number.isFinite(value) && !!valueType && /ENUM/i.test(valueType);
-          if (!isEnumNumber && (typeof value !== 'string' || value === '')) {
+          // String cells as before; numeric cells when the query reports an enum value type
+          // (numeric enum codes, AB#7655) or the column opted in via `labelFields` (AB#7728).
+          // The resolver gets the number as string.
+          const isOfferedNumber = typeof value === 'number' && Number.isFinite(value) && (optedIn || (!!valueType && /ENUM/i.test(valueType)));
+          if (!isOfferedNumber && (typeof value !== 'string' || value === '')) {
             return text;
           }
           return resolveMeshBoardLabel(resolver, {
@@ -247,6 +281,13 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
           });
         }
       };
+    };
+
+    // Marker columns (AB#7728) replace the cell content of their field, after all other formatting.
+    const markers = new Map((this.config?.valueMarkers ?? []).filter(m => !!m?.field).map(m => [m.field, m]));
+    const withMarker = (column: ListViewTableColumn): ListViewTableColumn => {
+      const marker = markers.get(column.field);
+      return marker ? withValueMarker(column, marker) : column;
     };
 
     // If explicit columns are configured, use them (works for both data source types).
@@ -272,11 +313,11 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
         }
         this.warnOnce(col, problems);
         if (!labels) {
-          return withDateFormatter(base);
+          return withMarker(withDateFormatter(base));
         }
         // valueLabels win over the label resolver: a plain-text cell with the label (and its optional
         // colour); an unmapped value keeps the column's dataType / format rendering; empty for null.
-        return {
+        return withMarker({
           ...base,
           dataType: 'component',
           cellComponent: TableValueLabelCellComponent,
@@ -290,7 +331,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
               ? { text: label.text, color: label.color }
               : { text: formatUnlabelledValue(value, col, this.locale, textFormatter) };
           }
-        };
+        });
       });
     }
 
@@ -298,13 +339,49 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     if (this.config?.dataSource?.type === 'persistentQuery') {
       const queryColumns = this._queryColumnsForView();
       if (queryColumns.length > 0) {
-        return queryColumns.map(withDateFormatter);
+        return queryColumns.map(column => withMarker(withDateFormatter(column)));
       }
       return [];
     }
 
     return [];
   });
+
+  /**
+   * The configured row action (AB#7728) — offered only when the host handles it and the board
+   * author gave it a label. Recomputed per call; `mm-list-view` caches per row on reference change.
+   */
+  private _rowActionsKey: string | null = null;
+  private _rowActions: MmListRowAction[] = [];
+
+  rowActions(): MmListRowAction[] {
+    const label = this.rowActionHandler ? this.config?.rowAction?.label?.trim() ?? '' : '';
+    if (label !== this._rowActionsKey) {
+      this._rowActionsKey = label;
+      this._rowActions = label ? [{ id: ROW_ACTION_ID, label, icon: MM_ACTION_ICONS.view }] : [];
+    }
+    return this._rowActions;
+  }
+
+  /** Hands the triggered row to the host (AB#7728). Handler errors are logged, never rethrown. */
+  async onRowAction(event: MmListRowActionEvent): Promise<void> {
+    const handler = this.rowActionHandler;
+    const label = this.config?.rowAction?.label?.trim();
+    if (event.id !== ROW_ACTION_ID || !handler || !label) {
+      return;
+    }
+    try {
+      await handler({
+        widgetId: this.config.rtId ?? this.config.id,
+        widgetTitle: this.config.title,
+        meshBoardRtId: this.stateService.persistedMeshBoardId(),
+        actionLabel: label,
+        row: { ...(event.row as Record<string, unknown>) }
+      });
+    } catch (error) {
+      console.error('octo-meshboard: the table row action handler failed', error);
+    }
+  }
 
   /**
    * Checks if the widget has a valid configuration.

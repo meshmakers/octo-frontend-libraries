@@ -12,6 +12,7 @@ import {
   KpiWidgetConfig,
   EntityWithAssociationsWidgetConfig,
   TableWidgetConfig,
+  TableValueMarkerConfig,
   GaugeWidgetConfig,
   PieChartWidgetConfig,
   BarChartWidgetConfig,
@@ -113,6 +114,33 @@ function createDataSource(result: WidgetConfigResult, includeAssociations = fals
  */
 function parseConfig(data: PersistedWidgetData): Record<string, unknown> {
   return data.config ? JSON.parse(data.config) : {};
+}
+
+/**
+ * Row action, value markers and label fields of a persisted table config (AB#7728). Tolerates
+ * foreign values: a row action without a label, markers without field or tooltip and label fields
+ * that are no non-empty strings are dropped.
+ */
+export function parseTableRowExtras(config: Record<string, unknown>): Pick<TableWidgetConfig, 'rowAction' | 'valueMarkers' | 'labelFields'> {
+  const rawAction = config['rowAction'] as Record<string, unknown> | undefined;
+  const label = typeof rawAction?.['label'] === 'string' ? rawAction['label'].trim() : '';
+  const rawMarkers = Array.isArray(config['valueMarkers']) ? config['valueMarkers'] as Record<string, unknown>[] : [];
+  const valueMarkers: TableValueMarkerConfig[] = rawMarkers
+    .filter(m => !!m && typeof m['field'] === 'string' && m['field'] !== '' && typeof m['tooltip'] === 'string')
+    .map(m => ({
+      field: m['field'] as string,
+      tooltip: m['tooltip'] as string,
+      ...(typeof m['icon'] === 'string' ? { icon: m['icon'] } : {}),
+      ...(typeof m['color'] === 'string' ? { color: m['color'] } : {}),
+      ...(m['showValue'] === true ? { showValue: true } : {})
+    }));
+  const rawLabelFields: unknown[] = Array.isArray(config['labelFields']) ? config['labelFields'] : [];
+  const labelFields = rawLabelFields.filter((f): f is string => typeof f === 'string' && f !== '');
+  return {
+    ...(label ? { rowAction: { label } } : {}),
+    ...(valueMarkers.length > 0 ? { valueMarkers } : {}),
+    ...(labelFields.length > 0 ? { labelFields } : {})
+  };
 }
 
 /**
@@ -645,10 +673,18 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
-        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined
+        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
+        initialRowAction: tableWidget.rowAction,
+        initialValueMarkers: tableWidget.valueMarkers
       };
     },
     applyConfigResult: (widget, result) => {
+      // Row action and value markers (AB#7728) replace the previous ones; absent = removed.
+      const { rowAction: _oldRowAction, valueMarkers: _oldValueMarkers, ...baseWidget } = widget as TableWidgetConfig;
+      const rowExtras = {
+        ...(result.rowAction ? { rowAction: result.rowAction } : {}),
+        ...(result.valueMarkers?.length ? { valueMarkers: result.valueMarkers } : {})
+      };
       if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
         // Create PersistentQueryDataSource
         const dataSource: PersistentQueryDataSource = {
@@ -668,14 +704,15 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         }));
 
         return {
-          ...widget,
+          ...baseWidget,
           dataSource,
           // Explicit columns the dialog kept (same query, AB#7655); [] = derived from the query at runtime
           columns: result.columns ?? [],
           sorting: [],
           filters,
           pageSize: result.pageSize,
-          sortable: result.sortable
+          sortable: result.sortable,
+          ...rowExtras
         };
       } else {
         // Create RuntimeEntityDataSource (default behavior)
@@ -693,13 +730,14 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         }));
 
         return {
-          ...widget,
+          ...baseWidget,
           dataSource: createDataSource(result, false),
           columns: result.columns,
           sorting,
           filters,
           pageSize: result.pageSize,
-          sortable: result.sortable
+          sortable: result.sortable,
+          ...rowExtras
         };
       }
     },
@@ -730,6 +768,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           filters: widget.filters,
           pageSize: widget.pageSize,
           sortable: widget.sortable,
+          ...(widget.rowAction?.label && { rowAction: { label: widget.rowAction.label } }),
+          ...(widget.valueMarkers?.length && { valueMarkers: widget.valueMarkers }),
+          ...(widget.labelFields?.length && { labelFields: widget.labelFields }),
           ...(queryDataSource && {
             queryName: queryDataSource.queryName,
             queryRtId: queryDataSource.queryRtId,
@@ -755,7 +796,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         sorting: config['sorting'] as TableWidgetConfig['sorting'],
         filters: config['filters'] as TableWidgetConfig['filters'],
         pageSize: config['pageSize'] as number | undefined,
-        sortable: (config['sortable'] as boolean) ?? true
+        sortable: (config['sortable'] as boolean) ?? true,
+        ...parseTableRowExtras(config)
       };
     }
   });

@@ -1,0 +1,78 @@
+import { TestBed } from '@angular/core/testing';
+import { exclamationCircleIcon } from '@progress/kendo-svg-icons';
+import { TableValueMarkerCellComponent } from './table-value-marker-cell.component';
+import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
+
+describe('isPositiveMarkerValue (AB#7728)', () => {
+  it.each([
+    [1, true], [0.5, true], ['2', true], [' 3 ', true],
+    [0, false], [-1, false], ['0', false], ['', false], ['  ', false], ['abc', false],
+    [null, false], [undefined, false], [true, false], [Number.NaN, false], [{}, false]
+  ])('%j -> %s', (value, expected) => {
+    expect(isPositiveMarkerValue(value)).toBe(expected);
+  });
+});
+
+describe('TableValueMarkerCellComponent (AB#7728)', () => {
+  function render(value: unknown, showValue?: boolean, tooltip = 'Contains manual values'): HTMLElement {
+    TestBed.configureTestingModule({ imports: [TableValueMarkerCellComponent] });
+    const fixture = TestBed.createComponent(TableValueMarkerCellComponent);
+    fixture.componentRef.setInput('value', value);
+    fixture.componentRef.setInput('icon', exclamationCircleIcon);
+    fixture.componentRef.setInput('tooltip', tooltip);
+    if (showValue !== undefined) {
+      fixture.componentRef.setInput('showValue', showValue);
+    }
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('shows the icon with tooltip for a value above zero', () => {
+    const marker = render(2).querySelector('.value-marker');
+    expect(marker).not.toBeNull();
+    expect(marker!.getAttribute('title')).toBe('Contains manual values');
+    const image = marker!.querySelector('[role="img"]');
+    expect(image!.getAttribute('aria-label')).toBe('Contains manual values');
+    expect(image!.querySelector('kendo-svgicon')).not.toBeNull();
+  });
+
+  it('keeps the shown value outside the image, so it is announced', () => {
+    const marker = render(2, true).querySelector('.value-marker')!;
+    expect(marker.getAttribute('role')).toBeNull();
+    const value = marker.querySelector('.value-marker-value')!;
+    expect(value.closest('[role="img"]')).toBeNull();
+    expect(value.closest('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it('hides an icon without tooltip from screen readers instead of an unnamed image', () => {
+    const marker = render(2, true, '').querySelector('.value-marker')!;
+    expect(marker.querySelector('[role="img"]')).toBeNull();
+    expect(marker.querySelector('.value-marker-icon')!.getAttribute('aria-hidden')).toBe('true');
+    expect(marker.querySelector('.value-marker-value')!.textContent).toBe('2');
+  });
+
+  it('shows only the icon by default', () => {
+    expect(render(2).querySelector('.value-marker-value')).toBeNull();
+  });
+
+  it('shows the value next to the icon with showValue', () => {
+    const marker = render(2, true).querySelector('.value-marker');
+    expect(marker!.querySelector('kendo-svgicon')).not.toBeNull();
+    expect(marker!.querySelector('.value-marker-value')!.textContent).toBe('2');
+    expect(marker!.getAttribute('title')).toBe('Contains manual values');
+  });
+
+  it('stays empty for zero with showValue', () => {
+    const cell = render(0, true);
+    expect(cell.textContent!.trim()).toBe('');
+    expect(cell.querySelector('.value-marker')).toBeNull();
+  });
+
+  it('stays empty for zero', () => {
+    expect(render(0).querySelector('.value-marker')).toBeNull();
+  });
+
+  it('stays empty without a value', () => {
+    expect(render(null).querySelector('.value-marker')).toBeNull();
+  });
+});
