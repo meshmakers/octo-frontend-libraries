@@ -10,6 +10,17 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: one malformed process-diagram element no longer crashes the MeshBoard or empties the widget dialog (AB#8151)
+
+- Fix: a diagram element without `config` (e.g. a tank written through the API/MCP), with an unknown `type` or without
+  `position`/`size` threw while the widget template rendered and took the whole board down; the config dialog then
+  opened with empty tabs. The widget now validates the loaded diagram (`sanitizeProcessDiagram`): invalid elements and
+  connections are skipped, each invalid element is drawn as a dashed red placeholder naming it, a hint at the bottom of
+  the widget lists them, and one console warning per problem is written. The stored diagram is never modified.
+- The widget config dialog loads such a diagram, keeps the Mappings/Connections tabs populated from the valid parts and
+  shows the same validation hint under the diagram picker. A `null` entry in `primitives` no longer breaks the
+  connection list.
+
 ### octo-meshboard / octo-ui: process widget dialog layout fixes — readable Field column, dark-theme delete confirmation, scrolling filter grid (AB#8025)
 
 - Fix: at the dialog's ~600 px width the Mappings tab squeezed the Field input into the 55 px type column

@@ -27,6 +27,8 @@ describe('ProcessConfigDialogComponent — bindings editor (AB#8025)', () => {
   let close: ReturnType<typeof vi.fn>;
   let registry: WidgetRegistryService;
   let selectors: { id: string; label: string }[];
+  /** What the mocked ProcessDataService.loadDiagram returns; reset to `diagram` before each test. */
+  let storedDiagram: ProcessDiagramConfig;
 
   const diagram = {
     id: 'd', name: 'Energiefluss', version: '1', canvas: { width: 400, height: 200 }, elements: [], connections: [],
@@ -124,6 +126,7 @@ describe('ProcessConfigDialogComponent — bindings editor (AB#8025)', () => {
 
   beforeEach(() => {
     close = vi.fn();
+    storedDiagram = diagram;
     selectors = [{ id: 'site', label: 'Site' }, { id: 'netz', label: 'Netz' }, { id: 'batterie', label: 'Batterie' }];
     TestBed.configureTestingModule({
       imports: [ProcessConfigDialogComponent],
@@ -143,13 +146,39 @@ describe('ProcessConfigDialogComponent — bindings editor (AB#8025)', () => {
           provide: ProcessDataService,
           useValue: {
             loadDiagramList: vi.fn().mockResolvedValue([{ rtId: '65a1b2c3d4e5f60123456789', name: 'Energiefluss', canvasWidth: 400, canvasHeight: 200, version: '1' }]),
-            loadDiagram: vi.fn().mockResolvedValue(diagram)
+            loadDiagram: vi.fn(async () => storedDiagram)
           }
         }]
       }
     });
     registry = TestBed.inject(WidgetRegistryService);
     registerProcessWidget(registry);
+  });
+
+  describe('malformed diagram elements (AB#8151)', () => {
+    it('opens, keeps the tabs populated for the valid parts and shows a validation hint', async () => {
+      const malformed = {
+        ...diagram,
+        elements: [
+          { id: 'tank-ok', type: 'tank', name: 'Tank OK', position: { x: 0, y: 0 }, size: { width: 10, height: 10 }, config: {} },
+          { id: 'tank-bad', type: 'tank', name: 'Tank ohne Config', position: { x: 0, y: 0 }, size: { width: 10, height: 10 } }
+        ],
+        // a broken primitive entry must not break the connection list either
+        primitives: [null, ...(diagram.primitives ?? [])]
+      } as unknown as ProcessDiagramConfig;
+      storedDiagram = malformed;
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      await open(legacyStored);
+
+      expect(cmp.diagramIssueHint).toBe('1 invalid diagram item skipped: Tank ohne Config: missing config');
+      expect(warn).toHaveBeenCalled();
+      expect(cmp.diagramExposedProperties.map(p => p.id)).toEqual(['level', 'grid', 'flowDirection']);
+      expect(cmp.connections.map(c => c.id)).toEqual(['grid-line']);
+      expect(el().querySelector('.diagram-issue-hint')?.textContent).toContain('Tank ohne Config');
+      await selectTab(1);
+      expect(el().querySelector('[data-binding-header="0"] .name')?.textContent?.trim()).toBe('Default');
+    });
   });
 
   describe('legacy single binding', () => {

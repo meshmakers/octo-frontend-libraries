@@ -46,6 +46,7 @@ import {
   withAggregate,
   withBindingName
 } from './process-binding-editor';
+import { describeProcessDiagramIssues, sanitizeProcessDiagram } from './process-diagram-validation';
 import { ProcessBindingCardsComponent, ProcessBindingRename } from './process-binding-cards.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
@@ -159,6 +160,9 @@ export interface ProcessConfigResult extends WidgetConfigResult {
                   </kendo-combobox>
                   @if (storedDiagrams.length === 0 && !isLoadingDiagrams) {
                     <p class="field-hint warning">No diagrams found. Create diagrams using the Process Designer.</p>
+                  }
+                  @if (diagramIssueHint) {
+                    <p class="field-hint warning diagram-issue-hint" role="status">{{ diagramIssueHint }}</p>
                   }
                 </div>
 
@@ -746,6 +750,8 @@ export class ProcessConfigDialogComponent implements OnInit {
   selectedDiagram: ProcessDiagramSummary | null = null;
   /** Full config of the selected diagram (properties, connections). */
   diagramConfig: ProcessDiagramConfig | null = null;
+  /** Validation hint naming diagram elements that are invalid and skipped when rendering (AB#8151). */
+  diagramIssueHint = '';
 
   // State - Bindings (AB#8025)
   drafts: ProcessBindingDraft[] = [];
@@ -875,6 +881,7 @@ export class ProcessConfigDialogComponent implements OnInit {
     this.selectedDiagram = diagram;
     this.diagramExposedProperties = [];
     this.diagramConfig = null;
+    this.diagramIssueHint = '';
     this.connections = [];
     // Connection ids belong to the previous diagram.
     this.connectionDirections.clear();
@@ -889,7 +896,15 @@ export class ProcessConfigDialogComponent implements OnInit {
   private async loadDiagramConfig(diagramRtId: string): Promise<void> {
     this.isLoadingDiagramConfig = true;
     try {
-      const fullDiagram = await this.processDataService.loadDiagram(diagramRtId);
+      const loaded = await this.processDataService.loadDiagram(diagramRtId);
+      // A malformed element must not leave the other tabs empty (AB#8151): the exposed
+      // properties and connections come from the valid part, the problems become a hint.
+      const result = loaded ? sanitizeProcessDiagram(loaded) : null;
+      const fullDiagram = result?.diagram;
+      this.diagramIssueHint = result ? describeProcessDiagramIssues(result.issues) : '';
+      if (this.diagramIssueHint) {
+        console.warn(`[ProcessConfigDialog] ${this.diagramIssueHint}`);
+      }
       this.diagramConfig = fullDiagram ?? null;
       this.diagramExposedProperties = fullDiagram?.transformProperties ?? [];
       this.connections = findDiagramConnections(fullDiagram);
