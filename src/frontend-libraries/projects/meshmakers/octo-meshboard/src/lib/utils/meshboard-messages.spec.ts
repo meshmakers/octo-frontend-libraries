@@ -16,6 +16,12 @@ describe('MeshBoard messages (AB#5622)', () => {
     expect(resolved.tableList?.noRecords).toBe('Keine Einträge vorhanden.');
   });
 
+  it('has a translatable "pick required" notice for dependent selectors (AB#7916)', () => {
+    expect(resolveMeshBoardMessages(null).scopePickRequired).toBe('Pick a {label} to see this data.');
+    expect(resolveMeshBoardMessages({ scopePickRequired: 'Wählen Sie {label}, um diese Daten zu sehen.' }).scopePickRequired)
+      .toBe('Wählen Sie {label}, um diese Daten zu sehen.');
+  });
+
   it('follows a signal source (runtime language switch)', () => {
     const language = signal<MeshBoardMessages>({ tableNotConfigured: 'Tabelle nicht konfiguriert' });
     TestBed.configureTestingModule({ providers: [{ provide: MESHBOARD_MESSAGES, useValue: language }] });

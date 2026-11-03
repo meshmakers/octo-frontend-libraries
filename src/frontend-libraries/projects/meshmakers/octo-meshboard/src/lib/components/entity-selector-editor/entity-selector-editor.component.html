@@ -6,7 +6,14 @@
         <div class="selector-item">
           <div class="selector-info">
             <span class="selector-label">{{ selector.label }}</span>
-            <span class="selector-mode">{{ getModeLabel(selector) }}</span>
+            <span class="selector-mode" [class.selector-mode-error]="isOrphanFollower(selector)">{{ getModeLabel(selector) }}</span>
+            @if (getFilterSummary(selector); as filterSummary) {
+              <span class="selector-mode selector-filter-chip">{{ filterSummary }}</span>
+            }
+            @if (getScopeSourceSummary(selector); as scopeSummary) {
+              <span class="selector-mode selector-scope-source-chip" data-test="scope-source-summary"
+                [class.selector-mode-error]="isInvalidScopeSource(selector)">{{ scopeSummary }}</span>
+            }
             <span class="selector-ck-type">{{ selector.ckTypeId }}</span>
             <span class="selector-mappings">{{ getMappingSummary(selector) }}</span>
           </div>
@@ -80,17 +87,136 @@
       </div>
 
       <div class="form-field">
-        <label class="field-label">CK Type *</label>
-        <mm-ck-type-selector-input
-          [ngModel]="editCkTypeItem"
-          [placeholder]="'Select CK type...'"
-          (ckTypeSelected)="onCkTypeSelected($event)"
-          (ckTypeCleared)="onCkTypeCleared()">
-        </mm-ck-type-selector-input>
+        <label class="field-label" for="followsSelectorId">Follows</label>
+        <select
+          id="followsSelectorId"
+          class="follows-select"
+          [ngModel]="editFollowsSelectorId"
+          (ngModelChange)="onFollowsChanged($event)"
+          [disabled]="isFollowsLocked">
+          <option value="">— none (own picker / default entity) —</option>
+          @for (leader of leaderOptions; track leader.id) {
+            <option [value]="leader.id">{{ leader.label || leader.id }} ({{ leader.id }})</option>
+          }
+          @if (isLeaderUnavailable) {
+            <option [value]="editFollowsSelectorId">{{ editFollowsSelectorId }} (unavailable)</option>
+          }
+        </select>
+        @if (followError) {
+          <span class="field-error">{{ followError }}</span>
+        } @else if (followedBy.length > 0) {
+          <span class="field-hint">Followed by {{ followedByLabels }} — a selector that is followed cannot follow another one.</span>
+        } @else if (dependents.length > 0 && !editFollowsSelectorId) {
+          <span class="field-hint" data-test="follows-dependents-hint">{{ dependentsLabels }} {{ dependents.length === 1 ? 'lists' : 'list' }} only entities inside this selector — a selector with dependents cannot follow another one.</span>
+        }
+        @if (isFollower && editScopeSourceSelectorId) {
+          <span class="field-hint follow-notice" data-test="follower-scope-source-notice">A follower has no picker: "List only entities inside {{ scopeSourceLeaderLabel }}" is removed when you save.</span>
+        }
+        @if (followNotice) {
+          <span class="field-hint follow-notice">{{ followNotice }}</span>
+        }
+        <span class="field-hint">
+          Takes the pick of the selected selector. The CK type is fixed to the leader's.
+          A follower never shows a picker and is not written to the URL.
+        </span>
       </div>
 
       <div class="form-field">
-        <label class="field-label">Attribute Mappings *</label>
+        <label class="field-label">CK Type *</label>
+        @if (isFollower) {
+          <kendo-textbox [value]="editCkTypeId" [readonly]="true"></kendo-textbox>
+          <span class="field-hint">Fixed to the leader's CK type.</span>
+        } @else {
+          <mm-ck-type-selector-input
+            [ngModel]="editCkTypeItem"
+            [placeholder]="'Select CK type...'"
+            (ckTypeSelected)="onCkTypeSelected($event)"
+            (ckTypeCleared)="onCkTypeCleared()">
+          </mm-ck-type-selector-input>
+        }
+      </div>
+
+      @if (editCkTypeId) {
+      <div class="form-field picker-filter-field">
+        <label class="field-label">Picker filter</label>
+        @if (isFollower) {
+          <span class="field-hint">A follower takes the leader's pick. Set the filter on {{ leaderLabel }}.</span>
+          @if (followerFilterCount > 0) {
+            <span class="field-hint follow-notice">Filters on a follower are ignored and are removed when you save.</span>
+          }
+        } @else {
+          <span class="field-hint">
+            Only entities that match all rows are listed in the toolbar picker and in the default-entity picker below.
+          </span>
+          <mm-field-filter-editor
+            [ckTypeId]="editCkTypeId"
+            [filters]="editFilters"
+            [enableVariables]="filterVariables.length > 0"
+            [availableVariables]="filterVariables"
+            (filtersChange)="onFiltersChange($event)">
+          </mm-field-filter-editor>
+        }
+      </div>
+      }
+
+      @if (editCkTypeId && !isFollower) {
+      <div class="form-field scope-source-field" data-test="scope-source-section" role="group" aria-labelledby="scopeSourceHeading">
+        <span class="field-label" id="scopeSourceHeading">List only entities inside</span>
+        <label class="field-sublabel" for="scopeSourceSelectorId">Inside the pick of</label>
+        <select
+          id="scopeSourceSelectorId"
+          class="follows-select"
+          [ngModel]="editScopeSourceSelectorId"
+          (ngModelChange)="onScopeSourceChanged($event)"
+          [disabled]="isScopeSourceLocked">
+          <option value="">(none)</option>
+          @for (leader of scopeSourceLeaderOptions; track leader.id) {
+            <option [value]="leader.id">{{ leader.label || leader.id }} ({{ leader.id }})</option>
+          }
+          @if (isScopeSourceLeaderUnavailable) {
+            <option [value]="editScopeSourceSelectorId">{{ scopeSourceLeaderLabel }} (unavailable)</option>
+          }
+        </select>
+        @if (isScopeSourceLocked) {
+          <span class="field-hint" data-test="scope-source-locked">{{ dependentsLabels }} {{ dependents.length === 1 ? 'lists' : 'list' }} only entities inside this selector. A selector with dependents cannot list only entities inside another one.</span>
+        } @else if (!editScopeSourceSelectorId) {
+          <span class="field-hint">Optional. Choose another selector to list only the {{ editName }} inside its pick.</span>
+        }
+
+        @if (editScopeSourceSelectorId) {
+          <span class="field-sublabel scope-source-path-title" data-test="scope-source-path-title">
+            Path from {{ scopeSourceLeaderLabel }} (<code>{{ scopeSourceLeaderCkTypeId || '?' }}</code>) to {{ editName }} (<code>{{ editCkTypeId }}</code>)
+          </span>
+          <mm-entity-selector-scope-path-editor
+            [sourceCkTypeId]="scopeSourceLeaderCkTypeId"
+            [lockedTargetCkTypeId]="editCkTypeId"
+            [hops]="editScopeSourceHops"
+            [description]="'Path of associations from the entity picked in ' + scopeSourceLeaderLabel + ' to the ' + editName + ' it contains (1 to ' + maxScopeHops + ' hops).'"
+            [sourceDescription]="'pick of ' + scopeSourceLeaderLabel"
+            [emptyText]="'Add at least one hop.'"
+            (hopsChange)="onScopeSourceHopsChanged($event)">
+          </mm-entity-selector-scope-path-editor>
+          <span class="field-hint" data-test="scope-source-hint">
+            The {{ editName }} picker lists only the {{ editName }} reached from the {{ scopeSourceLeaderLabel }} the user picked.
+            When the {{ scopeSourceLeaderLabel }} changes, a {{ editName }} outside it is replaced by the default or cleared.
+          </span>
+          @if (scopeSourceDisplayError; as error) {
+            <span class="field-error" data-test="scope-source-error">{{ error }}</span>
+          }
+          @switch (defaultScopeCheck.state) {
+            @case ('outside') {
+              <span class="field-warning" data-test="scope-source-default-warning">The default {{ editName }} is not inside the default {{ scopeSourceLeaderLabel }}. It is cleared when the board opens.</span>
+            }
+            @case ('error') {
+              <span class="field-hint" data-test="scope-source-default-warning">Could not check the default entity.</span>
+            }
+          }
+        }
+      </div>
+      }
+
+      <div class="form-field">
+        <label class="field-label">Attribute Mappings{{ isFollower ? '' : ' *' }}</label>
         <button
           kendoButton
           (click)="selectAttributes()"
@@ -131,6 +257,7 @@
         }
       </div>
 
+      @if (!isFollower) {
       <div class="form-field">
         <div class="checkbox-row">
           <input
@@ -148,9 +275,10 @@
           }
         </span>
       </div>
+      }
 
       <div class="form-field">
-        <label class="field-label">Default Entity{{ !editShowInToolbar ? ' *' : '' }}</label>
+        <label class="field-label">Default Entity{{ !editShowInToolbar && !isFollower ? ' *' : '' }}</label>
         @if (defaultEntityDataSource) {
           <mm-entity-select-input
             [dataSource]="defaultEntityDataSource"
@@ -166,11 +294,24 @@
         @if (editDefaultRtId) {
           <span class="field-hint">Selected: {{ editDefaultRtId }}</span>
         }
-        @if (!editShowInToolbar && !editDefaultRtId) {
+        @switch (defaultFilterCheck.state) {
+          @case ('mismatch') {
+            <span class="field-warning default-filter-warning">The default entity does not match the picker filter. It still loads, but users cannot pick it again.</span>
+          }
+          @case ('error') {
+            <span class="field-hint default-filter-warning">Could not check the default entity.</span>
+          }
+          @case ('unchecked') {
+            <span class="field-hint default-filter-warning">Cannot check the default entity: the filter uses {{ uncheckedVariablesText }}, which is filled at view time.</span>
+          }
+        }
+        @if (!editShowInToolbar && !isFollower && !editDefaultRtId) {
           <span class="field-error">A default entity is required when not shown in toolbar.</span>
         }
         <span class="field-hint">
-          @if (editShowInToolbar) {
+          @if (isFollower) {
+            Optional — used only while the leader has no pick.
+          } @else if (editShowInToolbar) {
             Optional — pre-selected entity when the MeshBoard loads.
           } @else {
             This entity's attributes will be used to populate the variables.
@@ -180,27 +321,11 @@
 
       <div class="form-field">
         <label class="field-label">Child Scope (stream-data)</label>
-        <span class="field-hint">
-          Optional. Resolves the picked entity to its child source rtIds (one
-          association hop) so a stream-data widget can scope to them — e.g. a
-          MeteringPoint resolved to its EnergyMeasurement rtIds. Leave empty to
-          scope by the picked entity's own rtId.
-        </span>
-        <mm-ck-type-selector-input
-          [ngModel]="editChildScopeTargetCkTypeItem"
-          [placeholder]="'Child CK type (e.g. EnergyMeasurement)...'"
-          (ckTypeSelected)="onChildScopeCkTypeSelected($event)"
-          (ckTypeCleared)="onChildScopeCkTypeCleared()">
-        </mm-ck-type-selector-input>
-        <kendo-textbox
-          [(ngModel)]="editChildScopeRoleId"
-          placeholder="Association role (e.g. System/ParentChild)">
-        </kendo-textbox>
-        <label class="field-label">Direction</label>
-        <select [(ngModel)]="editChildScopeDirection" class="child-scope-direction">
-          <option value="out">Outbound (parent → child)</option>
-          <option value="in">Inbound (child → parent)</option>
-        </select>
+        <mm-entity-selector-scope-path-editor
+          [sourceCkTypeId]="editCkTypeId"
+          [hops]="editScopeHops"
+          (hopsChange)="onScopeHopsChanged($event)">
+        </mm-entity-selector-scope-path-editor>
       </div>
 
       <div class="edit-actions mm-dialog-actions">

@@ -1297,6 +1297,7 @@ Data bindings connect exposed properties to primitive attributes. Configure in t
 | `dimension.width` | Primitive | Element width | Pixels |
 | `dimension.height` | Primitive | Element height | Pixels |
 | `animation.enabled` | Animation | Enable/disable animation | Boolean |
+| `text.value` | Text primitive | Show the formatted value (`textFormat`: unit, decimals 0–6, "No value shows"; board language; "–" without a value — AB#8022, see octo-process-diagrams `PROCESS-DESIGNER.md`) | Number or string |
 | `property` | Symbol Instance | Pass value to child symbol | Any |
 
 **Expression Syntax:**

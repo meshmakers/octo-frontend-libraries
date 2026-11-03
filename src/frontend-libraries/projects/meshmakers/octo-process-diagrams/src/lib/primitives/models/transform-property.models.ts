@@ -61,6 +61,8 @@ export type BindingEffectType =
   | 'fillLevel'               // Fill level 0-1 (rendered via clip-path)
   // Animation control
   | 'animation.enabled'       // Enable/disable animation (boolean, requires animationId)
+  // Text content (text primitives only)
+  | 'text.value'              // Replace the text content with the formatted value (AB#8022)
   // Property pass-through to child symbols
   | 'property';               // Pass value to child symbol's property
 
@@ -209,6 +211,31 @@ export interface PropertyBinding {
    * - 'top-left': Element grows toward bottom-right
    */
   anchor?: TransformAnchor;
+
+  /**
+   * Number format of a `text.value` binding (AB#8022). Ignored by every other effect.
+   * Without it the text shows the value with 0 decimals, the property's unit and "–"
+   * when there is no value.
+   */
+  textFormat?: TextValueFormat;
+}
+
+/**
+ * How a `text.value` binding shows its value (AB#8022).
+ *
+ * The expression runs first; a number result is formatted with `decimals` in the board
+ * language (host language, fallback de-AT), a string result is shown as it is. The unit
+ * is appended after a space. A missing value (undefined, null, non-numeric input of a
+ * number property, failed expression) shows `noValueText` — never 0 and never the static
+ * design-time text.
+ */
+export interface TextValueFormat {
+  /** Unit appended after the value; `undefined` = the property's unit, `''` = no unit. */
+  unit?: string;
+  /** Fraction digits, 0–6 (default 0). */
+  decimals?: number;
+  /** Text shown when there is no value (default "–", en dash). */
+  noValueText?: string;
 }
 
 // ============================================================================

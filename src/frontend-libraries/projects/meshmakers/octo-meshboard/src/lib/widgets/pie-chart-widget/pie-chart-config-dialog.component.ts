@@ -21,6 +21,7 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
+import { columnProbeWindow } from '../../utils/column-probe-window';
 
 /**
  * Configuration result from the Pie Chart dialog
@@ -724,8 +725,11 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
         }));
     }
 
-    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
-    return sdResult.columns.map(c => ({
+    // An Integral column needs from/to (AB#7921): the executor retries with the board's
+    // window, or the last 24 hours when the board has no time filter (AB#7975).
+    const columns = await this.queryExecutor.fetchStreamDataColumns(
+      rtId, columnProbeWindow(this.stateService.resolveStreamDataTimeArgs()));
+    return columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null

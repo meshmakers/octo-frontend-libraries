@@ -11,8 +11,9 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { applyValueMultiplier, matchesAttributePath } from '../../utils/widget-data-utils';
+import { applyValueMultiplier, formatWidgetNumber, getNumberFormat, matchesAttributePath } from '../../utils/widget-data-utils';
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
+import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 
 @Component({
@@ -137,6 +138,15 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   });
 
   /**
+   * Tooltip of the value: the reason a formula result is shown as `-` although every
+   * variable has a value (non-finite result, e.g. division by zero; AB#7950), else `null`.
+   */
+  readonly valueTooltip = computed(() => {
+    const result = this.formulaResult();
+    return result?.status === 'nonFinite' ? result.reason : null;
+  });
+
+  /**
    * Unformatted value: the formula result, or the value taken from the loaded data
    * (query values already scaled by `valueMultiplier`).
    */
@@ -155,7 +165,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     if (config?.dataSource?.type === 'persistentQuery') {
       attributeName = '_queryValue';
     } else if (config?.dataSource?.type === 'static') {
-      attributeName = '_staticValue';
+      attributeName = config.dataSource.data ? config.valueAttribute : '_staticValue';
     } else {
       attributeName = config?.valueAttribute;
     }
@@ -236,6 +246,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return '-';
     }
 
+    const decimals = normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces);
+    if (decimals !== undefined) {
+      return this.formatWithDecimals(value, strValue, decimals);
+    }
+
     const numValue = typeof value === 'number' ? value : parseFloat(strValue);
 
     if (isNaN(numValue)) {
@@ -247,6 +262,22 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       minimumFractionDigits: numValue % 1 !== 0 ? 2 : 0,
       maximumFractionDigits: 2
     });
+  }
+
+  private static strictNumber(text: string): number {
+    const trimmed = text.trim();
+    return trimmed === '' ? NaN : Number(trimmed);
+  }
+
+  private formatWithDecimals(value: unknown, strValue: string, decimals: number): string {
+    const numValue = typeof value === 'number' ? value : KpiWidgetComponent.strictNumber(strValue);
+    if (typeof value === 'number' ? isNaN(numValue) : !Number.isFinite(numValue)) {
+      return strValue;
+    }
+
+    const negative = numValue < 0 || Object.is(numValue, -0);
+    const shown = negative && Number(getNumberFormat('en-US', 0, decimals, false).format(numValue)) === 0 ? 0 : numValue;
+    return formatWidgetNumber(shown, decimals, 'exact');
   }
 
   readonly label = computed(() => {
@@ -331,6 +362,12 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     if (this.isFormulaMode()) {
       // Formula values are computed live from the variables (see formulaResult)
       this._data.set(null);
+      this._error.set(null);
+      return;
+    }
+
+    if (dataSource.type === 'static' && dataSource.data) {
+      this._data.set(dataSource.data as RuntimeEntityData);
       this._error.set(null);
       return;
     }
@@ -432,12 +469,26 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       // queryFamily may be undefined for legacy widget configs — the executor
       // falls back to a one-time lookup by rtId. streamDataArgs is sent
       // unconditionally because the runtime path ignores it.
+      // Entity-selector scope (AB#7721): pending → stay in the loading state and
+      // send no query (the view refreshes once the scope is known); empty → show
+      // the no-data value '-' without querying the persisted (unscoped) scope.
+      const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
+      if (scope.kind === 'pending') {
+        return;
+      }
+      if (scope.kind === 'empty') {
+        this._data.set(null);
+        this._isLoading.set(false);
+        return;
+      }
       const streamDataArgs = this.buildStreamDataArgs();
 
       const result = await firstValueFrom(
         this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
           fieldFilter: fieldFilter ?? undefined,
-          streamDataArgs
+          streamDataArgs,
+          // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+          scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
         }).pipe(
           catchError(err => {
             console.error('Error loading KPI query data:', err);
@@ -446,7 +497,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         )
       );
 
-      let value: number | string = 0;
+      let value: number | string | null = 0;
       const queryMode = this.config.queryMode ?? 'simpleCount';
 
       switch (queryMode) {
@@ -463,8 +514,8 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
           break;
       }
 
-      // Optional scale factor (e.g. Σ(kW samples) × sampleInterval → kWh).
-      // Applied to numeric values only; strings pass through unchanged.
+      // Optional unit factor (e.g. 1 for an Integral over kW → kWh, 0.001 for W → kWh).
+      // Applied to numeric values only; strings and null (no data) pass through unchanged.
       value = applyValueMultiplier(value, this.config.valueMultiplier);
 
       // Create a synthetic entity with the value
@@ -494,7 +545,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return { ...timeArgs, rtIds };
   }
 
-  private extractAggregationValue(queryResult: QueryExecutionResult): number | string {
+  private extractAggregationValue(queryResult: QueryExecutionResult): number | string | null {
     const firstRow = queryResult.rows.find(row =>
       KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
     );
@@ -511,7 +562,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return firstRow.cells.length > 0 ? this.extractCellValue(firstRow.cells[0].value) : 0;
   }
 
-  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number | string {
+  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number | string | null {
     const categoryField = this.config.queryCategoryField;
     const categoryValue = this.config.queryCategoryValue;
     const valueField = this.config.queryValueField;
@@ -524,7 +575,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       if (!KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')) continue;
 
       let categoryMatch = false;
-      let value: number | string = 0;
+      let value: number | string | null = 0;
 
       for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
@@ -546,11 +597,17 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   /**
    * Extracts a cell value, preserving strings and converting numbers.
    * Returns the value as-is if it's a string, or parses it as a number.
+   * A null cell is "no data" (e.g. an Integral over an empty window, AB#7921) and
+   * stays null, so the KPI shows its empty state instead of a misleading 0.
    */
-  private extractCellValue(value: unknown): number | string {
-    if (value === null || value === undefined) return 0;
+  private extractCellValue(value: unknown): number | string | null {
+    if (value === null || value === undefined) return null;
     if (typeof value === 'number') return value;
     if (typeof value === 'string') {
+      if (normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces) !== undefined) {
+        const strict = KpiWidgetComponent.strictNumber(value);
+        return Number.isFinite(strict) ? strict : value;
+      }
       // Try to parse as number first
       const parsed = parseFloat(value);
       // If it's a valid number, return as number; otherwise return the string

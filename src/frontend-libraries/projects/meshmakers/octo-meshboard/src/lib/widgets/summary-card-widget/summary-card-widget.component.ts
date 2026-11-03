@@ -6,6 +6,7 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
 import { GetDashboardEntityDtoGQL } from '../../graphQL/getDashboardEntity';
 import { DashboardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import type { StreamDataScope } from '../../utils/stream-data-scope';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { extractPersistentQueryCellValue } from '../../utils/persistent-query-cell';
@@ -146,6 +147,14 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
     this._isLoading.set(true);
     this._error.set(null);
 
+    // Entity-selector scope (AB#7721): while a bound tile's scope is still
+    // resolving, stay in the loading state and send no query at all; the view
+    // refreshes the widget once the scope is known.
+    if (this.config.tiles.some(tile => tile.persistentQuerySource
+      && this.scopeOf(tile.persistentQuerySource).kind === 'pending')) {
+      return;
+    }
+
     try {
       // Cache entities by rtId to avoid duplicate fetches
       const entityCache = new Map<string, Map<string, unknown>>();
@@ -204,13 +213,26 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
   }
 
   private async fetchPersistentQueryValue(source: PersistentQueryCellSource): Promise<unknown> {
+    // Pending or empty scope (still resolving, nothing in scope or lookup failed,
+    // AB#7721/AB#7725): no value, no query — never the persisted (unscoped) scope.
+    // The view refreshes the widget once a pending scope is resolved.
+    const scope = this.scopeOf(source);
+    if (scope.kind === 'pending' || scope.kind === 'empty') {
+      return null;
+    }
     const result = await firstValueFrom(
       this.queryExecutor.execute(source.queryFamily, source.queryRtId, {
         fieldFilter: this.convertFiltersToDto(source.filters),
-        streamDataArgs: this.buildStreamDataArgs(source)
+        streamDataArgs: this.buildStreamDataArgs(source),
+        // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+        scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
       })
     );
     return extractPersistentQueryCellValue(result, source);
+  }
+
+  private scopeOf(source: PersistentQueryCellSource): StreamDataScope {
+    return this.stateService.resolveStreamDataScope(source.entitySelectorId, source.queryFamily, source.ignoreTimeFilter);
   }
 
   private buildStreamDataArgs(source: PersistentQueryCellSource): StreamDataExecutionArgs | undefined {

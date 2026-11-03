@@ -142,6 +142,80 @@ With `plain` the host is responsible for the gutter: a route that loads the view
 an unpadded outlet should wrap it in a padded page instead. Exported helpers: `MeshBoardChrome`,
 `MESHBOARD_CHROME_ROUTE_DATA`, `resolveMeshBoardChrome`.
 
+### Period set by the host (`timeRange` / `timeFilterControl`, AB#7582)
+
+A host page that has its own period control (one "from / to" for the whole page) passes the period
+to the embedded board as **two exact instants** and switches the board's own time-range picker off,
+so page and dashboard always show the same days, whatever time zone the browser is in.
+
+| Input | Type | Effect |
+|-------|------|--------|
+| `timeRange` | `{ from: Date \| string; to: Date \| string } \| undefined` | Half-open period `[from, to)`. `Date` objects are taken as they are. Strings must be **RFC 3339 with an offset**: `YYYY-MM-DDTHH:MM:SS`, optional `.s`–`.sss`, then `Z` or `±HH:MM` (e.g. `2026-03-28T05:00:00Z`, `2026-03-28T06:00:00+01:00`). Rejected as invalid: no offset (the browser would read it in its own zone), no seconds, compact offsets (`+0100`), lowercase `t`/`z`, a space instead of `T`, more than 3 fraction digits (these forms parse differently across browsers, e.g. Safari), and dates or times that do not exist (`2026-02-30`, `24:00`, `23:60`, leap second `:60`). The instant is computed from the fields, not by `Date.parse`. |
+| `timeFilterControl` | `'board' \| 'host'` (default `'board'`) | `'host'` hides the board's time-range picker and its reset button. Entity selectors and the toolbar actions stay, in `headerMode` `full` and `compact`. |
+
+Rules while `timeRange` is set (and the board's time filter is enabled):
+
+- `$timeRangeFrom` / `$timeRangeTo` and the stream-data window of every stream-data widget are
+  exactly the two instants — no snapping to 00:00, independent of `pickerConfig.showTime` and of
+  the board `timeZoneMode`.
+- **Day buckets and labels still follow the board's `timeZoneMode`:** the date labels of the
+  widgets and the calendar rollup a line chart picks (`resolveStreamDataTimeZone()`) use the board's
+  zone, not the host's. A board in `'local'` mode opened in a New York browser cuts daily buckets
+  at New York midnight even though the window is exactly the host's instants. An embedded board
+  should therefore set `timeZoneMode` to the host's business zone (e.g. `Europe/Vienna`). Calendar
+  rollups are cut at 00:00 of that zone; they cannot represent a day that starts at 06:00 (gas
+  day) — a widget that must show gas days needs a query that does not use a daily calendar rollup.
+- **The host wins:** `tf_*` query parameters and the stored/default selection are ignored, the view
+  writes no `tf_*` parameters, the stored selection is not touched and the board shows no unsaved
+  changes. The picker is hidden and its events are ignored, whatever the `timeFilterControl`
+  value. `tf_*` parameters that were in the URL when the view opened stay in the URL but are never
+  applied again once the host has owned the period (also not after `timeRange` goes back to
+  `undefined`).
+- A new period reloads the widgets once (an equal period — same instants — reloads nothing); the
+  board definition is not reloaded. Setting `timeRange` back to `undefined` returns the board to
+  its own selection (and, with `'board'`, shows the picker again).
+- An invalid period (unparseable value, or `from >= to`) sends **no stream-data query that is
+  bound to the time filter**: the widgets show their normal empty state (`resolveStreamDataScope`
+  returns `{ kind: 'empty', reason: 'invalidTimeRange' }`; the process widget's element bindings
+  get no value, a widget group over a stream-data query shows no items), `$timeRangeFrom` /
+  `$timeRangeTo` are removed, and the view logs one console error naming the input. A widget with
+  **`ignoreTimeFilter: true`** does not depend on the period and keeps querying (with its selector
+  scope). Custom widgets pass their `ignoreTimeFilter` as the third argument of
+  `resolveStreamDataScope`, or ask `isStreamDataBlockedByHostTimeRange(ignoreTimeFilter)`.
+  **Limitation:** widgets backed by a *runtime* query or aggregation whose filter uses
+  `$timeRangeFrom` / `$timeRangeTo` are not gated; they run with the placeholder unresolved. An
+  invalid range is a host bug — fix it there.
+- A board whose time filter is disabled ignores `timeRange` and logs nothing.
+- With `timeRange` undefined and `timeFilterControl='board'` the view behaves exactly as before.
+- With `timeFilterControl='host'` and `timeRange` undefined (e.g. while the host page is still
+  computing its period) the board keeps working on its own selection, with the picker hidden; it
+  writes no `tf_*` parameters, because the URL belongs to the host.
+
+Day rules belong to the host: the library has no "day start" offset. A host whose day starts at
+06:00 (e.g. a gas day) computes the instants itself, in its business time zone:
+
+```typescript
+import { MeshBoardHostTimeRange } from '@meshmakers/octo-meshboard';
+
+/** Gas day `day` (yyyy-mm-dd) = 06:00 Vienna to 06:00 Vienna the next day (23/24/25 h on DST days). */
+function gasDay(day: string): MeshBoardHostTimeRange {
+  return { from: viennaInstant(day, 6), to: viennaInstant(addDays(day, 1), 6) };
+}
+// viennaInstant(day, hour) returns the UTC instant of that Vienna wall-clock time, e.g.
+// viennaInstant('2026-03-28', 6) = '2026-03-28T05:00:00Z', viennaInstant('2026-03-29', 6) = '2026-03-29T04:00:00Z'.
+```
+
+```html
+<mm-meshboard-view headerMode="compact" timeFilterControl="host" [timeRange]="period()"></mm-meshboard-view>
+```
+
+The period is held transiently by `MeshBoardStateService` (`hostTimeRange`, `setHostTimeRange(state,
+owner)`, `clearHostTimeRange(owner)`) and never persisted. The service is root-provided, so the view
+registers itself as the owner: it clears the period when it is destroyed or drops its `timeRange`,
+but never a period another view set in the meantime, and a view destroyed while its board is still
+loading publishes nothing. Exported helpers: `MeshBoardHostTimeRange`, `MeshBoardTimeFilterControl`,
+`parseHostTimeRange`, `HostTimeRangeState`.
+
 ### URL Sync (`meshBoardSyncUrl`)
 
 After the initial load and after every post-init board switch (e.g. via the
@@ -240,12 +314,28 @@ interface KpiWidgetConfig {
   suffix?: string;
   icon?: string;
   trend?: 'up' | 'down' | 'neutral';
+  decimalPlaces?: number;
   // For persistent query mode
   queryMode?: 'simpleCount' | 'aggregation' | 'groupedAggregation';
   queryValueField?: string;
   filters?: WidgetFilterConfig[];
 }
 ```
+
+Numbers are formatted with the `de-AT` locale. Without `decimalPlaces` a fractional value shows two
+fraction digits and a whole number none (38.9 -> `38,90`, 46 -> `46`). With `decimalPlaces` every numeric
+value shows exactly that many (`decimalPlaces: 1`: 38.9 -> `38,9`, 46 -> `46,0`). In a seed, set it in the
+widget `Config` JSON, e.g. `{"valueMode":"formula","formula":"...","decimalPlaces":1}`; the configuration
+dialog offers it as *Decimal Places* (AB#7686). Valid values are the JSON numbers 0-3 (integers); anything
+else (a string such as `"1"`, a fraction, a negative value, 4 or more, other types) falls back to the automatic
+format. Unlike the heatmap's `decimalPlaces` (a maximum, default 2), the KPI value is an exact digit count and
+unset means automatic; both widgets format through the shared `formatWidgetNumber` (`utils/widget-data-utils.ts`,
+cached `Intl.NumberFormat` instances). With `decimalPlaces` set, a text value is parsed strictly: only a string
+that is a complete number (`"12"`, `" 12 "`, `"1e3"`) is formatted, anything else (`"12 kWh"`, an ISO date,
+`"12,5"`) is shown unchanged. Without `decimalPlaces` the previous lenient parsing stays (`"12 kWh"` -> `12`).
+A negative value that rounds to zero is shown without a sign (`-0.04` with 1 -> `0,0`). The setting also
+applies to KPI children of a widget group (`childTemplate.staticConfig.decimalPlaces`, also offered in the
+widget-group configuration dialog).
 
 ### Gauge Widget
 Displays a numeric value as arc, circular, linear, or radial gauge.
@@ -275,8 +365,48 @@ interface TableWidgetConfig {
   filters?: WidgetFilterConfig[];
   pageSize?: number;
   sortable?: boolean;
+  labelFields?: string[];                                                         // AB#7728
+  rowAction?: { label: string };                                                  // AB#7728
+  valueMarkers?: { field: string; tooltip: string; icon?: string; color?: string; showValue?: boolean }[]; // AB#7728
 }
 ```
+
+**Row action (AB#7728).** A board author switches on *Row Action* in the table's configuration
+dialog and gives it a label (e.g. "Details"); it is stored as `rowAction: { label }` in the widget's
+`Config` JSON. The table offers it as a row action button **only when the host app provides
+`MESHBOARD_TABLE_ROW_ACTION_HANDLER`** — without a handler (other apps, the Refinery Studio) the
+table looks as before. The handler receives which widget the action came from and the row's values:
+
+```typescript
+import { MESHBOARD_TABLE_ROW_ACTION_HANDLER, MeshBoardTableRowActionEvent } from '@meshmakers/octo-meshboard';
+
+providers: [
+  // app-wide, or on the component that embeds <mm-meshboard-view>
+  {
+    provide: MESHBOARD_TABLE_ROW_ACTION_HANDLER,
+    useFactory: () => {
+      const details = inject(DailyDetailsDialogService);
+      return (e: MeshBoardTableRowActionEvent) => {
+        // e = { widgetId (rtId, else local id), widgetTitle, meshBoardRtId, actionLabel, row }
+        if (e.widgetTitle === 'Energiedaten täglich') {
+          details.open(e.row['rtWellKnownName'] as string, e.row['day'] as string);
+        }
+      };
+    }
+  }
+]
+```
+
+`row` is keyed by column field (attribute path / query column), a copy of the list row. A handler that
+throws (or rejects) is logged and does not break the table.
+
+**Value markers (AB#7728).** `valueMarkers` turns a column into a marker column: the cell shows the
+icon (status icon set: `exclamation-circle` (default), `warning-triangle`, `check-circle`, `x-circle`,
+`minus-circle`, `question-circle`, `circle`) with `tooltip` as title and accessible name when the value
+is a number (or numeric string) above zero, and stays empty otherwise (`isPositiveMarkerValue`). It
+works for configured columns and for columns derived from a persistent query; set it in the dialog's
+*Value Markers* card. With `showValue: true` the cell shows the value next to the icon (default: icon
+only); a value of zero or below still leaves the cell empty.
 
 **Texts (AB#5622).** The list inside the table (`mm-list-view`) takes its texts from
 `MESHBOARD_MESSAGES` — "No records available.", pager texts, toolbar labels — merged over the
@@ -300,6 +430,103 @@ is logged once and ignored. Tables offer string cells of text columns (persisten
 only when their value type is `ENUM`); pie / donut charts offer every category — the resolved text
 is the slice name in data labels, legend and tooltips, the status colour still follows the raw
 value. A resolver that reads a signal re-labels the charts when it changes.
+**Numeric enum cells (AB#7655):** a cell that holds a number in a persistent-query column whose
+value type is an enum (`valueType` matches `ENUM`) is offered too, with `value` = the number as
+string (`2` → `'2'`) and `valueType`; numbers of other columns are not. A column's `valueLabels`
+(below) wins over the resolver — such a column never calls it.
+
+**Column titles per language and value labels (AB#7655).** Board authors configure both in the
+board JSON/YAML (the table config dialog does not edit them):
+
+```typescript
+interface TableColumn {
+  field: string;
+  title: string;                                     // fallback header
+  titles?: Record<string, string>;                   // header per culture code
+  valueLabels?: Record<string, TableColumnValueLabel>; // raw value (as string) -> label
+  width?: number; dataType?: string; format?: string; statusMapping?: ...;
+}
+interface TableColumnValueLabel {
+  label: string | Record<string, string>;            // one text, or a text per culture code
+  color?: string;                                    // optional CSS text colour
+}
+```
+
+- **Host language.** The library does not know the host's UI language and never derives it from
+  `LOCALE_ID` (static in many apps). A host that wants per-language texts hands it over once — a
+  culture code or a `Signal<string | null>`; the widgets follow a signal without reloading the board
+  or refetching data:
+
+  ```typescript
+  providers: [
+    provideMeshBoard({ language: languageService.currentCulture }), // Signal<string>, e.g. 'de-AT'
+    // or, when the widgets are registered lazily (no provideMeshBoard()):
+    provideMeshBoardLanguage(languageService.currentCulture),
+    // or directly: { provide: MESHBOARD_LANGUAGE, useValue: 'en-GB' }
+  ]
+  ```
+
+  No language = every column shows `title` and per-language labels show the raw value, exactly as
+  before. `pickLocalizedText(texts, language)` is exported for hosts that need the same lookup.
+- **`titles`** — lookup order: the exact culture or language (`de-AT`, `de`; case-insensitive);
+  for a culture (`de-AT`) without an exact key, a key equal to its language part (`de`); for a bare
+  language (`de`, e.g. from a simple language switcher) without an exact key, the **first authored
+  key of that language** (`de-AT` in `{ "en-GB": …, "de-AT": …, "de-DE": … }`, in the order the keys
+  are written); then `title`. A culture never picks a sibling culture (`de-DE` does not take `de-AT`).
+  Columns derived from a persistent query (no explicit `columns`) keep their generated titles.
+- **`valueLabels`** — keys are the raw value as string; a number `2` and a string `"2"` both match
+  `"2"`. The cell shows the label as **plain text** like every other cell (no badge); `color`, when
+  set, is the text colour — use a theme token such as `var(--kendo-color-error)`; without it the
+  theme text colour applies. A per-language `label` follows the host language like `titles`. A value
+  without a label (unmapped, e.g. `4`, or a per-language label without a match) keeps the column's
+  rendering: `numeric` with `format` like the `number` pipe, `iso8601` with `format` like the `date`
+  pipe, plain text through the board's date-time formatter; `null` / missing is an empty cell. When
+  no label applies for the current language at all (e.g. only `de-AT` labels and the host language is
+  `en-GB`), the column renders exactly as without `valueLabels`, including `MESHBOARD_LABEL_RESOLVER`.
+  Otherwise `valueLabels` win over `MESHBOARD_LABEL_RESOLVER`. **`valueLabels` together with
+  `statusMapping` (status icons) is not supported:** the labels are shown, the status icons are not,
+  and the widget logs a console warning.
+- **Configuration errors** — a culture key that is not a culture code (`german`, `de_AT`), a
+  malformed `titles` entry (no object, non-string or empty text) or a malformed `valueLabels` entry
+  (no object, no usable `label`, non-string `color`) is ignored; the widget logs **one** console
+  warning per widget, column and set of problems naming them (a different problem after a config
+  edit is reported again), and the table still renders.
+- **Refinery Studio** — the table config dialog keeps hand-authored columns: saving a
+  persistent-query table without changing the query keeps its explicit `columns` that the query still
+  returns (unchanged, in their order), drops those whose field the query no longer returns and adds the
+  query's other columns with a generated title, like derived columns (when the query's columns cannot
+  be loaded, the explicit columns stay unchanged; a new query starts without explicit columns); for
+  runtime-entity tables, columns that stay selected on the same CK type keep all their properties
+  (`titles`, `valueLabels`, `width`, `format`, `statusMapping`, ...), newly selected ones get a
+  generated title. A new `config` on the same widget instance re-renders headers and labels.
+
+Example — the daily quality 1/2/3 shown as L1/L2/L3 with German and English headers:
+
+```json
+{
+  "columns": [
+    { "field": "day", "title": "Day", "titles": { "de-AT": "Tag", "en-GB": "Day" } },
+    {
+      "field": "dataquality_max",
+      "title": "Dataquality",
+      "titles": { "de-AT": "Datenqualität", "en-GB": "Data quality" },
+      "valueLabels": {
+        "1": { "label": "L1", "color": "var(--kendo-color-success)" },
+        "2": { "label": "L2", "color": "var(--kendo-color-warning)" },
+        "3": { "label": "L3", "color": "var(--kendo-color-error)" }
+      }
+    }
+  ]
+}
+```
+
+**Label fields (AB#7728).** `labelFields: ['dataquality_max', 'rtWellKnownName']` on a table offers
+these columns to the resolver whatever their type, also numeric or typed text query columns that are
+otherwise skipped. The resolver gets the same `tableCell` request for string and number cells, with
+`value` as text (`3` arrives as `'3'`, zero included; empty cells are not offered), and `valueType`
+when the query reports it. Returning `null` keeps the plain text, which also replaces a numeric
+`format` of that column; a value marker on the same column wins. Without a resolver the key has no
+effect. The key is set in the widget's `Config` JSON (no dialog field); a dialog save keeps it.
 
 ### Pie Chart Widget
 Displays data as pie or donut chart.

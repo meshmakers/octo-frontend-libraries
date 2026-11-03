@@ -8,10 +8,14 @@ import {
   processDynamicSeriesData,
   processPieChartData,
   findCellForField,
+  matchesAttributePath,
   QueryRow,
   QueryResult,
   SeriesConfig,
-  SUPPORTED_ROW_TYPES
+  SUPPORTED_ROW_TYPES,
+  formatWidgetNumber,
+  getNumberFormat,
+  WIDGET_NUMBER_LOCALE
 } from './widget-data-utils';
 
 /**
@@ -768,6 +772,34 @@ describe('Widget Data Utils', () => {
     });
   });
 
+  describe('matchesAttributePath — Integral columns (AB#7921)', () => {
+    it('matches an Integral cell by its exact wire-form name', () => {
+      expect(matchesAttributePath('importpower_integral', 'importpower_integral')).toBe(true);
+    });
+
+    it('does not cross-match an Integral config with the plain attribute or the SUM column', () => {
+      expect(matchesAttributePath('importpower', 'importpower_integral')).toBe(false);
+      expect(matchesAttributePath('importpower_sum', 'importpower_integral')).toBe(false);
+      // An attribute whose name merely ends in "Integral" is another attribute, not the Integral column.
+      expect(matchesAttributePath('importPowerIntegral', 'importpower_integral')).toBe(false);
+    });
+
+    it('does not let a SUM config pick up the Integral cell', () => {
+      expect(matchesAttributePath('importpower_integral', 'importpower_sum')).toBe(false);
+    });
+
+    it('lets a legacy bare-attribute config reach the Integral cell like the other aggregation suffixes', () => {
+      expect(matchesAttributePath('importpower_integral', 'importPower')).toBe(true);
+    });
+
+    it('resolves the Integral and SUM cells of one row to their own fields', () => {
+      const cells = [createCell('importpower_sum', 7200), createCell('importpower_integral', 2.5)];
+
+      expect(findCellForField(cells, 'importpower_integral')?.value).toBe(2.5);
+      expect(findCellForField(cells, 'importpower_sum')?.value).toBe(7200);
+    });
+  });
+
   describe('SUPPORTED_ROW_TYPES constant', () => {
     it('should include all expected row types', () => {
       expect(SUPPORTED_ROW_TYPES).toContain('RtSimpleQueryRow');
@@ -797,5 +829,36 @@ describe('applyValueMultiplier', () => {
 
   it('passes values through when no multiplier is configured', () => {
     expect(applyValueMultiplier(42, undefined)).toBe(42);
+  });
+
+  it('passes null (no data, e.g. an Integral over an empty window) through unchanged (AB#7921)', () => {
+    expect(applyValueMultiplier(null, 0.001)).toBeNull();
+  });
+
+  it('applies the unit factor of an energy KPI over an Integral column (W·h → kWh)', () => {
+    expect(applyValueMultiplier(2500, 0.001)).toBeCloseTo(2.5, 10);
+  });
+});
+
+describe('formatWidgetNumber / getNumberFormat (AB#7686)', () => {
+  it('formats an exact digit count for the KPI and a maximum for the heatmap', () => {
+    expect(formatWidgetNumber(46, 1, 'exact')).toBe('46,0');
+    expect(formatWidgetNumber(38.94, 1, 'exact')).toBe('38,9');
+    expect(formatWidgetNumber(46, 2, 'maximum')).toBe('46');
+    expect(formatWidgetNumber(38.9, 2, 'maximum')).toBe('38,9');
+    expect(formatWidgetNumber(38.987, 2, 'maximum')).toBe('38,99');
+  });
+
+  it('reuses one formatter per locale, digits and grouping', () => {
+    const first = getNumberFormat(WIDGET_NUMBER_LOCALE, 1, 1);
+    expect(getNumberFormat(WIDGET_NUMBER_LOCALE, 1, 1)).toBe(first);
+    expect(getNumberFormat(WIDGET_NUMBER_LOCALE, 2, 2)).not.toBe(first);
+    expect(getNumberFormat('en-US', 1, 1)).not.toBe(first);
+    expect(getNumberFormat(WIDGET_NUMBER_LOCALE, 1, 1, false)).not.toBe(first);
+  });
+
+  it('throws the same RangeError as toLocaleString for an invalid digit count', () => {
+    expect(() => formatWidgetNumber(1, 101, 'maximum')).toThrow(RangeError);
+    expect(() => (1).toLocaleString('de-AT', { minimumFractionDigits: 0, maximumFractionDigits: 101 })).toThrow(RangeError);
   });
 });

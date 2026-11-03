@@ -91,7 +91,7 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
   /**
    * Asset-scope binding: the `id` of an entity selector whose selection scopes
    * this widget's stream-data query. The selector resolves its picked entity to
-   * a set of source rtIds (via its `childScope` one-hop, or the picked entity
+   * a set of source rtIds (via its `childScope` hop or path, or the picked entity
    * itself when no childScope is configured); those rtIds are passed as the
    * query's `streamDataArgs.rtIds`, replacing the persisted RtIds at execution
    * time. Absent ⇒ the query runs with its persisted scope. Ignored for runtime
@@ -371,14 +371,18 @@ export interface KpiWidgetConfig extends WidgetConfig {
   staticValue?: string;
   /** Comparison text displayed below the value in trend color (e.g., '+3,1% vs. Vorwoche'). Supports ${variables}. */
   comparisonText?: string;
+  /** Fixed number of fraction digits (integer 0-3) for a numeric value; unset or invalid: two digits for a fractional value, none for a whole number. */
+  decimalPlaces?: number;
   /**
    * Scale factor applied to a NUMERIC query value before display (non-numeric
-   * values pass through unchanged). Use case: cumulated energy from uniformly
-   * sampled power — a stream-data SUM aggregation over kW samples taken every
-   * 10 s becomes kWh with `valueMultiplier: 10/3600 ≈ 0.0027778` (the factor is
-   * window-independent because SUM is linear, so the KPI stays correct for any
-   * dashboard time-filter range). Negate to display signed magnitudes (e.g.
-   * battery discharge from a `< 0`-filtered SUM).
+   * values and null pass through unchanged). Energy KPIs (AB#7921): bind the KPI
+   * to a stream-data aggregation query with an `Integral` column
+   * (`queryValueField: 'importpower_integral'`) — the Integral is in value × hours
+   * over the board's time window, whatever the sampling rate of the site — and use
+   * the factor only as the unit factor: `1` for kW → kWh, `0.001` for W → kWh.
+   * Do not use `SUM × interval/3600` (e.g. `10/3600`): it is only correct for
+   * strictly uniform rows and is off for sites that write every 5 s or on change.
+   * Negate to display signed magnitudes (e.g. battery discharge).
    */
   valueMultiplier?: number;
   /**
@@ -435,6 +439,42 @@ export interface TableWidgetConfig extends WidgetConfig {
   filters?: TableFilterConfig[];
   pageSize?: number;
   sortable?: boolean;
+  /**
+   * Row action handled by the host app (AB#7728), e.g. "Details" opening a dialog for the row.
+   * Offered only when the host provides `MESHBOARD_TABLE_ROW_ACTION_HANDLER`; absent = no action.
+   */
+  rowAction?: TableRowActionConfig;
+  /**
+   * Marker columns (AB#7728): the cell of `field` shows an icon with tooltip when its value is a
+   * number above zero, and stays empty otherwise. Works for configured and query-derived columns.
+   */
+  valueMarkers?: TableValueMarkerConfig[];
+  /**
+   * Column fields offered to the host's `MESHBOARD_LABEL_RESOLVER` whatever their type (AB#7728):
+   * string and number cells, the value as text. Without it only strings of text columns that are
+   * untyped or ENUM are offered. Works for configured and query-derived columns.
+   */
+  labelFields?: string[];
+}
+
+/** Row action of a table widget (AB#7728). */
+export interface TableRowActionConfig {
+  /** Label of the action: tooltip, menu text and accessible name (e.g. "Details"). */
+  label: string;
+}
+
+/** Marker of a table column (AB#7728): icon + tooltip when the numeric cell value is above zero. */
+export interface TableValueMarkerConfig {
+  /** Column field the marker replaces (attribute path / query column). */
+  field: string;
+  /** Tooltip and accessible name of the marker (e.g. "Contains manual values"). */
+  tooltip: string;
+  /** Icon name of the status icon set (`check-circle`, `exclamation-circle`, …); default `exclamation-circle`. */
+  icon?: string;
+  /** CSS colour of the icon; default the cell's text colour. */
+  color?: string;
+  /** Also show the value next to the icon (AB#7728); default false = icon only. */
+  showValue?: boolean;
 }
 
 export interface TableColumnStatusIconMapping {
@@ -443,9 +483,30 @@ export interface TableColumnStatusIconMapping {
   color?: string;
 }
 
+/**
+ * Display label of one raw cell value of a table column (AB#7655), e.g. `{ label: 'L2' }` for `2`.
+ */
+export interface TableColumnValueLabel {
+  /**
+   * Text shown instead of the raw value: one string for every language, or a text per culture
+   * code (`{ "de-AT": "gut", "en-GB": "good" }`) that follows the host language
+   * (`MESHBOARD_LANGUAGE`; exact culture, then language part). Without a match the raw value shows.
+   */
+  label: string | Record<string, string>;
+  /** Optional CSS text colour (e.g. `var(--kendo-color-success)`); without it the theme text colour applies. */
+  color?: string;
+}
+
 export interface TableColumn {
   field: string;
+  /** Header text; the fallback when `titles` has no text for the host language. */
   title: string;
+  /**
+   * Header text per culture code (AB#7655), e.g. `{ "de-AT": "Datenqualität", "en-GB": "Data quality" }`.
+   * Picked for the host language (`MESHBOARD_LANGUAGE` / `provideMeshBoard({ language })`): exact
+   * culture, then a key equal to the language part (`de`), then `title`. No host language = `title`.
+   */
+  titles?: Record<string, string>;
   width?: number;
   dataType?: string;
   /**
@@ -455,6 +516,15 @@ export interface TableColumn {
    */
   format?: string;
   statusMapping?: Record<string, TableColumnStatusIconMapping>;
+  /**
+   * Labels for raw cell values (AB#7655), keyed by the value as string (`"1"`, `"2"`, `"3"`); a
+   * number `2` and a string `"2"` both match `"2"`. The cell shows the label as plain text (with the
+   * optional colour); a value without a label keeps the column's `dataType` / `format` rendering,
+   * `null` / missing is an empty cell. When no label applies for the current language the column
+   * renders as without `valueLabels`. Wins over `MESHBOARD_LABEL_RESOLVER`. Not supported together
+   * with `statusMapping` (the labels are shown, a console warning is logged).
+   */
+  valueLabels?: Record<string, TableColumnValueLabel>;
 }
 
 /**
@@ -508,6 +578,17 @@ export interface GaugeWidgetConfig extends WidgetConfig {
   queryCategoryValue?: string;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /**
+   * How the value is obtained, as on the KPI (AB#7950). `'formula'` computes it from
+   * {@link formula} over MeshBoard variables (the data source stays `{ type: 'static' }`);
+   * `'value'` or absent uses the data source.
+   */
+  valueMode?: KpiValueMode;
+  /**
+   * Formula over MeshBoard variables, e.g. `max(0, min(100, (1 - ${import} / ${consumption}) * 100))`.
+   * Used when `valueMode` is `'formula'`; the result must be a number.
+   */
+  formula?: string;
 }
 
 /**
@@ -629,7 +710,26 @@ export interface BarChartWidgetConfig extends WidgetConfig {
   colorThresholds?: BarChartColorThreshold[];
   /** Default bar color when value exceeds all thresholds */
   defaultBarColor?: string;
+  /**
+   * Series from other stream-data queries and formula series, drawn after the primary query's
+   * series and matched per category value (AB#7953). Same model as the line chart
+   * ({@link LineChartSeriesDefinition}); query series carry their own
+   * {@link LineChartQuerySeries.categoryField}. `stacked` is ignored (the chart type stacks).
+   * Omitted when empty, so a single-query chart encodes exactly as before.
+   */
+  additionalSeries?: BarChartSeriesDefinition[];
+  /**
+   * Display options of the primary query's series as a group (AB#7953): `visible` and, since
+   * AB#8046, `missingValues`. Omitted when default.
+   */
+  primarySeries?: Pick<LineChartSeriesDisplayOptions, 'visible' | 'missingValues'>;
 }
+
+/**
+ * An additional series of a bar chart (AB#7953): the line chart series model, aligned per
+ * category value instead of per time bucket.
+ */
+export type BarChartSeriesDefinition = LineChartSeriesDefinition;
 
 /**
  * Color threshold for conditional bar coloring.
@@ -687,6 +787,143 @@ export interface LineChartWidgetConfig extends WidgetConfig {
   valueAxisTitle?: string;
   /** Horizontal reference/threshold lines displayed on the value axis */
   referenceLines?: ChartReferenceLine[];
+  /**
+   * Series from other stream-data queries, plotted after the primary query's series on one
+   * time grid (AB#7951). Their order is the legend and stacking order. Omitted when empty, so a
+   * single-query chart encodes exactly as before.
+   */
+  additionalSeries?: LineChartSeriesDefinition[];
+  /**
+   * Stack the series of an area chart in their order (primary series first, then
+   * {@link additionalSeries}). Ignored for line charts. Omitted when `false`.
+   */
+  stacked?: boolean;
+  /**
+   * Display options of the primary query's series as a group (AB#7952): hidden, or drawn as a line
+   * over the stack of a stacked area chart. Omitted when both are default (visible, stacked).
+   */
+  primarySeries?: LineChartSeriesDisplayOptions;
+  /**
+   * Fixed bucket size in minutes (AB#8046): one of {@link LINE_CHART_BUCKET_MINUTES}. The window is
+   * snapped to whole buckets in the board's time zone, every source is downsampled with
+   * `(to - from) / bucket` buckets, and the chart shows one category per bucket of the window
+   * (a 15-minute day has 96 buckets, the DST day 2026-10-25 has 100). Omitted: the bucket count
+   * follows the chart width, as before.
+   */
+  bucketMinutes?: number;
+}
+
+/** Fixed bucket sizes of a line chart in minutes (AB#8046). All divide one hour, so they stay on the wall-clock grid across DST changes. */
+export const LINE_CHART_BUCKET_MINUTES: readonly number[] = [1, 5, 10, 15, 30, 60];
+
+/**
+ * How a series fills a bucket (or category) without a value (AB#8046):
+ * - `gap` (default, omitted): no value — a gap in a line, no bar (AB#7951 gap rule).
+ * - `zero`: 0. An empty selector scope (the site has no such device) gives a series of zeros.
+ * - `carryForward`: the last known value of the series (step / LOCF), for signals written on
+ *   change; the line chart looks back {@link LineChartSeriesDisplayOptions.carryForwardLookbackMinutes}
+ *   before the window for the value at its start.
+ *
+ * Filled values are used for display and as formula operands. Buckets after "now" stay gaps.
+ */
+export type SeriesMissingValues = 'gap' | 'zero' | 'carryForward';
+
+/** Line style of a series drawn as a line (AB#8046). */
+export type SeriesDashType = 'solid' | 'dash' | 'dot';
+
+/**
+ * Per-series display options (AB#7952, AB#8046). All are omitted when default, so a chart that
+ * does not use them encodes exactly as before.
+ */
+export interface LineChartSeriesDisplayOptions {
+  /**
+   * `false`: the series is not drawn and not in the legend, but stays usable as formula operand.
+   */
+  visible?: boolean;
+  /**
+   * `false`: in a stacked area chart the series is not stacked but drawn as a line over the stack.
+   * Ignored when the chart does not stack.
+   */
+  stacked?: boolean;
+  /**
+   * Filling of buckets without a value (AB#8046); query series and the primary series only.
+   * Omitted = `gap`.
+   */
+  missingValues?: SeriesMissingValues;
+  /**
+   * Line chart, `missingValues: 'carryForward'` (AB#8046): how far before the window the value at
+   * the window start is looked up, in minutes. Default {@link DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES}; 0 = no look-back.
+   */
+  carryForwardLookbackMinutes?: number;
+  /**
+   * Series colour (AB#8046): a CSS colour (`#c77700`), a custom property (`--brand-pv` or
+   * `var(--brand-pv, #c77700)`) or a status name (`success` …). Omitted = the series palette.
+   * Not used for the primary series (one per group value).
+   */
+  color?: string;
+  /** Line style when the series is drawn as a line (AB#8046). Omitted = solid. */
+  dashType?: SeriesDashType;
+  /**
+   * Bar chart only (AB#8046): draw this series as a line over the bars (column chart types; a
+   * horizontal bar chart cannot mix lines).
+   */
+  asLine?: boolean;
+  /** Bar chart only, with {@link asLine} (AB#8046): plot the line on a second value axis on the right. */
+  secondaryAxis?: boolean;
+}
+
+/** Default look-back of `carryForward` in minutes (one day, AB#8046). */
+export const DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES = 1440;
+
+/**
+ * A line chart series that does not come from the primary data source (AB#7951), discriminated by
+ * `kind`: a series of its own stream-data query, or a formula over other series (AB#7952). The bar
+ * chart (AB#7953) can reuse the same shape.
+ */
+export type LineChartSeriesDefinition = LineChartQuerySeries | LineChartFormulaSeries;
+
+/**
+ * A series computed per time bucket from other series of the same chart (AB#7952), e.g.
+ * `min(${pv} - ${gridExport} - ${batteryCharge}, ${consumption})`. Operands are the keys of the
+ * other additional series (query or formula); the primary query's series are not operands. A null
+ * operand or a non-finite result makes the bucket a gap.
+ */
+export interface LineChartFormulaSeries extends LineChartSeriesDisplayOptions {
+  kind: 'formula';
+  /** Stable key, same rules as {@link LineChartQuerySeries.key}; other formulas reference it. */
+  key: string;
+  /** Legend label; the key when absent. */
+  label?: string;
+  /** Formula with `${key}` operands, evaluated by the board formula evaluator (expr-eval). */
+  formula: string;
+}
+
+/**
+ * A series read from its own stream-data query (AB#7951): one line per source, scoped by its
+ * own entity selector, aligned with all other series on the widget's time grid.
+ */
+export interface LineChartQuerySeries extends LineChartSeriesDisplayOptions {
+  kind: 'query';
+  /**
+   * Stable key, unique within the widget; letters, digits and `_`, starting with a letter or `_`.
+   * Formula series (AB#7952) reference a series by this key.
+   */
+  key: string;
+  /** Legend label; the key when absent. */
+  label?: string;
+  /**
+   * The stream-data query of this series with its own time-filter opt-out, entity-selector scope
+   * and resolution-aware routing (same fields as the primary data source; `aggregateSeriesByGroup`
+   * is ignored — one source is one series).
+   */
+  dataSource: PersistentQueryDataSource;
+  /** Numeric column plotted for this series (doubles as the resolver's source path). */
+  valueField: string;
+  /**
+   * Bar chart only (AB#7953): column whose value is the category of a row; rows of all sources
+   * are matched by this value. Ignored by the line chart (it aligns on the time grid).
+   */
+  categoryField?: string;
 }
 
 /**
@@ -722,9 +959,22 @@ export type HeatmapColorScheme = 'green' | 'redGreen' | 'blue' | 'heat';
 export type HeatmapColorMode = 'gradient' | 'threshold';
 
 /**
- * Client-side aggregation function for simple queries
+ * Client-side aggregation function for simple queries.
+ * `weightedAvg` (AB#7956): cell = Σ valueField / Σ weightField, for rollup archives that store a
+ * mean as a sum column plus a count column; a cell without rows is empty, not 0.
  */
-export type HeatmapAggregation = 'count' | 'sum' | 'avg';
+export type HeatmapAggregation = 'count' | 'sum' | 'avg' | 'weightedAvg';
+
+/**
+ * Widget-level relative time window of a heatmap (AB#7956), e.g. the last 30 days.
+ * Overrides the board time filter for this widget's stream-data query.
+ */
+export interface HeatmapTimeWindow {
+  /** Number of units, a positive integer */
+  value: number;
+  /** Unit of the window */
+  unit: RelativeTimeUnit;
+}
 
 
 /**
@@ -743,10 +993,25 @@ export interface HeatmapWidgetConfig extends WidgetConfig {
   /** Optional end-of-interval field (e.g. timeRange.to). When set, the interval width is auto-detected
    *  and sub-hour columns are shown (e.g. 00-15, 15-30, 30-45, 45-60 for 15-min data). */
   dateEndField?: string;
-  /** Field containing the numeric value to aggregate (for sum/avg) */
+  /** Field containing the numeric value to aggregate (for sum/avg; the sum column for weightedAvg) */
   valueField?: string;
   /** Client-side aggregation function for simple queries */
   aggregation: HeatmapAggregation;
+  /** `weightedAvg` only: the weight (count) column; cell = Σ valueField / Σ weightField (AB#7956) */
+  weightField?: string;
+  /**
+   * The date field marks the END of a bucket (rollup archives) (AB#7956). Each row is shifted back by
+   * {@link bucketWidthMinutes} to its bucket start before hour/day bucketing, so the last bucket of an
+   * hour stays in that hour. Ignored when {@link dateEndField} is set.
+   */
+  timestampIsBucketEnd?: boolean;
+  /** Bucket width in minutes for {@link timestampIsBucketEnd} (e.g. 5 for a 5-min rollup) */
+  bucketWidthMinutes?: number;
+  /**
+   * Own relative time window (AB#7956). When set, it overrides the board time filter for this
+   * widget's stream-data query, and the widget shows the window in a badge. Unset = board filter.
+   */
+  timeWindow?: HeatmapTimeWindow;
   /** Color scheme for the heatmap (used in `gradient` color mode) */
   colorScheme: HeatmapColorScheme;
   /** Coloring mode — relative `gradient` (default) or absolute `threshold` bands */
@@ -1215,8 +1480,8 @@ export interface RecentItemsWidgetConfig extends WidgetConfig {
 
 // Process Widget Config is defined in the process-widget module
 // Re-exported here for AnyWidgetConfig union
-import type { ProcessWidgetConfig, DiagramPropertyMapping } from '../widgets/process-widget/process-widget-config.model';
-export type { ProcessWidgetConfig, DiagramPropertyMapping };
+import type { ProcessWidgetConfig, DiagramPropertyMapping, ProcessWidgetBinding, ProcessValueAggregate, ProcessConnectionDirection } from '../widgets/process-widget/process-widget-config.model';
+export type { ProcessWidgetConfig, DiagramPropertyMapping, ProcessWidgetBinding, ProcessValueAggregate, ProcessConnectionDirection };
 
 export type AnyWidgetConfig =
   | EntityCardWidgetConfig
@@ -1409,21 +1674,45 @@ export interface EntitySelectorAttributeMapping {
 }
 
 /**
- * One-hop association traversal that turns a selected entity into the set of
- * source rtIds a stream-data widget should be scoped to.
+ * One association hop of a multi-hop child scope (AB#7723): from the entities
+ * reached so far (the picked entity for the first hop) over `roleId` in
+ * `direction` to the entities of `targetCkTypeId`.
+ */
+export interface EntitySelectorScopeHop {
+  /** Association role of this hop (e.g. "System/ParentChild"). */
+  roleId: string;
+  /** Traversal direction; defaults to `'in'` (see {@link EntitySelectorChildScope.direction}). */
+  direction?: 'in' | 'out';
+  /** CK type of the entities this hop reaches; the source type of the next hop. */
+  targetCkTypeId: string;
+}
+
+/**
+ * Association traversal that turns a selected entity into the set of source
+ * rtIds a stream-data widget should be scoped to.
  *
  * Use case: the user picks a `MeteringPoint`, but the stream-data archive is
  * keyed by its child `EnergyMeasurement` rtIds. The childScope describes that
- * single hop (target type + association role + direction); the selected
- * entity's children of `targetCkTypeId` reached via `roleId` become the scope
- * rtIds. When a selector has no childScope, the picked entity's own rtId is the
- * scope (direct keying).
+ * hop (target type + association role + direction); the selected entity's
+ * children of `targetCkTypeId` reached via `roleId` become the scope rtIds.
+ * When a selector has no childScope, the picked entity's own rtId is the scope
+ * (direct keying).
+ *
+ * Two forms (AB#7723):
+ * - **One hop** — the top-level `targetCkTypeId` / `roleId` / `direction`. This
+ *   is the original form; the editor keeps writing one-hop scopes this way, so
+ *   older library versions keep reading them.
+ * - **Path** — `path`, an ordered list of 2 to {@link MAX_SCOPE_HOPS} hops
+ *   (A → B → C). The source type of hop n is the target type of hop n-1; the
+ *   scope is the distinct rtIds reached by the last hop. When `path` is present
+ *   (non-empty) it wins and the top-level fields are ignored; the editor then
+ *   omits them.
  */
 export interface EntitySelectorChildScope {
-  /** CK type of the child entities that key the stream-data archive (e.g. EnergyMeasurement). */
-  targetCkTypeId: string;
-  /** Association role linking the selected entity to the children (e.g. "System/ParentChild"). */
-  roleId: string;
+  /** CK type of the child entities that key the stream-data archive (e.g. EnergyMeasurement). One-hop form. */
+  targetCkTypeId?: string;
+  /** Association role linking the selected entity to the children (e.g. "System/ParentChild"). One-hop form. */
+  roleId?: string;
   /**
    * Traversal direction from the selected (parent) entity to its children.
    * For `System/ParentChild` the child owns the association to its parent, so
@@ -1431,6 +1720,37 @@ export interface EntitySelectorChildScope {
    * `'out'` only for custom roles modelled parent → child.
    */
   direction?: 'in' | 'out';
+  /**
+   * Ordered multi-hop path (AB#7723). Wins over the top-level fields when
+   * non-empty. At most {@link MAX_SCOPE_HOPS} hops; a longer path, or a hop
+   * without role or target type, makes the scope fail (no data plus notice).
+   */
+  path?: EntitySelectorScopeHop[];
+}
+
+/** Maximum number of hops of a child-scope path, enforced by editor and runtime (AB#7723). */
+export const MAX_SCOPE_HOPS = 5;
+
+/**
+ * Scope source of a dependent selector (AB#7915): the selector's picker lists
+ * only the entities reached from the leader's current pick through `path`.
+ *
+ * - `selectorId` — the leader: another selector of the same board that is
+ *   neither a follower (`followsSelectorId`) nor itself dependent. One level
+ *   only, like AB#7722 followers.
+ * - `path` — 1 to {@link MAX_SCOPE_HOPS} hops (the AB#7723 hop shape) from the
+ *   leader's CK type to this selector's CK type. Always a path, also for a
+ *   single hop (no one-hop shorthand).
+ *
+ * The picker sends the distinct rtIds at the end of the path as GraphQL field
+ * filter `rtId IN (…)`, AND-combined with the picker filter (AB#7724) and the
+ * text search. See `utils/entity-selector-scope-source.ts`.
+ */
+export interface EntitySelectorScopeSource {
+  /** Id of the leader selector. */
+  selectorId: string;
+  /** Hops from the leader's CK type to this selector's CK type (1–{@link MAX_SCOPE_HOPS}). */
+  path: EntitySelectorScopeHop[];
 }
 
 /**
@@ -1451,11 +1771,48 @@ export interface EntitySelectorConfig {
   /** Optional pre-selected entity rtId */
   defaultRtId?: string;
   /**
-   * Optional one-hop traversal that resolves the picked entity to the child
-   * source rtIds a stream-data widget scopes by. Absent ⇒ the picked entity's
+   * Optional traversal (one hop, or a multi-hop `path` — AB#7723) that resolves
+   * the picked entity to the source rtIds a stream-data widget scopes by. Absent ⇒ the picked entity's
    * own rtId is the scope. See {@link EntitySelectorChildScope}.
    */
   childScope?: EntitySelectorChildScope;
+  /**
+   * Optional id of the selector this one follows (AB#7722). A follower has no
+   * picker of its own and is never written to or read from the URL: it takes
+   * the leader's current pick as its picked entity (its `ckTypeId` is the
+   * leader's) and resolves its own `childScope` and `attributeMappings` from it.
+   * Its `defaultRtId` is used only while the leader has no pick. One level only:
+   * a leader cannot itself be a follower. An unknown or chained leader is
+   * treated as "leader has no pick" (plus a console warning).
+   * See `utils/entity-selector-follow.ts`.
+   */
+  followsSelectorId?: string;
+  /**
+   * Optional picker filter (AB#7724): attribute filter rows on `ckTypeId`,
+   * combined with AND, the same type and variable substitution as widget
+   * filters (`MeshBoardVariableService.convertToFieldFilterDto`). The toolbar
+   * dropdown, its search dialog and the editor's default-entity picker send
+   * the rows as GraphQL `fieldFilter` (server side); the picker's text search
+   * is one more AND row. Absent or empty ⇒ the picker lists every entity of
+   * `ckTypeId`, as before.
+   *
+   * The filter affects the listing only: a `defaultRtId` or a URL pick that
+   * does not match is still applied (the editor warns about a non-matching
+   * `defaultRtId`). Followers have no picker; the editor writes no filter for
+   * them and a follower's filter is ignored at runtime.
+   * See `utils/entity-selector-filter.ts`.
+   */
+  filters?: WidgetFilterConfig[];
+  /**
+   * Optional scope source (AB#7915): makes this selector *dependent* on a
+   * leader selector. While the leader has a pick, the toolbar dropdown and its
+   * search dialog list only the entities reached from that pick through
+   * `path` (server side, `rtId IN`). Without a leader pick the picker lists as
+   * if no scope source were set. A failed or invalid scope lists nothing — it
+   * never falls back to the full list. Followers ignore it.
+   * See {@link EntitySelectorScopeSource}.
+   */
+  scopeSource?: EntitySelectorScopeSource;
   /** Current selection (transient, not persisted) */
   selectedRtId?: string;
   /** Display name of the currently selected entity */

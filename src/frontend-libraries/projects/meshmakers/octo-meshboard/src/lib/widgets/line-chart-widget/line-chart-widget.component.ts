@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LineChartWidgetConfig, PersistentQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
+import { DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES, LineChartQuerySeries, LineChartWidgetConfig, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
@@ -9,9 +9,27 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { CkRollupFunctionDto, FieldFilterDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
-import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
+import { streamDataRowFieldValue } from '../../utils/stream-data-row-fields';
 import { injectChartTheme } from '../../utils/chart-theme';
+import { alignOnTimeGrid, TimeGridSourceInput } from '../../utils/time-grid-alignment';
+import { alignOnFixedGrid, FixedBucketWindow, lastValue, snapWindowToBuckets } from '../../utils/series-options';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
+import {
+  composeChartSeries,
+  ComposedChartSeries,
+  isCompleteFormulaSeries,
+  isCompleteQuerySeries,
+  isSourceHintShown,
+  LineChartSourceHint,
+  LineChartSourceProblem,
+  PRIMARY_SOURCE_KEY,
+  primaryRowsToSeries,
+  queryRowsToSeries,
+  querySeriesLabel,
+  uniqueCategoryLabels
+} from './line-chart-multi-source';
 
 /** Series colours so a series' min/max band and its avg line share one hue. */
 const SERIES_PALETTE = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
@@ -36,6 +54,36 @@ interface LineSeriesData {
   unit?: string;
   axisName?: string;
   color?: string;
+  /** Multi-source path (AB#7952): stacked with the other stacked series. */
+  stacked?: boolean;
+  /** Multi-source path (AB#7952): drawn as a line over the stack of a stacked area chart. */
+  asLine?: boolean;
+  /** Multi-source path (AB#8046): line style of a series drawn as a line. */
+  dashType?: SeriesDashType;
+}
+
+export type { LineChartSourceHint } from './line-chart-multi-source';
+
+/** One source of a multi-source load (AB#7951): the primary data source or a query series. */
+interface MultiSourceEntry {
+  key: string;
+  label: string;
+  dataSource: PersistentQueryDataSource;
+  valueField: string;
+  primary: boolean;
+}
+
+/** Outcome of the preparation step of one source: the resolution-aware routing, if any. */
+interface PreparedSource {
+  timeArgs: { from?: Date; to?: Date } | undefined;
+  rtIds: string[] | undefined;
+  resolutionAware?: {
+    resolution: SeriesResolutionResult | null;
+    ckTypeId: string | null;
+    scopeRtIds: string[] | undefined;
+    from: Date;
+    to: Date;
+  };
 }
 
 /**
@@ -76,6 +124,15 @@ interface ValueAxisConfig {
               {{ info.rows }} rows · {{ info.points }} pts@if (resolutionHint(); as hint) {<span class="rl-flag"> · {{ hint.text }}</span>}
             </span>
           }
+        }
+        @if (sourceHints().length > 0) {
+          <ul class="source-hints" aria-live="polite">
+            @for (hint of sourceHints(); track hint.text) {
+              <li class="source-hint" [class.error]="hint.kind === 'error'" [class.warn]="hint.kind === 'misaligned' || hint.kind === 'dependency'">
+                @if (hint.kind !== 'noData') {<span aria-hidden="true">⚠ </span>}{{ hint.text }}
+              </li>
+            }
+          </ul>
         }
         @if (showResolutionInfo() && resolutionExplanation(); as msg) {
           <div class="resolution-info">
@@ -148,13 +205,16 @@ interface ValueAxisConfig {
                 </kendo-chart-series-item>
               }
               <kendo-chart-series-item
-                [type]="chartType()"
+                [type]="series.asLine ? 'line' : chartType()"
                 [style]="'smooth'"
                 [data]="series.data"
                 [name]="series.name"
                 [axis]="series.axisName ?? ''"
                 [color]="series.color"
-                [opacity]="0.7"
+                [opacity]="series.asLine ? 1 : 0.7"
+                [stack]="series.stacked ?? stackSeries()"
+                [missingValues]="missingValues()"
+                [dashType]="series.dashType ?? 'solid'"
                 [markers]="{ visible: config.showMarkers ?? false }">
               </kendo-chart-series-item>
             }
@@ -177,9 +237,16 @@ interface ValueAxisConfig {
             <ng-template kendoChartSharedTooltipTemplate let-category="category" let-points="points">
               <div class="chart-tooltip">
                 <strong>{{ category }}</strong>
-                @for (point of points; track point.series.name) {
-                  @if (!isBandSeries(point.series.name)) {
-                    <br/>{{ point.series.name }}: {{ formatValue(point.value) }}{{ getUnitForSeries(point.series.name) }}
+                @if (isMultiSource()) {
+                  <!-- Multi-source (AB#7952): every drawn series, a gap as "–" (Kendo leaves gap points out of points). -->
+                  @for (row of tooltipRows(category); track row.name) {
+                    <br/>{{ row.name }}: {{ row.text }}
+                  }
+                } @else {
+                  @for (point of points; track point.series.name) {
+                    @if (!isBandSeries(point.series.name)) {
+                      <br/>{{ point.series.name }}: {{ formatValue(point.value) }}{{ getUnitForSeries(point.series.name) }}
+                    }
                   }
                 }
               </div>
@@ -286,6 +353,35 @@ interface ValueAxisConfig {
       margin: 0;
     }
 
+    /* Per-source hints of a multi-source chart (AB#7951), top-left so they never hide the badge. */
+    .source-hints {
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      z-index: 2;
+      max-width: calc(100% - 140px);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-size: 0.7rem;
+      line-height: 1.4;
+      color: var(--kendo-color-subtle, #6c757d);
+    }
+
+    .source-hint {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .source-hint.error {
+      color: var(--kendo-color-error, #dc3545);
+    }
+
+    .source-hint.warn {
+      color: var(--kendo-color-warning, #b8860b);
+    }
+
     .line-chart-widget.loading,
     .line-chart-widget.error {
       opacity: 0.7;
@@ -347,6 +443,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   ]);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
   @Input() config!: LineChartWidgetConfig;
 
@@ -377,6 +474,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   readonly valueAxes = this._valueAxes.asReadonly();
   readonly error = this._error.asReadonly();
   readonly dataInfo = this._dataInfo.asReadonly();
+  // Per-source hints of a multi-source chart (AB#7951); always empty for a single-query chart.
+  private readonly _sourceHints = signal<LineChartSourceHint[]>([]);
+  readonly sourceHints = this._sourceHints.asReadonly();
 
   /**
    * Resolution-aware hint (AB#4290): a short badge describing the archive-selection outcome —
@@ -519,6 +619,51 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     return this.config?.chartType ?? 'line';
   });
 
+  /**
+   * Stacking (AB#7951): only an area chart with `stacked` stacks; the series stack in their order
+   * (primary series first, then `additionalSeries`). `false` is Kendo's default, so an existing
+   * chart stacks exactly as before (not at all).
+   */
+  stackSeries(): boolean {
+    return !!this.config?.stacked && this.chartType() === 'area';
+  }
+
+  /**
+   * Kendo `missingValues` (AB#7951), always set explicitly. A stacked or multi-source chart uses
+   * `'gap'`: a bucket without data is a gap, never drawn or stacked as 0 and never bridged.
+   * Single-query unstacked charts get exactly Kendo's defaults — `'interpolate'` for a line,
+   * `'zero'` for an area series — so they render as before.
+   */
+  missingValues(): 'gap' | 'interpolate' | 'zero' {
+    if (this.stackSeries() || this.hasAdditionalSeries()) return 'gap';
+    return this.chartType() === 'area' ? 'zero' : 'interpolate';
+  }
+
+  /** Whether the chart reads series from more than its primary query (AB#7951) or has formula series (AB#7952). */
+  hasAdditionalSeries(): boolean {
+    return (this.config?.additionalSeries ?? []).some(s => isCompleteQuerySeries(s) || isCompleteFormulaSeries(s));
+  }
+
+  /** Whether the last load went through the multi-source path (aligned grid, AB#7951/AB#7952). */
+  private readonly _multiSource = signal(false);
+  readonly isMultiSource = this._multiSource.asReadonly();
+
+  /**
+   * Shared tooltip rows of the multi-source path (AB#7952): one row per drawn series for the
+   * hovered category; a gap (null) shows "–".
+   */
+  tooltipRows(category: string): { name: string; text: string }[] {
+    const index = this._categories().indexOf(category);
+    if (index < 0) return [];
+    return this._seriesData().map(s => {
+      const value = s.data[index];
+      return {
+        name: s.name,
+        text: value === null || value === undefined ? '–' : `${this.formatValue(value)}${this.getUnitForSeries(s.name)}`
+      };
+    });
+  }
+
   readonly labelRotation = computed(() => {
     const categoryCount = this._categories().length;
     return categoryCount > 5 ? -45 : 0;
@@ -623,6 +768,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   private async loadData(): Promise<void> {
     if (this.isNotConfigured()) return;
+    this._multiSource.set(this.hasAdditionalSeries());
+    if (this.hasAdditionalSeries()) {
+      await this.loadMultiSource();
+      return;
+    }
+    this._sourceHints.set([]);
 
     const queryDataSource = this.config.dataSource as PersistentQueryDataSource;
 
@@ -630,13 +781,29 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     this._error.set(null);
 
     try {
+      // Entity-selector scope (AB#7721): pending → stay in the loading state and
+      // send no query (the view refreshes once the scope is known); empty → render
+      // the empty chart without querying the persisted (unscoped) scope.
+      const scope = this.stateService.resolveStreamDataScope(queryDataSource.entitySelectorId, queryDataSource.queryFamily, queryDataSource.ignoreTimeFilter);
+      if (scope.kind === 'pending') {
+        return;
+      }
+      if (scope.kind === 'empty') {
+        this._resolutionSignal.set(null);
+        this._resolutionTarget.set(null);
+        this.processData([], false);
+        this._dataInfo.set({ rows: 0, points: 0, total: 0 });
+        this._isLoading.set(false);
+        return;
+      }
+
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
 
       // Resolution-aware routing (AB#4290): let the server pick the archive/rollup for the visible
       // window + target point count, then downsample each source series against it. Requires a
       // stream-data query, a resolved time range, and a value field (which doubles as the series'
       // source path — the resolver matches it against the rollup's aggregation spec, case-insensitively).
-      const timeArgs = this.stateService.resolveStreamDataTimeArgs(queryDataSource.ignoreTimeFilter);
+      const timeArgs = this.streamDataTimeArgs(queryDataSource.ignoreTimeFilter);
       if (queryDataSource.resolutionAware && queryDataSource.queryFamily === 'streamData'
           && this.config.valueField && timeArgs?.from && timeArgs?.to) {
         const sourceRtIds = this.stateService.resolveStreamDataRtIds(queryDataSource.entitySelectorId);
@@ -663,7 +830,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       const result = await firstValueFrom(
         this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
           fieldFilter: fieldFilter ?? undefined,
-          streamDataArgs
+          streamDataArgs,
+          // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+          scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
         }).pipe(
           catchError(err => {
             console.error('Error loading Line Chart data:', err);
@@ -834,9 +1003,319 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     };
   }
 
+  /**
+   * Multi-source load (AB#7951): the primary data source plus every complete query series, each
+   * with its own scope, time-filter opt-out and resolution-aware routing, aligned on one time grid.
+   *
+   * 1. Scope: any source pending → stay loading, no query; an empty scope → the source has no
+   *    series and a "No data for <source>" hint.
+   * 2. Prepare: resolution-aware sources resolve their rollup rung.
+   * 3. Common bucket count: the smallest of the pixel-derived target and every resolved
+   *    `points` (= the coarsest effective bucket). Every source is downsampled with this count over
+   *    the same window, so all of them use the same bucket width.
+   * 4. Fetch all sources in parallel; one failing source gives an error hint, the others render.
+   * 5. {@link alignOnTimeGrid}: shared categories, gaps as null, misaligned sources left out with a hint.
+   */
+  private async loadMultiSource(): Promise<void> {
+    const primaryDs = this.config.dataSource as PersistentQueryDataSource;
+    const sources: MultiSourceEntry[] = [
+      {
+        key: PRIMARY_SOURCE_KEY,
+        label: primaryDs.queryName?.trim() || 'Primary query',
+        dataSource: primaryDs,
+        valueField: this.config.valueField,
+        primary: true
+      },
+      ...(this.config.additionalSeries ?? [])
+        .filter(isCompleteQuerySeries)
+        .map((def: LineChartQuerySeries) => ({
+          key: def.key,
+          label: querySeriesLabel(def),
+          dataSource: def.dataSource,
+          valueField: def.valueField,
+          primary: false
+        }))
+    ];
+
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    const scopes = sources.map(s =>
+      this.stateService.resolveStreamDataScope(s.dataSource.entitySelectorId, s.dataSource.queryFamily, s.dataSource.ignoreTimeFilter));
+    if (scopes.some(s => s.kind === 'pending')) {
+      return;
+    }
+
+    try {
+      const hints: LineChartSourceHint[] = [];
+      const definitions = this.config.additionalSeries ?? [];
+      // Hidden sources and zero-filled empty sources give no chart-level hint (AB#8046).
+      const pushHint = (sourceKey: string, hint: LineChartSourceHint): void => {
+        if (isSourceHintShown(sourceKey, hint.kind, definitions, this.config.primarySeries)) hints.push(hint);
+      };
+      const problems = new Map<string, { label: string; problem: LineChartSourceProblem }>();
+      const active: MultiSourceEntry[] = [];
+      sources.forEach((source, i) => {
+        if (scopes[i].kind === 'empty') {
+          pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+          problems.set(source.key, { label: source.label, problem: 'noData' });
+        } else {
+          active.push(source);
+        }
+      });
+
+      const prepared = await Promise.allSettled(active.map(s => this.prepareSource(s)));
+
+      let limit = this.computeDownsampleLimit();
+      const targetPoints = limit;
+      let signal: SeriesResolutionResult | null = null;
+      for (const p of prepared) {
+        const resolution = p.status === 'fulfilled' ? p.value.resolutionAware?.resolution : null;
+        if (resolution) {
+          limit = Math.min(limit, Math.max(1, resolution.points));
+          signal ??= resolution;
+        }
+      }
+
+      const fetched = await Promise.allSettled(active.map((source, i) => {
+        const p = prepared[i];
+        return p.status === 'fulfilled'
+          ? this.fetchSource(source, p.value, limit)
+          : Promise.reject(p.reason);
+      }));
+
+      // carryForward (AB#8046): the last value before the window is the start value of the series.
+      const fixed = this.fixedBucketWindow();
+      const seeds = await this.loadCarryForwardSeeds(active, prepared, limit, fixed);
+
+      const gridSources: TimeGridSourceInput[] = [];
+      let rowCount = 0;
+      fetched.forEach((f, i) => {
+        const source = active[i];
+        if (f.status === 'rejected') {
+          console.error(`Error loading Line Chart source "${source.label}":`, f.reason);
+          pushHint(source.key, { kind: 'error', sourceLabel: source.label, text: `${source.label}: ${this.errorMessage(f.reason)}` });
+          problems.set(source.key, { label: source.label, problem: 'error' });
+          return;
+        }
+        rowCount += f.value.rows.length;
+        const series = source.primary
+          ? primaryRowsToSeries(f.value.rows, this.config, f.value.downsampled)
+          : [queryRowsToSeries(f.value.rows, source.label, source.valueField, f.value.downsampled)];
+        const withData = series.filter(s => s.points.size > 0);
+        if (withData.length === 0) {
+          pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+          problems.set(source.key, { label: source.label, problem: 'noData' });
+          return;
+        }
+        gridSources.push({ sourceKey: source.key, sourceLabel: source.label, series: withData });
+      });
+
+      // Fixed bucket size (AB#8046): the grid is every bucket of the snapped window; otherwise it
+      // is derived from the data (AB#7951).
+      const grid = fixed ? alignOnFixedGrid(gridSources, fixed) : alignOnTimeGrid(gridSources);
+      for (const m of grid.misaligned) {
+        pushHint(m.sourceKey, {
+          kind: 'misaligned',
+          sourceLabel: m.sourceLabel,
+          text: `${m.sourceLabel}: its buckets do not match the chart's time grid and are not shown`
+        });
+        problems.set(m.sourceKey, { label: m.sourceLabel, problem: 'misaligned' });
+      }
+
+      // Formula series, per-series visibility and stacking (AB#7952).
+      const composed = composeChartSeries({
+        gridSeries: grid.series,
+        length: grid.instants.length,
+        definitions,
+        primary: this.config.primarySeries,
+        stackedChart: this.stackSeries(),
+        sourceProblems: problems,
+        evaluator: this.expressionEvaluator,
+        instants: grid.instants,
+        seeds
+      });
+      hints.push(...composed.hints);
+
+      this.applyAlignedGrid(grid.instants, composed.series);
+      this._sourceHints.set(hints);
+      this._resolutionSignal.set(signal);
+      this._resolutionTarget.set(signal ? targetPoints : null);
+      this.lastLimit = limit;
+      this._dataInfo.set({ rows: rowCount, points: grid.instants.length, total: rowCount });
+      this._isLoading.set(false);
+    } catch (err) {
+      console.error('Error loading Line Chart data:', err);
+      this._error.set('Failed to load data');
+      this._dataInfo.set(null);
+      this._resolutionSignal.set(null);
+      this._sourceHints.set([]);
+      this._isLoading.set(false);
+    }
+  }
+
+  /**
+   * Start values of `carryForward` query series (AB#8046): for each such series one extra
+   * downsampling request over `[from - lookback, from)` with the chart's bucket width; the last
+   * non-null bucket is the value at the window start. A failed look-back only means no start value.
+   */
+  private async loadCarryForwardSeeds(
+    active: readonly MultiSourceEntry[],
+    prepared: readonly PromiseSettledResult<PreparedSource>[],
+    limit: number,
+    fixed: FixedBucketWindow | null
+  ): Promise<Map<string, number | null>> {
+    const seeds = new Map<string, number | null>();
+    const definitions = this.config.additionalSeries ?? [];
+    await Promise.all(active.map(async (source, i) => {
+      if (source.primary) return;
+      const def = definitions.find(d => d.kind === 'query' && d.key === source.key);
+      const p = prepared[i];
+      if (def?.missingValues !== 'carryForward' || p.status !== 'fulfilled') return;
+      const lookbackMs = Math.max(0, def.carryForwardLookbackMinutes ?? DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES) * 60_000;
+      const range = p.value.resolutionAware ?? p.value.timeArgs;
+      if (!lookbackMs || !range?.from || !range?.to) return;
+      const from = range.from;
+      const bucketMs = fixed?.bucketMs ?? Math.max(1, (range.to.getTime() - from.getTime()) / Math.max(1, limit));
+      const lookbackLimit = Math.min(4000, Math.max(1, Math.ceil(lookbackMs / bucketMs)));
+      const lookbackFrom = new Date(from.getTime() - lookbackLimit * bucketMs);
+      const shifted: PreparedSource = {
+        ...p.value,
+        timeArgs: { from: lookbackFrom, to: from },
+        resolutionAware: p.value.resolutionAware ? { ...p.value.resolutionAware, from: lookbackFrom, to: from } : undefined
+      };
+      try {
+        const rows = await this.fetchSource(source, shifted, lookbackLimit);
+        seeds.set(source.key, lastValue(queryRowsToSeries(rows.rows, source.label, source.valueField, rows.downsampled).points));
+      } catch (err) {
+        console.warn(`Line Chart: no start value for "${source.label}" (look-back failed):`, err);
+      }
+    }));
+    return seeds;
+  }
+
+  /** Resolution-aware sources resolve their rung first (step 2 of {@link loadMultiSource}). */
+  private async prepareSource(source: MultiSourceEntry): Promise<PreparedSource> {
+    const ds = source.dataSource;
+    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter);
+    const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
+    if (!(ds.resolutionAware && ds.queryFamily === 'streamData' && source.valueField && timeArgs?.from && timeArgs?.to)) {
+      return { timeArgs, rtIds };
+    }
+    const info = await this.queryExecutor.fetchQueryArchive(ds.queryRtId);
+    if (!info) {
+      throw new Error('base archive not found for the selected query');
+    }
+    const scopeRtIds = rtIds && rtIds.length > 0 ? rtIds : (info.rtIds ?? undefined);
+    const resolution = await this.queryExecutor.resolveSeriesQuery({
+      baseArchiveRtId: info.archiveRtId,
+      from: timeArgs.from,
+      to: timeArgs.to,
+      targetPoints: this.computeDownsampleLimit(),
+      requiredAggregation: (ds.requiredAggregation ?? 'SUM') as CkRollupFunctionDto,
+      sourcePath: source.valueField,
+      rtIds: scopeRtIds,
+      timeZone: this.stateService.resolveStreamDataTimeZone()
+    });
+    return {
+      timeArgs,
+      rtIds,
+      resolutionAware: { resolution, ckTypeId: info.ckTypeId, scopeRtIds, from: timeArgs.from, to: timeArgs.to }
+    };
+  }
+
+  /** Fetches one source with the common bucket count (step 4 of {@link loadMultiSource}). */
+  private async fetchSource(
+    source: MultiSourceEntry,
+    prepared: PreparedSource,
+    limit: number
+  ): Promise<{ rows: QueryResultRow[]; downsampled: boolean }> {
+    const ds = source.dataSource;
+    // Widget filters belong to the primary query's type; query series run unfiltered.
+    const fieldFilter = source.primary ? this.convertFiltersToDto(this.config.filters) ?? undefined : undefined;
+
+    const ra = prepared.resolutionAware;
+    if (ra) {
+      const resolution = ra.resolution;
+      if (!resolution) return { rows: [], downsampled: true };
+      const downsample = (rtIds: string[] | undefined, label: string): Promise<QueryResultRow[]> =>
+        this.queryExecutor.downsampleByArchive({
+          archiveRtId: resolution.archiveRtId,
+          from: ra.from,
+          to: ra.to,
+          limit,
+          sourcePath: source.valueField,
+          aggregation: resolution.reducingFunction,
+          rtIds: rtIds && rtIds.length > 0 ? rtIds : undefined,
+          fieldFilter
+        }).then(rows => source.primary
+          ? rows.map(r => this.reshapeResolutionRow(r, label))
+          // The transient row's one value column is named after the reducer (`<field>_min` for MIN …);
+          // re-emit it under the series' value field so no reducer suffix is mistaken for a band.
+          : rows.map(r => ({ ...r, cells: [{ attributePath: source.valueField, value: r.cells.find(c => c.attributePath.toLowerCase() !== 'timestamp')?.value ?? null }] })));
+
+      if (!source.primary) {
+        // One source = one series: a single call over the whole scope, reduced server-side.
+        return { rows: await downsample(ra.scopeRtIds, source.label), downsampled: true };
+      }
+      const rows = ds.aggregateSeriesByGroup && ra.ckTypeId
+        ? await this.loadGroupAggregatedRows(ra.ckTypeId, ra.scopeRtIds, downsample)
+        : await this.loadPerRtIdRows(ra.ckTypeId, ra.scopeRtIds, downsample);
+      return { rows, downsampled: true };
+    }
+
+    const scope = this.stateService.resolveStreamDataScope(ds.entitySelectorId, ds.queryFamily, ds.ignoreTimeFilter);
+    const timeArgs = prepared.timeArgs;
+    const downsampled = ds.queryFamily === 'streamData' && !!timeArgs?.from && !!timeArgs?.to;
+    const streamDataArgs: StreamDataExecutionArgs | undefined = downsampled
+      ? { ...timeArgs, rtIds: prepared.rtIds, limit, queryMode: QueryModeDto.DownsamplingDto }
+      : (timeArgs || prepared.rtIds ? { ...timeArgs, rtIds: prepared.rtIds } : undefined);
+    const result = await firstValueFrom(this.queryExecutor.execute(ds.queryFamily, ds.queryRtId, {
+      fieldFilter,
+      streamDataArgs,
+      scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
+    }));
+    const rows = result.rows.filter(row => LineChartWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? ''));
+    return { rows, downsampled };
+  }
+
+  /** Writes aligned series into the chart signals (multi-source path, AB#7951). */
+  private applyAlignedGrid(instants: number[], series: ComposedChartSeries[]): void {
+    const mode = this.stateService.timeZoneMode();
+    const days = new Set(instants.map(t => formatInstant(new Date(t), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '?'));
+    const needsTime = days.size < instants.length;
+    const categories = uniqueCategoryLabels(instants, d => needsTime ? this.formatDateTime(d) : this.formatDate(d));
+
+    const unitMap = new Map<string, string>();
+    const seriesData: LineSeriesData[] = series.map((s, index) => {
+      if (s.unit) unitMap.set(s.name, s.unit);
+      return {
+        name: s.name,
+        data: s.data,
+        unit: s.unit,
+        color: s.color ?? SERIES_PALETTE[index % SERIES_PALETTE.length],
+        stacked: s.stacked,
+        asLine: s.asLine,
+        dashType: s.dashType
+      };
+    });
+
+    this._categories.set(categories);
+    this._seriesData.set(seriesData);
+    // One value axis: series of different queries share it (per-unit axes stay a single-query feature).
+    this._valueAxes.set([]);
+    this._seriesUnitMap.set(unitMap);
+  }
+
+  /** Short message of a failed source for its hint. */
+  private errorMessage(reason: unknown): string {
+    const message = reason instanceof Error ? reason.message : typeof reason === 'string' ? reason : '';
+    return message ? `Failed to load data (${message})` : 'Failed to load data';
+  }
+
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;
@@ -851,10 +1330,33 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   }
 
   /**
+   * The board window snapped to the fixed bucket size (AB#8046), `null` without `bucketMinutes`, without
+   * a time range or for an invalid size. `ignoreTimeFilter` sources have no window and get `null`.
+   */
+  private fixedBucketWindow(ignoreTimeFilter?: boolean): FixedBucketWindow | null {
+    const minutes = this.config?.bucketMinutes;
+    if (!minutes) return null;
+    const range = this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter);
+    if (!range?.from || !range?.to) return null;
+    return snapWindowToBuckets(range.from, range.to, minutes, this.stateService.timeZoneMode());
+  }
+
+  /**
+   * Stream-data window of a source: the board window, snapped to whole buckets when the chart has a
+   * fixed bucket size (AB#8046), so `(to - from) / limit` is exactly the bucket size.
+   */
+  private streamDataTimeArgs(ignoreTimeFilter?: boolean): { from: Date; to: Date } | undefined {
+    const fixed = this.fixedBucketWindow(ignoreTimeFilter);
+    return fixed ? { from: fixed.from, to: fixed.to } : this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter);
+  }
+
+  /**
    * Bucket count for backend downsampling, sized to the rendered width (~1 bucket / 2 px),
    * clamped to [50, 4000]. Falls back to 1500 before the host has a measured width.
    */
   private computeDownsampleLimit(): number {
+    const fixed = this.fixedBucketWindow();
+    if (fixed) return fixed.count;
     const width = (this.elementRef.nativeElement as HTMLElement)?.offsetWidth ?? 0;
     const effective = width > 50 ? width : 1500;
     return Math.min(4000, Math.max(50, Math.round(effective / 2)));
@@ -902,14 +1404,24 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
             else if (lower.endsWith('_max')) maxValue = this.toNumber(cell.value);
             else lineValue = this.toNumber(cell.value); // _avg (or an unsuffixed value)
           } else {
-            const val = cell.value;
-            lineValue = typeof val === 'number' ? val : parseFloat(String(val));
-            if (isNaN(lineValue)) lineValue = 0;
+            // Exact cell first, so a null `<field>_integral` never overrides a usable `<field>`.
+            const val = (findCellForField(row.cells, valueField) ?? cell).value;
+            if (val === null || val === undefined) {
+              // No data (e.g. an Integral over an empty bucket, AB#7975): no point, not 0.
+              lineValue = null;
+            } else {
+              lineValue = typeof val === 'number' ? val : parseFloat(String(val));
+              if (isNaN(lineValue)) lineValue = 0;
+            }
           }
         } else if (unitField && matchesAttributePath(path, unitField)) {
           unitValue = String(cell.value ?? '');
         }
       }
+
+      // Stream-data rows carry time stamp and source entity as row properties, not cells (AB#8069).
+      if (!categoryValue) categoryValue = rowFieldText(row, categoryField);
+      if (!seriesGroupValue) seriesGroupValue = rowFieldText(row, seriesGroupField);
 
       if (categoryValue && seriesGroupValue) {
         // Parse date for sorting. toInstant treats a naive wire timestamp (no zone designator)
@@ -1041,4 +1553,11 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const variables = this.stateService.getVariables();
     return this.variableService.convertToFieldFilterDto(filters, variables);
   }
+}
+
+/** Text of a stream-data row field (`timestamp` / `rtId`, AB#8069), '' when the field is none or empty. */
+function rowFieldText(row: QueryResultRow, field: string): string {
+  const value = streamDataRowFieldValue(row, field);
+  if (value === null || value === undefined) return '';
+  return value instanceof Date ? value.toISOString() : String(value);
 }

@@ -8,6 +8,7 @@ import { MeshBoardPersistenceService } from '../../services/meshboard-persistenc
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { KpiWidgetConfig, MeshBoardConfig } from '../../models/meshboard.models';
+import { NON_FINITE_FORMULA_REASON } from '../../utils/meshboard-formula';
 
 describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => {
   let fixture: ComponentFixture<KpiWidgetComponent>;
@@ -98,10 +99,29 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
   });
 
   it('shows the error of an invalid formula', () => {
-    render(kpi({ valueMode: 'formula', formula: '${a} / 0' }));
+    render(kpi({ valueMode: 'formula', formula: '${a} *' }));
 
     expect(component.formulaError()).toBeTruthy();
     expect(text()).toContain(component.formulaError() as string);
+  });
+
+  it('shows "-" with the reason as tooltip for a non-finite result, no error (AB#7950)', () => {
+    render(kpi({ valueMode: 'formula', formula: '${a} / 0', outputVariableName: 'ratio' }));
+
+    expect(component.formulaError()).toBeNull();
+    expect(component.value()).toBe('-');
+    expect(component.valueTooltip()).toBe(NON_FINITE_FORMULA_REASON);
+    const value = (fixture.nativeElement as HTMLElement).querySelector('.kpi-value');
+    expect(value?.textContent?.trim()).toBe('-');
+    expect(value?.getAttribute('title')).toBe(NON_FINITE_FORMULA_REASON);
+    expect(stateService.getVariable('ratio')).toBeUndefined();
+  });
+
+  it('has no tooltip for a finite result (AB#7950)', () => {
+    render(kpi({ valueMode: 'formula', formula: '${a} / 2' }));
+
+    const value = (fixture.nativeElement as HTMLElement).querySelector('.kpi-value');
+    expect(value?.hasAttribute('title')).toBe(false);
   });
 
   it('publishes the raw value as output variable', () => {
@@ -200,5 +220,427 @@ describe('KpiWidgetComponent — formula and output variables (AB#5364)', () => 
     render(kpi({ staticValue: '${a}' }));
 
     expect(component.rawValue()).toBe('5000');
+  });
+
+  function groupChildValue(value: unknown, decimalPlaces?: number): KpiWidgetConfig {
+    return kpi({
+      valueAttribute: 'value',
+      decimalPlaces,
+      dataSource: {
+        type: 'static',
+        data: { rtId: 'e', ckTypeId: 'T', attributes: [{ attributeName: 'value', value }], associations: [] }
+      }
+    });
+  }
+
+  describe('strict number parsing with decimalPlaces (AB#7686)', () => {
+    const plain = (shown: string): string => shown.replace(/[\u00a0\u202f]/g, ' ');
+    const cases: [string, string, string][] = [
+      ['12 kWh', '12 kWh', '12'],
+      ['2024-05-01T10:00:00Z', '2024-05-01T10:00:00Z', '2 024'],
+      ['1e3', '1 000,0', '1 000'],
+      [' 12 ', '12,0', '12'],
+      ['-', '-', '-'],
+      ['n/a', 'n/a', 'n/a'],
+      ['12,5', '12,5', '12'],
+      ['  ', '  ', '  '],
+      ['Infinity', 'Infinity', '∞']
+    ];
+
+    for (const [input, withDecimals, unset] of cases) {
+      it(`shows "${input}" as "${withDecimals}" with 1 decimal and as before when unset`, () => {
+        render(kpi({ staticValue: input, decimalPlaces: 1 }));
+        expect(plain(component.value())).toBe(withDecimals);
+
+        render(kpi({ staticValue: input }));
+        expect(plain(component.value())).toBe(unset);
+      });
+    }
+
+    it('shows an empty value as a dash', () => {
+      render(kpi({ staticValue: '', decimalPlaces: 1 }));
+      expect(component.value()).toBe('-');
+    });
+
+    it('formats numbers given as numbers with 0 to 3 digits', () => {
+      const digits = ['12', '12,3', '12,35', '12,346'];
+      for (let decimalPlaces = 0; decimalPlaces <= 3; decimalPlaces++) {
+        render(groupChildValue(12.3456, decimalPlaces));
+        expect(component.value()).toBe(digits[decimalPlaces]);
+      }
+    });
+
+    async function renderQueryCell(cellValue: unknown, overrides: Partial<KpiWidgetConfig>): Promise<void> {
+      queryExecutor.execute.mockReturnValue(of({
+        totalCount: 1,
+        columns: [],
+        rows: [{ __typename: 'RtAggregationQueryRow', cells: [{ attributePath: 'amount_sum', value: cellValue }] }]
+      }));
+      render(kpi({
+        dataSource: { type: 'persistentQuery', queryRtId: 'q-1' },
+        queryMode: 'aggregation',
+        queryValueField: 'amount_sum',
+        ...overrides
+      }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('keeps a query cell text with decimalPlaces and parses it leniently when unset', async () => {
+      await renderQueryCell('12 kWh', { decimalPlaces: 1 });
+      expect(plain(component.value())).toBe('12 kWh');
+
+      await renderQueryCell('12 kWh', {});
+      expect(plain(component.value())).toBe('12');
+    });
+
+    it('applies the multiplier to a numeric query cell given as text with decimalPlaces', async () => {
+      await renderQueryCell('9418.39', { decimalPlaces: 1, valueMultiplier: 2 });
+      expect(plain(component.value())).toBe('18 836,8');
+    });
+  });
+
+  describe('widget-group child with entity data (AB#7686)', () => {
+    function groupChild(value: unknown, overrides: Partial<KpiWidgetConfig> = {}): KpiWidgetConfig {
+      return kpi({
+        valueAttribute: 'value',
+        labelAttribute: 'name',
+        dataSource: {
+          type: 'static',
+          data: {
+            rtId: 'entity-1',
+            ckTypeId: 'TestType',
+            attributes: [
+              { attributeName: 'value', value },
+              { attributeName: 'name', value: 'Machine 1' }
+            ],
+            associations: []
+          }
+        },
+        ...overrides
+      });
+    }
+
+    it('shows the value from the entity data', () => {
+      render(groupChild(38.9));
+      expect(component.value()).toBe('38,90');
+
+      render(groupChild(46));
+      expect(component.value()).toBe('46');
+    });
+
+    it('applies decimalPlaces to the entity value', () => {
+      render(groupChild(38.9, { decimalPlaces: 1 }));
+      expect(component.value()).toBe('38,9');
+      expect(text()).toContain('38,9');
+
+      render(groupChild(46, { decimalPlaces: 1 }));
+      expect(component.value()).toBe('46,0');
+    });
+
+    it('shows the label from labelAttribute', () => {
+      render(groupChild(46));
+
+      expect(component.label()).toBe('Machine 1');
+    });
+
+    it('shows a dash when the value attribute is missing', () => {
+      render(groupChild(46, { valueAttribute: 'missing' }));
+
+      expect(component.value()).toBe('-');
+    });
+
+    it('keeps the static value path for a KPI without entity data', () => {
+      render(kpi({ staticValue: '${a}', decimalPlaces: 1 }));
+
+      expect(component.rawValue()).toBe('5000');
+      expect(component.value()).toMatch(/^5\D?000,0$/);
+    });
+  });
+
+  describe('decimalPlaces (AB#7686)', () => {
+    it('shows exactly the configured number of fraction digits', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('38,9');
+    });
+
+    it('rounds to the configured number of fraction digits', () => {
+      render(kpi({ staticValue: '52.649', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('52,6');
+    });
+
+    it('pads a whole number to the configured number of fraction digits', () => {
+      render(kpi({ staticValue: '46', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('46,0');
+    });
+
+    it('pads zero to the configured number of fraction digits', () => {
+      render(kpi({ staticValue: '0', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('0,0');
+    });
+
+    it('shows no fraction digits when set to zero', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 0 }));
+
+      expect(component.value()).toBe('39');
+    });
+
+    it('applies to formula values', () => {
+      render(kpi({ valueMode: 'formula', formula: '${b} / ${a} * 100', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('40,0');
+    });
+
+    it('keeps two fraction digits for a decimal value when unset', () => {
+      render(kpi({ staticValue: '38.9' }));
+
+      expect(component.value()).toBe('38,90');
+    });
+
+    it('keeps no fraction digits for a whole number when unset', () => {
+      render(kpi({ staticValue: '46' }));
+
+      expect(component.value()).toBe('46');
+    });
+
+    it('keeps zero without fraction digits when unset', () => {
+      render(kpi({ staticValue: '0' }));
+
+      expect(component.value()).toBe('0');
+    });
+
+    it('falls back to the default for an invalid setting', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: -1 }));
+
+      expect(component.value()).toBe('38,90');
+    });
+
+    it('falls back to the default for a non-integer setting', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 1.5 }));
+
+      expect(component.value()).toBe('38,90');
+    });
+
+    it('falls back to the default for a setting above 3', () => {
+      render(kpi({ staticValue: '38.9', decimalPlaces: 4 }));
+
+      expect(component.value()).toBe('38,90');
+    });
+
+    it('accepts the upper limit of 3', () => {
+      render(kpi({ staticValue: '46', decimalPlaces: 3 }));
+
+      expect(component.value()).toBe('46,000');
+    });
+
+    it('shows a negative value that rounds to zero without a sign', () => {
+      render(kpi({ staticValue: '-0.04', decimalPlaces: 1 }));
+      expect(component.value()).toBe('0,0');
+
+      render(kpi({ staticValue: '-0.3', decimalPlaces: 0 }));
+      expect(component.value()).toBe('0');
+    });
+
+    it('shows a negative zero input without a sign', () => {
+      render(kpi({ staticValue: '-0', decimalPlaces: 1 }));
+      expect(component.value()).toBe('0,0');
+
+      render(kpi({ staticValue: '-0', decimalPlaces: 0 }));
+      expect(component.value()).toBe('0');
+    });
+
+    it('keeps the sign of a negative value that does not round to zero', () => {
+      render(kpi({ staticValue: '-3.25', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('-3,3');
+    });
+
+    it('shows positive zero with the configured digits', () => {
+      render(kpi({ staticValue: '0', decimalPlaces: 1 }));
+
+      expect(component.value()).toBe('0,0');
+    });
+
+    it('keeps the automatic format for a negative value when unset', () => {
+      render(kpi({ staticValue: '-0.04' }));
+
+      expect(component.value()).toBe('-0,04');
+    });
+
+    it('falls back to the default for extreme or invalid settings without an error', () => {
+      for (const decimalPlaces of [4, 6, 10, 20, 21, 100, 101, 1e21, Infinity, NaN]) {
+        render(kpi({ staticValue: '38.9', decimalPlaces }));
+        expect(component.value()).toBe('38,90');
+      }
+    });
+
+    it('formats extreme values with 0 to 3 digits without NaN or Infinity text', () => {
+      const values = ['1e21', '1e-7', '-1e21', String(Number.MAX_SAFE_INTEGER)];
+      for (const staticValue of values) {
+        for (let decimalPlaces = 0; decimalPlaces <= 3; decimalPlaces++) {
+          render(kpi({ staticValue, decimalPlaces }));
+          const shown = component.value();
+          expect(shown).not.toMatch(/NaN|Infinity/);
+          const fraction = decimalPlaces === 0 ? '' : `,[0-9]{${decimalPlaces}}`;
+          expect(shown).toMatch(new RegExp(`^-?[0-9 \u00a0\u202f]+${fraction}$`));
+        }
+      }
+      render(kpi({ staticValue: '1e-7', decimalPlaces: 3 }));
+      expect(component.value()).toBe('0,000');
+      render(kpi({ staticValue: '-1e-7', decimalPlaces: 1 }));
+      expect(component.value()).toBe('0,0');
+    });
+
+    it('leaves a missing value and text untouched', () => {
+      render(kpi({ staticValue: '', decimalPlaces: 1 }));
+      expect(component.value()).toBe('-');
+
+      render(kpi({ staticValue: 'n/a', decimalPlaces: 1 }));
+      expect(component.value()).toBe('n/a');
+    });
+  });
+
+  describe('entity-selector scope (AB#7721)', () => {
+    const scopedKpi = (): KpiWidgetConfig => kpi({
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-1', queryFamily: 'streamData', entitySelectorId: 'site' },
+      queryMode: 'aggregation',
+      outputVariableName: 'total'
+    });
+
+    it('shows no data and sends no query when the scope resolved to zero rtIds', async () => {
+      queryExecutor.execute.mockReturnValue(of({ totalCount: 10, rows: [], columns: [] }));
+      stateService.setEntitySelectorRtIds('site', []);
+      render(scopedKpi());
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
+      expect(component.isLoading()).toBe(false);
+      expect(component.value()).toBe('-');
+      expect(stateService.getVariable('total')).toBeUndefined();
+    });
+
+    it('shows no data and sends no query when the scope resolution failed', async () => {
+      stateService.setEntitySelectorScopeFailed('site');
+      render(scopedKpi());
+      await fixture.whenStable();
+
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
+      expect(component.value()).toBe('-');
+      expect(component.error()).toBeNull();
+    });
+
+    it('stays loading and sends no query while the scope is pending, then queries the resolved scope', async () => {
+      queryExecutor.execute.mockReturnValue(of({ totalCount: 3, rows: [], columns: [] }));
+      stateService.setEntitySelectorScopePending('site');
+      render(scopedKpi());
+      await fixture.whenStable();
+
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
+      expect(component.isLoading()).toBe(true);
+
+      stateService.setEntitySelectorRtIds('site', ['dev-1']);
+      component.refresh();
+      await fixture.whenStable();
+
+      expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
+      expect(queryExecutor.execute.mock.calls[0][2].streamDataArgs.rtIds).toEqual(['dev-1']);
+    });
+
+    it('keeps the persisted scope for a bound selector without pick', async () => {
+      queryExecutor.execute.mockReturnValue(of({ totalCount: 3, rows: [], columns: [] }));
+      render(scopedKpi());
+      await fixture.whenStable();
+
+      expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
+      expect(queryExecutor.execute.mock.calls[0][2].streamDataArgs?.rtIds).toBeUndefined();
+    });
+  });
+  describe('energy KPI over an Integral query (AB#7921)', () => {
+    const integralKpi = (overrides: Partial<KpiWidgetConfig> = {}): KpiWidgetConfig => kpi({
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-int', queryFamily: 'streamData', entitySelectorId: 'site' },
+      queryMode: 'aggregation',
+      queryValueField: 'importpower_integral',
+      valueMultiplier: 1,
+      suffix: ' kWh',
+      decimalPlaces: 2,
+      ...overrides
+    });
+
+    const integralResult = (value: unknown, withSum = false) => of({
+      totalCount: 1,
+      columns: [],
+      rows: [{
+        __typename: 'StreamDataQueryRow',
+        cells: [
+          ...(withSum ? [{ attributePath: 'importpower_sum', value: 7200 }] : []),
+          { attributePath: 'importpower_integral', value }
+        ]
+      }]
+    });
+
+    async function settle(): Promise<void> {
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('shows the integral of the board window and re-queries when the window changes', async () => {
+      const day1 = { from: new Date('2026-10-30T00:00:00Z'), to: new Date('2026-10-31T00:00:00Z') };
+      const day2 = { from: new Date('2026-10-31T00:00:00Z'), to: new Date('2026-11-01T00:00:00Z') };
+      const timeArgs = vi.spyOn(stateService, 'resolveStreamDataTimeArgs').mockReturnValue(day1);
+      queryExecutor.execute.mockReturnValue(integralResult(12.345, true));
+      render(integralKpi());
+      await settle();
+
+      expect(queryExecutor.execute.mock.calls[0][2].streamDataArgs).toMatchObject(day1);
+      expect(component.rawValue()).toBe(12.345);
+      expect(component.value()).toBe('12,35');
+
+      timeArgs.mockReturnValue(day2);
+      queryExecutor.execute.mockReturnValue(integralResult(3.5));
+      component.refresh();
+      await settle();
+
+      expect(queryExecutor.execute.mock.calls[1][2].streamDataArgs).toMatchObject(day2);
+      expect(component.value()).toBe('3,50');
+    });
+
+    it('applies the unit factor (0.001 for W to kWh)', async () => {
+      queryExecutor.execute.mockReturnValue(integralResult(2500));
+      render(integralKpi({ valueMultiplier: 0.001 }));
+      await settle();
+
+      expect(component.rawValue()).toBe(2.5);
+    });
+
+    it('shows the same configuration per site of the entity selector', async () => {
+      queryExecutor.execute.mockReturnValue(integralResult(4.2));
+      stateService.setEntitySelectorRtIds('site', ['site-5s']);
+      render(integralKpi());
+      await settle();
+      expect(component.value()).toBe('4,20');
+
+      queryExecutor.execute.mockReturnValue(integralResult(0.7));
+      stateService.setEntitySelectorRtIds('site', ['site-on-change']);
+      component.refresh();
+      await settle();
+
+      expect(queryExecutor.execute.mock.calls.at(-1)?.[2].streamDataArgs.rtIds).toEqual(['site-on-change']);
+      expect(component.value()).toBe('0,70');
+    });
+
+    it('shows the empty state, not 0, for an empty window (null integral)', async () => {
+      queryExecutor.execute.mockReturnValue(integralResult(null));
+      render(integralKpi({ outputVariableName: 'energy' }));
+      await settle();
+
+      expect(component.rawValue()).toBeNull();
+      expect(component.value()).toBe('-');
+      expect(stateService.getVariable('energy')).toBeUndefined();
+    });
   });
 });

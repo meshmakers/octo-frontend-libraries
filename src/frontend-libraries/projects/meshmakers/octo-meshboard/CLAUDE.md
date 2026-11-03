@@ -30,7 +30,7 @@ npm run lint:octo-meshboard
 
 ```
 src/lib/
-├── components/               # Shared components (VariablesEditor, EntitySelectorEditor, EntitySelectorToolbar)
+├── components/               # Shared components (VariablesEditor, EntitySelectorEditor, EntitySelectorToolbar, FormulaField)
 ├── containers/               # Main container components
 │   └── meshboard-view/       # MeshBoard view component
 ├── dialogs/                  # Dialog components
@@ -147,9 +147,15 @@ export class MyComponent {
 | `clearEntitySelectorVariables(selectorId)` | `void` | Clear variables for a selector |
 | `resolveCurrentTimeRange()` | `TimeRange \| null` | Resolve active time filter to `{from, to}` |
 | `resolveStreamDataTimeArgs(ignoreTimeFilter?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out |
-| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Cache the source rtIds resolved from a selector's selection (transient) |
-| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the cached source rtIds for a selector |
-| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Asset-scope binding: source rtIds for the bound selector, or `undefined` (no scope) |
+| `setHostTimeRange(state \| null, owner?)` / `clearHostTimeRange(owner)` / `hostTimeRange` | `void` / `void` / `Signal<HostTimeRangeState \| null>` | Period of the embedding host (`mm-meshboard-view [timeRange]`, AB#7582): transient, never persisted, owner-aware clearing (root service shared by views); while set and the filter is enabled `resolveCurrentTimeRange()` returns its exact instants |
+| `isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?)` | `boolean` | True while an invalid host period blocks a stream-data query bound to the time filter (AB#7582); `resolveStreamDataScope(id, family, ignoreTimeFilter)` then returns `empty`/`invalidTimeRange`; the process binding and the widget-group repeater check it directly |
+| `setEntitySelectorScopePending(selectorId)` | `void` | Mark a selector's scope as resolving (AB#7721) |
+| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Store the resolved source rtIds (transient); `[]` = resolved EMPTY scope |
+| `setEntitySelectorScopeFailed(selectorId)` | `void` | Mark a selector's scope resolution as failed (AB#7721) |
+| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the scope state (no pick → persisted scope) |
+| `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | Widget entry point: AB#7582 host gate first (stream data only, `empty`/`invalidTimeRange`; pass the widget's `ignoreTimeFilter`), then `resolveEntitySelectorScope` — see *Scope resolution contract* |
+| `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | Selector part only: `unscoped` / `pending` / `scoped` / `empty` for runtime and stream-data queries alike (AB#7721, AB#7725) |
+| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` — check `resolveStreamDataScope` first |
 
 ### MeshBoardGridService
 
@@ -316,14 +322,28 @@ interface PersistentQueryDataSource {
   queryName?: string;         // Display name
   queryFamily?: QueryFamily;  // 'runtime' | 'streamData' (derived when absent)
   ignoreTimeFilter?: boolean; // SD opt-out of the MeshBoard time-filter binding
-  entitySelectorId?: string;  // Asset-scope binding (stream-data) — see below
+  entitySelectorId?: string;  // Asset-scope binding (runtime + stream-data, AB#7725) — see below
 }
 ```
 
 #### Asset-scope binding (`entitySelectorId`)
 
-A stream-data widget can be scoped to a picked asset by naming an entity
-selector. Stream-data archives are keyed by their **source rtIds**, not by a
+A persistent-query widget — runtime or stream-data — can be scoped to a picked
+asset by naming an entity selector. The restriction always runs on the server,
+never by filtering a full result on the client:
+
+| Query family | How the resolved rtIds restrict the query |
+|---|---|
+| Stream data (simple, aggregation, grouping, downsampling) | `streamDataArgs.rtIds` → backend `StreamDataArguments.rtIds` override (replaces the persisted RtIds) |
+| Runtime (SimpleRtQuery, AggregationRtQuery, GroupingAggregationRtQuery, AB#7725) | field filter `rtId IN (rtIds)` (`FieldFilterOperatorsDto.InDto`), AND-combined with the widget's filters and the saved query's own filters; the backend applies all of them in the database query before aggregating, so grouping/aggregation results cover the scoped entities only |
+
+Widgets pass the scope as `QueryExecutionOptions.scopeRtIds`; `QueryExecutorService`
+picks the mechanism per family after it knows the family (also for a legacy config
+without `queryFamily`, which it looks up once). `QueryExecutorService.withRtIdScope`
+builds the runtime filter list. For stream data an explicit `streamDataArgs.rtIds`
+wins over `scopeRtIds` (both carry the same scope in the built-in widgets).
+
+Stream data in detail: Stream-data archives are keyed by their **source rtIds**, not by a
 parent column — so a field-filter on `$mp_rtId` can't scope an archive query.
 Instead the widget passes those source rtIds as the query's
 `streamDataArgs.rtIds`, which the backend `StreamDataArguments.rtIds` override
@@ -331,16 +351,84 @@ applies in place of the persisted RtIds.
 
 Resolution flow:
 1. The selector resolves its picked entity to source rtIds when the selection
-   changes — either the selector's `childScope` one-hop (e.g. a MeteringPoint →
-   its EnergyMeasurement rtIds) or, with no childScope, the picked entity's own
-   rtId. These are cached via `MeshBoardStateService.setEntitySelectorRtIds`.
-2. Each SD widget's `buildStreamDataArgs()` reads them with
-   `resolveStreamDataRtIds(entitySelectorId)` and merges them into
-   `streamDataArgs` alongside the time range.
+   changes — either the selector's `childScope` (one hop, e.g. a parent → its
+   child device rtIds, or a multi-hop `path`, AB#7723) or, with no childScope,
+   the picked entity's own rtId. The
+   view marks the scope `pending` first and stores the result via
+   `MeshBoardStateService.setEntitySelectorRtIds` (or `setEntitySelectorScopeFailed`).
+2. Each widget first asks `resolveStreamDataScope(entitySelectorId, queryFamily, ignoreTimeFilter)`
+   (AB#7582 host gate for stream data, then `resolveEntitySelectorScope`) and then,
+   for a `scoped` scope, passes the rtIds as `scopeRtIds` (and, for stream data,
+   merges `resolveStreamDataRtIds(entitySelectorId)` into `streamDataArgs`
+   alongside the time range).
 
-Configured per widget via the "Scope to entity selector" dropdown in the SD
-widget config dialogs (shown only for stream-data queries, like the time-filter
-toggle).
+#### Scope resolution contract (AB#7721)
+
+Per selector the state service keeps one transient `EntitySelectorScopeState`
+(`utils/stream-data-scope.ts`), cleared on every board switch:
+
+| State | Set by the view | `resolveStreamDataScope` | Bound widget |
+|---|---|---|---|
+| none | no pick (no route/URL pick, no `defaultRtId`), or pick cleared | `unscoped` | queries with the **persisted** scope (unchanged) |
+| `pending` | a pick starts resolving; every initial pick is primed right after a board loads, before change detection renders the widgets | `pending` | shows its **loading** state, sends **no query** |
+| `resolved`, ≥1 rtId | resolution done | `scoped` | queries with `streamDataArgs.rtIds` (unchanged) |
+| `resolved`, 0 rtIds | the pick has nothing in scope | `empty` / `noTargets` | shows its **no-data** state, sends **no query** |
+| `failed` | association fetch threw, or the picked entity was not found | `empty` / `failed` | as above; the view shows one notice per selector (*Could not resolve the scope of "<label>"*, `MeshBoardMessages.scopeResolutionFailed`) and logs the error once |
+| `needsPick` (AB#7916) | a dependent selector (or a follower of one without own pick) has no pick while its leader has one | `empty` / `noPick` | no data, no query; the view shows *Pick a <label> to see this data.* (`MeshBoardMessages.scopePickRequired`) — see *Dependent selectors* |
+
+Rules:
+- **Never fall back to the persisted scope for `pending` or `empty`.** The persisted
+  scope is usually the whole archive; a pick without e.g. a matching child would
+  otherwise show rows of other entities.
+- The contract is the same for runtime queries (AB#7725): a bound runtime widget is
+  pending / empty / scoped exactly like a stream-data widget, independent of
+  `queryFamily` (also when it is missing on a legacy config). Before AB#7725 runtime
+  queries ignored the binding.
+- Widgets reload only when their config reference changes, so the view calls
+  `triggerRefresh()` after the initial picks resolved and after every pick change.
+  A pending widget therefore never needs its own subscription. A widget that
+  (re)loads while the scope is pending (initial load, auto-refresh, time-filter
+  change) shows loading; on a pick change the previous content stays until the
+  refresh that follows the resolution — no query is sent in between.
+- Each pick resolution carries a per-selector sequence number; a slower resolution
+  of an earlier pick never overwrites the scope of a newer pick.
+- No-data rendering per widget: KPI / gauge show `-` (no output variable is published);
+  line / bar / pie / heatmap render the empty chart (`emptyQueryExecutionResult`); the
+  table lists no rows (pending: the fetch observable never emits, so the list stays
+  loading until the refresh cancels it); stats grid / summary card show `-` per cell
+  and send no query while the cell's scope is pending or empty (pending: the whole widget stays loading); the process binding gets no rows (pending: `BoundDataResult.pending`; the widget stays loading only while every binding is pending, AB#8023).
+- A custom widget that reads `resolveStreamDataRtIds` must check
+  `resolveStreamDataScope` first — `undefined` from `resolveStreamDataRtIds` is not
+  "query unscoped" for a pending or empty scope.
+
+Configured per widget via the "Scope to entity selector" dropdown
+(`mm-entity-selector-scope-picker`) in the config dialogs of table, bar chart,
+pie chart, KPI, gauge, line chart, heatmap, process and the per-cell editor of
+stats grid / summary card. It is shown as soon as a query of either family is
+selected (until AB#7725 only for stream-data queries); the time-filter toggle
+stays stream-data only. The binding is persisted as `entitySelectorId` in the
+widget config for both families and omitted when unset, so unbound widgets
+encode byte-identically.
+
+#### Integral (kWh) columns in widget config dialogs (AB#7921, AB#7975, AB#7985)
+
+A stream-data query with an `Integral` (or TimeWeightedAverage / StateDuration) column over a raw
+archive only runs with from/to. Config dialogs therefore never list stream-data columns with a bare
+`executeStreamData(rtId, { first: 1 })`; they call
+`QueryExecutorService.fetchStreamDataColumns(rtId, columnProbeWindow(stateService.resolveStreamDataTimeArgs()), options?)`
+(`utils/column-probe-window.ts`: the board window, else the last 24 hours). The executor tries the
+query's own window first and retries with the probe window when that fails or returns no columns.
+
+- The first attempt is sent with `silentErrors: true` (`OCTO_SILENT_ERRORS` context): its refusal is
+  expected and must not toast (AB#7985). Only the retry's error reaches `OctoErrorLink`.
+- Used by the KPI, gauge, table (`{ forceRefresh: true }`), bar, pie, line, heatmap and widget-group
+  dialogs. The gauge and KPI dialogs load the category values of a grouped query with
+  `executeWithProbeWindow(family, rtId, { first: 100 }, window)` — the same rule for any picker query
+  (runtime queries run once, unchanged). Spec: `widgets/widget-config-dialogs.integral-columns.spec.ts` (every dialog against the real
+  executor: board window, 24 h fallback, no toast for the probe).
+- A null cell is "no data", never 0: KPI / gauge `-`, bar chart no bar, pie chart no slice, line chart
+  no point (not 0), heatmap skips the row (count ignores the value). A real 0 stays 0; a missing cell keeps 0.
+  Spec: `widgets/integral-empty-window.widgets.spec.ts`.
 
 ### AggregationDataSource
 
@@ -367,9 +455,9 @@ interface AggregationQuery {
 
 | Type | Description | Data Sources |
 |------|-------------|--------------|
-| `kpi` | Single numeric value with optional trend. Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
-| `gauge` | Arc, Circular, Linear, or Radial gauge | runtimeEntity, persistentQuery, aggregation, static |
-| `barChart` | Bar/Column chart | persistentQuery, constructionKitQuery |
+| `kpi` | Single numeric value with optional trend. A `static` data source with `data` (widget-group children) reads `valueAttribute` from that entity data; without `data` the KPI shows `staticValue`. Optional `decimalPlaces` (integer number 0-3, normalised on load by `utils/kpi-decimal-places.ts`, anything else = automatic; an exact digit count, unlike the heatmap's maximum; also passed to widget-group KPI children) fixes the fraction digits of a numeric value, a negative value rounding to zero shows no sign (unset or invalid: two for a fractional value, none for a whole number; AB#7686). Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
+| `gauge` | Arc, Circular, Linear, or Radial gauge. **Formula mode** (`valueMode: 'formula'` + `formula`, static data source; AB#7950) computes the value from a formula over variables exactly like the KPI — see *Widget Output Variables and KPI Formulas*. The pointer is clamped to `min`/`max` (it stops at the scale end), the label shows the real value | runtimeEntity, persistentQuery, aggregation, static |
+| `barChart` | Bar/Column chart; series from several queries and formula series matched per category (AB#7953) — see *Bar chart: series from several queries* | persistentQuery, constructionKitQuery |
 | `pieChart` | Pie/Donut chart | persistentQuery, constructionKitQuery |
 | `table` | Data grid with pagination | persistentQuery |
 | `entityCard` | UML-style entity display | runtimeEntity |
@@ -378,11 +466,11 @@ interface AggregationQuery {
 | `serviceHealth` | Backend service health | serviceCall |
 | `statsGrid` | Multiple KPIs in a grid | aggregation, persistentQuery (per stat; runtime + stream-data) |
 | `summaryCard` | Compact data tiles | runtimeEntity, aggregation, persistentQuery (per tile; runtime + stream-data) |
-| `process` | Process diagram (HMI) | runtimeEntity, persistentQuery (runtime + stream-data) |
+| `process` | Process diagram (HMI); several named data bindings, each with its own entity selector (AB#8023) — see *Process Widget data bindings* | runtimeEntity, persistentQuery (runtime + stream-data) |
 | `markdown` | Static markdown content with themed styling | static |
 | `attentionList`, `adapterStatus`, `ckModelState`, `pipelineExecutions` | Cockpit widgets (AB#5558) — see *Cockpit Widgets* | none (static) |
 | `recentItems` | The viewer's recently opened places from the host (`COCKPIT_RECENT_ITEMS`, AB#5558) — see *Cockpit Widgets* | none (static) |
-| `heatmap` | Day × time-slot density grid (count/sum/avg per slot) | persistentQuery (runtime + stream-data) |
+| `heatmap` | Day × time-slot density grid (count/sum/avg/weightedAvg per slot, see *Heatmap rollups and own window*). Date: the cell matching `dateField`; for stream-data rows with `dateField` `timestamp` the row's top-level `timestamp` (stream-data cells hold only value columns, AB#7938) | persistentQuery (runtime + stream-data) |
 
 > **Heatmap color modes.** `HeatmapWidgetConfig.colorMode` selects how cells are
 > colored:
@@ -396,16 +484,47 @@ interface AggregationQuery {
 >   slot holds exactly one value per source. Falls back to gradient when no target
 >   can be resolved.
 
+> **Heatmap rollups and own window (AB#7956).** Pure helpers in
+> `widgets/heatmap-widget/heatmap-buckets.ts` (unit-tested):
+> - `aggregation: 'weightedAvg'` with `valueField` (sum column) and `weightField` (count column):
+>   cell = Σ sum / Σ count (`aggregateHeatmapEntries`); both fields resolve with `findCellForField`
+>   (exact name first), rows without a finite value or weight are skipped. An empty cell is `null`
+>   (transparent, no label, tooltip "No data"); for count/sum/avg an empty cell stays 0 as before,
+>   and `isEmptyCell` treats 0 as empty only for those.
+> - `timestampIsBucketEnd` + `bucketWidthMinutes`: rows move back by the width to their bucket start
+>   before bucketing (`heatmapBucketShiftMs`); ignored with `dateEndField`.
+> - Hour slots (`heatmapHourSlot`) follow the board time zone incl. DST: the repeated wall-clock
+>   hour of a fall-back day is its own y row `HH:00 (2)` (slot index `2 × hour + 1`), so the day has
+>   25 hours; ordinary days keep 24 rows.
+> - `timeWindow: { value, unit }` (`hours|days|weeks|months`): `resolveHeatmapTimeWindow` gives the
+>   rolling `{from, to}` (`TimeRangeUtils.getRelativeRange`, `from` floored to the full hour) that
+>   replaces `resolveStreamDataTimeArgs`; the scope check is then called with `ignoreTimeFilter`
+>   true (the AB#7582 host gate does not apply). Stream data only; the widget shows a
+>   `Last N <unit>` badge in its body (the tile header belongs to the view).
+> - Persistence omits all four keys when unset; an invalid stored window is dropped on load.
+
 > **Per-cell persistent queries (stats-grid / summary-card).** Each stat / tile can
 > draw its value from a persistent query instead of a runtime aggregation. The
 > query may be runtime or stream-data — switching is a configuration change
 > (`StatItem.persistentQuerySource` / `SummaryCardTile.persistentQuerySource`,
 > shape {@link PersistentQueryCellSource}). The shared
 > `mm-persistent-query-cell-editor` surfaces the query picker plus the SD-only
-> time-filter opt-out and entity-selector asset-scope (hidden for runtime
-> queries), exactly like the KPI/gauge widgets. Value extraction by `queryMode`
+> time-filter opt-out (hidden for runtime queries) and the entity-selector
+> asset-scope (both families, AB#7725), exactly like the KPI/gauge widgets. Value extraction by `queryMode`
 > (simpleCount / aggregation / groupedAggregation) is shared via
 > `utils/persistent-query-cell.ts`.
+
+> **Table row action and value markers (AB#7728).** `TableWidgetConfig.rowAction: { label }` is
+> offered as an `mm-list-view` row action (`rowActions` / `(rowAction)`, eye icon) only when the host
+> provides `MESHBOARD_TABLE_ROW_ACTION_HANDLER` (`utils/meshboard-table-row-action.ts`, same pattern as
+> `MESHBOARD_LABEL_RESOLVER`); the handler gets `{ widgetId, widgetTitle, meshBoardRtId, actionLabel, row }`.
+> `valueMarkers: [{ field, tooltip, icon?, color?, showValue? }]` renders the field's cells with
+> `TableValueMarkerCellComponent` (`dataType: 'component'`): icon + tooltip when
+> `isPositiveMarkerValue` (number / numeric string > 0), plus the value with `showValue`, empty otherwise — for configured and
+> query-derived columns. Both keys are written to the `Config` JSON only when set
+> (`parseTableRowExtras` drops foreign values) and edited in the table config dialog.
+> `labelFields: string[]` offers the named columns to `MESHBOARD_LABEL_RESOLVER` whatever their type
+> (string and number cells, `value` as text); `Config` JSON only, kept by a dialog save.
 
 ### Widget Configuration Interface
 
@@ -515,7 +634,7 @@ interface MeshBoardVariable {
 { attributePath: 'customerId', comparisonValue: '$customerId', operator: 'eq' }
 ```
 
-### Widget Output Variables and KPI Formulas (AB#5364)
+### Widget Output Variables and KPI Formulas (AB#5364, gauges AB#7950)
 
 **Output variables.** Any KPI widget (query, runtime entity, static or formula) can set
 `outputVariableName`. The widget then publishes its displayed **raw** value — for query
@@ -537,14 +656,40 @@ live in a `computed()` (no `loadData()`), using `utils/meshboard-formula.ts`:
 |---|---|
 | `rewriteFormula(formula)` | `${name}` / `$name` → safe identifier `__v_<name>` (no clash with built-ins like `max`, `E`) |
 | `validateFormula(formula, names, evaluator)` | Syntax + unknown variables (bare identifiers count as unknown) |
-| `evaluateFormula(formula, variables, evaluator)` | `ok` / `error` / `pending` (a referenced variable is missing or empty → the widget shows `-`) |
+| `evaluateFormula(formula, variables, evaluator)` | `ok` / `error` / `pending` (a referenced variable is missing or empty → the widget shows `-`) / `nonFinite` (see below) |
+| `requireNumericFormulaResult(result)` | Turns a string/boolean `ok` into the error *Result is not a number* (gauge) |
+| `validateFormulaField(formula, variables, declaredNames, evaluator)` | The ONE validation of the formula field: `validateFormula` against the variable names plus declared names |
+| `declaredFormulaVariableNames(widgets, selectors, excludeWidgetId)` | Names that exist without a value yet: other KPIs' outputs, entity-selector variables |
+| `formulaPreviewText(result)` | Preview text of the formula field |
 | `findVariableCycles(widgets)` | IDs of formula KPIs that depend on their own output, directly or indirectly |
 
 The evaluator is the `ExpressionEvaluatorService` of `@meshmakers/octo-process-diagrams`
 (expr-eval-fork): `+ - * / % ^`, parentheses, `min`, `max`, `abs`, `round`, `? :` plus the
 process-diagram helpers (`clamp`, `lerp`, …). Variable values are strings: numeric strings
-(dot as decimal separator) become numbers, `true`/`false` become booleans. A non-finite
-result (division by zero) is an error.
+(dot as decimal separator) become numbers, `true`/`false` become booleans.
+
+**Non-finite rule (AB#7950).** A result of `Infinity` or `NaN` (division by zero, e.g. PV = 0 at
+night) is status `nonFinite`, not an error: KPI and gauge show `-` with the reason
+(`NON_FINITE_FORMULA_REASON`) as tooltip on the value, and the KPI publishes no output value.
+Before AB#7950 it was the widget error state.
+
+**Gauge formulas (AB#7950).** `GaugeWidgetConfig.valueMode: 'formula'` + `formula`, data source
+`{ type: 'static' }`, evaluated live in a `computed()` like the KPI (no `loadData()`). The result must
+be a number (`requireNumericFormulaResult`); a gauge publishes no output variable, so it is never
+part of a cycle. What the gauge shows:
+
+| Situation | Gauge |
+|---|---|
+| referenced variable empty or not yet published | label `-`, pointer at the scale start, no error (linear gauge: label only) |
+| syntax / evaluation error | widget error state with the message |
+| non-finite result | label `-` with the reason as tooltip |
+| string / boolean result | error *Result is not a number* |
+| value outside `min`/`max` | pointer stops at the scale end (`pointerValue`), label shows the real value |
+
+Keep a percentage on its scale with the clamp pattern, e.g. Autarkie
+`max(0, min(100, (1 - ${import} / ${consumption}) * 100))`. Persistence: a formula gauge is written
+with `dataSourceType: 'static'` and `valueMode`/`formula` in the config; every other gauge keeps its
+encoding byte-identically, and switching away from Formula clears `valueMode`/`formula`.
 
 **Reactivity.** Formulas, the KPI comparison text and markdown content read
 `getVariables()` inside `computed()`s and update immediately. Query filters of other widgets
@@ -556,8 +701,18 @@ publishes nothing, so a cycle can never ping-pong values between widgets. A refe
 name is also a configured MeshBoard variable resolves to that variable (config wins) and
 therefore creates no dependency on the widget publishing the same name.
 
-**Config dialog.** A fourth data-source button **Formula** (formula field, syntax hint, list
-of available variables including other widgets' outputs, live validation and preview) and
+**Shared formula field (AB#7950).** `mm-meshboard-formula-field` (`components/formula-field/`,
+exported as `FormulaFieldComponent`) is the formula input of every config dialog: `[(formula)]`,
+`[variables]` (operands with their current values, drive the preview and the insert buttons),
+`[declaredNames]` (names known without a value), `[numericOnly]` (preview applies
+`requireNumericFormulaResult`), `[clampHint]` (shows the clamp pattern). It renders the hint, the
+validation message (`role="alert"`), the preview and the variable buttons; the label is linked to the
+input (`focusableId`) and the input is described by hint and message. Dialogs never re-implement the
+check: they call `validateFormulaField` with the same inputs for Save. The line chart formula
+series (AB#7952) reuse it with the series keys as variables and `[showPreview]="false"`; the optional
+inputs `variablesLabel`, `namesNoun`, `syntaxHint`, `emptyVariablesText` adapt the wording.
+
+**Config dialog.** A fourth data-source button **Formula** (the shared formula field above) and
 an **Output Variable** field for all modes (`isValidVariableName`, no clash with a config
 variable or another widget's output). Formula validation also accepts names that are declared
 but carry no value yet — other KPIs' `outputVariableName` (still loading, pending or in error)
@@ -572,6 +727,8 @@ Entity selectors populate MeshBoard variables from a selected entity's attribute
 
 - **Toolbar mode** (`showInToolbar: true`, default): Users select an entity from a dropdown in the toolbar
 - **Fixed mode** (`showInToolbar: false`): Variables are resolved from a pre-configured default entity (no UI)
+- **Follower** (`followsSelectorId` set, AB#7722): no UI; takes the pick of another (leader) selector — see *Leader/follower selectors*
+- **Dependent** (`scopeSource` set, AB#7915): keeps its own picker, which lists only the entities reached from the leader's pick — see *Dependent selectors*
 
 This unified mechanism replaces both the old "runtime entity variables" and the toolbar entity selector concepts.
 
@@ -587,7 +744,10 @@ interface EntitySelectorConfig {
   attributeMappings: EntitySelectorAttributeMapping[];
   showInToolbar?: boolean;     // Show in toolbar (default: true). If false, uses defaultRtId
   defaultRtId?: string;       // Pre-selected entity (required when showInToolbar=false)
-  childScope?: EntitySelectorChildScope; // One-hop scope for stream-data widgets (see below)
+  childScope?: EntitySelectorChildScope; // One hop or a multi-hop path for stream-data widgets (see below)
+  followsSelectorId?: string; // Leader selector id (AB#7722) — see *Leader/follower selectors*
+  filters?: WidgetFilterConfig[]; // Picker filter (AB#7724) — see *Picker filter*
+  scopeSource?: EntitySelectorScopeSource; // Leader + path (AB#7915) — see *Dependent selectors*
   selectedRtId?: string;      // Current selection (transient, not persisted)
   selectedDisplayName?: string; // Current display name (transient)
 }
@@ -598,20 +758,320 @@ interface EntitySelectorAttributeMapping {
   attributeValueType?: string; // Attribute value type
 }
 
-// One association hop turning the picked entity into the child source rtIds a
+// Association traversal turning the picked entity into the source rtIds a
 // stream-data widget scopes by (e.g. MeteringPoint → EnergyMeasurement rtIds).
 interface EntitySelectorChildScope {
-  targetCkTypeId: string;      // Child type that keys the archive (e.g. EnergyMeasurement)
-  roleId: string;              // Association role (e.g. "System/ParentChild")
-  direction?: 'in' | 'out';    // Traversal direction (default 'out' = parent → child)
+  targetCkTypeId?: string;     // One-hop form: type that keys the archive (e.g. EnergyMeasurement)
+  roleId?: string;             // One-hop form: association role (e.g. "System/ParentChild")
+  direction?: 'in' | 'out';    // One-hop form: direction (default 'in' — System/ParentChild children are inbound)
+  path?: EntitySelectorScopeHop[]; // Multi-hop form (AB#7723): 2..MAX_SCOPE_HOPS hops, wins when non-empty
+}
+
+interface EntitySelectorScopeHop {
+  roleId: string;
+  direction?: 'in' | 'out';    // default 'in'
+  targetCkTypeId: string;      // source type of the next hop
+}
+
+// Dependent selector (AB#7915): the picker lists only what the leader's pick reaches.
+interface EntitySelectorScopeSource {
+  selectorId: string;          // leader: not a follower, not itself dependent
+  path: EntitySelectorScopeHop[]; // 1..MAX_SCOPE_HOPS hops, leader type → this type; always a path
 }
 ```
 
 The `childScope` is configured in the "Child Scope (stream-data)" section of
-the entity-selector editor (target CK type + role + direction). When set, a
-selection resolves to the child rtIds via `getAssociationTargets`; when absent,
-the picked entity's own rtId is the scope. These rtIds feed a widget's
-`entitySelectorId` asset-scope binding — see *PersistentQueryDataSource* above.
+the entity-selector editor (hop list, see *Multi-hop child scope*). When set, a
+selection resolves to the rtIds of the last hop; when absent, the picked
+entity's own rtId is the scope. These rtIds feed a widget's `entitySelectorId`
+asset-scope binding — see *PersistentQueryDataSource* above.
+
+### Multi-hop child scope (AB#7723)
+
+A child scope is either the original **one-hop form** (top-level
+`targetCkTypeId` / `roleId` / `direction`) or a **path** of 2 to
+`MAX_SCOPE_HOPS` (5) hops, e.g. site → system → device. Helpers:
+`utils/entity-selector-scope-path.ts` (pure, unit-tested): `scopePlan` (none /
+single / path / invalid), `resolveScopePath`, `scopeHopsOf` /
+`childScopeFromHops` (editor mapping), `scopeHopsValidationError`.
+
+Resolution contract (view, `resolveEntitySelectorScopeRtIds`):
+
+| Config | Resolution |
+|---|---|
+| no `childScope`, or incomplete top-level fields without `path` | the picked entity's own rtId (unchanged) |
+| one-hop form | one `fetchAssociationTargets` request — exactly the pre-AB#7723 request and result |
+| `path` (non-empty; wins over the top-level fields) | hop by hop; hop n's sources are the de-duplicated targets of hop n-1, its source type is hop n-1's target type; scope = distinct rtIds of the last hop |
+| `path` with more than 5 hops, or a hop without role / target type | **failed** scope (notice, no data, no request) |
+
+- **Query cost:** each hop is ONE batched step over all its sources —
+  `MeshBoardDataService.fetchAssociationTargetRtIds` sends `runtimeEntities(rtIds:)`
+  with the association targets nested (`getAssociationTargetRtIds`, rtIds only, no
+  attributes), `ASSOCIATION_HOP_SOURCE_BATCH` (100) sources per request, the
+  batches of a hop in parallel, `ASSOCIATION_HOP_TARGETS_PER_SOURCE` (1000)
+  targets per source with a console warning when a source has more. Never one
+  request per entity.
+- **Empty hop** → no further hop is requested, resolved **empty** (`noTargets`).
+- **Failed hop** → **failed** scope (AB#7721 notice, logged once).
+- **Stale pick** → `resolveScopePath` checks the selector's sequence number after
+  every hop and stops (returns `null`, nothing applied) once a newer pick started.
+- Followers (AB#7722) resolve their own `path` from the leader's pick.
+- **Editor** (`EntitySelectorScopePathEditorComponent`, wireframe agreed by Freya
+  in AB#7723): hop list with add (max 5), remove, move up/down (icon buttons with
+  `aria-label`/title, focus stays on the moved hop); per hop an "Association"
+  dropdown from `getCkTypeAssociationRoles` of the hop's source type (role +
+  direction + base target in one entry, plus "Other role…" for free text) and a
+  target-type picker restricted via `derivedFromRtCkTypeId` to the association's
+  target; a hop whose role is not defined on its (new) source type keeps its
+  values and shows "Association <role> is not defined on <type>." (warning, does
+  not block); metadata that cannot be loaded shows a hint and free-text fields;
+  an incomplete hop blocks saving (Kendo `k-invalid` + message); empty state and
+  path line. Followers use the same component.
+- **Persistence:** the editor saves no hops as no `childScope`, one hop in the
+  top-level form (older library versions keep reading it) and two or more hops as
+  `{ path }` only. `MeshBoardPersistenceService` carries `childScope` verbatim, so
+  `path` round-trips through save/reload and export/import, and one-hop boards
+  encode byte-identically (`meshboard-persistence.entity-selector-multihop.spec.ts`,
+  fixture `testing/entity-selector-scope-path.fixtures.ts`). An older library
+  reading a `path`-only scope sees no top-level hop and scopes by the picked
+  entity itself.
+
+### Leader/follower selectors (AB#7722)
+
+A widget binds exactly one selector and a selector has one child scope, so one
+visible pick could scope only widgets of one target type. A **follower**
+(`followsSelectorId: '<leader id>'`) closes that gap: one visible leader (e.g. a
+site) drives any number of hidden followers, each with its own `childScope`
+(e.g. site → devices, site → sensors, or a multi-hop path, AB#7723), so one pick
+rescopes widgets of different target types. Helpers: `utils/entity-selector-follow.ts` (pure, unit-tested).
+
+Resolution contract (view, `resolveEntitySelectorVariables`):
+
+| Leader state | Follower |
+|---|---|
+| has a pick (route data, URL, its `defaultRtId`, or a toolbar pick) | takes that pick: same `selectedRtId` / display name; variables from its own `attributeMappings` + `<followerId>_rtId` / `_rtCkTypeId` of the leader's picked entity; scope from its own `childScope` |
+| pick pending | **pending** too (marked in the same synchronous step as the leader, AB#7721) |
+| pick has nothing on the follower's path | resolved **empty** (`noTargets`) — widgets show no data, no query |
+| pick fails (entity not found, lookup threw) | `failed` like the leader |
+| no pick | the follower's own `defaultRtId` (resolved standalone), else **no scope** (persisted scope, AB#7721) |
+| pick cleared | as "no pick" |
+
+Rules:
+- One entity fetch serves the leader and all its followers; each gets its own
+  scope sequence number, so a slower resolution of an older pick never
+  overwrites a follower's newer state (variables and selection included).
+- The follower's `ckTypeId` is the leader's: the editor fixes it, and the view
+  resolves with the leader's type even if a stale type is stored (`effectiveSelector`).
+- **One level only.** A follower cannot lead (`followersOf` ignores followers of a
+  follower). An unknown, self or chained `followsSelectorId` is treated as "leader
+  has no pick" plus one `console.warn` on board load; the editor prevents it.
+- Followers never render a picker (`showsInToolbar`), are never written to the URL
+  and ignore `es_<followerId>` params and route data: a URL with only the leader's
+  `es_` param restores every follower. `setEntitySelector` / `clearEntitySelector`
+  on a follower warn and do nothing.
+- Editor ("Follows" field, wireframe agreed in AB#7722): lists other non-follower
+  selectors; choosing a leader fixes the CK type (default entity and mappings of a
+  different previous type are cleared with a notice), hides "Show in Toolbar" and
+  makes mappings and the default entity optional; a followed selector cannot
+  follow (dropdown disabled, message names its followers); back to none = CK type
+  editable, "Show in Toolbar" unchecked. The list badge shows `Follows: <leader>`
+  or a `Follows: missing` error badge; removing a leader asks for confirmation
+  naming its followers (`ConfirmationService`, when the host provides it).
+- Persistence: `followsSelectorId` is in the selector whitelist of
+  `MeshBoardPersistenceService.encodeVariablesInDescription` and omitted when
+  empty, so boards without followers encode byte-identically; export/import
+  carries the description verbatim (`meshboard-persistence.entity-selector-follow.spec.ts`).
+
+### Picker filter (AB#7724)
+
+`filters` narrows what a selector's pickers list (e.g. only the electrical
+systems of a type that also models heating circuits). Helpers:
+`utils/entity-selector-filter.ts` (`hasPickerFilter`, `pickerFieldFilters`,
+`withPickerFilters`, `unresolvedFilterVariables`, texts).
+
+- **Shape:** the widget filter type `WidgetFilterConfig` (`attributePath`,
+  `operator`, `comparisonValue`); rows combine with **AND**; every operator of
+  the shared `mm-field-filter-editor` (octo-ui) is allowed — the same set as
+  widget filters (GraphQL `FieldFilterOperators`).
+- **Server side:** the rows are converted with
+  `MeshBoardVariableService.convertToFieldFilterDto` (board variables
+  substituted, exactly like widget filters) and sent as GraphQL `fieldFilter`
+  of the `runtimeEntities` query. `withPickerFilters` wraps the query service so
+  every fetch of the octo-services data sources (`RuntimeEntitySelectDataSource`
+  dropdown, `RuntimeEntityDialogDataSource` search dialog) carries the rows in
+  front of its own text-search row — the search keeps working on top of the
+  filter, and nothing is filtered on the client. Without rows the original
+  query service is used, so an unfiltered picker sends the query it always sent.
+- **Variables:** the toolbar gets the board variables (`[variables]` from the
+  view, `MeshBoardStateService.getVariables()`) and rebuilds its data sources
+  when the resolved filter changes (cache key = CK type + resolved rows). A
+  variable without a value behaves as in widget filters: an empty value is sent
+  as `''`, an unknown/unset one keeps its `$name` placeholder (usually matches
+  nothing); the picker's empty-list text then names the variable.
+- **Toolbar texts** (wording agreed with the Studio PO): empty list
+  "No <label> found. This board only lists <label> that match its filter."
+  (+ "The filter uses $x, which has no value yet."); dialog title
+  "Select <label> (filtered)". The search dialog's grid keeps Kendo's
+  "No records available" (shared-ui has no message input for it).
+- **Followers** have no picker: `pickerFieldFilters` ignores their rows, the
+  editor hides the section ("A follower takes the leader's pick. Set the filter
+  on <leader>."), says that hand-edited rows are ignored and drops them on save.
+- **Defaults and URL picks:** the filter affects the listing only. A
+  `defaultRtId`, an `es_<id>` URL pick or route data that does not match is
+  applied exactly as before; the view never queries the filter to validate a
+  pick (`meshboard-view.entity-selector-filter.spec.ts`).
+- **Editor** (section "Picker filter" under CK Type, shown once a CK type is
+  chosen; wireframe approved by Freya with changes in AB#7724): the shared
+  `mm-field-filter-editor` with the board's static variables plus the other
+  selectors' mapped variables; the default-entity picker applies the filter too
+  (rows with a variable the editor cannot substitute are left out there). A
+  debounced server check (`runtimeEntities` with `rtId` + rows, `first: 1`)
+  warns "The default entity does not match the picker filter. It still loads,
+  but users cannot pick it again." — never blocking save; a failed check says
+  "Could not check the default entity.", a filter with a view-time variable
+  says the check is skipped. The list shows a "N filters" chip.
+- **Persistence:** `filters` is in the selector whitelist of
+  `encodeVariablesInDescription`, reduced to the three filter fields and omitted
+  when empty — boards without filters encode byte-identically; export/import
+  carries the description verbatim (`meshboard-persistence.entity-selector-filter.spec.ts`,
+  fixture `testing/entity-selector-filter.fixtures.ts`).
+
+### Dependent selectors (AB#7915)
+
+Three selector roles: a **leader** is any selector others refer to; a **follower**
+(`followsSelectorId`, AB#7722) has no picker and takes the leader's pick; a
+**dependent** (`scopeSource`) keeps its own picker, but while the leader has a
+pick the picker lists only the entities reached from that pick through
+`scopeSource.path` — the *picker scope* (e.g. only the rooms of the picked
+site). Helpers: `utils/entity-selector-scope-source.ts` (pure, unit-tested):
+`resolveScopeSource`, `dependentsOf`, `pickerScopeView`, `leaderDisplayName`,
+the texts, and the query wrappers `withoutListing` / `deferredPickerQuery`.
+
+- **Shape:** `{ selectorId, path }`, `path` = 1–`MAX_SCOPE_HOPS` hops of the
+  AB#7723 hop shape from the leader's CK type to the dependent's CK type,
+  always stored as a path (no one-hop shorthand). One level only: the leader is
+  neither a follower nor itself dependent. A dependent may itself lead followers.
+- **Resolution (view):** whenever the leader's pick resolves
+  (`resolveEntitySelectorVariables` — toolbar pick, URL / route / default pick on
+  load, `setEntitySelector`), `pickWithDependents` → `settleDependentsOf` marks
+  every valid dependent's picker scope pending in the same synchronous step and
+  `resolvePickerScope` walks its path with `resolveScopePath` +
+  `MeshBoardDataService.fetchAssociationTargetRtIds` (one batched request per
+  hop, distinct rtIds of the last hop, an empty hop ends the walk). The leader's
+  pick waits for a dependent only when that dependent's pick has to be decided
+  (it has a pick or a default, AB#7916); otherwise the picker scope resolves in
+  the background. A per-dependent sequence number discards a late resolution
+  of an earlier leader pick. The result is kept in
+  `MeshBoardStateService.pickerScopes` (`setPickerScopePending` /
+  `setPickerScopeRtIds` / `setPickerScopeFailed` / `clearPickerScope`), next to
+  the AB#7721 widget scopes and cleared on board switch. Clearing the leader
+  clears its dependents' picker scopes. The dependent's own widget scope
+  (its pick, its `childScope`) is unaffected.
+- **Picker (toolbar `[pickerScopes]`):**
+
+  | Picker scope | Dropdown and search dialog |
+  |---|---|
+  | leader has no pick (no entry) | lists without the scope, exactly as before |
+  | `pending` | the fetch waits until the scope settles (the input shows its loading state); **no** listing query is sent meanwhile |
+  | resolved, ≥1 rtId | field filter `rtId IN (scope)` (`QueryExecutorService.withRtIdScope`, as AB#7725), AND-combined with the AB#7724 filter rows and the text search via `withPickerFilters`; server-side, paging keeps working |
+  | resolved, 0 rtIds | lists nothing, no query; text `No <label> in <leader>.` (+ the filter sentence when a filter is set) |
+  | `failed` (a hop failed) or an invalid configuration | lists nothing, no query; text `Could not load the <label> of <leader>.` — never the unscoped list |
+
+  `<leader>` is the leader's picked display name (else its label, else its id).
+  The texts are set as `noEntitiesFound` **and** `minCharactersHint`, so they show
+  as soon as the dropdown opens. The search dialog shows an empty grid (shared-ui
+  has no message input for it). The data-source cache key contains the picker
+  scope (`pending:<id>`, `in:<rtIds>`, `none`), so a leader change gives the
+  dependent fresh data sources; selectors without scope source keep the exact
+  pre-AB#7915 key and query.
+- **Invalid configuration** (unknown or self leader, leader is a follower or
+  dependent, more than 5 hops, no hop, hop without role or target type): one
+  `console.warn` per board load and a failed picker scope. A follower with a
+  `scopeSource` warns too; followers have no picker and ignore it.
+- **Backend:** `runtimeEntities` resolves `rtId` field filters with collection
+  values to an `_id $in` match (`RtEntityFieldFilterResolver` in the MongoDB
+  engine), combined with the other field filters by AND. Checked on test-2
+  (2026-10-30, a room type of a solution tenant): `rtId IN` alone, with
+  `rtDisplayName LIKE` and with an attribute `EQUALS` row each returned exactly
+  the expected subset.
+- **Pick lifecycle:** see *Dependent pick lifecycle (AB#7916)* below.
+- **Editor (AB#7917, wireframe agreed by Freya):** section "List only entities
+  inside" of `mm-entity-selector-editor`, shown for a non-follower with a CK type
+  (after *Picker filter*). "Inside the pick of" offers other selectors that are
+  neither followers nor dependent; the path is `mm-entity-selector-scope-path-editor`
+  with `[sourceCkTypeId]` = the leader's type and `[lockedTargetCkTypeId]` = the
+  selector's type (last hop read-only, new hops go in front of it, it never moves,
+  removing it makes the previous hop the fixed one). Editor rules are pure functions
+  in `components/entity-selector-editor/entity-selector-scope-source-editor.ts`
+  (leader options, dependents, `scopeSourceValidationError` on top of
+  `resolveScopeSource`, list summary `Inside: <leader> (<n> hops)`). Save writes
+  `{ selectorId, path }` (one hop too), "(none)" and followers write nothing (a
+  follower's stored one is removed with a notice). A selector with dependents can
+  neither pick a leader nor follow one. The default check resolves the leader's
+  `defaultRtId` through the path (`MeshBoardDataService` resolved lazily via the
+  injector, so specs without a dependent default need not provide it) and warns,
+  never blocks. Specs: `entity-selector-editor.scope-source.spec.ts`,
+  `entity-selector-scope-source-editor.spec.ts`, the locked block of
+  `entity-selector-scope-path-editor.component.spec.ts`.
+- **Persistence:** `scopeSource` is in the selector whitelist of
+  `encodeVariablesInDescription`, reduced to `selectorId` and the hop fields and
+  omitted when unset — boards without dependents encode byte-identically;
+  export/import carries the description verbatim
+  (`meshboard-persistence.entity-selector-scope-source.spec.ts`, fixture
+  `testing/entity-selector-scope-source.fixtures.ts`).
+
+### Dependent pick lifecycle (AB#7916)
+
+A dependent never keeps a pick outside its leader's pick. Pure helpers in
+`utils/entity-selector-scope-source.ts`: `nextDependentPick(current, default,
+pickerScope)` and `isInPickerScope(rtId, pickerScope)`. View methods:
+`pickWithDependents`, `settleDependentsOf`, `releaseDependentsOf`,
+`needsPickWithoutOwnPick`, `acceptsDependentPick`.
+
+| Event | Dependent |
+|---|---|
+| leader picked (toolbar, host, load) — dependent has a pick or a default | in the same synchronous step the dependent **and its followers** are marked `pending` (bound widgets show loading, never the old pick's data); after the picker scope resolved: pick in scope → kept; else `defaultRtId` in scope → default; else no pick |
+| leader picked — dependent has neither pick nor default | at once `needsPick`; its followers without own default too (no waiting for the hops) |
+| picker scope resolved empty | no pick, `needsPick` ("Pick a <label>") |
+| picker scope failed | no pick, `failed` scope ("Could not resolve the scope of <label>") |
+| leader cleared | dependents keep their pick; a dependent without pick (and its followers that needed one) goes back to the persisted scope; a dependent whose decision was still running resolves its current pick again |
+| dependent cleared while the leader has a pick | `needsPick` |
+| dependent picked (toolbar or `setEntitySelector`) | accepted only inside the picker scope (`isInPickerScope`; a pending scope is awaited); otherwise a console warning and nothing changes or re-queries |
+
+- **One refresh per change.** The leader's toolbar pick, `setEntitySelector`
+  and the board load call `triggerRefresh()` once, after the leader, its
+  followers, every dependent decision and the dependents' followers settled
+  (widgets reload only on a config reference change, so they query exactly once).
+- **Stale changes.** Each selector carries a change number
+  (`leaderChangeSeq`); a change overtaken by a newer pick or clear of the same
+  selector skips its URL write and refresh. The picker-scope sequence number
+  (`pickerScopeSeq`) drops the decision of an overtaken leader pick, the scope
+  sequence number (`scopeRequestSeq`) its variable and scope writes — with
+  S1 → S2 → S3 only the S3 outcome is applied.
+- **Narrowed AB#7721 rule.** "No pick ⇒ persisted scope" still holds for every
+  selector except a dependent whose leader has a pick (and that dependent's
+  followers without own pick): they are `needsPick`, because the persisted scope
+  would show entities outside the leader's pick. `primeEntitySelectorScopes`
+  sets it before the first widget renders.
+- **URL and route data.** The dependent keeps its own `es_<id>` param next to
+  the leader's. On load the selectors that are not dependent resolve first; each
+  dependent of a picked leader is decided against its picker scope with its
+  initial pick (route data > URL > default) as the current pick. A dropped URL
+  or route-data pick is logged once (`console.info`) and the URL is rewritten
+  with `replaceUrl` — in the same navigation as the initial rtId sync when that
+  runs (`entitySelectorUrlParams`), never in a second one. A dependent whose
+  leader has no pick keeps its URL pick unscoped, as before.
+- Specs: `meshboard-view.entity-selector-dependent-pick.spec.ts` (a real line
+  chart per selector, reloaded on every refresh, with a spy on
+  `QueryExecutorService`), `utils/entity-selector-scope-source.spec.ts`,
+  `services/meshboard-state.service.spec.ts`.
+
+> **Hosts with `keyFields: ['rtId']` (AB#7649).** `getAssociationTargets` selects `rtId` on the
+> source entity as well, although nothing reads it: a host whose Apollo cache keys `RtEntity` by
+> `rtId` (voest-app) otherwise throws "Missing field 'rtId' while extracting keyFields" on the write,
+> and the child scope resolves to nothing. Every RtEntity `items` selection of
+> this query carries `rtId` (pinned in `services/association-targets-cache.spec.ts`); keep `rtId` in
+> any new RtEntity selection for the same reason.
 
 ### Auto-exposed selected-entity rtId / rtCkTypeId
 
@@ -651,7 +1111,9 @@ is made. Selection changes re-fetch automatically via the standard
 > column, so a `$mp_rtId` field-filter can't scope an archive query. Use the
 > selector's `childScope` + the widget's `entitySelectorId` asset-scope binding
 > instead, which scopes by the source rtIds via `streamDataArgs.rtIds`
-> (see *PersistentQueryDataSource*).
+> (see *PersistentQueryDataSource*). The same binding scopes a **runtime
+> persistent query** (`rtId IN` field filter, AB#7725) — prefer it over a
+> hand-written `$mp_rtId` filter when the query's own entities are the scope.
 
 An explicit `attributeMappings` entry that produces the same variable name wins
 (the synthetic `<selectorId>_rtId` is skipped if already present). The variable is
@@ -666,6 +1128,9 @@ Entity selector selections are synced to URL query parameters for bookmarkabilit
 ```
 
 Example: `?es_mp=rt-123&es_anlage=rt-456`
+
+Followers (AB#7722) are derived from their leader and never serialized; an
+`es_<followerId>` param is ignored.
 
 ### URL Sync (`meshBoardSyncUrl`, AB#4457)
 
@@ -718,6 +1183,9 @@ When embedding a MeshBoard in another application, entity selectors can be pre-p
 
 **Priority order:** route data > URL params > defaultRtId > selectedRtId
 
+For a follower: the leader's pick (by the order above) > the follower's own
+`defaultRtId`; route data and URL params naming the follower are ignored.
+
 ### State Service Methods
 
 | Method | Returns | Description |
@@ -728,15 +1196,26 @@ When embedding a MeshBoard in another application, entity selectors can be pre-p
 | `updateEntitySelectorSelection(selectorId, rtId, displayName?)` | `void` | Update one selector's selection |
 | `setEntitySelectorVariables(selectorId, values[])` | `void` | Create/replace variables for a selector |
 | `clearEntitySelectorVariables(selectorId)` | `void` | Remove variables for a selector |
-| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Cache the source rtIds resolved from a selection (transient) |
-| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear cached source rtIds for a selector |
-| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds for a widget's asset-scope binding |
+| `setEntitySelectorScopePending(selectorId)` | `void` | Mark the scope as resolving |
+| `setEntitySelectorRtIds(selectorId, rtIds)` | `void` | Store the resolved source rtIds (transient); `[]` = resolved EMPTY scope |
+| `setEntitySelectorScopeFailed(selectorId)` | `void` | Mark the scope resolution as failed |
+| `clearEntitySelectorRtIds(selectorId)` | `void` | Clear the scope state of a selector |
+| `getEntitySelectorScopeState(selectorId)` | `EntitySelectorScopeState \| undefined` | Raw scope state (`pending` / `resolved` / `failed`), `undefined` = no pick |
+| `failedEntitySelectorScopeIds` | `Signal<string[]>` | Selectors whose scope resolution failed (board notice) |
+| `resolveStreamDataScope(entitySelectorId?, family?, ignoreTimeFilter?)` | `StreamDataScope` | What a bound widget does — host gate (AB#7582, stream data), then the selector scope; see *Scope resolution contract* |
+| `resolveEntitySelectorScope(entitySelectorId?)` | `StreamDataScope` | Selector scope only, runtime and stream data alike (AB#7725) |
+| `resolveStreamDataRtIds(entitySelectorId?)` | `string[] \| undefined` | Source rtIds of a `scoped` scope, else `undefined` |
+| `setEntitySelectorScopeNeedsPick(selectorId)` | `void` | Dependent without pick while its leader has one (AB#7916): `empty` / `noPick` |
+| `needsPickEntitySelectorIds` | `Signal<string[]>` | Selectors in `needsPick` (board notice "Pick a <label> to see this data.", AB#7916) |
+| `pickerScopes` | `Signal<Record<string, EntitySelectorScopeState>>` | Picker scopes of dependent selectors (AB#7915); no entry = leader has no pick |
+| `setPickerScopePending` / `setPickerScopeRtIds` / `setPickerScopeFailed` / `clearPickerScope` / `getPickerScopeState` | — | Write / read one dependent's picker scope (AB#7915) |
 
 ### Components
 
 | Component | Selector | Description |
 |-----------|----------|-------------|
 | `EntitySelectorEditorComponent` | `mm-entity-selector-editor` | Settings editor for managing selectors |
+| `EntitySelectorScopePathEditorComponent` | `mm-entity-selector-scope-path-editor` | Hop list of the selector editor: child scope (AB#7723) and the scope source path with a fixed last target (AB#7917) |
 | `EntitySelectorToolbarComponent` | `mm-entity-selector-toolbar` | Toolbar rendering entity select dropdowns |
 
 > **Display names (AB#4813).** The entity pickers (`RuntimeEntitySelectDataSource` /
@@ -881,6 +1360,264 @@ the widget is configured with. Only meaningful with `resolutionAware`; stream-da
 
 ---
 
+## Line chart: series from several queries on one time grid (AB#7951)
+
+A line / area chart can plot series from more than its primary query: `additionalSeries`
+(wireframe agreed in AB#7951). Helpers: `utils/time-grid-alignment.ts` (`alignOnTimeGrid`,
+`bucketStepMs`), `widgets/line-chart-widget/line-chart-multi-source.ts` (rows → series, labels,
+row validation), editor `mm-line-chart-series-editor`.
+
+**Series model.** `LineChartSeriesDefinition` is a union discriminated by `kind`. Today only
+`LineChartQuerySeries` (`kind: 'query'`) and, since AB#7952, `LineChartFormulaSeries` (`kind: 'formula'`, see
+*Line chart: formula series* below). Query series: `key` (letters, digits, `_`, not starting with a digit,
+unique; formula series of AB#7952 reference it), optional `label` (legend; the key when empty), its own
+`PersistentQueryDataSource` (stream-data query, `entitySelectorId`, `ignoreTimeFilter`,
+`resolutionAware` + `requiredAggregation`; `aggregateSeriesByGroup` is ignored — one source is one
+series) and `valueField`. The primary data source and its field mapping stay exactly as before; its
+series come first, then `additionalSeries` in their order (legend and stacking order). AB#7953 reuses
+the editor for the bar chart with category instead of time alignment (`alignment="category"`).
+
+**Loading (`loadMultiSource`, when at least one complete query or formula series exists):**
+
+1. Scope per source (`resolveStreamDataScope` with the source's own selector): any `pending` → the
+   widget stays loading and sends no query; `empty` → no series for that source and a
+   `No data for <source>` hint.
+2. Resolution-aware sources resolve their rung (`resolveSeriesQuery` with the source's `valueField`).
+3. **Common bucket count** = min(pixel target, every resolved `points`) — the coarsest effective
+   bucket. Every source is downsampled with this count over the same window (plain sources through
+   the persisted query with `queryMode: DOWNSAMPLING`, resolution-aware query series with ONE
+   `downsampleByArchive` call over their whole scope, the resolution-aware primary with its usual
+   per-rtId / per-group fan-out), so all sources get the same bucket width.
+4. All sources load in parallel (`Promise.allSettled`): a failing source gives an error hint
+   `<source>: Failed to load data (<message>)` and the other series render.
+5. `alignOnTimeGrid` builds the shared categories.
+
+**Alignment rule.** A source's step is its most frequent distance between consecutive bucket
+instants (gaps do not change it; a source needs 3 instants to count). The coarsest step is the grid,
+its source the reference (primary first on a tie). Fixed grids up to one hour: every instant must be a
+whole number of steps from the reference anchor; missing grid instants between the first and the last
+are filled in. Calendar grids (longer steps): no instant may lie strictly inside a reference bucket;
+no fill-in (DST days are 23 / 25 h). A source that breaks the rule is left out with the hint
+`<source>: its buckets do not match the chart's time grid and are not shown` — never plotted shifted.
+Categories are keyed by instant (epoch ms); a repeated wall-clock label (the doubled hour of a DST
+fall-back day) gets ` (2)`, so 2026-10-25 shows 100 quarter hours.
+
+**Gap rule.** A bucket a source has no data for is `null`. A stacked or multi-source chart binds
+Kendo `missingValues: 'gap'` explicitly (Kendo's default is `'zero'` for area / stacked series and
+`'interpolate'` for lines), so a gap is never drawn, stacked or bridged as a value. Single-query
+unstacked charts bind exactly Kendo's defaults and render as before. Rows of one query series in one
+bucket (several source entities) are summed; all-null stays null.
+
+**Other rules.** Widget `filters` apply to the primary query only. A multi-source chart has one value
+axis (per-unit axes stay a single-query feature; units still show in the tooltip) and no min/max
+bands. `stacked` only affects area charts. The data badge counts the rows of all sources. Without a
+time range nothing can be downsampled; raw rows are aligned by their timestamps and usually do not sit
+on a common grid — give multi-source charts a time filter.
+
+**Persistence.** `additionalSeries` and `stacked` are written only when set
+(`toPersistedConfig`), so a single-query chart encodes byte-identically; on load, entries without a
+known `kind` or query are dropped (a newer library may store formula series). The dialog shows the
+Series section only for a stream-data primary query.
+
+**Primary field mapping of a stream-data query (AB#8069).** Stream-data rows carry `timestamp` and `rtId` as row
+properties, not as columns, so `fetchStreamDataColumns` does not list them. The dialog adds both in front of the
+columns (`utils/stream-data-row-fields.ts` `withStreamDataRowFields`, skipped when the query has such a column), and
+the widget falls back to the row property when no cell of that name exists (`streamDataRowFieldValue` in
+`processData` and `primaryRowsToSeries`/`rowInstant`). `categoryField: timestamp` + `seriesGroupField: rtId` = one
+line per source entity. Spec: `line-chart-widget.stream-data-row-fields.spec.ts`.
+
+**Query picker of a series row** (`acceptFamilies: ['streamData']`): autocomplete and "Browse Queries"
+dialog both classify a query by the query entity's own `ckTypeId` (`System/SimpleSdQuery`, …), so both
+data sources must map it (`persistent-query-data-sources.spec.ts`; the dialog dropped it until the AB#7951
+reopen). The value-field picker offers the column types as the backend reports them; stream-data queries
+whose stored column paths are not camelCase came back as STRING until AB#8030 (backend), and the dialog
+deliberately does not guess a type.
+
+Specs: `utils/time-grid-alignment.spec.ts` (rungs, anchors, gaps, fill-in, DST quarter hours and
+days), `line-chart-multi-source.spec.ts`, `line-chart-widget.multi-source.spec.ts` (three archives,
+common bucket count incl. resolution-aware, failing / empty / pending / misaligned source, reload on
+time filter and selector change, DST fixture, stacking, single-query regression),
+`line-chart-series-editor.component.spec.ts` (add / remove / reorder with focus, validation, wrap),
+`line-chart-config-dialog.series.spec.ts`, `registrations/default-widget-registrations.line-chart-series.spec.ts`
+(round trip, byte-identical legacy configs).
+
+---
+
+## Line chart: formula series (AB#7952)
+
+A formula series is computed per time bucket from other series of the same chart — no extra query.
+EnergyIQ daily profile (AB#7944): operands as hidden query series, the split as stacked formula series,
+PV of the primary query as a line over the stack:
+
+```
+additionalSeries:
+  { kind: 'query', key: 'pv', …, visible: false }            // also gridImport, gridExport, batteryCharge, batteryDischarge
+  { kind: 'formula', key: 'consumption', visible: false,
+    formula: '${pv} + ${gridImport} - ${gridExport} - ${batteryCharge} + ${batteryDischarge}' }
+  { kind: 'formula', key: 'pvDirect', label: 'PV direct',
+    formula: 'min(${pv} - ${gridExport} - ${batteryCharge}, ${consumption})' }
+  { kind: 'formula', key: 'battery', formula: '${batteryDischarge}' }
+  { kind: 'formula', key: 'grid', formula: '${gridImport}' }
+stacked: true, chartType: 'area', primarySeries: { stacked: false }
+```
+
+- **Engine:** `utils/meshboard-series-formula.ts` on top of `meshboard-formula.ts` (`${key}` operands rewritten
+  by `rewriteFormula`, evaluated by `ExpressionEvaluatorService`, expr-eval) — the same syntax and evaluator as
+  the KPI / gauge formula mode, no second expression engine. Pure functions on value arrays, so the bar chart
+  (AB#7953, categories instead of buckets) reuses them: `evaluateSeriesFormulas`, `orderSeriesFormulas`
+  (Kahn, stable; `cyclic` names the series of a cycle), `validateSeriesFormulas` (`validateFormula` with all
+  series keys as names, then cycles: *Circular reference between series: a, b*).
+- **Operands:** the keys of the other additional series (query or formula, a formula may use another formula).
+  The primary query's series are **not** operands: their names are `seriesGroupField` values known only at run
+  time, so the dialog could not validate them. Configure every operand as a query series (hidden if needed).
+- **Gap rule:** a bucket in which any operand is `null`, or whose result is not a finite number (division by
+  zero, boolean/string result, evaluation error), is `null` — a gap, never 0. The aligned operands come from
+  `alignOnTimeGrid(...).series`, so hidden operands are aligned like every other series. The multi-source
+  tooltip lists every drawn series and shows `–` for a gap (`tooltipRows`).
+- **What goes wrong visibly:** an operand source that failed or is misaligned → hint
+  `<series>: depends on <source>, which failed` (`… which is not on the chart's time grid`), transitive through
+  other formulas, only for visible formula series; a visible formula series without any valid bucket keeps its
+  legend entry as `<label> (no data)`. A formula in a cycle or with an unknown key cannot be saved; at run time
+  it is all gaps.
+- **Display options** (`LineChartSeriesDisplayOptions`, on every additional series and as
+  `primarySeries` for the primary query's series): `visible: false` = not drawn, not in the legend, still an
+  operand; `stacked: false` = in a stacked area chart drawn as a line over the stack (`composeChartSeries`
+  in `line-chart-multi-source.ts` moves such series behind the stacked ones so Kendo draws them on top). Both
+  default to `true` and are stored only as `false`. Line charts ignore `stacked`.
+- **Editor:** "Add formula series" rows in `mm-line-chart-series-editor` with the shared formula field (other
+  rows' keys as insert buttons, no preview); Visible / Stacked checkboxes per row and on the primary row
+  (Stacked enabled only for a stacked area chart). Syntax / unknown-key messages are shown by the field, the
+  row repeats only key and cycle messages. The dialog's Save uses `querySeriesErrors(series, evaluator)`.
+- **Persistence:** formula series are kept on load when they have a string `key` and `formula`; `primarySeries`
+  is written only when non-default. A library version before AB#7952 drops formula series on load and ignores
+  the display options — saving the board there loses the formulas (release note in the CHANGELOG).
+- **Not verified visually yet:** Kendo's stacked area with `missingValues: 'gap'` at a gap in a lower series
+  (handover point 7 of AB#7951) — check on test-2 with AB#7944.
+
+Specs: `utils/meshboard-series-formula.spec.ts` (5-series fixture, every bucket, gaps, non-finite, cycles,
+order, validation), `line-chart-widget.formula-series.spec.ts` (daily profile: every bucket, hidden operands,
+stacked vs line, tooltip `–`, failed operand hint, no-data legend, time filter without extra query, hidden
+primary), `line-chart-series-editor.formula.spec.ts`, `line-chart-config-dialog.series.spec.ts`,
+`registrations/default-widget-registrations.line-chart-series.spec.ts` (round trip, byte-identical AB#7951
+and legacy configs, unknown kinds dropped).
+
+---
+
+## Bar chart: series from several queries and formula series per category (AB#7953)
+
+A bar chart (column, bar, stacked, 100 % stacked) can draw series from more than its primary query plus
+formula series over them, matched **per category value** (wireframe section 4, agreed in AB#7951). EnergyIQ
+daily values (AB#7945), one group per day:
+
+```
+categoryField: day, series: [importEnergy, exportEnergy]           // primary query: grid per day
+additionalSeries:
+  { kind: 'query', key: 'pv', label: 'PV', categoryField: 'timestamp', valueField: 'energy', dataSource: { … entitySelectorId: 'pv' } }
+  { kind: 'query', key: 'gridImport', categoryField: 'day', valueField: 'importEnergy', visible: false, dataSource: <grid query> }
+  { kind: 'query', key: 'gridExport', …, visible: false }           // also batteryCharge, batteryDischarge
+  { kind: 'formula', key: 'consumption', label: 'Consumption',
+    formula: '${pv} + ${gridImport} - ${gridExport} + ${batteryDischarge} - ${batteryCharge}' }
+```
+
+- **Model:** `additionalSeries: BarChartSeriesDefinition[]` (= `LineChartSeriesDefinition`), query series with
+  their own `categoryField` (column whose value is the category of a row; `timestamp` falls back to the row
+  property of a stream-data row), `primarySeries: { visible: false }`. `stacked` is ignored — the chart type stacks.
+  As in the line chart, the primary query's series are **not** formula operands; configure operands as query series
+  (hidden if needed, the same query may serve several).
+- **Path:** `hasAdditionalSeries()` (a complete query series with category field, or a formula series) switches
+  the widget to `loadMultiSource`; otherwise the single-query code runs unchanged.
+- **Loading:** scope per source (`resolveStreamDataScope` with its own selector; any `pending` → loading and no
+  query, `empty` → "No data for <source>"); all sources in parallel (`Promise.allSettled`), widget `filters` only on
+  the primary query, a failing source gives `<source>: Failed to load data (<message>)` and the others render
+  (also when the primary fails).
+- **Alignment** (`widgets/bar-chart-widget/bar-chart-multi-source.ts`, pure): `categoryOf` keys date-times by
+  instant (`t:<ms>`, naive ISO = UTC) and other values by text; the primary is grouped exactly like the single-query
+  chart (static: missing cell 0, dynamic: missing combination 0, later row wins); query series sum several rows of one
+  category (all-null stays null). `alignOnCategories`: union of categories in first-appearance order (primary first),
+  sorted chronologically when every category is a date-time; a category a source lacks is `null` = no bar.
+- **valueScale** is applied to every source value before formulas see them (multi-source path only; the single-query
+  static chart still ignores it, AB#7923).
+- **Formulas, visibility, hints:** `composeChartSeries` of `line-chart-multi-source.ts` with `stackedChart: false` —
+  the same evaluation (`evaluateSeriesFormulas`, gap rule), hidden series, "depends on <source>, which failed" and
+  " (no data)" as the line chart. The multi-source chart uses a shared tooltip (`tooltipRows`, "–" for no bar).
+- **Labels:** date-time categories show as `dd.MM.yyyy` when each category is a different day, else date and time;
+  repeated labels get ` (2)`. Static series keep their configured colour; other series use the Kendo palette;
+  colour thresholds apply to every series.
+- **Editor:** the bar chart dialog shows the Series section for a stream-data primary query with
+  `mm-line-chart-series-editor alignment="category"`: per query row Category field (before Value field, preset from the
+  primary category field or `timestamp` when the query has the column), no Resolution-aware, no Stacked; Visible per
+  row and on the primary row. Save uses `querySeriesErrors(series, evaluator, { requireCategoryField: true })`.
+- **Persistence:** `additionalSeries` / `primarySeries` are written only when set; on load the line chart rules apply
+  (unknown kinds dropped) and only `visible: false` of the primary options is kept. Existing bar charts encode
+  byte-identically.
+
+Specs: `bar-chart-multi-source.spec.ts`, `bar-chart-widget.multi-source.spec.ts` (daily fixture: alignment, no 0
+bar, formula per category, tooltip `–`, hidden operands and primary, valueScale before formulas, all six chart types,
+failing source and failing primary, pending / empty / scoped selectors; static and dynamic single-query regression),
+`line-chart-series-editor.category.spec.ts`, `bar-chart-config-dialog.series.spec.ts`,
+`registrations/default-widget-registrations.bar-chart-series.spec.ts`.
+
+---
+
+## Line and bar chart: per-series options and fixed bucket size (AB#8046)
+
+Options of every additional series (and of `primarySeries`) on `LineChartSeriesDisplayOptions`, all omitted when
+default. Pure helpers in `utils/series-options.ts` (`fillMissingValues`, `snapWindowToBuckets`, `fixedGridInstants`,
+`alignOnFixedGrid`, `lastValue`); applied by `composeChartSeries` (`line-chart-multi-source.ts`) for both charts.
+Editor: wireframe section 6 of the AB#7951 series-editor wireframe (Display line per row).
+
+| Option | Applies to | Effect |
+|---|---|---|
+| `missingValues: 'zero'` | query series, primary | empty bucket / category → 0; a query series without data (empty selector scope, no rows) → all zeros, no "No data" hint |
+| `missingValues: 'carryForward'` | query series, primary | empty bucket → last value of the series (step / LOCF for on-change signals); line chart query series: start value from the look-back |
+| `carryForwardLookbackMinutes` | line chart, with `carryForward` | look-back before the window (default `DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES` = 1440, 0 = none) |
+| `color` | every series except the primary | `resolveChartColor` (CSS colour, `--var`, `var(--x, fallback)`, status name); unresolvable = palette |
+| `dashType` | series drawn as a line: line chart, `stacked: false` series of a stacked area chart, bar chart `asLine` | `'solid'` (default) / `'dash'` / `'dot'`; Kendo has no dash style for area series |
+| `asLine`, `secondaryAxis` | bar chart, column types | draw over the columns as a line, optionally on a second value axis on the right (`axisCrossingValue [0, max]`); ignored for horizontal bars (Kendo cannot mix them) |
+
+Rules:
+
+- **Order in `composeChartSeries`:** fill first, then formulas — filled values are the operands (e.g. Fusch without
+  battery: `charge`/`discharge` with `zero` make `battery = ${discharge}` 0 and `pvDirect = max(0, ${pv} - ${export} - ${charge})`
+  defined, so PV direct + battery + grid = consumption).
+- **Never invent the future:** buckets / categories whose instant is after `Date.now()` stay `null` (a "today"
+  window ends at midnight). Categories that are no date-time are filled throughout.
+- **Never hide a failure:** a failed or misaligned source is not turned into zeros; dependent formulas show
+  "depends on <source>, which failed".
+- **Look-back (line chart, `carryForward` query series):** one extra request per series over
+  `[from - n × bucket, from)` with the chart's bucket width (`n = ceil(lookback / bucket)`, max 4000), same scope and
+  routing as the series (resolution-aware: the same resolved archive); the last non-null bucket is the seed. A
+  failed look-back only means no seed (console warning). The primary series carries within the window only.
+- **Fixed bucket size** `LineChartWidgetConfig.bucketMinutes` (`LINE_CHART_BUCKET_MINUTES`: 1, 5, 10, 15, 30, 60 — all
+  divide one hour, so bucket starts stay wall-clock multiples across DST): `snapWindowToBuckets` floors `from` and
+  ceils `to` in the board's time zone (`getZonedDateParts`; half-hour zones align hour buckets at :30 UTC), every source
+  gets `limit = count` over the snapped window (single-query and multi-source path, resolution-aware `targetPoints`
+  too), and the multi-source grid is every bucket of the window (`alignOnFixedGrid`: a point goes into the bucket that
+  contains it, finer points are averaged, no source is "misaligned"). 2026-10-25 Europe/Vienna = 100 quarter hours.
+  Sources with `ignoreTimeFilter` or a chart without time range keep the data-derived grid. The resize re-query is a
+  no-op (the count does not depend on the width).
+  Backend limits: a resolution-aware source whose coarsest rung is coarser than the bucket fills only every n-th bucket;
+  a raw archive with fewer distinct timestamps than buckets is clamped (`DownsamplingBinQuantizer.Quantize`, AB#4246)
+  and fills only the buckets its bins start in — combine with `carryForward` for on-change signals.
+- **Multi-source path only:** the series options are applied by `composeChartSeries`, i.e. when the chart has at
+  least one complete additional series. A single-query chart ignores `primarySeries` (as for `visible`/`stacked`);
+  `bucketMinutes` works in both paths.
+- **Hints of hidden series:** `isSourceHintShown` — no "No data", error or misaligned hint for a hidden source
+  (`visible: false`, primary via `primarySeries.visible`) and no "No data" for a `zero` source. Failures of hidden
+  operands surface only through the dependent formula series.
+- **Persistence:** series entries are stored as they are, so the series options round-trip; `primarySeries` keeps
+  `visible`/`stacked` (only `false`), `missingValues` (not `gap`), `carryForwardLookbackMinutes` (with `carryForward`),
+  `dashType` (not `solid`) — the bar chart only `visible` and `missingValues`; `bucketMinutes` only when supported.
+  Charts without the options encode byte-identically.
+
+Specs: `utils/series-options.spec.ts` (fill modes, on-change fixture, future, snapping incl. DST and half-hour zones,
+fixed grid), `line-chart-widget.series-options.spec.ts` (Fusch zero, failed zero source, carryForward with look-back
+request, future, fixed buckets single / multi, colour / dash, hidden primary hints),
+`bar-chart-widget.series-options.spec.ts`, `line-chart-series-editor.options.spec.ts`,
+`line-chart-config-dialog.series.spec.ts` (Bucket size), `registrations/default-widget-registrations.series-options.spec.ts`.
+
+---
+
 ## Testing
 
 ### Test Structure
@@ -938,15 +1675,72 @@ ng test @meshmakers/octo-meshboard --watch=false --coverage
 Current test files:
 - `meshboard-grid.service.spec.ts` - Grid collision detection (39 tests)
 - `meshboard-variable.service.spec.ts` - Variable resolution (67 tests)
-- `meshboard-state.service.spec.ts` - State management (74 tests, includes entity selector management + stream-data time-arg binding)
-- `meshboard-data.service.spec.ts` - Data fetching (32 tests)
+- `meshboard-state.service.spec.ts` - State management (includes entity selector management, stream-data time-arg binding and the scope states of AB#7721)
+- `meshboard-view.host-time-range.spec.ts` / `host-time-range.spec.ts` - Host-set period and hidden picker (AB#7582): exact instants under process TZ UTC and America/New_York, host wins over tf_*/stored selection, one reload per change, invalid range, disabled filter, destroy during load, owner-aware clearing, `ignoreTimeFilter` not blanked, stale tf_*; parser: RFC 3339 only, calendar-invalid dates and times rejected
+- `meshboard-view.entity-selector-scope.spec.ts` - View scope resolution: empty / failed / pending / unscoped picks, URL picks, stale resolutions, clear (AB#7721)
+- `meshboard-view.entity-selector-follow.spec.ts` - Leader/follower selectors: follower scope and variables from the leader's pick, two target types, pending, empty, own default, clear, URL restore/write, no picker, unknown leader, stale picks (AB#7722)
+- `utils/entity-selector-follow.spec.ts` - Leader resolution, followers, toolbar visibility, editor validation messages (AB#7722)
+- `meshboard-persistence.entity-selector-follow.spec.ts` - `followsSelectorId` save/reload and export/import round trip; a pre-AB#7722 description imports and re-encodes byte-identically (AB#7722)
+- `entity-selector-editor.component.spec.ts` - Editor "Follows" option: leader list, CK type fixing, validation, list badges, removal confirmation (AB#7722); child scope hop list save forms and validation (AB#7723)
+- `utils/entity-selector-scope-path.spec.ts` - Child scope plan, editor mapping, validation, hop-by-hop resolution (AB#7723)
+- `meshboard-view.entity-selector-multihop.spec.ts` - Two/three-hop resolution with duplicates, empty and failed hops, invalid path, pending, stale picks, followers, pre-AB#7723 one-hop board (AB#7723)
+- `meshboard-persistence.entity-selector-multihop.spec.ts` - `path` save/reload and export/import; a pre-AB#7723 description imports and re-encodes byte-identically (AB#7723)
+- `utils/entity-selector-scope-source.spec.ts` - Scope source resolution and every invalid case, dependents, picker states, texts, query wrappers (AB#7915)
+- `entity-selector-toolbar.scope-source.spec.ts` - Dependent picker: `rtId IN` on dropdown and dialog, AND with filter rows and search, one hop, no leader pick, pending (no query until settled), empty / failed / invalid texts, leader change, unscoped selectors unchanged (AB#7915)
+- `meshboard-view.entity-selector-scope-source.spec.ts` - Picker scope resolution: three batched hops with duplicates, one hop, pending, empty, failed hop, invalid configurations (one warning each), stale leader pick, clear, URL pick on load (AB#7915)
+- `meshboard-view.entity-selector-dependent-pick.spec.ts` - Dependent pick lifecycle: keep / default / none on a leader change, pending and exactly one query per bound widget, no pick while the leader has one (no query, notice), persisted scope without leader pick, empty and failed picker scope, leader cleared, URL and route-data validation with `replaceUrl`, host API, two quick leader changes (AB#7916)
+- `meshboard-persistence.entity-selector-scope-source.spec.ts` - `scopeSource` save/reload and export/import; a pre-AB#7915 description imports and re-encodes byte-identically (AB#7915)
+- `entity-selector-scope-path-editor.component.spec.ts` - Hop list: add/remove/reorder, associations from metadata, "Other role…", warnings, metadata failure, validation, accessibility (AB#7723)
+- `widgets/stream-data-scope.widgets.spec.ts` - Line chart, bar chart and table send no query for an empty or pending scope (AB#7721); KPI in `kpi-widget.component.spec.ts`, process binding in `process-data.service.spec.ts`
+- `widgets/runtime-scope.widgets.spec.ts` - Runtime and grouping queries follow the selector (AB#7725): table (SimpleRtQuery), bar chart (runtime + stream-data grouping), pie chart, KPI, gauge and stats grid with bound / empty / failed / pending / unbound scopes, spying on the query executor; one table case through the real executor checks the `rtId IN` GraphQL variables
+- `query-executor.service.spec.ts` - `scopeRtIds`: runtime `rtId IN` filter AND-combined with the widget filters (also after a legacy family lookup), stream-data `arg.rtIds`, unbound unchanged (AB#7725)
+- `default-widget-registrations.spec.ts` - runtime-query binding round trip and byte-identical re-encoding (AB#7725)
+- `meshboard-data.service.spec.ts` - Data fetching, incl. batched association hops (AB#7723)
 - `widget-registry.service.spec.ts` - Widget registration (45 tests)
-- `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests)
+- `widget-data-utils.spec.ts` - Utility functions incl. `findCellForField` exact-match priority / AB#4293 regression (65 tests), `formatWidgetNumber` / `getNumberFormat` cache (AB#7686)
+- `heatmap-widget.component.spec.ts` - threshold coloring; value formatting byte-identical to the pre-AB#7686 implementation; date source per row type: stream-data rows use the top-level `timestamp` when `dateField` is `timestamp`, runtime rows only their cells (AB#7938)
+- `widgets/heatmap-widget/heatmap-buckets.spec.ts`, `heatmap-widget.weighted.spec.ts`, `heatmap-widget.registration.spec.ts`, `heatmap-config-dialog.component.spec.ts` - weighted mean equals the exact raw mean on a rollup fixture, empty vs. 0 cells, bucket-end shift, 25-hour DST day, own window vs. board filter, persistence round trip and byte-identical old configs, dialog validation (AB#7956)
+- `widgets/process-widget/process-widget.text-value.spec.ts` - `text.value` bindings: de-AT / en-GB / host language switch, connection text with `abs(value)`, "–" for no data / null / non-numeric / missing attribute, text inside a symbol via pass-through, diagrams without a text binding unchanged (AB#8022)
+- `widgets/process-widget/process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts` - process value aggregation sum / avg / min / max, expression order, empty and partial scope, validator fallbacks (AB#8024)
+- `widgets/process-widget/process-binding-editor.spec.ts`, `process-binding-cards.component.spec.ts`, `process-config-dialog.component.spec.ts`, `process-widget.connection-direction.spec.ts` - process widget editor: binding cards (add / rename / duplicate / delete, keyboard, missing selector), legacy and named round trip, Binding / Aggregate columns, connection direction pick and runtime override (AB#8025)
+- `widgets/process-widget/process-widget-bindings.spec.ts`, `services/process-data.service.bindings.spec.ts`, `process-widget.bindings.spec.ts`, `registrations/process-widget-registration.spec.ts` - named process bindings: legacy read, parallel load, own scope per binding, selector switch, pending / empty / error per binding, runtime entity from the selector, validator, error badge, unknown binding warned once, legacy byte-identical save and multi-binding round trip (AB#8023)
 - `meshboard-formula.spec.ts` - Formula rewrite, validation, evaluation, cycle detection (AB#5364)
-- `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364)
-- `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish
-- `kpi-config-dialog.component.spec.ts` - KPI dialog formula validation, output-name and cycle checks
+- `default-widget-registrations.spec.ts` - KPI dialog-apply + persistence round trip (`comparisonText` AB#5366, formula / output variable AB#5364, `decimalPlaces` AB#7686)
+- `kpi-widget.component.spec.ts` - KPI formula value, publishing, chaining, cycles, multiplier before publish, `decimalPlaces` formatting (incl. negative zero)
+- `kpi-decimal-places.spec.ts` - `decimalPlaces` normalisation (integer numbers 0-3 only, out-of-range and non-number values)
+- `kpi-config-dialog.component.spec.ts` - KPI dialog formula validation, output-name and cycle checks, `decimalPlaces` save
+- `components/formula-field/formula-field.component.spec.ts` - shared formula field: preview, syntax / unknown-variable messages, declared names, non-finite and non-numeric preview, clamp hint, insert, label/description wiring (AB#7950)
+- `widgets/gauge-widget/gauge-widget.formula.spec.ts` - gauge formula: ok, same value as the KPI, live updates, pending, error, non-numeric, non-finite tooltip, clamping, config change, existing gauges unchanged (AB#7950)
+- `widgets/gauge-widget/gauge-config-dialog.formula.spec.ts` / `gauge-config-dialog.formula-render.spec.ts` - gauge dialog Formula source: validation, Save state, result, rendered button/field/Save, keyboard reachability (AB#7950)
+- `registrations/default-widget-registrations.gauge-formula.spec.ts` - gauge formula round trip, switching clears, legacy gauges encode/load unchanged (AB#7950)
+- `widget-group-config-dialog.component.spec.ts` - widget-group dialog: KPI child `decimalPlaces` read, save, out-of-range (AB#7686)
+- `association-targets-cache.spec.ts` - `getAssociationTargets` selects `rtId` on every entity row; round trip through a cache keyed by `rtId` (AB#7649)
 - `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)
+- `utils/meshboard-language.spec.ts` - `MESHBOARD_LANGUAGE` source (fixed / signal / absent), culture keys, lookup order (AB#7655)
+- `widgets/table-widget/table-column-labels.spec.ts` - column `titles` / `valueLabels` resolution, malformed entries, dialog column merge (AB#7655)
+- `widgets/table-widget/table-widget.labels.spec.ts` - headers follow the host language without refetch, value-label cells, one warning per column, numeric enum cells for the resolver (AB#7655)
+- `widgets/table-widget/table-config-dialog.preserve-columns.spec.ts` - the table config dialog and registration keep authored columns on save and reload (AB#7655)
+
+## Table column titles per language and value labels (AB#7655)
+
+- The host language comes only from `MESHBOARD_LANGUAGE` (`provideMeshBoard({ language })`, `provideMeshBoardLanguage`),
+  `utils/meshboard-language.ts`; never from `LOCALE_ID` (decided by Odin 2026-10-27).
+- Pure resolution in `widgets/table-widget/table-column-labels.ts`; `TableWidgetComponent.listViewColumns` reads the
+  language signal, so a language switch only rebuilds the column definitions (no refetch).
+- Value-label cells are `dataType: 'component'` columns rendering `TableValueLabelCellComponent` (plain text, optional
+  colour) — deliberately not the list view's badge, so the cells look like every other cell and `null` stays empty.
+- The table config dialog must never rebuild columns it did not change (`mergeRuntimeEntityColumns`,
+  `mergePersistentQueryColumns`); `applyConfigResult` takes `result.columns` for persistent-query tables.
+  On the same query the dialog loads the query's current fields once (`loadQueryFields`) and drops kept
+  columns the query no longer returns, adding its other fields as derived columns; a failed lookup keeps
+  the columns unchanged.
+- `resolveValueLabels` returns `null` when no label applies for the current language, so the column keeps
+  its `dataType` rendering and the label resolver. Unlabelled values of a label column go through
+  `formatUnlabelledValue` (`number` / `date` pipe semantics with `LOCALE_ID`). `valueLabels` with
+  `statusMapping` is unsupported (warning).
+- `config` is a plain `@Input`; `listViewColumns` / `columnsReady` read `_configVersion`, bumped in
+  `ngOnChanges`, so a new config on the same instance recomputes them.
+- `warnOnce` keys are `<widget id or per-instance key>|<field>|<hash of the problem list>`.
 
 ---
 
@@ -968,6 +1762,9 @@ Located in `src/lib/graphQL/`:
 | `getDashboardEntity.ts` | Fetch single entity |
 | `getEntitiesByCkType.ts` | Fetch entities by type |
 | `getCkModelsWithState.ts` | CK models with state |
+| `getAssociationTargets.ts` | Association targets of one entity (with attributes); one-hop child scope |
+| `getAssociationTargetRtIds.ts` | Batched association hop: target rtIds of many entities (multi-hop child scope, AB#7723) |
+| `getCkTypeAssociationRoles.ts` | Associations of a CK type (association widget dialog, child scope hop list) |
 
 ---
 
@@ -1135,6 +1932,162 @@ cockpit/
   `utils/adapter-online.spec.ts`, `utils/pipeline-executions.spec.ts`.
 
 ---
+
+## Process Widget data bindings (AB#8023)
+
+A process widget maps diagram properties (`transformProperties`) to runtime values through
+`propertyMappings`. Since AB#8023 the values can come from **several named bindings**, each scoped by its
+own entity selector — e.g. one EnergyIQ flow picture with the followers `netz`, `pv`, `batterie`,
+`wallboxen`, `geraete` of the leader selector `standort`.
+
+```yaml
+# MeshBoardWidget config (JSON in the seed; shown as YAML)
+processDiagramRtId: 65a1b2c3d4e5f60123456789
+bindings:
+  - { name: netz,      mode: persistentQuery, queryRtId: <rtId>, queryFamily: streamData, entitySelectorId: netz }
+  - { name: pv,        mode: persistentQuery, queryRtId: <rtId>, queryFamily: streamData, entitySelectorId: pv }
+  - { name: batterie,  mode: runtimeEntity,   ckTypeId: <domain-model>/Battery, entitySelectorId: batterie }  # no rtId: selector's entity
+  - { name: wallboxen, mode: persistentQuery, queryRtId: <rtId>, queryFamily: runtime, entitySelectorId: wallboxen }
+  - { name: geraete,   mode: persistentQuery, queryRtId: <rtId>, queryFamily: runtime, entitySelectorId: geraete }
+propertyMappings:
+  - { propertyId: gridPower,    sourceType: column,    sourcePath: power_avg,     bindingName: netz }
+  - { propertyId: pvPower,      sourceType: column,    sourcePath: power_avg,     bindingName: pv }
+  - { propertyId: batterySoc,   sourceType: attribute, sourcePath: stateOfCharge, bindingName: batterie }
+  - { propertyId: wallboxPower, sourceType: column,    sourcePath: power,         bindingName: wallboxen }
+```
+
+- **Model** (`process-widget-config.model.ts`): `ProcessWidgetBinding` (`name` unique, `mode`, `ckTypeId` /
+  `rtId` or `queryRtId` / `queryName` / `queryFamily`, `ignoreTimeFilter`, `entitySelectorId`, `filters`) and
+  `DiagramPropertyMapping.bindingName`. Helpers in `process-widget-bindings.ts` (pure, unit-tested):
+  `resolveProcessBindings`, `legacyProcessBinding`, `mappingBindingName`, `processBindingConfigError`,
+  `validateProcessWidgetBindings`, `parsePersistedProcessBindings`, `toPersistedProcessBindings`.
+- **Compatibility:** a config without `bindings` (or with an empty list) is read as one binding named
+  `default` (`DEFAULT_PROCESS_BINDING_NAME`) from the legacy fields `dataBindingMode`, `bindingCkTypeId`, …;
+  a mapping without `bindingName` reads `default`. Legacy widgets load, refresh and save byte-identically.
+  A widget saved with exactly one binding named `default` is written in the legacy shape; any other
+  binding list is written as `bindings` (only set keys).
+- **Loading** (`ProcessDataService.loadBindings`): all bindings in parallel, one `BoundDataResult` per name
+  (with `bindingName`). Per binding the AB#7721 scope contract applies: `pending` → result `pending`, no
+  query; `empty` → no rows / no entity (no value, never a stale one); `scoped` → query with `scopeRtIds`.
+  A runtime-entity binding with `rtId` loads that entity (variables resolved); without `rtId` it loads the
+  first rtId of its selector's resolved scope (CK type from `ckTypeId`, else from a selector without
+  `childScope`); no pick → no entity. A thrown error becomes the binding's `error` — never the others'.
+  `loadBoundData(config)` still loads the legacy binding only.
+- **Widget:** each mapping reads from its binding (`boundDataByBinding`); pending bindings are left out, so
+  their properties keep the default while the others render. The widget stays loading only while every
+  binding is pending (a legacy widget: its one binding — as before). A failing binding is named in a small
+  badge (`bindingErrors`, `Binding pv: <message>`, Kendo error colour variables); legacy widgets show no
+  badge (unchanged). Config issues — duplicate or empty names, a runtime-entity binding with neither `rtId`
+  nor selector, a missing query rtId / CK type, an unknown selector, a mapping with an unknown
+  `bindingName` — are logged once per widget instance with `console.warn`; the affected property keeps its
+  default.
+- **Refresh:** bindings reload when the view calls `triggerRefresh()` (after every pick change and after the
+  initial picks resolved), so a leader switch re-queries all bindings in one refresh.
+- **Dialog:** see *Process widget editor (AB#8025)* below.
+- **Connections** (flow lines such as PV→Haus, Netz↔Haus, Haus↔Batterie) are line / polyline / path
+  primitives whose effects come from `propertyBindings`. Their property can be mapped to **any** binding,
+  so `animation.enabled`, `visible` and `style.stroke.color` follow the binding the author picked, not
+  the first one. Direction from the sign of the value, with existing effects only:
+
+  | Effect on the line | Expression |
+  |---|---|
+  | forward flow animation (`stroke-dashoffset` 15 → 0), `animation.enabled` | `value > 0` |
+  | reverse flow animation (0 → 15), `animation.enabled` | `value < 0` |
+  | line `visible` | `value != 0` |
+  | `style.stroke.color` | `value > 0 ? '#c62828' : (value < 0 ? '#2e7d32' : '#888888')` |
+  | arrow line with `markerEnd` / with `markerStart`, `visible` | `value > 0` / `value < 0` |
+
+  0 and "no value" (pending or empty binding → the property default, 0; an `animation.enabled` context
+  without a value is 0) give no flow and a hidden or neutral line. Show the absolute value with a second
+  property on the same column with expression `abs(value)` and bind a text on the line with the
+  `text.value` effect (AB#8022): it shows `1,8 kW`, the line's effects carry the sign, and while the
+  property has no value the text shows "–" (the line effects still see the default). Legacy element
+  connections (`ProcessConnection.animation.dataBinding`) keep their own element binding (unchanged).
+  Spec: `process-widget.bindings.spec.ts` *connections driven by any binding*.
+- **Aggregation (AB#8024)** sits on the mapped value, not on the binding, so one binding gives both the sum of
+  power and the average state of charge:
+
+  ```yaml
+  propertyMappings:
+    - { propertyId: devicesPower, sourceType: column, sourcePath: activePower, bindingName: geraete, aggregate: sum, expression: value / 1000 }
+    - { propertyId: socAvg,       sourceType: column, sourcePath: stateOfCharge, bindingName: geraete, aggregate: avg }
+  ```
+
+  | `aggregate` | Value |
+  |---|---|
+  | absent / `first` | cell of the first row, unchanged (legacy behaviour) |
+  | `sum` / `avg` / `min` / `max` | over the numeric cells of all rows of the scope (numbers and numeric strings; null, undefined, other text skipped) |
+
+  Rules (pure helpers in `process-value-aggregation.ts`: `aggregateQueryColumn`, `isPartialAggregate`,
+  `processAggregateIssue`; `mappingAggregateIssue` in `process-widget-bindings.ts`):
+  - Order: aggregate over the rows, then the mapping `expression` on the result, then type coercion.
+  - Zero rows or no numeric cell ⇒ the property is `undefined` (no value): its effects are skipped, a bound text
+    shows "–", a connection's `animation.enabled` sees 0. Not 0 and not the property default.
+  - `totalCount` > loaded rows (query limit `first: 1000`) ⇒ the aggregate is computed over the loaded rows and
+    one `console.warn` per widget instance names the binding and the counts.
+  - **Query bindings only.** A runtime-entity binding loads one entity (the first of its selector's scope), so
+    there is nothing to aggregate; to aggregate over all entities of a scope bind a runtime persistent query with
+    the selector (decided in AB#8024, matching the AB#7941 need: sum over the wallboxes and devices of the picked
+    site, both query bindings). An aggregate other than `first` on a runtime-entity binding, an `attribute`
+    mapping or a non-`number` property is reported once by `validateProcessWidgetBindings` (the widget passes the
+    diagram's property types) and falls back to the first row.
+  - Persistence: mappings are stored verbatim, so `aggregate` round-trips; mappings without it encode unchanged.
+    Legacy element bindings (`process-data.service.ts`) are not affected. Editor control: the Aggregate column (AB#8025).
+  - Specs: `process-value-aggregation.spec.ts`, `process-widget.aggregation.spec.ts`, the aggregate round trip in
+    `registrations/process-widget-registration.spec.ts`.
+
+## Process widget editor (AB#8025)
+
+The process widget dialog (`process-config-dialog.component.ts`, wireframe sections B/C agreed with the
+connection condition on AB#7954) edits the AB#8023/AB#8024 model without YAML.
+
+- **Data Binding tab** = `mm-process-binding-cards` (`process-binding-cards.component.ts`): one card per binding
+  (`ProcessBindingDraft`, built by `draftsFromBindings` from `resolveProcessBindings`, so a legacy widget opens with
+  one card "Default" = the implicit `default` binding). Card fields: name (required, unique; `bindingNameError`
+  inline), source (persistent query / runtime entity), CK type + entity or persistent query (+ the stream-data
+  time-filter toggle), "Follows entity selector" (all selectors of the board plus "None"; a follower is labelled
+  `(follower of <leader>)`), filters. Header: name, source tag, `selector: <id>`, warning tag *Selector not on this
+  board*, icon buttons duplicate / delete (`MM_ACTION_ICONS`). Delete opens an inline confirmation that lists the
+  properties whose mappings will be cleared (`mappingsUsingBinding`). Empty state: "No data binding yet…" with one
+  "Add binding" action. Keyboard: the header is a tab stop (`role="button"`, `aria-expanded`); Enter / Space toggles,
+  Delete starts the confirmation (keys on the header buttons are theirs); focus moves to the new card's name, to the
+  confirmation, back to the header or to "Add binding". Narrow dialog (container < 560 px): one column, the selector
+  meta under the name.
+- **Renames:** mappings follow a card's name only while the name is valid (`committedName`), so a name that briefly
+  equals another binding's never merges two bindings' mappings (`renameBindingInMappings`); delete clears the
+  binding's mappings (`clearMappingsOfBinding`).
+- **Mappings tab** (disabled until a binding exists): Property · Type · Binding · Field · Aggregate · Expression.
+  Binding = card names (an unknown stored name stays visible as `(unknown binding)`); Field = attribute combobox for
+  runtime-entity bindings (attributes of the CK type, loaded once per type), else a column text box; Aggregate =
+  `PROCESS_AGGREGATE_OPTIONS`, fixed to "First row" by `isAggregateFixed` (non-number property or runtime-entity
+  binding). `first` is written as no `aggregate`, `default` as no `bindingName` (`withAggregate`, `withBindingName`).
+  On Save the `sourceType` of each mapping follows its binding's source (`sourceTypeForMode`).
+- **Connections** (same tab): `findDiagramConnections` lists top-level line / polyline / path primitives with a
+  direction effect (`CONNECTION_DIRECTION_EFFECTS`: `animation.enabled`, `visible`, `style.stroke.color`,
+  `style.stroke.opacity`, `style.opacity`). Per line a "Direction from" dropdown: "As in diagram (<property>)" or any
+  number property; the row says which mapped value it follows (`Direction from grid ← netz · power (Sum)`). Stored as
+  `connectionDirections: [{ connectionId, propertyId }]` (only overrides). At load the widget calls
+  `applyConnectionDirections` (pure, never mutates the diagram): every direction effect of that line is bound to the
+  picked property, so the sign of that value carries the direction exactly as described in *Connections* above.
+  Unknown connection / property → one `console.warn`, ignored (`connectionDirectionIssues`). Changing the diagram in
+  the dialog drops the overrides.
+- **Layout rules (AB#8025 layout fixes):** the dialog is ~600 px wide at any viewport, so its tab content is a
+  `container-type: inline-size` and the layout switches on the container (560 px). Mapping rows use two equal columns
+  there (property + type, Binding | Aggregate, Field | Expression), never a fixed narrow column for an input; the
+  Field input shows its value as tooltip. The delete confirmation uses `--kendo-color-surface-alt` /
+  `--kendo-color-on-app-surface` with an error-coloured edge (the `error-subtle` token stays light in the dark
+  theme). The shared `mm-field-filter-editor` (octo-ui) keeps its grid at 680 px minimum inside a horizontally
+  scrolling frame (`.filter-grid-scroll`), so a narrow card scrolls instead of cutting off Value and the row actions.
+  Plain connections between elements are not flow lines: they carry no property-driven direction, so only
+  line / polyline / path primitives with a direction binding are listed (the empty hint says so).
+- **Save** is blocked while `bindingDraftIssues` reports anything (empty / duplicate name, selector not on the board,
+  incomplete source); the messages are listed above the dialog actions. `bindingResultFields`: no card → no binding
+  (`dataBindingMode` stays absent when it was absent), one card named `default` → legacy fields, otherwise `bindings`.
+  `applyConfigResult` writes the legacy fields and sets `bindings` / `connectionDirections` only when present.
+- Pure helpers: `process-binding-editor.ts`. Specs: `process-binding-editor.spec.ts`,
+  `process-binding-cards.component.spec.ts`, `process-config-dialog.component.spec.ts` (legacy and named round trip
+  through the registry, missing selector, rename / delete, mapping columns, connections),
+  `process-widget.connection-direction.spec.ts`, `registrations/process-widget-registration.spec.ts`.
 
 ## Process Designer
 

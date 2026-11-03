@@ -23,6 +23,8 @@ import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
+import { KPI_MAX_DECIMAL_PLACES, normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
+import { columnProbeWindow } from '../../utils/column-probe-window';
 
 /**
  * Data source type selection
@@ -278,6 +280,19 @@ export interface WidgetGroupConfigResult extends WidgetConfigResult {
                 </kendo-textbox>
               </div>
             </div>
+            <div class="form-field">
+              <label>Decimal Places</label>
+              <kendo-numerictextbox
+                [(ngModel)]="form.decimalPlaces"
+                [min]="0"
+                [max]="maxDecimalPlaces"
+                [step]="1"
+                [decimals]="0"
+                format="n0"
+                placeholder="Automatic">
+              </kendo-numerictextbox>
+              <p class="field-hint">Fixed number of decimal places for numeric values (0-3). Leave empty for automatic (two for a fractional value, none for a whole number).</p>
+            </div>
           }
         </div>
 
@@ -527,6 +542,10 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
   @Input() initialGap?: number;
   @Input() initialEmptyMessage?: string;
 
+  get maxDecimalPlaces(): number {
+    return KPI_MAX_DECIMAL_PLACES;
+  }
+
   // Data source mode
   dataSourceMode: WidgetGroupDataSourceMode = 'persistentQuery';
 
@@ -555,6 +574,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
     valueAttribute: '',
     prefix: '',
     suffix: '',
+    decimalPlaces: null as number | null,
     gaugeType: 'arc' as GaugeType,
     gaugeMin: 0,
     gaugeMax: 100,
@@ -631,6 +651,7 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
       if (staticConfig) {
         if ('prefix' in staticConfig) this.form.prefix = staticConfig.prefix ?? '';
         if ('suffix' in staticConfig) this.form.suffix = staticConfig.suffix ?? '';
+        if ('decimalPlaces' in staticConfig) this.form.decimalPlaces = normalizeKpiDecimalPlaces(staticConfig.decimalPlaces) ?? null;
         if ('gaugeType' in staticConfig) this.form.gaugeType = staticConfig.gaugeType ?? 'arc';
         if ('min' in staticConfig) this.form.gaugeMin = staticConfig.min ?? 0;
         if ('max' in staticConfig) this.form.gaugeMax = staticConfig.max ?? 100;
@@ -730,8 +751,11 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
         }));
     }
 
-    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
-    return sdResult.columns.map(c => ({
+    // An Integral column needs from/to (AB#7921): the executor retries with the board's
+    // window, or the last 24 hours when the board has no time filter (AB#7975).
+    const columns = await this.queryExecutor.fetchStreamDataColumns(
+      rtId, columnProbeWindow(this.meshBoardStateService.resolveStreamDataTimeArgs()));
+    return columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null
@@ -875,7 +899,8 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
       case 'kpi':
         return {
           prefix: this.form.prefix || undefined,
-          suffix: this.form.suffix || undefined
+          suffix: this.form.suffix || undefined,
+          decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces)
         };
       case 'gauge':
         return {

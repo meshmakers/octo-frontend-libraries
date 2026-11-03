@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { WindowService } from '@progress/kendo-angular-dialog';
 import { WidgetRegistryService, PersistedWidgetData, WidgetPersistenceData } from '../services/widget-registry.service';
-import { registerDefaultWidgets } from './default-widget-registrations';
-import { KpiWidgetConfig, PieChartWidgetConfig } from '../models/meshboard.models';
+import { registerDefaultWidgets, parseTableRowExtras } from './default-widget-registrations';
+import { BarChartWidgetConfig, KpiWidgetConfig, PersistentQueryDataSource, PieChartWidgetConfig, TableWidgetConfig } from '../models/meshboard.models';
+import { TableConfigResult } from '../widgets/table-widget/table-config-dialog.component';
 import { PieChartConfigResult } from '../widgets/pie-chart-widget/pie-chart-config-dialog.component';
 import { KpiConfigResult } from '../widgets/kpi-widget/kpi-config-dialog.component';
 
@@ -107,6 +108,117 @@ describe('Default widget registrations — KPI', () => {
       });
       expect(applied.comparisonText).toBeUndefined();
     });
+  });
+
+  describe('decimalPlaces (AB#7686)', () => {
+    it('keeps the decimal places of a formula KPI through dialog apply and persistence', () => {
+      const applied = applyResult(createKpiWidget(), {
+        dataSourceType: 'formula',
+        formula: '${a} / ${b} * 100',
+        decimalPlaces: 1
+      });
+      expect(applied.decimalPlaces).toBe(1);
+      expect(roundTrip(applied).decimalPlaces).toBe(1);
+    });
+
+    it('keeps the decimal places of a static, persistent-query and runtime-entity KPI', () => {
+      const staticKpi = applyResult(createKpiWidget(), { dataSourceType: 'static', staticValue: '1', decimalPlaces: 2 });
+      const queryKpi = applyResult(createKpiWidget(), {
+        dataSourceType: 'persistentQuery',
+        queryRtId: 'q-1',
+        queryName: 'Query',
+        queryMode: 'simpleCount',
+        decimalPlaces: 0
+      });
+      const entityKpi = applyResult(createKpiWidget(), {
+        dataSourceType: 'runtimeEntity',
+        ckTypeId: 'Test/Type',
+        valueAttribute: '_count',
+        decimalPlaces: 3
+      });
+
+      expect(roundTrip(staticKpi).decimalPlaces).toBe(2);
+      expect(roundTrip(queryKpi).decimalPlaces).toBe(0);
+      expect(roundTrip(entityKpi).decimalPlaces).toBe(3);
+    });
+
+    it('passes the decimal places to the dialog', () => {
+      const initial = registry.getInitialConfig(createKpiWidget({ decimalPlaces: 1 }));
+      expect(initial['initialDecimalPlaces']).toBe(1);
+    });
+
+    it('normalises a hand-written decimalPlaces when loading, in every mode', () => {
+      const cases: [unknown, number | undefined][] = [[1, 1], [3, 3], ['1', undefined], [1.5, undefined], [4, undefined], [-1, undefined], [null, undefined], ['abc', undefined]];
+      const modes: Partial<PersistedWidgetData>[] = [
+        { dataSourceType: 'static' },
+        { dataSourceType: 'systemQuery', dataSourceRtId: 'q-1' },
+        { dataSourceType: 'runtimeEntity', dataSourceCkTypeId: 'Test/Type' }
+      ];
+      for (const mode of modes) {
+        for (const [raw, expected] of cases) {
+          const widget = createKpiWidget();
+          const restored = registry.deserializeWidget({
+            ...toPersisted({ dataSourceType: 'static', config: { decimalPlaces: raw, valueMode: 'formula', formula: '1' } }, widget),
+            ...mode
+          }) as KpiWidgetConfig;
+          expect(restored.decimalPlaces).toBe(expected);
+        }
+      }
+    });
+
+    it('passes only a number or nothing to the dialog', () => {
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: 2 }))['initialDecimalPlaces']).toBe(2);
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: '2' as unknown as number }))['initialDecimalPlaces']).toBeUndefined();
+      expect(registry.getInitialConfig(createKpiWidget({ decimalPlaces: 5 }))['initialDecimalPlaces']).toBeUndefined();
+    });
+
+    it('stores nothing when unset', () => {
+      const applied = applyResult(createKpiWidget({ decimalPlaces: 1 }), { dataSourceType: 'static', staticValue: '1' });
+      expect(applied.decimalPlaces).toBeUndefined();
+      expect('decimalPlaces' in JSON.parse(JSON.stringify(registry.serializeWidget(applied).config))).toBe(false);
+      expect(roundTrip(applied).decimalPlaces).toBeUndefined();
+    });
+  });
+
+  describe('KPI display fields in every mode (AB#7686)', () => {
+    const display = {
+      prefix: 'EUR ',
+      suffix: ' kWh',
+      trend: 'up' as const,
+      comparisonText: 'vs. ${last}',
+      decimalPlaces: 2,
+      outputVariableName: 'shown'
+    };
+    const modes: Partial<KpiConfigResult>[] = [
+      { dataSourceType: 'runtimeEntity', ckTypeId: 'Test/Type', valueAttribute: '_count' },
+      { dataSourceType: 'persistentQuery', queryRtId: 'q-1', queryName: 'Query', queryMode: 'simpleCount' },
+      { dataSourceType: 'static', staticValue: '42' },
+      { dataSourceType: 'formula', formula: '${a} * 2' }
+    ];
+
+    for (const mode of modes) {
+      it(`keeps every display field of a ${mode.dataSourceType} KPI through apply, persistence and the dialog`, () => {
+        const applied = applyResult(createKpiWidget({ icon: 'chart' }), { ...mode, ...display });
+        const restored = roundTrip(applied);
+        const initial = registry.getInitialConfig(restored);
+
+        for (const widget of [applied, restored]) {
+          expect(widget.prefix).toBe(display.prefix);
+          expect(widget.suffix).toBe(display.suffix);
+          expect(widget.trend).toBe(display.trend);
+          expect(widget.comparisonText).toBe(display.comparisonText);
+          expect(widget.decimalPlaces).toBe(display.decimalPlaces);
+          expect(widget.outputVariableName).toBe(display.outputVariableName);
+          expect(widget.icon).toBe('chart');
+        }
+        expect(initial['initialPrefix']).toBe(display.prefix);
+        expect(initial['initialSuffix']).toBe(display.suffix);
+        expect(initial['initialTrend']).toBe(display.trend);
+        expect(initial['initialComparisonText']).toBe(display.comparisonText);
+        expect(initial['initialDecimalPlaces']).toBe(display.decimalPlaces);
+        expect(initial['initialOutputVariableName']).toBe(display.outputVariableName);
+      });
+    }
   });
 
   describe('formula and output variable (AB#5364)', () => {
@@ -233,5 +345,166 @@ describe('Default widget registrations — pie chart presentation (AB#5622)', ()
     } as PieChartConfigResult) as PieChartWidgetConfig;
     expect(applied.categoryColors).toEqual({ PAID: '#00ff00' });
     expect(applied.labelPosition).toBe('none');
+  });
+});
+
+describe('Default widget registrations — entity-selector binding on runtime queries (AB#7725)', () => {
+  let registry: WidgetRegistryService;
+
+  function persisted(type: string, configJson: string): PersistedWidgetData {
+    return {
+      rtId: 'w-1', ckTypeId: 'System.UI/DashboardWidget', name: 'Widget', type,
+      col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSourceType: 'systemQuery', dataSourceCkTypeId: null, dataSourceRtId: 'q-rt',
+      config: configJson
+    };
+  }
+
+  function reEncode(type: string, configJson: string): string {
+    const widget = registry.deserializeWidget(persisted(type, configJson));
+    return JSON.stringify(registry.serializeWidget(widget!).config);
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [{ provide: WindowService, useValue: { open: vi.fn() } }] });
+    registry = TestBed.inject(WidgetRegistryService);
+    registerDefaultWidgets(registry);
+  });
+
+  it('round-trips a runtime table bound to a selector (save → reload, export → import)', () => {
+    const json = '{"columns":[],"pageSize":10,"sortable":true,"queryName":"Devices","queryRtId":"q-rt","queryFamily":"runtime","entitySelectorId":"site"}';
+
+    const widget = registry.deserializeWidget(persisted('table', json)) as TableWidgetConfig;
+
+    expect(widget.dataSource).toEqual(expect.objectContaining({ type: 'persistentQuery', queryFamily: 'runtime', entitySelectorId: 'site' }));
+    expect(reEncode('table', json)).toBe(json);
+  });
+
+  it('re-encodes an unbound runtime table byte-identically (no entitySelectorId key)', () => {
+    const json = '{"columns":[],"pageSize":10,"sortable":true,"queryName":"Devices","queryRtId":"q-rt","queryFamily":"runtime"}';
+
+    expect(reEncode('table', json)).toBe(json);
+  });
+
+  it('keeps the binding the config dialog returns for a runtime grouping bar chart', () => {
+    const bar = {
+      id: 'bar-1', rtId: 'bar-1', type: 'barChart', title: 'Bar', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-rt', queryFamily: 'runtime', entitySelectorId: 'site' },
+      chartType: 'column', categoryField: 'name', series: [{ field: 'value', name: 'Value' }]
+    } as BarChartWidgetConfig;
+
+    const serialized = registry.serializeWidget(bar);
+    expect(serialized.config['entitySelectorId']).toBe('site');
+    const restored = registry.deserializeWidget({
+      ...persisted('barChart', JSON.stringify(serialized.config))
+    }) as BarChartWidgetConfig;
+    expect((restored.dataSource as PersistentQueryDataSource).entitySelectorId).toBe('site');
+    expect((restored.dataSource as PersistentQueryDataSource).queryFamily).toBe('runtime');
+  });
+});
+
+describe('Default widget registrations — table row action and value markers (AB#7728)', () => {
+  let registry: WidgetRegistryService;
+
+  function table(overrides: Partial<TableWidgetConfig> = {}): TableWidgetConfig {
+    return {
+      id: 'tbl-1', rtId: 'tbl-1', type: 'table', title: 'Daily', col: 1, row: 1, colSpan: 4, rowSpan: 2,
+      dataSource: { type: 'persistentQuery', queryRtId: 'q1', queryName: 'daily', queryFamily: 'streamData' },
+      columns: [], sorting: [], filters: [], pageSize: 10, sortable: true,
+      ...overrides
+    };
+  }
+
+  function roundTrip(widget: TableWidgetConfig): { persisted: Record<string, unknown>; widget: TableWidgetConfig } {
+    const serialized = registry.serializeWidget(widget);
+    const restored = registry.deserializeWidget({
+      rtId: widget.id, ckTypeId: 'System.UI/DashboardWidget', name: widget.title, type: 'table',
+      col: widget.col, row: widget.row, colSpan: widget.colSpan, rowSpan: widget.rowSpan,
+      dataSourceType: 'systemQuery', dataSourceCkTypeId: null, dataSourceRtId: serialized.dataSourceRtId ?? null,
+      config: JSON.stringify(serialized.config)
+    }) as TableWidgetConfig;
+    return { persisted: serialized.config as Record<string, unknown>, widget: restored };
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: WindowService, useValue: { open: vi.fn() } }]
+    });
+    registry = TestBed.inject(WidgetRegistryService);
+    registerDefaultWidgets(registry);
+  });
+
+  it('keeps the row action and the markers through persistence', () => {
+    const { persisted, widget } = roundTrip(table({
+      rowAction: { label: 'Details' },
+      valueMarkers: [{ field: 'manualCount', tooltip: 'Contains manual values', icon: 'warning-triangle' }]
+    }));
+    expect(persisted['rowAction']).toEqual({ label: 'Details' });
+    expect(persisted['valueMarkers']).toEqual([{ field: 'manualCount', tooltip: 'Contains manual values', icon: 'warning-triangle' }]);
+    expect(widget.rowAction).toEqual({ label: 'Details' });
+    expect(widget.valueMarkers).toEqual([{ field: 'manualCount', tooltip: 'Contains manual values', icon: 'warning-triangle' }]);
+  });
+
+  it('keeps showValue through persistence and ignores non-boolean values', () => {
+    const marker = { field: 'manualCount', tooltip: 'Manual', showValue: true };
+    expect(roundTrip(table({ valueMarkers: [marker] })).widget.valueMarkers).toEqual([marker]);
+    expect(parseTableRowExtras({ valueMarkers: [{ field: 'f', tooltip: 't', showValue: 'yes' }] }))
+      .toEqual({ valueMarkers: [{ field: 'f', tooltip: 't' }] });
+  });
+
+  it('keeps labelFields through persistence and through a dialog save', () => {
+    const widget = table({ labelFields: ['dataquality_max'] });
+    expect(roundTrip(widget).persisted['labelFields']).toEqual(['dataquality_max']);
+    expect(roundTrip(widget).widget.labelFields).toEqual(['dataquality_max']);
+
+    const result: TableConfigResult = {
+      dataSourceType: 'persistentQuery', ckTypeId: '', columns: [], sorting: [], filters: [],
+      queryRtId: 'q1', queryName: 'daily', pageSize: 10, sortable: true
+    };
+    expect((registry.applyConfigResult(widget, result) as TableWidgetConfig).labelFields).toEqual(['dataquality_max']);
+  });
+
+  it('drops foreign labelFields', () => {
+    expect(parseTableRowExtras({ labelFields: 'x' })).toEqual({});
+    expect(parseTableRowExtras({ labelFields: [1, '', 'a'] })).toEqual({ labelFields: ['a'] });
+  });
+
+  it('writes no new keys for a table without them', () => {
+    const { persisted, widget } = roundTrip(table());
+    expect('rowAction' in persisted).toBe(false);
+    expect('valueMarkers' in persisted).toBe(false);
+    expect('labelFields' in persisted).toBe(false);
+    expect(widget.rowAction).toBeUndefined();
+    expect(widget.valueMarkers).toBeUndefined();
+  });
+
+  it('applies the dialog result and removes settings the dialog cleared', () => {
+    const base = table({ rowAction: { label: 'Old' }, valueMarkers: [{ field: 'x', tooltip: 'X' }] });
+    const result: TableConfigResult = {
+      dataSourceType: 'persistentQuery', ckTypeId: '', columns: [], sorting: [], filters: [],
+      queryRtId: 'q1', queryName: 'daily', pageSize: 10, sortable: true,
+      rowAction: { label: 'Details' }
+    };
+    const applied = registry.applyConfigResult(base, result) as TableWidgetConfig;
+    expect(applied.rowAction).toEqual({ label: 'Details' });
+    expect(applied.valueMarkers).toBeUndefined();
+
+    const withoutAction: TableConfigResult = { ...result, rowAction: undefined };
+    const cleared = registry.applyConfigResult(applied, withoutAction) as TableWidgetConfig;
+    expect(cleared.rowAction).toBeUndefined();
+  });
+
+  it('hands the current settings to the dialog', () => {
+    const initial = registry.getInitialConfig(table({ rowAction: { label: 'Details' }, valueMarkers: [{ field: 'm', tooltip: 'M' }] }));
+    expect(initial?.['initialRowAction']).toEqual({ label: 'Details' });
+    expect(initial?.['initialValueMarkers']).toEqual([{ field: 'm', tooltip: 'M' }]);
+  });
+
+  it('drops foreign persisted values', () => {
+    expect(parseTableRowExtras({ rowAction: { label: '  ' }, valueMarkers: 'x' })).toEqual({});
+    expect(parseTableRowExtras({
+      rowAction: { label: 7 },
+      valueMarkers: [null, { field: '', tooltip: 'a' }, { field: 'f' }, { field: 'f', tooltip: 't', icon: 3, color: 'red' }]
+    })).toEqual({ valueMarkers: [{ field: 'f', tooltip: 't', color: 'red' }] });
   });
 });

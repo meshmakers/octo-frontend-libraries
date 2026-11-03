@@ -1,0 +1,33 @@
+# Batched association hop (AB#7723): the target rtIds of MANY source entities in
+# one request, used by the multi-hop child scope of entity selectors. Only rtIds
+# are selected — no attributes, so no SECRET values can leak (AB#5542).
+query getAssociationTargetRtIds(
+  $rtIds: [OctoObjectId]!
+  $ckTypeId: String!
+  $targetCkTypeId: String!
+  $roleId: String!
+  $direction: GraphDirection!
+  $first: Int!
+  $targetsFirst: Int!
+) {
+  runtime {
+    runtimeEntities(rtIds: $rtIds, ckId: $ckTypeId, first: $first) {
+      items {
+        rtId
+        associations {
+          targets(
+            ckId: $targetCkTypeId
+            roleId: $roleId
+            direction: $direction
+            first: $targetsFirst
+          ) {
+            totalCount
+            items {
+              rtId
+            }
+          }
+        }
+      }
+    }
+  }
+}

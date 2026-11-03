@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, firstValueFrom, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
-import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
+import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, OCTO_SILENT_ERRORS, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
@@ -91,8 +91,28 @@ export interface QueryExecutionOptions {
   fieldFilter?: FieldFilterDto[] | null;
   /** Stream-data-only: time-range, interval, limit, queryMode. Ignored for runtime queries. */
   streamDataArgs?: StreamDataExecutionArgs | null;
+  /**
+   * Entity-selector scope (AB#7725): the source rtIds a widget bound to an entity
+   * selector is restricted to. Applied on the server for both families:
+   * - runtime queries (SimpleRtQuery, AggregationRtQuery, GroupingAggregationRtQuery):
+   *   adds the field filter `rtId IN (scopeRtIds)`, AND-combined with
+   *   {@link fieldFilter} and the persisted query's own filters — a grouping or
+   *   aggregation query aggregates over the scoped entities only;
+   * - stream-data queries: sent as `arg.rtIds` unless `streamDataArgs.rtIds` is set.
+   *
+   * `null`/`undefined` or an empty array means "no scope" (the query runs as saved).
+   * An empty scope must never reach the executor: callers skip the query instead
+   * (`StreamDataScope.kind === 'empty'`, AB#7721).
+   */
+  scopeRtIds?: string[] | null;
   /** Force a network round-trip instead of using the Apollo cache. */
   forceRefresh?: boolean;
+  /**
+   * Stream-data only (AB#7985): errors of this call are logged to the console, never
+   * toasted by the global GraphQL error link ({@link OCTO_SILENT_ERRORS}). For probe calls
+   * whose caller handles the failure itself (e.g. a retry with a time window).
+   */
+  silentErrors?: boolean;
 }
 
 export interface QueryColumnInfo {
@@ -224,7 +244,7 @@ export class QueryExecutorService {
         rtId: queryRtId,
         first: options.first ?? undefined,
         after: options.after ?? undefined,
-        fieldFilter: options.fieldFilter ?? undefined
+        fieldFilter: QueryExecutorService.withRtIdScope(options.fieldFilter, options.scopeRtIds)
       },
       fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first'
     }).pipe(
@@ -248,7 +268,8 @@ export class QueryExecutorService {
   }
 
   executeStreamData(queryRtId: string, options: QueryExecutionOptions = {}): Observable<QueryExecutionResult> {
-    const arg = options.streamDataArgs ? this.buildStreamDataArg(options.streamDataArgs) : undefined;
+    const streamDataArgs = QueryExecutorService.withStreamDataScope(options.streamDataArgs, options.scopeRtIds);
+    const arg = streamDataArgs ? this.buildStreamDataArg(streamDataArgs) : undefined;
     return this.streamDataGql.fetch({
       variables: {
         rtId: queryRtId,
@@ -258,7 +279,8 @@ export class QueryExecutorService {
         fieldFilter: options.fieldFilter ?? undefined,
         arg
       },
-      fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first'
+      fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first',
+      ...(options.silentErrors ? { context: { [OCTO_SILENT_ERRORS]: true } } : {})
     }).pipe(
       map(result => {
         const queryItem = result.data?.streamData?.streamDataQuery?.items?.[0];
@@ -277,6 +299,60 @@ export class QueryExecutorService {
         };
       })
     );
+  }
+
+  /**
+   * Column metadata of a persisted stream-data query for the widget config pickers.
+   * Runs the query with `first: 1` and its own window first; a query that cannot run
+   * without a window — an `Integral` column over a raw archive requires from/to
+   * (AB#7921) — fails or returns no columns, so it is run once more with `window`
+   * (the board's time window or a recent default, see `columnProbeWindow`). The error of
+   * the retry propagates. `options.forceRefresh` bypasses the Apollo cache for both calls.
+   *
+   * The first, window-less attempt is a probe: its error is expected for such queries
+   * and is not shown as an error toast (AB#7985). Only the retry's error reaches the
+   * global error handler.
+   */
+  async fetchStreamDataColumns(
+    queryRtId: string,
+    window: { from: Date; to: Date },
+    options: Pick<QueryExecutionOptions, 'forceRefresh'> = {}
+  ): Promise<QueryColumnInfo[]> {
+    const result = await this.executeWithProbeWindow('streamData', queryRtId,
+      { first: 1, forceRefresh: options.forceRefresh ?? false }, window);
+    return result.columns;
+  }
+
+  /**
+   * Runs a persisted query for a config picker (column list, category values, AB#7975).
+   * Runtime queries run once as {@link execute}. A stream-data query runs with its own
+   * window first — silently, its refusal is expected for an Integral query without from/to
+   * (AB#7985) — and, when that fails or returns no columns, once more with `window`
+   * (`columnProbeWindow`). The error of the retry propagates and is shown.
+   */
+  async executeWithProbeWindow(
+    family: QueryFamily | undefined,
+    queryRtId: string,
+    options: QueryExecutionOptions,
+    window: { from: Date; to: Date }
+  ): Promise<QueryExecutionResult> {
+    const resolved = family ?? await this.resolveFamily(queryRtId);
+    if (resolved !== 'streamData') {
+      return firstValueFrom(this.executeRuntime(queryRtId, options));
+    }
+    try {
+      const result = await firstValueFrom(this.executeStreamData(queryRtId, { ...options, silentErrors: true }));
+      if (result.columns.length > 0) {
+        return result;
+      }
+    } catch {
+      // Fall through to the windowed retry below.
+    }
+    return firstValueFrom(this.executeStreamData(queryRtId, {
+      ...options,
+      silentErrors: false,
+      streamDataArgs: { ...options.streamDataArgs, from: window.from, to: window.to }
+    }));
   }
 
   /**
@@ -454,6 +530,31 @@ export class QueryExecutorService {
       }
     }
     return groups;
+  }
+
+  /**
+   * Runtime entity-selector scope (AB#7725): appends `rtId IN (scopeRtIds)` to the
+   * caller's field filters. The backend AND-combines all runtime field filters with
+   * the persisted query's filters before the database query, so simple rows as well
+   * as aggregation / grouping results cover the scoped entities only. Returns the
+   * caller's filters unchanged (or `undefined`) when there is no scope.
+   */
+  static withRtIdScope(fieldFilter: FieldFilterDto[] | null | undefined, scopeRtIds: string[] | null | undefined): FieldFilterDto[] | undefined {
+    if (!scopeRtIds || scopeRtIds.length === 0) {
+      return fieldFilter ?? undefined;
+    }
+    return [
+      ...(fieldFilter ?? []),
+      { attributePath: 'rtId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: scopeRtIds }
+    ];
+  }
+
+  /** Stream-data entity-selector scope: `scopeRtIds` fill `rtIds` unless the caller set them. */
+  private static withStreamDataScope(args: StreamDataExecutionArgs | null | undefined, scopeRtIds: string[] | null | undefined): StreamDataExecutionArgs | null | undefined {
+    if (!scopeRtIds || scopeRtIds.length === 0 || (args?.rtIds && args.rtIds.length > 0)) {
+      return args;
+    }
+    return { ...args, rtIds: scopeRtIds };
   }
 
   private buildStreamDataArg(args: StreamDataExecutionArgs): StreamDataArgumentsDto | undefined {

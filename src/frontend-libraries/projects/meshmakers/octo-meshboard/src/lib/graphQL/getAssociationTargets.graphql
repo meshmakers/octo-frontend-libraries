@@ -11,6 +11,12 @@ query getAssociationTargets(
   runtime {
     runtimeEntities(rtId: $rtId, ckId: $ckTypeId, first: 1) {
       items {
+        # Nothing here reads this entity - only the targets below it. It is selected because
+        # a host that declares typePolicies { RtEntity: { keyFields: ['rtId'] } } cannot
+        # normalize an RtEntity without it: the cache write throws "Missing field 'rtId'
+        # while extracting keyFields", and the entity-selector child scope (and the
+        # associations widget) silently resolve to nothing (AB#7649).
+        rtId
         associations {
           targets(
             ckId: $targetCkTypeId

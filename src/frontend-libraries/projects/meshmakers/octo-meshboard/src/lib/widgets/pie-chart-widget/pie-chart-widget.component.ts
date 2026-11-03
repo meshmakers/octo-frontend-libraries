@@ -435,6 +435,19 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
    * Note: isNotConfigured() check in loadData() ensures queryRtId is set.
    */
   private async loadPersistentQueryData(dataSource: PersistentQueryDataSource): Promise<void> {
+    // Entity-selector scope (AB#7721): pending → stay in the loading state and
+    // send no query (the view refreshes once the scope is known); empty → render
+    // the empty chart without querying the persisted (unscoped) scope.
+    const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
+    if (scope.kind === 'pending') {
+      return;
+    }
+    if (scope.kind === 'empty') {
+      this._rawData.set([]);
+      this._isLoading.set(false);
+      return;
+    }
+
     const fieldFilter = this.convertFiltersToDto(this.config.filters);
     // queryFamily may be undefined for legacy widget configs — the executor
     // falls back to a one-time lookup by rtId. streamDataArgs is sent
@@ -444,7 +457,9 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     const result = await firstValueFrom(
       this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
         fieldFilter: fieldFilter ?? undefined,
-        streamDataArgs
+        streamDataArgs,
+        // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+        scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
       }).pipe(
         catchError(err => {
           console.error('Error loading Pie Chart data:', err);
@@ -477,15 +492,19 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
         const valueCell = findCellForField(row.cells, this.config.valueField);
 
         const category = categoryCell ? String(categoryCell.value ?? '') : '';
+        // A null cell is "no data" (e.g. an Integral over an empty window, AB#7975):
+        // the slice is left out instead of being shown as 0.
+        const noData = valueCell !== undefined && (valueCell.value === null || valueCell.value === undefined);
         let value = 0;
-        if (valueCell) {
+        if (valueCell && !noData) {
           const numValue = typeof valueCell.value === 'number' ? valueCell.value : parseFloat(String(valueCell.value));
           value = isNaN(numValue) ? 0 : numValue;
         }
 
-        return { category, value };
+        return { category, value, noData };
       })
-      .filter(item => item.category !== ''); // Filter out empty categories
+      .filter(item => item.category !== '' && !item.noData) // Filter out empty categories and no-data slices
+      .map(({ category, value }) => ({ category, value }));
 
     this._rawData.set(chartData);
     this._isLoading.set(false);

@@ -20,13 +20,16 @@ import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
-import { evaluateFormula, findVariableCycles, FormulaValidationResult, validateFormula } from '../../utils/meshboard-formula';
+import { declaredFormulaVariableNames, findVariableCycles, FormulaValidationResult, validateFormulaField } from '../../utils/meshboard-formula';
+import { FormulaFieldComponent } from '../../components/formula-field/formula-field.component';
 import { RuntimeEntityItem, PersistentQueryItem, QueryColumnItem, CategoryValueItem, RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { KPI_MAX_DECIMAL_PLACES, normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
+import { columnProbeWindow } from '../../utils/column-probe-window';
 
 /**
  * Data source type for KPI. `'formula'` computes the value from a formula over
@@ -66,6 +69,7 @@ export interface KpiConfigResult extends WidgetConfigResult {
   suffix?: string;
   trend?: 'up' | 'down' | 'neutral';
   comparisonText?: string;
+  decimalPlaces?: number;
   // Filters
   filters?: FieldFilterDto[];
 }
@@ -94,7 +98,8 @@ interface TrendOption {
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
     EntitySelectorScopePickerComponent,
-    LoadingOverlayComponent
+    LoadingOverlayComponent,
+    FormulaFieldComponent
   ],
   template: `
     <div class="config-container">
@@ -424,39 +429,11 @@ interface TrendOption {
         <!-- FORMULA -->
         <!-- ============================================================ -->
         @if (dataSourceType === 'formula') {
-          <div class="form-field">
-            <label>Formula <span class="required">*</span></label>
-            <kendo-textbox
-              [(ngModel)]="form.formula"
-              placeholder="e.g., (\${a} - \${b}) / 1000">
-            </kendo-textbox>
-            <p class="field-hint">
-              Reference variables with <code>{{variableSyntaxHint}}</code>. Supported: <code>+ - * / % ^</code>, parentheses,
-              <code>min</code>, <code>max</code>, <code>abs</code>, <code>round</code>, <code>clamp</code>, <code>? :</code>.
-              Numbers use a dot as decimal separator.
-            </p>
-            @if (form.formula.trim() && formulaValidation.error) {
-              <p class="field-error">{{ formulaValidation.error }}</p>
-            } @else if (form.formula.trim()) {
-              <p class="field-hint">Preview: <strong>{{ formulaPreview }}</strong></p>
-            }
-          </div>
-          <div class="form-field">
-            <label>Available Variables</label>
-            @if (formulaVariables.length > 0) {
-              <div class="variable-list">
-                @for (variable of formulaVariables; track variable.name) {
-                  <button kendoButton fillMode="flat" size="small" type="button"
-                          [title]="'Insert ' + variable.name + ' (current value: ' + (variable.value || '-') + ')'"
-                          (click)="insertVariable(variable.name)">
-                    {{ variable.name }}@if (variable.source === 'widget') { <span class="variable-source">(widget)</span> }
-                  </button>
-                }
-              </div>
-            } @else {
-              <p class="field-hint">No variables defined. Add variables in the MeshBoard settings or publish a widget value as output variable.</p>
-            }
-          </div>
+          <mm-meshboard-formula-field
+            [(formula)]="form.formula"
+            [variables]="formulaVariables"
+            [declaredNames]="declaredVariableNames">
+          </mm-meshboard-formula-field>
         }
 
         <!-- Output Variable -->
@@ -508,6 +485,19 @@ interface TrendOption {
             <label>Comparison Text</label>
             <kendo-textbox [(ngModel)]="form.comparisonText" placeholder="e.g. +3,1% vs. last week"></kendo-textbox>
             <p class="section-hint">Displayed below the value in the trend color. Supports {{ variableSyntaxHint }}</p>
+          </div>
+          <div class="form-field">
+            <label>Decimal Places</label>
+            <kendo-numerictextbox
+              [(ngModel)]="form.decimalPlaces"
+              [min]="0"
+              [max]="maxDecimalPlaces"
+              [step]="1"
+              [decimals]="0"
+              format="n0"
+              placeholder="Automatic">
+            </kendo-numerictextbox>
+            <p class="section-hint">Fixed number of decimal places for numeric values (0-3). Leave empty for automatic (two for a fractional value, none for a whole number).</p>
           </div>
         </div>
 
@@ -655,16 +645,6 @@ interface TrendOption {
       color: var(--kendo-color-error, #dc3545);
     }
 
-    .variable-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    .variable-source {
-      color: var(--kendo-color-subtle, #6c757d);
-    }
-
     .query-item {
       display: flex;
       flex-direction: column;
@@ -731,6 +711,7 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialSuffix?: string;
   @Input() initialTrend?: 'up' | 'down' | 'neutral';
   @Input() initialComparisonText?: string;
+  @Input() initialDecimalPlaces?: number;
 
   // Initial values for editing - Persistent Query
   @Input() initialDataSourceType?: KpiDataSourceType;
@@ -805,6 +786,7 @@ export class KpiConfigDialogComponent implements OnInit {
     suffix: '',
     trend: undefined as 'up' | 'down' | 'neutral' | undefined,
     comparisonText: '',
+    decimalPlaces: null as number | null,
     // Query-specific form fields
     queryValueField: '',
     queryCategoryField: '',
@@ -833,17 +815,11 @@ export class KpiConfigDialogComponent implements OnInit {
    * outputs declared by other KPIs (e.g. still loading or in error) and the variables an
    * entity selector exposes once an entity is picked.
    */
-  private get declaredVariableNames(): string[] {
-    const outputs = this.meshBoardStateService.widgets()
-      .filter(w => w.id !== this.initialWidgetId && w.type === 'kpi')
-      .map(w => (w as KpiWidgetConfig).outputVariableName?.trim())
-      .filter((name): name is string => !!name);
-    const selectorVariables = this.meshBoardStateService.getEntitySelectors().flatMap(selector => [
-      ...(selector.attributeMappings ?? []).map(m => m.variableName),
-      `${selector.id}_rtId`,
-      `${selector.id}_rtCkTypeId`
-    ]);
-    return [...outputs, ...selectorVariables];
+  get declaredVariableNames(): string[] {
+    return declaredFormulaVariableNames(
+      this.meshBoardStateService.widgets(),
+      this.meshBoardStateService.getEntitySelectors(),
+      this.initialWidgetId);
   }
 
   /**
@@ -853,26 +829,17 @@ export class KpiConfigDialogComponent implements OnInit {
    */
   get formulaValidation(): FormulaValidationResult {
     const formula = this.form.formula;
-    const availableNames = [...new Set([...this.formulaVariables.map(v => v.name), ...this.declaredVariableNames])];
-    const names = JSON.stringify(availableNames);
+    const variables = this.formulaVariables;
+    const declaredNames = this.declaredVariableNames;
+    const names = JSON.stringify([variables.map(v => v.name), declaredNames]);
     if (this.formulaValidationCache?.formula !== formula || this.formulaValidationCache.names !== names) {
       this.formulaValidationCache = {
         formula,
         names,
-        result: validateFormula(formula, availableNames, this.expressionEvaluator)
+        result: validateFormulaField(formula, variables, declaredNames, this.expressionEvaluator)
       };
     }
     return this.formulaValidationCache.result;
-  }
-
-  /** Result of the current formula over the current variable values */
-  get formulaPreview(): string {
-    const result = evaluateFormula(this.form.formula, this.formulaVariables, this.expressionEvaluator);
-    switch (result.status) {
-      case 'ok': return String(result.value);
-      case 'pending': return '- (a referenced variable has no value yet)';
-      default: return result.error;
-    }
   }
 
   /** Validation message for the output variable name, or `null` when valid or empty */
@@ -915,6 +882,10 @@ export class KpiConfigDialogComponent implements OnInit {
   }
 
   readonly variableSyntaxHint = '${variableName}';
+
+  get maxDecimalPlaces(): number {
+    return KPI_MAX_DECIMAL_PLACES;
+  }
 
   trendOptions: TrendOption[] = [
     { value: undefined, label: 'None' },
@@ -969,6 +940,7 @@ export class KpiConfigDialogComponent implements OnInit {
     this.form.suffix = this.initialSuffix || '';
     this.form.trend = this.initialTrend;
     this.form.comparisonText = this.initialComparisonText || '';
+    this.form.decimalPlaces = this.initialDecimalPlaces ?? null;
     this.form.queryValueField = this.initialQueryValueField || '';
     this.form.queryCategoryField = this.initialQueryCategoryField || '';
     this.form.queryCategoryValue = this.initialQueryCategoryValue || '';
@@ -1185,11 +1157,7 @@ export class KpiConfigDialogComponent implements OnInit {
         ckTypeId: '',
         valueAttribute: '',
         formula: this.form.formula.trim(),
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        outputVariableName: this.form.outputVariableName.trim() || undefined
+        ...this.displayFields()
       });
       return;
     }
@@ -1200,11 +1168,7 @@ export class KpiConfigDialogComponent implements OnInit {
         ckTypeId: '',
         valueAttribute: '',
         staticValue: this.form.staticValue,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        outputVariableName: this.form.outputVariableName.trim() || undefined
+        ...this.displayFields()
       });
       return;
     }
@@ -1225,11 +1189,7 @@ export class KpiConfigDialogComponent implements OnInit {
         queryValueField: this.form.queryValueField || undefined,
         queryCategoryField: this.form.queryCategoryField || undefined,
         queryCategoryValue: this.form.queryCategoryValue || undefined,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        outputVariableName: this.form.outputVariableName.trim() || undefined,
+        ...this.displayFields(),
         filters: filtersDto
       });
     } else if (this.selectedCkType) {
@@ -1239,14 +1199,21 @@ export class KpiConfigDialogComponent implements OnInit {
         rtId: this.isCountMode ? undefined : this.selectedEntity?.rtId,
         valueAttribute: this.isCountMode ? '_count' : this.form.valueAttribute,
         labelAttribute: this.form.labelAttribute || undefined,
-        prefix: this.form.prefix || undefined,
-        suffix: this.form.suffix || undefined,
-        trend: this.form.trend,
-        comparisonText: this.form.comparisonText || undefined,
-        outputVariableName: this.form.outputVariableName.trim() || undefined,
+        ...this.displayFields(),
         filters: filtersDto
       });
     }
+  }
+
+  private displayFields(): Pick<KpiConfigResult, 'prefix' | 'suffix' | 'trend' | 'comparisonText' | 'outputVariableName' | 'decimalPlaces'> {
+    return {
+      prefix: this.form.prefix || undefined,
+      suffix: this.form.suffix || undefined,
+      trend: this.form.trend,
+      comparisonText: this.form.comparisonText || undefined,
+      outputVariableName: this.form.outputVariableName.trim() || undefined,
+      decimalPlaces: normalizeKpiDecimalPlaces(this.form.decimalPlaces)
+    };
   }
 
   onCancel(): void {
@@ -1259,13 +1226,6 @@ export class KpiConfigDialogComponent implements OnInit {
 
   onDataSourceTypeChange(type: KpiDataSourceType): void {
     this.dataSourceType = type;
-  }
-
-  /** Appends a `${name}` reference to the formula */
-  insertVariable(name: string): void {
-    const formula = this.form.formula;
-    const separator = formula && !formula.endsWith(' ') ? ' ' : '';
-    this.form.formula = `${formula}${separator}\${${name}}`;
   }
 
   // ============================================================================
@@ -1352,9 +1312,12 @@ export class KpiConfigDialogComponent implements OnInit {
         }));
     }
 
-    // Stream-data: execute with a tiny page just to surface columns.
-    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
-    return sdResult.columns.map(c => ({
+    // Stream-data: execute with a tiny page just to surface columns. An Integral
+    // column needs from/to (AB#7921), so the executor retries with the board's
+    // window — or the last 24 hours when the board has no time filter.
+    const columns = await this.queryExecutor.fetchStreamDataColumns(
+      rtId, columnProbeWindow(this.meshBoardStateService.resolveStreamDataTimeArgs()));
+    return columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null
@@ -1377,7 +1340,9 @@ export class KpiConfigDialogComponent implements OnInit {
     try {
       // family may be undefined here — the executor falls back to a lookup.
       const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily;
-      const result = await firstValueFrom(this.queryExecutor.execute(family, queryRtId, { first: 100 }));
+      // A grouped Integral query needs from/to like its column list (AB#7975).
+      const result = await this.queryExecutor.executeWithProbeWindow(
+        family, queryRtId, { first: 100 }, columnProbeWindow(this.meshBoardStateService.resolveStreamDataTimeArgs()));
 
       const values = new Set<string>();
       for (const row of result.rows) {

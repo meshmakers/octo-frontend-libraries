@@ -70,6 +70,133 @@ export interface DiagramPropertyMapping {
    * ```
    */
   expression?: string;
+
+  /**
+   * Name of the {@link ProcessWidgetBinding} that supplies the value (AB#8023).
+   * Absent ⇒ {@link DEFAULT_PROCESS_BINDING_NAME} — the implicit binding built
+   * from the legacy single-binding fields. An unknown name is reported once in
+   * the console and leaves the property at its default value.
+   */
+  bindingName?: string;
+
+  /**
+   * How a column value is reduced over all rows of the binding's selector scope
+   * (AB#8024). Absent or `first` ⇒ the first row, exactly as before. `sum`,
+   * `avg`, `min`, `max` reduce the numeric cells (null / non-numeric cells are
+   * skipped; no numeric cell ⇒ no value). The mapping `expression` is applied to
+   * the aggregated value. Only for `column` mappings of a persistent-query
+   * binding and `number` properties; otherwise the validator reports it and the
+   * widget falls back to `first`.
+   */
+  aggregate?: ProcessValueAggregate;
+}
+
+/**
+ * Reduction of a mapped value over the rows of a query binding (AB#8024).
+ */
+export type ProcessValueAggregate = 'first' | 'sum' | 'avg' | 'min' | 'max';
+
+/**
+ * Name of the implicit binding a config without `bindings` is read as: the
+ * legacy single-binding fields (`dataBindingMode`, `bindingCkTypeId`, …).
+ * Mappings without `bindingName` refer to it.
+ */
+export const DEFAULT_PROCESS_BINDING_NAME = 'default' as const;
+
+/**
+ * One named data binding of a Process Widget (AB#8023).
+ *
+ * A widget can hold several bindings, each scoped by its own entity selector,
+ * so one flow picture shows values of several CK types of the picked site.
+ * Property mappings refer to a binding by {@link DiagramPropertyMapping.bindingName}.
+ *
+ * @example
+ * ```yaml
+ * bindings:
+ *   - name: pv
+ *     mode: persistentQuery
+ *     queryRtId: 6650a1b2c3d4e5f601234567
+ *     queryFamily: runtime
+ *     entitySelectorId: pv
+ *   - name: batterie
+ *     mode: runtimeEntity
+ *     ckTypeId: <domain-model>/Battery
+ *     entitySelectorId: batterie   # no rtId: the selector's current entity is loaded
+ * ```
+ */
+export interface ProcessWidgetBinding {
+  /** Unique name within the widget; mappings refer to it. */
+  name: string;
+
+  /** What the binding loads: one runtime entity or the rows of a persistent query. */
+  mode: Exclude<ProcessDataBindingMode, 'none'>;
+
+  // --- Runtime entity ---
+
+  /**
+   * CK type of the bound entity (`runtimeEntity`). May be omitted when the
+   * entity comes from an entity selector without `childScope` — the selector's
+   * `ckTypeId` is used then.
+   */
+  ckTypeId?: string;
+
+  /**
+   * Fixed runtime ID (variables such as `${selectedEntity}` are resolved).
+   * Absent ⇒ the current entity of `entitySelectorId` is loaded.
+   */
+  rtId?: string;
+
+  // --- Persistent query ---
+
+  /** Runtime ID of the persistent query (`persistentQuery`). */
+  queryRtId?: string;
+
+  /** Display name of the persistent query (for UI). */
+  queryName?: string;
+
+  /** Query family (`runtime` / `streamData`); looked up once when absent. */
+  queryFamily?: QueryFamily;
+
+  /** Stream data: do not bind the MeshBoard time filter (see `bindingIgnoreTimeFilter`). */
+  ignoreTimeFilter?: boolean;
+
+  // --- Both modes ---
+
+  /**
+   * Id of the entity selector that scopes this binding: a query gets the
+   * selector's resolved rtIds as scope, a runtime-entity binding without
+   * `rtId` loads the selector's current entity. A pending scope keeps the
+   * binding without value (the other bindings still render); an empty scope
+   * gives no value, never a stale one.
+   */
+  entitySelectorId?: string;
+
+  /** Field filters applied to the binding's query. */
+  filters?: WidgetFilterConfig[];
+}
+
+/**
+ * Which diagram property drives the flow direction of one connection line
+ * (AB#8025, wireframe approval on AB#7954).
+ *
+ * A connection is a line / polyline / path primitive of the diagram whose
+ * direction effects (`animation.enabled`, `visible`, `style.stroke.color`,
+ * `style.stroke.opacity`, `style.opacity`) are bound to a diagram property in
+ * the Process Designer. The widget can point those effects at another property
+ * (and so at another mapped value / binding) without changing the stored
+ * diagram: the sign of the value carries the direction as before.
+ *
+ * @example
+ * ```yaml
+ * connectionDirections:
+ *   - { connectionId: line-grid-house, propertyId: gridPower }
+ * ```
+ */
+export interface ProcessConnectionDirection {
+  /** Id of the line / polyline / path primitive of the diagram. */
+  connectionId: string;
+  /** Diagram property (`transformProperties`) whose value drives the direction. */
+  propertyId: string;
 }
 
 /**
@@ -192,6 +319,28 @@ export interface ProcessWidgetConfig extends WidgetConfig, ProcessWidgetSpecific
    * ```
    */
   propertyMappings?: DiagramPropertyMapping[];
+
+  // --- Several bindings (AB#8023) ---
+
+  /**
+   * Named data bindings, each with its own entity selector (AB#8023). When
+   * present and non-empty they replace the legacy single-binding fields above
+   * at runtime; a config without `bindings` is read as one implicit binding
+   * named {@link DEFAULT_PROCESS_BINDING_NAME} built from the legacy fields.
+   * Bindings load in parallel; a failing or pending binding does not block
+   * the others.
+   */
+  bindings?: ProcessWidgetBinding[];
+
+  // --- Connection directions (AB#8025) ---
+
+  /**
+   * Per connection line, the diagram property that drives its direction
+   * effects, overriding the property the diagram binds them to (AB#8025).
+   * Absent ⇒ the diagram's own bindings, unchanged. Unknown connections or
+   * properties are reported once in the console and ignored.
+   */
+  connectionDirections?: ProcessConnectionDirection[];
 }
 
 /**

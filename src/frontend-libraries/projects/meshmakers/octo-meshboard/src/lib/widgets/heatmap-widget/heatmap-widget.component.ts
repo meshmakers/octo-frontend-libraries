@@ -6,12 +6,25 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
 import { ChartsModule } from '@progress/kendo-angular-charts';
 import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import { emptyQueryExecutionResult } from '../../utils/stream-data-scope';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { matchesAttributePath } from '../../utils/widget-data-utils';
-import { getZonedDateParts, toInstant, zonedDateKey } from '../../utils/meshboard-datetime';
+import { findCellForField, formatWidgetNumber, matchesAttributePath } from '../../utils/widget-data-utils';
+import { toInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
+import {
+  aggregateHeatmapEntries,
+  HeatmapEntry,
+  heatmapBucketShiftMs,
+  heatmapHourSlot,
+  heatmapTimeWindowLabel,
+  hourSlotIndex,
+  hourSlotIndices,
+  hourSlotLabel,
+  resolveHeatmapTimeWindow,
+  toFiniteNumber
+} from './heatmap-buckets';
 
 /**
  * A single cell in the heatmap grid
@@ -21,8 +34,8 @@ interface HeatmapDataItem {
   date: string;
   /** Y-axis: hour label (e.g. '08:00') */
   hour: string;
-  /** Color intensity value */
-  value: number;
+  /** Color intensity value; `null` = empty cell (`weightedAvg` without rows, AB#7956) */
+  value: number | null;
   /** Per-cell color (transparent for no-data) */
   color: string;
 }
@@ -87,6 +100,10 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
           <span>{{ error() }}</span>
         </div>
       } @else {
+        @if (timeWindowLabel(); as windowLabel) {
+          <span class="time-window-badge"
+                title="This widget uses its own time window instead of the board time filter.">{{ windowLabel }}</span>
+        }
         <kendo-chart class="chart-container">
           <kendo-chart-x-axis>
             <kendo-chart-x-axis-item [categories]="xCategories()" [title]="{ text: '' }">
@@ -126,7 +143,11 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
             <ng-template kendoChartSeriesTooltipTemplate let-value="value" let-dataItem="dataItem">
               <div class="chart-tooltip">
                 <strong>{{ dataItem.date }}</strong> {{ dataItem.hour }}<br/>
-                Value: {{ formatValue(value?.value ?? value) }}
+                @if (dataItem.value === null) {
+                  No data
+                } @else {
+                  Value: {{ formatValue(value?.value ?? value) }}
+                }
               </div>
             </ng-template>
           </kendo-chart-tooltip>
@@ -143,6 +164,7 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
     }
 
     .heatmap-widget {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -187,6 +209,24 @@ function buildGradientRanges(min: number, max: number, colors: string[]): Heatma
       height: 100%;
     }
 
+    .time-window-badge {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      z-index: 2;
+      max-width: calc(100% - 12px);
+      padding: 1px 7px;
+      border-radius: 9px;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--kendo-color-on-app-surface, #6c757d);
+      background: color-mix(in srgb, var(--kendo-color-app-surface, #888) 12%, transparent);
+      user-select: none;
+    }
+
     .chart-tooltip {
       padding: 4px 8px;
       color: #212529;
@@ -228,11 +268,10 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
   readonly data = computed(() => this._heatmapData());
 
   /**
-   * Returns the color for a given value based on the color scheme ranges.
-   * Returns 'transparent' for zero/no-data values.
+   * Returns the gradient color for a filled cell based on the color scheme ranges.
+   * Empty cells are made transparent by the caller ({@link isEmptyCell}).
    */
-  private getColorForValue(value: number, ranges: HeatmapColorRange[]): string {
-    if (value === 0) return 'transparent';
+  private rangeColor(value: number, ranges: HeatmapColorRange[]): string {
     for (const range of ranges) {
       if (value >= range.from && value < range.to) return range.color;
     }
@@ -286,10 +325,7 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       return this.formatSI(displayValue, decimals);
     }
 
-    return displayValue.toLocaleString('de-AT', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: decimals
-    });
+    return formatWidgetNumber(displayValue, decimals, 'maximum');
   }
 
   /**
@@ -308,23 +344,36 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     for (const [threshold, prefix] of siPrefixes) {
       if (abs >= threshold) {
         const scaled = value / threshold;
-        return scaled.toLocaleString('de-AT', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: decimals
-        }) + prefix;
+        return formatWidgetNumber(scaled, decimals, 'maximum') + prefix;
       }
     }
 
-    return value.toLocaleString('de-AT', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: decimals
-    });
+    return formatWidgetNumber(value, decimals, 'maximum');
   }
 
-  cellLabelContent = (e: { value: number }): string => {
-    if (e.value === 0) return '';
-    return this.formatValue(e.value);
+  cellLabelContent = (e: { value: number | null }): string => {
+    if (this.isEmptyCell(e.value)) return '';
+    return this.formatValue(e.value as number);
   };
+
+  /**
+   * An empty cell shows no label and no colour: `null` always; 0 too, except for `weightedAvg`,
+   * where 0 is a real mean and an empty cell is `null` (AB#7956).
+   */
+  isEmptyCell(value: number | null | undefined): boolean {
+    if (value === null || value === undefined) return true;
+    return value === 0 && this.config?.aggregation !== 'weightedAvg';
+  }
+
+  /**
+   * Badge text of the widget's own time window (AB#7956), e.g. `Last 30 days`; `null` when the
+   * widget follows the board time filter or queries runtime data (the window binds stream data only).
+   */
+  timeWindowLabel(): string | null {
+    const ds = this.config?.dataSource as PersistentQueryDataSource | undefined;
+    if (ds?.queryFamily === 'runtime') return null;
+    return heatmapTimeWindowLabel(this.config?.timeWindow);
+  }
 
   xLabelContent = (e: { value: string }): string => {
     // For sub-hour labels like "2026-03-08 00-15", shorten date part to "03-08 00-15"
@@ -350,19 +399,34 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
       // queryFamily may be undefined for legacy widget configs — the executor
       // falls back to a one-time lookup by rtId. streamDataArgs is sent
       // unconditionally because the runtime path ignores it.
-      const streamDataArgs = this.buildStreamDataArgs();
+      // Entity-selector scope (AB#7721): pending → stay in the loading state and
+      // send no query (the view refreshes once the scope is known); empty → render
+      // the empty grid without querying the persisted (unscoped) scope.
+      // Own time window (AB#7956): overrides the board time filter, so the board's
+      // host-period gate (AB#7582) does not apply to this widget either.
+      const ownWindow = resolveHeatmapTimeWindow(this.config.timeWindow);
+      const ignoreBoardTimeFilter = ownWindow ? true : queryDataSource.ignoreTimeFilter;
+      const scope = this.stateService.resolveStreamDataScope(queryDataSource.entitySelectorId, queryDataSource.queryFamily, ignoreBoardTimeFilter);
+      if (scope.kind === 'pending') {
+        return;
+      }
+      const streamDataArgs = this.buildStreamDataArgs(ownWindow);
 
-      const result = await firstValueFrom(
-        this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
-          fieldFilter: fieldFilter ?? undefined,
-          streamDataArgs
-        }).pipe(
-          catchError(err => {
-            console.error('Error loading Heatmap data:', err);
-            throw err;
-          })
-        )
-      );
+      const result = scope.kind === 'empty'
+        ? emptyQueryExecutionResult(queryDataSource.queryFamily)
+        : await firstValueFrom(
+          this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
+            fieldFilter: fieldFilter ?? undefined,
+            streamDataArgs,
+            // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+            scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
+          }).pipe(
+            catchError(err => {
+              console.error('Error loading Heatmap data:', err);
+              throw err;
+            })
+          )
+        );
 
       const filteredRows = result.rows.filter(row =>
         HeatmapWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
@@ -378,9 +442,9 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     }
   }
 
-  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+  private buildStreamDataArgs(ownWindow?: { from: Date; to: Date }): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = ownWindow ?? this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;
@@ -398,18 +462,24 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     const dateEndField = this.config.dateEndField ?? null;
     const valueField = this.config.valueField ?? null;
     const aggregation = this.config.aggregation ?? 'count';
+    const weighted = aggregation === 'weightedAvg';
+    const weightField = this.config.weightField ?? null;
+    // Rollup rows carry the bucket END; shift them to the bucket start (AB#7956).
+    const bucketShiftMs = heatmapBucketShiftMs(this.config);
 
-    // Parse all rows: extract dateFrom, dateTo, numericValue
-    interface ParsedRow { dateFrom: Date; dateTo: Date | null; numericValue: number }
+    // Parse all rows: extract dateFrom, dateTo, value and weight
+    interface ParsedRow { dateFrom: Date; dateTo: Date | null; numericValue: number; weight: number }
     const parsedRows: ParsedRow[] = [];
 
     for (const row of filteredRows) {
       let dateFrom: Date | null = null;
       let dateTo: Date | null = null;
       let numericValue = 1; // default for count
+      let dateCellMatched = false;
 
       for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, dateField)) {
+          dateCellMatched = true;
           dateFrom = this.parseDate(cell.value);
         } else if (dateEndField && matchesAttributePath(cell.attributePath, dateEndField)) {
           dateTo = this.parseDate(cell.value);
@@ -420,8 +490,46 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
         }
       }
 
+      // A null value cell is "no data" (e.g. an Integral over an empty window, AB#7975): the
+      // row is skipped instead of counting as 0 in its bucket (sum/avg). The value cell is
+      // resolved exactly (`findCellForField`), so a null `<field>_integral` never hides or
+      // overwrites a usable `<field>`.
+      // A count ignores the value; a weighted mean validates value and weight below.
+      if (valueField && aggregation !== 'count' && !weighted) {
+        const valueCell = findCellForField(row.cells, valueField);
+        if (valueCell) {
+          const val = valueCell.value;
+          if (val === null || val === undefined) continue;
+          numericValue = typeof val === 'number' ? val : parseFloat(String(val));
+          if (isNaN(numericValue)) numericValue = 0;
+        }
+      }
+
+      // Stream-data rows carry their time at top level (`row.timestamp`, see
+      // QueryExecutorService.mapStreamDataRows); the cells only hold the value
+      // columns. Same source the line chart uses for the bin time (AB#7938).
+      // Only when no cell matched: a matching cell without a usable value drops the row.
+      if (!dateCellMatched && row.timestamp && HeatmapWidgetComponent.isRowTimestampField(row, dateField)) {
+        dateFrom = this.parseDate(row.timestamp);
+      }
+
+      // Weighted mean (AB#7956): Σ value / Σ weight. Each field resolves to its best cell
+      // (exact name first), so a `value_sum` / `value_count` pair never cross-matches; a row
+      // without a usable value or weight is skipped instead of biasing the mean.
+      let weight = 1;
+      if (weighted) {
+        const value = toFiniteNumber(findCellForField(row.cells, valueField)?.value);
+        const rowWeight = toFiniteNumber(findCellForField(row.cells, weightField)?.value);
+        if (value === null || rowWeight === null) continue;
+        numericValue = value;
+        weight = rowWeight;
+      }
+
       if (dateFrom) {
-        parsedRows.push({ dateFrom, dateTo, numericValue });
+        if (bucketShiftMs > 0) {
+          dateFrom = new Date(dateFrom.getTime() - bucketShiftMs);
+        }
+        parsedRows.push({ dateFrom, dateTo, numericValue, weight });
       }
     }
 
@@ -449,6 +557,14 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
   }
 
   /**
+   * True when `dateField` refers to the top-level timestamp of a stream-data row.
+   * Runtime rows are excluded so their date keeps coming only from the cells.
+   */
+  private static isRowTimestampField(row: QueryResultRow, dateField: string): boolean {
+    return row.__typename === 'StreamDataQueryRow' && matchesAttributePath('timestamp', dateField);
+  }
+
+  /**
    * Detects the interval width in minutes from the first row with from+to.
    */
   private detectIntervalMinutes(rows: { dateFrom: Date; dateTo: Date | null }[]): number {
@@ -464,39 +580,41 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
   }
 
   /**
-   * Processes data into hourly buckets (original behavior).
+   * Processes data into hourly buckets. Hour and day follow the board time zone; a DST
+   * fall-back day keeps its repeated hour as its own row (`02:00 (2)`, AB#7956).
    */
   private processHourlyData(
-    rows: { dateFrom: Date; numericValue: number }[],
+    rows: { dateFrom: Date; numericValue: number; weight: number }[],
     aggregation: string,
     mode: MeshBoardTimeZoneMode
   ): void {
-    const buckets = new Map<string, Map<number, number[]>>();
+    const buckets = new Map<string, Map<number, HeatmapEntry[]>>();
+    const usedSlots = new Set<number>();
 
-    for (const { dateFrom, numericValue } of rows) {
-      const parts = getZonedDateParts(dateFrom, mode);
-      if (!parts) continue;
-      const dateKey = zonedDateKey(parts);
-      const hour = parts.hour;
+    for (const { dateFrom, numericValue, weight } of rows) {
+      const slot = heatmapHourSlot(dateFrom, mode);
+      if (!slot) continue;
+      const slotIndex = hourSlotIndex(slot);
+      usedSlots.add(slotIndex);
 
-      if (!buckets.has(dateKey)) buckets.set(dateKey, new Map());
-      const hourMap = buckets.get(dateKey)!;
-      if (!hourMap.has(hour)) hourMap.set(hour, []);
-      hourMap.get(hour)!.push(numericValue);
+      if (!buckets.has(slot.dateKey)) buckets.set(slot.dateKey, new Map());
+      const slotMap = buckets.get(slot.dateKey)!;
+      if (!slotMap.has(slotIndex)) slotMap.set(slotIndex, []);
+      slotMap.get(slotIndex)!.push({ value: numericValue, weight });
     }
 
-    const hourLabels = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00');
-    const yCategories = [...hourLabels].reverse();
+    const slots = hourSlotIndices(usedSlots);
+    const slotLabels = slots.map(hourSlotLabel);
+    const yCategories = [...slotLabels].reverse();
     const sortedDates = Array.from(buckets.keys()).sort();
 
     const heatmapData: HeatmapDataItem[] = [];
     for (const date of sortedDates) {
-      const hourMap = buckets.get(date)!;
-      for (let h = 0; h < 24; h++) {
-        const values = hourMap.get(h);
-        const value = values ? this.aggregate(values, aggregation) : 0;
-        heatmapData.push({ date, hour: hourLabels[h], value, color: '' });
-      }
+      const slotMap = buckets.get(date)!;
+      slots.forEach((slotIndex, i) => {
+        const value = aggregateHeatmapEntries(slotMap.get(slotIndex) ?? [], aggregation);
+        heatmapData.push({ date, hour: slotLabels[i], value, color: '' });
+      });
     }
 
     this.assignColors(heatmapData);
@@ -507,41 +625,41 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
 
   /**
    * Processes data into sub-hour interval buckets.
-   * Y-axis: hours (00:00..23:00), X-axis: interval labels (e.g. "00-15", "15-30", ...).
+   * Y-axis: hours (00:00..23:00, plus a repeated DST hour), X-axis: interval labels (e.g. "00-15", "15-30", ...).
    * For multi-day data, X-axis labels are prefixed with the date.
    */
   private processSubHourData(
-    rows: { dateFrom: Date; numericValue: number }[],
+    rows: { dateFrom: Date; numericValue: number; weight: number }[],
     intervalMinutes: number,
     aggregation: string,
     mode: MeshBoardTimeZoneMode
   ): void {
     const intervalsPerHour = Math.floor(60 / intervalMinutes);
 
-    // Bucket: xKey (date+interval) -> hour -> values[]
-    const buckets = new Map<string, Map<number, number[]>>();
+    // Bucket: xKey (date+interval) -> hour slot -> entries[]
+    const buckets = new Map<string, Map<number, HeatmapEntry[]>>();
     const allDates = new Set<string>();
+    const usedSlots = new Set<number>();
 
-    for (const { dateFrom, numericValue } of rows) {
-      const parts = getZonedDateParts(dateFrom, mode);
-      if (!parts) continue;
-      const dateKey = zonedDateKey(parts);
-      allDates.add(dateKey);
-      const hour = parts.hour;
-      const minute = parts.minute;
-      const intervalIndex = Math.floor(minute / intervalMinutes);
+    for (const { dateFrom, numericValue, weight } of rows) {
+      const slot = heatmapHourSlot(dateFrom, mode);
+      if (!slot) continue;
+      allDates.add(slot.dateKey);
+      const slotIndex = hourSlotIndex(slot);
+      usedSlots.add(slotIndex);
+      const intervalIndex = Math.floor(slot.minute / intervalMinutes);
       const intervalStart = intervalIndex * intervalMinutes;
       const intervalEnd = intervalStart + intervalMinutes;
       const intervalLabel = intervalStart.toString().padStart(2, '0') + '-' + intervalEnd.toString().padStart(2, '0');
 
       // X-key: for single day just interval label, for multi-day prefix with date
       // We'll decide the format after collecting all dates
-      const compositeKey = `${dateKey}|${intervalLabel}`;
+      const compositeKey = `${slot.dateKey}|${intervalLabel}`;
 
       if (!buckets.has(compositeKey)) buckets.set(compositeKey, new Map());
-      const hourMap = buckets.get(compositeKey)!;
-      if (!hourMap.has(hour)) hourMap.set(hour, []);
-      hourMap.get(hour)!.push(numericValue);
+      const slotMap = buckets.get(compositeKey)!;
+      if (!slotMap.has(slotIndex)) slotMap.set(slotIndex, []);
+      slotMap.get(slotIndex)!.push({ value: numericValue, weight });
     }
 
     const sortedDates = Array.from(allDates).sort();
@@ -564,22 +682,22 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     }
 
     // Build hour labels for Y-axis
-    const hourLabels = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00');
-    const yCategories = [...hourLabels].reverse();
+    const slots = hourSlotIndices(usedSlots);
+    const slotLabels = slots.map(hourSlotLabel);
+    const yCategories = [...slotLabels].reverse();
 
-    // Build heatmap data: for each x-category × hour, aggregate values
+    // Build heatmap data: for each x-category × hour slot, aggregate values
     const heatmapData: HeatmapDataItem[] = [];
     for (const date of sortedDates) {
       for (const interval of intervalLabels) {
         const compositeKey = `${date}|${interval}`;
         const xLabel = isMultiDay ? `${date} ${interval}` : interval;
-        const hourMap = buckets.get(compositeKey);
+        const slotMap = buckets.get(compositeKey);
 
-        for (let h = 0; h < 24; h++) {
-          const values = hourMap?.get(h);
-          const value = values ? this.aggregate(values, aggregation) : 0;
-          heatmapData.push({ date: xLabel, hour: hourLabels[h], value, color: '' });
-        }
+        slots.forEach((slotIndex, i) => {
+          const value = aggregateHeatmapEntries(slotMap?.get(slotIndex) ?? [], aggregation);
+          heatmapData.push({ date: xLabel, hour: slotLabels[i], value, color: '' });
+        });
       }
     }
 
@@ -599,22 +717,26 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
     if ((this.config?.colorMode ?? 'gradient') === 'threshold') {
       const target = this.resolveThresholdTarget();
       if (target != null && target > 0) {
-        for (const item of data) item.color = this.getThresholdColor(item.value, target);
+        for (const item of data) {
+          item.color = item.value === null ? 'transparent' : this.getThresholdColor(item.value, target);
+        }
         return;
       }
     }
 
+    // Empty cells stay transparent and out of the min/max: 0 and null as before,
+    // only null for `weightedAvg`, where 0 is a real mean (AB#7956).
     const scheme = this.config?.colorScheme ?? 'green';
-    const nonZeroValues = data.filter(d => d.value !== 0).map(d => d.value);
-    if (nonZeroValues.length === 0) {
+    const filledValues = data.filter(d => !this.isEmptyCell(d.value)).map(d => d.value as number);
+    if (filledValues.length === 0) {
       for (const item of data) item.color = 'transparent';
       return;
     }
-    const min = Math.min(...nonZeroValues);
-    const max = Math.max(...nonZeroValues);
+    const min = Math.min(...filledValues);
+    const max = Math.max(...filledValues);
     const ranges = COLOR_SCHEMES[scheme](min, max);
     for (const item of data) {
-      item.color = this.getColorForValue(item.value, ranges);
+      item.color = this.isEmptyCell(item.value) ? 'transparent' : this.rangeColor(item.value as number, ranges);
     }
   }
 
@@ -641,21 +763,6 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
   private getThresholdColor(value: number, target: number): string {
     if (value === target) return THRESHOLD_COLORS.ok;
     return value < target ? THRESHOLD_COLORS.warn : THRESHOLD_COLORS.high;
-  }
-
-  private aggregate(values: number[], aggregation: string): number {
-    if (values.length === 0) return 0;
-
-    switch (aggregation) {
-      case 'count':
-        return values.length;
-      case 'sum':
-        return values.reduce((a, b) => a + b, 0);
-      case 'avg':
-        return values.reduce((a, b) => a + b, 0) / values.length;
-      default:
-        return values.length;
-    }
   }
 
   /** Delegates to {@link toInstant} so naive wire timestamps are pinned to UTC (AB#4818). */

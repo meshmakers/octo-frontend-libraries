@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { StatsGridWidgetConfig, AggregationDataSource, StatItem, PersistentQueryCellSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
+import type { StreamDataScope } from '../../utils/stream-data-scope';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { extractPersistentQueryCellValue } from '../../utils/persistent-query-cell';
@@ -84,6 +85,14 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
     this._isLoading.set(true);
     this._error.set(null);
 
+    // Entity-selector scope (AB#7721): while a bound stat's scope is still
+    // resolving, stay in the loading state and send no query at all; the view
+    // refreshes the widget once the scope is known.
+    if (this.config.stats.some(stat => stat.persistentQuerySource
+      && this.scopeOf(stat.persistentQuerySource).kind === 'pending')) {
+      return;
+    }
+
     try {
       // Runtime aggregation queries are only needed for stats WITHOUT a
       // per-stat persistent-query source — those run through the executor below.
@@ -127,11 +136,20 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
   }
 
   private async loadPersistentQueryValue(source: PersistentQueryCellSource): Promise<number | null> {
+    // Pending or empty scope (still resolving, nothing in scope or lookup failed,
+    // AB#7721/AB#7725): no value, no query — never the persisted (unscoped) scope.
+    // The view refreshes the widget once a pending scope is resolved.
+    const scope = this.scopeOf(source);
+    if (scope.kind === 'pending' || scope.kind === 'empty') {
+      return null;
+    }
     try {
       const result = await firstValueFrom(
         this.queryExecutor.execute(source.queryFamily, source.queryRtId, {
           fieldFilter: this.convertFiltersToDto(source.filters),
-          streamDataArgs: this.buildStreamDataArgs(source)
+          streamDataArgs: this.buildStreamDataArgs(source),
+          // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
+          scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
         })
       );
       return extractPersistentQueryCellValue(result, source);
@@ -139,6 +157,10 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
       console.error('Error loading stat persistent-query data:', err);
       return null;
     }
+  }
+
+  private scopeOf(source: PersistentQueryCellSource): StreamDataScope {
+    return this.stateService.resolveStreamDataScope(source.entitySelectorId, source.queryFamily, source.ignoreTimeFilter);
   }
 
   private buildStreamDataArgs(source: PersistentQueryCellSource): StreamDataExecutionArgs | undefined {

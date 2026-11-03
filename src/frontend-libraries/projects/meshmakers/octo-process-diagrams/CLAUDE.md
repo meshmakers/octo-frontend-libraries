@@ -52,6 +52,9 @@ The library provides a visual SVG-based process diagram editor with these main s
 - **SymbolLibraryService** — Symbol library CRUD via GraphQL
 - **ProcessDiagramDataService** — Diagram persistence via GraphQL
 - **ExpressionEvaluatorService** — `expr-eval-fork` based expression evaluation for data bindings
+- **Text value formatter** (`text-value-formatter.ts`, AB#8022) — `text.value` bindings: expression, then number
+  in the board language with unit and fixed decimals, "–" without a value; see
+  [PROCESS-DESIGNER.md › Text Value Bindings](src/lib/PROCESS-DESIGNER.md#text-value-bindings-ab8022)
 
 ## Key Development Patterns
 
