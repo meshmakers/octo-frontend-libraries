@@ -811,6 +811,12 @@ export interface LineChartWidgetConfig extends WidgetConfig {
    * follows the chart width, as before.
    */
   bucketMinutes?: number;
+  /**
+   * Raw {@link seriesGroupField} values whose series the chart leaves out of the primary data source
+   * (AB#8128): not queried, not drawn, not in the legend. Exact match on the stored value (case and
+   * whitespace as stored), before any display label. Omitted when empty.
+   */
+  excludedSeriesGroupValues?: string[];
 }
 
 /** Fixed bucket sizes of a line chart in minutes (AB#8046). All divide one hour, so they stay on the wall-clock grid across DST changes. */

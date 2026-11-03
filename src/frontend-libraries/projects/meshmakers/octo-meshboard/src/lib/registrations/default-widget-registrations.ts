@@ -1447,7 +1447,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialAdditionalSeries: lineWidget.additionalSeries,
         initialStacked: lineWidget.stacked,
         initialPrimarySeries: lineWidget.primarySeries,
-        initialBucketMinutes: lineWidget.bucketMinutes
+        initialBucketMinutes: lineWidget.bucketMinutes,
+        initialExcludedSeriesGroupValues: lineWidget.excludedSeriesGroupValues
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1489,7 +1490,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
         stacked: result.stacked || undefined,
         primarySeries: displayOptionsOrUndefined(result.primarySeries),
-        bucketMinutes: bucketMinutesOrUndefined(result.bucketMinutes)
+        bucketMinutes: bucketMinutesOrUndefined(result.bucketMinutes),
+        excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(result.excludedSeriesGroupValues)
       } as LineChartWidgetConfig;
     },
 
@@ -1549,7 +1551,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         // AB#7952: written only when a primary display option is not default.
         ...(displayOptionsOrUndefined(widget.primarySeries) && { primarySeries: displayOptionsOrUndefined(widget.primarySeries) }),
         // AB#8046: written only when a fixed bucket size is set.
-        ...(bucketMinutesOrUndefined(widget.bucketMinutes) && { bucketMinutes: bucketMinutesOrUndefined(widget.bucketMinutes) })
+        ...(bucketMinutesOrUndefined(widget.bucketMinutes) && { bucketMinutes: bucketMinutesOrUndefined(widget.bucketMinutes) }),
+        ...(excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues) && {
+          excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues)
+        })
       }
     }),
 
@@ -2746,8 +2751,8 @@ export type { WidgetRegistration } from '../services/widget-registry.service';
  * store kinds this version does not know). The display options `visible` / `stacked` are kept only
  * as `false`.
  */
-function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries' | 'bucketMinutes'> {
-  const out: Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries' | 'bucketMinutes'> = {};
+function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries' | 'bucketMinutes' | 'excludedSeriesGroupValues'> {
+  const out: Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries' | 'bucketMinutes' | 'excludedSeriesGroupValues'> = {};
   const raw = config['additionalSeries'];
   if (Array.isArray(raw)) {
     const series = raw.filter((s): s is LineChartSeriesDefinition => {
@@ -2768,12 +2773,21 @@ function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<Lin
   }
   const bucketMinutes = bucketMinutesOrUndefined(config['bucketMinutes']);
   if (bucketMinutes) out.bucketMinutes = bucketMinutes;
+  const excluded = excludedSeriesGroupValuesOrUndefined(config['excludedSeriesGroupValues']);
+  if (excluded) out.excludedSeriesGroupValues = excluded;
   return out;
 }
 
 /** A supported fixed bucket size of a line chart (AB#8046), else `undefined` (pixel-driven buckets). */
 function bucketMinutesOrUndefined(value: unknown): number | undefined {
   return typeof value === 'number' && LINE_CHART_BUCKET_MINUTES.includes(value) ? value : undefined;
+}
+
+/** The excluded series group values of a line chart (AB#8128): the non-empty strings, without duplicates, else `undefined`. */
+function excludedSeriesGroupValuesOrUndefined(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const values = [...new Set(value.filter((v): v is string => typeof v === 'string' && v !== ''))];
+  return values.length > 0 ? values : undefined;
 }
 
 /**

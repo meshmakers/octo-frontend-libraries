@@ -39,6 +39,19 @@ starts a new empty "Unreleased" section.
 - The empty "Connections" hint now says that only line / polyline / path shapes with a direction binding are listed
   (plain connections between elements have no direction to pick).
 
+### octo-meshboard: board authors leave chosen series out of a grouped line chart (AB#8128)
+
+- New (non-breaking) `LineChartWidgetConfig.excludedSeriesGroupValues: string[]`: raw `seriesGroupField` values
+  whose series the chart leaves out — not queried, not drawn, not in the legend. Exact match on the stored value.
+  Works on the raw archive and on rollups, in every mode of the primary query (entity groups, per-source
+  fan-out, plain grouping). Example: `["1-1:2.9.0 G.03R"]` hides the series of that OBIS code.
+- All values excluded, or none left: the chart's normal no-data state, never one merged series over the whole
+  scope. A value that does not occur changes nothing. The entity-selector scope still applies to the remaining
+  series.
+- Line chart dialog: *Field Mapping → Excluded series* (pick a value or type one); choosing another series group
+  field or query clears the list.
+- The key is written only when not empty; existing boards encode byte-identically.
+
 ### octo-meshboard: a new stream-data line chart can be completed in the dialog — Field Mapping offers `timestamp` and `rtId` (AB#8069)
 
 - Fix: stream-data rows carry their time stamp and source entity as row properties, not as columns, so the line
