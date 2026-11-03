@@ -742,6 +742,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.excludedSeriesGroupValues = [];
     this.seriesGroupValues = [];
     this.seriesGroupValuesFailed = false;
+    this.isLoadingSeriesGroupValues = false;
 
     if (query) {
       await this.loadQueryColumns(query.rtId);
@@ -824,6 +825,7 @@ export class LineChartConfigDialogComponent implements OnInit {
       return;
     }
     this.isLoadingSeriesGroupValues = true;
+    const isCurrent = (): boolean => query.rtId === this.selectedPersistentQuery?.rtId && field === this.form.seriesGroupField;
     try {
       const family = queryFamily(query.ckTypeId) ?? this.initialQueryFamily ?? await this.queryExecutor.resolveFamily(query.rtId);
       let values: string[];
@@ -835,12 +837,12 @@ export class LineChartConfigDialogComponent implements OnInit {
         const result = await firstValueFrom(this.queryExecutor.execute(family, query.rtId));
         values = distinctSeriesGroupValues(result.rows, field);
       }
-      if (field === this.form.seriesGroupField) this.seriesGroupValues = values;
+      if (isCurrent()) this.seriesGroupValues = values;
     } catch (error) {
       console.error('Error loading series group values:', error);
-      if (field === this.form.seriesGroupField) this.seriesGroupValuesFailed = true;
+      if (isCurrent()) this.seriesGroupValuesFailed = true;
     } finally {
-      if (field === this.form.seriesGroupField) this.isLoadingSeriesGroupValues = false;
+      if (isCurrent()) this.isLoadingSeriesGroupValues = false;
     }
   }
 

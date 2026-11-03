@@ -365,6 +365,52 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
     expect(cmp.seriesGroupValues).toEqual(['export']);
   });
 
+  it('choosing another query while the first one is still read: the late answer for the first query does not replace the values of the second', async () => {
+    await open({});
+    const reads = [deferred<Map<string, string[]>>(), deferred<Map<string, string[]>>()];
+    qe['fetchEntityGroups'].mockImplementation(() => reads.shift()!.promise);
+    const first = reads[0];
+    const second = reads[1];
+
+    pickGroupField('unit');
+    await render();
+    await cmp.onQuerySelected({ rtId: 'q-other', name: 'other', ckTypeId: 'System/SimpleSdQuery' });
+    pickGroupField('unit');
+    await render();
+    second.resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+    first.resolve(new Map([['MWh', ['mp-g03']]]));
+    await render();
+
+    expect(cmp.seriesGroupValues).toEqual(['kWh']);
+    expect(cmp.isLoadingSeriesGroupValues).toBe(false);
+  });
+
+  it('choosing another query while the first one is still read: the late failure of the first query shows no hint and does not end the second loading', async () => {
+    await open({});
+    const reads = [deferred<Map<string, string[]>>(), deferred<Map<string, string[]>>()];
+    qe['fetchEntityGroups'].mockImplementation(() => reads.shift()!.promise);
+    const first = reads[0];
+    const second = reads[1];
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    pickGroupField('unit');
+    await render();
+    await cmp.onQuerySelected({ rtId: 'q-other', name: 'other', ckTypeId: 'System/SimpleSdQuery' });
+    pickGroupField('unit');
+    await render();
+    first.reject(new Error('boom'));
+    await render();
+
+    expect(cmp.seriesGroupValuesFailed).toBe(false);
+    expect(cmp.isLoadingSeriesGroupValues).toBe(true);
+
+    second.resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+    expect(cmp.seriesGroupValues).toEqual(['kWh']);
+    expect(cmp.isLoadingSeriesGroupValues).toBe(false);
+  });
+
   it('clearing the field while its values are still read ends the loading state', async () => {
     await open({});
     const reads = groupReadsByField('unit');
