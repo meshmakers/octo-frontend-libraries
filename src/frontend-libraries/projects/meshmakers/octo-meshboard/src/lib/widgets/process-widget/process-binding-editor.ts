@@ -312,7 +312,8 @@ export function findDiagramConnections(diagram: ProcessDiagramConfig | null | un
   }
   const connections: ProcessDiagramConnection[] = [];
   for (const primitive of diagram.primitives) {
-    if (!CONNECTION_PRIMITIVE_TYPES.includes(primitive.type)) {
+    // A stored diagram can hold a malformed entry (AB#8151): skip it instead of throwing.
+    if (!primitive || typeof primitive !== 'object' || !CONNECTION_PRIMITIVE_TYPES.includes(primitive.type)) {
       continue;
     }
     const bindings = diagram.propertyBindings.filter(b => isDirectionBinding(b, primitive.id));

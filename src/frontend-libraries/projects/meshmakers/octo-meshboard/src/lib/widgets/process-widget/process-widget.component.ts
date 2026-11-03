@@ -18,6 +18,12 @@ import { DEFAULT_PROCESS_BINDING_NAME, ProcessWidgetConfig } from './process-wid
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { hasNamedProcessBindings, mappingBindingName, validateProcessWidgetBindings } from './process-widget-bindings';
 import { applyConnectionDirections, connectionDirectionIssues } from './process-binding-editor';
+import {
+  describeProcessDiagramIssues,
+  ProcessDiagramIssue,
+  ProcessElementPlaceholder,
+  sanitizeProcessDiagram
+} from './process-diagram-validation';
 import { aggregateQueryColumn, isPartialAggregate, isReducingAggregate } from './process-value-aggregation';
 import { ProcessDataService, BoundDataResult } from './services/process-data.service';
 import type {
@@ -697,6 +703,32 @@ import { RuntimeEntityData } from '../../models/meshboard.models';
               </g>
             }
 
+            <!-- Elements that failed validation (AB#8151): visible placeholder naming the element -->
+            @for (placeholder of invalidElements(); track placeholder.key) {
+              <g class="element element-invalid"
+                 [attr.data-id]="placeholder.issue.id"
+                 [attr.transform]="'translate(' + placeholder.x + ',' + placeholder.y + ')'">
+                <title>{{ placeholder.issue.message }}</title>
+                <rect
+                  x="0" y="0"
+                  [attr.width]="placeholder.width"
+                  [attr.height]="placeholder.height"
+                  class="invalid-element-box"
+                  fill="rgba(211, 47, 47, 0.08)"
+                  stroke="#d32f2f"
+                  stroke-width="1"
+                  stroke-dasharray="4,3"/>
+                <text
+                  x="6"
+                  [attr.y]="placeholder.height / 2"
+                  dominant-baseline="middle"
+                  fill="#d32f2f"
+                  font-size="10">
+                  ⚠ {{ placeholder.issue.label }}: {{ placeholder.issue.reason }}
+                </text>
+              </g>
+            }
+
             <!-- Primitives (from Process Designer, with bindings applied) -->
             @for (primitive of boundPrimitives(); track primitive.id) {
               @if (primitive.visible !== false) {
@@ -1093,6 +1125,12 @@ import { RuntimeEntityData } from '../../models/meshboard.models';
           <span>No process diagram configured</span>
         </div>
       }
+      @if (!isLoading() && !error() && diagramIssues().length > 0) {
+        <div class="diagram-issue-badge" role="status" [attr.title]="diagramIssueText()">
+          <span class="binding-error-icon" aria-hidden="true">⚠</span>
+          <span class="binding-error-text">{{ diagramIssueText() }}</span>
+        </div>
+      }
       @if (!isLoading() && !error() && bindingErrors().length > 0) {
         <div class="binding-error-badge" role="status" [attr.title]="bindingErrorText()">
           <span class="binding-error-icon" aria-hidden="true">⚠</span>
@@ -1178,6 +1216,24 @@ import { RuntimeEntityData } from '../../models/meshboard.models';
       position: absolute;
       top: 4px;
       right: 4px;
+      max-width: calc(100% - 8px);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: var(--kendo-color-error, #d32f2f);
+      background-color: var(--kendo-color-surface-alt, #ffffff);
+      border: 1px solid var(--kendo-color-error, #d32f2f);
+      z-index: 1;
+    }
+
+    /* Names the diagram elements that were skipped as invalid (AB#8151). */
+    .diagram-issue-badge {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
       max-width: calc(100% - 8px);
       display: flex;
       align-items: center;
@@ -1297,6 +1353,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
   private readonly _diagramConfig = signal<ProcessDiagramConfig | null>(null);
+  /** Problems found when the diagram was loaded; invalid elements are skipped, not rendered (AB#8151). */
+  private readonly _diagramIssues = signal<ProcessDiagramIssue[]>([]);
+  private readonly _invalidElements = signal<ProcessElementPlaceholder[]>([]);
   private readonly _runtimeState = signal<ProcessDiagramRuntimeState | null>(null);
   private readonly _symbolDefinitions = signal<Map<string, SymbolDefinition>>(new Map());
   private readonly _boundData = signal<BoundDataResult | null>(null);
@@ -1313,6 +1372,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
   readonly diagramConfig = this._diagramConfig.asReadonly();
+  readonly diagramIssues = this._diagramIssues.asReadonly();
+  readonly invalidElements = this._invalidElements.asReadonly();
+  readonly diagramIssueText = computed(() => describeProcessDiagramIssues(this._diagramIssues()));
   readonly data = computed(() => this._runtimeState());
 
   /**
@@ -1488,8 +1550,9 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
     try {
       // Check for inline config first
       if (this.config.inlineConfig) {
-        this._diagramConfig.set(applyConnectionDirections(this.config.inlineConfig, this.config.connectionDirections));
-        await this.loadSymbolDefinitions(this.config.inlineConfig);
+        const inline = this.acceptDiagram(this.config.inlineConfig);
+        this._diagramConfig.set(applyConnectionDirections(inline, this.config.connectionDirections));
+        await this.loadSymbolDefinitions(inline);
         await this.loadRuntimeData();
         scopePending = await this.loadBoundData(generation);
         return;
@@ -1497,7 +1560,7 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
 
       // Load from backend by rtId
       if (this.config.processDiagramRtId) {
-        const diagram = await this.dataService.loadDiagram(this.config.processDiagramRtId);
+        const diagram = this.acceptDiagram(await this.dataService.loadDiagram(this.config.processDiagramRtId));
         // Connection directions picked in the widget (AB#8025) re-point the
         // direction effects of their lines; the stored diagram stays unchanged.
         this._diagramConfig.set(applyConnectionDirections(diagram, this.config.connectionDirections));
@@ -1517,6 +1580,20 @@ export class ProcessWidgetComponent implements DashboardWidget<ProcessWidgetConf
         this._isLoading.set(false);
       }
     }
+  }
+
+  /**
+   * Validates the loaded diagram (AB#8151): invalid elements are replaced by a visible
+   * placeholder and reported once on the console; the stored diagram is not modified.
+   */
+  private acceptDiagram(diagram: ProcessDiagramConfig): ProcessDiagramConfig {
+    const result = sanitizeProcessDiagram(diagram);
+    this._diagramIssues.set(result.issues);
+    this._invalidElements.set(result.placeholders);
+    for (const issue of result.issues) {
+      this.warnOnce(`[ProcessWidget] ${this.config.title || this.config.id}: skipped invalid diagram ${issue.kind} ${issue.message}`);
+    }
+    return result.diagram;
   }
 
   /**

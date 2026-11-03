@@ -608,6 +608,19 @@ When saving a symbol, all primitives are normalized so they start at position (0
 - Version control for diagrams
 - Template library
 
+## Malformed diagram elements (AB#8151)
+
+Diagrams can be written through the API without the designer, so an element may lack `config`, `position`/`size` or
+carry an unknown `type`. `sanitizeProcessDiagram` (`process-diagram-validation.ts`) runs when the widget loads a
+diagram and when the config dialog opens one:
+
+- invalid elements (and connections without `from`/`to`/`style`) are left out of the rendered diagram; the stored
+  diagram is never changed or written back;
+- every invalid element is drawn as a dashed red placeholder `⚠ <name>: <reason>` at its own position (or a fallback
+  position when the geometry is missing), the widget shows a hint listing all of them, and one `console.warn` per
+  problem is written;
+- the dialog shows the same hint under the diagram picker and still fills the Mappings and Connections tabs.
+
 ## API Reference
 
 ### ProcessWidgetComponent
