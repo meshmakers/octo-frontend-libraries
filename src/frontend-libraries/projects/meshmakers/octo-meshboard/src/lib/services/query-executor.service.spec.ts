@@ -729,6 +729,30 @@ describe('QueryExecutorService', () => {
       expect(groups.get('A')).toEqual(['s1']);
     });
 
+    it('sends the scope to the server as an rtId IN field filter', async () => {
+      entitiesGqlSpy.fetch.mockReturnValue(of(entities([{ rtId: 'em-7001', group: 'A' }])) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      const groups = await service.fetchEntityGroups('Test/Type', 'category', ['em-7001']);
+
+      const variables = (entitiesGqlSpy.fetch.mock.calls[0][0] as { variables: Record<string, unknown> }).variables;
+      expect(variables['fieldFilters']).toEqual([
+        { attributePath: 'rtId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: ['em-7001'] }
+      ]);
+      expect(groups.get('A')).toEqual(['em-7001']);
+    });
+
+    it('sends no field filter without a scope', async () => {
+      entitiesGqlSpy.fetch.mockReturnValue(of(entities([{ rtId: 's1', group: 'A' }])) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      await service.fetchEntityGroups('Test/Type', 'category');
+      await service.fetchEntityGroups('Test/Type', 'category', []);
+
+      for (const call of entitiesGqlSpy.fetch.mock.calls) {
+        const variables = (call[0] as { variables: Record<string, unknown> }).variables;
+        expect(variables['fieldFilters']).toBeUndefined();
+      }
+    });
+
     it('warns when the population exceeds the fetched page', async () => {
       const warn = vi.spyOn(console, 'warn').mockReturnValue(undefined);
       entitiesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({

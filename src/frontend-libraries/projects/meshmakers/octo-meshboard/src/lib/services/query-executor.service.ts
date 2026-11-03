@@ -487,8 +487,10 @@ export class QueryExecutorService {
    * Group-aggregation source resolution (AB#4714): fetches the source entities of `ckTypeId` in a
    * single bulk read and buckets their rtIds by the value of `groupField` (canonical match — case
    * and non-alphanumerics are ignored, so an archive column name maps to its CK attribute). Returns
-   * `groupValue → rtIds`. Optionally restricted to `restrictRtIds` (an entity-selector scope) —
-   * entities outside that set are dropped. Entities whose group attribute is missing/null are
+   * `groupValue → rtIds`. Optionally restricted to `restrictRtIds` (an entity-selector scope): the
+   * restriction is applied server-side as an `rtId IN` field filter of the same request (so the
+   * {@link ENTITY_GROUP_FETCH_CAP} counts scoped entities only), and entities outside the set are
+   * dropped again on the client as a guard. Entities whose group attribute is missing/null are
    * omitted (they cannot be attributed to a line). The population is bounded to
    * {@link ENTITY_GROUP_FETCH_CAP}; a truncated read is logged (never silently capped).
    */
@@ -504,7 +506,12 @@ export class QueryExecutorService {
 
     const attributeNames = await this.matchingAttributeNames(ckTypeId, wanted, canon);
     const res = await firstValueFrom(
-      this.entitiesGql.fetch({ variables: { ckTypeId, attributeNames, first: QueryExecutorService.ENTITY_GROUP_FETCH_CAP } })
+      this.entitiesGql.fetch({ variables: {
+        ckTypeId,
+        attributeNames,
+        first: QueryExecutorService.ENTITY_GROUP_FETCH_CAP,
+        fieldFilters: QueryExecutorService.withRtIdScope(undefined, restrictRtIds)
+      } })
     );
     const connection = res.data?.runtime?.runtimeEntities;
     const items = connection?.items ?? [];

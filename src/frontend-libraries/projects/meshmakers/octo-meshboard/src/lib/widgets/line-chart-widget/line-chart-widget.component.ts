@@ -973,6 +973,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * scope a single merged series is produced (labeled by the series-group field name); when an
    * excluded series group value (AB#8128) occurs among the source entities, that series covers only
    * the source entities of the other values. Scoped sources whose label is excluded are not queried.
+   * On that unscoped path the merged series is built from the `fetchEntityGroups` read, so entities
+   * without a group value and entities beyond its 5000 cap are not in it (a full read measured 16-80 s
+   * per load, and the downsampling query fails above ~10 000 rtIds).
    */
   private async loadPerRtIdRows(
     ckTypeId: string | null,

@@ -1341,7 +1341,8 @@ fan-out produces one line per source, and the widget's client-side grouping then
 lines last-write-wins — each line reflects one arbitrary source, not the combined value. Group mode
 buckets the source **entities** by their `seriesGroupField` attribute first (via
 `QueryExecutorService.fetchEntityGroups`, a single bulk read, canonical field match, population
-capped at 5000 with a warn on truncation) and runs one downsampling call per group. The transient
+capped at 5000 with a warn on truncation; an entity-selector scope is applied server-side as an
+`rtId IN` field filter of that read, so the cap counts scoped entities only) and runs one downsampling call per group. The transient
 downsampling groups only by time bin, so it reduces (per `requiredAggregation`) over every member —
 one aggregate line per group value. The grouping comes from the source entities' attributes because a
 rollup archive does not carry the `seriesGroupField` column.
