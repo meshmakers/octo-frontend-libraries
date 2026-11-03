@@ -365,6 +365,69 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
     expect(cmp.seriesGroupValues).toEqual(['export']);
   });
 
+  /** Three reads in call order: the field is switched unit -> direction -> unit (A -> B -> A). */
+  function abaReads(): ReturnType<typeof deferred<Map<string, string[]>>>[] {
+    const reads = [deferred<Map<string, string[]>>(), deferred<Map<string, string[]>>(), deferred<Map<string, string[]>>()];
+    let call = 0;
+    qe['fetchEntityGroups'].mockImplementation(() => reads[call++].promise);
+    return reads;
+  }
+
+  it('switching the field unit -> direction -> unit: the late answer of the first unit read does not replace the values of the second', async () => {
+    await open({});
+    const [firstUnit, , secondUnit] = abaReads();
+
+    pickGroupField('unit');
+    pickGroupField('direction');
+    pickGroupField('unit');
+    await render();
+    secondUnit.resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+    firstUnit.resolve(new Map([['stale', ['mp-g03']]]));
+    await render();
+
+    expect(cmp.seriesGroupValues).toEqual(['kWh']);
+  });
+
+  it('switching the field unit -> direction -> unit: the late failure of the first unit read shows no hint', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await open({});
+    const [firstUnit, , secondUnit] = abaReads();
+
+    pickGroupField('unit');
+    pickGroupField('direction');
+    pickGroupField('unit');
+    await render();
+    secondUnit.resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+    firstUnit.reject(new Error('network'));
+    await render();
+
+    expect(cmp.seriesGroupValuesFailed).toBe(false);
+    expect(failureHint()).toBeNull();
+    expect(cmp.seriesGroupValues).toEqual(['kWh']);
+  });
+
+  it('switching the field unit -> direction -> unit: the first unit read answering first does not end the loading of the second', async () => {
+    await open({});
+    const [firstUnit, , secondUnit] = abaReads();
+
+    pickGroupField('unit');
+    pickGroupField('direction');
+    pickGroupField('unit');
+    await render();
+    firstUnit.resolve(new Map([['stale', ['mp-g03']]]));
+    await render();
+
+    expect(cmp.seriesGroupValues).toEqual([]);
+    expect(cmp.isLoadingSeriesGroupValues).toBe(true);
+
+    secondUnit.resolve(new Map([['kWh', ['mp-g01']]]));
+    await render();
+    expect(cmp.seriesGroupValues).toEqual(['kWh']);
+    expect(cmp.isLoadingSeriesGroupValues).toBe(false);
+  });
+
   it('choosing another query while the first one is still read: the late answer for the first query does not replace the values of the second', async () => {
     await open({});
     const reads = [deferred<Map<string, string[]>>(), deferred<Map<string, string[]>>()];

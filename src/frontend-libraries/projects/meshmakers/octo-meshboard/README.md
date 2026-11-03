@@ -607,7 +607,7 @@ interface LineChartWidgetConfig {
 ```
 
 **Leaving series out (`excludedSeriesGroupValues`).** A grouped chart can leave out chosen series of its
-primary query, for example a register that duplicates another one. The values are not queried, not drawn
+primary query, for example a register that duplicates another one. On the fan-out paths (resolution-aware charts, one line per source entity or per group) the values are not queried; in plain grouping the rows the query returns for them are dropped before the series are formed. Either way they are not drawn
 and not in the legend, on the raw archive as on rollups (no query column is needed, so it works where a
 row filter on the group column fails). Board JSON of a widget config:
 

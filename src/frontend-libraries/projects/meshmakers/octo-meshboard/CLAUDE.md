@@ -1359,15 +1359,15 @@ The mechanism is domain-neutral: it groups by whatever `seriesGroupField` / `req
 the widget is configured with. Only meaningful with `resolutionAware`; stream-data only.
 
 **Excluded series group values (AB#8128).** `LineChartWidgetConfig.excludedSeriesGroupValues` (raw
-`seriesGroupField` values, exact match on the stored value) is applied where the groups are formed, so an
-excluded value is never queried — a widget row filter on the group column cannot do that, because rollups
+`seriesGroupField` values, exact match on the stored value) is applied where the groups are formed, so on the fan-out paths an
+excluded value is never queried (plain grouping drops the rows its query returns before grouping) — a widget row filter on the group column cannot do that, because rollups
 have no such column ("Invalid column paths"). Per mode:
 
 | Mode | Where | Effect |
 |---|---|---|
 | `aggregateSeriesByGroup` | `loadGroupAggregatedRows` | excluded entries of the `fetchEntityGroups` map are dropped before the per-group calls; no group resolved at all → the merged call as without the key (the exclusion matches nothing); groups resolved but all excluded → no call, no data |
 | default, scoped | `loadPerRtIdRows` | sources whose `fetchSeriesLabels` label is excluded are not downsampled |
-| default, unscoped | `loadPerRtIdRows` | without exclusions one merged call over the whole archive as before, no entity read; with exclusions the entities are read (`fetchEntityGroups`, capped at 5000): no fetched group value is excluded → the same merged call over the whole archive; an excluded value occurs → the one merged call is scoped to the entities of the other values, so entities without a group value drop out too (none left → no call) |
+| default, unscoped | `loadPerRtIdRows` | without exclusions one merged call over the whole archive as before, no entity read; with exclusions the entities are read (`fetchEntityGroups`, capped at 5000): no fetched group value is excluded → the same merged call over the whole archive; an excluded value occurs → the one merged call is scoped to the entities of the other values, so entities without a group value and entities beyond the `fetchEntityGroups` cap drop out too (none left → no call) |
 | plain grouping, primary query of the multi-source path | `loadData` / `fetchSource` | `withoutExcludedSeriesGroups` drops the rows before `processData` / `primaryRowsToSeries` |
 
 The resolution-aware rows need the CK type of the query archive (`fetchQueryArchive().ckTypeId`): without it
@@ -1380,7 +1380,7 @@ Dialog: *Field Mapping → Excluded series* (`kendo-multiselect` with `allowCust
 `fetchEntityGroups` on the archive's CK type, for a runtime query the `distinctSeriesGroupValues` of one query
 run; if that load fails, a hint asks to type the value. Changing the query clears the list; the author's change of
 the group field (`onSeriesGroupFieldChange`) clears it too and reloads the offered values, while opening a saved
-config keeps it. A load overtaken by a newer field change or by another query (it must still match the selected query and field, `isCurrent` in `loadSeriesGroupValues`) neither sets the values, nor shows the failure hint, nor ends the loading state; choosing another query ends the loading state itself. Specs: `line-chart-widget.excluded-series.spec.ts`,
+config keeps it. A load overtaken by a newer field change or by another query (each load takes a token, `seriesGroupValuesLoadToken`; choosing a query and every group-field change take a new one, so an earlier load of the same field after A → B → A is overtaken too) neither sets the values, nor shows the failure hint, nor ends the loading state; choosing another query ends the loading state itself. Specs: `line-chart-widget.excluded-series.spec.ts`,
 `default-widget-registrations.line-chart-excluded-series.spec.ts`, `line-chart-config-dialog.excluded-series.spec.ts`.
 
 ---

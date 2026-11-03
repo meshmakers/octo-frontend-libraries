@@ -582,6 +582,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   isLoadingSeriesGroupValues = false;
   /** The offered values could not be loaded; typed values still work. */
   seriesGroupValuesFailed = false;
+  private seriesGroupValuesLoadToken = 0;
   /** Text typed into the Excluded series field; narrows the offered values. */
   seriesGroupValueFilter = '';
 
@@ -743,6 +744,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.seriesGroupValues = [];
     this.seriesGroupValuesFailed = false;
     this.isLoadingSeriesGroupValues = false;
+    this.seriesGroupValuesLoadToken++;
 
     if (query) {
       await this.loadQueryColumns(query.rtId);
@@ -818,6 +820,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   async loadSeriesGroupValues(): Promise<void> {
     const query = this.selectedPersistentQuery;
     const field = this.form.seriesGroupField;
+    const token = ++this.seriesGroupValuesLoadToken;
     this.seriesGroupValues = [];
     this.seriesGroupValuesFailed = false;
     if (!query || !field) {
@@ -825,7 +828,7 @@ export class LineChartConfigDialogComponent implements OnInit {
       return;
     }
     this.isLoadingSeriesGroupValues = true;
-    const isCurrent = (): boolean => query.rtId === this.selectedPersistentQuery?.rtId && field === this.form.seriesGroupField;
+    const isCurrent = (): boolean => token === this.seriesGroupValuesLoadToken;
     try {
       const family = queryFamily(query.ckTypeId) ?? this.initialQueryFamily ?? await this.queryExecutor.resolveFamily(query.rtId);
       let values: string[];
