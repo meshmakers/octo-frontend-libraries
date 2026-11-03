@@ -10,6 +10,13 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: bar chart main value axis scales to the data again (AB#8234)
+
+- Fix (regression of AB#8046): every bar chart series was bound with `[axis]="... : ''"`. The main value axis is
+  unnamed, so the empty axis name detached all main-axis series from it: the axis stayed at 0-1.2 and bars were drawn
+  far outside the plot. The main axis is now named (`primary`) and its series bind to it; the secondary axis is
+  unchanged. Specs assert the binding with and without a secondary-axis series.
+
 ### octo-meshboard: one malformed process-diagram element no longer crashes the MeshBoard or empties the widget dialog (AB#8151)
 
 - Fix: a diagram element without `config` (e.g. a tank written through the API/MCP), with an unknown `type` or without

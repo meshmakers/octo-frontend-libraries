@@ -63,6 +63,12 @@ interface SeriesData {
 const SECONDARY_AXIS = 'secondary';
 
 /**
+ * Name of the main value axis (AB#8234). Every series names its axis explicitly: binding '' to an
+ * unnamed main axis detaches the series from it (axis stays 0-1.2, bars drawn outside the plot).
+ */
+const PRIMARY_AXIS = 'primary';
+
+/**
  * Mapping from our chart types to Kendo chart configuration
  */
 interface KendoChartConfig {
@@ -127,6 +133,7 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
 
           <kendo-chart-value-axis>
             <kendo-chart-value-axis-item
+              [name]="primaryAxisName"
               [line]="{ visible: false }"
               [labels]="{ color: chartTheme().muted }"
               [majorGridLines]="{ color: chartTheme().grid }">
@@ -153,7 +160,7 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
                 [colorField]="hasColorThresholds() && !series.asLine ? '_color' : ''"
                 [border]="{ width: 0 }"
                 [gap]="0.8"
-                [axis]="series.secondaryAxis ? secondaryAxisName : ''"
+                [axis]="series.secondaryAxis ? secondaryAxisName : primaryAxisName"
                 [dashType]="series.dashType ?? 'solid'"
                 [missingValues]="'gap'"
                 [markers]="{ visible: !!series.asLine }"
@@ -331,6 +338,9 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   readonly isMultiSource = this._multiSource.asReadonly();
 
   readonly data = computed(() => this._seriesData());
+
+  /** Name of the main value axis (template binding, AB#8234). */
+  get primaryAxisName(): string { return PRIMARY_AXIS; }
 
   /** Name of the second value axis (template binding, AB#8046). */
   get secondaryAxisName(): string { return SECONDARY_AXIS; }

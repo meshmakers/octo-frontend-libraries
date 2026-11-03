@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { ChartComponent } from '@progress/kendo-angular-charts';
 import { of } from 'rxjs';
 import { BarChartWidgetComponent } from './bar-chart-widget.component';
 import { QueryExecutorService, QueryResultRow } from '../../services/query-executor.service';
@@ -75,6 +77,7 @@ function setup(cfg: BarChartWidgetConfig, scopes: Record<string, StreamDataScope
   cmp.config = cfg;
   return {
     cmp,
+    fixture,
     load: () => (cmp as unknown as { loadData(): Promise<void> }).loadData(),
     render: async (): Promise<HTMLElement> => {
       fixture.detectChanges();
@@ -147,5 +150,44 @@ describe('BarChartWidgetComponent series options (AB#8046)', () => {
     await s.load();
     expect(series(s.cmp, 'battery')!.data).toEqual([0, 0, 0]);
     expect(s.cmp.sourceHints()).toEqual([]);
+  });
+
+  describe('value axis binding (AB#8234)', () => {
+    // Every series must name an axis that exists. Binding '' (the old behaviour) detached the series
+    // from the main value axis: it stayed at 0-1.2 while the bars were drawn far outside the plot.
+    async function render(cfg: BarChartWidgetConfig) {
+      const s = setup(cfg);
+      await s.load();
+      await s.render();
+      const chart = s.fixture.debugElement.query(By.directive(ChartComponent)).componentInstance as unknown as {
+        seriesComponents: { toArray(): { name: string; axis?: string }[] };
+        configurationService: { store: { valueAxis: { name?: string }[] } };
+      };
+      return { series: chart.seriesComponents.toArray(), axes: chart.configurationService.store.valueAxis };
+    }
+
+    it('without a secondary axis every series is bound to the main axis (no axis name)', async () => {
+      const r = await render(config('column', [query('import', { asLine: true })]));
+      expect(r.axes).toHaveLength(1);
+      const mainName = r.axes[0].name;
+      expect(mainName).toBeTruthy();
+      expect(r.series.map(i => i.name)).toEqual(['PV', 'import']);
+      for (const item of r.series) {
+        expect(item.axis).toBe(mainName);
+      }
+    });
+
+    it('with a secondary-axis line only that series is bound to the named second axis', async () => {
+      const r = await render(config('column', [query('import', { asLine: true, secondaryAxis: true })]));
+      expect(r.axes).toHaveLength(2);
+      const mainName = r.axes[0].name;
+      expect(mainName).toBeTruthy();
+      const secondaryName = r.axes[1].name;
+      expect(secondaryName).toBeTruthy();
+      const byName = (n: string) => r.series.find(i => i.name === n)!;
+      expect(secondaryName).not.toBe(mainName);
+      expect(byName('PV').axis).toBe(mainName);
+      expect(byName('import').axis).toBe(secondaryName);
+    });
   });
 });
