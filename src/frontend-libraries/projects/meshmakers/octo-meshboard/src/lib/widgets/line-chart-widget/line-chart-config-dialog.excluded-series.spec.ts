@@ -103,7 +103,7 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
     qe = {
       fetchStreamDataColumns: vi.fn().mockResolvedValue([]),
       resolveFamily: vi.fn(),
-      fetchQueryArchive: vi.fn().mockResolvedValue({ archiveRtId: 'archive-raw', ckTypeId: 'Basic.Energy/EnergyMeasurement', rtIds: null }),
+      fetchQueryArchive: vi.fn().mockResolvedValue({ archiveRtId: 'archive-raw', ckTypeId: 'System/SimpleSdQuery', rtIds: null }),
       fetchEntityGroups: vi.fn().mockResolvedValue(new Map([[G03R, ['mp-g03r']], [G01, ['mp-g01']], [G03, ['mp-g03']]])),
       execute: vi.fn()
     };
@@ -128,7 +128,7 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
   it('offers the group values of the source entities of a stream-data query (the widget\'s own grouping read)', async () => {
     await open({});
 
-    expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('Basic.Energy/EnergyMeasurement', 'obisCode');
+    expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('System/SimpleSdQuery', 'obisCode');
     expect(cmp.seriesGroupValues).toEqual([G01, G03, G03R]);
   });
 
@@ -255,7 +255,7 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
 
     expect(cmp.form.seriesGroupField).toBe('unit');
     expect(cmp.excludedSeriesGroupValues).toEqual([]);
-    expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('Basic.Energy/EnergyMeasurement', 'unit');
+    expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('System/SimpleSdQuery', 'unit');
   });
 
   it('reopening a saved config loads the offered values of its query and keeps the excluded values', async () => {
@@ -276,7 +276,7 @@ describe('LineChartConfigDialogComponent — excluded series (AB#8128)', () => {
       await vi.waitFor(() => expect(cmp.isLoadingInitial).toBe(false));
 
       expect(selectByRtId).toHaveBeenCalledWith(SD_QUERY.rtId);
-      expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('Basic.Energy/EnergyMeasurement', 'obisCode');
+      expect(qe['fetchEntityGroups']).toHaveBeenCalledWith('System/SimpleSdQuery', 'obisCode');
       expect(cmp.seriesGroupValues).toEqual([G01, G03, G03R]);
       expect(cmp.excludedSeriesGroupValues).toEqual([G03R]);
     } finally {

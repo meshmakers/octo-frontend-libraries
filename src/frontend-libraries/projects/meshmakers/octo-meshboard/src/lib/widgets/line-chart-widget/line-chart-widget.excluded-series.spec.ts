@@ -95,7 +95,7 @@ function setup(
         rows, totalCount: rows.length, hasNextPage: false, endCursor: null
       });
     }),
-    fetchQueryArchive: vi.fn().mockResolvedValue({ archiveRtId: 'archive-raw', ckTypeId: 'Basic.Energy/EnergyMeasurement', rtIds: opts.pin ?? null }),
+    fetchQueryArchive: vi.fn().mockResolvedValue({ archiveRtId: 'archive-raw', ckTypeId: 'System/SimpleSdQuery', rtIds: opts.pin ?? null }),
     resolveSeriesQuery: vi.fn().mockResolvedValue({
       archiveRtId: window.archive, effectiveBucketMs: 86400000, points: 3,
       reducingFunction: 'SUM', signal: null, actualPoints: null, diagnostic: null
