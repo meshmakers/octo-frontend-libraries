@@ -16,9 +16,7 @@ starts a new empty "Unreleased" section.
   `mm-list-view`). With `[emptyState]` set, its content (e.g. the page's "New ..." button) is rendered inside
   `mm-empty-state`, below the text, in `.mm-list-view-empty-actions`. Only in the `empty` variant: not while the list
   loads and not in the "no results" variant (search, row filter or `hasExternalFilters`). A list without the template
-  renders exactly as before. Follow-up for the EC team after this release: the four EC lists with an empty state
-  (billing, EDA processes, imported metering points, registration requests) pass their primary command; the toolbar
-  button stays.
+  renders exactly as before.
 
 ### octo-meshboard: bar chart main value axis scales to the data again (AB#8234)
 
