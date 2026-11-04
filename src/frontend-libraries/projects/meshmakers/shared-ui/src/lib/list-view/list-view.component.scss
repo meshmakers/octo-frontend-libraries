@@ -564,3 +564,11 @@
     color: var(--mm-list-boolean-false-color, var(--kendo-color-subtle, #8a94a0));
   }
 }
+
+.mm-list-view-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--theme-space-2, 8px);
+  margin-top: var(--theme-space-1, 4px);
+}

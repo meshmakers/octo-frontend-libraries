@@ -73,6 +73,22 @@ The shared empty / no-results / error block of a page or list — once per page,
 search, row filter or `hasExternalFilters` is active. Nothing is shown while the list loads.
 `[emptyTemplate]` replaces the block entirely (context: `filtered`).
 
+To offer the page's primary command in the empty block (AB#7628), put it in an
+`<ng-template mmListViewEmptyActions>` inside the list view. It is rendered below the text of the
+`empty` variant only: never while the list loads and never in the `no-results` variant. Without
+the template the block renders exactly as before.
+
+```html
+<mm-list-view [emptyState]="{ title: 'No customers yet', text: 'Create the first customer.' }" ...>
+  <ng-template mmListViewEmptyActions>
+    <button kendoButton type="button" themeColor="primary" (click)="create()">New customer</button>
+  </ng-template>
+</mm-list-view>
+```
+
+On a plain `mm-empty-state` outside a list, project the actions as content in a
+`<div class="empty-actions">` as the Studio's data explorer does.
+
 ## Placement rules
 
 Approved placements (PO, 2026-10-08):
