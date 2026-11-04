@@ -13,7 +13,8 @@ import { findCellForField, matchesAttributePath } from '../../utils/widget-data-
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
 import { streamDataRowFieldValue } from '../../utils/stream-data-row-fields';
 import { injectChartTheme } from '../../utils/chart-theme';
-import { alignOnTimeGrid, TimeGridSourceInput } from '../../utils/time-grid-alignment';
+import { alignOnTimeGrid, TimeGridSeriesInput, TimeGridSourceInput } from '../../utils/time-grid-alignment';
+import { seriesLabelsByRawValue } from '../../utils/chart-value-labels';
 import { alignOnFixedGrid, FixedBucketWindow, lastValue, snapWindowToBuckets } from '../../utils/series-options';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import {
@@ -1125,7 +1126,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         }
         rowCount += f.value.rows.length;
         const series = source.primary
-          ? primaryRowsToSeries(f.value.rows, this.config, f.value.downsampled)
+          ? this.withSeriesLabels(primaryRowsToSeries(f.value.rows, this.config, f.value.downsampled))
           : [queryRowsToSeries(f.value.rows, source.label, source.valueField, f.value.downsampled)];
         const withData = series.filter(s => s.points.size > 0);
         if (withData.length === 0) {
@@ -1512,6 +1513,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       });
     }
 
+    // Names replace the raw group values only here, after grouping; the tooltip unit is looked up by the shown name.
+    const seriesNames = seriesLabelsByRawValue(seriesGroups, this.config.seriesLabels);
+    const unitByShownName = new Map<string, string>();
+    for (const [rawGroup, unit] of seriesUnitMap) {
+      unitByShownName.set(seriesNames.get(rawGroup) ?? rawGroup, unit);
+    }
+
     // Build series data
     const seriesData: LineSeriesData[] = seriesGroups.map((seriesGroup, index) => {
       const data = categoryKeys.map(categoryKey => {
@@ -1527,7 +1535,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       const axisName = unit ? `unit_${this.sanitizeAxisName(unit)}` : undefined;
 
       return {
-        name: seriesGroup,
+        name: seriesNames.get(seriesGroup) ?? seriesGroup,
         data,
         band,
         unit,
@@ -1539,7 +1547,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     this._categories.set(categories);
     this._seriesData.set(seriesData);
     this._valueAxes.set(valueAxes);
-    this._seriesUnitMap.set(seriesUnitMap);
+    this._seriesUnitMap.set(unitByShownName);
+  }
+
+  /** Series of the primary query shown under their `seriesLabels` names (AB#7235); the grouping itself stays on the raw values. */
+  private withSeriesLabels(series: TimeGridSeriesInput[]): TimeGridSeriesInput[] {
+    const names = seriesLabelsByRawValue(series.map(s => s.name), this.config.seriesLabels);
+    return series.map(s => ({ ...s, name: names.get(s.name) ?? s.name }));
   }
 
   /**
