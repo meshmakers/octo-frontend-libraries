@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartSeriesDefinition, LineChartSeriesDisplayOptions, LINE_CHART_BUCKET_MINUTES } from '../../models/meshboard.models';
+import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartSeriesDefinition, LineChartSeriesDisplayOptions, LINE_CHART_BUCKET_MINUTES, ChartValueLabels } from '../../models/meshboard.models';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
@@ -25,6 +25,8 @@ import { withStreamDataRowFields } from '../../utils/stream-data-row-fields';
 import { columnProbeWindow } from '../../utils/column-probe-window';
 import { LineChartSeriesEditorComponent } from './line-chart-series-editor.component';
 import { distinctSeriesGroupValues, querySeriesErrors } from './line-chart-multi-source';
+import { ValueLabelsEditorComponent } from '../../components/value-labels-editor/value-labels-editor.component';
+import { fromValueLabelRows, toValueLabelRows, ValueLabelRow } from '../../utils/chart-value-labels';
 
 /**
  * Configuration result from the Line Chart dialog
@@ -61,6 +63,8 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   bucketMinutes?: number;
   /** Raw series group values left out of the chart (AB#8128); absent when none. */
   excludedSeriesGroupValues?: string[];
+  /** Name per raw series group value (AB#7235); absent = none. */
+  seriesLabels?: ChartValueLabels;
 }
 
 /**
@@ -82,7 +86,8 @@ export interface LineChartConfigResult extends WidgetConfigResult {
     SdTimeFilterToggleComponent,
     EntitySelectorScopePickerComponent,
     LoadingOverlayComponent,
-    LineChartSeriesEditorComponent
+    LineChartSeriesEditorComponent,
+    ValueLabelsEditorComponent
   ],
   template: `
     <div class="config-container">
@@ -247,6 +252,12 @@ export interface LineChartConfigResult extends WidgetConfigResult {
             </div>
           </div>
         }
+
+        <!-- Series names (AB#7235) -->
+        <div class="config-section" data-line-series-labels>
+          <h3 class="section-title">Series Names</h3>
+          <mm-value-labels-editor [(rows)]="seriesLabelRows" subject="series"></mm-value-labels-editor>
+        </div>
 
         <!-- Series Section (AB#7951): query series from other stream-data queries on one time grid -->
         @if (selectedQueryFamily === 'streamData') {
@@ -562,6 +573,10 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialPrimarySeries?: LineChartSeriesDisplayOptions;
   @Input() initialBucketMinutes?: number;
   @Input() initialExcludedSeriesGroupValues?: string[];
+  @Input() initialSeriesLabels?: ChartValueLabels;
+
+  /** Rows of the series name editor (AB#7235). */
+  seriesLabelRows: ValueLabelRow[] = [];
 
   /** Options of the bucket size dropdown (AB#8046): automatic (`null`) plus the fixed sizes. */
   get bucketSizeOptions(): { value: number | null; label: string }[] {
@@ -702,6 +717,7 @@ export class LineChartConfigDialogComponent implements OnInit {
     this.additionalSeries = this.initialAdditionalSeries ? [...this.initialAdditionalSeries] : [];
     this.primarySeries = this.initialPrimarySeries ? { ...this.initialPrimarySeries } : undefined;
     this.excludedSeriesGroupValues = this.initialExcludedSeriesGroupValues ? [...this.initialExcludedSeriesGroupValues] : [];
+    this.seriesLabelRows = toValueLabelRows(this.initialSeriesLabels);
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -897,7 +913,8 @@ export class LineChartConfigDialogComponent implements OnInit {
       stacked: this.form.chartType === 'area' && this.form.stacked ? true : undefined,
       primarySeries: this.selectedQueryFamily === 'streamData' ? this.primarySeries : undefined,
       bucketMinutes: this.selectedQueryFamily === 'streamData' && this.form.bucketMinutes ? this.form.bucketMinutes : undefined,
-      excludedSeriesGroupValues: this.excludedSeriesGroupValues.length > 0 ? [...this.excludedSeriesGroupValues] : undefined
+      excludedSeriesGroupValues: this.excludedSeriesGroupValues.length > 0 ? [...this.excludedSeriesGroupValues] : undefined,
+      seriesLabels: fromValueLabelRows(this.seriesLabelRows)
     };
 
     this.windowRef.close(result);
