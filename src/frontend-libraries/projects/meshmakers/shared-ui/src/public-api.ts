@@ -14,6 +14,7 @@ import { provideMmSharedServices } from '@meshmakers/shared-services';
 
 export * from './lib/list-view/list-view.component';
 export * from './lib/list-view/list-view-filters.directive';
+export * from './lib/list-view/list-view-empty-actions.directive';
 export * from './lib/upload-file-dialog/upload-file-dialog.component';
 export * from './lib/input-dialog/input-dialog.component';
 export * from './lib/input-dialog/input-dialog.messages';

@@ -1,0 +1,27 @@
+.empty-state-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.empty-state-demo__options {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.empty-state-demo__clicks {
+  margin-left: 16px;
+}
+
+.empty-state-demo__lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.empty-state-demo__list h4 {
+  margin: 0 0 8px;
+}

@@ -18,6 +18,14 @@ starts a new empty "Unreleased" section.
   (`src/frontend-libraries/projects/meshmakers/shared-ui/docs/fonts.md`). Apps that load the fonts from Google today (Refinery Studio, meshmakers-app) switch to it and
   drop the link; Energy Community, which loads no fonts, adds the entry.
 
+### shared-ui list view (actions in the empty state, AB#7628)
+
+- New (non-breaking, additive): `ListViewEmptyActionsDirective` (`<ng-template mmListViewEmptyActions>` inside
+  `mm-list-view`). With `[emptyState]` set, its content (e.g. the page's "New ..." button) is rendered inside
+  `mm-empty-state`, below the text, in `.mm-list-view-empty-actions`. Only in the `empty` variant: not while the list
+  loads and not in the "no results" variant (search, row filter or `hasExternalFilters`). A list without the template
+  renders exactly as before.
+
 ### octo-meshboard: board authors give chart categories and series readable names in the widget config (AB#7235)
 
 - New: the pie chart takes `categoryLabels`, the bar chart `categoryLabels` and `seriesLabels`, the line chart
