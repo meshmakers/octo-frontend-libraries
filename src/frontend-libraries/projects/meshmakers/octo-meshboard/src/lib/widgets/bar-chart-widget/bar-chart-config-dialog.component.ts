@@ -8,7 +8,16 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { BarChartType, BarChartSeries, BarChartColorThreshold, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
+import {
+  BarChartType,
+  BarChartSeries,
+  BarChartColorThreshold,
+  BarChartSeriesDefinition,
+  BarChartWidgetConfig,
+  WidgetFilterConfig,
+  EntitySelectorConfig,
+  LineChartSeriesDisplayOptions
+} from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -20,6 +29,10 @@ import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
+import { columnProbeWindow } from '../../utils/column-probe-window';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
+import { LineChartSeriesEditorComponent } from '../line-chart-widget/line-chart-series-editor.component';
+import { querySeriesErrors } from '../line-chart-widget/line-chart-multi-source';
 
 /**
  * Series configuration mode
@@ -49,6 +62,10 @@ export interface BarChartConfigResult extends WidgetConfigResult {
   filters?: FieldFilterDto[];
   colorThresholds?: BarChartColorThreshold[];
   defaultBarColor?: string;
+  /** Query and formula series matched per category (AB#7953); only for a stream-data primary query. */
+  additionalSeries?: BarChartSeriesDefinition[];
+  /** Display options of the primary query's series (AB#7953): only `visible`. */
+  primarySeries?: BarChartWidgetConfig['primarySeries'];
 }
 
 /**
@@ -69,7 +86,8 @@ export interface BarChartConfigResult extends WidgetConfigResult {
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
     EntitySelectorScopePickerComponent,
-    LoadingOverlayComponent
+    LoadingOverlayComponent,
+    LineChartSeriesEditorComponent
   ],
   template: `
     <div class="config-container">
@@ -207,6 +225,24 @@ export interface BarChartConfigResult extends WidgetConfigResult {
                 <p class="field-hint">The numeric field to display for each category/series combination.</p>
               </div>
             }
+          </div>
+        }
+
+        <!-- Series Section (AB#7953): query and formula series matched per category -->
+        @if (selectedQueryFamily === 'streamData') {
+          <div class="config-section">
+            <h3 class="section-title">Series</h3>
+            <p class="section-hint">The primary query's series come first, then the series below in this order. Bars of all series are matched by category value (e.g. the same day); each query has its own category field and can follow its own entity selector.</p>
+            <mm-line-chart-series-editor
+              alignment="category"
+              [series]="additionalSeries"
+              [selectors]="availableEntitySelectors"
+              [primary]="primarySeries"
+              [defaultCategoryField]="form.categoryField"
+              [linesAllowed]="!form.chartType.toLowerCase().includes('bar')"
+              (seriesChange)="additionalSeries = $event"
+              (primaryChange)="primarySeries = $event">
+            </mm-line-chart-series-editor>
           </div>
         }
 
@@ -483,6 +519,7 @@ export class BarChartConfigDialogComponent implements OnInit {
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
   @ViewChild('querySelector') querySelector?: QuerySelectorComponent;
 
@@ -503,6 +540,18 @@ export class BarChartConfigDialogComponent implements OnInit {
   @Input() initialColorThresholds?: BarChartColorThreshold[];
   @Input() initialDefaultBarColor?: string;
   @Input() initialFilters?: WidgetFilterConfig[];
+  @Input() initialAdditionalSeries?: BarChartSeriesDefinition[];
+  @Input() initialPrimarySeries?: BarChartWidgetConfig['primarySeries'];
+
+  /** Query and formula series of the Series section (AB#7953). */
+  additionalSeries: BarChartSeriesDefinition[] = [];
+  /** Display options of the primary query's series (AB#7953). */
+  primarySeries: LineChartSeriesDisplayOptions | undefined;
+
+  /** The series that are saved: none unless the primary query is a stream-data query. */
+  get effectiveAdditionalSeries(): BarChartSeriesDefinition[] {
+    return this.selectedQueryFamily === 'streamData' ? this.additionalSeries : [];
+  }
 
   // State
   isLoadingInitial = false;
@@ -572,6 +621,10 @@ export class BarChartConfigDialogComponent implements OnInit {
       return false;
     }
 
+    const seriesValid = querySeriesErrors(this.effectiveAdditionalSeries, this.expressionEvaluator, { requireCategoryField: true })
+      .every(e => e === null);
+    if (!seriesValid) return false;
+
     if (this.seriesMode === 'dynamic') {
       return this.seriesGroupField !== '' && this.valueField !== '';
     } else {
@@ -597,6 +650,8 @@ export class BarChartConfigDialogComponent implements OnInit {
     this.form.showDataLabels = this.initialShowDataLabels ?? false;
     this.form.colorThresholds = this.initialColorThresholds ? [...this.initialColorThresholds] : [];
     this.form.defaultBarColor = this.initialDefaultBarColor ?? '';
+    this.additionalSeries = this.initialAdditionalSeries ? [...this.initialAdditionalSeries] : [];
+    this.primarySeries = this.initialPrimarySeries ? { ...this.initialPrimarySeries } : undefined;
 
     // Determine series mode from initial values
     if (this.initialSeriesGroupField && this.initialValueField) {
@@ -718,8 +773,11 @@ export class BarChartConfigDialogComponent implements OnInit {
         }));
     }
 
-    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
-    return sdResult.columns.map(c => ({
+    // An Integral column needs from/to (AB#7921): the executor retries with the board's
+    // window, or the last 24 hours when the board has no time filter (AB#7975).
+    const columns = await this.queryExecutor.fetchStreamDataColumns(
+      rtId, columnProbeWindow(this.stateService.resolveStreamDataTimeArgs()));
+    return columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null
@@ -777,7 +835,9 @@ export class BarChartConfigDialogComponent implements OnInit {
       showDataLabels: this.form.showDataLabels,
       colorThresholds: this.form.colorThresholds.length > 0 ? this.form.colorThresholds : undefined,
       defaultBarColor: this.form.defaultBarColor || undefined,
-      filters: filtersDto
+      filters: filtersDto,
+      additionalSeries: this.effectiveAdditionalSeries.length > 0 ? this.effectiveAdditionalSeries : undefined,
+      primarySeries: this.selectedQueryFamily === 'streamData' ? barPrimaryOptions(this.primarySeries) : undefined
     };
 
     // Add dynamic series fields if in dynamic mode
@@ -800,4 +860,13 @@ export class BarChartConfigDialogComponent implements OnInit {
   onCancel(): void {
     this.windowRef.close();
   }
+}
+
+/** Primary options a bar chart keeps (AB#7953, AB#8046): `visible: false` and `missingValues`; `undefined` when default. */
+function barPrimaryOptions(options: LineChartSeriesDisplayOptions | undefined): BarChartWidgetConfig['primarySeries'] {
+  const out: BarChartWidgetConfig['primarySeries'] = {
+    ...(options?.visible === false && { visible: false }),
+    ...((options?.missingValues === 'zero' || options?.missingValues === 'carryForward') && { missingValues: options.missingValues })
+  };
+  return Object.keys(out).length > 0 ? out : undefined;
 }

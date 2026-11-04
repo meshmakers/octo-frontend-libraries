@@ -44,8 +44,8 @@
           </div>
         }
 
-        <!-- Time Filter (center) -->
-        @if (isTimeFilterEnabled()) {
+        <!-- Time Filter (center); hidden when the host owns the period (AB#7582) -->
+        @if (showTimeRangePicker()) {
           <div class="toolbar-center">
             <mm-time-range-picker
               [config]="timeFilterConfig()?.pickerConfig ?? {}"
@@ -70,19 +70,21 @@
 
         <!-- Entity Selectors -->
         @if (hasEntitySelectors()) {
-          @if (isTimeFilterEnabled()) {
+          @if (showTimeRangePicker()) {
             <div class="toolbar-separator"></div>
           }
           <div class="toolbar-entity-selectors">
             <mm-entity-selector-toolbar
               [entitySelectors]="entitySelectorsConfig()"
+              [variables]="boardVariables()"
+              [pickerScopes]="pickerScopes()"
               (entitySelected)="onEntitySelectorSelected($event)"
               (entityCleared)="onEntitySelectorCleared($event)">
             </mm-entity-selector-toolbar>
           </div>
         }
 
-        @if (isTimeFilterEnabled() || hasEntitySelectors()) {
+        @if (showTimeRangePicker() || hasEntitySelectors()) {
           <div class="toolbar-separator"></div>
         }
         <div class="toolbar-right mm-toolbar-actions">
@@ -196,6 +198,15 @@
       <div class="variable-resolution-errors scope-resolution-errors" role="status">
         @for (error of scopeResolutionErrors(); track error.selectorId) {
           <span class="error-item">{{ error.message }}</span>
+        }
+      </div>
+    }
+
+    <!-- Dependent selectors without pick while their leader has one (AB#7916) -->
+    @if (scopePickRequiredNotices().length > 0) {
+      <div class="variable-resolution-errors scope-pick-required" role="status">
+        @for (notice of scopePickRequiredNotices(); track notice.selectorId) {
+          <span class="error-item">{{ notice.message }}</span>
         }
       </div>
     }

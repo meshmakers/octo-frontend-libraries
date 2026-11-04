@@ -23,6 +23,16 @@ const REQUIRED_CK_MODEL = 'System.UI';
 const REQUIRED_CK_MODEL_MIN_VERSION = '1.0.1';
 
 /**
+ * The period an embedding host sets on the board (AB#7582): two exact instants
+ * (half-open `[from, to)`), or `invalid` (with the reason) when the host passed an
+ * unparseable or empty range. Produced by `parseHostTimeRange`, held transiently by
+ * {@link MeshBoardStateService.setHostTimeRange}.
+ */
+export type HostTimeRangeState =
+  | { status: 'valid'; from: Date; to: Date }
+  | { status: 'invalid'; reason: string };
+
+/**
  * Service that manages MeshBoard state and persistence.
  * Coordinates loading, saving, and switching between MeshBoards.
  */
@@ -47,12 +57,28 @@ export class MeshBoardStateService {
   /**
    * Transient scope state of each entity selector's current selection (keyed
    * by selector id): `pending` while the view resolves the pick, `resolved`
-   * with the source rtIds (one-hop childScope traversal, or the picked entity's
+   * with the source rtIds (childScope hop or path, or the picked entity's
    * own rtId; possibly none), or `failed`. No entry = no active pick. Not
    * persisted — derived fresh from each selection, cleared on board switch
    * (AB#7721).
    */
   private readonly _entitySelectorScopes = signal<Record<string, EntitySelectorScopeState>>({});
+  /**
+   * Transient picker scope of each dependent selector (AB#7915, keyed by the
+   * dependent's id): `pending` while the leader's pick resolves along
+   * `scopeSource.path`, `resolved` with the rtIds the picker may list
+   * (possibly none), or `failed`. No entry = the leader has no pick, the picker
+   * lists unscoped. Not persisted, cleared on board switch.
+   */
+  private readonly _pickerScopes = signal<Record<string, EntitySelectorScopeState>>({});
+  /** Picker scopes of the dependent selectors (AB#7915), for the toolbar. */
+  readonly pickerScopes = this._pickerScopes.asReadonly();
+  /**
+   * Period set by the page that embeds the board (`MeshBoardViewComponent.timeRange`, AB#7582):
+   * exact instants, or `invalid` when the host passed an unusable range. `null` = the board's own
+   * selection applies. Transient — never persisted, never written into the board config.
+   */
+  private readonly _hostTimeRange = signal<HostTimeRangeState | null>(null);
   /**
    * Transient variables published by widgets (KPI output variables, AB#5364).
    * Kept apart from `_meshBoardConfig` so publishing triggers no persistence and
@@ -191,6 +217,7 @@ export class MeshBoardStateService {
 
         this._widgetVariables.set([]);
         this._entitySelectorScopes.set({});
+        this._pickerScopes.set({});
         this._hiddenForViewer.set(new Set());
         this._widgetContentHeights.set(new Map());
         this._loadedTenantId.set(tenantId);
@@ -745,10 +772,22 @@ export class MeshBoardStateService {
    * Boundaries are resolved on the board's {@link timeZoneMode} basis (local by
    * default, or UTC), the same basis widgets format their datetime display on —
    * so the selected range and the displayed timestamps stay consistent.
+   *
+   * While an embedding host has set a period ({@link setHostTimeRange}, AB#7582)
+   * and the board's time filter is enabled, the host's instants are returned
+   * unchanged (no day snapping, no zone conversion) and the stored selection is
+   * ignored; an invalid host period resolves to `null`.
    */
   resolveCurrentTimeRange(): TimeRange | null {
     const config = this._meshBoardConfig().timeFilter;
-    if (!config?.enabled || !config.selection) {
+    if (!config?.enabled) {
+      return null;
+    }
+    const host = this._hostTimeRange();
+    if (host) {
+      return host.status === 'valid' ? { from: new Date(host.from), to: new Date(host.to) } : null;
+    }
+    if (!config.selection) {
       return null;
     }
     const showTime = config.pickerConfig?.showTime ?? false;
@@ -821,7 +860,7 @@ export class MeshBoardStateService {
   /**
    * Stores the source rtIds resolved from an entity selector's current
    * selection. Called by the view component after a selection resolves (the
-   * one-hop childScope traversal, or the picked entity's own rtId when the
+   * childScope traversal (one hop or a path), or the picked entity's own rtId when the
    * selector has no childScope). An empty array is a resolved EMPTY scope:
    * bound widgets show no data and send no query (AB#7721). Transient — not
    * persisted.
@@ -838,6 +877,16 @@ export class MeshBoardStateService {
    */
   setEntitySelectorScopeFailed(selectorId: string): void {
     this.setEntitySelectorScope(selectorId, { status: 'failed' });
+  }
+
+  /**
+   * Marks a selector as "needs a pick" (AB#7916): a dependent selector — or a
+   * follower of one — has no pick while its leader has one. Bound widgets show
+   * no data and send no query (never the persisted scope, which would show
+   * entities outside the leader's pick); the view asks for a pick.
+   */
+  setEntitySelectorScopeNeedsPick(selectorId: string): void {
+    this.setEntitySelectorScope(selectorId, { status: 'needsPick' });
   }
 
   /**
@@ -871,20 +920,51 @@ export class MeshBoardStateService {
   );
 
   /**
-   * Decides how a widget bound to an entity selector runs its stream-data query
-   * (AB#7721):
+   * Ids of the selectors that need a pick (AB#7916), for the view's
+   * "Pick a <label> to see this data." notice.
+   */
+  readonly needsPickEntitySelectorIds = computed(() =>
+    Object.entries(this._entitySelectorScopes())
+      .filter(([, state]) => state.status === 'needsPick')
+      .map(([id]) => id)
+  );
+
+  /**
+   * Decides how a widget runs its persistent query — the entry point every
+   * built-in widget calls with its binding, query family and time-filter opt-out:
    *
-   * - `unscoped` — no binding, a runtime query (`family === 'runtime'`, the
-   *   binding is ignored there), or no active pick: keep the persisted scope.
+   * 1. Host gate (AB#7582): while the embedding host's period is invalid, every
+   *    stream-data query bound to the time filter is `empty` (`invalidTimeRange`),
+   *    whatever its selector binding; pass the widget's `ignoreTimeFilter` so an
+   *    opted-out widget, whose data does not depend on the period, keeps querying.
+   *    Runtime queries have no time window and are not gated. A legacy config
+   *    without `queryFamily` is treated as stream data here.
+   * 2. Entity-selector scope ({@link resolveEntitySelectorScope}, AB#7721) — since
+   *    AB#7725 for runtime queries too: `unscoped` / `pending` / `scoped` / `empty`.
+   */
+  resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily, ignoreTimeFilter?: boolean): StreamDataScope {
+    if (family !== 'runtime' && this.isStreamDataBlockedByHostTimeRange(ignoreTimeFilter)) {
+      return { kind: 'empty', reason: 'invalidTimeRange' };
+    }
+    return this.resolveEntitySelectorScope(entitySelectorId);
+  }
+
+  /**
+   * The entity-selector part of {@link resolveStreamDataScope}, without the host
+   * gate — stream data (AB#7721) and runtime queries alike (AB#7725):
+   *
+   * - `unscoped` — no binding, or no active pick: keep the query as saved.
    * - `pending` — the pick is still resolving: show loading, send no query.
-   * - `scoped` — query with the resolved source rtIds.
+   * - `scoped` — query restricted to the resolved rtIds: stream data via
+   *   `streamDataArgs.rtIds`, runtime queries via the `rtId IN` field filter
+   *   (`QueryExecutionOptions.scopeRtIds`).
    * - `empty` — the pick has nothing in scope or the lookup failed: show the
    *   no-data state and send no query. Never fall back to the persisted scope.
-   *
-   * A legacy config without `queryFamily` is treated as stream data.
+   *   Also a dependent selector without pick while its leader has one
+   *   (`noPick`, AB#7916).
    */
-  resolveStreamDataScope(entitySelectorId?: string, family?: QueryFamily): StreamDataScope {
-    if (!entitySelectorId || family === 'runtime') {
+  resolveEntitySelectorScope(entitySelectorId?: string): StreamDataScope {
+    if (!entitySelectorId) {
       return { kind: 'unscoped' };
     }
     const state = this._entitySelectorScopes()[entitySelectorId];
@@ -896,6 +976,8 @@ export class MeshBoardStateService {
         return { kind: 'pending' };
       case 'failed':
         return { kind: 'empty', reason: 'failed' };
+      case 'needsPick':
+        return { kind: 'empty', reason: 'noPick' };
       case 'resolved':
         return state.rtIds.length > 0
           ? { kind: 'scoped', rtIds: state.rtIds }
@@ -913,12 +995,87 @@ export class MeshBoardStateService {
    * skip the query for `pending` / `empty` (AB#7721).
    */
   resolveStreamDataRtIds(entitySelectorId?: string): string[] | undefined {
-    const scope = this.resolveStreamDataScope(entitySelectorId);
+    const scope = this.resolveEntitySelectorScope(entitySelectorId);
     return scope.kind === 'scoped' ? scope.rtIds : undefined;
+  }
+
+  /** Marks a dependent selector's picker scope as resolving (AB#7915): the picker lists nothing yet. */
+  setPickerScopePending(selectorId: string): void {
+    this.setPickerScope(selectorId, { status: 'pending' });
+  }
+
+  /** Stores the rtIds a dependent selector's picker may list (AB#7915); `[]` = nothing in the leader's pick. */
+  setPickerScopeRtIds(selectorId: string, rtIds: string[]): void {
+    this.setPickerScope(selectorId, { status: 'resolved', rtIds: [...rtIds] });
+  }
+
+  /** Marks a dependent selector's picker scope as failed (AB#7915): the picker lists nothing. */
+  setPickerScopeFailed(selectorId: string): void {
+    this.setPickerScope(selectorId, { status: 'failed' });
+  }
+
+  /** Clears a dependent selector's picker scope (its leader has no pick): the picker lists unscoped. */
+  clearPickerScope(selectorId: string): void {
+    this._pickerScopes.update(map => {
+      if (!(selectorId in map)) {
+        return map;
+      }
+      const next = { ...map };
+      delete next[selectorId];
+      return next;
+    });
+  }
+
+  /** The picker scope of a dependent selector, or `undefined` when its leader has no pick. */
+  getPickerScopeState(selectorId: string): EntitySelectorScopeState | undefined {
+    return this._pickerScopes()[selectorId];
+  }
+
+  private setPickerScope(selectorId: string, state: EntitySelectorScopeState): void {
+    this._pickerScopes.update(map => ({ ...map, [selectorId]: state }));
   }
 
   private setEntitySelectorScope(selectorId: string, state: EntitySelectorScopeState): void {
     this._entitySelectorScopes.update(map => ({ ...map, [selectorId]: state }));
+  }
+
+  /**
+   * Sets (or with `null` clears) the period of the page embedding the board
+   * (AB#7582). Called by `MeshBoardViewComponent` for its `timeRange` input; a
+   * host normally sets the input instead of calling this. Transient: not
+   * persisted, not written into the board config, so it never causes unsaved
+   * changes. Only takes effect while the board's time filter is enabled.
+   */
+  setHostTimeRange(state: HostTimeRangeState | null, owner?: object): void {
+    this._hostTimeRange.set(state);
+    this.hostTimeRangeOwner = state ? owner ?? null : null;
+  }
+
+  /**
+   * Clears the host period only if `owner` set it (AB#7582). The service is
+   * root-provided, so a view that is destroyed (or drops its `timeRange`) must not
+   * clear a period another view set in the meantime.
+   */
+  clearHostTimeRange(owner: object): void {
+    if (this.hostTimeRangeOwner === owner) {
+      this.setHostTimeRange(null);
+    }
+  }
+
+  /** The view (or other caller) that set the current host period, if it said so. */
+  private hostTimeRangeOwner: object | null = null;
+
+  /** The period set by the embedding host, or `null` when the board's own selection applies. */
+  readonly hostTimeRange = this._hostTimeRange.asReadonly();
+
+  /**
+   * True when an invalid host period blocks a stream-data query that is bound to
+   * the time filter (AB#7582): the period is invalid, the board's time filter is
+   * enabled and the caller did not opt out with `ignoreTimeFilter`. Such a query
+   * must not be sent — without a window it would read the whole archive.
+   */
+  isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?: boolean): boolean {
+    return !ignoreTimeFilter && this._hostTimeRange()?.status === 'invalid' && this.isTimeFilterEnabled();
   }
 
   /**

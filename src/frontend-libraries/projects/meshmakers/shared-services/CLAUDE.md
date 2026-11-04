@@ -125,6 +125,15 @@ Routes define context menus via `data.navigationMenu`:
   authorization middleware names its denial reason that way since AB#5227 (e.g. "tenant does not
   exist any more, re-create it first" on a restore into a deleted tenant) — that message is shown
   instead of the generic text, which reads as a permission problem it often is not.
+- **Status 403 with a problem body (RFC 9457, `application/problem+json`)**: the problem text is
+  shown once instead of the generic access-denied text (AB#7969). Identity refuses role changes this
+  way: `{ status: 403, title, code }` with `code` = `self-grant` / `role-not-held`. The text is the
+  `title` when the body carries the `code` extension, otherwise the `detail`; a default ASP.NET
+  problem without `code` and `detail` (title = bare reason phrase "Forbidden") keeps the generic text.
+  A body counts as a problem when it has a numeric `status` or a string `type`/`code`.
+  **A 409 problem is not reported** (unchanged): its caller shows it — identity's `last-administrator`
+  / `built-in-role` refusals on the Studio pages, the CK upgrade guard's `CK_UPGRADE_BLOCKED` in its
+  own dialog.
 - **Status 400 with `ApiErrorDto`**: Parses structured error response with details
 - **Status 409 with a message body**: same rendering as 400
 
@@ -146,6 +155,10 @@ must therefore ask `MmHttpErrorInterceptor.reportsToUser(error)` first and stay 
 returns `true` — otherwise the user gets the same reason twice, in two Kendo position groups that
 overlap instead of stacking (the 409 of the capability disable guards made this visible, AB#4255).
 The predicate and `intercept` share one private classification, so they cannot drift apart.
+For a 403 problem body with a readable text `reportsToUser` is `true`, so a page that follows this
+rule shows the server's sentence exactly once (the interceptor's toast) instead of "Access denied"
+plus its own "Failed to …" (AB#7969). For a status the request marked as caller-handled
+(`MM_CALLER_HANDLED_STATUSES`) it is `false`: the interceptor stayed silent, so the caller must speak.
 
 #### Optional requests (`MM_OPTIONAL_REQUEST`, AB#6619)
 

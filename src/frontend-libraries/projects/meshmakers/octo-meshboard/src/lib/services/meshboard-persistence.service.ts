@@ -546,7 +546,25 @@ export class MeshBoardPersistenceService {
           attributeMappings: es.attributeMappings,
           showInToolbar: es.showInToolbar,
           defaultRtId: es.defaultRtId,
-          childScope: es.childScope
+          // Carried verbatim: the one-hop form and the multi-hop `path`
+          // (AB#7723) keep their keys and order, so older boards encode unchanged.
+          childScope: es.childScope,
+          // AB#7722 — omitted (undefined → dropped by JSON.stringify) for
+          // selectors that follow nobody, so older boards encode unchanged.
+          followsSelectorId: es.followsSelectorId || undefined,
+          // AB#7724 — omitted when empty, so older boards encode unchanged;
+          // rows are reduced to the persisted filter fields (no editor state).
+          filters: es.filters?.length
+            ? es.filters.map(f => ({ attributePath: f.attributePath, operator: f.operator, comparisonValue: f.comparisonValue }))
+            : undefined,
+          // AB#7915 — omitted when unset, so older boards encode unchanged;
+          // reduced to leader id and hops (keys in a fixed order).
+          scopeSource: es.scopeSource
+            ? {
+              selectorId: es.scopeSource.selectorId,
+              path: (es.scopeSource.path ?? []).map(h => ({ roleId: h.roleId, direction: h.direction, targetCkTypeId: h.targetCkTypeId }))
+            }
+            : undefined
         }));
       }
 

@@ -20,12 +20,19 @@ export interface MeshBoardMessages {
    * 'Could not resolve the scope of "{label}" - widgets bound to it show no data.'
    */
   scopeResolutionFailed?: string;
+  /**
+   * Board notice for a dependent entity selector without pick while its leader has one (AB#7916):
+   * widgets bound to it show no data until a pick is made. `{label}` is replaced by the selector
+   * label. Default: 'Pick a {label} to see this data.'
+   */
+  scopePickRequired?: string;
 }
 
 /** Default texts of {@link MeshBoardMessages} (the list texts default inside `mm-list-view`). */
 export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'tableList'>> = {
   tableNotConfigured: 'Table not configured',
   scopeResolutionFailed: 'Could not resolve the scope of "{label}" - widgets bound to it show no data.',
+  scopePickRequired: 'Pick a {label} to see this data.',
 };
 
 /**
@@ -60,6 +67,7 @@ export function resolveMeshBoardMessages(messages: MeshBoardMessages | null | un
     ...(messages?.tableList ? { tableList: messages.tableList } : {}),
     ...(messages?.tableNotConfigured ? { tableNotConfigured: messages.tableNotConfigured } : {}),
     ...(messages?.scopeResolutionFailed ? { scopeResolutionFailed: messages.scopeResolutionFailed } : {}),
+    ...(messages?.scopePickRequired ? { scopePickRequired: messages.scopePickRequired } : {}),
   };
 }
 

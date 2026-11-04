@@ -68,6 +68,7 @@ export { QuerySelectorComponent } from './lib/components/query-selector/query-se
 export { RuntimeEntitySelectorComponent } from './lib/components/runtime-entity-selector/runtime-entity-selector.component';
 export type { RuntimeEntitySelectorValue } from './lib/components/runtime-entity-selector/runtime-entity-selector.component';
 export { WidgetNotConfiguredComponent } from './lib/components/widget-not-configured/widget-not-configured.component';
+export { FormulaFieldComponent } from './lib/components/formula-field/formula-field.component';
 
 // Services
 export * from './lib/services/meshboard-state.service';
@@ -115,6 +116,18 @@ export type { BarChartConfigResult } from './lib/widgets/bar-chart-widget/bar-ch
 export { LineChartWidgetComponent } from './lib/widgets/line-chart-widget/line-chart-widget.component';
 export { LineChartConfigDialogComponent } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
 export type { LineChartConfigResult } from './lib/widgets/line-chart-widget/line-chart-config-dialog.component';
+export type { LineChartSourceHint } from './lib/widgets/line-chart-widget/line-chart-widget.component';
+export {
+  circularReferenceMessage,
+  evaluateSeriesFormulas,
+  orderSeriesFormulas,
+  seriesFormulaOperands,
+  validateSeriesFormulas
+} from './lib/utils/meshboard-series-formula';
+export type { SeriesFormula, SeriesFormulaOrder } from './lib/utils/meshboard-series-formula';
+export { LineChartSeriesEditorComponent } from './lib/widgets/line-chart-widget/line-chart-series-editor.component';
+export { alignOnTimeGrid, bucketStepMs } from './lib/utils/time-grid-alignment';
+export type { AlignedTimeGrid, AlignedTimeSeries, MisalignedTimeSource, TimeGridSeriesInput, TimeGridSourceInput } from './lib/utils/time-grid-alignment';
 
 export { HeatmapWidgetComponent } from './lib/widgets/heatmap-widget/heatmap-widget.component';
 export { HeatmapConfigDialogComponent } from './lib/widgets/heatmap-widget/heatmap-config-dialog.component';
@@ -177,6 +190,7 @@ export {
   registerDefaultWidgets,
   provideMeshBoard,
   provideMeshBoardMessages,
+  provideMeshBoardLanguage,
   provideWidgetRegistrations,
   MESHBOARD_OPTIONS,
   TENANT_ID_PROVIDER,
@@ -189,14 +203,23 @@ export type { MeshBoardMessages, MeshBoardMessagesSource } from './lib/utils/mes
 // Host translation of enum values in tables and chart categories (AB#5622)
 export { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from './lib/utils/meshboard-labels';
 export type { MeshBoardLabelKind, MeshBoardLabelRequest, MeshBoardLabelResolver } from './lib/utils/meshboard-labels';
+// Host UI language for per-language board texts (table column titles / value labels, AB#7655)
+export { MESHBOARD_LANGUAGE, pickLocalizedText } from './lib/utils/meshboard-language';
+export type { MeshBoardLanguageSource } from './lib/utils/meshboard-language';
+// Host handling of table row actions and the marker rule (AB#7728)
+export { MESHBOARD_TABLE_ROW_ACTION_HANDLER, isPositiveMarkerValue } from './lib/utils/meshboard-table-row-action';
+export type { MeshBoardTableRowActionEvent, MeshBoardTableRowActionHandler } from './lib/utils/meshboard-table-row-action';
 
 // Entity Selector Components
 export { EntitySelectorEditorComponent } from './lib/components/entity-selector-editor/entity-selector-editor.component';
+export { EntitySelectorScopePathEditorComponent } from './lib/components/entity-selector-scope-path-editor/entity-selector-scope-path-editor.component';
 export { EntitySelectorToolbarComponent } from './lib/components/entity-selector-toolbar/entity-selector-toolbar.component';
 export type { EntitySelectorEvent, EntitySelectorClearEvent } from './lib/components/entity-selector-toolbar/entity-selector-toolbar.component';
 
 // Container Components
 export { MeshBoardViewComponent } from './lib/containers/meshboard-view/meshboard-view.component';
+export type { MeshBoardHostTimeRange, MeshBoardTimeFilterControl } from './lib/containers/meshboard-view/host-time-range';
+export { parseHostTimeRange } from './lib/containers/meshboard-view/host-time-range';
 
 // Dialogs
 export { MeshBoardSettingsDialogComponent, MeshBoardSettingsResult } from './lib/dialogs/meshboard-settings-dialog/meshboard-settings-dialog.component';

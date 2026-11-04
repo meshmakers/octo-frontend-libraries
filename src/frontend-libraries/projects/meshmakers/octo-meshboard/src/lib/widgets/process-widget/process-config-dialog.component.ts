@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { WindowRef } from '@progress/kendo-angular-dialog';
@@ -6,34 +6,51 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { LayoutModule } from '@progress/kendo-angular-layout';
-import { CkTypeSelectorInputComponent, FieldFilterEditorComponent, FieldFilterItem, FilterVariable } from '@meshmakers/octo-ui';
+import { FilterVariable } from '@meshmakers/octo-ui';
 import {
-  CkTypeSelectorItem,
-  FieldFilterOperatorsDto,
-  AttributeSelectorService,
   AttributeItem,
   GetCkTypeAvailableQueryColumnsDtoGQL,
-  RuntimeEntityItem,
-  RuntimeEntitySelectDataSource,
-  RuntimeEntityDialogDataSource
+  RuntimeEntityItem
 } from '@meshmakers/octo-services';
-import {
-  EntitySelectInputComponent
-} from '@meshmakers/shared-ui';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
-import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import {
   GetSystemPersistentQueriesDtoGQL
 } from '../../graphQL/getSystemPersistentQueries';
 import type { ProcessDiagramConfig, TransformProperty } from '@meshmakers/octo-process-diagrams';
 import { ProcessDataService, ProcessDiagramSummary } from './services/process-data.service';
-import { ProcessDataBindingMode, DiagramPropertyMapping } from './process-widget-config.model';
+import {
+  DEFAULT_PROCESS_BINDING_NAME,
+  DiagramPropertyMapping,
+  ProcessConnectionDirection,
+  ProcessDataBindingMode,
+  ProcessValueAggregate,
+  ProcessWidgetBinding,
+  ProcessWidgetConfig
+} from './process-widget-config.model';
+import { legacyProcessBinding, mappingBindingName } from './process-widget-bindings';
+import {
+  PROCESS_AGGREGATE_OPTIONS,
+  ProcessBindingDraft,
+  ProcessBindingSource,
+  ProcessDiagramConnection,
+  bindingDisplayName,
+  bindingDraftIssues,
+  bindingResultFields,
+  clearMappingsOfBinding,
+  draftsFromBindings,
+  findDiagramConnections,
+  isAggregateFixed,
+  renameBindingInMappings,
+  sourceTypeForMode,
+  withAggregate,
+  withBindingName
+} from './process-binding-editor';
+import { describeProcessDiagramIssues, sanitizeProcessDiagram } from './process-diagram-validation';
+import { ProcessBindingCardsComponent, ProcessBindingRename } from './process-binding-cards.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
-import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
-import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
-import { QueryFamily, queryFamily } from '../../utils/query-family';
+import { QueryFamily } from '../../utils/query-family';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -81,11 +98,20 @@ export interface ProcessConfigResult extends WidgetConfigResult {
   bindingFilters?: WidgetFilterConfig[];
   // Property mappings
   propertyMappings?: DiagramPropertyMapping[];
+  /**
+   * Named bindings (AB#8025). Set when the widget has more than one binding or
+   * one that is not named `default`; the legacy fields above are then absent.
+   */
+  bindings?: ProcessWidgetBinding[];
+  /** Per connection, the property that drives its direction (AB#8025). */
+  connectionDirections?: ProcessConnectionDirection[];
 }
 
 /**
  * Configuration dialog for Process Widget.
- * Allows selecting a stored diagram, display options, and data binding.
+ * Allows selecting a stored diagram, display options, the data bindings (one
+ * card per binding, AB#8025), the property mappings with their binding and
+ * aggregate, and the binding that drives each connection's direction.
  */
 @Component({
   selector: 'mm-process-config-dialog',
@@ -97,12 +123,8 @@ export interface ProcessConfigResult extends WidgetConfigResult {
     InputsModule,
     DropDownsModule,
     LayoutModule,
-    CkTypeSelectorInputComponent,
-    EntitySelectInputComponent,
-    FieldFilterEditorComponent,
     LoadingOverlayComponent,
-    SdTimeFilterToggleComponent,
-    EntitySelectorScopePickerComponent
+    ProcessBindingCardsComponent
   ],
   providers: [ProcessDataService],
   template: `
@@ -139,6 +161,9 @@ export interface ProcessConfigResult extends WidgetConfigResult {
                   @if (storedDiagrams.length === 0 && !isLoadingDiagrams) {
                     <p class="field-hint warning">No diagrams found. Create diagrams using the Process Designer.</p>
                   }
+                  @if (diagramIssueHint) {
+                    <p class="field-hint warning diagram-issue-hint" role="status">{{ diagramIssueHint }}</p>
+                  }
                 </div>
 
                 <!-- Preview Section -->
@@ -170,139 +195,30 @@ export interface ProcessConfigResult extends WidgetConfigResult {
             </ng-template>
           </kendo-tabstrip-tab>
 
-          <!-- Tab 2: Data Binding -->
+          <!-- Tab 2: Data Binding (AB#8025: binding cards) -->
           <kendo-tabstrip-tab [title]="'Data Binding'">
             <ng-template kendoTabContent>
               <div class="tab-content">
-                <p class="section-hint">Bind the diagram to runtime data for dynamic values.</p>
-
-                <!-- Data Binding Mode Toggle -->
-                <div class="form-field">
-                  <label>Binding Mode</label>
-                  <div class="mode-toggle">
-                    <button
-                      kendoButton
-                      [fillMode]="dataBindingMode === 'none' ? 'solid' : 'outline'"
-                      [themeColor]="dataBindingMode === 'none' ? 'primary' : 'base'"
-                      (click)="onDataBindingModeChange('none')">
-                      None
-                    </button>
-                    <button
-                      kendoButton
-                      [fillMode]="dataBindingMode === 'runtimeEntity' ? 'solid' : 'outline'"
-                      [themeColor]="dataBindingMode === 'runtimeEntity' ? 'primary' : 'base'"
-                      (click)="onDataBindingModeChange('runtimeEntity')">
-                      Runtime Entity
-                    </button>
-                    <button
-                      kendoButton
-                      [fillMode]="dataBindingMode === 'persistentQuery' ? 'solid' : 'outline'"
-                      [themeColor]="dataBindingMode === 'persistentQuery' ? 'primary' : 'base'"
-                      (click)="onDataBindingModeChange('persistentQuery')">
-                      Query
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Runtime Entity Data Binding -->
-                @if (dataBindingMode === 'runtimeEntity') {
-                  <!-- CK Type Selection -->
-                  <div class="form-field">
-                    <label>CK Type <span class="required">*</span></label>
-                    <mm-ck-type-selector-input
-                      placeholder="Select a CK Type..."
-                      [minSearchLength]="2"
-                      dialogTitle="Select CK Type"
-                      [ngModel]="selectedCkType"
-                      (ckTypeSelected)="onCkTypeSelected($event)"
-                      (ckTypeCleared)="onCkTypeCleared()">
-                    </mm-ck-type-selector-input>
-                  </div>
-
-                  <!-- Entity Selection -->
-                  <div class="form-field" [class.disabled]="!selectedCkType">
-                    <label>Entity <span class="required">*</span></label>
-                    @if (selectedCkType && entityDataSource) {
-                      <mm-entity-select-input
-                        [dataSource]="entityDataSource"
-                        [dialogDataSource]="entityDialogDataSource"
-                        placeholder="Search for an entity..."
-                        dialogTitle="Select Entity"
-                        [minSearchLength]="1"
-                        [ngModel]="selectedEntity"
-                        (entitySelected)="onEntitySelected($event)"
-                        (entityCleared)="onEntityCleared()">
-                      </mm-entity-select-input>
-                    } @else {
-                      <kendo-textbox
-                        [disabled]="true"
-                        placeholder="First select a CK Type...">
-                      </kendo-textbox>
-                    }
-                  </div>
-                }
-
-                <!-- Persistent Query Data Binding -->
-                @if (dataBindingMode === 'persistentQuery') {
-                  <!-- Query Selection -->
-                  <div class="form-field">
-                    <label>Persistent Query <span class="required">*</span></label>
-                    <kendo-combobox
-                      [data]="persistentQueries"
-                      [textField]="'name'"
-                      [valueField]="'rtId'"
-                      [valuePrimitive]="false"
-                      [(ngModel)]="selectedPersistentQuery"
-                      [filterable]="true"
-                      (filterChange)="onQueryFilterChange($event)"
-                      (valueChange)="onQuerySelected($event)"
-                      placeholder="Select a Persistent Query..."
-                      [loading]="isLoadingQueries">
-                      <ng-template kendoComboBoxItemTemplate let-dataItem>
-                        <div class="query-item">
-                          <span class="query-name">{{ dataItem.name }}</span>
-                          @if (dataItem.description) {
-                            <span class="query-description">{{ dataItem.description }}</span>
-                          }
-                        </div>
-                      </ng-template>
-                    </kendo-combobox>
-                    @if (persistentQueries.length === 0 && !isLoadingQueries) {
-                      <p class="field-hint warning">No queries found.</p>
-                    }
-                  </div>
-
-                  <!-- Stream-data-only options (hidden for runtime queries) -->
-                  <mm-sd-time-filter-toggle
-                    [family]="selectedQueryFamily"
-                    [(ignoreTimeFilter)]="bindingIgnoreTimeFilter">
-                  </mm-sd-time-filter-toggle>
-                  <mm-entity-selector-scope-picker
-                    [family]="selectedQueryFamily"
-                    [selectors]="entitySelectors"
-                    [(entitySelectorId)]="bindingEntitySelectorId">
-                  </mm-entity-selector-scope-picker>
-                }
-
-                <!-- Filters Section -->
-                @if (dataBindingMode !== 'none' && (dataBindingMode === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId)) {
-                  <div class="form-field">
-                    <label>Filters (Optional)</label>
-                    <mm-field-filter-editor
-                      [ckTypeId]="(dataBindingMode === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId) ?? undefined"
-                      [filters]="filters"
-                      [enableVariables]="filterVariables.length > 0"
-                      [availableVariables]="filterVariables"
-                      (filtersChange)="onFiltersChange($event)">
-                    </mm-field-filter-editor>
-                  </div>
-                }
+                <p class="section-hint">Bind the diagram to runtime data. Each binding has its own source and entity selector; mappings refer to it by name.</p>
+                <mm-process-binding-cards
+                  [drafts]="drafts"
+                  [selectors]="entitySelectors"
+                  [persistentQueries]="persistentQueries"
+                  [isLoadingQueries]="isLoadingQueries"
+                  [filterVariables]="filterVariables"
+                  [mappings]="propertyMappings"
+                  [nextUid]="nextUid"
+                  (draftsChange)="onDraftsChange()"
+                  (bindingRenamed)="onBindingRenamed($event)"
+                  (bindingDeleted)="onBindingDeleted($event)"
+                  (queryFilterChange)="onQueryFilterChange($event)">
+                </mm-process-binding-cards>
               </div>
             </ng-template>
           </kendo-tabstrip-tab>
 
-          <!-- Tab 3: Property Mappings -->
-          <kendo-tabstrip-tab [title]="'Mappings'" [disabled]="dataBindingMode === 'none' || diagramExposedProperties.length === 0">
+          <!-- Tab 3: Property Mappings (AB#8025: Binding + Aggregate columns, connections) -->
+          <kendo-tabstrip-tab [title]="'Mappings'" [disabled]="drafts.length === 0 || diagramExposedProperties.length === 0">
             <ng-template kendoTabContent>
               <div class="tab-content">
                 @if (diagramExposedProperties.length === 0) {
@@ -310,50 +226,72 @@ export interface ProcessConfigResult extends WidgetConfigResult {
                 } @else if (isLoadingDiagramConfig) {
                   <div class="loading-hint">Loading diagram properties...</div>
                 } @else {
-                  <p class="section-hint">Map diagram exposed properties to data source fields.</p>
-                  <div class="property-mappings-table">
-                    <div class="mapping-header">
-                      <span class="col-property">Property</span>
-                      <span class="col-type">Type</span>
-                      <span class="col-source">Source</span>
-                      <span class="col-path">Field</span>
-                      <span class="col-expression">Expression</span>
+                  <p class="section-hint">Map diagram properties to fields of a binding. Aggregate reduces all rows of the binding's scope first, then the expression runs on the result.</p>
+                  <div class="property-mappings-table" role="table" aria-label="Property mappings">
+                    <div class="mapping-header" role="row">
+                      <span class="col-property" role="columnheader">Property</span>
+                      <span class="col-type" role="columnheader">Type</span>
+                      <span class="col-binding" role="columnheader">Binding</span>
+                      <span class="col-path" role="columnheader">Field</span>
+                      <span class="col-aggregate" role="columnheader">Aggregate</span>
+                      <span class="col-expression" role="columnheader">Expression</span>
                     </div>
                     @for (prop of diagramExposedProperties; track prop.id) {
-                      <div class="mapping-row">
-                        <span class="col-property" [title]="prop.name">{{ prop.name }}</span>
-                        <span class="col-type type-badge">{{ prop.type }}</span>
+                      <div class="mapping-row" role="row" [attr.data-mapping-row]="prop.id">
+                        <span class="col-property" role="cell" [title]="prop.name">{{ prop.name }}</span>
+                        <span class="col-type type-badge" role="cell">{{ prop.type }}</span>
                         <kendo-dropdownlist
-                          class="col-source"
-                          [data]="sourceTypeOptions"
-                          [textField]="'label'"
-                          [valueField]="'value'"
+                          class="col-binding"
+                          [attr.data-mapping-binding]="prop.id"
+                          [attr.aria-label]="'Binding of ' + prop.name"
+                          [data]="bindingOptionsFor(prop.id)"
+                          textField="label"
+                          valueField="value"
                           [valuePrimitive]="true"
-                          [value]="getMappingSourceType(prop.id)"
-                          (valueChange)="onMappingSourceTypeChange(prop.id, $event)">
+                          [value]="mappingBindingOf(prop.id)"
+                          (valueChange)="onMappingBindingChange(prop.id, $event)">
                         </kendo-dropdownlist>
-                        @if (getMappingSourceType(prop.id) === 'attribute' && filterAttributes.length > 0) {
+                        @if (fieldAttributesFor(prop.id); as attributes) {
                           <kendo-combobox
                             class="col-path"
-                            [data]="filterAttributes"
-                            [textField]="'attributePath'"
-                            [valueField]="'attributePath'"
+                            [attr.aria-label]="'Field of ' + prop.name"
+                            [title]="getMappingSourcePath(prop.id) || ''"
+                            [data]="attributes"
+                            textField="attributePath"
+                            valueField="attributePath"
                             [valuePrimitive]="true"
+                            [allowCustom]="true"
                             [value]="getMappingSourcePath(prop.id)"
                             [filterable]="true"
                             (valueChange)="onMappingSourcePathChange(prop.id, $event)"
-                            placeholder="Select...">
+                            placeholder="Attribute...">
                           </kendo-combobox>
                         } @else {
                           <kendo-textbox
                             class="col-path"
+                            [attr.aria-label]="'Field of ' + prop.name"
+                            [title]="getMappingSourcePath(prop.id) || ''"
                             [value]="getMappingSourcePath(prop.id)"
                             (valueChange)="onMappingSourcePathChange(prop.id, $event)"
-                            [placeholder]="getMappingSourceType(prop.id) === 'column' ? 'Column...' : 'Attribute...'">
+                            [placeholder]="bindingModeOf(prop.id) === 'runtimeEntity' ? 'Attribute...' : 'Column...'">
                           </kendo-textbox>
                         }
+                        <kendo-dropdownlist
+                          class="col-aggregate"
+                          [attr.data-mapping-aggregate]="prop.id"
+                          [attr.aria-label]="'Aggregate of ' + prop.name"
+                          [title]="isAggregateFixedFor(prop) ? aggregateFixedHint(prop) : ''"
+                          [data]="aggregateOptions"
+                          textField="label"
+                          valueField="value"
+                          [valuePrimitive]="true"
+                          [disabled]="isAggregateFixedFor(prop)"
+                          [value]="mappingAggregateOf(prop)"
+                          (valueChange)="onMappingAggregateChange(prop.id, $event)">
+                        </kendo-dropdownlist>
                         <kendo-textbox
                           class="col-expression"
+                          [attr.aria-label]="'Expression of ' + prop.name"
                           [value]="getMappingExpression(prop.id)"
                           (valueChange)="onMappingExpressionChange(prop.id, $event)"
                           placeholder="value">
@@ -362,13 +300,46 @@ export interface ProcessConfigResult extends WidgetConfigResult {
                     }
                   </div>
                   <p class="field-hint expression-help">
-                    <code>value</code> = raw value. Examples: <code>value / 100</code>, <code>lerp(value, 0, 4096, 0, 100)</code>
+                    <code>value</code> = raw value. Examples: <code>value / 100</code>, <code>abs(value)</code>.
+                    Sum, Average, Minimum and Maximum need a number property and a persistent-query binding; otherwise the first row is used.
                   </p>
+
+                  <!-- Connections (AB#8025, wireframe approval condition on AB#7954) -->
+                  <div class="connections-section" data-connections>
+                    <h4 class="section-title">Connections</h4>
+                    @if (connections.length === 0) {
+                      <p class="field-hint">This diagram has no flow lines with a direction binding. Only line, polyline and path shapes whose flow animation, visibility or colour is bound to a property in the Process Designer are listed; plain connections between elements have no direction to pick.</p>
+                    } @else {
+                      <p class="section-hint">Each line takes its direction from the sign of a mapped value: positive flows forward, negative backward, 0 or no value shows no flow.</p>
+                      <div class="connection-list" role="list" aria-label="Connections">
+                        @for (connection of connections; track connection.id) {
+                          <div class="connection-row" role="listitem" [attr.data-connection]="connection.id">
+                            <span class="connection-name" [title]="connection.id">{{ connection.label }}</span>
+                            <svg class="connection-preview" viewBox="0 0 120 24" width="120" height="24" aria-hidden="true">
+                              <line class="flow-line" x1="6" y1="12" x2="104" y2="12"></line>
+                              <path class="flow-arrow" d="M104 6 L116 12 L104 18 Z"></path>
+                            </svg>
+                            <kendo-dropdownlist
+                              class="connection-direction"
+                              [attr.data-connection-direction]="connection.id"
+                              [attr.aria-label]="'Direction of ' + connection.label + ' from'"
+                              [data]="directionOptionsFor(connection)"
+                              textField="label"
+                              valueField="value"
+                              [valuePrimitive]="true"
+                              [value]="connectionDirectionOf(connection.id)"
+                              (valueChange)="onConnectionDirectionChange(connection.id, $event)">
+                            </kendo-dropdownlist>
+                            <span class="connection-source field-hint">{{ connectionSourceText(connection) }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
                 }
               </div>
             </ng-template>
           </kendo-tabstrip-tab>
-
           <!-- Tab 4: Display Options -->
           <kendo-tabstrip-tab [title]="'Display'">
             <ng-template kendoTabContent>
@@ -424,6 +395,14 @@ export interface ProcessConfigResult extends WidgetConfigResult {
           </kendo-tabstrip-tab>
         </kendo-tabstrip>
       </div>
+
+      @if (saveIssues.length > 0) {
+        <div class="save-issues" role="alert" data-save-issues>
+          @for (issue of saveIssues; track issue) {
+            <p>{{ issue }}</p>
+          }
+        </div>
+      }
 
       <div class="action-bar mm-dialog-actions">
         <button kendoButton fillMode="flat" (click)="onCancel()">Cancel</button>
@@ -514,11 +493,6 @@ export interface ProcessConfigResult extends WidgetConfigResult {
 
     .form-row:last-child {
       margin-bottom: 0;
-    }
-
-    .mode-toggle {
-      display: flex;
-      gap: 8px;
     }
 
     .checkbox-field {
@@ -612,7 +586,7 @@ export interface ProcessConfigResult extends WidgetConfigResult {
 
     .mapping-header {
       display: grid;
-      grid-template-columns: minmax(80px, 1fr) 55px 85px minmax(80px, 1fr) minmax(90px, 1.2fr);
+      grid-template-columns: minmax(70px, 1fr) 55px minmax(90px, 0.9fr) minmax(130px, 1.2fr) minmax(100px, 0.9fr) minmax(80px, 1fr);
       gap: 6px;
       padding: 6px 10px;
       background: var(--kendo-color-surface-alt, #f8f9fa);
@@ -624,7 +598,7 @@ export interface ProcessConfigResult extends WidgetConfigResult {
 
     .mapping-row {
       display: grid;
-      grid-template-columns: minmax(80px, 1fr) 55px 85px minmax(80px, 1fr) minmax(90px, 1.2fr);
+      grid-template-columns: minmax(70px, 1fr) 55px minmax(90px, 0.9fr) minmax(130px, 1.2fr) minmax(100px, 0.9fr) minmax(80px, 1fr);
       gap: 6px;
       padding: 6px 10px;
       background: var(--kendo-color-surface, #ffffff);
@@ -666,6 +640,57 @@ export interface ProcessConfigResult extends WidgetConfigResult {
       font-size: 0.75rem;
     }
 
+    /* Narrow dialog (600 px): two lines per mapping row. */
+    .tab-content { container-type: inline-size; }
+    @container (max-width: 560px) {
+      .mapping-header { display: none; }
+      /* Two equal columns (never the 55 px type column for an input): the
+         property name and its type on the first line, then Binding | Aggregate
+         and Field | Expression, each at least ~200 px wide. */
+      .mapping-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mapping-row .col-property { grid-column: 1; }
+      .mapping-row .col-type { grid-column: 2; justify-self: end; min-width: 55px; }
+      .mapping-row .col-binding { grid-column: 1; }
+      .mapping-row .col-aggregate { grid-column: 2; }
+      .mapping-row .col-path { grid-column: 1; }
+      .mapping-row .col-expression { grid-column: 2; }
+    }
+
+    .connections-section { margin-top: 20px; }
+    .section-title { margin: 0 0 6px; font-size: 0.9rem; font-weight: 600; }
+    .connection-list { display: flex; flex-direction: column; gap: 6px; }
+    .connection-row {
+      display: grid;
+      grid-template-columns: minmax(80px, 1fr) 120px minmax(160px, 1.4fr);
+      gap: 4px 10px;
+      align-items: center;
+      padding: 6px 10px;
+      border: 1px solid var(--kendo-color-border, #dee2e6);
+      border-radius: 4px;
+    }
+    .connection-name { font-weight: 500; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .connection-source { grid-column: 1 / -1; }
+    .connection-preview .flow-line {
+      stroke: var(--kendo-color-primary, #0d6efd);
+      stroke-width: 3;
+      stroke-dasharray: 8 5;
+      stroke-linecap: round;
+    }
+    .connection-preview .flow-arrow { fill: var(--kendo-color-primary, #0d6efd); }
+    @container (max-width: 560px) {
+      .connection-row { grid-template-columns: 1fr; }
+    }
+
+    .save-issues {
+      margin: 0 16px;
+      padding: 8px 10px;
+      border: 1px solid var(--kendo-color-error, #dc3545);
+      border-radius: 4px;
+      color: var(--kendo-color-error, #dc3545);
+      font-size: 0.8rem;
+    }
+    .save-issues p { margin: 0; }
+
     .loading-hint {
       font-style: italic;
       color: var(--kendo-color-subtle, #6c757d);
@@ -690,9 +715,7 @@ export interface ProcessConfigResult extends WidgetConfigResult {
 })
 export class ProcessConfigDialogComponent implements OnInit {
   private readonly processDataService = inject(ProcessDataService);
-  private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly getSystemPersistentQueriesGQL = inject(GetSystemPersistentQueriesDtoGQL);
-  private readonly attributeSelectorService = inject(AttributeSelectorService);
   private readonly getCkTypeAvailableQueryColumnsGQL = inject(GetCkTypeAvailableQueryColumnsDtoGQL);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
@@ -705,7 +728,7 @@ export class ProcessConfigDialogComponent implements OnInit {
   @Input() initialShowToolbar?: boolean;
   @Input() initialInitialZoom?: number;
 
-  // Initial values for editing - Data Binding
+  // Initial values for editing - Data Binding (legacy single binding)
   @Input() initialDataBindingMode?: ProcessDataBindingMode;
   @Input() initialBindingCkTypeId?: string;
   @Input() initialBindingRtId?: string;
@@ -716,49 +739,41 @@ export class ProcessConfigDialogComponent implements OnInit {
   @Input() initialBindingEntitySelectorId?: string;
   @Input() initialBindingFilters?: WidgetFilterConfig[];
   @Input() initialPropertyMappings?: DiagramPropertyMapping[];
+  /** Named bindings (AB#8023); win over the legacy fields when non-empty. */
+  @Input() initialBindings?: ProcessWidgetBinding[];
+  /** Connection direction overrides (AB#8025). */
+  @Input() initialConnectionDirections?: ProcessConnectionDirection[];
 
   // State - Diagram
   isLoadingDiagrams = false;
   storedDiagrams: ProcessDiagramSummary[] = [];
   selectedDiagram: ProcessDiagramSummary | null = null;
+  /** Full config of the selected diagram (properties, connections). */
+  diagramConfig: ProcessDiagramConfig | null = null;
+  /** Validation hint naming diagram elements that are invalid and skipped when rendering (AB#8151). */
+  diagramIssueHint = '';
 
-  // State - Data Binding
-  dataBindingMode: ProcessDataBindingMode = 'none';
-
-  // State - Runtime Entity Binding
-  selectedCkType: CkTypeSelectorItem | null = null;
-  selectedEntity: RuntimeEntityItem | null = null;
-  entityDataSource: RuntimeEntitySelectDataSource | undefined;
-  entityDialogDataSource: RuntimeEntityDialogDataSource | undefined;
-
-  // State - Persistent Query Binding
-  persistentQueries: PersistentQueryItem[] = [];
-  selectedPersistentQuery: PersistentQueryItem | null = null;
-
-  // Stream-data binding state (only relevant when the picked query is a stream-data query)
-  bindingIgnoreTimeFilter = false;
-  bindingEntitySelectorId?: string;
-  entitySelectors: EntitySelectorConfig[] = [];
-
-  /** Family of the picked persistent query, derived from its own CK type. */
-  get selectedQueryFamily(): QueryFamily | undefined {
-    return queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? undefined;
-  }
+  // State - Bindings (AB#8025)
+  drafts: ProcessBindingDraft[] = [];
+  persistentQueries: { rtId: string; name: string; description?: string | null; ckTypeId?: string | null; queryCkTypeId?: string | null }[] = [];
   isLoadingQueries = false;
-
-  // State - Filters
-  filters: FieldFilterItem[] = [];
-  filterAttributes: AttributeItem[] = [];
+  entitySelectors: EntitySelectorConfig[] = [];
   filterVariables: FilterVariable[] = [];
+  private uidSeed = 0;
+  /** Shared uid source for the cards (also used by the binding cards component). */
+  readonly nextUid = (): number => ++this.uidSeed;
 
-  // State - Attributes loading
-  private readonly _isLoadingAttributes = signal(false);
-  readonly isLoadingAttributes = this._isLoadingAttributes.asReadonly;
-
-  // State - Diagram exposed properties and mappings
+  // State - Mappings
   diagramExposedProperties: TransformProperty[] = [];
   propertyMappings: DiagramPropertyMapping[] = [];
   isLoadingDiagramConfig = false;
+  /** Attribute lists per CK type (Field column of runtime-entity bindings). */
+  private readonly attributesByCkType = new Map<string, AttributeItem[]>();
+  private readonly attributesLoading = new Set<string>();
+
+  // State - Connections
+  connections: ProcessDiagramConnection[] = [];
+  private connectionDirections = new Map<string, string>();
 
   // Zoom level options
   zoomLevels = [
@@ -771,11 +786,7 @@ export class ProcessConfigDialogComponent implements OnInit {
     { value: 2, label: '200%' }
   ];
 
-  // Source type options for property mappings
-  sourceTypeOptions: { value: 'attribute' | 'column'; label: string }[] = [
-    { value: 'attribute', label: 'Attribute' },
-    { value: 'column', label: 'Column' }
-  ];
+  get aggregateOptions(): typeof PROCESS_AGGREGATE_OPTIONS { return PROCESS_AGGREGATE_OPTIONS; }
 
   // Form state
   form = {
@@ -786,22 +797,13 @@ export class ProcessConfigDialogComponent implements OnInit {
     initialZoom: 1
   };
 
+  /** Messages that block Save (names, selectors not on the board, incomplete bindings). */
+  get saveIssues(): string[] {
+    return bindingDraftIssues(this.drafts, this.entitySelectors.map(s => s.id));
+  }
+
   get isValid(): boolean {
-    // Diagram is always required
-    if (!this.selectedDiagram) {
-      return false;
-    }
-
-    // Validate data binding based on mode
-    if (this.dataBindingMode === 'runtimeEntity') {
-      return !!this.selectedCkType && !!this.selectedEntity;
-    }
-
-    if (this.dataBindingMode === 'persistentQuery') {
-      return !!this.selectedPersistentQuery;
-    }
-
-    return true;
+    return !!this.selectedDiagram && this.saveIssues.length === 0;
   }
 
   async ngOnInit(): Promise<void> {
@@ -812,58 +814,50 @@ export class ProcessConfigDialogComponent implements OnInit {
     this.form.showToolbar = this.initialShowToolbar ?? false;
     this.form.initialZoom = this.initialInitialZoom ?? 1;
 
-    // Initialize data binding mode
-    this.dataBindingMode = this.initialDataBindingMode ?? 'none';
-
-    // Initialize stream-data binding state + available entity selectors (for scope picker)
-    this.bindingIgnoreTimeFilter = this.initialBindingIgnoreTimeFilter ?? false;
-    this.bindingEntitySelectorId = this.initialBindingEntitySelectorId;
     this.entitySelectors = this.stateService.getEntitySelectors();
-
-    // Initialize filter variables from MeshBoard
     this.initFilterVariables();
 
-    // Load data in parallel
-    const loadPromises: Promise<void>[] = [
-      this.loadStoredDiagrams(),
-      this.loadPersistentQueries()
-    ];
-
-    await Promise.all(loadPromises);
-
-    // Initialize property mappings from initial values
-    if (this.initialPropertyMappings && this.initialPropertyMappings.length > 0) {
-      this.propertyMappings = [...this.initialPropertyMappings];
+    // One card per binding: the named bindings, else the implicit legacy one ("Default").
+    this.drafts = draftsFromBindings(this.initialBindingList(), this.nextUid);
+    this.propertyMappings = [...(this.initialPropertyMappings ?? [])];
+    for (const d of this.initialConnectionDirections ?? []) {
+      this.connectionDirections.set(d.connectionId, d.propertyId);
     }
 
-    // Pre-select initial diagram and load its exposed properties
-    if (this.initialProcessDiagramRtId) {
-      this.selectedDiagram = this.storedDiagrams.find(
-        d => d.rtId === this.initialProcessDiagramRtId
-      ) ?? null;
+    await Promise.all([this.loadStoredDiagrams(), this.loadPersistentQueries()]);
 
-      // Load the diagram's exposed properties
-      if (this.selectedDiagram) {
-        await this.loadDiagramExposedProperties(this.selectedDiagram.rtId);
+    // Fill the queried CK type of query cards (filters, labels) from the list.
+    for (const draft of this.drafts) {
+      if (draft.mode === 'persistentQuery' && draft.queryRtId) {
+        draft.queryCkTypeId ??= this.persistentQueries.find(q => q.rtId === draft.queryRtId)?.queryCkTypeId ?? undefined;
       }
     }
+    this.loadMissingAttributes();
 
-    // Pre-select initial data binding values
-    if (this.initialDataBindingMode === 'runtimeEntity' && this.initialBindingCkTypeId) {
-      await this.initRuntimeEntityBinding();
-    } else if (this.initialDataBindingMode === 'persistentQuery' && this.initialBindingQueryRtId) {
-      await this.initPersistentQueryBinding();
+    if (this.initialProcessDiagramRtId) {
+      this.selectedDiagram = this.storedDiagrams.find(d => d.rtId === this.initialProcessDiagramRtId) ?? null;
+      if (this.selectedDiagram) {
+        await this.loadDiagramConfig(this.selectedDiagram.rtId);
+      }
     }
+  }
 
-    // Initialize filters
-    if (this.initialBindingFilters && this.initialBindingFilters.length > 0) {
-      this.filters = this.initialBindingFilters.map((f, index) => ({
-        id: index + 1,
-        attributePath: f.attributePath,
-        operator: f.operator as FieldFilterOperatorsDto,
-        comparisonValue: f.comparisonValue
-      }));
+  private initialBindingList(): ProcessWidgetBinding[] {
+    if (this.initialBindings && this.initialBindings.length > 0) {
+      return this.initialBindings;
     }
+    const legacy = legacyProcessBinding({
+      dataBindingMode: this.initialDataBindingMode,
+      bindingCkTypeId: this.initialBindingCkTypeId,
+      bindingRtId: this.initialBindingRtId,
+      bindingQueryRtId: this.initialBindingQueryRtId,
+      bindingQueryName: this.initialBindingQueryName,
+      bindingQueryFamily: this.initialBindingQueryFamily,
+      bindingIgnoreTimeFilter: this.initialBindingIgnoreTimeFilter,
+      bindingEntitySelectorId: this.initialBindingEntitySelectorId,
+      bindingFilters: this.initialBindingFilters
+    } as ProcessWidgetConfig);
+    return legacy ? [legacy] : [];
   }
 
   // ===========================================================================
@@ -886,21 +880,34 @@ export class ProcessConfigDialogComponent implements OnInit {
   async onDiagramSelected(diagram: ProcessDiagramSummary | null): Promise<void> {
     this.selectedDiagram = diagram;
     this.diagramExposedProperties = [];
+    this.diagramConfig = null;
+    this.diagramIssueHint = '';
+    this.connections = [];
+    // Connection ids belong to the previous diagram.
+    this.connectionDirections.clear();
 
     if (!diagram) {
       return;
     }
 
-    await this.loadDiagramExposedProperties(diagram.rtId);
+    await this.loadDiagramConfig(diagram.rtId);
   }
 
-  private async loadDiagramExposedProperties(diagramRtId: string): Promise<void> {
+  private async loadDiagramConfig(diagramRtId: string): Promise<void> {
     this.isLoadingDiagramConfig = true;
     try {
-      const fullDiagram = await this.processDataService.loadDiagram(diagramRtId);
-      if (fullDiagram?.transformProperties) {
-        this.diagramExposedProperties = fullDiagram.transformProperties;
+      const loaded = await this.processDataService.loadDiagram(diagramRtId);
+      // A malformed element must not leave the other tabs empty (AB#8151): the exposed
+      // properties and connections come from the valid part, the problems become a hint.
+      const result = loaded ? sanitizeProcessDiagram(loaded) : null;
+      const fullDiagram = result?.diagram;
+      this.diagramIssueHint = result ? describeProcessDiagramIssues(result.issues) : '';
+      if (this.diagramIssueHint) {
+        console.warn(`[ProcessConfigDialog] ${this.diagramIssueHint}`);
       }
+      this.diagramConfig = fullDiagram ?? null;
+      this.diagramExposedProperties = fullDiagram?.transformProperties ?? [];
+      this.connections = findDiagramConnections(fullDiagram);
     } catch (error) {
       console.error('Error loading diagram config:', error);
     } finally {
@@ -909,212 +916,24 @@ export class ProcessConfigDialogComponent implements OnInit {
   }
 
   // ===========================================================================
-  // Property Mappings
+  // Bindings (cards)
   // ===========================================================================
 
-  getMappingSourceType(propertyId: string): 'attribute' | 'column' {
-    const mapping = this.propertyMappings.find(m => m.propertyId === propertyId);
-    return mapping?.sourceType ?? 'attribute';
+  onDraftsChange(): void {
+    this.drafts = [...this.drafts];
+    this.loadMissingAttributes();
   }
 
-  getMappingSourcePath(propertyId: string): string {
-    const mapping = this.propertyMappings.find(m => m.propertyId === propertyId);
-    return mapping?.sourcePath ?? '';
+  onBindingRenamed(rename: ProcessBindingRename): void {
+    this.propertyMappings = renameBindingInMappings(this.propertyMappings, rename.oldName, rename.newName);
   }
 
-  getMappingExpression(propertyId: string): string {
-    const mapping = this.propertyMappings.find(m => m.propertyId === propertyId);
-    return mapping?.expression ?? '';
-  }
-
-  onMappingSourceTypeChange(propertyId: string, sourceType: 'attribute' | 'column'): void {
-    const existingIndex = this.propertyMappings.findIndex(m => m.propertyId === propertyId);
-    if (existingIndex >= 0) {
-      // Update existing mapping
-      this.propertyMappings = [
-        ...this.propertyMappings.slice(0, existingIndex),
-        { ...this.propertyMappings[existingIndex], sourceType, sourcePath: '' },
-        ...this.propertyMappings.slice(existingIndex + 1)
-      ];
-    } else {
-      // Create new mapping
-      this.propertyMappings = [
-        ...this.propertyMappings,
-        { propertyId, sourceType, sourcePath: '' }
-      ];
-    }
-  }
-
-  onMappingSourcePathChange(propertyId: string, sourcePath: string): void {
-    const existingIndex = this.propertyMappings.findIndex(m => m.propertyId === propertyId);
-    if (existingIndex >= 0) {
-      // Update existing mapping
-      this.propertyMappings = [
-        ...this.propertyMappings.slice(0, existingIndex),
-        { ...this.propertyMappings[existingIndex], sourcePath },
-        ...this.propertyMappings.slice(existingIndex + 1)
-      ];
-    } else {
-      // Create new mapping with default source type
-      this.propertyMappings = [
-        ...this.propertyMappings,
-        { propertyId, sourceType: 'attribute', sourcePath }
-      ];
-    }
-  }
-
-  onMappingExpressionChange(propertyId: string, expression: string): void {
-    const existingIndex = this.propertyMappings.findIndex(m => m.propertyId === propertyId);
-    if (existingIndex >= 0) {
-      // Update existing mapping
-      this.propertyMappings = [
-        ...this.propertyMappings.slice(0, existingIndex),
-        { ...this.propertyMappings[existingIndex], expression: expression || undefined },
-        ...this.propertyMappings.slice(existingIndex + 1)
-      ];
-    } else {
-      // Create new mapping with defaults
-      this.propertyMappings = [
-        ...this.propertyMappings,
-        { propertyId, sourceType: 'attribute', sourcePath: '', expression: expression || undefined }
-      ];
-    }
-  }
-
-  // ===========================================================================
-  // Data Binding Mode
-  // ===========================================================================
-
-  onDataBindingModeChange(mode: ProcessDataBindingMode): void {
-    this.dataBindingMode = mode;
-
-    // Reset selections when changing mode
-    if (mode !== 'runtimeEntity') {
-      this.selectedCkType = null;
-      this.selectedEntity = null;
-      this.entityDataSource = undefined;
-      this.entityDialogDataSource = undefined;
-    }
-
-    if (mode !== 'persistentQuery') {
-      this.selectedPersistentQuery = null;
-    }
-
-    // Reset filters when changing mode
-    this.filters = [];
-    this.filterAttributes = [];
-  }
-
-  // ===========================================================================
-  // Runtime Entity Binding
-  // ===========================================================================
-
-  private async initRuntimeEntityBinding(): Promise<void> {
-    // Create a mock CkTypeSelectorItem for initial value
-    // The full CkTypeSelectorItem has more properties, but we only need rtCkTypeId for our use
-    this.selectedCkType = {
-      rtCkTypeId: this.initialBindingCkTypeId!,
-      displayName: this.initialBindingCkTypeId!.split('/').pop() ?? this.initialBindingCkTypeId!,
-      fullName: this.initialBindingCkTypeId!,
-      isAbstract: false,
-      isFinal: false
-    } as CkTypeSelectorItem;
-
-    // Set up data sources
-    this.entityDataSource = new RuntimeEntitySelectDataSource(
-      this.getEntitiesByCkTypeGQL,
-      this.initialBindingCkTypeId!
-    );
-    this.entityDialogDataSource = new RuntimeEntityDialogDataSource(
-      this.getEntitiesByCkTypeGQL,
-      this.initialBindingCkTypeId!
-    );
-
-    // Load attributes for filters
-    await this.loadAttributesForCkType(this.initialBindingCkTypeId!);
-
-    // Pre-select entity if provided
-    if (this.initialBindingRtId) {
-      // Placeholder item labelled by its rtId - the display name arrives when the combobox loads
-      this.selectedEntity = {
-        rtId: this.initialBindingRtId,
-        ckTypeId: this.initialBindingCkTypeId!,
-        rtDisplayName: this.initialBindingRtId,
-        displayName: this.initialBindingRtId
-      };
-    }
-  }
-
-  onCkTypeSelected(ckType: CkTypeSelectorItem): void {
-    this.selectedCkType = ckType;
-    this.selectedEntity = null;
-
-    // Create data sources for entity selection
-    this.entityDataSource = new RuntimeEntitySelectDataSource(
-      this.getEntitiesByCkTypeGQL,
-      ckType.rtCkTypeId
-    );
-    this.entityDialogDataSource = new RuntimeEntityDialogDataSource(
-      this.getEntitiesByCkTypeGQL,
-      ckType.rtCkTypeId
-    );
-
-    // Load attributes for filters
-    this.loadAttributesForCkType(ckType.rtCkTypeId);
-  }
-
-  onCkTypeCleared(): void {
-    this.selectedCkType = null;
-    this.selectedEntity = null;
-    this.entityDataSource = undefined;
-    this.entityDialogDataSource = undefined;
-    this.filterAttributes = [];
-  }
-
-  onEntitySelected(entity: RuntimeEntityItem): void {
-    this.selectedEntity = entity;
-  }
-
-  onEntityCleared(): void {
-    this.selectedEntity = null;
-  }
-
-  // ===========================================================================
-  // Persistent Query Binding
-  // ===========================================================================
-
-  private async initPersistentQueryBinding(): Promise<void> {
-    // Pre-select query
-    this.selectedPersistentQuery = this.persistentQueries.find(
-      q => q.rtId === this.initialBindingQueryRtId
-    ) ?? null;
-
-    // If query has associated CK type, load attributes
-    if (this.selectedPersistentQuery?.queryCkTypeId) {
-      await this.loadAttributesForCkType(this.selectedPersistentQuery.queryCkTypeId);
-    }
+  onBindingDeleted(name: string): void {
+    this.propertyMappings = clearMappingsOfBinding(this.propertyMappings, name);
   }
 
   async onQueryFilterChange(filter: string): Promise<void> {
     await this.loadPersistentQueries(filter);
-  }
-
-  onQuerySelected(query: PersistentQueryItem | null): void {
-    this.selectedPersistentQuery = query;
-
-    // Reset stream-data-only binding state when the picked query is not a
-    // stream-data query (the toggle/scope picker are hidden in that case).
-    if (this.selectedQueryFamily !== 'streamData') {
-      this.bindingIgnoreTimeFilter = false;
-      this.bindingEntitySelectorId = undefined;
-    }
-
-    // Load attributes if query has associated CK type
-    if (query?.queryCkTypeId) {
-      this.loadAttributesForCkType(query.queryCkTypeId);
-    } else {
-      this.filterAttributes = [];
-    }
   }
 
   private async loadPersistentQueries(searchText?: string): Promise<void> {
@@ -1142,45 +961,211 @@ export class ProcessConfigDialogComponent implements OnInit {
     }
   }
 
-  // ===========================================================================
-  // Filters
-  // ===========================================================================
-
   private initFilterVariables(): void {
-    const meshBoardVariables = this.stateService.getVariables();
-    this.filterVariables = meshBoardVariables.map(v => ({
+    this.filterVariables = this.stateService.getVariables().map(v => ({
       name: v.name,
       displayName: v.name,
       value: v.value
     }));
   }
 
+  /** Loads the attribute list of every runtime-entity binding's CK type once. */
+  private loadMissingAttributes(): void {
+    for (const draft of this.drafts) {
+      const ckTypeId = draft.mode === 'runtimeEntity' ? draft.ckTypeId : undefined;
+      if (ckTypeId && !this.attributesByCkType.has(ckTypeId) && !this.attributesLoading.has(ckTypeId)) {
+        void this.loadAttributesForCkType(ckTypeId);
+      }
+    }
+  }
+
   private async loadAttributesForCkType(ckTypeId: string): Promise<void> {
-    this._isLoadingAttributes.set(true);
+    this.attributesLoading.add(ckTypeId);
     try {
       const result = await firstValueFrom(
         this.getCkTypeAvailableQueryColumnsGQL.fetch({
           variables: { rtCkId: ckTypeId, first: 1000, includeNavigationProperties: true }
         })
       );
-
       const columns = result.data?.constructionKit?.types?.items?.[0]?.availableQueryColumns?.items ?? [];
-      this.filterAttributes = columns
+      this.attributesByCkType.set(ckTypeId, columns
         .filter((attr): attr is NonNullable<typeof attr> => attr !== null)
         .map(attr => ({
           attributePath: attr.attributePath ?? '',
           attributeValueType: attr.attributeValueType ?? 'String'
-        }));
+        })));
     } catch (error) {
       console.error('Error loading attributes:', error);
-      this.filterAttributes = [];
+      this.attributesByCkType.set(ckTypeId, []);
     } finally {
-      this._isLoadingAttributes.set(false);
+      this.attributesLoading.delete(ckTypeId);
     }
   }
 
-  onFiltersChange(filters: FieldFilterItem[]): void {
-    this.filters = filters;
+  // ===========================================================================
+  // Property Mappings
+  // ===========================================================================
+
+  private mappingOf(propertyId: string): DiagramPropertyMapping | undefined {
+    return this.propertyMappings.find(m => m.propertyId === propertyId);
+  }
+
+  private draftNamed(name: string): ProcessBindingDraft | undefined {
+    return this.drafts.find(d => d.name.trim() === name);
+  }
+
+  /** Binding a row reads from: its mapping's binding, else the first card. */
+  mappingBindingOf(propertyId: string): string | undefined {
+    const mapping = this.mappingOf(propertyId);
+    if (mapping) {
+      return mappingBindingName(mapping);
+    }
+    return this.drafts[0]?.name.trim() || undefined;
+  }
+
+  bindingModeOf(propertyId: string): ProcessBindingSource | undefined {
+    const name = this.mappingBindingOf(propertyId);
+    return name ? this.draftNamed(name)?.mode : undefined;
+  }
+
+  /** Binding names for the row's dropdown; an unknown stored name stays visible. */
+  bindingOptionsFor(propertyId: string): { value: string; label: string }[] {
+    const names = [...new Set(this.drafts.map(d => d.name.trim()).filter(n => !!n))];
+    const options = names.map(n => ({ value: n, label: bindingDisplayName(n) }));
+    const current = this.mappingOf(propertyId) ? this.mappingBindingOf(propertyId) : undefined;
+    if (current && !names.includes(current)) {
+      options.push({ value: current, label: `${bindingDisplayName(current)} (unknown binding)` });
+    }
+    return options;
+  }
+
+  /** Attribute list for the Field column of a runtime-entity binding, when loaded. */
+  fieldAttributesFor(propertyId: string): AttributeItem[] | undefined {
+    const name = this.mappingBindingOf(propertyId);
+    const draft = name ? this.draftNamed(name) : undefined;
+    if (draft?.mode !== 'runtimeEntity' || !draft.ckTypeId) {
+      return undefined;
+    }
+    const attributes = this.attributesByCkType.get(draft.ckTypeId);
+    return attributes && attributes.length > 0 ? attributes : undefined;
+  }
+
+  isAggregateFixedFor(prop: TransformProperty): boolean {
+    return isAggregateFixed(prop.type, this.bindingModeOf(prop.id));
+  }
+
+  aggregateFixedHint(prop: TransformProperty): string {
+    return prop.type !== 'number'
+      ? 'Only number properties can be aggregated.'
+      : 'A runtime-entity binding loads one entity; use a persistent query to aggregate.';
+  }
+
+  mappingAggregateOf(prop: TransformProperty): ProcessValueAggregate {
+    if (this.isAggregateFixedFor(prop)) {
+      return 'first';
+    }
+    return this.mappingOf(prop.id)?.aggregate ?? 'first';
+  }
+
+  getMappingSourcePath(propertyId: string): string {
+    return this.mappingOf(propertyId)?.sourcePath ?? '';
+  }
+
+  getMappingExpression(propertyId: string): string {
+    return this.mappingOf(propertyId)?.expression ?? '';
+  }
+
+  /** Replaces (or creates) the mapping of a property. */
+  private updateMapping(propertyId: string, change: (mapping: DiagramPropertyMapping) => DiagramPropertyMapping): void {
+    const index = this.propertyMappings.findIndex(m => m.propertyId === propertyId);
+    if (index >= 0) {
+      this.propertyMappings = [
+        ...this.propertyMappings.slice(0, index),
+        change(this.propertyMappings[index]),
+        ...this.propertyMappings.slice(index + 1)
+      ];
+      return;
+    }
+    const bindingName = this.mappingBindingOf(propertyId) ?? DEFAULT_PROCESS_BINDING_NAME;
+    const mode = this.draftNamed(bindingName)?.mode ?? 'persistentQuery';
+    const created = withBindingName({ propertyId, sourceType: sourceTypeForMode(mode), sourcePath: '' }, bindingName);
+    this.propertyMappings = [...this.propertyMappings, change(created)];
+  }
+
+  onMappingBindingChange(propertyId: string, bindingName: string): void {
+    const mode = this.draftNamed(bindingName)?.mode;
+    this.updateMapping(propertyId, m => {
+      let next = withBindingName(m, bindingName);
+      if (mode) {
+        next = { ...next, sourceType: sourceTypeForMode(mode) };
+      }
+      if (mode === 'runtimeEntity') {
+        next = withAggregate(next, 'first');
+      }
+      return next;
+    });
+  }
+
+  onMappingSourcePathChange(propertyId: string, sourcePath: string | null | undefined): void {
+    this.updateMapping(propertyId, m => ({ ...m, sourcePath: sourcePath ?? '' }));
+  }
+
+  onMappingAggregateChange(propertyId: string, aggregate: ProcessValueAggregate): void {
+    this.updateMapping(propertyId, m => withAggregate(m, aggregate));
+  }
+
+  onMappingExpressionChange(propertyId: string, expression: string): void {
+    this.updateMapping(propertyId, m => ({ ...m, expression: expression || undefined }));
+  }
+
+  // ===========================================================================
+  // Connections
+  // ===========================================================================
+
+  connectionDirectionOf(connectionId: string): string | null {
+    return this.connectionDirections.get(connectionId) ?? null;
+  }
+
+  /** "As in diagram" plus every number property, labelled with the value it is mapped to. */
+  directionOptionsFor(connection: ProcessDiagramConnection): { value: string | null; label: string }[] {
+    const diagramProperty = connection.diagramPropertyId
+      ? this.propertyName(connection.diagramPropertyId)
+      : 'several properties';
+    return [
+      { value: null, label: `As in diagram (${diagramProperty})` },
+      ...this.diagramExposedProperties
+        .filter(p => p.type === 'number')
+        .map(p => ({ value: p.id, label: p.name }))
+    ];
+  }
+
+  onConnectionDirectionChange(connectionId: string, propertyId: string | null | undefined): void {
+    if (propertyId) {
+      this.connectionDirections.set(connectionId, propertyId);
+    } else {
+      this.connectionDirections.delete(connectionId);
+    }
+  }
+
+  /** Which mapped value the line follows: "pvPower ← pv · totalCurrentPower (Sum)". */
+  connectionSourceText(connection: ProcessDiagramConnection): string {
+    const propertyId = this.connectionDirections.get(connection.id) ?? connection.diagramPropertyId;
+    if (!propertyId) {
+      return 'Direction from several properties (as bound in the diagram).';
+    }
+    const mapping = this.mappingOf(propertyId);
+    const name = this.propertyName(propertyId);
+    if (!mapping?.sourcePath) {
+      return `Direction from ${name} — not mapped yet, the line shows no flow.`;
+    }
+    const aggregate = mapping.aggregate && mapping.aggregate !== 'first'
+      ? ` (${PROCESS_AGGREGATE_OPTIONS.find(o => o.value === mapping.aggregate)?.label ?? mapping.aggregate})`
+      : '';
+    return `Direction from ${name} ← ${bindingDisplayName(mappingBindingName(mapping))} · ${mapping.sourcePath}${aggregate}`;
+  }
+
+  private propertyName(propertyId: string): string {
+    return this.diagramExposedProperties.find(p => p.id === propertyId)?.name ?? propertyId;
   }
 
   // ===========================================================================
@@ -1188,6 +1173,9 @@ export class ProcessConfigDialogComponent implements OnInit {
   // ===========================================================================
 
   onSave(): void {
+    if (!this.isValid) {
+      return;
+    }
     const result: ProcessConfigResult = {
       ckTypeId: '',
       rtId: '',
@@ -1197,52 +1185,28 @@ export class ProcessConfigDialogComponent implements OnInit {
       allowPan: this.form.allowPan,
       showToolbar: this.form.showToolbar,
       initialZoom: this.form.initialZoom,
-      dataBindingMode: this.dataBindingMode
+      ...bindingResultFields(this.drafts, this.initialDataBindingMode)
     };
 
-    // Diagram
     if (this.selectedDiagram) {
       result.processDiagramRtId = this.selectedDiagram.rtId;
     }
 
-    // Data binding - Runtime Entity
-    if (this.dataBindingMode === 'runtimeEntity' && this.selectedCkType && this.selectedEntity) {
-      result.bindingCkTypeId = this.selectedCkType.rtCkTypeId;
-      result.bindingRtId = this.selectedEntity.rtId;
-    }
-
-    // Data binding - Persistent Query
-    if (this.dataBindingMode === 'persistentQuery' && this.selectedPersistentQuery) {
-      result.bindingQueryRtId = this.selectedPersistentQuery.rtId;
-      result.bindingQueryName = this.selectedPersistentQuery.name;
-      const family = this.selectedQueryFamily;
-      result.bindingQueryFamily = family;
-      // Stream-data-only overrides — persisted only when they apply.
-      if (family === 'streamData') {
-        if (this.bindingIgnoreTimeFilter) {
-          result.bindingIgnoreTimeFilter = true;
-        }
-        if (this.bindingEntitySelectorId) {
-          result.bindingEntitySelectorId = this.bindingEntitySelectorId;
-        }
+    // Mappings with a field; their source type follows the binding's source.
+    if (this.drafts.length > 0) {
+      const mappings = this.propertyMappings
+        .filter(m => m.sourcePath && m.sourcePath.trim() !== '')
+        .map(m => {
+          const mode = this.draftNamed(mappingBindingName(m))?.mode;
+          return mode && m.sourceType !== sourceTypeForMode(mode) ? { ...m, sourceType: sourceTypeForMode(mode) } : m;
+        });
+      if (mappings.length > 0) {
+        result.propertyMappings = mappings;
       }
     }
 
-    // Filters
-    if (this.filters.length > 0 && this.dataBindingMode !== 'none') {
-      result.bindingFilters = this.filters.map(f => ({
-        attributePath: f.attributePath,
-        operator: f.operator,
-        comparisonValue: f.comparisonValue
-      }));
-    }
-
-    // Property mappings (only include mappings with a sourcePath set)
-    if (this.propertyMappings.length > 0 && this.dataBindingMode !== 'none') {
-      const validMappings = this.propertyMappings.filter(m => m.sourcePath && m.sourcePath.trim() !== '');
-      if (validMappings.length > 0) {
-        result.propertyMappings = validMappings;
-      }
+    if (this.connectionDirections.size > 0) {
+      result.connectionDirections = [...this.connectionDirections].map(([connectionId, propertyId]) => ({ connectionId, propertyId }));
     }
 
     this.windowRef.close(result);

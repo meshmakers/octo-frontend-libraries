@@ -2,7 +2,7 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { firstValueFrom, of, throwError } from 'rxjs';
-import { CkRollupFunctionDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
+import { CkRollupFunctionDto, FieldFilterOperatorsDto, OctoErrorLink, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { QueryExecutorService } from './query-executor.service';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
@@ -274,6 +274,101 @@ describe('QueryExecutorService', () => {
   });
 
   // ==========================================================================
+  // fetchStreamDataColumns — column metadata for config pickers (AB#7921)
+  // ==========================================================================
+
+  describe('fetchStreamDataColumns (AB#7921)', () => {
+    const window = { from: new Date('2026-10-30T00:00:00Z'), to: new Date('2026-10-31T00:00:00Z') };
+    const integralColumn = { attributePath: 'importpower_integral', attributeValueType: 'DOUBLE', aggregationType: 'INTEGRAL' };
+    const withColumns = (columns: unknown[]) => of(makeApolloResult({
+      streamData: {
+        streamDataQuery: {
+          items: [{
+            queryRtId: 'q', associatedCkTypeId: null, columns,
+            rows: { totalCount: 0, pageInfo: { hasNextPage: false, endCursor: null }, items: [] }
+          }]
+        }
+      }
+    }));
+    const argOfCall = (n: number) =>
+      (vi.mocked(streamDataGqlSpy.fetch).mock.calls[n][0] as { variables: Record<string, unknown> }).variables['arg'] as Record<string, unknown> | undefined;
+
+    it('lists the columns of a query that runs with its own window, in one call', async () => {
+      streamDataGqlSpy.fetch.mockReturnValue(withColumns([{ attributePath: 'activepower_sum', attributeValueType: 'DOUBLE', aggregationType: 'SUM' }]) as never);
+
+      const columns = await service.fetchStreamDataColumns('q', window);
+
+      expect(columns.map(c => c.attributePath)).toEqual(['activepower_sum']);
+      expect(streamDataGqlSpy.fetch).toHaveBeenCalledTimes(1);
+      expect(argOfCall(0)).toBeUndefined();
+    });
+
+    it('retries with the given window when the query refuses to run without from/to (Integral)', async () => {
+      streamDataGqlSpy.fetch
+        .mockReturnValueOnce(throwError(() => new Error('Integral over a raw archive requires From and To')) as never)
+        .mockReturnValueOnce(withColumns([integralColumn]) as never);
+
+      const columns = await service.fetchStreamDataColumns('q', window);
+
+      expect(columns).toEqual([integralColumn]);
+      expect(streamDataGqlSpy.fetch).toHaveBeenCalledTimes(2);
+      expect(argOfCall(1)).toMatchObject({ from: window.from, to: window.to });
+    });
+
+    it('retries with the given window when the first call returns no columns', async () => {
+      streamDataGqlSpy.fetch
+        .mockReturnValueOnce(of(makeApolloResult({ streamData: { streamDataQuery: null } })) as never)
+        .mockReturnValueOnce(withColumns([integralColumn]) as never);
+
+      const columns = await service.fetchStreamDataColumns('q', window);
+
+      expect(columns).toEqual([integralColumn]);
+      expect(argOfCall(1)).toMatchObject({ from: window.from, to: window.to });
+    });
+
+    // AB#7985: the window-less probe fails by design for an Integral query; that failure
+    // must not reach the global error link (toast) when the windowed retry succeeds.
+    const contextOfCall = (n: number) =>
+      (vi.mocked(streamDataGqlSpy.fetch).mock.calls[n][0] as { context?: Record<string, unknown> }).context;
+    const isToastSuppressed = (context: Record<string, unknown> | undefined) =>
+      OctoErrorLink.isSilent({ getContext: () => context ?? {} } as never);
+
+    it('sends the window-less probe silently, so its failure raises no error toast when the retry succeeds (AB#7985)', async () => {
+      streamDataGqlSpy.fetch
+        .mockReturnValueOnce(throwError(() => new Error('Integral over a raw archive requires From and To')) as never)
+        .mockReturnValueOnce(withColumns([integralColumn]) as never);
+
+      const columns = await service.fetchStreamDataColumns('q', window);
+
+      expect(columns).toEqual([integralColumn]);
+      expect(isToastSuppressed(contextOfCall(0))).toBe(true);
+    });
+
+    it('lets the error of the windowed retry reach the global error handler (AB#7985)', async () => {
+      streamDataGqlSpy.fetch
+        .mockReturnValueOnce(throwError(() => new Error('probe')) as never)
+        .mockReturnValueOnce(throwError(() => new Error('boom')) as never);
+
+      await expect(service.fetchStreamDataColumns('q', window)).rejects.toThrow('boom');
+      expect(isToastSuppressed(contextOfCall(1))).toBe(false);
+    });
+
+    it('keeps ordinary query executions toasting their errors (AB#7985)', async () => {
+      streamDataGqlSpy.fetch.mockReturnValue(withColumns([]) as never);
+
+      await firstValueFrom(service.executeStreamData('q', { first: 1 }));
+
+      expect(isToastSuppressed(contextOfCall(0))).toBe(false);
+    });
+
+    it('rejects when the windowed retry fails too', async () => {
+      streamDataGqlSpy.fetch.mockReturnValue(throwError(() => new Error('boom')) as never);
+
+      await expect(service.fetchStreamDataColumns('q', window)).rejects.toThrow('boom');
+    });
+  });
+
+  // ==========================================================================
   // execute() — family dispatch
   // ==========================================================================
 
@@ -358,6 +453,79 @@ describe('QueryExecutorService', () => {
 
       expect(runtimeGqlSpy.fetch).toHaveBeenCalledTimes(1);
       expect(streamDataGqlSpy.fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // Entity-selector scope (AB#7725): restricted on the server, both families
+  // ==========================================================================
+
+  describe('scopeRtIds (AB#7725)', () => {
+    const runtimeVariables = (): Record<string, unknown> =>
+      (vi.mocked(runtimeGqlSpy.fetch).mock.lastCall![0] as { variables: Record<string, unknown> }).variables;
+    const streamDataVariables = (): Record<string, unknown> =>
+      (vi.mocked(streamDataGqlSpy.fetch).mock.lastCall![0] as { variables: Record<string, unknown> }).variables;
+    const SITE_FILTER = { attributePath: 'name', operator: FieldFilterOperatorsDto.EqualsDto, comparisonValue: 'North' };
+    const SCOPE_FILTER = { attributePath: 'rtId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: ['dev-1', 'dev-2'] };
+
+    beforeEach(() => {
+      runtimeGqlSpy.fetch.mockReturnValue(of(makeApolloResult({ runtime: { runtimeQuery: { items: [] } } })) as never);
+      streamDataGqlSpy.fetch.mockReturnValue(of(makeApolloResult({ streamData: { streamDataQuery: { items: [] } } })) as never);
+    });
+
+    it('adds `rtId IN (scope)` to a runtime query, AND-combined after the widget filters', async () => {
+      await firstValueFrom(service.execute('runtime', 'q', { fieldFilter: [SITE_FILTER], scopeRtIds: ['dev-1', 'dev-2'] }));
+
+      expect(runtimeVariables()['fieldFilter']).toEqual([SITE_FILTER, SCOPE_FILTER]);
+    });
+
+    it('adds `rtId IN (scope)` to a runtime query without widget filters', async () => {
+      await firstValueFrom(service.executeRuntime('q', { scopeRtIds: ['dev-1', 'dev-2'] }));
+
+      expect(runtimeVariables()['fieldFilter']).toEqual([SCOPE_FILTER]);
+    });
+
+    it('applies the runtime scope after a legacy family lookup (no queryFamily on the config)', async () => {
+      persistentQueriesGqlSpy.fetch.mockReturnValue(of(makeApolloResult({
+        runtime: { systemPersistentQuery: { items: [{ ckTypeId: 'System/GroupingAggregationRtQuery' }] } }
+      })) as never);
+
+      await firstValueFrom(service.execute(undefined, 'q-grouping', { scopeRtIds: ['dev-1', 'dev-2'] }));
+
+      expect(runtimeVariables()['fieldFilter']).toEqual([SCOPE_FILTER]);
+    });
+
+    it('leaves the runtime filters unchanged without a scope (unbound widget)', async () => {
+      await firstValueFrom(service.execute('runtime', 'q', { fieldFilter: [SITE_FILTER] }));
+      expect(runtimeVariables()['fieldFilter']).toEqual([SITE_FILTER]);
+
+      await firstValueFrom(service.execute('runtime', 'q', { scopeRtIds: [] }));
+      expect(runtimeVariables()['fieldFilter']).toBeUndefined();
+    });
+
+    it('does not mutate the caller\'s filter array', async () => {
+      const filters = [SITE_FILTER];
+
+      await firstValueFrom(service.execute('runtime', 'q', { fieldFilter: filters, scopeRtIds: ['dev-1'] }));
+
+      expect(filters).toEqual([SITE_FILTER]);
+    });
+
+    it('sends the scope as `arg.rtIds` to a stream-data query (grouping/aggregation alike)', async () => {
+      await firstValueFrom(service.execute('streamData', 'q', { scopeRtIds: ['dev-1', 'dev-2'] }));
+
+      const vars = streamDataVariables();
+      expect((vars['arg'] as Record<string, unknown>)['rtIds']).toEqual(['dev-1', 'dev-2']);
+      expect(vars['fieldFilter']).toBeUndefined();
+    });
+
+    it('keeps caller-provided `streamDataArgs.rtIds` for stream data', async () => {
+      await firstValueFrom(service.execute('streamData', 'q', {
+        streamDataArgs: { rtIds: ['dev-1'] },
+        scopeRtIds: ['dev-1', 'dev-2']
+      }));
+
+      expect((streamDataVariables()['arg'] as Record<string, unknown>)['rtIds']).toEqual(['dev-1']);
     });
   });
 
@@ -559,6 +727,30 @@ describe('QueryExecutorService', () => {
 
       expect(groups.size).toBe(1);
       expect(groups.get('A')).toEqual(['s1']);
+    });
+
+    it('sends the scope to the server as an rtId IN field filter', async () => {
+      entitiesGqlSpy.fetch.mockReturnValue(of(entities([{ rtId: 'em-7001', group: 'A' }])) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      const groups = await service.fetchEntityGroups('Test/Type', 'category', ['em-7001']);
+
+      const variables = (entitiesGqlSpy.fetch.mock.calls[0][0] as { variables: Record<string, unknown> }).variables;
+      expect(variables['fieldFilters']).toEqual([
+        { attributePath: 'rtId', operator: FieldFilterOperatorsDto.InDto, comparisonValue: ['em-7001'] }
+      ]);
+      expect(groups.get('A')).toEqual(['em-7001']);
+    });
+
+    it('sends no field filter without a scope', async () => {
+      entitiesGqlSpy.fetch.mockReturnValue(of(entities([{ rtId: 's1', group: 'A' }])) as ReturnType<typeof entitiesGqlSpy.fetch>);
+
+      await service.fetchEntityGroups('Test/Type', 'category');
+      await service.fetchEntityGroups('Test/Type', 'category', []);
+
+      for (const call of entitiesGqlSpy.fetch.mock.calls) {
+        const variables = (call[0] as { variables: Record<string, unknown> }).variables;
+        expect(variables['fieldFilters']).toBeUndefined();
+      }
     });
 
     it('warns when the population exceeds the fetched page', async () => {

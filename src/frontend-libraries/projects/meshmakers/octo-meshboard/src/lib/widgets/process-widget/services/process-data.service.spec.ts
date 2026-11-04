@@ -66,7 +66,8 @@ describe('ProcessDataService — stream-data query binding', () => {
 
   beforeEach(() => {
     queryExecutor = {
-      execute: vi.fn().mockName('QueryExecutorService.execute')
+      execute: vi.fn().mockName('QueryExecutorService.execute'),
+      resolveFamily: vi.fn().mockName('QueryExecutorService.resolveFamily').mockResolvedValue('streamData')
     } as unknown as MockedObject<QueryExecutorService>;
     queryExecutor.execute.mockReturnValue(of(sdResult()) as ReturnType<QueryExecutorService['execute']>);
 
@@ -74,7 +75,8 @@ describe('ProcessDataService — stream-data query binding', () => {
       resolveStreamDataTimeArgs: vi.fn().mockName('MeshBoardStateService.resolveStreamDataTimeArgs'),
       resolveStreamDataRtIds: vi.fn().mockName('MeshBoardStateService.resolveStreamDataRtIds'),
       resolveStreamDataScope: vi.fn().mockName('MeshBoardStateService.resolveStreamDataScope').mockReturnValue({ kind: 'unscoped' }),
-      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables')
+      getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
+      isStreamDataBlockedByHostTimeRange: vi.fn().mockName('MeshBoardStateService.isStreamDataBlockedByHostTimeRange').mockReturnValue(false)
     } as unknown as MockedObject<MeshBoardStateService>;
     stateService.resolveStreamDataTimeArgs.mockReturnValue(undefined);
     stateService.resolveStreamDataRtIds.mockReturnValue(undefined);
@@ -157,12 +159,62 @@ describe('ProcessDataService — stream-data query binding', () => {
 
       const result = await service.loadBoundData(config);
 
-      expect(stateService.resolveStreamDataScope).toHaveBeenLastCalledWith('site', 'streamData');
+      expect(stateService.resolveStreamDataScope).toHaveBeenLastCalledWith('site', 'streamData', undefined);
       expect(queryExecutor.execute).not.toHaveBeenCalled();
       expect(result?.type).toBe('query');
       expect(result?.queryResult?.rows).toEqual([]);
       expect(result?.error).toBeUndefined();
     }
+  });
+
+  it('passes the time-filter opt-out to the scope check (AB#7582)', async () => {
+    const config = baseConfig();
+    config.bindingIgnoreTimeFilter = true;
+
+    await service.loadBoundData(config);
+
+    expect(stateService.resolveStreamDataScope).toHaveBeenLastCalledWith(undefined, 'streamData', true);
+  });
+
+  describe('element binding to a persistent query with an invalid host period (AB#7582)', () => {
+    function diagram(): Parameters<ProcessDataService['loadRuntimeData']>[0] {
+      return {
+        elements: [{
+          id: 'e1',
+          dataBinding: { sourceType: 'persistentQuery', sourceConfig: { queryRtId: 'q1' }, attributePath: 'amount.value' }
+        }],
+        connections: []
+      } as unknown as Parameters<ProcessDataService['loadRuntimeData']>[0];
+    }
+
+    it('sends no stream-data query and binds no value', async () => {
+      stateService.isStreamDataBlockedByHostTimeRange.mockReturnValue(true);
+
+      const state = await service.loadRuntimeData(diagram());
+
+      expect(queryExecutor.resolveFamily).toHaveBeenCalledWith('q1');
+      expect(queryExecutor.execute).not.toHaveBeenCalled();
+      expect(state.elements.get('e1')?.value).toBeUndefined();
+      expect(state.elements.get('e1')?.error).toBeUndefined();
+    });
+
+    it('still queries a runtime query', async () => {
+      stateService.isStreamDataBlockedByHostTimeRange.mockReturnValue(true);
+      queryExecutor.resolveFamily.mockResolvedValue('runtime');
+
+      const state = await service.loadRuntimeData(diagram());
+
+      expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
+      expect(state.elements.get('e1')?.value).toBe(42);
+    });
+
+    it('queries as before while the host period is usable', async () => {
+      const state = await service.loadRuntimeData(diagram());
+
+      expect(queryExecutor.resolveFamily).not.toHaveBeenCalled();
+      expect(queryExecutor.execute).toHaveBeenCalledTimes(1);
+      expect(state.elements.get('e1')?.value).toBe(42);
+    });
   });
 
   it('honors the time-filter opt-out', async () => {

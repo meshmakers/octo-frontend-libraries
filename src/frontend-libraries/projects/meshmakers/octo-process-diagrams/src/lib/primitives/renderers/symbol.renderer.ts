@@ -15,6 +15,7 @@ import {
 import { PrimitiveRendererRegistry } from '../primitive-renderer.registry';
 import { RenderContext, RenderResult, DEFAULT_RENDER_CONTEXT } from './primitive-renderer.interface';
 import { ExpressionEvaluatorService } from '../../services/expression-evaluator.service';
+import { applyTextValueToPrimitive, evaluateTextValue, textValueInput } from '../../services/text-value-formatter';
 
 /**
  * Context for rendering a symbol, extends RenderContext with symbol-specific info
@@ -24,6 +25,8 @@ export interface SymbolRenderContext extends RenderContext {
   parameterValues?: Record<string, unknown>;
   /** Transform property value overrides from the symbol instance */
   propertyValues?: Record<string, unknown>;
+  /** Culture code for `text.value` bindings (AB#8022); unset = de-AT */
+  locale?: string | null;
 }
 
 /**
@@ -74,7 +77,7 @@ export class SymbolRenderer {
     const transform = this.buildTransform(instance, definition);
 
     // Evaluate all property bindings once
-    const evaluatedBindings = this.evaluatePropertyBindings(definition, instance.propertyValues);
+    const evaluatedBindings = this.evaluatePropertyBindings(definition, instance.propertyValues, fullContext.locale);
 
     // Extract animation enabled states from bindings
     const animationEnabledStates = this.extractAnimationEnabledStates(evaluatedBindings);
@@ -281,7 +284,8 @@ export class SymbolRenderer {
    */
   private evaluatePropertyBindings(
     definition: SymbolDefinition,
-    propertyValues?: Record<string, unknown>
+    propertyValues?: Record<string, unknown>,
+    locale?: string | null
   ): EvaluatedBinding[] {
     if (!definition.transformProperties || !definition.propertyBindings) {
       return [];
@@ -299,6 +303,18 @@ export class SymbolRenderer {
 
       // Build context with all property values (defaults + overrides)
       const context = this.buildExpressionContext(definition, propertyValues, inputValue);
+
+      if (binding.effectType === 'text.value') {
+        // An override explicitly set to null/undefined means "no value" → "–" (AB#8022)
+        const input = textValueInput(propertyValues, property);
+        evaluatedBindings.push({
+          targetId: binding.targetId,
+          targetType: binding.targetType,
+          effectType: binding.effectType,
+          computedValue: evaluateTextValue(input, binding, { evaluator: this.expressionEvaluator, locale, property, context })
+        });
+        continue;
+      }
 
       // Evaluate the expression
       const result = this.expressionEvaluator.evaluate(binding.expression, context);
@@ -454,6 +470,11 @@ export class SymbolRenderer {
       // Animation control (handled via animationEnabledStates in context)
       case 'animation.enabled':
         // This is handled separately in extractAnimationEnabledStates
+        break;
+
+      // Formatted live value (AB#8022); the text was computed in evaluatePropertyBindings
+      case 'text.value':
+        applyTextValueToPrimitive(primitive, String(value));
         break;
     }
 

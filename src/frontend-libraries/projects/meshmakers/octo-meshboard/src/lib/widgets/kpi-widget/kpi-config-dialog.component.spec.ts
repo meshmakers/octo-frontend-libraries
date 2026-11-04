@@ -14,6 +14,7 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
   let component: KpiConfigDialogComponent;
   let stateService: MeshBoardStateService;
   let windowRef: { close: ReturnType<typeof vi.fn> };
+  let queryExecutor: { fetchStreamDataColumns: ReturnType<typeof vi.fn> };
 
   function kpi(id: string, overrides: Partial<KpiWidgetConfig> = {}): KpiWidgetConfig {
     return {
@@ -50,6 +51,7 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
 
   beforeEach(() => {
     windowRef = { close: vi.fn() };
+    queryExecutor = { fetchStreamDataColumns: vi.fn() };
     TestBed.configureTestingModule({
       imports: [KpiConfigDialogComponent],
       providers: [
@@ -59,7 +61,7 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
         { provide: CkModelService, useValue: {} },
         { provide: CkTypeSelectorService, useValue: {} },
         { provide: AttributeSelectorService, useValue: {} },
-        { provide: QueryExecutorService, useValue: {} },
+        { provide: QueryExecutorService, useValue: queryExecutor },
         { provide: GetEntitiesByCkTypeDtoGQL, useValue: {} },
         { provide: GetRuntimeQueryColumnsDtoGQL, useValue: {} },
         { provide: WindowRef, useValue: windowRef }
@@ -69,12 +71,19 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     stateService = TestBed.inject(MeshBoardStateService);
   });
 
-  it('validates the formula and previews its result', async () => {
+  it('validates the formula', async () => {
     await open([kpi('self')], { initialFormula: '(${a} - ${b}) / 1000' });
 
     expect(component.formulaValidation.valid).toBe(true);
-    expect(component.formulaPreview).toBe('3');
     expect(component.isValid).toBe(true);
+  });
+
+  it('disables Save for a syntax error with the message the formula field shows (AB#7950)', async () => {
+    await open([kpi('self')], { initialFormula: '${a} *' });
+
+    expect(component.formulaValidation.valid).toBe(false);
+    expect(component.formulaValidation.error).toBeTruthy();
+    expect(component.isValid).toBe(false);
   });
 
   it('reports unknown variables', async () => {
@@ -90,7 +99,7 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     await open([kpi('self'), kpi('other')], { initialFormula: '${consumption} * 2' });
 
     expect(component.formulaVariables.map(v => v.name)).toEqual(['a', 'b', 'consumption']);
-    expect(component.formulaPreview).toBe('20');
+    expect(component.formulaValidation.valid).toBe(true);
   });
 
   it('picks up an output published while the dialog is open', async () => {
@@ -100,14 +109,13 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
     stateService.setWidgetVariable('other', 'late', '41');
 
     expect(component.formulaValidation.valid).toBe(true);
-    expect(component.formulaPreview).toBe('42');
   });
 
   it('accepts a declared output that has no value yet, preview stays pending', async () => {
     await open([kpi('self'), kpi('other', { outputVariableName: 'loading' })], { initialFormula: '${loading} * 2' });
 
     expect(component.formulaValidation.valid).toBe(true);
-    expect(component.formulaPreview).toContain('no value yet');
+    expect(component.declaredVariableNames).toContain('loading');
     expect(component.isValid).toBe(true);
   });
 
@@ -232,12 +240,32 @@ describe('KpiConfigDialogComponent — formula and output variable (AB#5364)', (
       });
     }
   });
+  describe('value fields of an Integral query (AB#7921)', () => {
+    const integralQuery = { rtId: 'q-int', name: 'Netzbezug Energie', ckTypeId: 'System/AggregationSdQuery' };
 
-  it('inserts a variable reference', async () => {
-    await open([kpi('self')], { initialFormula: '1 +' });
+    it('lists the _integral column, probing the board window because Integral needs from/to', async () => {
+      const boardWindow = { from: new Date('2026-10-30T00:00:00Z'), to: new Date('2026-10-31T00:00:00Z') };
+      queryExecutor.fetchStreamDataColumns.mockResolvedValue([
+        { attributePath: 'importpower_integral', attributeValueType: 'DOUBLE', aggregationType: 'INTEGRAL' }
+      ]);
+      await open([kpi('self')], { initialDataSourceType: 'persistentQuery' as never });
+      vi.spyOn(stateService, 'resolveStreamDataTimeArgs').mockReturnValue(boardWindow);
 
-    component.insertVariable('a');
+      await component.onQuerySelected(integralQuery);
 
-    expect(component.form.formula).toBe('1 + ${a}');
+      expect(component.queryColumns.map(c => c.attributePath)).toEqual(['importpower_integral']);
+      expect(queryExecutor.fetchStreamDataColumns).toHaveBeenCalledWith('q-int', boardWindow);
+    });
+
+    it('probes the last 24 hours when the board has no time filter', async () => {
+      queryExecutor.fetchStreamDataColumns.mockResolvedValue([]);
+      await open([kpi('self')], { initialDataSourceType: 'persistentQuery' as never });
+      vi.spyOn(stateService, 'resolveStreamDataTimeArgs').mockReturnValue(undefined);
+
+      await component.onQuerySelected(integralQuery);
+
+      const probe = queryExecutor.fetchStreamDataColumns.mock.calls[0][1] as { from: Date; to: Date };
+      expect(probe.to.getTime() - probe.from.getTime()).toBe(24 * 60 * 60 * 1000);
+    });
   });
 });

@@ -50,6 +50,17 @@ changes only when another entity is picked. A search result that arrives after t
 (below `minSearchLength`) is dropped - judged by the text last seen in `filterChange`, because Kendo updates the form control only when a value is committed, never while typing - so a search still pending from before cannot refill the list and
 let `onBlur()` auto-select its single match. Text below `minSearchLength` still goes into the search stream and is filtered out after `distinctUntilChanged`, so text deleted with backspace and typed again is searched again instead of being swallowed as a repeat. Pinned by `entity-select-input.component.spec.ts`.
 
+### EntitySelectInput: `initialDisplayValue` follows the host pick (AB#7916)
+
+`initialDisplayValue` is the display name of the pick the host holds (a pick restored from the URL or
+set by the host, e.g. a MeshBoard dependent selector whose leader changed). The input follows every
+change: an empty value clears the text and the selection, a new name replaces the text and drops an
+entity picked in this input unless the name equals the text already shown (the host confirming a pick
+made here). Host changes emit neither `entitySelected` / `entityCleared` nor the form `onChange`.
+Emptying the input also clears a pick shown by name only (no entity object), emitting `entityCleared`.
+Before AB#7916 empty values and any value after a pick in the input were ignored, so the MeshBoard
+toolbar kept showing a room outside the picked site.
+
 ### Dialog Services Pattern
 
 All complex dialogs use the service pattern — inject the service, call `show*()` method, get back a `DialogRef` or `Promise`:

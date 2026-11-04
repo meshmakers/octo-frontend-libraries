@@ -15,7 +15,7 @@
         @if (config.prefix) {
           <span class="kpi-prefix">{{ config.prefix }}</span>
         }
-        <span class="kpi-value">{{ value() }}</span>
+        <span class="kpi-value" [attr.title]="valueTooltip()">{{ value() }}</span>
         @if (config.suffix) {
           <span class="kpi-suffix">{{ config.suffix }}</span>
         }

@@ -54,13 +54,20 @@ export function sanitizeFieldName(fieldName: string): string {
 }
 
 /**
+ * Trailing aggregation function suffix the engine appends to a wire-form column:
+ * `_count`, `_sum`, `_avg`, `_min`, `_max`, and `_integral` for the stream-data
+ * Integral (energy over the query window, AB#7921).
+ */
+const AGGREGATION_FUNCTION_SUFFIX = /_(?:count|sum|avg|min|max|integral)$/i;
+
+/**
  * Strips a trailing aggregation function suffix from a path so the base path can
  * be compared independently of which aggregation produced it. The engine emits
- * cell paths like `meterreading_count` / `amountvalue_sum` for RT aggregation,
- * grouped aggregation, and stream-data variants.
+ * cell paths like `meterreading_count` / `amountvalue_sum` / `importpower_integral`
+ * for RT aggregation, grouped aggregation, and stream-data variants.
  */
 function stripAggregationFunctionSuffix(path: string): string {
-  return path.replace(/_(?:count|sum|avg|min|max)$/i, '');
+  return path.replace(AGGREGATION_FUNCTION_SUFFIX, '');
 }
 
 /**
@@ -76,11 +83,11 @@ function toCanonicalAttributeKey(s: string): string {
 
 /**
  * Detects whether a path ends with the engine's aggregation function suffix
- * (`_count`, `_sum`, `_avg`, `_min`, `_max`). Used to decide whether the loose
- * back-compat fallback in {@link matchesAttributePath} should fire.
+ * (`_count`, `_sum`, `_avg`, `_min`, `_max`, `_integral`). Used to decide whether the
+ * loose back-compat fallback in {@link matchesAttributePath} should fire.
  */
 function hasAggregationFunctionSuffix(path: string): boolean {
-  return /_(?:count|sum|avg|min|max)$/i.test(path);
+  return AGGREGATION_FUNCTION_SUFFIX.test(path);
 }
 
 /**
@@ -430,12 +437,12 @@ export function processPieChartData(
 /**
  * Applies an optional scale factor to a query value (KPI `valueMultiplier`).
  * Only numeric values are scaled — strings (e.g. enum labels or error
- * placeholders) pass through unchanged, as does everything when no multiplier
- * is configured. Use case: cumulated energy from uniformly sampled power
- * (Σ(kW samples) × sampleIntervalHours → kWh); the factor is window-independent
- * because SUM is linear in the sample count.
+ * placeholders) and `null` (no data) pass through unchanged, as does everything
+ * when no multiplier is configured. Use case: the unit factor of an energy KPI
+ * over a stream-data Integral column (value × hours): 1 for kW → kWh, 0.001 for
+ * W → kWh (AB#7921).
  */
-export function applyValueMultiplier(value: number | string, multiplier: number | undefined): number | string {
+export function applyValueMultiplier<T extends number | string | null>(value: T, multiplier: number | undefined): T | number {
   if (typeof multiplier !== 'number' || typeof value !== 'number') {
     return value;
   }

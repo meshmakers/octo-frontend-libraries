@@ -2,17 +2,18 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { firstValueFrom, of, throwError } from 'rxjs';
-import { MeshBoardDataService } from './meshboard-data.service';
+import { ASSOCIATION_HOP_SOURCE_BATCH, ASSOCIATION_HOP_TARGETS_PER_SOURCE, MeshBoardDataService } from './meshboard-data.service';
 import { MeshBoardStateService } from './meshboard-state.service';
 import { MeshBoardVariableService } from './meshboard-variable.service';
 import { GetDashboardEntityDtoGQL } from '../graphQL/getDashboardEntity';
 import { GetCkModelsWithStateDtoGQL } from '../graphQL/getCkModelsWithState';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
 import { GetAssociationTargetsDtoGQL } from '../graphQL/getAssociationTargets';
+import { GetAssociationTargetRtIdsDtoGQL } from '../graphQL/getAssociationTargetRtIds';
 import { QueryExecutorService, QueryExecutionResult } from './query-executor.service';
 import { Apollo } from 'apollo-angular';
 import { RuntimeEntityDataSource, StaticDataSource, PersistentQueryDataSource, AggregationQuery, ConstructionKitQueryDataSource, RepeaterQueryDataSource, MeshBoardVariable, RuntimeEntityData } from '../models/meshboard.models';
-import { FieldFilterOperatorsDto } from '@meshmakers/octo-services';
+import { FieldFilterOperatorsDto, GraphDirectionDto } from '@meshmakers/octo-services';
 
 describe('MeshBoardDataService', () => {
   let service: MeshBoardDataService;
@@ -68,14 +69,16 @@ describe('MeshBoardDataService', () => {
     queryExecutorSpy = {
       execute: vi.fn().mockName('QueryExecutorService.execute'),
       executeRuntime: vi.fn().mockName('QueryExecutorService.executeRuntime'),
-      executeStreamData: vi.fn().mockName('QueryExecutorService.executeStreamData')
+      executeStreamData: vi.fn().mockName('QueryExecutorService.executeStreamData'),
+      resolveFamily: vi.fn().mockName('QueryExecutorService.resolveFamily').mockResolvedValue('runtime')
     } as unknown as MockedObject<QueryExecutorService>;
     apolloSpy = {
       query: vi.fn().mockName('Apollo.query')
     } as unknown as MockedObject<Apollo>;
     stateServiceSpy = {
       getVariables: vi.fn().mockName('MeshBoardStateService.getVariables'),
-      resolveCurrentTimeRange: vi.fn().mockName('MeshBoardStateService.resolveCurrentTimeRange')
+      resolveCurrentTimeRange: vi.fn().mockName('MeshBoardStateService.resolveCurrentTimeRange'),
+      isStreamDataBlockedByHostTimeRange: vi.fn().mockName('MeshBoardStateService.isStreamDataBlockedByHostTimeRange').mockReturnValue(false)
     } as unknown as MockedObject<MeshBoardStateService>;
     variableServiceSpy = {
       convertToFieldFilterDto: vi.fn().mockName('MeshBoardVariableService.convertToFieldFilterDto')
@@ -377,6 +380,86 @@ describe('MeshBoardDataService', () => {
       await firstValueFrom(service.fetchAssociationTargets('r1', 'Src/Type', 'Tgt/Type', 'Role', 'out', ['name', 'password']));
 
       expect(fetch.mock.lastCall![0]!.variables!.attributeNames).toEqual(['name']);
+    });
+  });
+
+  describe('fetchAssociationTargetRtIds (AB#7723)', () => {
+    /** One batch response: targets per source rtId (totalCount = items unless given). */
+    function response(perSource: Record<string, string[]>, totalCounts: Record<string, number> = {}) {
+      return of({
+        data: {
+          runtime: {
+            runtimeEntities: {
+              items: Object.entries(perSource).map(([rtId, targets]) => ({
+                rtId,
+                associations: {
+                  targets: { totalCount: totalCounts[rtId] ?? targets.length, items: targets.map(t => ({ rtId: t })) }
+                }
+              }))
+            }
+          }
+        }
+      }) as never;
+    }
+
+    it('sends all sources of a hop in one request and returns the targets of all of them', async () => {
+      const gql = TestBed.inject(GetAssociationTargetRtIdsDtoGQL);
+      const fetch = vi.spyOn(gql, 'fetch').mockReturnValue(response({ 'sys-1': ['dev-1', 'dev-2'], 'sys-2': ['dev-2'] }));
+
+      const rtIds = await firstValueFrom(service.fetchAssociationTargetRtIds(['sys-1', 'sys-2'], 'Test/System', 'Test/Device', 'System/ParentChild', 'in'));
+
+      expect(rtIds).toEqual(['dev-1', 'dev-2', 'dev-2']);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(fetch.mock.lastCall![0]!.variables).toEqual({
+        rtIds: ['sys-1', 'sys-2'],
+        ckTypeId: 'Test/System',
+        targetCkTypeId: 'Test/Device',
+        roleId: 'System/ParentChild',
+        direction: GraphDirectionDto.InboundDto,
+        first: 2,
+        targetsFirst: ASSOCIATION_HOP_TARGETS_PER_SOURCE
+      });
+    });
+
+    it('splits large hops into batches of ASSOCIATION_HOP_SOURCE_BATCH sources', async () => {
+      const gql = TestBed.inject(GetAssociationTargetRtIdsDtoGQL);
+      const fetch = vi.spyOn(gql, 'fetch').mockImplementation(((options: { variables: { rtIds: string[] } }) =>
+        response(Object.fromEntries(options.variables.rtIds.map(id => [id, [`t-${id}`]])))) as never);
+      const sources = Array.from({ length: ASSOCIATION_HOP_SOURCE_BATCH * 2 + 1 }, (_, i) => `s-${i}`);
+
+      const rtIds = await firstValueFrom(service.fetchAssociationTargetRtIds(sources, 'Test/System', 'Test/Device', 'System/ParentChild', 'out'));
+
+      expect(fetch).toHaveBeenCalledTimes(3);
+      expect(fetch.mock.calls.map(c => (c[0]!.variables!.rtIds as string[]).length))
+        .toEqual([ASSOCIATION_HOP_SOURCE_BATCH, ASSOCIATION_HOP_SOURCE_BATCH, 1]);
+      expect(fetch.mock.calls[0][0]!.variables!.direction).toBe(GraphDirectionDto.OutboundDto);
+      expect(rtIds).toHaveLength(sources.length);
+    });
+
+    it('sends no request for no sources', async () => {
+      const gql = TestBed.inject(GetAssociationTargetRtIdsDtoGQL);
+      const fetch = vi.spyOn(gql, 'fetch');
+
+      expect(await firstValueFrom(service.fetchAssociationTargetRtIds([], 'Test/System', 'Test/Device', 'System/ParentChild', 'in'))).toEqual([]);
+      expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it('warns when a source has more targets than were read', async () => {
+      const gql = TestBed.inject(GetAssociationTargetRtIdsDtoGQL);
+      vi.spyOn(gql, 'fetch').mockReturnValue(response({ 'sys-1': ['dev-1'] }, { 'sys-1': 5 }));
+      const warn = vi.spyOn(console, 'warn').mockReturnValue(undefined);
+
+      await firstValueFrom(service.fetchAssociationTargetRtIds(['sys-1'], 'Test/System', 'Test/Device', 'System/ParentChild', 'in'));
+
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('propagates a failed request', async () => {
+      const gql = TestBed.inject(GetAssociationTargetRtIdsDtoGQL);
+      vi.spyOn(gql, 'fetch').mockReturnValue(throwError(() => new Error('batch failed')) as never);
+
+      await expect(firstValueFrom(service.fetchAssociationTargetRtIds(['sys-1'], 'Test/System', 'Test/Device', 'System/ParentChild', 'in')))
+        .rejects.toThrow(/^batch failed$/);
     });
   });
 
@@ -936,6 +1019,39 @@ describe('MeshBoardDataService', () => {
         expect(result[0].attributes.get('value')).toBe(100);
         expect(result[1].rtId).toBe('entity-2');
         expect(result[1].attributes.get('name')).toBe('Machine 2');
+      });
+
+      describe('with an invalid host period (AB#7582)', () => {
+        beforeEach(() => {
+          stateServiceSpy.isStreamDataBlockedByHostTimeRange.mockReturnValue(true);
+          queryExecutorSpy.execute.mockReturnValue(of(runtimeResult([
+            { rtId: 'entity-1', ckTypeId: 'TestType', cells: [{ attributePath: 'name', value: 'Machine 1' }] }
+          ], 'TestType')));
+        });
+
+        it('sends no stream-data query and shows no items', async () => {
+          const result = await service.fetchRepeaterData({ type: 'repeaterQuery', queryRtId: 'sd-1', queryFamily: 'streamData' });
+
+          expect(queryExecutorSpy.execute).not.toHaveBeenCalled();
+          expect(result).toEqual([]);
+        });
+
+        it('resolves an unknown family first and skips a stream-data query', async () => {
+          queryExecutorSpy.resolveFamily.mockResolvedValue('streamData');
+
+          const result = await service.fetchRepeaterData({ type: 'repeaterQuery', queryRtId: 'sd-1' });
+
+          expect(queryExecutorSpy.resolveFamily).toHaveBeenCalledWith('sd-1');
+          expect(queryExecutorSpy.execute).not.toHaveBeenCalled();
+          expect(result).toEqual([]);
+        });
+
+        it('still runs a runtime query', async () => {
+          const result = await service.fetchRepeaterData({ type: 'repeaterQuery', queryRtId: 'rt-1', queryFamily: 'runtime' });
+
+          expect(queryExecutorSpy.execute).toHaveBeenCalledTimes(1);
+          expect(result.length).toBe(1);
+        });
       });
 
       it('should sanitize attribute paths (replace dots with underscores)', async () => {

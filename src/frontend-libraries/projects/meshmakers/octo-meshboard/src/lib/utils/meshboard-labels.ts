@@ -15,7 +15,7 @@ export interface MeshBoardLabelRequest {
   ckTypeId?: string;
   /** The attribute (column field / category field) the value belongs to, as configured on the widget. */
   attribute: string;
-  /** The raw value as delivered by the query (e.g. the enum value name `PAID`). */
+  /** The raw value as delivered by the query (e.g. the enum value name `PAID`); numbers of `labelFields` columns as text. */
   value: string;
   /** CK value type of the column when the query reports it (`ENUM`, `STRING`, ...). */
   valueType?: string;

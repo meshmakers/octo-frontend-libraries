@@ -12,11 +12,17 @@ import {
   KpiWidgetConfig,
   EntityWithAssociationsWidgetConfig,
   TableWidgetConfig,
+  TableValueMarkerConfig,
   GaugeWidgetConfig,
   PieChartWidgetConfig,
   BarChartWidgetConfig,
   LineChartWidgetConfig,
+  LineChartSeriesDefinition,
+  LineChartSeriesDisplayOptions,
+  LINE_CHART_BUCKET_MINUTES,
+  SeriesMissingValues,
   HeatmapWidgetConfig,
+  HeatmapTimeWindow,
   StatsGridWidgetConfig,
   StatusIndicatorWidgetConfig,
   ServiceHealthWidgetConfig,
@@ -74,6 +80,7 @@ import { ServiceHealthConfigDialogComponent, ServiceHealthConfigResult } from '.
 import { WidgetGroupConfigDialogComponent, WidgetGroupConfigResult } from '../widgets/widget-group/widget-group-config-dialog.component';
 import { MarkdownConfigDialogComponent, MarkdownConfigResult } from '../widgets/markdown-widget/markdown-config-dialog.component';
 import { HeatmapConfigDialogComponent, HeatmapConfigResult } from '../widgets/heatmap-widget/heatmap-config-dialog.component';
+import { isValidHeatmapTimeWindow } from '../widgets/heatmap-widget/heatmap-buckets';
 
 /**
  * Helper to extract data source info from widget config
@@ -107,6 +114,33 @@ function createDataSource(result: WidgetConfigResult, includeAssociations = fals
  */
 function parseConfig(data: PersistedWidgetData): Record<string, unknown> {
   return data.config ? JSON.parse(data.config) : {};
+}
+
+/**
+ * Row action, value markers and label fields of a persisted table config (AB#7728). Tolerates
+ * foreign values: a row action without a label, markers without field or tooltip and label fields
+ * that are no non-empty strings are dropped.
+ */
+export function parseTableRowExtras(config: Record<string, unknown>): Pick<TableWidgetConfig, 'rowAction' | 'valueMarkers' | 'labelFields'> {
+  const rawAction = config['rowAction'] as Record<string, unknown> | undefined;
+  const label = typeof rawAction?.['label'] === 'string' ? rawAction['label'].trim() : '';
+  const rawMarkers = Array.isArray(config['valueMarkers']) ? config['valueMarkers'] as Record<string, unknown>[] : [];
+  const valueMarkers: TableValueMarkerConfig[] = rawMarkers
+    .filter(m => !!m && typeof m['field'] === 'string' && m['field'] !== '' && typeof m['tooltip'] === 'string')
+    .map(m => ({
+      field: m['field'] as string,
+      tooltip: m['tooltip'] as string,
+      ...(typeof m['icon'] === 'string' ? { icon: m['icon'] } : {}),
+      ...(typeof m['color'] === 'string' ? { color: m['color'] } : {}),
+      ...(m['showValue'] === true ? { showValue: true } : {})
+    }));
+  const rawLabelFields: unknown[] = Array.isArray(config['labelFields']) ? config['labelFields'] : [];
+  const labelFields = rawLabelFields.filter((f): f is string => typeof f === 'string' && f !== '');
+  return {
+    ...(label ? { rowAction: { label } } : {}),
+    ...(valueMarkers.length > 0 ? { valueMarkers } : {}),
+    ...(labelFields.length > 0 ? { labelFields } : {})
+  };
 }
 
 /**
@@ -639,10 +673,18 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
-        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined
+        initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
+        initialRowAction: tableWidget.rowAction,
+        initialValueMarkers: tableWidget.valueMarkers
       };
     },
     applyConfigResult: (widget, result) => {
+      // Row action and value markers (AB#7728) replace the previous ones; absent = removed.
+      const { rowAction: _oldRowAction, valueMarkers: _oldValueMarkers, ...baseWidget } = widget as TableWidgetConfig;
+      const rowExtras = {
+        ...(result.rowAction ? { rowAction: result.rowAction } : {}),
+        ...(result.valueMarkers?.length ? { valueMarkers: result.valueMarkers } : {})
+      };
       if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
         // Create PersistentQueryDataSource
         const dataSource: PersistentQueryDataSource = {
@@ -662,13 +704,15 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         }));
 
         return {
-          ...widget,
+          ...baseWidget,
           dataSource,
-          columns: [], // Will be derived from query at runtime
+          // Explicit columns the dialog kept (same query, AB#7655); [] = derived from the query at runtime
+          columns: result.columns ?? [],
           sorting: [],
           filters,
           pageSize: result.pageSize,
-          sortable: result.sortable
+          sortable: result.sortable,
+          ...rowExtras
         };
       } else {
         // Create RuntimeEntityDataSource (default behavior)
@@ -686,13 +730,14 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         }));
 
         return {
-          ...widget,
+          ...baseWidget,
           dataSource: createDataSource(result, false),
           columns: result.columns,
           sorting,
           filters,
           pageSize: result.pageSize,
-          sortable: result.sortable
+          sortable: result.sortable,
+          ...rowExtras
         };
       }
     },
@@ -723,6 +768,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           filters: widget.filters,
           pageSize: widget.pageSize,
           sortable: widget.sortable,
+          ...(widget.rowAction?.label && { rowAction: { label: widget.rowAction.label } }),
+          ...(widget.valueMarkers?.length && { valueMarkers: widget.valueMarkers }),
+          ...(widget.labelFields?.length && { labelFields: widget.labelFields }),
           ...(queryDataSource && {
             queryName: queryDataSource.queryName,
             queryRtId: queryDataSource.queryRtId,
@@ -748,7 +796,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         sorting: config['sorting'] as TableWidgetConfig['sorting'],
         filters: config['filters'] as TableWidgetConfig['filters'],
         pageSize: config['pageSize'] as number | undefined,
-        sortable: (config['sortable'] as boolean) ?? true
+        sortable: (config['sortable'] as boolean) ?? true,
+        ...parseTableRowExtras(config)
       };
     }
   });
@@ -762,19 +811,21 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     configDialogSize: { width: 750, height: 700, minWidth: 550, minHeight: 500 },
     configDialogTitle: 'Gauge Configuration',
     defaultSize: { colSpan: 1, rowSpan: 1 },
-    supportedDataSources: ['runtimeEntity', 'persistentQuery'],
+    supportedDataSources: ['runtimeEntity', 'persistentQuery', 'static'],
     getInitialConfig: (widget) => {
       const gaugeWidget = widget as GaugeWidgetConfig;
       const isPersistentQuery = gaugeWidget.dataSource.type === 'persistentQuery';
+      const isFormula = gaugeWidget.dataSource.type === 'static' && gaugeWidget.valueMode === 'formula';
 
       return {
+        initialWidgetId: gaugeWidget.id,
         // Runtime entity fields
         initialCkTypeId: getDataSourceInfo(widget).ckTypeId,
         initialRtId: getDataSourceInfo(widget).rtId,
         initialValueAttribute: gaugeWidget.valueAttribute,
         initialLabelAttribute: gaugeWidget.labelAttribute,
         // Persistent query fields
-        initialDataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
+        initialDataSourceType: isPersistentQuery ? 'persistentQuery' : isFormula ? 'formula' : 'runtimeEntity',
         initialQueryRtId: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryRtId : undefined,
         initialQueryName: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (gaugeWidget.dataSource as PersistentQueryDataSource).queryFamily : undefined,
@@ -784,6 +835,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryValueField: gaugeWidget.queryValueField,
         initialQueryCategoryField: gaugeWidget.queryCategoryField,
         initialQueryCategoryValue: gaugeWidget.queryCategoryValue,
+        // Formula (AB#7950)
+        initialFormula: gaugeWidget.formula,
         // Gauge options
         initialGaugeType: gaugeWidget.gaugeType,
         initialMin: gaugeWidget.min,
@@ -805,7 +858,29 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         comparisonValue: f.comparisonValue
       }));
 
-      if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
+      if (result.dataSourceType === 'formula') {
+        return {
+          ...widget,
+          dataSource: { type: 'static' as const },
+          valueMode: 'formula' as const,
+          formula: result.formula,
+          valueAttribute: '',
+          labelAttribute: undefined,
+          queryMode: undefined,
+          queryValueField: undefined,
+          queryCategoryField: undefined,
+          queryCategoryValue: undefined,
+          gaugeType: result.gaugeType,
+          min: result.min,
+          max: result.max,
+          ranges: result.ranges,
+          showLabel: result.showLabel,
+          prefix: result.prefix,
+          suffix: result.suffix,
+          reverse: result.reverse,
+          filters: undefined
+        };
+      } else if (result.dataSourceType === 'persistentQuery' && result.queryRtId) {
         // Create PersistentQueryDataSource
         const dataSource: PersistentQueryDataSource = {
           type: 'persistentQuery',
@@ -818,6 +893,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
 
         return {
           ...widget,
+          valueMode: undefined,
+          formula: undefined,
           dataSource,
           valueAttribute: '', // Not used for persistent queries
           queryMode: result.queryMode,
@@ -838,6 +915,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         // Create RuntimeEntityDataSource (default behavior)
         return {
           ...widget,
+          valueMode: undefined,
+          formula: undefined,
           dataSource: createDataSource(result, false),
           gaugeType: result.gaugeType,
           valueAttribute: result.valueAttribute,
@@ -873,8 +952,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     // SOLID: Serialization for persistence
     toPersistedConfig: (widget: GaugeWidgetConfig): WidgetPersistenceData => {
       const isPersistentQuery = widget.dataSource.type === 'persistentQuery';
+      // Only a formula gauge is stored as 'static' (AB#7950); every other gauge keeps its encoding.
+      const isFormula = widget.dataSource.type === 'static' && widget.valueMode === 'formula';
       return {
-        dataSourceType: isPersistentQuery ? 'persistentQuery' : 'runtimeEntity',
+        dataSourceType: isPersistentQuery ? 'persistentQuery' : isFormula ? 'static' : 'runtimeEntity',
         dataSourceCkTypeId: widget.dataSource.type === 'runtimeEntity' ? widget.dataSource.ckTypeId : undefined,
         dataSourceRtId: isPersistentQuery
           ? (widget.dataSource as PersistentQueryDataSource).queryRtId
@@ -895,6 +976,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryCategoryField: widget.queryCategoryField,
           queryCategoryValue: widget.queryCategoryValue,
           filters: widget.filters,
+          ...(isFormula && {
+            valueMode: 'formula',
+            formula: widget.formula
+          }),
           ...(isPersistentQuery && {
             queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
             queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
@@ -916,6 +1001,27 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
     fromPersistedConfig: (data: PersistedWidgetData, base: BaseWidgetConfig): GaugeWidgetConfig => {
       const config = parseConfig(data);
       const dataSource = buildDataSourceFromPersisted(data, config);
+
+      if (dataSource.type === 'static') {
+        // Formula gauge (AB#7950): the only gauge persisted with a static data source
+        return {
+          ...base,
+          rtId: data.rtId,
+          type: 'gauge',
+          dataSource,
+          valueMode: config['valueMode'] === 'formula' ? 'formula' : undefined,
+          formula: config['formula'] as string | undefined,
+          gaugeType: (config['gaugeType'] as GaugeWidgetConfig['gaugeType']) ?? 'arc',
+          valueAttribute: '',
+          min: (config['min'] as number) ?? 0,
+          max: (config['max'] as number) ?? 100,
+          ranges: config['ranges'] as GaugeWidgetConfig['ranges'],
+          showLabel: (config['showLabel'] as boolean) ?? true,
+          prefix: config['prefix'] as string | undefined,
+          suffix: config['suffix'] as string | undefined,
+          reverse: config['reverse'] as boolean | undefined
+        };
+      }
 
       if (dataSource.type === 'persistentQuery') {
         return {
@@ -1185,7 +1291,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowDataLabels: barWidget.showDataLabels,
         initialColorThresholds: barWidget.colorThresholds,
         initialDefaultBarColor: barWidget.defaultBarColor,
-        initialFilters: barWidget.filters
+        initialFilters: barWidget.filters,
+        initialAdditionalSeries: barWidget.additionalSeries,
+        initialPrimarySeries: barWidget.primarySeries
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1218,7 +1326,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showDataLabels: result.showDataLabels,
         colorThresholds: result.colorThresholds,
         defaultBarColor: result.defaultBarColor,
-        filters
+        filters,
+        additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
+        primarySeries: barPrimaryOrUndefined(result.primarySeries)
       } as BarChartWidgetConfig;
     },
 
@@ -1254,6 +1364,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         valueScale: widget.valueScale,
         colorThresholds: widget.colorThresholds,
         defaultBarColor: widget.defaultBarColor,
+        // AB#7953: written only when set, so a single-query bar chart encodes exactly as before.
+        ...(widget.additionalSeries?.length && { additionalSeries: widget.additionalSeries }),
+        ...(barPrimaryOrUndefined(widget.primarySeries) && { primarySeries: barPrimaryOrUndefined(widget.primarySeries) }),
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
         ...((widget.dataSource as PersistentQueryDataSource).queryFamily && {
@@ -1291,7 +1404,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         valueScale: config['valueScale'] as number | undefined,
         colorThresholds: config['colorThresholds'] as BarChartWidgetConfig['colorThresholds'],
         defaultBarColor: config['defaultBarColor'] as string | undefined,
-        filters: config['filters'] as WidgetFilterConfig[] | undefined
+        filters: config['filters'] as WidgetFilterConfig[] | undefined,
+        ...barChartSeriesFromPersisted(config)
       };
     }
   });
@@ -1329,7 +1443,12 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialShowMarkers: lineWidget.showMarkers,
         initialShowDataBadge: lineWidget.showDataBadge,
         initialReferenceLines: lineWidget.referenceLines,
-        initialFilters: lineWidget.filters
+        initialFilters: lineWidget.filters,
+        initialAdditionalSeries: lineWidget.additionalSeries,
+        initialStacked: lineWidget.stacked,
+        initialPrimarySeries: lineWidget.primarySeries,
+        initialBucketMinutes: lineWidget.bucketMinutes,
+        initialExcludedSeriesGroupValues: lineWidget.excludedSeriesGroupValues
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1367,7 +1486,12 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showMarkers: result.showMarkers,
         showDataBadge: result.showDataBadge,
         referenceLines: result.referenceLines,
-        filters
+        filters,
+        additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
+        stacked: result.stacked || undefined,
+        primarySeries: displayOptionsOrUndefined(result.primarySeries),
+        bucketMinutes: bucketMinutesOrUndefined(result.bucketMinutes),
+        excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(result.excludedSeriesGroupValues)
       } as LineChartWidgetConfig;
     },
 
@@ -1420,7 +1544,17 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...((widget.dataSource as PersistentQueryDataSource).aggregateSeriesByGroup && {
           aggregateSeriesByGroup: true
         }),
-        filters: widget.filters
+        filters: widget.filters,
+        // AB#7951: written only when set, so a single-query chart encodes exactly as before.
+        ...(widget.additionalSeries?.length && { additionalSeries: widget.additionalSeries }),
+        ...(widget.stacked && { stacked: true }),
+        // AB#7952: written only when a primary display option is not default.
+        ...(displayOptionsOrUndefined(widget.primarySeries) && { primarySeries: displayOptionsOrUndefined(widget.primarySeries) }),
+        // AB#8046: written only when a fixed bucket size is set.
+        ...(bucketMinutesOrUndefined(widget.bucketMinutes) && { bucketMinutes: bucketMinutesOrUndefined(widget.bucketMinutes) }),
+        ...(excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues) && {
+          excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues)
+        })
       }
     }),
 
@@ -1443,7 +1577,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showMarkers: (config['showMarkers'] as boolean) ?? false,
         showDataBadge: (config['showDataBadge'] as boolean | undefined) ?? true,
         referenceLines: config['referenceLines'] as LineChartWidgetConfig['referenceLines'],
-        filters: config['filters'] as WidgetFilterConfig[] | undefined
+        filters: config['filters'] as WidgetFilterConfig[] | undefined,
+        ...lineChartSeriesFromPersisted(config)
       };
     }
   });
@@ -1930,6 +2065,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialDateEndField: heatmapWidget.dateEndField,
         initialValueField: heatmapWidget.valueField,
         initialAggregation: heatmapWidget.aggregation,
+        initialWeightField: heatmapWidget.weightField,
+        initialTimestampIsBucketEnd: heatmapWidget.timestampIsBucketEnd,
+        initialBucketWidthMinutes: heatmapWidget.bucketWidthMinutes,
+        initialTimeWindow: heatmapWidget.timeWindow,
         initialColorScheme: heatmapWidget.colorScheme,
         initialColorMode: heatmapWidget.colorMode,
         initialThresholdTarget: heatmapWidget.thresholdTarget,
@@ -1964,6 +2103,10 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dateEndField: result.dateEndField,
         valueField: result.valueField,
         aggregation: result.aggregation,
+        weightField: result.weightField,
+        timestampIsBucketEnd: result.timestampIsBucketEnd,
+        bucketWidthMinutes: result.bucketWidthMinutes,
+        timeWindow: result.timeWindow,
         colorScheme: result.colorScheme,
         colorMode: result.colorMode,
         thresholdTarget: result.thresholdTarget,
@@ -1999,6 +2142,13 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dateEndField: widget.dateEndField,
         valueField: widget.valueField,
         aggregation: widget.aggregation,
+        // AB#7956 options: omitted when unset, so existing heatmaps encode byte-identically.
+        ...(widget.weightField && { weightField: widget.weightField }),
+        ...(widget.timestampIsBucketEnd && { timestampIsBucketEnd: true }),
+        ...(widget.bucketWidthMinutes != null && { bucketWidthMinutes: widget.bucketWidthMinutes }),
+        ...(isValidHeatmapTimeWindow(widget.timeWindow) && {
+          timeWindow: { value: widget.timeWindow.value, unit: widget.timeWindow.unit }
+        }),
         colorScheme: widget.colorScheme,
         ...(widget.colorMode && { colorMode: widget.colorMode }),
         ...(widget.thresholdTarget != null && { thresholdTarget: widget.thresholdTarget }),
@@ -2036,6 +2186,12 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         dateEndField: config['dateEndField'] as string | undefined,
         valueField: config['valueField'] as string | undefined,
         aggregation: (config['aggregation'] as HeatmapWidgetConfig['aggregation']) ?? 'count',
+        weightField: config['weightField'] as string | undefined,
+        timestampIsBucketEnd: config['timestampIsBucketEnd'] === true ? true : undefined,
+        bucketWidthMinutes: typeof config['bucketWidthMinutes'] === 'number' ? config['bucketWidthMinutes'] : undefined,
+        timeWindow: isValidHeatmapTimeWindow(config['timeWindow'] as HeatmapTimeWindow | undefined)
+          ? config['timeWindow'] as HeatmapTimeWindow
+          : undefined,
         colorScheme: (config['colorScheme'] as HeatmapWidgetConfig['colorScheme']) ?? 'green',
         colorMode: config['colorMode'] as HeatmapWidgetConfig['colorMode'] | undefined,
         thresholdTarget: config['thresholdTarget'] as number | undefined,
@@ -2433,6 +2589,7 @@ function readPieChartPresentationConfig(config: Record<string, unknown>): Partia
 import { InjectionToken } from '@angular/core';
 import { WidgetRegistration } from '../services/widget-registry.service';
 import { MESHBOARD_MESSAGES, MeshBoardMessagesSource } from '../utils/meshboard-messages';
+import { MESHBOARD_LANGUAGE, MeshBoardLanguageSource } from '../utils/meshboard-language';
 import { normalizeKpiDecimalPlaces } from '../utils/kpi-decimal-places';
 
 /**
@@ -2452,6 +2609,13 @@ export interface MeshBoardOptions {
    * table widget's list texts. Fixed object or signal. Absent = English.
    */
   messages?: MeshBoardMessagesSource;
+  /**
+   * The host's current UI language (AB#7655), provided as `MESHBOARD_LANGUAGE`: a culture code
+   * (`de-AT`) or a signal of it for apps that switch the language at runtime. Board configurations
+   * use it to pick per-language texts (table column `titles`, `valueLabels`). Absent = the default
+   * texts (column `title`); MeshBoard never falls back to `LOCALE_ID`.
+   */
+  language?: MeshBoardLanguageSource;
 }
 
 /**
@@ -2498,6 +2662,9 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
   if (opts.messages) {
     providers.push({ provide: MESHBOARD_MESSAGES, useValue: opts.messages });
   }
+  if (opts.language) {
+    providers.push({ provide: MESHBOARD_LANGUAGE, useValue: opts.language });
+  }
 
   // Include default widgets unless explicitly disabled
   if (opts.includeDefaultWidgets !== false) {
@@ -2518,6 +2685,14 @@ export function provideMeshBoard(options?: MeshBoardOptions): EnvironmentProvide
  */
 export function provideMeshBoardMessages(messages: MeshBoardMessagesSource): EnvironmentProviders {
   return makeEnvironmentProviders([{ provide: MESHBOARD_MESSAGES, useValue: messages }]);
+}
+
+/**
+ * Provides the host's UI language (`MESHBOARD_LANGUAGE`, AB#7655) without `provideMeshBoard()` —
+ * for apps that register the widgets lazily. A string or a signal (the widgets follow it).
+ */
+export function provideMeshBoardLanguage(language: MeshBoardLanguageSource): EnvironmentProviders {
+  return makeEnvironmentProviders([{ provide: MESHBOARD_LANGUAGE, useValue: language }]);
 }
 
 /**
@@ -2567,3 +2742,98 @@ export function provideWidgetRegistrations(
  * Re-export WidgetRegistration type for convenience
  */
 export type { WidgetRegistration } from '../services/widget-registry.service';
+
+/**
+ * Reads `additionalSeries` / `stacked` / `primarySeries` of a persisted line chart (AB#7951,
+ * AB#7952). All keys are absent on a single-query chart, so the result is `{}` and the loaded config
+ * has no such keys. Kept entries: query series with a key and a data source, formula series with a
+ * key and a formula string (AB#7952). Entries of an unknown `kind` are dropped (a newer library may
+ * store kinds this version does not know). The display options `visible` / `stacked` are kept only
+ * as `false`.
+ */
+function lineChartSeriesFromPersisted(config: Record<string, unknown>): Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries' | 'bucketMinutes' | 'excludedSeriesGroupValues'> {
+  const out: Pick<LineChartWidgetConfig, 'additionalSeries' | 'stacked' | 'primarySeries' | 'bucketMinutes' | 'excludedSeriesGroupValues'> = {};
+  const raw = config['additionalSeries'];
+  if (Array.isArray(raw)) {
+    const series = raw.filter((s): s is LineChartSeriesDefinition => {
+      if (!s || typeof s !== 'object') return false;
+      const entry = s as { kind?: unknown; key?: unknown; dataSource?: { queryRtId?: unknown }; formula?: unknown };
+      if (typeof entry.key !== 'string') return false;
+      if (entry.kind === 'query') return !!entry.dataSource && typeof entry.dataSource.queryRtId === 'string';
+      if (entry.kind === 'formula') return typeof entry.formula === 'string';
+      return false;
+    });
+    if (series.length > 0) out.additionalSeries = series;
+  }
+  if (config['stacked'] === true) out.stacked = true;
+  const primary = config['primarySeries'];
+  if (primary && typeof primary === 'object') {
+    const options = displayOptionsOrUndefined(primary as LineChartSeriesDisplayOptions);
+    if (options) out.primarySeries = options;
+  }
+  const bucketMinutes = bucketMinutesOrUndefined(config['bucketMinutes']);
+  if (bucketMinutes) out.bucketMinutes = bucketMinutes;
+  const excluded = excludedSeriesGroupValuesOrUndefined(config['excludedSeriesGroupValues']);
+  if (excluded) out.excludedSeriesGroupValues = excluded;
+  return out;
+}
+
+/** A supported fixed bucket size of a line chart (AB#8046), else `undefined` (pixel-driven buckets). */
+function bucketMinutesOrUndefined(value: unknown): number | undefined {
+  return typeof value === 'number' && LINE_CHART_BUCKET_MINUTES.includes(value) ? value : undefined;
+}
+
+/** The excluded series group values of a line chart (AB#8128): the non-empty strings, without duplicates, else `undefined`. */
+function excludedSeriesGroupValuesOrUndefined(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const values = [...new Set(value.filter((v): v is string => typeof v === 'string' && v !== ''))];
+  return values.length > 0 ? values : undefined;
+}
+
+/**
+ * Reads `additionalSeries` / `primarySeries` of a persisted bar chart (AB#7953) with the line chart
+ * rules (unknown kinds dropped, display options only as `false`). The bar chart keeps only
+ * `visible` of the primary options. Both keys are absent on a single-query bar chart.
+ */
+function barChartSeriesFromPersisted(config: Record<string, unknown>): Pick<BarChartWidgetConfig, 'additionalSeries' | 'primarySeries'> {
+  const line = lineChartSeriesFromPersisted({ additionalSeries: config['additionalSeries'], primarySeries: config['primarySeries'] });
+  const out: Pick<BarChartWidgetConfig, 'additionalSeries' | 'primarySeries'> = {};
+  if (line.additionalSeries) out.additionalSeries = line.additionalSeries;
+  const primary = barPrimaryOrUndefined(line.primarySeries);
+  if (primary) out.primarySeries = primary;
+  return out;
+}
+
+/** Bar chart primary options: `visible: false` and `missingValues` (AB#8046) when set, else `undefined`. */
+function barPrimaryOrUndefined(options: LineChartSeriesDisplayOptions | undefined): BarChartWidgetConfig['primarySeries'] {
+  const missingValues = missingValuesOrUndefined(options?.missingValues);
+  const out: BarChartWidgetConfig['primarySeries'] = {
+    ...(options?.visible === false && { visible: false }),
+    ...(missingValues && { missingValues })
+  };
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/** `zero` / `carryForward`, else `undefined` (gap, the default, and unknown values). */
+function missingValuesOrUndefined(value: unknown): SeriesMissingValues | undefined {
+  return value === 'zero' || value === 'carryForward' ? value : undefined;
+}
+
+/**
+ * Display options of the primary series reduced to their non-default values; `undefined` when all are
+ * default: `visible` / `stacked` only as `false`, `missingValues` (+ its look-back) and `dashType`
+ * (AB#8046) only when not the default. No colour: the primary query yields one series per group value.
+ */
+function displayOptionsOrUndefined(options: LineChartSeriesDisplayOptions | undefined): LineChartSeriesDisplayOptions | undefined {
+  if (!options) return undefined;
+  const missingValues = missingValuesOrUndefined(options.missingValues);
+  const lookback = options.carryForwardLookbackMinutes;
+  const out: LineChartSeriesDisplayOptions = {
+    ...(options.visible === false && { visible: false }),
+    ...(options.stacked === false && { stacked: false }),
+    ...(missingValues && { missingValues }),
+    ...(missingValues === 'carryForward' && typeof lookback === 'number' && lookback >= 0 && { carryForwardLookbackMinutes: lookback }),
+    ...((options.dashType === 'dash' || options.dashType === 'dot') && { dashType: options.dashType })
+  };
+  return Object.keys(out).length > 0 ? out : undefined;
+}

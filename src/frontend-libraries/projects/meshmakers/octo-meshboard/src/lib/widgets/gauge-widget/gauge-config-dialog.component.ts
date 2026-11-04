@@ -13,7 +13,7 @@ import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { firstValueFrom } from 'rxjs';
-import { GaugeType, GaugeRange, KpiQueryMode, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
+import { GaugeType, GaugeRange, KpiQueryMode, WidgetFilterConfig, EntitySelectorConfig, MeshBoardVariable } from '../../models/meshboard.models';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { RuntimeEntityItem, PersistentQueryItem, QueryColumnItem, CategoryValueItem, RuntimeEntitySelectDataSource, RuntimeEntityDialogDataSource } from '../../utils/runtime-entity-data-sources';
@@ -22,11 +22,16 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
+import { declaredFormulaVariableNames, FormulaValidationResult, validateFormulaField } from '../../utils/meshboard-formula';
+import { FormulaFieldComponent } from '../../components/formula-field/formula-field.component';
+import { columnProbeWindow } from '../../utils/column-probe-window';
 
 /**
- * Data source type for Gauge
+ * Data source type for Gauge. `'formula'` computes the value from a formula over MeshBoard
+ * variables (stored as static data source with `valueMode: 'formula'`, AB#7950).
  */
-export type GaugeDataSourceType = 'runtimeEntity' | 'persistentQuery';
+export type GaugeDataSourceType = 'runtimeEntity' | 'persistentQuery' | 'formula';
 
 /**
  * Configuration result from the Gauge dialog
@@ -49,6 +54,8 @@ export interface GaugeConfigResult extends WidgetConfigResult {
   queryValueField?: string;
   queryCategoryField?: string;
   queryCategoryValue?: string;
+  // Formula field (AB#7950)
+  formula?: string;
   // Gauge options
   gaugeType: GaugeType;
   min?: number;
@@ -87,7 +94,8 @@ interface GaugeTypeOption {
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
     EntitySelectorScopePickerComponent,
-    LoadingOverlayComponent
+    LoadingOverlayComponent,
+    FormulaFieldComponent
   ],
   template: `
     <div class="config-container">
@@ -113,8 +121,29 @@ interface GaugeTypeOption {
               (click)="onDataSourceTypeChange('persistentQuery')">
               Query
             </button>
+            <button
+              kendoButton
+              [fillMode]="dataSourceType === 'formula' ? 'solid' : 'outline'"
+              [themeColor]="dataSourceType === 'formula' ? 'primary' : 'base'"
+              (click)="onDataSourceTypeChange('formula')">
+              Formula
+            </button>
           </div>
         </div>
+
+        <!-- ============================================================ -->
+        <!-- FORMULA (AB#7950) -->
+        <!-- ============================================================ -->
+        @if (dataSourceType === 'formula') {
+          <mm-meshboard-formula-field
+            [(formula)]="form.formula"
+            [variables]="formulaVariables"
+            [declaredNames]="declaredVariableNames"
+            [numericOnly]="true"
+            [clampHint]="true"
+            placeholder="e.g., max(0, min(100, (1 - \${import} / \${consumption}) * 100))">
+          </mm-meshboard-formula-field>
+        }
 
         <!-- ============================================================ -->
         <!-- RUNTIME ENTITY DATA SOURCE -->
@@ -438,7 +467,7 @@ interface GaugeTypeOption {
         </div>
 
         <!-- Filters Section -->
-        @if (dataSourceType === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId) {
+        @if (dataSourceType !== 'formula' && (dataSourceType === 'runtimeEntity' ? selectedCkType?.rtCkTypeId : selectedPersistentQuery?.queryCkTypeId)) {
           <div class="form-section">
             <h4>Filters</h4>
             <p class="section-hint">Define filters to narrow down the data.</p>
@@ -700,6 +729,7 @@ export class GaugeConfigDialogComponent implements OnInit {
   ]);
   private readonly meshBoardStateService = inject(MeshBoardStateService);
   private readonly windowRef = inject(WindowRef);
+  private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
   @ViewChild('ckTypeSelector') ckTypeSelectorInput?: CkTypeSelectorInputComponent;
   @ViewChild('entitySelector') entitySelectorInput?: EntitySelectInputComponent;
@@ -733,6 +763,11 @@ export class GaugeConfigDialogComponent implements OnInit {
 
   // Initial values for filters
   @Input() initialFilters?: WidgetFilterConfig[];
+
+  // Initial values for the formula (AB#7950)
+  /** Id of the edited widget (excluded from the declared output names) */
+  @Input() initialWidgetId?: string;
+  @Input() initialFormula?: string;
 
   // Data source type selection
   dataSourceType: GaugeDataSourceType = 'runtimeEntity';
@@ -790,6 +825,8 @@ export class GaugeConfigDialogComponent implements OnInit {
     queryValueField: string;
     queryCategoryField: string;
     queryCategoryValue: string;
+    // Formula (AB#7950)
+    formula: string;
   } = {
     gaugeType: 'arc',
     valueAttribute: '',
@@ -803,8 +840,43 @@ export class GaugeConfigDialogComponent implements OnInit {
     reverse: false,
     queryValueField: '',
     queryCategoryField: '',
-    queryCategoryValue: ''
+    queryCategoryValue: '',
+    formula: ''
   };
+
+  /**
+   * Variables a formula can reference: MeshBoard variables plus the KPIs' published outputs.
+   * Read live, so outputs published while the dialog is open become available immediately.
+   */
+  get formulaVariables(): MeshBoardVariable[] {
+    return this.meshBoardStateService.getVariables();
+  }
+
+  /** Names that exist by configuration but carry no value yet (declared KPI outputs, selector variables) */
+  get declaredVariableNames(): string[] {
+    return declaredFormulaVariableNames(
+      this.meshBoardStateService.widgets(),
+      this.meshBoardStateService.getEntitySelectors(),
+      this.initialWidgetId);
+  }
+
+  private formulaValidationCache?: { formula: string; names: string; result: FormulaValidationResult };
+
+  /** Validation of the current formula — the same rule the shared formula field shows */
+  get formulaValidation(): FormulaValidationResult {
+    const formula = this.form.formula;
+    const variables = this.formulaVariables;
+    const declaredNames = this.declaredVariableNames;
+    const names = JSON.stringify([variables.map(v => v.name), declaredNames]);
+    if (this.formulaValidationCache?.formula !== formula || this.formulaValidationCache.names !== names) {
+      this.formulaValidationCache = {
+        formula,
+        names,
+        result: validateFormulaField(formula, variables, declaredNames, this.expressionEvaluator)
+      };
+    }
+    return this.formulaValidationCache.result;
+  }
 
   gaugeTypeOptions: GaugeTypeOption[] = [
     { value: 'arc', label: 'Arc Gauge', description: 'Semi-circular gauge with center label' },
@@ -820,6 +892,9 @@ export class GaugeConfigDialogComponent implements OnInit {
   ];
 
   get isValid(): boolean {
+    if (this.dataSourceType === 'formula') {
+      return this.formulaValidation.valid;
+    }
     if (this.dataSourceType === 'persistentQuery') {
       if (!this.selectedPersistentQuery) return false;
       if (this.queryMode === 'simpleCount') return true;
@@ -861,6 +936,7 @@ export class GaugeConfigDialogComponent implements OnInit {
     this.form.queryValueField = this.initialQueryValueField || '';
     this.form.queryCategoryField = this.initialQueryCategoryField || '';
     this.form.queryCategoryValue = this.initialQueryCategoryValue || '';
+    this.form.formula = this.initialFormula || '';
 
     // Initialize filters
     if (this.initialFilters && this.initialFilters.length > 0) {
@@ -1051,7 +1127,17 @@ export class GaugeConfigDialogComponent implements OnInit {
       }))
       : undefined;
 
-    if (this.dataSourceType === 'persistentQuery' && this.selectedPersistentQuery) {
+    if (this.dataSourceType === 'formula') {
+      this.windowRef.close({
+        dataSourceType: 'formula',
+        ckTypeId: '',
+        rtId: undefined,
+        valueAttribute: '',
+        formula: this.form.formula.trim(),
+        ...this.gaugeOptionsResult(),
+        filters: undefined
+      });
+    } else if (this.dataSourceType === 'persistentQuery' && this.selectedPersistentQuery) {
       const family = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
       this.windowRef.close({
         dataSourceType: 'persistentQuery',
@@ -1095,6 +1181,20 @@ export class GaugeConfigDialogComponent implements OnInit {
         filters: filtersDto
       });
     }
+  }
+
+  /** Gauge options shared by every data source */
+  private gaugeOptionsResult(): Pick<GaugeConfigResult, 'gaugeType' | 'min' | 'max' | 'ranges' | 'showLabel' | 'prefix' | 'suffix' | 'reverse'> {
+    return {
+      gaugeType: this.form.gaugeType,
+      min: this.form.min ?? undefined,
+      max: this.form.max ?? undefined,
+      ranges: this.form.ranges.length > 0 ? this.form.ranges : undefined,
+      showLabel: this.form.showLabel,
+      prefix: this.form.prefix || undefined,
+      suffix: this.form.suffix || undefined,
+      reverse: this.form.reverse || undefined
+    };
   }
 
   onCancel(): void {
@@ -1184,8 +1284,11 @@ export class GaugeConfigDialogComponent implements OnInit {
         }));
     }
 
-    const sdResult = await firstValueFrom(this.queryExecutor.executeStreamData(rtId, { first: 1 }));
-    return sdResult.columns.map(c => ({
+    // An Integral column needs from/to (AB#7921): the executor retries with the board's
+    // window, or the last 24 hours when the board has no time filter (AB#7975).
+    const columns = await this.queryExecutor.fetchStreamDataColumns(
+      rtId, columnProbeWindow(this.meshBoardStateService.resolveStreamDataTimeArgs()));
+    return columns.map(c => ({
       attributePath: c.attributePath,
       attributeValueType: c.attributeValueType ?? '',
       aggregationType: c.aggregationType ?? null
@@ -1208,7 +1311,9 @@ export class GaugeConfigDialogComponent implements OnInit {
     const family = queryFamily(this.selectedPersistentQuery?.ckTypeId) ?? this.initialQueryFamily;
 
     try {
-      const result = await firstValueFrom(this.queryExecutor.execute(family, queryRtId, { first: 100 }));
+      // A grouped Integral query needs from/to like its column list (AB#7975).
+      const result = await this.queryExecutor.executeWithProbeWindow(
+        family, queryRtId, { first: 100 }, columnProbeWindow(this.meshBoardStateService.resolveStreamDataTimeArgs()));
 
       const values = new Set<string>();
       for (const row of result.rows) {

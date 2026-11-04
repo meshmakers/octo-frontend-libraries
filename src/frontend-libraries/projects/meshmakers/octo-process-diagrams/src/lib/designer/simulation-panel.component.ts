@@ -74,7 +74,7 @@ export interface SimulationValueChange {
                                [max]="property.max ?? 100"
                                [step]="property.step ?? 1"
                                [value]="getPropertyValue(property.id, property.defaultValue)"
-                               (input)="onValueChange(property.id, +$any($event.target).value)"/>
+                               (input)="onNumberInput(property.id, $any($event.target).value)"/>
                       </div>
                       <div class="value-range">
                         <span>{{ property.min ?? 0 }}</span>
@@ -389,6 +389,16 @@ export class SimulationPanelComponent {
 
     // Fall back to default
     return defaultValue;
+  }
+
+  /**
+   * Number field input. An emptied field means "no value" (null), not 0, so a
+   * bound text shows its "no value" text (AB#8022).
+   */
+  onNumberInput(propertyId: string, raw: string): void {
+    const trimmed = (raw ?? '').trim();
+    const parsed = trimmed === '' ? NaN : Number(trimmed);
+    this.onValueChange(propertyId, Number.isFinite(parsed) ? parsed : null);
   }
 
   /**

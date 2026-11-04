@@ -1,10 +1,17 @@
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { AnyWidgetConfig, KpiWidgetConfig, MeshBoardVariable } from '../models/meshboard.models';
 import {
+  declaredFormulaVariableNames,
   evaluateFormula,
   findVariableCycles,
+  formulaKnownNames,
+  formulaPreviewText,
+  NON_FINITE_FORMULA_REASON,
+  NOT_A_NUMBER_FORMULA_ERROR,
+  requireNumericFormulaResult,
   rewriteFormula,
-  validateFormula
+  validateFormula,
+  validateFormulaField
 } from './meshboard-formula';
 
 describe('meshboard-formula', () => {
@@ -112,9 +119,14 @@ describe('meshboard-formula', () => {
       expect(evaluateFormula(undefined, [], evaluator)).toEqual({ status: 'pending' });
     });
 
-    it('reports division by zero as an error', () => {
-      const result = evaluateFormula('${a} / 0', [variable('a', '1')], evaluator);
-      expect(result.status).toBe('error');
+    it('reports division by zero as non-finite with a reason, not as an error (AB#7950)', () => {
+      expect(evaluateFormula('${a} / 0', [variable('a', '1')], evaluator))
+        .toEqual({ status: 'nonFinite', reason: NON_FINITE_FORMULA_REASON });
+    });
+
+    it('reports 0 / 0 (NaN) as non-finite (AB#7950)', () => {
+      expect(evaluateFormula('${a} / ${b}', [variable('a', '0'), variable('b', '0')], evaluator).status)
+        .toBe('nonFinite');
     });
 
     it('reports syntax errors', () => {
@@ -123,6 +135,55 @@ describe('meshboard-formula', () => {
 
     it('converts booleans', () => {
       expect(evaluateFormula('${on} ? 1 : 0', [variable('on', 'true')], evaluator)).toEqual({ status: 'ok', value: 1 });
+    });
+  });
+
+  describe('requireNumericFormulaResult (AB#7950)', () => {
+    it('turns a string or boolean result into "Result is not a number"', () => {
+      expect(requireNumericFormulaResult({ status: 'ok', value: 'on' }))
+        .toEqual({ status: 'error', error: NOT_A_NUMBER_FORMULA_ERROR });
+      expect(requireNumericFormulaResult({ status: 'ok', value: true }))
+        .toEqual({ status: 'error', error: 'Result is not a number' });
+    });
+
+    it('passes numbers and every other status through', () => {
+      expect(requireNumericFormulaResult({ status: 'ok', value: 4 })).toEqual({ status: 'ok', value: 4 });
+      expect(requireNumericFormulaResult({ status: 'pending' })).toEqual({ status: 'pending' });
+      expect(requireNumericFormulaResult({ status: 'nonFinite', reason: 'r' })).toEqual({ status: 'nonFinite', reason: 'r' });
+      expect(requireNumericFormulaResult({ status: 'error', error: 'e' })).toEqual({ status: 'error', error: 'e' });
+    });
+  });
+
+  describe('formulaPreviewText (AB#7950)', () => {
+    it('renders every status', () => {
+      expect(formulaPreviewText({ status: 'ok', value: 3 })).toBe('3');
+      expect(formulaPreviewText({ status: 'pending' })).toBe('- (a referenced variable has no value yet)');
+      expect(formulaPreviewText({ status: 'nonFinite', reason: NON_FINITE_FORMULA_REASON })).toBe(`- (${NON_FINITE_FORMULA_REASON})`);
+      expect(formulaPreviewText({ status: 'error', error: 'Boom' })).toBe('Boom');
+    });
+  });
+
+  describe('validateFormulaField and declared names (AB#7950)', () => {
+    it('accepts names of variables and declared names, rejects others', () => {
+      expect(validateFormulaField('${a} + ${later}', [variable('a', '1')], ['later'], evaluator).valid).toBe(true);
+      expect(validateFormulaField('${a} + ${x}', [variable('a', '1')], [], evaluator))
+        .toEqual({ valid: false, error: 'Unknown variable: x', unknownVariables: ['x'] });
+    });
+
+    it('lists known names once', () => {
+      expect(formulaKnownNames([variable('a', '1'), variable('b', '2')], ['b', 'c'])).toEqual(['a', 'b', 'c']);
+    });
+
+    it('declares other KPIs\' outputs and selector variables, not the edited widget\'s output', () => {
+      const widgets: AnyWidgetConfig[] = [
+        kpi('self', { outputVariableName: 'mine' }),
+        kpi('other', { outputVariableName: ' consumption ' }),
+        kpi('plain')
+      ];
+      const names = declaredFormulaVariableNames(widgets, [{
+        id: 'mp', label: 'MP', ckTypeId: 'Test/MeteringPoint', attributeMappings: [{ attributePath: 'power', variableName: 'mp_power' }]
+      }], 'self');
+      expect(names).toEqual(['consumption', 'mp_power', 'mp_rtId', 'mp_rtCkTypeId']);
     });
   });
 

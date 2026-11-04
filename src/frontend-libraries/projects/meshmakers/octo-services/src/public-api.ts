@@ -20,6 +20,7 @@ export * from './lib/shared/userDto';
 export * from './lib/shared/userDirectoryEntryDto';
 export * from './lib/shared/registerUserDto';
 export * from './lib/shared/mergeUsersRequestDto';
+export * from './lib/shared/resetUserPasswordRequestDto';
 export * from './lib/shared/roleDto';
 export * from './lib/shared/jobDto';
 export * from './lib/shared/jobResponseDto';

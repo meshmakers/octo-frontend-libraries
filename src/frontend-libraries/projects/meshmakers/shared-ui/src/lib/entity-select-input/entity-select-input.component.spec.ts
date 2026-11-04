@@ -162,4 +162,79 @@ describe('EntitySelectInputComponent', () => {
       vi.useRealTimers();
     }
   });
+
+  describe('host display value (AB#7916)', () => {
+    const room: Entity = { id: 'room-1', name: 'Office 1' };
+
+    function events(): { selected: ReturnType<typeof vi.fn>; cleared: ReturnType<typeof vi.fn>; changed: ReturnType<typeof vi.fn> } {
+      const selected = vi.fn();
+      const cleared = vi.fn();
+      const changed = vi.fn();
+      component.entitySelected.subscribe(selected);
+      component.entityCleared.subscribe(cleared);
+      component.registerOnChange(changed);
+      return { selected, cleared, changed };
+    }
+
+    beforeEach(() => {
+      component.writeValue(null);
+    });
+
+    it('shows a pick the host restored by name', () => {
+      component.initialDisplayValue = 'Office 1';
+
+      expect(component.searchFormControl.value).toBe('Office 1');
+    });
+
+    it('clears the text when the host clears the pick, also after a pick in this input', () => {
+      component.writeValue(room);
+      component.initialDisplayValue = 'Office 1';
+      const { selected, cleared, changed } = events();
+
+      component.initialDisplayValue = undefined;
+
+      expect(component.searchFormControl.value).toBe('');
+      expect(component.selectedEntity).toBeNull();
+      expect(selected).not.toHaveBeenCalled();
+      expect(cleared).not.toHaveBeenCalled();
+      expect(changed).not.toHaveBeenCalled();
+    });
+
+    it('shows the new name when the host replaces the pick, also after a pick in this input', () => {
+      component.writeValue(room);
+      component.initialDisplayValue = 'Office 1';
+
+      component.initialDisplayValue = 'Lobby';
+
+      expect(component.searchFormControl.value).toBe('Lobby');
+      expect(component.selectedEntity).toBeNull();
+    });
+
+    it('keeps the entity picked here when the host confirms its name', () => {
+      component.initialDisplayValue = 'Lobby';
+      component.writeValue(room);
+
+      component.initialDisplayValue = 'Office 1';
+
+      expect(component.searchFormControl.value).toBe('Office 1');
+      expect(component.selectedEntity).toBe(room);
+    });
+
+    it('clears a pick shown by name only when the clear button empties the input', () => {
+      component.initialDisplayValue = 'Office 1';
+      const { cleared } = events();
+
+      component.onSelectionChange('');
+
+      expect(cleared).toHaveBeenCalledTimes(1);
+    });
+
+    it('does nothing on clear when neither a pick nor a host name is shown', () => {
+      const { cleared } = events();
+
+      component.onSelectionChange('');
+
+      expect(cleared).not.toHaveBeenCalled();
+    });
+  });
 });

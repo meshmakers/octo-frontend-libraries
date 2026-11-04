@@ -71,7 +71,7 @@ shared-services/
 
 | Interceptor | Description |
 |-------------|-------------|
-| `MmHttpErrorInterceptor` | Handles HTTP errors (network errors, API 400 errors with details) |
+| `MmHttpErrorInterceptor` | Handles HTTP errors (network errors, 403 access denied, API 400/409 errors with details, 403 `application/problem+json` refusals shown with their `title`/`detail`); callers that show their own error toast check `MmHttpErrorInterceptor.reportsToUser(error)` first |
 
 ## Models
 

@@ -125,6 +125,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
         </button>
       </div>
 
+      <div class="filter-grid-scroll">
       <kendo-grid
         [data]="filters"
         [selectable]="{ mode: 'multiple', enabled: true }"
@@ -132,7 +133,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
         [(selectedKeys)]="selectedKeys"
         class="filter-grid"
       >
-        <kendo-grid-column title="" [width]="50" [class]="'checkbox-column'">
+        <kendo-grid-column title="" [width]="40" [class]="'checkbox-column'">
           <ng-template kendoGridHeaderTemplate>
             <input
               type="checkbox"
@@ -153,7 +154,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
         <kendo-grid-column
           field="attributePath"
           title="Attribute Path"
-          [width]="280"
+          [width]="220"
         >
           <ng-template kendoGridCellTemplate let-dataItem>
             @if (availableAttributes.length > 0) {
@@ -192,7 +193,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
           </ng-template>
         </kendo-grid-column>
 
-        <kendo-grid-column field="operator" title="Operator" [width]="180">
+        <kendo-grid-column field="operator" title="Operator" [width]="150">
           <ng-template kendoGridCellTemplate let-dataItem>
             <kendo-dropdownlist
               [data]="operators"
@@ -209,7 +210,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
           </ng-template>
         </kendo-grid-column>
 
-        <kendo-grid-column field="comparisonValue" title="Value" [width]="280">
+        <kendo-grid-column field="comparisonValue" title="Value" [width]="220">
           <ng-template kendoGridCellTemplate let-dataItem>
             <div class="value-cell">
               @if (dataItem.useVariable && enableVariables) {
@@ -351,7 +352,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
           </ng-template>
         </kendo-grid-column>
 
-        <kendo-grid-column title="" [width]="60">
+        <kendo-grid-column title="" [width]="50">
           <ng-template kendoGridCellTemplate let-dataItem>
             <button
               kendoButton
@@ -364,6 +365,7 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
           </ng-template>
         </kendo-grid-column>
       </kendo-grid>
+      </div>
 
       @if (filters.length === 0) {
         <div class="empty-state">
@@ -418,8 +420,17 @@ type InputType = 'text' | 'number' | 'boolean' | 'datetime';
         margin-bottom: 5px;
       }
 
+      /* In a narrow host (e.g. a 600 px widget dialog) the grid keeps a usable
+         width and scrolls horizontally inside its frame instead of cutting off
+         the Value column and the row actions. */
+      .filter-grid-scroll {
+        overflow-x: auto;
+        max-width: 100%;
+      }
+
       .filter-grid {
-        border: 1px solid #d5d5d5;
+        border: 1px solid var(--kendo-color-border, #d5d5d5);
+        min-width: 680px;
       }
 
       .filter-grid ::ng-deep .k-grid-header .k-header {
