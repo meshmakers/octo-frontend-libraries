@@ -16,7 +16,8 @@ import {
   BarChartWidgetConfig,
   WidgetFilterConfig,
   EntitySelectorConfig,
-  LineChartSeriesDisplayOptions
+  LineChartSeriesDisplayOptions,
+  ChartValueLabels
 } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
@@ -33,6 +34,8 @@ import { columnProbeWindow } from '../../utils/column-probe-window';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { LineChartSeriesEditorComponent } from '../line-chart-widget/line-chart-series-editor.component';
 import { querySeriesErrors } from '../line-chart-widget/line-chart-multi-source';
+import { ValueLabelsEditorComponent } from '../../components/value-labels-editor/value-labels-editor.component';
+import { fromValueLabelRows, toValueLabelRows, ValueLabelRow } from '../../utils/chart-value-labels';
 
 /**
  * Series configuration mode
@@ -66,6 +69,10 @@ export interface BarChartConfigResult extends WidgetConfigResult {
   additionalSeries?: BarChartSeriesDefinition[];
   /** Display options of the primary query's series (AB#7953): only `visible`. */
   primarySeries?: BarChartWidgetConfig['primarySeries'];
+  /** Name per raw category value (AB#7235); absent = none. */
+  categoryLabels?: ChartValueLabels;
+  /** Name per raw series group value (AB#7235, dynamic series); absent = none. */
+  seriesLabels?: ChartValueLabels;
 }
 
 /**
@@ -87,7 +94,8 @@ export interface BarChartConfigResult extends WidgetConfigResult {
     SdTimeFilterToggleComponent,
     EntitySelectorScopePickerComponent,
     LoadingOverlayComponent,
-    LineChartSeriesEditorComponent
+    LineChartSeriesEditorComponent,
+    ValueLabelsEditorComponent
   ],
   template: `
     <div class="config-container">
@@ -225,6 +233,19 @@ export interface BarChartConfigResult extends WidgetConfigResult {
                 <p class="field-hint">The numeric field to display for each category/series combination.</p>
               </div>
             }
+          </div>
+        }
+
+        <!-- Category and series names (AB#7235) -->
+        <div class="config-section" data-bar-category-labels>
+          <h3 class="section-title">Category Names</h3>
+          <mm-value-labels-editor [(rows)]="categoryLabelRows" subject="category"></mm-value-labels-editor>
+        </div>
+
+        @if (seriesMode === 'dynamic') {
+          <div class="config-section" data-bar-series-labels>
+            <h3 class="section-title">Series Names</h3>
+            <mm-value-labels-editor [(rows)]="seriesLabelRows" subject="series"></mm-value-labels-editor>
           </div>
         }
 
@@ -542,6 +563,12 @@ export class BarChartConfigDialogComponent implements OnInit {
   @Input() initialFilters?: WidgetFilterConfig[];
   @Input() initialAdditionalSeries?: BarChartSeriesDefinition[];
   @Input() initialPrimarySeries?: BarChartWidgetConfig['primarySeries'];
+  @Input() initialCategoryLabels?: ChartValueLabels;
+  @Input() initialSeriesLabels?: ChartValueLabels;
+
+  /** Rows of the category and series name editors (AB#7235). */
+  categoryLabelRows: ValueLabelRow[] = [];
+  seriesLabelRows: ValueLabelRow[] = [];
 
   /** Query and formula series of the Series section (AB#7953). */
   additionalSeries: BarChartSeriesDefinition[] = [];
@@ -652,6 +679,8 @@ export class BarChartConfigDialogComponent implements OnInit {
     this.form.defaultBarColor = this.initialDefaultBarColor ?? '';
     this.additionalSeries = this.initialAdditionalSeries ? [...this.initialAdditionalSeries] : [];
     this.primarySeries = this.initialPrimarySeries ? { ...this.initialPrimarySeries } : undefined;
+    this.categoryLabelRows = toValueLabelRows(this.initialCategoryLabels);
+    this.seriesLabelRows = toValueLabelRows(this.initialSeriesLabels);
 
     // Determine series mode from initial values
     if (this.initialSeriesGroupField && this.initialValueField) {
@@ -837,7 +866,9 @@ export class BarChartConfigDialogComponent implements OnInit {
       defaultBarColor: this.form.defaultBarColor || undefined,
       filters: filtersDto,
       additionalSeries: this.effectiveAdditionalSeries.length > 0 ? this.effectiveAdditionalSeries : undefined,
-      primarySeries: this.selectedQueryFamily === 'streamData' ? barPrimaryOptions(this.primarySeries) : undefined
+      primarySeries: this.selectedQueryFamily === 'streamData' ? barPrimaryOptions(this.primarySeries) : undefined,
+      categoryLabels: fromValueLabelRows(this.categoryLabelRows),
+      seriesLabels: fromValueLabelRows(this.seriesLabelRows)
     };
 
     // Add dynamic series fields if in dynamic mode

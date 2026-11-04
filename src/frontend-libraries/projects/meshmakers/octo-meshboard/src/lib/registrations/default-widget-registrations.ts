@@ -34,7 +34,8 @@ import {
   AlertListWidgetConfig,
   AiInsightsWidgetConfig,
   DataSource,
-  WidgetFilterConfig
+  WidgetFilterConfig,
+  ChartValueLabels
 } from '../models/meshboard.models';
 
 // Widget Components
@@ -1099,6 +1100,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialLegendPosition: pieWidget.legendPosition,
         initialFilters: pieWidget.filters,
         initialCategoryColors: pieWidget.categoryColors,
+        initialCategoryLabels: pieWidget.categoryLabels,
         initialLabelPosition: pieWidget.labelPosition,
         initialHideLabelsBelowPercent: pieWidget.hideLabelsBelowPercent
       };
@@ -1143,6 +1145,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         legendPosition: result.legendPosition,
         filters,
         categoryColors: result.categoryColors,
+        categoryLabels: result.categoryLabels,
         labelPosition: result.labelPosition,
         hideLabelsBelowPercent: result.hideLabelsBelowPercent
       };
@@ -1293,7 +1296,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialDefaultBarColor: barWidget.defaultBarColor,
         initialFilters: barWidget.filters,
         initialAdditionalSeries: barWidget.additionalSeries,
-        initialPrimarySeries: barWidget.primarySeries
+        initialPrimarySeries: barWidget.primarySeries,
+        initialCategoryLabels: barWidget.categoryLabels,
+        initialSeriesLabels: barWidget.seriesLabels
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1328,7 +1333,9 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         defaultBarColor: result.defaultBarColor,
         filters,
         additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
-        primarySeries: barPrimaryOrUndefined(result.primarySeries)
+        primarySeries: barPrimaryOrUndefined(result.primarySeries),
+        categoryLabels: result.categoryLabels,
+        seriesLabels: result.seriesLabels
       } as BarChartWidgetConfig;
     },
 
@@ -1367,6 +1374,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         // AB#7953: written only when set, so a single-query bar chart encodes exactly as before.
         ...(widget.additionalSeries?.length && { additionalSeries: widget.additionalSeries }),
         ...(barPrimaryOrUndefined(widget.primarySeries) && { primarySeries: barPrimaryOrUndefined(widget.primarySeries) }),
+        ...chartValueLabelsConfig('categoryLabels', widget.categoryLabels),
+        ...chartValueLabelsConfig('seriesLabels', widget.seriesLabels),
         queryName: (widget.dataSource as PersistentQueryDataSource).queryName,
         queryRtId: (widget.dataSource as PersistentQueryDataSource).queryRtId,
         ...((widget.dataSource as PersistentQueryDataSource).queryFamily && {
@@ -1405,6 +1414,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         colorThresholds: config['colorThresholds'] as BarChartWidgetConfig['colorThresholds'],
         defaultBarColor: config['defaultBarColor'] as string | undefined,
         filters: config['filters'] as WidgetFilterConfig[] | undefined,
+        ...chartValueLabelsConfig('categoryLabels', config['categoryLabels']),
+        ...chartValueLabelsConfig('seriesLabels', config['seriesLabels']),
         ...barChartSeriesFromPersisted(config)
       };
     }
@@ -1448,7 +1459,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialStacked: lineWidget.stacked,
         initialPrimarySeries: lineWidget.primarySeries,
         initialBucketMinutes: lineWidget.bucketMinutes,
-        initialExcludedSeriesGroupValues: lineWidget.excludedSeriesGroupValues
+        initialExcludedSeriesGroupValues: lineWidget.excludedSeriesGroupValues,
+        initialSeriesLabels: lineWidget.seriesLabels
       };
     },
     applyConfigResult: (widget, result) => {
@@ -1491,7 +1503,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         stacked: result.stacked || undefined,
         primarySeries: displayOptionsOrUndefined(result.primarySeries),
         bucketMinutes: bucketMinutesOrUndefined(result.bucketMinutes),
-        excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(result.excludedSeriesGroupValues)
+        excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(result.excludedSeriesGroupValues),
+        seriesLabels: result.seriesLabels
       } as LineChartWidgetConfig;
     },
 
@@ -1554,7 +1567,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...(bucketMinutesOrUndefined(widget.bucketMinutes) && { bucketMinutes: bucketMinutesOrUndefined(widget.bucketMinutes) }),
         ...(excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues) && {
           excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues)
-        })
+        }),
+        ...chartValueLabelsConfig('seriesLabels', widget.seriesLabels)
       }
     }),
 
@@ -1578,6 +1592,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         showDataBadge: (config['showDataBadge'] as boolean | undefined) ?? true,
         referenceLines: config['referenceLines'] as LineChartWidgetConfig['referenceLines'],
         filters: config['filters'] as WidgetFilterConfig[] | undefined,
+        ...chartValueLabelsConfig('seriesLabels', config['seriesLabels']),
         ...lineChartSeriesFromPersisted(config)
       };
     }
@@ -2562,6 +2577,7 @@ export function provideDefaultWidgets(): EnvironmentProviders {
 function pieChartPresentationConfig(widget: PieChartWidgetConfig): Record<string, unknown> {
   return {
     ...(widget.categoryColors && Object.keys(widget.categoryColors).length ? { categoryColors: widget.categoryColors } : {}),
+    ...chartValueLabelsConfig('categoryLabels', widget.categoryLabels),
     ...(widget.labelPosition ? { labelPosition: widget.labelPosition } : {}),
     ...(widget.hideLabelsBelowPercent ? { hideLabelsBelowPercent: widget.hideLabelsBelowPercent } : {})
   };
@@ -2572,6 +2588,12 @@ function stringEntries(record: Record<string, unknown>): Record<string, string> 
   return Object.fromEntries(Object.entries(record).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
 }
 
+/** `{ [key]: labels }` when the map has a usable entry, else nothing, so charts without names encode exactly as before. */
+function chartValueLabelsConfig(key: 'categoryLabels' | 'seriesLabels', labels: unknown): Partial<Record<'categoryLabels' | 'seriesLabels', ChartValueLabels>> {
+  const normalized = normalizeChartValueLabels(labels);
+  return normalized ? { [key]: normalized } : {};
+}
+
 /** Reads {@link pieChartPresentationConfig} back; unknown or missing values are left out. */
 function readPieChartPresentationConfig(config: Record<string, unknown>): Partial<PieChartWidgetConfig> {
   const colors = config['categoryColors'];
@@ -2579,6 +2601,7 @@ function readPieChartPresentationConfig(config: Record<string, unknown>): Partia
   const minPercent = config['hideLabelsBelowPercent'];
   return {
     ...(colors && typeof colors === 'object' && !Array.isArray(colors) ? { categoryColors: stringEntries(colors as Record<string, unknown>) } : {}),
+    ...chartValueLabelsConfig('categoryLabels', config['categoryLabels']),
     ...(position === 'inside' || position === 'outside' || position === 'none' ? { labelPosition: position } : {}),
     ...(typeof minPercent === 'number' && minPercent > 0 ? { hideLabelsBelowPercent: minPercent } : {})
   };
@@ -2591,6 +2614,7 @@ import { WidgetRegistration } from '../services/widget-registry.service';
 import { MESHBOARD_MESSAGES, MeshBoardMessagesSource } from '../utils/meshboard-messages';
 import { MESHBOARD_LANGUAGE, MeshBoardLanguageSource } from '../utils/meshboard-language';
 import { normalizeKpiDecimalPlaces } from '../utils/kpi-decimal-places';
+import { normalizeChartValueLabels } from '../utils/chart-value-labels';
 
 /**
  * Configuration options for MeshBoard

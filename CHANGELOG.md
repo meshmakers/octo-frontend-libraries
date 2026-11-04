@@ -10,6 +10,20 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: board authors give chart categories and series readable names in the widget config (AB#7235)
+
+- New: the pie chart takes `categoryLabels`, the bar chart `categoryLabels` and `seriesLabels`, the line chart
+  `seriesLabels` in its widget `Config` - a plain map from the raw value to the text to show, e.g.
+  `"categoryLabels": { "1-1:2.9.0 G.03": "Feed-in" }`. Slices, axis labels, legend and tooltip show the name. Display
+  only: queries, filters, series grouping, `excludedSeriesGroupValues` and `categoryColors` keep matching the raw value.
+- A value without an entry, a missing key and an empty map show what the chart showed before. The pie chart's
+  precedence is the widget entry, then the host `MESHBOARD_LABEL_RESOLVER`, then today's text; bar and line charts
+  never asked the resolver and still do not. When two raw series values get the same name, each series is shown as
+  `Name (raw value)`.
+- The pie, bar and line config dialogs have a *Category Names* / *Series Names* section (`mm-value-labels-editor`,
+  exported as `ValueLabelsEditorComponent`). Both keys are written to the board JSON only when set; boards without
+  them load and save unchanged.
+
 ### octo-meshboard: bar chart main value axis scales to the data again (AB#8234)
 
 - Fix (regression of AB#8046): every bar chart series was bound with `[axis]="... : ''"`. The main value axis is

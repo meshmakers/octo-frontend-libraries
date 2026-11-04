@@ -13,6 +13,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField } from '../../utils/widget-data-utils';
 import { isIsoDateTime, formatInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
+import { configuredValueLabel, seriesLabelsByRawValue } from '../../utils/chart-value-labels';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import {
   composeChartSeries,
@@ -26,6 +27,7 @@ import {
 } from '../line-chart-widget/line-chart-multi-source';
 import {
   alignOnCategories,
+  CategorySeriesInput,
   CategorySourceInput,
   CategoryValue,
   primaryRowsToCategorySeries,
@@ -619,7 +621,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
           return;
         }
         const converted = source.primary
-          ? primaryRowsToCategorySeries(f.value, this.config, valueScale)
+          ? this.withSeriesLabels(primaryRowsToCategorySeries(f.value, this.config, valueScale))
           : (r => ({ categories: r.categories, series: [r.series] }))(
             queryRowsToCategorySeries(f.value, source.label, source.categoryField as string, source.valueField as string, valueScale));
         if (converted.categories.length === 0 || converted.series.length === 0) {
@@ -689,13 +691,26 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const dayOf = (c: CategoryValue): string =>
       formatInstant(new Date(c.instant as number), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '';
     const byDay = allInstants && new Set(categories.map(dayOf)).size === categories.length;
-    return uniqueLabels(categories.map(c => {
+    const labels = uniqueLabels(categories.map(c => {
       if (byDay) return dayOf(c);
       if (c.instant !== null) {
         return formatInstant(new Date(c.instant), mode, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) ?? String(c.raw);
       }
       return String(c.raw ?? '');
     }));
+    return labels.map((label, i) => configuredValueLabel(this.config.categoryLabels, String(categories[i].raw ?? '')) ?? label);
+  }
+
+  /**
+   * Dynamic series of the primary query shown under their `seriesLabels` names; the series of a
+   * static value-field list keep their configured names.
+   */
+  private withSeriesLabels(converted: { categories: CategoryValue[]; series: CategorySeriesInput[] }): { categories: CategoryValue[]; series: CategorySeriesInput[] } {
+    if (!this.isDynamicSeriesMode()) {
+      return converted;
+    }
+    const names = seriesLabelsByRawValue(converted.series.map(s => s.name), this.config.seriesLabels);
+    return { ...converted, series: converted.series.map(s => ({ ...s, name: names.get(s.name) ?? s.name })) };
   }
 
   /** Short message of a failed source for its hint. */
@@ -732,7 +747,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       // category is not overwritten by an aggregation cell over the same attribute
       // (e.g. `state` vs `state_count`) — AB#4293.
       const categoryCell = findCellForField(row.cells, this.config.categoryField);
-      const categoryValue = categoryCell ? this.formatCategoryValue(categoryCell.value) : '';
+      const categoryValue = categoryCell ? this.categoryText(categoryCell.value) : '';
 
       const rowValues = new Map<string, number | null>();
       for (const seriesConfig of (this.config.series ?? [])) {
@@ -793,6 +808,8 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const dataMap = new Map<string, Map<string, number | null>>();
     const allCategories = new Set<string>();
     const allSeriesGroups = new Set<string>();
+    // Maps stay keyed by the formatted raw category; only a configured name replaces it at the end.
+    const categoryNames = new Map<string, string>();
 
     for (const row of filteredRows) {
       // Exact match wins over the loose aggregation-suffix fallback (AB#4293).
@@ -807,6 +824,10 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       if (categoryValue && seriesGroupValue) {
         allCategories.add(categoryValue);
         allSeriesGroups.add(seriesGroupValue);
+        const configured = configuredValueLabel(this.config.categoryLabels, String(categoryCell?.value ?? ''));
+        if (configured !== undefined && !categoryNames.has(categoryValue)) {
+          categoryNames.set(categoryValue, configured);
+        }
 
         if (!dataMap.has(categoryValue)) {
           dataMap.set(categoryValue, new Map());
@@ -821,6 +842,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
 
     // Build series data
     const valueScale = this.config?.valueScale ?? 1;
+    const seriesNames = seriesLabelsByRawValue(seriesGroups, this.config.seriesLabels);
     const seriesData: SeriesData[] = seriesGroups.map(seriesGroup => {
       const rawData = categories.map(category => {
         const cell = dataMap.get(category);
@@ -831,12 +853,12 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       });
 
       return {
-        name: seriesGroup,
+        name: seriesNames.get(seriesGroup) ?? seriesGroup,
         data: this.hasColorThresholds() ? this.applyColorThresholds(rawData) : rawData
       };
     });
 
-    this._categories.set(categories);
+    this._categories.set(categories.map(category => categoryNames.get(category) ?? category));
     this._seriesData.set(seriesData);
   }
 
@@ -877,6 +899,11 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       if (val <= t.value) return t.color;
     }
     return defaultColor;
+  }
+
+  /** Axis text of a category: its `categoryLabels` name (looked up by the raw value), else the formatted value. */
+  private categoryText(value: unknown): string {
+    return configuredValueLabel(this.config.categoryLabels, String(value ?? '')) ?? this.formatCategoryValue(value);
   }
 
   private formatCategoryValue(value: unknown): string {

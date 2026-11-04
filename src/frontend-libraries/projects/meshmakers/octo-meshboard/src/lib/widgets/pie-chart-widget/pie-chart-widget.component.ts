@@ -14,6 +14,7 @@ import { findCellForField, matchesAttributePath } from '../../utils/widget-data-
 import { categoryStatus, chartSeriesColors, humanizeCategory, resolveChartColor, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
+import { configuredValueLabel } from '../../utils/chart-value-labels';
 
 /**
  * Data item for the pie chart
@@ -280,13 +281,15 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   }
 
   /**
-   * Human label and status colour for a raw category value (exposed for tests). The label is the
-   * host resolver's text (AB#5622), else the humanized category; the colour still follows the raw value.
+   * Label and colour for a raw category value (exposed for tests). The label is the `categoryLabels`
+   * entry of the widget config (AB#7235), else the host resolver's text (AB#5622), else the
+   * humanized category. The colour still follows the raw value (and, as before, the resolver text).
    */
   toItem(rawCategory: string, value: number, index = 0, palette: readonly string[] = chartSeriesColors()): ChartDataItem {
-    const category = this.categoryLabel(rawCategory);
+    const hostLabel = this.categoryLabel(rawCategory);
+    const category = configuredValueLabel(this.config?.categoryLabels, rawCategory) ?? hostLabel;
     const status = categoryStatus(rawCategory);
-    const color = this.configuredColor(rawCategory, category)
+    const color = this.configuredColor(rawCategory, hostLabel)
       ?? (status ? statusColor(status) : undefined)
       ?? (palette.length ? palette[index % palette.length] : undefined);
     return { category, value, ...(color ? { color } : {}) };

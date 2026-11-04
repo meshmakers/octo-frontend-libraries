@@ -544,6 +544,7 @@ interface PieChartWidgetConfig {
   categoryColors?: Record<string, string>;            // AB#5622
   labelPosition?: 'inside' | 'outside' | 'none';      // AB#5622
   hideLabelsBelowPercent?: number;                    // AB#5622
+  categoryLabels?: Record<string, string>;            // AB#7235, see "Chart value labels"
 }
 ```
 
@@ -584,6 +585,8 @@ interface BarChartWidgetConfig {
   showLegend?: boolean;
   legendPosition?: 'top' | 'bottom' | 'left' | 'right';
   filters?: WidgetFilterConfig[];
+  categoryLabels?: Record<string, string>;  // AB#7235, see "Chart value labels"
+  seriesLabels?: Record<string, string>;    // AB#7235, dynamic series mode
 }
 ```
 
@@ -602,6 +605,7 @@ interface LineChartWidgetConfig {
   valueField: string;
   unitField?: string;
   excludedSeriesGroupValues?: string[];  // series group values left out (see below)
+  seriesLabels?: Record<string, string>;  // AB#7235, see "Chart value labels"
   // ... legend, markers, filters, additionalSeries, primarySeries, stacked, bucketMinutes
 }
 ```
@@ -635,6 +639,48 @@ row filter on the group column fails). Board JSON of a widget config:
 - The key is written only when the list is not empty; charts without it load and save unchanged.
 - In the dialog: *Field Mapping → Excluded series*, shown once a series group field is set. Choosing another
   series group field or another query clears the list.
+
+### Chart value labels (`categoryLabels` / `seriesLabels`, AB#7235)
+
+A query often groups by a code - an OBIS code, a material number, a cost centre. A pie, bar or line
+chart can show a readable name instead of the code. The names are part of the widget's `Config`, a plain
+map from the raw value to the text to show, so a board reads the same in every host application:
+
+```json
+"categoryLabels": { "1-1:2.9.0 G.03": "Feed-in", "1-1:2.9.0 P.01T": "Surplus" }
+```
+
+| Widget | Key | Renames |
+|--------|-----|---------|
+| `pieChart` | `categoryLabels` | the slices: data labels, legend, tooltip |
+| `barChart` | `categoryLabels` | the categories: axis labels, tooltip |
+| `barChart` | `seriesLabels` | the dynamic series of `seriesGroupField`: legend, tooltip |
+| `lineChart` | `seriesLabels` | the lines of `seriesGroupField`: legend, tooltip |
+
+Which text a value gets:
+
+1. the widget entry for the exact raw value (case and blanks as the data delivers them);
+2. the host's `MESHBOARD_LABEL_RESOLVER` result - only the pie chart asks the resolver, bar and line
+   charts never did;
+3. today's text: the raw value, for a pie slice the humanized category (`RESOLVE_FAILED` -> "Resolve failed"),
+   for a date category the formatted date.
+
+A value without an entry, no key at all and an empty map all show exactly what the chart showed before.
+
+- **Display only.** Queries, filters, a KPI's `queryCategoryValue`, the grouping into series,
+  `excludedSeriesGroupValues` and the pie's `categoryColors` keep matching the raw value. A name that equals a
+  `categoryColors` key does not pull that colour onto the slice.
+- **Series stay distinct.** Chart series are keyed by their name: when two raw series values get the same name,
+  each is shown as `Name (raw value)`. Two categories with the same name are shown as they are.
+- **Series of other queries keep their own labels.** `seriesLabels` renames only the series that come from the
+  primary query's `seriesGroupField`; `additionalSeries` (label), a static value-field list (`name`) and formula
+  series are not touched.
+- **Persistence.** Both keys are written to the board JSON only when they have at least one entry with a value and a
+  non-blank name; charts without them save and load unchanged.
+- **Config dialogs.** The pie, bar and line dialogs have a *Category Names* / *Series Names* section
+  (`mm-value-labels-editor`, see its README): one row per raw value, an empty list shows a hint, a value listed
+  twice is flagged. Rows without a value or without a name are dropped on Save, so an unfinished row never
+  replaces a complete one. The bar chart dialog offers *Series Names* in dynamic series mode.
 
 ### Stats Grid Widget
 Displays multiple KPIs in a grid layout.

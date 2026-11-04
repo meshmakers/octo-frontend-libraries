@@ -484,6 +484,14 @@ export interface TableColumnStatusIconMapping {
 }
 
 /**
+ * Names shown instead of the raw values of a chart field, keyed by the raw value, e.g.
+ * `{ "1-1:2.9.0 G.03": "Feed-in" }`. A value without an entry is shown as before. Display only:
+ * queries, filters, `queryCategoryValue`, drill-down, series grouping and `categoryColors` keep
+ * matching the raw value.
+ */
+export type ChartValueLabels = Record<string, string>;
+
+/**
  * Display label of one raw cell value of a table column (AB#7655), e.g. `{ label: 'L2' }` for `2`.
  */
 export interface TableColumnValueLabel {
@@ -624,6 +632,12 @@ export interface PieChartWidgetConfig extends WidgetConfig {
    */
   categoryColors?: Record<string, string>;
   /**
+   * Names shown instead of the raw `categoryField` values (AB#7235): slices, legend, labels and
+   * tooltip. Wins over `MESHBOARD_LABEL_RESOLVER`; a category without an entry keeps the host
+   * label or today's text.
+   */
+  categoryLabels?: ChartValueLabels;
+  /**
    * Where slice labels sit while `showLabels` is on (AB#5622): `outside` (with connector lines),
    * `inside` or `none` (no labels). Absent = the chart default (outside, unchanged).
    */
@@ -698,6 +712,13 @@ export interface BarChartWidgetConfig extends WidgetConfig {
   showDataLabels?: boolean;
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
+  /** Names shown instead of the raw `categoryField` values (AB#7235): axis labels and tooltip. */
+  categoryLabels?: ChartValueLabels;
+  /**
+   * Names shown instead of the raw `seriesGroupField` values (AB#7235; Dynamic Series Mode): legend
+   * and tooltip. Series of other queries and static value fields keep their own names.
+   */
+  seriesLabels?: ChartValueLabels;
   /** Suffix appended to data labels (e.g. ' kW') */
   dataLabelSuffix?: string;
   /**
@@ -817,6 +838,12 @@ export interface LineChartWidgetConfig extends WidgetConfig {
    * whitespace as stored), before any display label. Omitted when empty.
    */
   excludedSeriesGroupValues?: string[];
+  /**
+   * Names shown instead of the raw {@link seriesGroupField} values of the primary data source
+   * (AB#7235): legend and tooltip. Display only: grouping, `excludedSeriesGroupValues` and the
+   * queries keep matching the raw value. Series of `additionalSeries` keep their own labels.
+   */
+  seriesLabels?: ChartValueLabels;
 }
 
 /** Fixed bucket sizes of a line chart in minutes (AB#8046). All divide one hour, so they stay on the wall-clock grid across DST changes. */

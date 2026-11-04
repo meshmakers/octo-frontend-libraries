@@ -30,7 +30,7 @@ npm run lint:octo-meshboard
 
 ```
 src/lib/
-├── components/               # Shared components (VariablesEditor, EntitySelectorEditor, EntitySelectorToolbar, FormulaField)
+├── components/               # Shared components (VariablesEditor, EntitySelectorEditor, EntitySelectorToolbar, FormulaField, ValueLabelsEditor)
 ├── containers/               # Main container components
 │   └── meshboard-view/       # MeshBoard view component
 ├── dialogs/                  # Dialog components
@@ -457,8 +457,8 @@ interface AggregationQuery {
 |------|-------------|--------------|
 | `kpi` | Single numeric value with optional trend. A `static` data source with `data` (widget-group children) reads `valueAttribute` from that entity data; without `data` the KPI shows `staticValue`. Optional `decimalPlaces` (integer number 0-3, normalised on load by `utils/kpi-decimal-places.ts`, anything else = automatic; an exact digit count, unlike the heatmap's maximum; also passed to widget-group KPI children) fixes the fraction digits of a numeric value, a negative value rounding to zero shows no sign (unset or invalid: two for a fractional value, none for a whole number; AB#7686). Optional `valueMultiplier` scales numeric query values before display (e.g. Σ(kW samples every 10 s) × 10/3600 → kWh; window-independent because SUM is linear; negate for signed magnitudes like battery discharge). **Formula mode** (`valueMode: 'formula'`) computes the value from a formula over variables; any KPI can publish its raw value via `outputVariableName` — see *Widget Output Variables and KPI Formulas* | runtimeEntity, persistentQuery, aggregation, static |
 | `gauge` | Arc, Circular, Linear, or Radial gauge. **Formula mode** (`valueMode: 'formula'` + `formula`, static data source; AB#7950) computes the value from a formula over variables exactly like the KPI — see *Widget Output Variables and KPI Formulas*. The pointer is clamped to `min`/`max` (it stops at the scale end), the label shows the real value | runtimeEntity, persistentQuery, aggregation, static |
-| `barChart` | Bar/Column chart; series from several queries and formula series matched per category (AB#7953) — see *Bar chart: series from several queries* | persistentQuery, constructionKitQuery |
-| `pieChart` | Pie/Donut chart | persistentQuery, constructionKitQuery |
+| `barChart` | Bar/Column chart; series from several queries and formula series matched per category (AB#7953) — see *Bar chart: series from several queries*; `categoryLabels` / `seriesLabels` name categories and dynamic series — see *Chart value labels* | persistentQuery, constructionKitQuery |
+| `pieChart` | Pie/Donut chart; `categoryLabels` names the slices — see *Chart value labels* | persistentQuery, constructionKitQuery |
 | `table` | Data grid with pagination | persistentQuery |
 | `entityCard` | UML-style entity display | runtimeEntity |
 | `entityWithAssociations` | Entity with relationships | runtimeEntity |
@@ -1317,6 +1317,46 @@ single-cell resolver would collapse.)
 
 ---
 
+## Chart value labels (`categoryLabels` / `seriesLabels`, AB#7235)
+
+A chart that groups by a code shows a configured name instead (`ChartValueLabels`, a flat `Record<string, string>`
+from the raw value to the text). Pie: `categoryLabels`; bar: `categoryLabels` and `seriesLabels`; line: `seriesLabels`.
+The names live in the widget `Config`, so every host renders the same. User-facing description: README, *Chart value labels*.
+
+| Piece | Where |
+|---|---|
+| Config type | `ChartValueLabels` and the three keys in `models/meshboard.models.ts` |
+| Pure helpers | `utils/chart-value-labels.ts`: `normalizeChartValueLabels`, `configuredValueLabel` (own keys only), `seriesLabelsByRawValue` (distinct names), editor rows `toValueLabelRows` / `fromValueLabelRows` / `duplicateValueLabelValues` |
+| Dialog editor | `components/value-labels-editor` (`mm-value-labels-editor`, `[(rows)]`), a *Category Names* / *Series Names* section of the pie, bar (series names in dynamic mode) and line dialogs |
+| Persistence | `default-widget-registrations.ts`: `chartValueLabelsConfig` writes a key only when the map has a usable entry (pie: inside `pieChartPresentationConfig` / `readPieChartPresentationConfig`); load goes through `normalizeChartValueLabels` |
+
+Rules that keep it safe to extend:
+
+- **Rename at the very end.** Maps, grouping, `excludedSeriesGroupValues`, thresholds and unit lookups stay on the raw
+  value; only the text handed to the chart is replaced. Bar dynamic mode keys its category map by the formatted raw
+  category and swaps in the name last, so two raw categories with one name stay two categories.
+- **Precedence:** widget entry for the exact raw value, then the host `MESHBOARD_LABEL_RESOLVER` (only the pie chart
+  calls it), then today's text. The pie's `categoryColors` fallback lookup by label still uses the host label, never
+  the configured name (`toItem`).
+- **Series are keyed by name** (`track series.name`): `seriesLabelsByRawValue` shows a shared name as `Name (raw)`.
+  The line chart looks the tooltip unit up by the shown name, so its unit map is rebuilt under the names.
+- **Only the primary query's grouped series are renamed** (`withSeriesLabels` in the bar and line widget, applied in the
+  single-query path and on the primary source of the multi-source path). Additional series, static value-field series
+  and formula series keep their own names.
+- **A new config property needs the registration edits** (`getInitialConfig`, `applyConfigResult`, `toPersistedConfig`,
+  `fromPersistedConfig`); `toPersistedConfig` writes an explicit list, so a property missing there is dropped on the
+  first dialog save.
+- **Editor rows:** unfinished rows (no value or no name) are skipped before the map is built, so a half-typed duplicate
+  never replaces the name of a complete row. Kendo textboxes carry their `aria-label` through `inputAttributes` (the
+  host element is not the input).
+
+Specs: `utils/chart-value-labels.spec.ts`, `components/value-labels-editor/value-labels-editor.component.spec.ts`,
+`widgets/{pie,bar,line}-chart-widget/*.value-labels.spec.ts` (names, fallback, precedence, raw grouping, display only,
+multi-source), `widgets/chart-config-dialogs.value-labels.spec.ts` (editor driven through the rendered dialogs),
+`registrations/default-widget-registrations.chart-value-labels.spec.ts` (save / reload, dialog round trip, legacy boards).
+
+---
+
 ## Line-chart resolution-aware fan-out
 
 A `resolutionAware` stream-data line chart resolves the best archive/rollup for the visible window
@@ -1742,6 +1782,7 @@ Current test files:
 - `widget-group-config-dialog.component.spec.ts` - widget-group dialog: KPI child `decimalPlaces` read, save, out-of-range (AB#7686)
 - `association-targets-cache.spec.ts` - `getAssociationTargets` selects `rtId` on every entity row; round trip through a cache keyed by `rtId` (AB#7649)
 - `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)
+- Chart value labels (AB#7235): see the spec list at the end of *Chart value labels*
 - `utils/meshboard-language.spec.ts` - `MESHBOARD_LANGUAGE` source (fixed / signal / absent), culture keys, lookup order (AB#7655)
 - `widgets/table-widget/table-column-labels.spec.ts` - column `titles` / `valueLabels` resolution, malformed entries, dialog column merge (AB#7655)
 - `widgets/table-widget/table-widget.labels.spec.ts` - headers follow the host language without refetch, value-label cells, one warning per column, numeric enum cells for the resolver (AB#7655)
