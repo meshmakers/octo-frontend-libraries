@@ -1334,7 +1334,8 @@ Rules that keep it safe to extend:
 
 - **Rename at the very end.** Maps, grouping, `excludedSeriesGroupValues`, thresholds and unit lookups stay on the raw
   value; only the text handed to the chart is replaced. Bar dynamic mode keys its category map by the formatted raw
-  category and swaps in the name last, so two raw categories with one name stay two categories.
+  category and swaps in the name last, so two raw categories with one name stay two categories (multi-source: the name is
+  applied before `uniqueLabels`, so repeated names become `Name`, `Name (2)` and `tooltipRows` finds each category).
 - **Precedence:** widget entry for the exact raw value, then the host `MESHBOARD_LABEL_RESOLVER` (only the pie chart
   calls it), then today's text. The pie's `categoryColors` fallback lookup by label still uses the host label, never
   the configured name (`toItem`).

@@ -1,8 +1,8 @@
 # Value labels editor (`mm-value-labels-editor`)
 
 Edits the names a chart shows instead of raw values (OBIS codes, material numbers, ...) in the config
-dialogs of the pie, bar and line chart (AB#7235). One row per raw value: the value exactly as the data
-delivers it, and the name to display. The widget side is described in the meshboard README ("Chart value
+dialogs of the pie, bar and line chart (AB#7235). One row per raw value: the value as the data
+delivers it (blanks around it are removed on save), and the name to display; a row without a name is not saved. The widget side is described in the meshboard README ("Chart value
 labels").
 
 ```html

@@ -691,14 +691,15 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const dayOf = (c: CategoryValue): string =>
       formatInstant(new Date(c.instant as number), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '';
     const byDay = allInstants && new Set(categories.map(dayOf)).size === categories.length;
-    const labels = uniqueLabels(categories.map(c => {
+    return uniqueLabels(categories.map(c => {
+      const configured = configuredValueLabel(this.config.categoryLabels, String(c.raw ?? ''));
+      if (configured !== undefined) return configured;
       if (byDay) return dayOf(c);
       if (c.instant !== null) {
         return formatInstant(new Date(c.instant), mode, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) ?? String(c.raw);
       }
       return String(c.raw ?? '');
     }));
-    return labels.map((label, i) => configuredValueLabel(this.config.categoryLabels, String(categories[i].raw ?? '')) ?? label);
   }
 
   /**

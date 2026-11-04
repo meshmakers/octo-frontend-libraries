@@ -25,8 +25,8 @@ import { duplicateValueLabelValues, ValueLabelRow } from '../../utils/chart-valu
   template: `
     <div class="value-labels" role="group" [attr.aria-label]="subjectTitle() + ' names'">
       <p class="value-labels-hint">
-        Optional. Shows a name instead of the raw {{ subject() }} value, e.g. for a code. Enter the value exactly as the
-        data delivers it; values without a name are shown unchanged.
+        Optional. Shows a name instead of the raw {{ subject() }} value, e.g. for a code. Enter the value as the
+        data delivers it (blanks around it are removed); a row without a name is not saved, and values without a name are shown unchanged.
       </p>
 
       @if (rows().length === 0) {

@@ -211,6 +211,18 @@ describe('BarChartWidgetComponent value labels (AB#7235)', () => {
       expect(cmp.categories().length).toBe(2);
     });
 
+    it('two raw categories with one name stay two categories and the tooltip of the second shows its own values', async () => {
+      const { cmp, load } = setup(multi({ categoryLabels: { [D1]: 'Same', [D2]: 'Same' } }), { 'q-main': grid, 'q-pv': pv });
+
+      await load();
+
+      const [first, second] = cmp.categories();
+      expect(first).toBe('Same');
+      expect(second).toBe('Same (2)');
+      expect(cmp.tooltipRows(first).map(r => r.text)).toEqual(['3', '4', '7']);
+      expect(cmp.tooltipRows(second).map(r => r.text)).toEqual(['5', '0', '8']);
+    });
+
     it('does not rename the static value fields of a multi-source chart', async () => {
       const { cmp, load } = setup(multi({ seriesGroupField: undefined, valueField: undefined, series: [{ field: 'importEnergy', name: 'Grid import' }], seriesLabels: { 'Grid import': 'Renamed', importEnergy: 'Renamed' } }), { 'q-main': grid, 'q-pv': pv });
 
