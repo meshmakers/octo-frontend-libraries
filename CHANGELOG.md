@@ -18,8 +18,8 @@ starts a new empty "Unreleased" section.
   only: queries, filters, series grouping, `excludedSeriesGroupValues` and `categoryColors` keep matching the raw value.
 - A value without an entry, a missing key and an empty map show what the chart showed before. The pie chart's
   precedence is the widget entry, then the host `MESHBOARD_LABEL_RESOLVER`, then today's text; bar and line charts
-  never asked the resolver and still do not. When two raw series values get the same name, each series is shown as
-  `Name (raw value)`.
+  never asked the resolver and still do not. When two raw series values get the same name, the series whose
+  raw value differs from the name is shown as `Name (raw value)`.
 - The pie, bar and line config dialogs have a *Category Names* / *Series Names* section (`mm-value-labels-editor`,
   exported as `ValueLabelsEditorComponent`). Both keys are written to the board JSON only when set; boards without
   them load and save unchanged.

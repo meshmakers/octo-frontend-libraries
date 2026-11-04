@@ -1341,8 +1341,8 @@ Rules that keep it safe to extend:
   the configured name (`toItem`).
 - **Series are keyed by name** (`track series.name`): `seriesLabelsByRawValue` shows a shared name as `Name (raw)`.
   The line chart looks the tooltip unit up by the shown name, so its unit map is rebuilt under the names.
-- **Only the primary query's grouped series are renamed** (`withSeriesLabels` in the bar and line widget, applied in the
-  single-query path and on the primary source of the multi-source path). Additional series, static value-field series
+- **Only the primary query's grouped series are renamed** (`withSeriesLabels` on the primary source of the
+  multi-source path; the single-query path applies `seriesLabelsByRawValue` inline). Additional series, static value-field series
   and formula series keep their own names.
 - **A new config property needs the registration edits** (`getInitialConfig`, `applyConfigResult`, `toPersistedConfig`,
   `fromPersistedConfig`); `toPersistedConfig` writes an explicit list, so a property missing there is dropped on the

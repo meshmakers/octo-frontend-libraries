@@ -486,7 +486,7 @@ export interface TableColumnStatusIconMapping {
 /**
  * Names shown instead of the raw values of a chart field, keyed by the raw value, e.g.
  * `{ "1-1:2.9.0 G.03": "Feed-in" }`. A value without an entry is shown as before. Display only:
- * queries, filters, `queryCategoryValue`, drill-down, series grouping and `categoryColors` keep
+ * queries, filters, `queryCategoryValue`, series grouping and `categoryColors` keep
  * matching the raw value.
  */
 export type ChartValueLabels = Record<string, string>;

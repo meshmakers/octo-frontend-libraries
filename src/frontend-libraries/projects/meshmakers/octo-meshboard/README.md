@@ -671,7 +671,7 @@ A value without an entry, no key at all and an empty map all show exactly what t
   `excludedSeriesGroupValues` and the pie's `categoryColors` keep matching the raw value. A name that equals a
   `categoryColors` key does not pull that colour onto the slice.
 - **Series stay distinct.** Chart series are keyed by their name: when two raw series values get the same name,
-  each is shown as `Name (raw value)`. Two categories with the same name are shown as they are in a single-query chart; in the multi-source bar chart the repeated name gets a numbered suffix (`Name`, `Name (2)`), so every category keeps its own bar and tooltip.
+  the series whose raw value differs from the name is shown as `Name (raw value)`. Two categories with the same name are shown as they are in a single-query chart; in the multi-source bar chart the repeated name gets a numbered suffix (`Name`, `Name (2)`), so every category keeps its own bar and tooltip.
 - **Series of other queries keep their own labels.** `seriesLabels` renames only the series that come from the
   primary query's `seriesGroupField`; `additionalSeries` (label), a static value-field list (`name`) and formula
   series are not touched.
