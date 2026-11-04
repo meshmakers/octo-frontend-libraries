@@ -10,6 +10,14 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui fonts (web fonts shipped with the library, AB#7682)
+
+- New (non-breaking, additive): `@meshmakers/shared-ui` ships the web fonts of the shared theme (Roboto, Montserrat,
+  Roboto Mono; 20 `woff2` files, `fonts/fonts.css`, SIL OFL licence texts), so an app no longer needs a Google Fonts
+  `<link>`: one entry `node_modules/@meshmakers/shared-ui/fonts/fonts.css` in the `styles` of the app build
+  (`src/frontend-libraries/projects/meshmakers/shared-ui/docs/fonts.md`). Apps that load the fonts from Google today (Refinery Studio, meshmakers-app) switch to it and
+  drop the link; Energy Community, which loads no fonts, adds the entry.
+
 ### shared-ui list view (actions in the empty state, AB#7628)
 
 - New (non-breaking, additive): `ListViewEmptyActionsDirective` (`<ng-template mmListViewEmptyActions>` inside
