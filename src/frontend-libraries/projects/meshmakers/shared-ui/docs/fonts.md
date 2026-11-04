@@ -19,6 +19,16 @@ One entry in the `styles` of its build (`angular.json`), before its own styleshe
 The build emits the `woff2` files next to the app and the browser loads them from the app's own origin. An app
 that used a Google Fonts `<link>` removes it.
 
+The CSS does not reference the licence files, so the build does not copy them. The SIL Open Font License asks that
+the licence text accompanies redistributed copies of the fonts, so add one `assets` entry to the same build that
+copies them into the app output:
+
+```json
+"assets": [
+  { "glob": "*.txt", "input": "node_modules/@meshmakers/shared-ui/fonts/licenses", "output": "/licenses" }
+]
+```
+
 ## What is in the package
 
 ```
