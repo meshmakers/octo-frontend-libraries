@@ -1,6 +1,6 @@
 {
-  "platformUri": "https://platform.127-0-0-1.nip.io",
-  "adminUri": "https://platform.127-0-0-1.nip.io",
+  "platformUri": "https://localhost:5025",
+  "adminUri": "https://localhost:5005",
   "clientId": "octo-demo-app",
   "redirectUri": "https://localhost:4201/",
   "postLogoutRedirectUri": "https://localhost:4201/"
