@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { searchIcon, chartPieIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
-import { PieChartType, PieChartLabelPosition, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig } from '../../models/meshboard.models';
+import { PieChartType, PieChartLabelPosition, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig, ChartValueLabels } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -22,6 +22,8 @@ import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-tog
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { columnProbeWindow } from '../../utils/column-probe-window';
+import { ValueLabelsEditorComponent } from '../../components/value-labels-editor/value-labels-editor.component';
+import { fromValueLabelRows, toValueLabelRows, ValueLabelRow } from '../../utils/chart-value-labels';
 
 /**
  * Configuration result from the Pie Chart dialog
@@ -47,6 +49,8 @@ export interface PieChartConfigResult extends WidgetConfigResult {
   legendPosition: 'top' | 'bottom' | 'left' | 'right';
   /** Colour per category (AB#5622); absent = default colours. */
   categoryColors?: Record<string, string>;
+  /** Name per raw category value (AB#7235); absent = none. */
+  categoryLabels?: ChartValueLabels;
   /** Slice label position (AB#5622); absent = chart default. */
   labelPosition?: PieChartLabelPosition;
   /** Hide labels of slices below this share in percent (AB#5622); absent = all labelled. */
@@ -72,7 +76,8 @@ export interface PieChartConfigResult extends WidgetConfigResult {
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
     EntitySelectorScopePickerComponent,
-    LoadingOverlayComponent
+    LoadingOverlayComponent,
+    ValueLabelsEditorComponent
   ],
   template: `
     <div class="config-container">
@@ -209,6 +214,12 @@ export interface PieChartConfigResult extends WidgetConfigResult {
             </mm-field-filter-editor>
           </div>
         }
+
+        <!-- Category Names Section (AB#7235) -->
+        <div class="config-section" data-pie-category-labels>
+          <h3 class="section-title">Category Names</h3>
+          <mm-value-labels-editor [(rows)]="categoryLabelRows" subject="category"></mm-value-labels-editor>
+        </div>
 
         <!-- Chart Options Section -->
         <div class="config-section">
@@ -466,6 +477,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   @Input() initialCkGroupBy?: string;
   @Input() initialFilters?: WidgetFilterConfig[];
   @Input() initialCategoryColors?: Record<string, string>;
+  @Input() initialCategoryLabels?: ChartValueLabels;
   @Input() initialLabelPosition?: PieChartLabelPosition;
   @Input() initialHideLabelsBelowPercent?: number;
 
@@ -475,6 +487,9 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   /** Rows of the category colour editor (AB#5622). */
   categoryColorRows: { id: number; category: string; color: string }[] = [];
   private nextCategoryColorId = 1;
+
+  /** Rows of the category name editor (AB#7235). */
+  categoryLabelRows: ValueLabelRow[] = [];
 
   labelPositions: { value: PieChartLabelPosition | undefined; label: string }[] = [
     { value: undefined, label: 'Default' },
@@ -586,6 +601,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     this.form.ckGroupBy = this.initialCkGroupBy ?? 'modelState';
     this.form.labelPosition = this.initialLabelPosition;
     this.form.hideLabelsBelowPercent = this.initialHideLabelsBelowPercent ?? 0;
+    this.categoryLabelRows = toValueLabelRows(this.initialCategoryLabels);
     this.categoryColorRows = Object.entries(this.initialCategoryColors ?? {}).map(([category, color]) => ({ id: this.nextCategoryColorId++, category, color }));
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
     this.entitySelectorId = this.initialEntitySelectorId;
@@ -786,6 +802,10 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     const categoryColors = this.categoryColorsResult();
     if (categoryColors) {
       result.categoryColors = categoryColors;
+    }
+    const categoryLabels = fromValueLabelRows(this.categoryLabelRows);
+    if (categoryLabels) {
+      result.categoryLabels = categoryLabels;
     }
     if (this.form.displayMode === 'labels') {
       if (this.form.labelPosition) {
