@@ -31,6 +31,11 @@ import {
   problemCodeOf,
   toCrossTenantGrantError
 } from '../shared/crossTenantGrantError';
+import {
+  CROSS_TENANT_GRANT_PERMISSIONS_TYPED_STATUSES,
+  CrossTenantGrantPermissionsDto,
+  toCrossTenantGrantPermissionsError
+} from '../shared/crossTenantGrantPermissionsDto';
 import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
 import {CreateExternalTenantUserGroupMappingDto, ProvisioningGroupDto} from '../shared/provisioningGroupDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
@@ -1289,6 +1294,74 @@ export class IdentityService {
   /** The typed error for documented answers, otherwise the original error unchanged. */
   private static crossTenantGrantErrorOr(error: unknown, route: CrossTenantGrantRoute): unknown {
     return toCrossTenantGrantError(error, route) ?? error;
+  }
+
+  // ========================================
+  // Cross-tenant grant permissions of the current tenant as a source (AB#8430)
+  // Route: {issuer}{currentTenant}/v1/crossTenantGrantPermissions (AB#8345)
+  // Contract: octo-identity-services/docs/CONCEPT-SIBLING-TENANT-GRANTS.md §6
+  // Typed statuses (400/403/404/412) are caller-handled: no global toast, the page shows its own state.
+  // ========================================
+
+  /**
+   * Reads the target tenants the current tenant permits to look up its users by exact user name or e-mail
+   * and grant them access — `GET .../crossTenantGrantPermissions`. Empty = nobody (the default).
+   *
+   * @returns The list, or `null` when no identity URL is configured.
+   * @throws CrossTenantGrantPermissionsError `Forbidden` (no administrator of this tenant), `NotAvailable`
+   *   (identity service without AB#8345).
+   * @throws HttpErrorResponse for every other answer (401, 5xx).
+   */
+  async getCrossTenantGrantPermissions(): Promise<CrossTenantGrantPermissionsDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (!baseUrl) {
+      return null;
+    }
+    try {
+      const response = await firstValueFrom(
+        this.httpClient.get<CrossTenantGrantPermissionsDto>(
+          baseUrl + 'crossTenantGrantPermissions',
+          {observe: 'response', context: IdentityService.callerHandlesPermissionErrors()}));
+      return {targetTenantIds: response.body?.targetTenantIds ?? []};
+    } catch (error) {
+      throw toCrossTenantGrantPermissionsError(error) ?? error;
+    }
+  }
+
+  /**
+   * Replaces the whole list of target tenants the current tenant permits — `PUT .../crossTenantGrantPermissions`.
+   * `[]` permits nobody. A removed tenant's lookups and new grants stop with its next request; its existing grants
+   * are refused at the user's next tenant switch.
+   *
+   * Concurrency: the server does not check a version yet. When AB#8432 adds `ETag`/`If-Match`, this method gets an
+   * optional second parameter for the version and a `412` becomes `CrossTenantGrantPermissionsError` `Conflict`
+   * (already mapped) — existing callers stay unchanged.
+   *
+   * @returns The stored list (trimmed, lower-cased, de-duplicated by the server), or `null` when no identity URL is
+   *   configured.
+   * @throws CrossTenantGrantPermissionsError `Invalid` (with the server's `validationErrors`: own tenant, invalid
+   *   characters, too long, too many), `Forbidden`, `NotAvailable`.
+   * @throws HttpErrorResponse for every other answer (401, 5xx).
+   */
+  async setCrossTenantGrantPermissions(targetTenantIds: readonly string[]): Promise<CrossTenantGrantPermissionsDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (!baseUrl) {
+      return null;
+    }
+    const body: CrossTenantGrantPermissionsDto = {targetTenantIds: [...targetTenantIds]};
+    try {
+      const response = await firstValueFrom(
+        this.httpClient.put<CrossTenantGrantPermissionsDto>(
+          baseUrl + 'crossTenantGrantPermissions', body,
+          {observe: 'response', context: IdentityService.callerHandlesPermissionErrors()}));
+      return {targetTenantIds: response.body?.targetTenantIds ?? body.targetTenantIds};
+    } catch (error) {
+      throw toCrossTenantGrantPermissionsError(error) ?? error;
+    }
+  }
+
+  private static callerHandlesPermissionErrors(): HttpContext {
+    return new HttpContext().set(MM_CALLER_HANDLED_STATUSES, CROSS_TENANT_GRANT_PERMISSIONS_TYPED_STATUSES);
   }
 
   // ========================================

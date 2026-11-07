@@ -272,7 +272,16 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 
 Personal data: the lookup identifier (user name or e-mail) goes only into the POST body. The service never logs it and `CrossTenantGrantError` carries no request data (pinned in `identity-service.cross-tenant-grants.spec.ts`); callers must not log the request either.
 
-Backend availability: the lookup route is on identity `main` since AB#8341 (sibling sources answer `404` until the allow-list AB#8345 ships — only registry ancestors are found); `groupIds` is honoured once AB#8343 ships (until then an identity service stores the mapping without groups); `UnknownGroup` and `SourceTenantNotPermitted` come with AB#8343/AB#8345. The allow-list routes of the source tenant (`CrossTenantGrantPermissions`, AB#8345) have no client yet — their DTO is fixed by that story.
+Backend availability: the lookup route is on identity `main` since AB#8341 (sibling sources answer `404` until the allow-list AB#8345 ships — only registry ancestors are found); `groupIds` is honoured once AB#8343 ships (until then an identity service stores the mapping without groups); `UnknownGroup` and `SourceTenantNotPermitted` come with AB#8343/AB#8345. The allow-list of the source tenant has its own client below (AB#8430).
+
+**Allow-list of the current tenant as a source** (AB#8430 — REST `{issuer}{currentTenant}/v1/crossTenantGrantPermissions`, AB#8345, contract §6; DTO and error in `shared/crossTenantGrantPermissionsDto.ts`). Only administrators of the tenant (`UserManagement` and `TenantManagement`, token for this tenant) may call it.
+
+| Method | Route | Answers |
+|--------|-------|---------|
+| `getCrossTenantGrantPermissions()` | `GET` | `{ targetTenantIds }` — empty = nobody (default) |
+| `setCrossTenantGrantPermissions(targetTenantIds)` | `PUT` | replaces the whole list, returns the stored (normalised) list |
+
+Errors: `CrossTenantGrantPermissionsError` with `kind` `Forbidden` (403 → show "no permission"), `Invalid` (400, `validationErrors`), `NotAvailable` (404, identity without AB#8345), `Conflict` (412, reserved for If-Match AB#8432 — will come as an optional second parameter). Those statuses are caller-handled (`MM_CALLER_HANDLED_STATUSES`); others are rethrown unchanged.
 
 **Data Permission Management** (AB#4977, epic AB#4969 — DTOs in `shared/dataPermissionDto.ts`, REST base `{issuer}{tenantId}/v1/dataPermissions`):
 
