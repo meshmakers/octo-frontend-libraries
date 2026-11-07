@@ -46,6 +46,7 @@ export * from './lib/shared/identityProviderDto';
 export * from './lib/shared/emailDomainGroupRuleDto';
 export * from './lib/shared/emailIdentifierBindingDto';
 export * from './lib/shared/externalTenantUserMappingDto';
+export * from './lib/shared/crossTenantGrantError';
 export * from './lib/shared/provisioningSourceUserDto';
 export * from './lib/shared/provisioningGroupDto';
 export * from './lib/shared/tenantDto';
