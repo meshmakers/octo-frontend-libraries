@@ -10,6 +10,18 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services: allow-list of the source tenant (AB#8430)
+
+- New (non-breaking, additive): `IdentityService.getCrossTenantGrantPermissions()` and
+  `setCrossTenantGrantPermissions(targetTenantIds)` call `{issuer}{currentTenant}/v1/crossTenantGrantPermissions`
+  (AB#8345, contract `CONCEPT-SIBLING-TENANT-GRANTS.md` §6): the target tenants whose administrators may look up this
+  tenant's users by exact user name or e-mail and grant them access. The PUT replaces the whole list; `[]` permits nobody.
+- New DTO `CrossTenantGrantPermissionsDto` and typed error `CrossTenantGrantPermissionsError` with `kind` `Forbidden` (403),
+  `Invalid` (400 validation problem, `validationErrors` with the server's reasons), `NotAvailable` (404, identity without
+  AB#8345) and `Conflict` (412, prepared for If-Match of AB#8432; the server does not send it yet). These statuses are
+  caller-handled (no global toast); other errors are rethrown unchanged.
+- If-Match (AB#8432) will be an optional second parameter of `setCrossTenantGrantPermissions`; existing callers stay unchanged.
+
 ### octo-services: cross-tenant grants in the current tenant (AB#8427)
 
 - New (non-breaking, additive): `IdentityService.lookupSourceUser`, `createExternalTenantUserMapping`,
