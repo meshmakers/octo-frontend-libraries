@@ -23,8 +23,9 @@ starts a new empty "Unreleased" section.
   `null`; `NotAvailable` (404 without code, identity without AB#8341), `SourceUserLookupRateLimited` (+ `retryAfterSeconds`
   from the body), `SourceTenantNotPermitted`, `UnknownGroup` (+ `unknownGroupIds`), `ExternalTenantUserMappingAlreadyExists`
   (+ `existingMappingId`), `RoleChangeRefused` and `Forbidden` (title passed through). Other errors are rethrown unchanged.
-- These statuses are marked caller-handled (`MM_CALLER_HANDLED_STATUSES`), so the global error interceptor shows no
-  toast for them; the page shows its own message per `kind`.
+- Every `403` of these routes is typed and marked caller-handled (`MM_CALLER_HANDLED_STATUSES`), so the global error
+  interceptor shows no toast for it; the page shows its own message per `kind`. Untyped errors keep the interceptor's
+  default reporting (`MmHttpErrorInterceptor.reportsToUser`).
 - The `adminProvisioning` methods (system-tenant route, parent view) are unchanged.
 
 ### shared-ui fonts (web fonts shipped with the library, AB#7682)

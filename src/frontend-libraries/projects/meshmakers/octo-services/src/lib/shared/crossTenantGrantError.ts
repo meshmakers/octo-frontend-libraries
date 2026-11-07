@@ -1,5 +1,19 @@
 import {HttpErrorResponse} from '@angular/common/http';
 
+/** The part of an `HttpErrorResponse` the mapping reads. */
+export type HttpErrorLike = Pick<HttpErrorResponse, 'status' | 'error'>;
+
+/**
+ * Structural check instead of an `instanceof` test, same rule as `MmHttpErrorInterceptor`: a host with a
+ * second `@angular/common` copy sees two class identities, and `instanceof` would answer `false`.
+ */
+export function isHttpErrorLike(error: unknown): error is HttpErrorLike {
+  return typeof error === 'object'
+    && error !== null
+    && (error as {name?: unknown}).name === 'HttpErrorResponse'
+    && typeof (error as {status?: unknown}).status === 'number';
+}
+
 /**
  * Problem codes of the tenant-scoped cross-tenant grant routes (`{tenant}/v1/externalTenantUserMappings`),
  * contract `octo-identity-services/docs/CONCEPT-SIBLING-TENANT-GRANTS.md` §5. Same values as the SDK's
@@ -110,7 +124,7 @@ interface ProblemBody {
 }
 
 /** Reads the problem body of an error answer; Angular hands it over as object or (unparsed) text. */
-function readProblemBody(error: HttpErrorResponse): ProblemBody | null {
+function readProblemBody(error: HttpErrorLike): ProblemBody | null {
   const body: unknown = error.error;
   const isTransportEvent = typeof ProgressEvent !== 'undefined' && body instanceof ProgressEvent;
   const isBlob = typeof Blob !== 'undefined' && body instanceof Blob;
@@ -129,7 +143,7 @@ function readProblemBody(error: HttpErrorResponse): ProblemBody | null {
 }
 
 /** The problem `code` extension of an error answer, or `null` when it has none. */
-export function problemCodeOf(error: HttpErrorResponse): string | null {
+export function problemCodeOf(error: HttpErrorLike): string | null {
   return asString(readProblemBody(error)?.code);
 }
 
@@ -147,7 +161,7 @@ function asStringArray(value: unknown): string[] | undefined {
  * id, `SourceUserNotFound`); the caller then handles or rethrows the original error.
  */
 export function toCrossTenantGrantError(error: unknown, route: CrossTenantGrantRoute): CrossTenantGrantError | null {
-  if (!(error instanceof HttpErrorResponse)) {
+  if (!isHttpErrorLike(error)) {
     return null;
   }
   const problem = readProblemBody(error);

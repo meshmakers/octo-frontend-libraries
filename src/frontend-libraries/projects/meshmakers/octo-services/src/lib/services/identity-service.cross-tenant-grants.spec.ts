@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { HttpErrorResponse, provideHttpClient, withXhr } from '@angular/common/http';
-import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
+import { MM_CALLER_HANDLED_STATUSES, MmHttpErrorInterceptor } from '@meshmakers/shared-services';
 import { IdentityService } from './identity-service';
 import { CONFIGURATION_SERVICE } from './configuration.service';
 import { TENANT_ID_PROVIDER } from './tenant-provider';
 import { AddInConfiguration } from '../shared/addInConfiguration';
-import { CrossTenantGrantError } from '../shared/crossTenantGrantError';
+import { CrossTenantGrantError, toCrossTenantGrantError } from '../shared/crossTenantGrantError';
 import { ExternalTenantUserMappingDto } from '../shared/externalTenantUserMappingDto';
 
 /**
@@ -310,7 +310,7 @@ describe('IdentityService cross-tenant grants in the current tenant (AB#8427)', 
     });
   });
 
-  it('marks the typed statuses as caller-handled so the global interceptor shows no second toast', async () => {
+  it('marks only 403 (always typed) as caller-handled so the global interceptor shows no second toast', async () => {
     const lookup = service.lookupSourceUser({ sourceTenantId: 's', identifier });
     const create = service.createExternalTenantUserMapping({ sourceTenantId: 's', sourceUserId: 'u', sourceUserName: 'n' });
     const list = service.getExternalTenantUserMappings();
@@ -321,16 +321,58 @@ describe('IdentityService cross-tenant grants in the current tenant (AB#8427)', 
     const createReq = httpMock.expectOne(r => r.method === 'POST' && r.url === tenantPrefix);
     const listReq = httpMock.expectOne(r => r.method === 'GET' && r.url === tenantPrefix);
     const deleteReq = httpMock.expectOne(`${tenantPrefix}/map-1`);
-    expect(lookupReq.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403, 404, 429]);
-    expect(createReq.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([400, 403, 409]);
+    expect(lookupReq.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403]);
+    expect(createReq.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403]);
     expect(listReq.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403]);
-    expect(deleteReq.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403, 409]);
+    expect(deleteReq.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403]);
 
     lookupReq.flush({ sourceTenantId: 's', userId: 'u', userName: 'n' });
     createReq.flush(mapping);
     listReq.flush([]);
     deleteReq.flush(null);
     await Promise.all([lookup, create, list, remove]);
+  });
+
+  describe('untyped answers keep the interceptor default (review PR #329)', () => {
+    const base = { sourceTenantId: 'meshmakers', sourceUserId: 'u-1', sourceUserName: 'alice' };
+
+    it.each([
+      ['lookup 429 without code', 429, { title: 'Too Many Requests' }],
+      ['lookup 404 with another code', 404, { code: 'SomethingElse' }]
+    ])('rethrows %s unchanged', async (_name, status, body) => {
+      const error = await failWith(() => service.lookupSourceUser({ sourceTenantId: 's', identifier }),
+        `${tenantPrefix}/sourceUserLookup`, problem(status, body));
+
+      expect(error).toBeInstanceOf(HttpErrorResponse);
+      expect((error as HttpErrorResponse).status).toBe(status);
+    });
+
+    it('rethrows a validation 400 of create unchanged', async () => {
+      const error = await failWith(() => service.createExternalTenantUserMapping(base), tenantPrefix,
+        problem(400, { status: 400, title: 'One or more validation errors occurred.', errors: { sourceUserId: ['required'] } }));
+
+      expect(error).toBeInstanceOf(HttpErrorResponse);
+      expect((error as HttpErrorResponse).status).toBe(400);
+    });
+
+    it('rethrows a 409 without a known code unchanged and leaves its reporting to the interceptor', async () => {
+      const error = await failWith(() => service.deleteExternalTenantUserMapping('map-1'), `${tenantPrefix}/map-1`,
+        problem(409, { message: 'Concurrent update, retry.' }));
+
+      expect(error).toBeInstanceOf(HttpErrorResponse);
+      // Not caller-handled: the interceptor reports such a 409 itself, so the page shows no second message.
+      expect(MmHttpErrorInterceptor.reportsToUser(error)).toBe(true);
+    });
+  });
+
+  it('maps an HttpErrorResponse of another Angular copy structurally', () => {
+    const foreign = { name: 'HttpErrorResponse', status: 409, error: { code: 'ExternalTenantUserMappingAlreadyExists', existingMappingId: 'm-9' } };
+
+    const mapped = toCrossTenantGrantError(foreign, 'mapping');
+
+    expect(mapped?.kind).toBe('ExternalTenantUserMappingAlreadyExists');
+    expect(mapped?.existingMappingId).toBe('m-9');
+    expect(toCrossTenantGrantError(new Error('x'), 'mapping')).toBeNull();
   });
 
   it('returns null without a request when no identity URL is configured', async () => {

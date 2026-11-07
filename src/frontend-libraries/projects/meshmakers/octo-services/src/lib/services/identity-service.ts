@@ -27,6 +27,7 @@ import {
 import {
   CrossTenantGrantProblemCodes,
   CrossTenantGrantRoute,
+  isHttpErrorLike,
   problemCodeOf,
   toCrossTenantGrantError
 } from '../shared/crossTenantGrantError';
@@ -1152,9 +1153,9 @@ export class IdentityService {
   // Cross-tenant grants in the current tenant (AB#8427)
   // Route: {issuer}{currentTenant}/v1/externalTenantUserMappings
   // Contract: octo-identity-services/docs/CONCEPT-SIBLING-TENANT-GRANTS.md
-  // The statuses these methods turn into CrossTenantGrantError (or null) are marked caller-handled
-  // (MM_CALLER_HANDLED_STATUSES): the global error interceptor shows no toast for them, the page
-  // shows its own message per `kind`.
+  // Every 403 is typed and marked caller-handled (MM_CALLER_HANDLED_STATUSES): the global error
+  // interceptor shows no toast for it, the page shows its own message per `kind`. Untyped errors are
+  // rethrown with the interceptor's default reporting (see callerHandles403).
   // ========================================
 
   /**
@@ -1178,10 +1179,10 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.post<SourceUserLookupResultDto>(
           baseUrl + 'externalTenantUserMappings/sourceUserLookup', body,
-          {observe: 'response', context: IdentityService.callerHandles(403, 404, 429)}));
+          {observe: 'response', context: IdentityService.callerHandles403()}));
       return response.body;
     } catch (error) {
-      if (error instanceof HttpErrorResponse && error.status === 404
+      if (isHttpErrorLike(error) && error.status === 404
         && problemCodeOf(error) === CrossTenantGrantProblemCodes.SourceUserNotFound) {
         return null;
       }
@@ -1210,7 +1211,7 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.post<ExternalTenantUserMappingDto>(
           baseUrl + 'externalTenantUserMappings', body,
-          {observe: 'response', context: IdentityService.callerHandles(400, 403, 409)}));
+          {observe: 'response', context: IdentityService.callerHandles403()}));
       return response.body;
     } catch (error) {
       throw IdentityService.crossTenantGrantErrorOr(error, 'mapping');
@@ -1245,7 +1246,7 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.get<ExternalTenantUserMappingDto[]>(
           baseUrl + 'externalTenantUserMappings',
-          {params, observe: 'response', context: IdentityService.callerHandles(403)}));
+          {params, observe: 'response', context: IdentityService.callerHandles403()}));
       return response.body;
     } catch (error) {
       throw IdentityService.crossTenantGrantErrorOr(error, 'mapping');
@@ -1268,14 +1269,21 @@ export class IdentityService {
       await firstValueFrom(
         this.httpClient.delete<void>(
           baseUrl + `externalTenantUserMappings/${encodeURIComponent(rtId)}`,
-          {observe: 'response', context: IdentityService.callerHandles(403, 409)}));
+          {observe: 'response', context: IdentityService.callerHandles403()}));
     } catch (error) {
       throw IdentityService.crossTenantGrantErrorOr(error, 'mapping');
     }
   }
 
-  private static callerHandles(...statuses: number[]): HttpContext {
-    return new HttpContext().set(MM_CALLER_HANDLED_STATUSES, statuses);
+  /**
+   * Every `403` of these routes becomes a CrossTenantGrantError (`SourceTenantNotPermitted`,
+   * `RoleChangeRefused` or `Forbidden`), so the global interceptor's 403 toast is suppressed and the page
+   * shows its own message. Other statuses keep the interceptor's default: the problem-shaped 400/404/409/429
+   * answers are not toasted by it anyway, and an untyped error is reported exactly as for any request —
+   * callers use `MmHttpErrorInterceptor.reportsToUser(error)` to decide whether to show a generic message.
+   */
+  private static callerHandles403(): HttpContext {
+    return new HttpContext().set(MM_CALLER_HANDLED_STATUSES, [403]);
   }
 
   /** The typed error for documented answers, otherwise the original error unchanged. */
