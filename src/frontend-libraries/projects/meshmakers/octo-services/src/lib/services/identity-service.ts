@@ -1,13 +1,13 @@
 import { DataPermissionDto, DataPolicyDto } from '../shared/dataPermissionDto';
 import {inject, Injectable} from '@angular/core';
 import {firstValueFrom} from 'rxjs';
-import {HttpClient, HttpErrorResponse, HttpParams, HttpHeaders } from '@angular/common/http';
+import {HttpClient, HttpContext, HttpErrorResponse, HttpParams, HttpHeaders } from '@angular/common/http';
 import {CONFIGURATION_SERVICE} from './configuration.service';
 import {DiagnosticsModel} from '../shared/diagnosticsModel';
 import {UserDto} from '../shared/userDto';
 import {UserDirectoryEntryDto} from '../shared/userDirectoryEntryDto';
 import {RoleDto} from '../shared/roleDto';
-import {PagedResultDto} from '@meshmakers/shared-services';
+import {MM_CALLER_HANDLED_STATUSES, PagedResultDto} from '@meshmakers/shared-services';
 import {ClientDto} from '../shared/clientDto';
 import {ClientMirrorBackfillResponseDto, ClientMirrorDto, ClientMirrorProvisionResponseDto} from '../shared/clientMirrorDto';
 import {CleanOverlayEntriesResultDto} from '../shared/clientOverlayDto';
@@ -18,7 +18,18 @@ import {GeneratedPasswordDto} from '../shared/generatedPasswordDto';
 import {MergeUsersRequestDto} from '../shared/mergeUsersRequestDto';
 import {ResetUserPasswordRequestDto} from '../shared/resetUserPasswordRequestDto';
 import {CreateGroupDto, GroupDto, UpdateGroupDto} from '../shared/groupDto';
-import {CreateExternalTenantUserMappingDto, ExternalTenantUserMappingDto} from '../shared/externalTenantUserMappingDto';
+import {
+  CreateExternalTenantUserMappingDto,
+  ExternalTenantUserMappingDto,
+  SourceUserLookupRequestDto,
+  SourceUserLookupResultDto
+} from '../shared/externalTenantUserMappingDto';
+import {
+  CrossTenantGrantProblemCodes,
+  CrossTenantGrantRoute,
+  problemCodeOf,
+  toCrossTenantGrantError
+} from '../shared/crossTenantGrantError';
 import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
 import {CreateExternalTenantUserGroupMappingDto, ProvisioningGroupDto} from '../shared/provisioningGroupDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
@@ -1135,6 +1146,141 @@ export class IdentityService {
       return response.body;
     }
     return null;
+  }
+
+  // ========================================
+  // Cross-tenant grants in the current tenant (AB#8427)
+  // Route: {issuer}{currentTenant}/v1/externalTenantUserMappings
+  // Contract: octo-identity-services/docs/CONCEPT-SIBLING-TENANT-GRANTS.md
+  // The statuses these methods turn into CrossTenantGrantError (or null) are marked caller-handled
+  // (MM_CALLER_HANDLED_STATUSES): the global error interceptor shows no toast for them, the page
+  // shows its own message per `kind`.
+  // ========================================
+
+  /**
+   * Finds exactly one user of a source tenant (a registry ancestor of the current tenant, or a tenant that
+   * permits it) by exact user name or exact e-mail — `POST .../externalTenantUserMappings/sourceUserLookup`
+   * (AB#8341). POST, so the identifier never appears in a URL; this service never logs it.
+   *
+   * @returns The user (no e-mail address), `null` for `404 SourceUserNotFound` — the one answer of every
+   *   negative case — and `null` when no identity URL is configured.
+   * @throws CrossTenantGrantError `SourceUserLookupRateLimited` (with `retryAfterSeconds` from the body),
+   *   `NotAvailable` (404 without problem code: identity service without AB#8341), `Forbidden`.
+   * @throws HttpErrorResponse for every other answer (401, validation 400, 5xx).
+   */
+  async lookupSourceUser(request: SourceUserLookupRequestDto): Promise<SourceUserLookupResultDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (!baseUrl) {
+      return null;
+    }
+    const body: SourceUserLookupRequestDto = {sourceTenantId: request.sourceTenantId, identifier: request.identifier};
+    try {
+      const response = await firstValueFrom(
+        this.httpClient.post<SourceUserLookupResultDto>(
+          baseUrl + 'externalTenantUserMappings/sourceUserLookup', body,
+          {observe: 'response', context: IdentityService.callerHandles(403, 404, 429)}));
+      return response.body;
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404
+        && problemCodeOf(error) === CrossTenantGrantProblemCodes.SourceUserNotFound) {
+        return null;
+      }
+      throw IdentityService.crossTenantGrantErrorOr(error, 'lookup');
+    }
+  }
+
+  /**
+   * Grants a user of a source tenant access to the current tenant — `POST .../externalTenantUserMappings`.
+   * `groupIds` (groups of the current tenant, AB#8343) is sent only when set; `null`/`undefined` leaves the
+   * body as before. Take `sourceUserId`/`sourceUserName` from {@link lookupSourceUser}.
+   *
+   * @returns The stored mapping (`groupNames` filled), or `null` when no identity URL is configured.
+   * @throws CrossTenantGrantError `SourceTenantNotPermitted`, `UnknownGroup` (with `unknownGroupIds`),
+   *   `ExternalTenantUserMappingAlreadyExists` (with `existingMappingId`), `RoleChangeRefused`, `Forbidden`.
+   * @throws HttpErrorResponse for every other answer.
+   */
+  async createExternalTenantUserMapping(dto: CreateExternalTenantUserMappingDto): Promise<ExternalTenantUserMappingDto | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (!baseUrl) {
+      return null;
+    }
+    const {groupIds, ...rest} = dto;
+    const body: CreateExternalTenantUserMappingDto = groupIds == null ? rest : {...rest, groupIds};
+    try {
+      const response = await firstValueFrom(
+        this.httpClient.post<ExternalTenantUserMappingDto>(
+          baseUrl + 'externalTenantUserMappings', body,
+          {observe: 'response', context: IdentityService.callerHandles(400, 403, 409)}));
+      return response.body;
+    } catch (error) {
+      throw IdentityService.crossTenantGrantErrorOr(error, 'mapping');
+    }
+  }
+
+  /**
+   * Lists the cross-tenant users granted access to the current tenant (source tenant, user, roles, groups)
+   * — `GET .../externalTenantUserMappings`. `sourceTenantId` filters by source tenant (the server then
+   * ignores `skip`/`take`).
+   *
+   * @returns The mappings, or `null` when no identity URL is configured.
+   * @throws CrossTenantGrantError `Forbidden`; HttpErrorResponse for every other error.
+   */
+  async getExternalTenantUserMappings(
+    options?: {skip?: number; take?: number; sourceTenantId?: string}): Promise<ExternalTenantUserMappingDto[] | null> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (!baseUrl) {
+      return null;
+    }
+    let params = new HttpParams();
+    if (options?.skip != null) {
+      params = params.set('skip', options.skip.toString());
+    }
+    if (options?.take != null) {
+      params = params.set('take', options.take.toString());
+    }
+    if (options?.sourceTenantId) {
+      params = params.set('sourceTenantId', options.sourceTenantId);
+    }
+    try {
+      const response = await firstValueFrom(
+        this.httpClient.get<ExternalTenantUserMappingDto[]>(
+          baseUrl + 'externalTenantUserMappings',
+          {params, observe: 'response', context: IdentityService.callerHandles(403)}));
+      return response.body;
+    } catch (error) {
+      throw IdentityService.crossTenantGrantErrorOr(error, 'mapping');
+    }
+  }
+
+  /**
+   * Removes a cross-tenant grant of the current tenant — `DELETE .../externalTenantUserMappings/{rtId}`.
+   * The next token exchange of that user into this tenant is refused (AB#8344).
+   *
+   * @throws CrossTenantGrantError `RoleChangeRefused` (e.g. `409 last-administrator`), `Forbidden`.
+   * @throws HttpErrorResponse for every other answer (404 for an unknown mapping id, 401, 5xx).
+   */
+  async deleteExternalTenantUserMapping(rtId: string): Promise<void> {
+    const baseUrl = await this.getApiBaseUrl();
+    if (!baseUrl) {
+      return;
+    }
+    try {
+      await firstValueFrom(
+        this.httpClient.delete<void>(
+          baseUrl + `externalTenantUserMappings/${encodeURIComponent(rtId)}`,
+          {observe: 'response', context: IdentityService.callerHandles(403, 409)}));
+    } catch (error) {
+      throw IdentityService.crossTenantGrantErrorOr(error, 'mapping');
+    }
+  }
+
+  private static callerHandles(...statuses: number[]): HttpContext {
+    return new HttpContext().set(MM_CALLER_HANDLED_STATUSES, statuses);
+  }
+
+  /** The typed error for documented answers, otherwise the original error unchanged. */
+  private static crossTenantGrantErrorOr(error: unknown, route: CrossTenantGrantRoute): unknown {
+    return toCrossTenantGrantError(error, route) ?? error;
   }
 
   // ========================================

@@ -259,6 +259,21 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `getProvisioningGroups(targetTenantId)` | List the target tenant's groups (assignable options for a mapping) |
 | `createAdminProvisioningWithGroups(targetTenantId, dto)` | Create a mapping and make it a member of the given target-tenant groups (group-based grant used by the Studio Add User dialog) |
 
+**Cross-tenant grants in the current tenant** (AB#8427, Feature AB#8314 — REST base `{issuer}{currentTenant}/v1/externalTenantUserMappings`, tenant from `TENANT_ID_PROVIDER` like the data-permission methods; contract `octo-identity-services/docs/CONCEPT-SIBLING-TENANT-GRANTS.md`). Use these on the target tenant's own pages; the `adminProvisioning` methods above stay for the parent's view and are unchanged. DTOs in `shared/externalTenantUserMappingDto.ts`, typed error in `shared/crossTenantGrantError.ts`.
+
+| Method | Route | Answers |
+|--------|-------|---------|
+| `lookupSourceUser({sourceTenantId, identifier})` | `POST .../sourceUserLookup` (AB#8341) | `SourceUserLookupResultDto` (no e-mail); `null` for `404 SourceUserNotFound` (every negative case); throws `NotAvailable` for a `404` **without** `code` (identity service without AB#8341 — never `null`), `SourceUserLookupRateLimited` with `retryAfterSeconds` read from the body (the browser cannot read `Retry-After` cross-origin) |
+| `createExternalTenantUserMapping(dto)` | `POST ...` | the mapping (`groupNames` filled); `groupIds` (groups of the current tenant, AB#8343) is sent only when set — `null`/`undefined` is left out of the body. Throws `SourceTenantNotPermitted`, `UnknownGroup` (`unknownGroupIds`), `ExternalTenantUserMappingAlreadyExists` (`existingMappingId`), `RoleChangeRefused` |
+| `getExternalTenantUserMappings({skip?, take?, sourceTenantId?})` | `GET ...` | granted cross-tenant users: source tenant, user, `roleIds`, `groupNames` |
+| `deleteExternalTenantUserMapping(rtId)` | `DELETE .../{rtId}` | removes the grant; throws `RoleChangeRefused` for `409 last-administrator` |
+
+`CrossTenantGrantError` (`kind`, `status`, `problemCode`, `title`, `retryAfterSeconds`, `unknownGroupIds`, `existingMappingId`, `roleNames`) is thrown for the documented answers; `kind` is one of `NotAvailable`, `SourceUserLookupRateLimited`, `SourceTenantNotPermitted`, `UnknownGroup`, `ExternalTenantUserMappingAlreadyExists`, `RoleChangeRefused` (role change guard: `403 self-grant`/`role-not-held`, `409 last-administrator`; show `title` unchanged) and `Forbidden` (any other `403`; `title` or the `message` of the older 403 body). Every other answer (401, validation 400, 5xx, 404 of an unknown mapping id) is rethrown as the original `HttpErrorResponse`. The statuses these methods type are marked caller-handled (`MM_CALLER_HANDLED_STATUSES`: lookup 403/404/429, create 400/403/409, list 403, delete 403/409), so `MmHttpErrorInterceptor` shows no toast for them — the page shows its own message per `kind` (for `RoleChangeRefused`/`Forbidden` the `title`). Branch on `kind`, never on the text. Problem codes as constants: `CrossTenantGrantProblemCodes`.
+
+Personal data: the lookup identifier (user name or e-mail) goes only into the POST body. The service never logs it and `CrossTenantGrantError` carries no request data (pinned in `identity-service.cross-tenant-grants.spec.ts`); callers must not log the request either.
+
+Backend availability: the lookup route is on identity `main` since AB#8341 (sibling sources answer `404` until the allow-list AB#8345 ships — only registry ancestors are found); `groupIds` is honoured once AB#8343 ships (until then an identity service stores the mapping without groups); `UnknownGroup` and `SourceTenantNotPermitted` come with AB#8343/AB#8345. The allow-list routes of the source tenant (`CrossTenantGrantPermissions`, AB#8345) have no client yet — their DTO is fixed by that story.
+
 **Data Permission Management** (AB#4977, epic AB#4969 — DTOs in `shared/dataPermissionDto.ts`, REST base `{issuer}{tenantId}/v1/dataPermissions`):
 
 | Method | Description |

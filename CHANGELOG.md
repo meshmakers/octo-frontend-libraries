@@ -10,6 +10,23 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services: cross-tenant grants in the current tenant (AB#8427)
+
+- New (non-breaking, additive): `IdentityService.lookupSourceUser`, `createExternalTenantUserMapping`,
+  `getExternalTenantUserMappings` and `deleteExternalTenantUserMapping` call the tenant-scoped routes
+  `{issuer}{currentTenant}/v1/externalTenantUserMappings` (contract `octo-identity-services/docs/CONCEPT-SIBLING-TENANT-GRANTS.md`),
+  so the target tenant's Users page can look up a user of a parent or permitted sibling tenant, grant with groups, list
+  and remove grants (Feature AB#8314).
+- New DTOs `SourceUserLookupRequestDto`, `SourceUserLookupResultDto` (no e-mail) and optional `groupIds` on
+  `CreateExternalTenantUserMappingDto` (left out of the body when `null`/`undefined`).
+- New `CrossTenantGrantError` with `kind` mapped from the problem `code`: `SourceUserNotFound` makes the lookup return
+  `null`; `NotAvailable` (404 without code, identity without AB#8341), `SourceUserLookupRateLimited` (+ `retryAfterSeconds`
+  from the body), `SourceTenantNotPermitted`, `UnknownGroup` (+ `unknownGroupIds`), `ExternalTenantUserMappingAlreadyExists`
+  (+ `existingMappingId`), `RoleChangeRefused` and `Forbidden` (title passed through). Other errors are rethrown unchanged.
+- These statuses are marked caller-handled (`MM_CALLER_HANDLED_STATUSES`), so the global error interceptor shows no
+  toast for them; the page shows its own message per `kind`.
+- The `adminProvisioning` methods (system-tenant route, parent view) are unchanged.
+
 ### shared-ui fonts (web fonts shipped with the library, AB#7682)
 
 - New (non-breaking, additive): `@meshmakers/shared-ui` ships the web fonts of the shared theme (Roboto, Montserrat,
