@@ -230,6 +230,8 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
             data: (value?.data ?? []) as unknown[],
             total: value?.totalCount || 0
           }
+          // Kendo drops its row selection with the new data; keep the list view's copy in step (AB#8428).
+          this.dataSource.listViewComponent?.clearSelection();
           this.notifyDataChange();
         },
         error: (err) => {
