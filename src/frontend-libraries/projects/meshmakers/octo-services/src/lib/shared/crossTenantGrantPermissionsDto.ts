@@ -12,6 +12,19 @@ export interface CrossTenantGrantPermissionsDto {
 }
 
 /**
+ * The allow-list as `IdentityService.getCrossTenantGrantPermissions` / `setCrossTenantGrantPermissions` return it:
+ * the list plus the version tag of the server (AB#8432, contract §6.1).
+ *
+ * Keep {@link etag} with the list you show and pass it back as `ifMatch` when you replace the list. When someone else
+ * changed the list in between, the server answers `412` (`CrossTenantGrantPermissionsError` `Conflict`) and writes
+ * nothing. The tag is opaque: pass it on exactly as received, never parse or build it.
+ */
+export interface CrossTenantGrantPermissionsResult extends CrossTenantGrantPermissionsDto {
+  /** The `ETag` of the answer, `null` when the server sent none (identity without AB#8432) or did not expose it. */
+  etag: string | null;
+}
+
+/**
  * What went wrong when reading or replacing the allow-list, for branching in the UI:
  *
  * - `Forbidden` — `403`: the caller is no administrator of this tenant (`UserManagement` and
@@ -20,16 +33,21 @@ export interface CrossTenantGrantPermissionsDto {
  *   {@link CrossTenantGrantPermissionsError.validationErrors} holds the server's readable reasons (own tenant,
  *   invalid characters, too long, too many entries).
  * - `NotAvailable` — `404`: the identity service does not contain AB#8345 yet.
- * - `Conflict` — `412`: the list was changed by someone else since it was read (If-Match, AB#8432). The server
- *   does not send it yet; reload and apply the change again.
+ * - `Conflict` — `412`: the list was changed by someone else since it was read (`If-Match`, AB#8432); nothing was
+ *   written. {@link CrossTenantGrantPermissionsError.currentEtag} holds the tag of the current list when the server
+ *   sent it. Reload the list and apply the change again.
+ * - `PreconditionRequired` — `428`: the server requires `If-Match` (`Identity:CrossTenantGrantPermissions:RequireIfMatch`)
+ *   and the request had none; nothing was written. Read the list first and send its tag.
  */
-export type CrossTenantGrantPermissionsErrorKind = 'Forbidden' | 'Invalid' | 'NotAvailable' | 'Conflict';
+export type CrossTenantGrantPermissionsErrorKind =
+  'Forbidden' | 'Invalid' | 'NotAvailable' | 'Conflict' | 'PreconditionRequired';
 
 const DEFAULT_MESSAGES: Record<CrossTenantGrantPermissionsErrorKind, string> = {
   Forbidden: 'You are not allowed to manage the cross-tenant access of this tenant.',
   Invalid: 'The list of tenants was refused.',
   NotAvailable: 'The identity service does not offer cross-tenant access settings yet.',
-  Conflict: 'The list was changed by someone else. Reload and try again.'
+  Conflict: 'The list was changed by someone else. Reload and try again.',
+  PreconditionRequired: 'The list must be read before it can be changed. Reload and try again.'
 };
 
 /**
@@ -45,14 +63,16 @@ export class CrossTenantGrantPermissionsError extends Error {
     /** Readable server title, `null` when none. */
     readonly title: string | null,
     /** Readable reasons of a `400` validation problem (`Invalid`); empty otherwise. */
-    readonly validationErrors: string[] = []
+    readonly validationErrors: string[] = [],
+    /** `Conflict`: the `ETag` of the current list as the server sent it with the `412`; `null` otherwise. */
+    readonly currentEtag: string | null = null
   ) {
     super(validationErrors[0] ?? title ?? DEFAULT_MESSAGES[kind]);
   }
 }
 
 /** The HTTP statuses {@link toCrossTenantGrantPermissionsError} types; the caller handles them, not the interceptor. */
-export const CROSS_TENANT_GRANT_PERMISSIONS_TYPED_STATUSES: readonly number[] = [400, 403, 404, 412];
+export const CROSS_TENANT_GRANT_PERMISSIONS_TYPED_STATUSES: readonly number[] = [400, 403, 404, 412, 428];
 
 interface ValidationProblemBody {
   title?: unknown;
@@ -85,6 +105,13 @@ function validationReasons(errors: unknown): string[] {
     .filter((value): value is string => typeof value === 'string' && value.length > 0);
 }
 
+/** Reads a response header structurally (no `instanceof`, same rule as {@link isHttpErrorLike}). */
+function readResponseHeader(response: unknown, name: string): string | null {
+  const headers = (response as {headers?: {get?: (header: string) => string | null}} | null)?.headers;
+  const value = typeof headers?.get === 'function' ? headers.get(name) : null;
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
 /**
  * Maps an `HttpErrorResponse` of the allow-list routes to a {@link CrossTenantGrantPermissionsError}. Returns
  * `null` for answers that are not typed (401, 5xx, transport errors); the caller then rethrows the original error.
@@ -104,7 +131,9 @@ export function toCrossTenantGrantPermissionsError(error: unknown): CrossTenantG
     case 404:
       return new CrossTenantGrantPermissionsError('NotAvailable', 404, title);
     case 412:
-      return new CrossTenantGrantPermissionsError('Conflict', 412, title);
+      return new CrossTenantGrantPermissionsError('Conflict', 412, title, [], readResponseHeader(error, 'ETag'));
+    case 428:
+      return new CrossTenantGrantPermissionsError('PreconditionRequired', 428, title);
     default:
       return null;
   }
