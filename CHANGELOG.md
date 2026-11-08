@@ -10,6 +10,13 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui: list view forgets the checkbox selection when its data reloads (AB#8428)
+
+- Fix (non-breaking): Kendo drops its row selection whenever the grid gets new data (refresh, delete, sort, filter,
+  search) without emitting `selectionChange`, but `mm-list-view` kept its own copy. Selection-dependent toolbar actions
+  (`isDisabled`/`onClick` receive the selection) then stayed enabled for rows that were no longer ticked or no longer
+  existed. `MmListViewDataBindingDirective` now calls the new `ListViewComponent.clearSelection()` with every data load.
+
 ### octo-services: allow-list of the source tenant (AB#8430)
 
 - New (non-breaking, additive): `IdentityService.getCrossTenantGrantPermissions()` and

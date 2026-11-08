@@ -224,6 +224,33 @@ describe('MmListViewDataBindingDirective (server binding)', () => {
     flush();
   }));
 
+  it('drops the checkbox selection when the data reloads, so toolbar actions see no stale rows (AB#8428)', fakeAsync(() => {
+    tick();
+    const listView = host.dataSource.listViewComponent as unknown as {
+      onRowSelect(event: unknown): void;
+      getToolbarItemDisabled(item: unknown): boolean;
+    };
+    const seen: unknown[] = [];
+    const bulkAction = {
+      id: 'bulk', type: 'link', text: 'Remove selected',
+      isDisabled: (selection?: unknown) => {
+        seen.push(selection);
+        return !Array.isArray(selection) || selection.length === 0;
+      }
+    };
+    const first = (grid.data as { data: unknown[] }).data[0];
+    listView.onRowSelect({ selectedRows: [{ dataItem: first }], deselectedRows: [] });
+    expect(listView.getToolbarItemDisabled(bulkAction)).toBe(false);
+
+    host.dataSource.fetchAgain();
+    fixture.detectChanges();
+    tick();
+
+    expect(listView.getToolbarItemDisabled(bulkAction), 'Kendo cleared its ticks with the new data').toBe(true);
+    expect(seen[seen.length - 1]).toEqual([]);
+    flush();
+  }));
+
   it('recovers from a page-out-of-range fetch error by returning to page 1', fakeAsync(() => {
     grid.pageChange.emit({ skip: 40, take: 20 });
     fixture.detectChanges();

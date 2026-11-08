@@ -1361,6 +1361,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this._selectedRows = [];
   }
 
+  /**
+   * Forgets the checkbox selection. Kendo resets its own (index-based) row selection whenever the grid gets
+   * new data, without emitting `selectionChange`; the data binding calls this at the same moment, so
+   * selection-dependent toolbar actions do not stay enabled for rows that are no longer ticked, or no longer
+   * exist after a delete (AB#8428).
+   */
+  public clearSelection(): void {
+    this._selectedRows = [];
+  }
+
   protected async onContextMenuSelect(_event: ContextMenuSelectEvent): Promise<void> {
 
     const data = _event.item?.data?.data as CommandItem | OverflowRowActionData | undefined;
