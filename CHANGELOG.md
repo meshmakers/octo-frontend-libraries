@@ -10,6 +10,17 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services: allow-list edits detect concurrent changes (AB#8520)
+
+- New (non-breaking, additive): `getCrossTenantGrantPermissions()` and `setCrossTenantGrantPermissions()` return
+  `CrossTenantGrantPermissionsResult` — the list plus `etag` (the server's `ETag` header, `null` when none; identity
+  AB#8432, contract §6.1). `setCrossTenantGrantPermissions(targetTenantIds, ifMatch?)` sends `ifMatch` unchanged as
+  `If-Match`; without it the request is the same as before.
+- `CrossTenantGrantPermissionsError`: `Conflict` (412) is now sent by the server and carries `currentEtag`; new `kind`
+  `PreconditionRequired` (428, `Identity:CrossTenantGrantPermissions:RequireIfMatch` on and no `If-Match`). 428 is
+  caller-handled like the other typed statuses. Apps should keep the `etag` of the loaded list and pass it back before a
+  cluster switches `RequireIfMatch` on.
+
 ### shared-ui: list view forgets the checkbox selection when its data reloads (AB#8428)
 
 - Fix (non-breaking): Kendo drops its row selection whenever the grid gets new data (refresh, delete, sort, filter,

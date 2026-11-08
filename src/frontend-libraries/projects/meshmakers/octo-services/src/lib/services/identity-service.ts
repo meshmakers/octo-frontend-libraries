@@ -34,6 +34,7 @@ import {
 import {
   CROSS_TENANT_GRANT_PERMISSIONS_TYPED_STATUSES,
   CrossTenantGrantPermissionsDto,
+  CrossTenantGrantPermissionsResult,
   toCrossTenantGrantPermissionsError
 } from '../shared/crossTenantGrantPermissionsDto';
 import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
@@ -1300,19 +1301,21 @@ export class IdentityService {
   // Cross-tenant grant permissions of the current tenant as a source (AB#8430)
   // Route: {issuer}{currentTenant}/v1/crossTenantGrantPermissions (AB#8345)
   // Contract: octo-identity-services/docs/CONCEPT-SIBLING-TENANT-GRANTS.md §6
-  // Typed statuses (400/403/404/412) are caller-handled: no global toast, the page shows its own state.
+  // Concurrency: ETag on GET/PUT, If-Match on PUT (AB#8432, contract §6.1)
+  // Typed statuses (400/403/404/412/428) are caller-handled: no global toast, the page shows its own state.
   // ========================================
 
   /**
    * Reads the target tenants the current tenant permits to look up its users by exact user name or e-mail
    * and grant them access — `GET .../crossTenantGrantPermissions`. Empty = nobody (the default).
    *
-   * @returns The list, or `null` when no identity URL is configured.
+   * @returns The list with its version tag (`etag`, `null` when the server sent none), or `null` when no identity URL
+   *   is configured. Keep the tag and pass it to {@link setCrossTenantGrantPermissions} as `ifMatch`.
    * @throws CrossTenantGrantPermissionsError `Forbidden` (no administrator of this tenant), `NotAvailable`
    *   (identity service without AB#8345).
    * @throws HttpErrorResponse for every other answer (401, 5xx).
    */
-  async getCrossTenantGrantPermissions(): Promise<CrossTenantGrantPermissionsDto | null> {
+  async getCrossTenantGrantPermissions(): Promise<CrossTenantGrantPermissionsResult | null> {
     const baseUrl = await this.getApiBaseUrl();
     if (!baseUrl) {
       return null;
@@ -1322,7 +1325,7 @@ export class IdentityService {
         this.httpClient.get<CrossTenantGrantPermissionsDto>(
           baseUrl + 'crossTenantGrantPermissions',
           {observe: 'response', context: IdentityService.callerHandlesPermissionErrors()}));
-      return {targetTenantIds: response.body?.targetTenantIds ?? []};
+      return {targetTenantIds: response.body?.targetTenantIds ?? [], etag: IdentityService.etagOf(response.headers)};
     } catch (error) {
       throw toCrossTenantGrantPermissionsError(error) ?? error;
     }
@@ -1333,17 +1336,25 @@ export class IdentityService {
    * `[]` permits nobody. A removed tenant's lookups and new grants stop with its next request; its existing grants
    * are refused at the user's next tenant switch.
    *
-   * Concurrency: the server does not check a version yet. When AB#8432 adds `ETag`/`If-Match`, this method gets an
-   * optional second parameter for the version and a `412` becomes `CrossTenantGrantPermissionsError` `Conflict`
-   * (already mapped) — existing callers stay unchanged.
+   * Concurrency (AB#8432, contract §6.1): pass the `etag` of the list the change is based on as `ifMatch`; it is sent
+   * as `If-Match` exactly as received. When the list changed in between, the server writes nothing and answers `412`
+   * (`CrossTenantGrantPermissionsError` `Conflict`, with the current tag in `currentEtag`). Without `ifMatch` the list
+   * is replaced unconditionally (last writer wins) — unless the server requires `If-Match`
+   * (`Identity:CrossTenantGrantPermissions:RequireIfMatch`), then it answers `428` (`PreconditionRequired`).
    *
-   * @returns The stored list (trimmed, lower-cased, de-duplicated by the server), or `null` when no identity URL is
-   *   configured.
+   * @param targetTenantIds The complete new list; `[]` permits nobody.
+   * @param ifMatch The `etag` of the list the change is based on (from {@link getCrossTenantGrantPermissions} or the
+   *   previous `set`); `null`/omitted sends no `If-Match`.
+   * @returns The stored list (trimmed, lower-cased, de-duplicated by the server) with its new `etag`, or `null` when
+   *   no identity URL is configured.
    * @throws CrossTenantGrantPermissionsError `Invalid` (with the server's `validationErrors`: own tenant, invalid
-   *   characters, too long, too many), `Forbidden`, `NotAvailable`.
+   *   characters, too long, too many), `Forbidden`, `NotAvailable`, `Conflict` (412), `PreconditionRequired` (428).
    * @throws HttpErrorResponse for every other answer (401, 5xx).
    */
-  async setCrossTenantGrantPermissions(targetTenantIds: readonly string[]): Promise<CrossTenantGrantPermissionsDto | null> {
+  async setCrossTenantGrantPermissions(
+    targetTenantIds: readonly string[],
+    ifMatch?: string | null
+  ): Promise<CrossTenantGrantPermissionsResult | null> {
     const baseUrl = await this.getApiBaseUrl();
     if (!baseUrl) {
       return null;
@@ -1353,11 +1364,23 @@ export class IdentityService {
       const response = await firstValueFrom(
         this.httpClient.put<CrossTenantGrantPermissionsDto>(
           baseUrl + 'crossTenantGrantPermissions', body,
-          {observe: 'response', context: IdentityService.callerHandlesPermissionErrors()}));
-      return {targetTenantIds: response.body?.targetTenantIds ?? body.targetTenantIds};
+          {
+            observe: 'response',
+            context: IdentityService.callerHandlesPermissionErrors(),
+            headers: ifMatch ? new HttpHeaders({'If-Match': ifMatch}) : undefined
+          }));
+      return {
+        targetTenantIds: response.body?.targetTenantIds ?? body.targetTenantIds,
+        etag: IdentityService.etagOf(response.headers)
+      };
     } catch (error) {
       throw toCrossTenantGrantPermissionsError(error) ?? error;
     }
+  }
+
+  private static etagOf(headers: HttpHeaders | null | undefined): string | null {
+    const etag = headers?.get('ETag');
+    return etag ? etag : null;
   }
 
   private static callerHandlesPermissionErrors(): HttpContext {

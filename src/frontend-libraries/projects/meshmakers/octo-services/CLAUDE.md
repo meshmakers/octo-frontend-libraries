@@ -278,10 +278,12 @@ Backend availability: the lookup route is on identity `main` since AB#8341 (sibl
 
 | Method | Route | Answers |
 |--------|-------|---------|
-| `getCrossTenantGrantPermissions()` | `GET` | `{ targetTenantIds }` — empty = nobody (default) |
-| `setCrossTenantGrantPermissions(targetTenantIds)` | `PUT` | replaces the whole list, returns the stored (normalised) list |
+| `getCrossTenantGrantPermissions()` | `GET` | `{ targetTenantIds, etag }` — empty = nobody (default); `etag` = the `ETag` header or `null` |
+| `setCrossTenantGrantPermissions(targetTenantIds, ifMatch?)` | `PUT` | replaces the whole list, returns the stored (normalised) list with its new `etag`; `ifMatch` is sent as `If-Match` unchanged |
 
-Errors: `CrossTenantGrantPermissionsError` with `kind` `Forbidden` (403 → show "no permission"), `Invalid` (400, `validationErrors`), `NotAvailable` (404, identity without AB#8345), `Conflict` (412, reserved for If-Match AB#8432 — will come as an optional second parameter). Those statuses are caller-handled (`MM_CALLER_HANDLED_STATUSES`); others are rethrown unchanged.
+Concurrency (AB#8520, server AB#8432, contract §6.1): keep the `etag` of the loaded list and pass it as `ifMatch`; never parse or rebuild the tag. Without `ifMatch` the server replaces unconditionally unless `Identity:CrossTenantGrantPermissions:RequireIfMatch` is on (then `428`).
+
+Errors: `CrossTenantGrantPermissionsError` with `kind` `Forbidden` (403 → show "no permission"), `Invalid` (400, `validationErrors`), `NotAvailable` (404, identity without AB#8345), `Conflict` (412 — list changed since it was read, nothing written; `currentEtag` = the server's current tag or `null`; reload and apply the change again), `PreconditionRequired` (428 — `If-Match` required but not sent). Those statuses are caller-handled (`MM_CALLER_HANDLED_STATUSES`); others are rethrown unchanged.
 
 **Data Permission Management** (AB#4977, epic AB#4969 — DTOs in `shared/dataPermissionDto.ts`, REST base `{issuer}{tenantId}/v1/dataPermissions`):
 

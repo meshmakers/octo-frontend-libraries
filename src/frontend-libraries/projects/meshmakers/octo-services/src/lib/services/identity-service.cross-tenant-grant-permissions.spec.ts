@@ -26,10 +26,12 @@ describe('IdentityService cross-tenant grant permissions (AB#8430)', () => {
     await Promise.resolve();
   }
 
-  async function failWith<T>(call: () => Promise<T>, status: number, body: object | string | null): Promise<unknown> {
+  async function failWith<T>(
+    call: () => Promise<T>, status: number, body: object | string | null, headers?: Record<string, string>
+  ): Promise<unknown> {
     const settled = call().then(() => undefined, (e: unknown) => e);
     await tick();
-    httpMock.expectOne(url).flush(body, { status, statusText: 'Error' });
+    httpMock.expectOne(url).flush(body, { status, statusText: 'Error', headers });
     return settled;
   }
 
@@ -60,28 +62,42 @@ describe('IdentityService cross-tenant grant permissions (AB#8430)', () => {
       const req = httpMock.expectOne(url);
       expect(req.request.method).toBe('GET');
       req.flush({ targetTenantIds: ['customer-a'] });
-      expect(await promise).toEqual({ targetTenantIds: ['customer-a'] });
+      expect(await promise).toEqual({ targetTenantIds: ['customer-a'], etag: null });
     });
 
     it('returns an empty list for a fresh tenant', async () => {
       const promise = service.getCrossTenantGrantPermissions();
       await tick();
       httpMock.expectOne(url).flush({ targetTenantIds: [] });
-      expect(await promise).toEqual({ targetTenantIds: [] });
+      expect(await promise).toEqual({ targetTenantIds: [], etag: null });
     });
 
     it('reads a missing list as empty', async () => {
       const promise = service.getCrossTenantGrantPermissions();
       await tick();
       httpMock.expectOne(url).flush({});
-      expect(await promise).toEqual({ targetTenantIds: [] });
+      expect(await promise).toEqual({ targetTenantIds: [], etag: null });
+    });
+
+    it('returns the ETag of the answer with the list (AB#8520)', async () => {
+      const promise = service.getCrossTenantGrantPermissions();
+      await tick();
+      httpMock.expectOne(url).flush({ targetTenantIds: ['customer-a'] }, { headers: { ETag: '"abc123"' } });
+      expect(await promise).toEqual({ targetTenantIds: ['customer-a'], etag: '"abc123"' });
+    });
+
+    it('returns etag null when the server sends no ETag', async () => {
+      const promise = service.getCrossTenantGrantPermissions();
+      await tick();
+      httpMock.expectOne(url).flush({ targetTenantIds: [] });
+      expect((await promise)?.etag).toBeNull();
     });
 
     it('marks the typed statuses as caller-handled, so the interceptor shows no toast', async () => {
       const promise = service.getCrossTenantGrantPermissions();
       await tick();
       const req = httpMock.expectOne(url);
-      expect(req.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([400, 403, 404, 412]);
+      expect(req.request.context.get(MM_CALLER_HANDLED_STATUSES)).toEqual([400, 403, 404, 412, 428]);
       req.flush({ targetTenantIds: [] });
       await promise;
     });
@@ -116,7 +132,7 @@ describe('IdentityService cross-tenant grant permissions (AB#8430)', () => {
       expect(req.request.body).toEqual({ targetTenantIds: ['customer-a'] });
       expect(req.request.headers.has('If-Match')).toBe(false);
       req.flush({ targetTenantIds: ['customer-a'] });
-      expect(await promise).toEqual({ targetTenantIds: ['customer-a'] });
+      expect(await promise).toEqual({ targetTenantIds: ['customer-a'], etag: null });
     });
 
     it('PUTs an empty list to permit nobody', async () => {
@@ -125,14 +141,14 @@ describe('IdentityService cross-tenant grant permissions (AB#8430)', () => {
       const req = httpMock.expectOne(url);
       expect(req.request.body).toEqual({ targetTenantIds: [] });
       req.flush({ targetTenantIds: [] });
-      expect(await promise).toEqual({ targetTenantIds: [] });
+      expect(await promise).toEqual({ targetTenantIds: [], etag: null });
     });
 
     it('returns the normalised list of the server', async () => {
       const promise = service.setCrossTenantGrantPermissions(['Customer-A ']);
       await tick();
       httpMock.expectOne(url).flush({ targetTenantIds: ['customer-a'] });
-      expect(await promise).toEqual({ targetTenantIds: ['customer-a'] });
+      expect(await promise).toEqual({ targetTenantIds: ['customer-a'], etag: null });
     });
 
     it('does not keep a reference to the caller array', async () => {
@@ -163,9 +179,60 @@ describe('IdentityService cross-tenant grant permissions (AB#8430)', () => {
       expect((error as CrossTenantGrantPermissionsError).kind).toBe('Forbidden');
     });
 
-    it('maps 412 to Conflict (prepared for If-Match, AB#8432)', async () => {
-      const error = await failWith(() => service.setCrossTenantGrantPermissions(['customer-a']), 412, null);
+    it('sends the given tag as If-Match exactly as received and returns the new ETag (AB#8520)', async () => {
+      const promise = service.setCrossTenantGrantPermissions(['customer-a'], '"v1"');
+      await tick();
+      const req = httpMock.expectOne(url);
+      expect(req.request.headers.get('If-Match')).toBe('"v1"');
+      expect(req.request.body).toEqual({ targetTenantIds: ['customer-a'] });
+      req.flush({ targetTenantIds: ['customer-a'] }, { headers: { ETag: '"v2"' } });
+      expect(await promise).toEqual({ targetTenantIds: ['customer-a'], etag: '"v2"' });
+    });
+
+    it('does not alter a weak tag (the server decides it never matches)', async () => {
+      const promise = service.setCrossTenantGrantPermissions(['customer-a'], 'W/"v1"');
+      await tick();
+      const req = httpMock.expectOne(url);
+      expect(req.request.headers.get('If-Match')).toBe('W/"v1"');
+      req.flush({ targetTenantIds: ['customer-a'] });
+      await promise;
+    });
+
+    it('sends no If-Match for a null or empty tag', async () => {
+      for (const tag of [null, '']) {
+        const promise = service.setCrossTenantGrantPermissions(['customer-a'], tag);
+        await tick();
+        const req = httpMock.expectOne(url);
+        expect(req.request.headers.has('If-Match')).toBe(false);
+        req.flush({ targetTenantIds: ['customer-a'] });
+        await promise;
+      }
+    });
+
+    it('maps 412 to Conflict with the current tag of the server (AB#8432)', async () => {
+      const error = await failWith(
+        () => service.setCrossTenantGrantPermissions(['customer-a'], '"stale"'), 412,
+        { title: 'The list was changed.', status: 412 }, { ETag: '"current"' });
+      const typed = error as CrossTenantGrantPermissionsError;
+      expect(typed).toBeInstanceOf(CrossTenantGrantPermissionsError);
+      expect(typed.kind).toBe('Conflict');
+      expect(typed.status).toBe(412);
+      expect(typed.currentEtag).toBe('"current"');
+    });
+
+    it('maps 412 without ETag to Conflict with currentEtag null', async () => {
+      const error = await failWith(() => service.setCrossTenantGrantPermissions(['customer-a'], '"stale"'), 412, null);
       expect((error as CrossTenantGrantPermissionsError).kind).toBe('Conflict');
+      expect((error as CrossTenantGrantPermissionsError).currentEtag).toBeNull();
+    });
+
+    it('maps 428 to PreconditionRequired (RequireIfMatch on, no If-Match sent)', async () => {
+      const error = await failWith(() => service.setCrossTenantGrantPermissions(['customer-a']), 428,
+        { title: 'If-Match is required.', status: 428 });
+      const typed = error as CrossTenantGrantPermissionsError;
+      expect(typed.kind).toBe('PreconditionRequired');
+      expect(typed.status).toBe(428);
+      expect(typed.title).toBe('If-Match is required.');
     });
 
     it('carries no request data in the error', async () => {
