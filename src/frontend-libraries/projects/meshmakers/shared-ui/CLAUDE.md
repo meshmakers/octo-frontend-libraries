@@ -405,6 +405,29 @@ both matter because the toolbar can wrap them onto the same row:
   `kendo-grid-spacer`, and without the pin the menu would slide up against the
   host's overflow button.
 
+**Export of all rows (`exportPageSize` / `exportRowLimit` / `pdfExportRowLimit`, AB#8122)**
+
+Excel and PDF export all rows of the current filter, search and sort. `ListViewComponent.runExport()`
+(laid-out buttons and the collapsed menu both go through `onCommand`; the Kendo
+`kendoGridExcelCommand` / `kendoGridPDFCommand` directives are no longer used) works like this:
+
+- Grid holds every row (`grid.data.data.length >= total`: client-side data or one page) → export as
+  before, no request.
+- Otherwise `MmListViewDataBindingDirective.fetchAllRowsForExport(pageSize, limit)` queries the data
+  source with a **copy** of the state (sort, filter, group, text search) — sequential pages via
+  `fetchAllRowsForExport()` in `list-view/list-view-export.ts`, stopping at `min(totalCount, limit)`
+  or an empty page. It never calls `setLoading`, never sets `grid.data`, never persists state.
+- Excel: `<kendo-grid-excel [fetchData]="excelExportData">` returns the fetched rows (one-shot) or
+  the grid's rows.
+- PDF: `preparePdfExport(rows)` + `pdfComponent.allPages = true` for the synchronous start of
+  `saveAsPDF()`. Kendo's all-pages export emits two page changes; `onStateChange` intercepts both:
+  the first shows the fetched rows (no request), the second puts back the previous `grid.data`
+  (no request, state untouched). `cancelPdfExport()` drops a preparation Kendo did not start.
+- Limit reached → `MessageService.showWarning` ("Export limited to N of M rows." / PDF variant).
+  Fetch error → `MessageService.showError(exportFailed)`, no file.
+- Specs: `list-view-export.spec.ts` (paging, limit, error, client-side, sequential) and
+  `list-view-export.component.spec.ts` (component flow, grid state untouched, PDF interception).
+
 **Reset filters button (`resetFilters` output)**
 
 A toolbar "Reset Filters" button (`filterClearIcon`) sits next to the reload

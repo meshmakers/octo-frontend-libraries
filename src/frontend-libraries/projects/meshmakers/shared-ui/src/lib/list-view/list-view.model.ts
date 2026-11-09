@@ -248,6 +248,16 @@ export interface ListViewMessages {
   rowActionsLoading?: string;
   /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
   pdfPageTemplate: string;
+  /** Export progress before the first rows arrived (AB#8122). Default: "Preparing export…". Optional. */
+  exportPreparing?: string;
+  /** Export progress; `{fetched}` rows loaded of `{total}` (AB#8122). Default: "Exporting {fetched} of {total} rows…". Optional. */
+  exportProgress?: string;
+  /** Warning when the Excel export hit the row limit; `{limit}`, `{total}` (AB#8122). Default: "Export limited to {limit} of {total} rows.". Optional. */
+  exportLimited?: string;
+  /** Warning when the PDF export hit its row limit; `{limit}`, `{total}` (AB#8122). Default: "PDF export limited to {limit} of {total} rows. Use the Excel export for all rows.". Optional. */
+  pdfExportLimited?: string;
+  /** Error when the rows for an export could not be loaded; no file is written (AB#8122). Default: "Export failed: the rows could not be loaded. No file was created.". Optional. */
+  exportFailed?: string;
 
   // Kendo Grid pager messages
   /** Pager: text after page size selector. Default: "items per page" */
@@ -329,6 +339,11 @@ export const DEFAULT_LIST_VIEW_MESSAGES: Required<ListViewMessages> = {
   rowActionUnavailable: 'Not available for this row',
   rowActionsLoading: 'The list is loading',
   pdfPageTemplate: 'Page {pageNum} of {totalPages}',
+  exportPreparing: 'Preparing export…',
+  exportProgress: 'Exporting {fetched} of {total} rows…',
+  exportLimited: 'Export limited to {limit} of {total} rows.',
+  pdfExportLimited: 'PDF export limited to {limit} of {total} rows. Use the Excel export for all rows.',
+  exportFailed: 'Export failed: the rows could not be loaded. No file was created.',
   pagerItemsPerPage: 'items per page',
   pagerOf: 'of',
   pagerItems: 'items',

@@ -77,6 +77,13 @@ export class MyCommandSettingsService extends CommandSettingsService {
         link: async () => `/${await this.getCurrentTenantId()}/list-view-empty-state`,
       },
       {
+        id: 'list-view-export',
+        type: 'section',
+        text: 'List View Export',
+        svgIcon: event_list,
+        link: async () => `/${await this.getCurrentTenantId()}/list-view-export`,
+      },
+      {
         id: 'meshboard',
         type: 'section',
         text: 'MeshBoard',

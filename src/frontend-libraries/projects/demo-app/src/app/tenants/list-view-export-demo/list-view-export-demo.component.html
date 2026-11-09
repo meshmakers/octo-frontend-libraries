@@ -1,0 +1,19 @@
+<div class="export-demo">
+  <h3>mm-list-view export of all rows (AB#8122)</h3>
+  <p>
+    The list below uses server-side paging (simulated, 150 ms per request) with one year of quarter-hour values
+    of one register. Excel and PDF export fetch all rows of the current search and sort in sequential requests
+    of <code>exportPageSize</code> rows; PDF stops at <code>pdfExportRowLimit</code>.
+  </p>
+  <div class="export-demo__options">
+    <button kendoButton (click)="setRowCount(35040)" data-testid="rows-35040">35,040 rows</button>
+    <button kendoButton (click)="setRowCount(120000)" data-testid="rows-120000">120,000 rows (above the limit)</button>
+    <button kendoButton (click)="setRowCount(30)" data-testid="rows-30">30 rows (one page)</button>
+    <button kendoButton (click)="failNextRequest()" data-testid="fail-next">Fail the next request</button>
+    <span data-testid="row-count">Rows: {{ rowCount() }}</span>
+  </div>
+  <mm-list-view appServerPagedDataSource [columns]="columns" [sortable]="true" [searchTextBoxEnabled]="true"
+                [pageSize]="50" [persistListState]="false"
+                excelExportFileName="RawData.xlsx" pdfExportFileName="RawData.pdf"
+                class="export-demo__list"></mm-list-view>
+</div>

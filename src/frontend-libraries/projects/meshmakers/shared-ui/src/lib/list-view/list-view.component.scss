@@ -572,3 +572,13 @@
   gap: var(--theme-space-2, 8px);
   margin-top: var(--theme-space-1, 4px);
 }
+
+/* Export of all rows (AB#8122): neutral progress text next to the commands. */
+.mm-list-view-export-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875em;
+  color: var(--kendo-color-subtle, inherit);
+  white-space: nowrap;
+}
