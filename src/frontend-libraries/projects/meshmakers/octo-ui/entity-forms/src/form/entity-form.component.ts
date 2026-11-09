@@ -246,6 +246,8 @@ export class EntityFormComponent {
   /** Raw values (disabled controls included) for VisibleWhen evaluation. */
   private readonly rawValues = signal<Record<string, unknown>>({});
   private readonly collapsed = signal<ReadonlySet<string>>(new Set<string>());
+  /** True while {@link save} runs; a second call meanwhile resolves `failure: 'busy'` without calling the adapter. */
+  private saveInFlight = false;
   /** Field errors of the last {@link save} by field key (AB#8591); shown until the user edits the field. */
   private readonly saveFieldErrors = signal<Readonly<Record<string, string>>>({});
   /** Current cross-field errors by field key (the control validators read it; see {@link refreshCrossFieldErrors}). */
@@ -447,7 +449,8 @@ export class EntityFormComponent {
    * runtime-entity adapter. Validates first (an invalid form marks its fields and resolves `failure: 'invalid'`
    * without calling the adapter), then applies the before-save hook ({@link getChangeSetForSave}; a veto resolves
    * `failure: 'vetoed'`), then calls `adapter.save(context, changeSet, values)` with the current values of every
-   * field. An edit without changes resolves `{ applied: true }` without calling the adapter.
+   * field. An edit without changes resolves `{ applied: true }` without calling the adapter. A call while a save
+   * is still running resolves `failure: 'busy'` and does not call the adapter again.
    *
    * `result.fieldErrors` are shown under their fields (key = field key or attribute name) and the focus moves to the
    * first of them; each mark disappears as soon as the user edits that field. The form never notifies: the host shows
@@ -455,6 +458,18 @@ export class EntityFormComponent {
    * `context` is passed to the adapter as given, with `model` and `mode` filled from this form when absent.
    */
   async save(context: Partial<EntityFormDataContext> = {}): Promise<EntityFormSaveResult> {
+    if (this.saveInFlight) {
+      return { applied: false, failure: 'busy' };
+    }
+    this.saveInFlight = true;
+    try {
+      return await this.saveOnce(context);
+    } finally {
+      this.saveInFlight = false;
+    }
+  }
+
+  private async saveOnce(context: Partial<EntityFormDataContext>): Promise<EntityFormSaveResult> {
     this.showSaveFieldErrors(null);
     if (!this.isValid()) {
       this.markAllAsTouched();

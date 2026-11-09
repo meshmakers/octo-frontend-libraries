@@ -977,6 +977,26 @@ describe('EntityFormComponent', () => {
       expect(adapter.save).not.toHaveBeenCalled();
     });
 
+    it('refuses a second save while one is running (no duplicate create)', async () => {
+      let release!: (r: { applied: boolean; rtId?: string }) => void;
+      const adapter = { load: vi.fn(), save: vi.fn(() => new Promise((resolve) => { release = resolve; })) };
+      fixture.componentRef.setInput('dataAdapter', adapter);
+      await render(sftpModel(), 'edit', editState());
+      api.control('port').setValue(2222);
+      const first = component.save({ rtId: 'r1' });
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(await component.save({ rtId: 'r1' })).toEqual({ applied: false, failure: 'busy' });
+      release({ applied: true, rtId: 'r1' });
+      expect(await first).toEqual({ applied: true, rtId: 'r1' });
+      expect(adapter.save).toHaveBeenCalledTimes(1);
+      api.control('port').setValue(2223);
+      const third = component.save({ rtId: 'r1' });
+      await vi.waitFor(() => expect(adapter.save).toHaveBeenCalledTimes(2));
+      release({ applied: true });
+      await third;
+    });
+
     it('reports a before-save veto without calling the adapter', async () => {
       const adapter = adapterMock();
       fixture.componentRef.setInput('dataAdapter', adapter);

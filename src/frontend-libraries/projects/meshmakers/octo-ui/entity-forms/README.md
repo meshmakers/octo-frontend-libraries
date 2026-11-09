@@ -188,7 +188,7 @@ export interface EntityFormSaveResult {
   readonly applied: boolean;
   readonly fieldErrors?: Readonly<Record<string, string>>;  // key = field key or attribute name
   readonly message?: string;                                 // already in the user's language
-  readonly failure?: 'invalid' | 'vetoed' | 'rejected' | 'forbidden' | 'error';
+  readonly failure?: 'invalid' | 'vetoed' | 'rejected' | 'forbidden' | 'error' | 'busy';
   readonly rtId?: string;                                    // required on create (default adapter)
 }
 
@@ -211,7 +211,8 @@ export interface EntityFormDataAdapter<TContext extends EntityFormDataContext = 
   passes the host's context through unchanged and only fills `model` and `mode` when absent.
 - **`EntityFormComponent.save(context)`** — for hosts that render `mm-entity-form` themselves (dialogs):
   validates (invalid → `failure: 'invalid'`, adapter not called), runs the before-save hook (veto →
-  `failure: 'vetoed'`), skips an edit without changes (`{ applied: true }`), calls `adapter.save`, shows
+  `failure: 'vetoed'`), skips an edit without changes (`{ applied: true }`), refuses a second call while one
+  is running (`failure: 'busy'`, so a double click never creates twice), calls `adapter.save`, shows
   `fieldErrors` under their fields and focuses the first. Each mark stays until the user edits that field
   (also on a field the user had already changed). The form never notifies; the host shows `message` and
   reacts to `failure` (e.g. locks the dialog on `forbidden`). `showSaveFieldErrors(errors)` shows marks

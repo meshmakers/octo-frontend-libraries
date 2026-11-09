@@ -18,7 +18,8 @@ starts a new empty "Unreleased" section.
   token. Types `EntityFormDataContext`, `EntityFormSaveResult`, `EntityFormSaveFailure`.
 - The runtime-entity GraphQL path is the default adapter `RtEntityFormDataAdapter` (`EntityFormDataService.load` /
   `create` / `update`). Without a configured adapter `mm-entity-page` behaves as before.
-- New on `EntityFormComponent`: `save(context)` (validate, before-save hook, adapter, field errors), `getValues()`
+- New on `EntityFormComponent`: `save(context)` (validate, before-save hook, adapter, field errors; a second call while
+  one runs resolves `failure: 'busy'`), `getValues()`
   (every field in form shape) and `showSaveFieldErrors(errors)`. Save field errors are shown also on fields the user
   changed, until the user edits the field again; the existing `fieldErrors` input is unchanged (pristine fields only).
 - `mm-entity-page`: an adapter result with `applied: false` keeps the form open, shows the field errors and the

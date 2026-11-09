@@ -26,9 +26,10 @@ export interface EntityFormDataContext {
  * - `vetoed` — the before-save hook stopped the save (`message` = the hook's text, if any);
  * - `rejected` — the target refused the values (`fieldErrors` / `message` say why);
  * - `forbidden` — the user may not write the target; hosts lock the form and show `message`;
- * - `error` — transport or unexpected failure; the user may try again.
+ * - `error` — transport or unexpected failure; the user may try again;
+ * - `busy` — `EntityFormComponent.save()` was called while a save of that form was still running (adapter not called).
  */
-export type EntityFormSaveFailure = 'invalid' | 'vetoed' | 'rejected' | 'forbidden' | 'error';
+export type EntityFormSaveFailure = 'invalid' | 'vetoed' | 'rejected' | 'forbidden' | 'error' | 'busy';
 
 /** Result of {@link EntityFormDataAdapter.save}. */
 export interface EntityFormSaveResult {
