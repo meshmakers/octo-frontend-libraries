@@ -36,6 +36,20 @@ export function quoteCsvField(text: string, separator: string): string {
   return needsQuotes ? `"${text.split('"').join('""')}"` : text;
 }
 
+/** A text value that is just a (signed) number, e.g. a formatter's "-12,5" or "+3". */
+const NUMERIC_TEXT = /^[+-]?\d[\d\s.,']*$/;
+/** Characters that make a spreadsheet read a cell as a formula (OWASP "CSV injection"). */
+const FORMULA_START = /^[=+\-@\t\r]/;
+
+/**
+ * Neutralizes spreadsheet formulas in text (AB#8123): a text value that starts with `=`, `+`,
+ * `-`, `@`, a tab or a carriage return gets a leading `'`, so Excel and LibreOffice show it as
+ * text instead of running it. Plain numbers written as text (`-12,5`) stay unchanged.
+ */
+export function neutralizeCsvFormula(text: string): string {
+  return FORMULA_START.test(text) && !NUMERIC_TEXT.test(text) ? `'${text}` : text;
+}
+
 /** Formats cell values for one export; the Intl formatters are created once. */
 export class CsvValueFormatter {
   private readonly numberFormat: Intl.NumberFormat | null;
@@ -77,7 +91,7 @@ export class CsvValueFormatter {
         const date = new Date(value);
         return Number.isNaN(date.getTime()) ? value : this.formatDate(date);
       }
-      return value;
+      return neutralizeCsvFormula(value);
     }
     if (typeof value === 'boolean' || typeof value === 'bigint') {
       return String(value);

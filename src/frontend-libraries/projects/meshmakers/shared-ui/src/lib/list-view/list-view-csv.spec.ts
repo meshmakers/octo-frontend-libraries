@@ -76,6 +76,22 @@ describe('buildCsv (AB#8123)', () => {
       .toBe(`${BOM}Day\r\n2025-06-01\r\n`);
   });
 
+  it('neutralizes formula text but keeps numbers, negative numbers and numeric formatter output', () => {
+    const csv = buildCsv([
+      { name: '=HYPERLINK("http://x")', value: -12.5 },
+      { name: '+1+2', value: '-12,5' },
+      { name: '@SUM(A1)', value: '-3' },
+      { name: '-cmd', value: 'plain' }
+    ], columns, { separator: ';', locale: 'de-AT' });
+
+    expect(csv.split('\r\n').slice(1, 5)).toEqual([
+      `"'=HYPERLINK(""http://x"")";-12,5`,
+      `'+1+2;-12,5`,
+      `'@SUM(A1);-3`,
+      `'-cmd;plain`
+    ]);
+  });
+
   it('builds 35,040 rows (one year of quarter-hours) quickly', () => {
     const rows = Array.from({ length: 35040 }, (_, i) => ({
       name: new Date(Date.UTC(2025, 0, 1) + i * 900000),
