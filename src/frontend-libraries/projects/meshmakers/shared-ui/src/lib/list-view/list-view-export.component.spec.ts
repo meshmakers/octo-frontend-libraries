@@ -64,6 +64,7 @@ class ExportDataSourceDirective extends DataSourceBase {
     <div style="height: 600px; display: flex;">
       <mm-list-view mmTestExportDs [columns]="columns" [pageSize]="50" [exportPageSize]="exportPageSize"
                     [exportRowLimit]="exportRowLimit" [pdfExportRowLimit]="pdfExportRowLimit"
+                    [csvExportFileName]="'Rohdaten.csv'" [csvLocale]="csvLocale"
                     [persistListState]="false" style="flex: 1"></mm-list-view>
     </div>
   `
@@ -75,10 +76,11 @@ class HostComponent {
   exportPageSize = 20;
   exportRowLimit = 50000;
   pdfExportRowLimit = 5000;
+  csvLocale: string | null = null;
 }
 
 interface ListViewExportApi {
-  runExport(format: 'excel' | 'pdf'): void;
+  runExport(format: 'excel' | 'pdf' | 'csv'): void;
   excelExportData: () => { data: { name: string }[] };
   isExporting: boolean;
 }
@@ -294,4 +296,70 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
     expect(directive.currentState.take).toBe(50);
     flush();
   }));
+
+  describe('CSV (AB#8123)', () => {
+    let csvFiles: { name: string; text: Promise<string> }[];
+
+    beforeEach(() => {
+      csvFiles = [];
+      vi.spyOn(URL, 'createObjectURL').mockImplementation((blob: Blob | MediaSource) => {
+        const reader = new FileReader();
+        const text = new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+        });
+        reader.readAsText(blob as Blob);
+        csvFiles.push({ name: '', text });
+        return 'blob:csv';
+      });
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+        csvFiles[csvFiles.length - 1].name = this.download;
+      });
+    });
+
+    it('offers "Export to CSV" next to Excel and PDF', fakeAsync(() => {
+      create();
+      tick();
+      const commands = (host.listView as unknown as { toolbarCommands: { id: string; text: string }[] }).toolbarCommands;
+      expect(commands.map((c) => c.id)).toEqual(['excel', 'pdf', 'csv', 'refresh']);
+      expect(commands.find((c) => c.id === 'csv')?.text).toBe('Export to CSV');
+      flush();
+    }));
+
+    it('writes a header row and all rows of the current query, with the configured file name', async () => {
+      create();
+      await fixture.whenStable();
+      api().runExport('csv');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(csvFiles.length).toBe(1);
+      expect(csvFiles[0].name).toBe('Rohdaten.csv');
+      const text = await csvFiles[0].text;
+      const lines = text.replace(/^\uFEFF/, '').split('\r\n');
+      expect(lines[0]).toBe('Name');
+      expect(lines.length).toBe(1 + 120 + 1);
+      expect(lines[120]).toBe('row-119');
+    });
+
+    it('applies the row limit with the same message as Excel', async () => {
+      create((h) => (h.exportRowLimit = 70));
+      await fixture.whenStable();
+      api().runExport('csv');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const text = await csvFiles[0].text;
+      expect(text.replace(/^\uFEFF/, '').split('\r\n').length).toBe(1 + 70 + 1);
+      expect(messages.showWarning).toHaveBeenCalledWith('Export limited to 70 of 120 rows.');
+    });
+
+    it('writes no file when a fetch fails', async () => {
+      create();
+      await fixture.whenStable();
+      host.dataSource.failAt = 2;
+      api().runExport('csv');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(csvFiles.length).toBe(0);
+      expect(messages.showError).toHaveBeenCalled();
+    });
+  });
 });

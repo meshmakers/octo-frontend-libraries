@@ -148,9 +148,13 @@ Export of all rows (AB#8122): the Excel and PDF export contain **all rows of the
 | `exportPageSize` | `2000` | Rows per export request |
 | `exportRowLimit` | `50000` | Maximum rows of an export; a larger result is cut to the first N rows with the warning "Export limited to N of M rows." |
 | `pdfExportRowLimit` | `5000` | Maximum rows of a PDF export (Kendo renders every row into the page before drawing the PDF); the warning names this limit and points to the Excel export |
-| `excelExportFileName` / `pdfExportFileName` | `Export.xlsx` / `Export.pdf` | File names |
+| `excelExportFileName` / `pdfExportFileName` / `csvExportFileName` | `Export.xlsx` / `Export.pdf` / `Export.csv` | File names |
+| `csvSeparator` | `;` | CSV field separator (`;` opens in columns in German Excel) |
+| `csvLocale` | app `LOCALE_ID` | Locale of numbers and dates in the CSV (`de-AT`: `1234,5`, `31.12.2025 23:45:00`); `null` = locale-neutral (`1234.5`, ISO 8601) |
 
-Messages (`ListViewMessages`, all optional): `exportPreparing`, `exportProgress` (`{fetched}`, `{total}`), `exportLimited` / `pdfExportLimited` (`{limit}`, `{total}`), `exportFailed`. The warning and error go through `MessageService` (shown by `MessageListenerService`).
+CSV export (AB#8123): "Export to CSV" sits next to Excel and PDF and uses the same all-rows fetch, row limit and messages. The file is UTF-8 with byte order mark, has a header row with the column titles (as in Excel), RFC 4180 quoting (fields with the separator, a quote or a line break are quoted, quotes doubled) and CRLF line ends. A column `formatter` wins over the raw value; ISO strings of `date` / `iso8601` columns are written as dates. Text that starts with `=`, `+`, `-`, `@`, a tab or a carriage return gets a leading `'` so spreadsheets do not run it as a formula (plain numbers such as `-12,5` stay unchanged). 35,040 rows build in about 0.1 s (1.5 MB for four columns).
+
+Messages (`ListViewMessages`, all optional): `exportToCsv`, `exportPreparing`, `exportProgress` (`{fetched}`, `{total}`), `exportLimited` / `pdfExportLimited` (`{limit}`, `{total}`), `exportFailed`. The warning and error go through `MessageService` (shown by `MessageListenerService`).
 
 The toolbar's "Reset Filters" button only appears while something narrows the default view: a row filter, a column sort, a free-text search, or host-side filters. Hosts with their own quick-view/bar filters announce them via `[hasExternalFilters]="myBarFilterIsSet"` so the button shows (and `(resetFilters)` lets them clear those filters when it is clicked).
 

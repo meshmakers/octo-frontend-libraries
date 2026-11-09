@@ -738,13 +738,13 @@ describe('MmTableComponent', () => {
 
       it('takes the labels from the messages', () => {
         fixture.componentRef.setInput('messages', {
-          showRowFilter: 'Zeilenfilter', exportToExcel: 'Nach Excel', exportToPdf: 'Als PDF', refreshData: 'Neu laden',
+          showRowFilter: 'Zeilenfilter', exportToExcel: 'Nach Excel', exportToPdf: 'Als PDF', exportToCsv: 'Als CSV', refreshData: 'Neu laden',
         });
         fixture.componentRef.setInput('rowFilterEnabled', true);
         api().containerWidth.set(1200);
         fixture.detectChanges();
         const labels = Array.from(el().querySelectorAll('button[data-command]')).map(b => b.getAttribute('aria-label'));
-        expect(labels).toEqual(['Zeilenfilter', 'Nach Excel', 'Als PDF', 'Neu laden']);
+        expect(labels).toEqual(['Zeilenfilter', 'Nach Excel', 'Als PDF', 'Als CSV', 'Neu laden']);
       });
 
       it('labels the collapsed command menu with the commands message', () => {

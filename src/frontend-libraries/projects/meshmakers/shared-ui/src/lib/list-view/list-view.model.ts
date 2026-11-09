@@ -230,6 +230,8 @@ export interface ListViewMessages {
   exportToExcel: string;
   /** Tooltip for "Export to PDF" button. Default: "Export to PDF" */
   exportToPdf: string;
+  /** Tooltip for the "Export to CSV" button (AB#8123). Default: "Export to CSV". Optional. */
+  exportToCsv?: string;
   /** Tooltip for "Refresh Data" button. Default: "Refresh Data" */
   refreshData: string;
   /** Tooltip for the "Reset Filters" button. Default: "Reset Filters". Optional (added in 3.4). */
@@ -316,7 +318,7 @@ export interface MmListEmptyContext {
  * and as a menu item once the commands collapse.
  */
 export interface ListViewCommand {
-  id: 'rowFilter' | 'excel' | 'pdf' | 'reset' | 'refresh';
+  id: 'rowFilter' | 'excel' | 'pdf' | 'csv' | 'reset' | 'refresh';
   text: string;
   svgIcon: SVGIcon;
 }
@@ -330,6 +332,7 @@ export const DEFAULT_LIST_VIEW_MESSAGES: Required<ListViewMessages> = {
   showRowFilter: 'Show Row Filter',
   exportToExcel: 'Export to Excel',
   exportToPdf: 'Export to PDF',
+  exportToCsv: 'Export to CSV',
   refreshData: 'Refresh Data',
   resetFilters: 'Reset Filters',
   commands: 'Commands',
