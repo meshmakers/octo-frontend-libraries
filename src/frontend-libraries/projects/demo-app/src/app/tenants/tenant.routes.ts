@@ -124,6 +124,20 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'list-view-export',
+    loadComponent: () =>
+      import('./list-view-export-demo/list-view-export-demo.component').then(m => m.ListViewExportDemoComponent),
+    data: {
+      breadcrumb: [
+        {
+          label: 'List View Export',
+          svgIcon: event_list,
+          url: 'list-view-export'
+        }
+      ]
+    }
+  },
+  {
     path: 'list-view/details/:id',
     loadComponent: () =>
       import('./list-view-demo/details/details.component').then(m => m.ListViewDetailsComponent),
