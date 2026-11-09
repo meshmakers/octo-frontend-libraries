@@ -141,6 +141,17 @@ Empty state (AB#3444): `[emptyState]="{ title, text }"` shows the shared `mm-emp
 
 Toolbar actions (`leftToolbarActions` / `rightToolbarActions`, AB#6211) render **flat and neutral** by default: a page has exactly one solid primary action and it sits in the page header (`[mmPageActions]`, Studio action guideline §9). Set `primary: true` on a `CommandItem` only for a list without a page header (the list is the page). A toolbar action with `isDisabled` + `disabledReason` — plain, split or dropdown button — stays focusable (`aria-disabled`), announces the reason (`aria-describedby`), shows it in the tooltip ("Run scripts — No fixup scripts to run") and as a hint bubble on keyboard focus; clicks and the menu are blocked. A `disabledReason` callback receives the current selection.
 
+Export of all rows (AB#8122): the Excel and PDF export contain **all rows of the current filter, search and sort**, not only the page on screen. With server-side paging the list fetches the rows through its data source in sequential requests (never in parallel) while the list stays usable; the toolbar shows "Exporting N of M rows…". A failed request shows an error notification and writes no file. A list whose grid already holds every row (client-side data, a single page) exports those rows without another request. The grid's page, sort, filter and the persisted list state do not change.
+
+| Input | Default | Meaning |
+|-------|---------|---------|
+| `exportPageSize` | `2000` | Rows per export request |
+| `exportRowLimit` | `50000` | Maximum rows of an export; a larger result is cut to the first N rows with the warning "Export limited to N of M rows." |
+| `pdfExportRowLimit` | `5000` | Maximum rows of a PDF export (Kendo renders every row into the page before drawing the PDF); the warning names this limit and points to the Excel export |
+| `excelExportFileName` / `pdfExportFileName` | `Export.xlsx` / `Export.pdf` | File names |
+
+Messages (`ListViewMessages`, all optional): `exportPreparing`, `exportProgress` (`{fetched}`, `{total}`), `exportLimited` / `pdfExportLimited` (`{limit}`, `{total}`), `exportFailed`. The warning and error go through `MessageService` (shown by `MessageListenerService`).
+
 The toolbar's "Reset Filters" button only appears while something narrows the default view: a row filter, a column sort, a free-text search, or host-side filters. Hosts with their own quick-view/bar filters announce them via `[hasExternalFilters]="myBarFilterIsSet"` so the button shows (and `(resetFilters)` lets them clear those filters when it is clicked).
 
 ```html

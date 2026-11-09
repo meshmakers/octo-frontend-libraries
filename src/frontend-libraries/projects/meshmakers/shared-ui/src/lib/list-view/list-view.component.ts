@@ -13,7 +13,7 @@ import {
   NoRecordsTemplateDirective,
   NumericFilterCellComponent,
   PageChangeEvent,
-  PagerSettings, PDFModule, SelectableSettings, SelectionEvent,
+  PagerSettings, PDFComponent, PDFModule, SelectableSettings, SelectionEvent,
   StringFilterCellComponent,
   ToolbarTemplateDirective
 } from '@progress/kendo-angular-grid';
@@ -36,7 +36,8 @@ import {
   HierarchyBindingDirective,
   MenuItem
 } from '@progress/kendo-angular-menu';
-import {CommandBaseService, CommandItem, CommandSettingsService} from '@meshmakers/shared-services';
+import {CommandBaseService, CommandItem, CommandSettingsService, MessageService} from '@meshmakers/shared-services';
+import {LoaderComponent} from '@progress/kendo-angular-indicators';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ActionButtonComponent} from '../actions/action-button.component';
 import {MM_ROW_ACTIONS_MAX_INLINE, MmAction, isActionDisabled, isActionVisible} from '../actions/action.model';
@@ -49,10 +50,14 @@ import {
   sameAction,
 } from './list-view-row-actions';
 import {BytesToSizePipe} from '../pipes/bytes-to-size.pipe';
-import {asyncScheduler, Subject} from 'rxjs';
+import {asyncScheduler, Subject, Subscription} from 'rxjs';
 import {debounceTime, distinctUntilChanged, observeOn, takeUntil} from 'rxjs/operators';
 import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.service';
 import {EmptyStateComponent} from '../empty-state/empty-state.component';
+import {ExportFetchProgress, ExportFetchResult, formatExportMessage} from './list-view-export';
+
+/** Export formats that fetch all rows of the current query (AB#8122). */
+type ListViewExportFormat = 'excel' | 'pdf';
 
 /** Context/overflow menu class of `CommandItem.danger` items (AB#5570); styled globally in the list-view SCSS. */
 const DANGER_MENU_ITEM_CLASS = 'mm-list-view-menu-item--danger';
@@ -128,7 +133,8 @@ function sameEntries(a: ResolvedListRowAction[], b: ResolvedListRowAction[]): bo
     NgTemplateOutlet,
     ActionButtonComponent,
     NoRecordsTemplateDirective,
-    EmptyStateComponent
+    EmptyStateComponent,
+    LoaderComponent
   ],
   templateUrl: './list-view.component.html',
   styleUrl: './list-view.component.scss',
@@ -212,6 +218,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   @ViewChild(GridComponent) private gridComponent?: GridComponent;
   @ViewChild(MmListViewDataBindingDirective) private dataBindingDirective?: MmListViewDataBindingDirective;
+  @ViewChild(PDFComponent) private pdfComponent?: PDFComponent;
+  private readonly messageService = inject(MessageService);
   @ViewChild('gridmenu') public gridContextMenu?: ContextMenuComponent;
 
   @Output() rowClicked = new EventEmitter<unknown[]>();
@@ -281,6 +289,31 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   @Input() public excelExportFileName = 'Export.xlsx';
   @Input() public pdfExportFileName = 'Export.pdf';
+
+  /**
+   * Rows per request when an export fetches all rows of the current filter, search and sort
+   * through the data source (AB#8122). Requests run one after the other, never in parallel.
+   */
+  @Input() public exportPageSize = 2000;
+
+  /**
+   * Maximum number of rows an export contains (AB#8122). A larger result is cut to the first
+   * `exportRowLimit` rows and the user is told so ("Export limited to N of M rows").
+   */
+  @Input() public exportRowLimit = 50000;
+
+  /**
+   * Maximum number of rows of a PDF export (AB#8122). Kendo renders every exported row into the
+   * page before it draws the PDF, so the PDF gets a lower limit than Excel; the effective limit
+   * is the smaller of this and {@link exportRowLimit}.
+   */
+  @Input() public pdfExportRowLimit = 5000;
+
+  /** Progress of a running export that fetches all rows; `null` while no export runs (AB#8122). */
+  protected readonly exportProgress = signal<ExportFetchProgress | null>(null);
+  private exportSubscription: Subscription | null = null;
+  /** Rows the next Excel export writes; `null` = the rows the grid holds. */
+  private excelExportRows: unknown[] | null = null;
   @Input() public pageable: PagerSettings = {
     buttonCount: 5,
     info: true,
@@ -558,19 +591,137 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   /**
-   * Runs a command by id. Excel and PDF are driven by Kendo's own
-   * `kendoGridExcelCommand` / `kendoGridPDFCommand` directives when the buttons
-   * are laid out; from the overflow menu there is no directive to attach to, so
-   * the grid API is called directly.
+   * Runs a command by id, from a laid-out toolbar button or from the collapsed
+   * command menu. Excel and PDF go through {@link runExport}, which fetches all
+   * rows of the current query first (AB#8122).
    */
   protected onCommand(id: string): void {
     switch (id) {
       case 'rowFilter': this.onShowRowFilter(); break;
-      case 'excel': this.gridComponent?.saveAsExcel(); break;
-      case 'pdf': this.gridComponent?.saveAsPDF(); break;
+      case 'excel': this.runExport('excel'); break;
+      case 'pdf': this.runExport('pdf'); break;
       case 'reset': this.onReset(); break;
       case 'refresh': this.onRefresh(); break;
     }
+  }
+
+  /** Whether an export is fetching rows right now (export commands are disabled meanwhile). */
+  protected get isExporting(): boolean {
+    return this.exportProgress() !== null;
+  }
+
+  /** Text of the export progress indicator, e.g. "Exporting 4000 of 35000 rows…". */
+  protected get exportProgressText(): string {
+    const progress = this.exportProgress();
+    if (!progress) {
+      return '';
+    }
+    if (progress.target === null) {
+      return this._messages.exportPreparing;
+    }
+    return formatExportMessage(this._messages.exportProgress, {fetched: progress.fetched, total: progress.target});
+  }
+
+  /**
+   * Exports to Excel or PDF with all rows of the current filter, search and sort (AB#8122).
+   *
+   * When the grid already holds every row (client-side data, or a single page) the export
+   * writes those rows as before. Otherwise the rows are fetched through the data binding —
+   * sequential pages of {@link exportPageSize}, at most {@link exportRowLimit} rows
+   * ({@link pdfExportRowLimit} for PDF) — while the list stays usable. A cut result is reported
+   * with a warning; a failed fetch with an error notification and no file. The grid's page,
+   * sort, filter and the persisted list state are not changed.
+   */
+  protected runExport(format: ListViewExportFormat): void {
+    const grid = this.gridComponent;
+    if (!grid || this.isExporting) {
+      return;
+    }
+    const directive = this.dataBindingDirective;
+    if (!directive || this.gridRows().length >= this.gridTotal()) {
+      this.writeExport(format, null);
+      return;
+    }
+    const limit = format === 'pdf' ? Math.min(this.pdfExportRowLimit, this.exportRowLimit) : this.exportRowLimit;
+    this.exportProgress.set({fetched: 0, target: null, totalCount: null});
+    this.exportSubscription = directive.fetchAllRowsForExport(this.exportPageSize, limit, (progress) => {
+      this.exportProgress.set(progress);
+    }).subscribe({
+      next: (result) => {
+        this.exportSubscription = null;
+        this.exportProgress.set(null);
+        if (result.limited) {
+          const template = format === 'pdf' ? this._messages.pdfExportLimited : this._messages.exportLimited;
+          this.messageService.showWarning(formatExportMessage(template, {limit: result.rows.length, total: result.totalCount}));
+        }
+        this.writeExport(format, result);
+      },
+      error: (error: unknown) => {
+        this.exportSubscription = null;
+        this.exportProgress.set(null);
+        console.error('[mm-list-view] export fetch failed:', error);
+        this.messageService.showError(this._messages.exportFailed);
+      }
+    });
+  }
+
+  /**
+   * Data callback of `<kendo-grid-excel [fetchData]>`: the rows fetched by {@link runExport},
+   * or the rows the grid holds. Kendo calls it synchronously from `saveAsExcel()`.
+   */
+  protected get excelExportData(): () => { data: unknown[] } {
+    return () => {
+      const rows = this.excelExportRows ?? this.gridRows();
+      this.excelExportRows = null;
+      return {data: rows};
+    };
+  }
+
+  private writeExport(format: ListViewExportFormat, result: ExportFetchResult | null): void {
+    const grid = this.gridComponent;
+    if (!grid) {
+      return;
+    }
+    if (format === 'excel') {
+      this.excelExportRows = result ? result.rows : null;
+      grid.saveAsExcel();
+      return;
+    }
+    const pdf = this.pdfComponent;
+    const directive = this.dataBindingDirective;
+    // Kendo renders all pages only while the page size is below the grid total; otherwise the
+    // rows on screen are all there is and the grid is drawn as it is.
+    if (!result || !pdf || !directive || (grid.pageSize ?? Number.POSITIVE_INFINITY) >= this.gridTotal()) {
+      grid.saveAsPDF();
+      return;
+    }
+    directive.preparePdfExport(result.rows);
+    pdf.allPages = true;
+    try {
+      grid.saveAsPDF();
+    } finally {
+      // Kendo reads allPages synchronously when the export starts.
+      pdf.allPages = false;
+      directive.cancelPdfExport();
+    }
+  }
+
+  /** Rows the grid holds right now (the current page with server paging). */
+  private gridRows(): unknown[] {
+    const data = this.gridComponent?.data as { data?: unknown[] } | unknown[] | null | undefined;
+    if (Array.isArray(data)) {
+      return data;
+    }
+    return Array.isArray(data?.data) ? data.data : [];
+  }
+
+  /** Total rows of the current query as the grid knows it. */
+  private gridTotal(): number {
+    const data = this.gridComponent?.data as { total?: number } | unknown[] | null | undefined;
+    if (Array.isArray(data)) {
+      return data.length;
+    }
+    return typeof data?.total === 'number' ? data.total : this.gridRows().length;
   }
 
   @HostBinding('class.mm-list-view-cards')
@@ -789,6 +940,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   ngOnDestroy(): void {
     this.closeToolbarHint();
     this.resizeObserver?.disconnect();
+    this.exportSubscription?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }

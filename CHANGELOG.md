@@ -10,6 +10,20 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui: list view exports all rows, not only the page on screen (AB#8122)
+
+- Fix (non-breaking): with server-side paging the Excel and PDF export of `mm-list-view` contained only the current
+  page, without a message. They now contain all rows of the current filter, search and sort, fetched through the
+  list's data source in sequential requests of `exportPageSize` rows (default 2,000). The list stays usable while
+  the toolbar shows the progress; a failed request shows an error notification and writes no file. Lists whose grid
+  already holds every row (client-side data, a single page) export as before. The grid's page, sort, filter and the
+  persisted list state do not change.
+- New inputs: `exportPageSize` (2,000), `exportRowLimit` (50,000) and `pdfExportRowLimit` (5,000). A result above
+  the limit is cut to the first N rows with the warning "Export limited to N of M rows." (PDF: names the PDF limit).
+- New optional `ListViewMessages`: `exportPreparing`, `exportProgress`, `exportLimited`, `pdfExportLimited`,
+  `exportFailed`. New exports: `fetchAllRowsForExport`, `formatExportMessage`, `DEFAULT_EXPORT_PAGE_SIZE`,
+  `DEFAULT_EXPORT_ROW_LIMIT`, `DEFAULT_PDF_EXPORT_ROW_LIMIT`.
+
 ### octo-services: allow-list edits detect concurrent changes (AB#8520)
 
 - New (non-breaking, additive): `getCrossTenantGrantPermissions()` and `setCrossTenantGrantPermissions()` return
