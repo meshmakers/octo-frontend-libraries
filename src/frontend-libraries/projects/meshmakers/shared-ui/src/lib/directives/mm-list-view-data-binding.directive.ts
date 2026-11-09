@@ -4,6 +4,15 @@ import {CompositeFilterDescriptor, State} from '@progress/kendo-data-query';
 import {Observable, of, Subscription} from 'rxjs';
 import {DataSourceBase, FetchAgainOptions} from '../data-sources/data-source-base';
 import {ListStateService} from '../services/list-state.service';
+import {ExportFetchProgress, ExportFetchResult, fetchAllRowsForExport} from '../list-view/list-view-export';
+
+/** Rows the grid shows while Kendo renders a PDF of all pages, plus the page to restore afterwards (AB#8122). */
+interface PdfExportRendering {
+  rows: unknown[];
+  total: number;
+  restore: unknown;
+  rendered: boolean;
+}
 
 @Directive({
   selector: '[mmListViewDataBinding]',
@@ -37,6 +46,7 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
   private _refreshDataSubscription: Subscription | null;
   private _textSearchValue: string | null = null;
   private _forceRefresh = false;
+  private _pdfExport: PdfExportRendering | null = null;
 
   constructor() {
     const grid = inject(GridComponent);
@@ -133,8 +143,73 @@ export class MmListViewDataBindingDirective extends DataBindingDirective impleme
    * pager. Persist the resulting state so those interactions survive a revisit.
    */
   public override onStateChange(state: DataStateChangeEvent): void {
+    if (this._pdfExport) {
+      this.onPdfExportPageChange();
+      return;
+    }
     super.onStateChange(state);
     this.persistState();
+  }
+
+  /**
+   * Fetches all rows of the list's current query — filter, sort and free-text search as the
+   * grid shows them now — for an export (AB#8122): sequential requests of `pageSize` rows
+   * through the data source, at most `limit` rows. Works on a copy of the state: the grid's
+   * page, sort, filter, loading flag and the persisted list state are not touched.
+   */
+  public fetchAllRowsForExport(
+    pageSize: number,
+    limit: number,
+    onProgress?: (progress: ExportFetchProgress) => void
+  ): Observable<ExportFetchResult> {
+    const dataSource = this.dataSource;
+    if (!dataSource) {
+      return of({rows: [], totalCount: 0, limited: false});
+    }
+    const sort = this.state.sort ? [...this.state.sort] : undefined;
+    const filter = this.state.filter;
+    const group = this.state.group;
+    const textSearch = this._textSearchValue;
+    return fetchAllRowsForExport(
+      (skip, take) => dataSource.fetchData({
+        state: {skip, take, sort, filter, group},
+        textSearch
+      }),
+      pageSize,
+      limit,
+      onProgress
+    );
+  }
+
+  /**
+   * Prepares a PDF export of all pages with rows that were already fetched (AB#8122). Kendo's
+   * `<kendo-grid-pdf [allPages]>` asks for all rows with a page change, renders them, draws the
+   * PDF and asks for the original page again. With rows prepared here, the first page change
+   * shows these rows without a request and the second one puts the previous page back — no
+   * refetch, and neither the paging state nor the persisted list state changes.
+   */
+  public preparePdfExport(rows: unknown[]): void {
+    this._pdfExport = {rows, total: rows.length, restore: this.grid.data, rendered: false};
+  }
+
+  /** Drops a prepared PDF export that Kendo did not start (e.g. all rows were already on the page). */
+  public cancelPdfExport(): void {
+    if (this._pdfExport && !this._pdfExport.rendered) {
+      this._pdfExport = null;
+    }
+  }
+
+  private onPdfExportPageChange(): void {
+    const exporting = this._pdfExport!;
+    if (!exporting.rendered) {
+      exporting.rendered = true;
+      this.grid.data = {data: exporting.rows, total: exporting.total};
+    } else {
+      this._pdfExport = null;
+      this.grid.data = exporting.restore as GridComponent['data'];
+      this.dataSource?.listViewComponent?.clearSelection();
+    }
+    this.notifyDataChange();
   }
 
   /** Effective per-list storage key, or null when persistence is disabled/unavailable. */

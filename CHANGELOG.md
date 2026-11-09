@@ -38,6 +38,53 @@ starts a new empty "Unreleased" section.
   becomes the page form, settings entry or display name of its target type. No form with that category existed before.
   README: "Archive correction forms" (how a blueprint ships one as seed data).
 
+### shared-ui: list view PDF export prints dates in one line, umlauts, and has a measured row limit (AB#8630)
+
+- Fix (non-breaking): the PDF export of `mm-list-view` printed `date` columns as the raw `Date.toString()`
+  ("Wed Jan 01 2025 01:00:00 GMT+0100 (…)", wrapped over four lines, about 4 rows per page) and dropped umlauts and
+  ß (the standard PDF fonts have no glyphs for them). Date and date-time columns (`date`, `iso8601`) now print in one
+  line, locale-aware (`LOCALE_ID`, `31.12.2025 23:45:00` in `de-AT`; a column `format` is applied as an Angular date
+  format; a `formatter` wins), and the PDF embeds DejaVu Sans (regular and bold, Latin subset). The font is a lazy
+  chunk of about 91 KB (37 KB compressed) loaded on the first PDF export only. License text:
+  `fonts/licenses/dejavu-LICENSE.txt`.
+- Fix (visible change): the black-and-white PDF styles of the list view (10px text, 1px black borders, compact
+  cells) never reached the PDF: Kendo draws from a clone of the table appended to `<body>`
+  (`.k-grid-pdf-export-element`), which the encapsulated `:host-context(.k-pdf-export)` rules did not match. They
+  are now global rules on `.k-grid-pdf-export-element`, so the PDF has about 15 instead of 4 to 8 rows per A4 page.
+- Fix (visible change): grid cells of `dataType: 'date'` columns showed the raw `Date.toString()` as well; they now
+  use the same one-line formatting (also in the cell tooltip and in card mode).
+- Changed default: `pdfExportRowLimit` (and `DEFAULT_PDF_EXPORT_ROW_LIMIT`) is 1,000 instead of 5,000. Kendo lays out
+  and draws the PDF in one synchronous run on the main thread; 5,000 rows froze the tab for minutes. The value is
+  measured on the demo page (AB#8630, 35,040 rows, four columns, Chrome): longest main-thread block 1.4 s for 500 rows,
+  4.6 s for 1,000, 14.7 s for 2,000, 73 s for 5,000 (before: 286 s for 5,000); a larger PDF is cut with the existing warning "PDF export limited to N of M
+  rows. Use the Excel export for all rows." Apps that set `pdfExportRowLimit` themselves are unaffected.
+
+### shared-ui: list view exports CSV (AB#8123)
+
+- New (non-breaking): "Export to CSV" in the `mm-list-view` toolbar next to Excel and PDF, with the same all-rows
+  fetch, row limit and messages as the Excel export (AB#8122). UTF-8 with BOM, header row with the column titles,
+  RFC 4180 quoting, CRLF line ends. Formula-like text (`=`, `+`, `-`, `@`, tab, CR) gets a leading `'` (CSV
+  injection) in every cell and header title, including text in date columns that is no date; numbers written as
+  text stay unchanged.
+- New inputs: `csvExportFileName` (`Export.csv`), `csvSeparator` (`;`) and `csvLocale` (default: the app's
+  `LOCALE_ID`, so German Excel reads `1234,5` and `31.12.2025 23:45:00`; `null` = locale-neutral numbers and ISO dates).
+- New optional `ListViewMessages.exportToCsv`; `ListViewCommand.id` gains `'csv'`. New exports: `buildCsv`,
+  `downloadCsv`, `quoteCsvField`, `neutralizeCsvFormula`, `CsvValueFormatter`, `CsvColumn`, `CsvFormatOptions`.
+
+### shared-ui: list view exports all rows, not only the page on screen (AB#8122)
+
+- Fix (non-breaking): with server-side paging the Excel and PDF export of `mm-list-view` contained only the current
+  page, without a message. They now contain all rows of the current filter, search and sort, fetched through the
+  list's data source in sequential requests of `exportPageSize` rows (default 2,000). The list stays usable while
+  the toolbar shows the progress; a failed request shows an error notification and writes no file. Lists whose grid
+  already holds every row (client-side data, a single page) export as before. The grid's page, sort, filter and the
+  persisted list state do not change.
+- New inputs: `exportPageSize` (2,000), `exportRowLimit` (50,000) and `pdfExportRowLimit` (5,000). A result above
+  the limit is cut to the first N rows with the warning "Export limited to N of M rows." (PDF: names the PDF limit).
+- New optional `ListViewMessages`: `exportPreparing`, `exportProgress`, `exportLimited`, `pdfExportLimited`,
+  `exportFailed`. New exports: `fetchAllRowsForExport`, `formatExportMessage`, `DEFAULT_EXPORT_PAGE_SIZE`,
+  `DEFAULT_EXPORT_ROW_LIMIT`, `DEFAULT_PDF_EXPORT_ROW_LIMIT`.
+
 ### octo-services: allow-list edits detect concurrent changes (AB#8520)
 
 - New (non-breaking, additive): `getCrossTenantGrantPermissions()` and `setCrossTenantGrantPermissions()` return

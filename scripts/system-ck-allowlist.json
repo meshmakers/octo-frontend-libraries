@@ -83,7 +83,8 @@
     "**/dist/**",
     "**/package-lock.json",
     "scripts/system-ck-*.json",
-    ".idea/**"
+    ".idea/**",
+    "src/frontend-libraries/projects/meshmakers/shared-ui/src/lib/list-view/list-view-pdf-font-data.ts"
   ],
   "genericGraphQlPrefixes": [
     "Rt",

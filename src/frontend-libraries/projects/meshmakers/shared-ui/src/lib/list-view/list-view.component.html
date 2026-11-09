@@ -30,6 +30,10 @@
       @case ('iso8601') {
         {{ $any(getValue(element, column)) | date:column.format }}
       }
+      @case ('date') {
+        <!-- One line, locale-aware; never the raw Date.toString() (AB#8630). -->
+        {{ getDateText(element, column) }}
+      }
       @case ('bytes') {
         {{ $any(getValue(element, column)) | bytesToSize }}
       }
@@ -279,9 +283,16 @@
     <!-- Commands: laid out while there is room, collapsed into one menu once
          the list gets narrow. Same behaviour in every host app — a list this
          wide has space for five buttons, and a list this narrow does not. -->
+    <!-- Export of all rows (AB#8122): progress while the rows are fetched; the list stays usable. -->
+    @if (isExporting) {
+      <span class="mm-list-view-export-progress" role="status" aria-live="polite" data-export-progress>
+        <kendo-loader size="small" type="pulsing"></kendo-loader>
+        <span>{{ exportProgressText }}</span>
+      </span>
+    }
     @if (commandsCollapsed) {
       <kendo-dropdownbutton class="mm-toolbar-commands" [data]="toolbarCommands" textField="text" [svgIcon]="commandsIcon"
-                            fillMode="flat" themeColor="primary" [disabled]="isLoading()"
+                            fillMode="flat" themeColor="primary" [disabled]="isLoading() || isExporting"
                             [title]="_messages.commands"
                             [buttonAttributes]="commandsMenuButtonAttributes"
                             (itemClick)="onCommand($any($event).id)"></kendo-dropdownbutton>
@@ -289,14 +300,19 @@
       @for (command of toolbarCommands; track command.id) {
         @switch (command.id) {
           @case ('excel') {
-            <button kendoTooltip kendoGridExcelCommand themeColor="primary" fillMode="flat"
-                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"
-                    [attr.aria-label]="command.text" [attr.data-command]="command.id"></button>
+            <button kendoTooltip kendoButton type="button" themeColor="primary" fillMode="flat"
+                    [svgIcon]="command.svgIcon" [disabled]="isLoading() || isExporting" [title]="command.text"
+                    [attr.aria-label]="command.text" [attr.data-command]="command.id" (click)="onCommand(command.id)"></button>
           }
           @case ('pdf') {
-            <button kendoTooltip kendoGridPDFCommand themeColor="primary" fillMode="flat"
-                    [svgIcon]="command.svgIcon" [disabled]="isLoading()" [title]="command.text"
-                    [attr.aria-label]="command.text" [attr.data-command]="command.id"></button>
+            <button kendoTooltip kendoButton type="button" themeColor="primary" fillMode="flat"
+                    [svgIcon]="command.svgIcon" [disabled]="isLoading() || isExporting" [title]="command.text"
+                    [attr.aria-label]="command.text" [attr.data-command]="command.id" (click)="onCommand(command.id)"></button>
+          }
+          @case ('csv') {
+            <button kendoTooltip kendoButton type="button" themeColor="primary" fillMode="flat"
+                    [svgIcon]="command.svgIcon" [disabled]="isLoading() || isExporting" [title]="command.text"
+                    [attr.aria-label]="command.text" [attr.data-command]="command.id" (click)="onCommand(command.id)"></button>
           }
           @default {
             <!-- The row filter is a toggle: its on state is shown (k-selected) and announced. -->
@@ -472,7 +488,7 @@
     </kendo-grid-column>
   }
 
-  <kendo-grid-excel fileName="{{excelExportFileName}}">
+  <kendo-grid-excel fileName="{{excelExportFileName}}" [fetchData]="excelExportData">
     @for (column of columns; track column.field) {
       <kendo-excelexport-column [field]="column.field"
                                 [title]="getDisplayName(column) | pascalCase">
@@ -485,7 +501,10 @@
     @for (column of columns; track column.field) {
       <kendo-grid-column [field]="column.field"
                          [filter]="getFilterType(column)"
-                         [title]="getDisplayName(column) | pascalCase"></kendo-grid-column>
+                         [title]="getDisplayName(column) | pascalCase">
+        <!-- Plain cell text: formatter, formatted dates in one line (AB#8630). -->
+        <ng-template kendoGridCellTemplate let-dataItem>{{ getPdfCellText(dataItem, column) }}</ng-template>
+      </kendo-grid-column>
     }
     <kendo-grid-pdf-margin top="1.5cm" left="1cm" right="1cm" bottom="1.5cm"></kendo-grid-pdf-margin>
     <ng-template kendoGridPDFTemplate let-pageNum="pageNum" let-totalPages="totalPages">

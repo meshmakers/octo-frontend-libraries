@@ -230,6 +230,8 @@ export interface ListViewMessages {
   exportToExcel: string;
   /** Tooltip for "Export to PDF" button. Default: "Export to PDF" */
   exportToPdf: string;
+  /** Tooltip for the "Export to CSV" button (AB#8123). Default: "Export to CSV". Optional. */
+  exportToCsv?: string;
   /** Tooltip for "Refresh Data" button. Default: "Refresh Data" */
   refreshData: string;
   /** Tooltip for the "Reset Filters" button. Default: "Reset Filters". Optional (added in 3.4). */
@@ -248,6 +250,16 @@ export interface ListViewMessages {
   rowActionsLoading?: string;
   /** PDF footer page template. Default: "Page {pageNum} of {totalPages}" */
   pdfPageTemplate: string;
+  /** Export progress before the first rows arrived (AB#8122). Default: "Preparing export…". Optional. */
+  exportPreparing?: string;
+  /** Export progress; `{fetched}` rows loaded of `{total}` (AB#8122). Default: "Exporting {fetched} of {total} rows…". Optional. */
+  exportProgress?: string;
+  /** Warning when the Excel export hit the row limit; `{limit}`, `{total}` (AB#8122). Default: "Export limited to {limit} of {total} rows.". Optional. */
+  exportLimited?: string;
+  /** Warning when the PDF export hit its row limit; `{limit}`, `{total}` (AB#8122). Default: "PDF export limited to {limit} of {total} rows. Use the Excel export for all rows.". Optional. */
+  pdfExportLimited?: string;
+  /** Error when the rows for an export could not be loaded; no file is written (AB#8122). Default: "Export failed: the rows could not be loaded. No file was created.". Optional. */
+  exportFailed?: string;
 
   // Kendo Grid pager messages
   /** Pager: text after page size selector. Default: "items per page" */
@@ -306,7 +318,7 @@ export interface MmListEmptyContext {
  * and as a menu item once the commands collapse.
  */
 export interface ListViewCommand {
-  id: 'rowFilter' | 'excel' | 'pdf' | 'reset' | 'refresh';
+  id: 'rowFilter' | 'excel' | 'pdf' | 'csv' | 'reset' | 'refresh';
   text: string;
   svgIcon: SVGIcon;
 }
@@ -320,6 +332,7 @@ export const DEFAULT_LIST_VIEW_MESSAGES: Required<ListViewMessages> = {
   showRowFilter: 'Show Row Filter',
   exportToExcel: 'Export to Excel',
   exportToPdf: 'Export to PDF',
+  exportToCsv: 'Export to CSV',
   refreshData: 'Refresh Data',
   resetFilters: 'Reset Filters',
   commands: 'Commands',
@@ -329,6 +342,11 @@ export const DEFAULT_LIST_VIEW_MESSAGES: Required<ListViewMessages> = {
   rowActionUnavailable: 'Not available for this row',
   rowActionsLoading: 'The list is loading',
   pdfPageTemplate: 'Page {pageNum} of {totalPages}',
+  exportPreparing: 'Preparing export…',
+  exportProgress: 'Exporting {fetched} of {total} rows…',
+  exportLimited: 'Export limited to {limit} of {total} rows.',
+  pdfExportLimited: 'PDF export limited to {limit} of {total} rows. Use the Excel export for all rows.',
+  exportFailed: 'Export failed: the rows could not be loaded. No file was created.',
   pagerItemsPerPage: 'items per page',
   pagerOf: 'of',
   pagerItems: 'items',
