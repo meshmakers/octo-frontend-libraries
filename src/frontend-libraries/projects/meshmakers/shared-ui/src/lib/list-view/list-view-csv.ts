@@ -89,7 +89,8 @@ export class CsvValueFormatter {
           return this.dateFormat ? this.dateFormat.format(new Date(+dateOnly[1], +dateOnly[2] - 1, +dateOnly[3])) : value;
         }
         const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? value : this.formatDate(date);
+        // Text that is no date is still text: neutralize it like any other string.
+        return Number.isNaN(date.getTime()) ? neutralizeCsvFormula(value) : this.formatDate(date);
       }
       return neutralizeCsvFormula(value);
     }
@@ -118,7 +119,7 @@ export function buildCsv(rows: readonly unknown[], columns: readonly CsvColumn[]
   const separator = options.separator || DEFAULT_CSV_SEPARATOR;
   const formatter = new CsvValueFormatter(options.locale);
   const lines: string[] = new Array(rows.length + 1);
-  lines[0] = columns.map((column) => quoteCsvField(column.title, separator)).join(separator);
+  lines[0] = columns.map((column) => quoteCsvField(neutralizeCsvFormula(column.title), separator)).join(separator);
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     let line = '';

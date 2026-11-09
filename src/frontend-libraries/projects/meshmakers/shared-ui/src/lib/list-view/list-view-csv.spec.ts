@@ -92,6 +92,41 @@ describe('buildCsv (AB#8123)', () => {
     ]);
   });
 
+  it('neutralizes formula text in date columns when it is no date', () => {
+    const dateColumns: CsvColumn[] = [{ title: 'At', value: (r) => (r as { at: unknown }).at, isDate: true }];
+    const csv = buildCsv([
+      { at: '=HYPERLINK("http://x")' },
+      { at: '+A1' },
+      { at: '-1+2' },
+      { at: '@SUM(A1)' },
+      { at: 'no date' }
+    ], dateColumns, { separator: ';', locale: 'de-AT' });
+
+    expect(csv.split('\r\n').slice(1, 6)).toEqual([
+      `"'=HYPERLINK(""http://x"")"`,
+      `'+A1`,
+      `'-1+2`,
+      `'@SUM(A1)`,
+      'no date'
+    ]);
+  });
+
+  it('never writes a formula-like date-column value as it is, with or without a locale', () => {
+    const dateColumns: CsvColumn[] = [{ title: 'At', value: (r) => (r as { at: unknown }).at, isDate: true }];
+    for (const locale of ['de-AT', null]) {
+      const lines = buildCsv([{ at: '=1+1' }, { at: '+1' }, { at: '-1' }, { at: '@x' }], dateColumns, { separator: ';', locale })
+        .split('\r\n').slice(1, 5);
+      // Either neutralized text or a parsed date; never the raw formula text.
+      expect(lines.filter((line) => /^[=+@]/.test(line) || line === '-1')).toEqual([]);
+    }
+  });
+
+  it('neutralizes formula text in header titles', () => {
+    const csv = buildCsv([], [{ title: '=cmd', value: () => '' }], { separator: ';', locale: null });
+
+    expect(csv).toBe(`${BOM}'=cmd\r\n`);
+  });
+
   it('builds 35,040 rows (one year of quarter-hours) quickly', () => {
     const rows = Array.from({ length: 35040 }, (_, i) => ({
       name: new Date(Date.UTC(2025, 0, 1) + i * 900000),

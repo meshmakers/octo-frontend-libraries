@@ -15,7 +15,8 @@ starts a new empty "Unreleased" section.
 - New (non-breaking): "Export to CSV" in the `mm-list-view` toolbar next to Excel and PDF, with the same all-rows
   fetch, row limit and messages as the Excel export (AB#8122). UTF-8 with BOM, header row with the column titles,
   RFC 4180 quoting, CRLF line ends. Formula-like text (`=`, `+`, `-`, `@`, tab, CR) gets a leading `'` (CSV
-  injection); numbers written as text stay unchanged.
+  injection) in every cell and header title, including text in date columns that is no date; numbers written as
+  text stay unchanged.
 - New inputs: `csvExportFileName` (`Export.csv`), `csvSeparator` (`;`) and `csvLocale` (default: the app's
   `LOCALE_ID`, so German Excel reads `1234,5` and `31.12.2025 23:45:00`; `null` = locale-neutral numbers and ISO dates).
 - New optional `ListViewMessages.exportToCsv`; `ListViewCommand.id` gains `'csv'`. New exports: `buildCsv`,
