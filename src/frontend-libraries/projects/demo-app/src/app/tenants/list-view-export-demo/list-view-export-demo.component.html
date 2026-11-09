@@ -1,9 +1,10 @@
 <div class="export-demo">
-  <h3>mm-list-view export of all rows (AB#8122)</h3>
+  <h3>mm-list-view export of all rows (AB#8122, AB#8630)</h3>
   <p>
     The list below uses server-side paging (simulated, 150 ms per request) with one year of quarter-hour values
     of one register. Excel and PDF export fetch all rows of the current search and sort in sequential requests
-    of <code>exportPageSize</code> rows; PDF stops at <code>pdfExportRowLimit</code>.
+    of <code>exportPageSize</code> rows; PDF stops at <code>pdfExportRowLimit</code> (default 1,000). The PDF prints
+    dates in one line and embeds DejaVu Sans, so the umlauts of the register name print (AB#8630).
   </p>
   <div class="export-demo__options">
     <button kendoButton (click)="setRowCount(35040)" data-testid="rows-35040">35,040 rows</button>
@@ -12,8 +13,17 @@
     <button kendoButton (click)="failNextRequest()" data-testid="fail-next">Fail the next request</button>
     <span data-testid="row-count">Rows: {{ rowCount() }}</span>
   </div>
+  <div class="export-demo__options">
+    <span>PDF row limit:</span>
+    @for (limit of pdfLimits; track limit) {
+      <button kendoButton [themeColor]="pdfExportRowLimit() === limit ? 'primary' : 'base'"
+              (click)="pdfExportRowLimit.set(limit)" [attr.data-testid]="'pdf-limit-' + limit">
+        {{ limit }}{{ limit === 1000 ? ' (default)' : '' }}
+      </button>
+    }
+  </div>
   <mm-list-view appServerPagedDataSource [columns]="columns" [sortable]="true" [searchTextBoxEnabled]="true"
-                [pageSize]="50" [persistListState]="false"
+                [pageSize]="50" [persistListState]="false" [pdfExportRowLimit]="pdfExportRowLimit()"
                 excelExportFileName="RawData.xlsx" pdfExportFileName="RawData.pdf"
                 class="export-demo__list"></mm-list-view>
 </div>

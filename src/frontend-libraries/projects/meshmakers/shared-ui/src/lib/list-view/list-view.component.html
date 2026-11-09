@@ -30,6 +30,10 @@
       @case ('iso8601') {
         {{ $any(getValue(element, column)) | date:column.format }}
       }
+      @case ('date') {
+        <!-- One line, locale-aware; never the raw Date.toString() (AB#8630). -->
+        {{ getDateText(element, column) }}
+      }
       @case ('bytes') {
         {{ $any(getValue(element, column)) | bytesToSize }}
       }
@@ -497,7 +501,10 @@
     @for (column of columns; track column.field) {
       <kendo-grid-column [field]="column.field"
                          [filter]="getFilterType(column)"
-                         [title]="getDisplayName(column) | pascalCase"></kendo-grid-column>
+                         [title]="getDisplayName(column) | pascalCase">
+        <!-- Plain cell text: formatter, formatted dates in one line (AB#8630). -->
+        <ng-template kendoGridCellTemplate let-dataItem>{{ getPdfCellText(dataItem, column) }}</ng-template>
+      </kendo-grid-column>
     }
     <kendo-grid-pdf-margin top="1.5cm" left="1cm" right="1cm" bottom="1.5cm"></kendo-grid-pdf-margin>
     <ng-template kendoGridPDFTemplate let-pageNum="pageNum" let-totalPages="totalPages">

@@ -6,8 +6,8 @@ import {FetchResult} from '../models/fetchResult';
 export const DEFAULT_EXPORT_PAGE_SIZE = 2000;
 /** Default maximum number of rows an Excel export contains (AB#8122). */
 export const DEFAULT_EXPORT_ROW_LIMIT = 50000;
-/** Default maximum number of rows a PDF export contains; rendering is far heavier than Excel (AB#8122). */
-export const DEFAULT_PDF_EXPORT_ROW_LIMIT = 5000;
+/** Default maximum number of rows a PDF export contains; rendering is far heavier than Excel and blocks the tab (AB#8122, measured in AB#8630). */
+export const DEFAULT_PDF_EXPORT_ROW_LIMIT = 1000;
 
 /** Rows fetched so far by a running export, and the total the data source reported. */
 export interface ExportFetchProgress {

@@ -56,6 +56,8 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
 import {EmptyStateComponent} from '../empty-state/empty-state.component';
 import {ExportFetchProgress, ExportFetchResult, formatExportMessage} from './list-view-export';
 import {buildCsv, CsvColumn, downloadCsv} from './list-view-csv';
+import {ListViewDateFormatter} from './list-view-date';
+import {loadPdfExportFont} from './list-view-pdf-font';
 
 /**
  * Whether the HTTP error interceptor already showed this failure to the user. Data sources pass
@@ -311,6 +313,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
    */
   @Input() public csvLocale: string | null | undefined;
   private readonly localeId = inject(LOCALE_ID);
+  /** Formatter of `date` cells, created on first use for {@link localeId} (AB#8630). */
+  private dateFormatter: ListViewDateFormatter | null = null;
 
   /**
    * Rows per request when an export fetches all rows of the current filter, search and sort
@@ -325,11 +329,13 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   @Input() public exportRowLimit = 50000;
 
   /**
-   * Maximum number of rows of a PDF export (AB#8122). Kendo renders every exported row into the
-   * page before it draws the PDF, so the PDF gets a lower limit than Excel; the effective limit
-   * is the smaller of this and {@link exportRowLimit}.
+   * Maximum number of rows of a PDF export (AB#8122, AB#8630). Kendo renders every exported row
+   * into the page and draws the PDF in one synchronous run on the main thread, so the PDF gets a
+   * far lower limit than Excel; the effective limit is the smaller of this and
+   * {@link exportRowLimit}. The default 1,000 is measured (AB#8630, four columns, Chrome): the
+   * longest main-thread block is 4.6 s for 1,000 rows, 14.7 s for 2,000 and 73 s for 5,000.
    */
-  @Input() public pdfExportRowLimit = 5000;
+  @Input() public pdfExportRowLimit = 1000;
 
   /** Progress of a running export that fetches all rows; `null` while no export runs (AB#8122). */
   protected readonly exportProgress = signal<ExportFetchProgress | null>(null);
@@ -717,6 +723,26 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     }
     if (format === 'csv') {
       this.writeCsv(result ? result.rows : this.gridRows());
+      return;
+    }
+    this.writePdf(result);
+  }
+
+  /**
+   * Writes the PDF (AB#8630): first loads the embedded font (once, on demand) so umlauts and ß
+   * print, then runs Kendo's export. The export commands stay disabled while the font loads.
+   */
+  private writePdf(result: ExportFetchResult | null): void {
+    this.exportProgress.set({fetched: 0, target: null, totalCount: null});
+    void loadPdfExportFont().then(() => {
+      this.exportProgress.set(null);
+      this.savePdf(result);
+    });
+  }
+
+  private savePdf(result: ExportFetchResult | null): void {
+    const grid = this.gridComponent;
+    if (!grid) {
       return;
     }
     const pdf = this.pdfComponent;
@@ -1284,6 +1310,30 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   /**
+   * Text of a `date` cell (AB#8630): one line, locale-aware (`LOCALE_ID`), `column.format` as an
+   * Angular date format when set — never the raw `Date.toString()`. See {@link ListViewDateFormatter}.
+   */
+  protected getDateText(element: Record<string, unknown>, column: TableColumn): string {
+    this.dateFormatter ??= new ListViewDateFormatter(this.localeId);
+    return this.dateFormatter.format(this.getValue(element, column), column.format);
+  }
+
+  /**
+   * Cell text of the PDF export (AB#8630): the column `formatter` wins; `date` and `iso8601`
+   * columns print formatted dates in one line; every other value prints as text.
+   */
+  protected getPdfCellText(element: Record<string, unknown>, column: TableColumn): string {
+    if (column.formatter) {
+      return this.getFormattedValue(element, column) ?? '';
+    }
+    if (column.dataType === 'date' || column.dataType === 'iso8601') {
+      return this.getDateText(element, column);
+    }
+    const value = this.getValue(element, column);
+    return value === null || value === undefined ? '' : String(value);
+  }
+
+  /**
    * Plain-text representation of the cell value used as the `title` attribute on truncated
    * cells so the full string is reachable via the browser's native tooltip on hover.
    * Honours `formatter` first, then falls back to a stringified raw value.
@@ -1292,6 +1342,9 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     const formatted = this.getFormattedValue(element, column);
     if (formatted !== null && formatted !== undefined) {
       return formatted;
+    }
+    if (column.dataType === 'date') {
+      return this.getDateText(element, column) || null;
     }
     const value = this.getValue(element, column);
     if (value === null || value === undefined) return null;
