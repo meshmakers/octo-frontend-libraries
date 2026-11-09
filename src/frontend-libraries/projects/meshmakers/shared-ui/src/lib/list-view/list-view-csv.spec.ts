@@ -1,6 +1,6 @@
 import { buildCsv, CsvColumn, CsvValueFormatter, quoteCsvField } from './list-view-csv';
 
-const BOM = '﻿';
+const BOM = '\uFEFF';
 
 const columns: CsvColumn[] = [
   { title: 'Name', value: (r) => (r as { name: unknown }).name },
@@ -66,6 +66,14 @@ describe('buildCsv (AB#8123)', () => {
     const csv = buildCsv([{ at: '2025-06-01T10:00:00Z' }, { at: null }, { at: 'not a date' }], [dateColumn],
       { separator: ';', locale: null });
     expect(csv).toBe(`${BOM}At\r\n2025-06-01T10:00:00.000Z\r\n\r\nnot a date\r\n`);
+  });
+
+  it('writes date-only strings of date columns as the same calendar day, without a time', () => {
+    const dateColumn: CsvColumn = { title: 'Day', value: (r) => (r as { day: unknown }).day, isDate: true };
+    expect(buildCsv([{ day: '2025-06-01' }], [dateColumn], { separator: ';', locale: 'de-AT' }))
+      .toBe(`${BOM}Day\r\n01.06.2025\r\n`);
+    expect(buildCsv([{ day: '2025-06-01' }], [dateColumn], { separator: ';', locale: null }))
+      .toBe(`${BOM}Day\r\n2025-06-01\r\n`);
   });
 
   it('builds 35,040 rows (one year of quarter-hours) quickly', () => {

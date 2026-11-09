@@ -4,7 +4,7 @@ export const DEFAULT_CSV_SEPARATOR = ';';
 export const DEFAULT_CSV_EXPORT_FILE_NAME = 'Export.csv';
 
 /** UTF-8 byte order mark: Excel reads the file as UTF-8 only with it. */
-const UTF8_BOM = '﻿';
+const UTF8_BOM = '\uFEFF';
 const CRLF = '\r\n';
 
 /** One CSV column: header text and how to read a cell from a row. */
@@ -69,6 +69,11 @@ export class CsvValueFormatter {
     }
     if (typeof value === 'string') {
       if (isDate && value) {
+        // A date-only value is a calendar day: never shift it through UTC or add a time.
+        const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        if (dateOnly) {
+          return this.dateFormat ? this.dateFormat.format(new Date(+dateOnly[1], +dateOnly[2] - 1, +dateOnly[3])) : value;
+        }
         const date = new Date(value);
         return Number.isNaN(date.getTime()) ? value : this.formatDate(date);
       }
