@@ -4,7 +4,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { CommandSettingsService, MessageService } from '@meshmakers/shared-services';
-import { GridComponent } from '@progress/kendo-angular-grid';
+import { GridComponent, PDFComponent } from '@progress/kendo-angular-grid';
 import { State } from '@progress/kendo-data-query/dist/npm/state';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
@@ -232,6 +232,43 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
       'PDF export limited to 60 of 120 rows. Use the Excel export for all rows.');
     flush();
   }));
+
+  it('runs the real Kendo all-pages PDF flow on the fetched rows and restores the page without a request', async () => {
+    // Stub only the drawing (no layout in jsdom): note what the grid shows when Kendo would draw,
+    // then let Kendo clean up as after a finished PDF. Must be installed before the grid exists,
+    // because PDFComponent binds draw() in its constructor.
+    let rowsWhenDrawn: string[] = [];
+    vi.spyOn(PDFComponent.prototype as unknown as { draw(): void }, 'draw').mockImplementation(function (this: unknown) {
+      rowsWhenDrawn = shownRows();
+      (this as { cleanup(): void }).cleanup();
+    });
+    create((h) => (h.pdfExportRowLimit = 90));
+    await fixture.whenStable();
+    grid.pageChange.emit({ skip: 50, take: 50 });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const pageBefore = shownRows();
+    const directive = fixture.debugElement.query(By.directive(MmListViewDataBindingDirective))
+      .injector.get(MmListViewDataBindingDirective);
+    const requestsBefore = host.dataSource.calls.length;
+
+    api().runExport('pdf');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(rowsWhenDrawn.length).toBe(90);
+    expect(rowsWhenDrawn[0]).toBe('row-0');
+    expect(rowsWhenDrawn[89]).toBe('row-89');
+    expect(messages.showWarning).toHaveBeenCalledWith(
+      'PDF export limited to 90 of 120 rows. Use the Excel export for all rows.');
+    // Only the export requests (pages of 20 up to the limit): Kendo's two page changes caused none.
+    expect(host.dataSource.calls.length - requestsBefore).toBe(5);
+    expect(shownRows()).toEqual(pageBefore);
+    expect(directive.currentState.skip).toBe(50);
+    expect(directive.currentState.take).toBe(50);
+    expect(grid.skip).toBe(50);
+  });
 
   it('renders the fetched rows for the PDF and restores the page afterwards without a request', fakeAsync(() => {
     create();
