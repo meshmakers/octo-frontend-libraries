@@ -49,6 +49,10 @@ function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
+/**
+ * Blob URL of a font file. Never revoked on purpose: Kendo keeps the URL in its font mapping and
+ * reads it on every later PDF export of the page; the two URLs (about 70 KB) live as long as the page.
+ */
 function fontUrl(bytes: Uint8Array<ArrayBuffer>): string {
   return URL.createObjectURL(new Blob([bytes], {type: 'font/ttf'}));
 }
