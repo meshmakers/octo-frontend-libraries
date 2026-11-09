@@ -86,7 +86,10 @@ export class CsvValueFormatter {
         // A date-only value is a calendar day: never shift it through UTC or add a time.
         const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
         if (dateOnly) {
-          return this.dateFormat ? this.dateFormat.format(new Date(+dateOnly[1], +dateOnly[2] - 1, +dateOnly[3])) : value;
+          const day = new Date(+dateOnly[1], +dateOnly[2] - 1, +dateOnly[3]);
+          // No calendar day (e.g. 2025-02-31 would roll over to March): keep the text as it is.
+          const isCalendarDay = day.getFullYear() === +dateOnly[1] && day.getMonth() === +dateOnly[2] - 1 && day.getDate() === +dateOnly[3];
+          return this.dateFormat && isCalendarDay ? this.dateFormat.format(day) : value;
         }
         const date = new Date(value);
         // Text that is no date is still text: neutralize it like any other string.

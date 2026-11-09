@@ -76,6 +76,12 @@ describe('buildCsv (AB#8123)', () => {
       .toBe(`${BOM}Day\r\n2025-06-01\r\n`);
   });
 
+  it('keeps a date-only string that is no calendar day as text instead of rolling it over', () => {
+    const dateColumn: CsvColumn = { title: 'Day', value: (r) => (r as { day: unknown }).day, isDate: true };
+    expect(buildCsv([{ day: '2025-02-31' }, { day: '2025-13-01' }, { day: '2024-02-29' }], [dateColumn], { separator: ';', locale: 'de-AT' }))
+      .toBe(`${BOM}Day\r\n2025-02-31\r\n2025-13-01\r\n29.02.2024\r\n`);
+  });
+
   it('neutralizes formula text but keeps numbers, negative numbers and numeric formatter output', () => {
     const csv = buildCsv([
       { name: '=HYPERLINK("http://x")', value: -12.5 },
