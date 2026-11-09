@@ -32,7 +32,9 @@ describe('ListViewDateFormatter (AB#8630)', () => {
   });
 
   it('follows the locale', () => {
-    expect(new ListViewDateFormatter('en-US').format(new Date(2025, 0, 2, 13, 5, 9))).toBe('01/02/2025 01:05:09 PM');
+    // ICU versions differ in the space before AM/PM (U+0020 or U+202F): compare with spaces normalised.
+    const text = new ListViewDateFormatter('en-US').format(new Date(2025, 0, 2, 13, 5, 9));
+    expect(text.replace(/\s/g, ' ')).toBe('01/02/2025 01:05:09 PM');
   });
 
   it('applies a column format as an Angular date format', () => {

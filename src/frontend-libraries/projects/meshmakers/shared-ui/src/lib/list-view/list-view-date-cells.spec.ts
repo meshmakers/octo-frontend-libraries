@@ -83,21 +83,21 @@ describe('ListViewComponent date cells (AB#8630)', () => {
   it('shows a date column in the grid formatted, not as Date.toString()', async () => {
     await render();
     const text = (fixture.nativeElement as HTMLElement).querySelector('tbody')?.textContent ?? '';
-    expect(text).toContain('01/01/2025 01:00:00 AM');
+    expect(spaces(text)).toContain('01/01/2025 01:00:00 AM');
     expect(text).toContain('03/01/2025');
     expect(text).not.toContain('GMT');
   });
 
   it('uses the formatted date as the cell title', async () => {
     await render();
-    expect(api().getCellTitle(ROWS[0], column('timestamp'))).toBe('01/01/2025 01:00:00 AM');
+    expect(spaces(api().getCellTitle(ROWS[0], column('timestamp')))).toBe('01/01/2025 01:00:00 AM');
     expect(api().getCellTitle(ROWS[1], column('timestamp'))).toBeNull();
   });
 
   it('prints PDF cells in one line: dates formatted, formatter first, other values as text', async () => {
     await render();
     const row = ROWS[0];
-    expect(api().getPdfCellText(row, column('timestamp'))).toBe('01/01/2025 01:00:00 AM');
+    expect(spaces(api().getPdfCellText(row, column('timestamp')))).toBe('01/01/2025 01:00:00 AM');
     expect(api().getPdfCellText(row, column('day'))).toBe('03/01/2025');
     expect(api().getPdfCellText(row, column('at'))).toBe(
       new ListViewDateText().of(new Date('2025-01-01T00:00:00Z')));
@@ -119,6 +119,11 @@ describe('ListViewComponent date cells (AB#8630)', () => {
     expect(pdfColumns.every((c) => !!c.templateRef)).toBe(true);
   });
 });
+
+/** ICU versions differ in the space before AM/PM (U+0020 or U+202F): compare with spaces normalised. */
+function spaces(text: string | null): string | null {
+  return text === null ? null : text.replace(/\s/g, ' ');
+}
 
 /** Expected en-US text of an instant in the test machine's time zone. */
 class ListViewDateText {
