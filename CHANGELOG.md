@@ -10,6 +10,27 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui: list view PDF export prints dates in one line, umlauts, and has a measured row limit (AB#8630)
+
+- Fix (non-breaking): the PDF export of `mm-list-view` printed `date` columns as the raw `Date.toString()`
+  ("Wed Jan 01 2025 01:00:00 GMT+0100 (…)", wrapped over four lines, about 4 rows per page) and dropped umlauts and
+  ß (the standard PDF fonts have no glyphs for them). Date and date-time columns (`date`, `iso8601`) now print in one
+  line, locale-aware (`LOCALE_ID`, `31.12.2025 23:45:00` in `de-AT`; a column `format` is applied as an Angular date
+  format; a `formatter` wins), and the PDF embeds DejaVu Sans (regular and bold, Latin subset). The font is a lazy
+  chunk of about 91 KB (37 KB compressed) loaded on the first PDF export only. License text:
+  `fonts/licenses/dejavu-LICENSE.txt`.
+- Fix (visible change): the black-and-white PDF styles of the list view (10px text, 1px black borders, compact
+  cells) never reached the PDF: Kendo draws from a clone of the table appended to `<body>`
+  (`.k-grid-pdf-export-element`), which the encapsulated `:host-context(.k-pdf-export)` rules did not match. They
+  are now global rules on `.k-grid-pdf-export-element`, so the PDF has about 15 instead of 4 to 8 rows per A4 page.
+- Fix (visible change): grid cells of `dataType: 'date'` columns showed the raw `Date.toString()` as well; they now
+  use the same one-line formatting (also in the cell tooltip and in card mode).
+- Changed default: `pdfExportRowLimit` (and `DEFAULT_PDF_EXPORT_ROW_LIMIT`) is 1,000 instead of 5,000. Kendo lays out
+  and draws the PDF in one synchronous run on the main thread; 5,000 rows froze the tab for minutes. The value is
+  measured on the demo page (AB#8630, 35,040 rows, four columns, Chrome): longest main-thread block 1.4 s for 500 rows,
+  4.6 s for 1,000, 14.7 s for 2,000, 73 s for 5,000 (before: 286 s for 5,000); a larger PDF is cut with the existing warning "PDF export limited to N of M
+  rows. Use the Excel export for all rows." Apps that set `pdfExportRowLimit` themselves are unaffected.
+
 ### shared-ui: list view exports CSV (AB#8123)
 
 - New (non-breaking): "Export to CSV" in the `mm-list-view` toolbar next to Excel and PDF, with the same all-rows

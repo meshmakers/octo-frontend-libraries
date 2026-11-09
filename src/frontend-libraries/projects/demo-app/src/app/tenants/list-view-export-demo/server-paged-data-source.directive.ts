@@ -63,7 +63,8 @@ export class ServerPagedDataSourceDirective extends DataSourceBase {
       const start = Date.UTC(2025, 0, 1);
       this.cache = Array.from({ length: this.rowCount }, (_, i) => ({
         timestamp: new Date(start + i * 15 * 60 * 1000),
-        register: '1-1:1.29.0',
+        // Umlauts and ß so the PDF font can be checked (AB#8630).
+        register: '1-1:1.29.0 Wärme Süd ß',
         value: Math.round((40 + 25 * Math.sin(i / 48) + (i % 7)) * 1000) / 1000,
         unit: 'kWh'
       }));

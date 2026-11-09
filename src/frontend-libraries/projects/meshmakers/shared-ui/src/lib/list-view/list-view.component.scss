@@ -307,10 +307,21 @@
 }
 
 // =============================================================================
-// PDF EXPORT STYLES - Simple black and white grid with 1px borders
-// Kendo adds .k-pdf-export class during PDF generation
+// PDF EXPORT STYLES - simple black and white grid with 1px borders, DejaVu Sans
+// Kendo draws the PDF from a clone of the grid table that it appends to <body> inside
+// `.k-grid-pdf-export-element` (structure: div.k-grid-pdf-export-element > div.k-grid > table),
+// outside this component, so the rules must be global (::ng-deep at top level). Until AB#8630 they
+// were scoped with `:host-context(.k-pdf-export)` and never matched: the PDF used the app's font
+// (Kendo replaced it with Times-Roman, no umlauts) and the theme's tall rows (about 8 rows per page).
+// The rules only match while a grid PDF export runs; mm-list-view is the only grid PDF export in
+// the libraries and apps. DejaVu Sans is registered by `loadPdfExportFont()` (AB#8630).
 // =============================================================================
-:host-context(.k-pdf-export) {
+::ng-deep .k-grid-pdf-export-element {
+  &,
+  * {
+    font-family: "DejaVu Sans", sans-serif !important;
+  }
+
   // Reset all backgrounds and colors to simple black and white
   .k-grid,
   .k-grid-header,
@@ -327,7 +338,6 @@
 
   .k-grid {
     border: 1px solid #000 !important;
-    font-family: Arial, sans-serif !important;
     font-size: 10px !important;
   }
 

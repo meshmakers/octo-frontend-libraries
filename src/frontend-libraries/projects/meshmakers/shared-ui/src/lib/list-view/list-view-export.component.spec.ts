@@ -13,6 +13,7 @@ import { ListViewComponent } from './list-view.component';
 import { DataSourceBase, FetchDataOptions } from '../data-sources/data-source-base';
 import { FetchResult, FetchResultBase } from '../models/fetchResult';
 import { MmListViewDataBindingDirective } from '../directives/mm-list-view-data-binding.directive';
+import { DEFAULT_PDF_EXPORT_ROW_LIMIT } from './list-view-export';
 
 interface Call {
   state: State;
@@ -221,19 +222,36 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
     flush();
   }));
 
-  it('applies the lower PDF limit and names it in the message', fakeAsync(() => {
+  it('applies the lower PDF limit and names it in the message', async () => {
     create((h) => (h.pdfExportRowLimit = 60));
-    tick();
+    await fixture.whenStable();
     const saveAsPdf = vi.spyOn(grid, 'saveAsPDF').mockImplementation(() => undefined);
 
     api().runExport('pdf');
-    tick();
+    // The PDF waits for the embedded font (dynamic import, AB#8630) before Kendo starts.
+    await vi.waitFor(() => expect(saveAsPdf).toHaveBeenCalledTimes(1));
 
-    expect(saveAsPdf).toHaveBeenCalledTimes(1);
     expect(messages.showWarning).toHaveBeenCalledWith(
       'PDF export limited to 60 of 120 rows. Use the Excel export for all rows.');
-    flush();
-  }));
+    expect(api().isExporting).toBe(false);
+  });
+
+  it('has a PDF row limit of 1000 by default (measured, AB#8630)', () => {
+    const fresh = TestBed.createComponent(ListViewComponent).componentInstance;
+    expect(fresh.pdfExportRowLimit).toBe(1000);
+    expect(fresh.pdfExportRowLimit).toBe(DEFAULT_PDF_EXPORT_ROW_LIMIT);
+  });
+
+  it('keeps the export commands disabled until the PDF font is loaded and Kendo started (AB#8630)', async () => {
+    create();
+    await fixture.whenStable();
+    const saveAsPdf = vi.spyOn(grid, 'saveAsPDF').mockImplementation(() => undefined);
+
+    api().runExport('pdf');
+    expect(api().isExporting).toBe(true);
+    await vi.waitFor(() => expect(saveAsPdf).toHaveBeenCalledTimes(1));
+    expect(api().isExporting).toBe(false);
+  });
 
   it('runs the real Kendo all-pages PDF flow on the fetched rows and restores the page without a request', async () => {
     // Stub only the drawing (no layout in jsdom): note what the grid shows when Kendo would draw,
