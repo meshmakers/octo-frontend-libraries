@@ -1,5 +1,5 @@
 import { PopupRef, PopupService } from '@progress/kendo-angular-popup';
-import { ChangeDetectionStrategy, Component, ContentChild, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, TemplateRef, ViewChild, inject, OnDestroy, AfterViewInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ContentChild, ElementRef, EventEmitter, HostBinding, Input, NgZone, Output, TemplateRef, ViewChild, inject, OnDestroy, AfterViewInit, signal, LOCALE_ID } from '@angular/core';
 import {
   BooleanFilterCellComponent,
   CellClickEvent,
@@ -25,7 +25,7 @@ import {BadgeMapping, ColumnDefinition, ContextMenuType, ListViewCommand, ListVi
 import {DatePipe, DecimalPipe, NgComponentOutlet, NgTemplateOutlet} from '@angular/common';
 import {PascalCasePipe} from '../pipes/pascal-case.pipe';
 import {SeparatorComponent, CheckBoxComponent, NumericTextBoxComponent} from '@progress/kendo-angular-inputs';
-import {checkIcon, fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, slidersIcon, arrowRotateCwIcon, xIcon} from '@progress/kendo-svg-icons';
+import {checkIcon, fileCsvIcon, fileExcelIcon, filePdfIcon, filterIcon, filterClearIcon, moreVerticalIcon, slidersIcon, arrowRotateCwIcon, xIcon} from '@progress/kendo-svg-icons';
 import {MmListViewDataBindingDirective} from '../directives/mm-list-view-data-binding.directive';
 import {SVGIcon} from '@progress/kendo-svg-icons/dist/svg-icon.interface';
 import {ButtonComponent, DropDownButtonComponent, SplitButtonComponent} from '@progress/kendo-angular-buttons';
@@ -55,6 +55,7 @@ import {debounceTime, distinctUntilChanged, observeOn, takeUntil} from 'rxjs/ope
 import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.service';
 import {EmptyStateComponent} from '../empty-state/empty-state.component';
 import {ExportFetchProgress, ExportFetchResult, formatExportMessage} from './list-view-export';
+import {buildCsv, CsvColumn, downloadCsv} from './list-view-csv';
 
 /**
  * Whether the HTTP error interceptor already showed this failure to the user. Data sources pass
@@ -68,7 +69,7 @@ function reportedByHttpInterceptor(error: unknown): boolean {
 }
 
 /** Export formats that fetch all rows of the current query (AB#8122). */
-type ListViewExportFormat = 'excel' | 'pdf';
+type ListViewExportFormat = 'excel' | 'pdf' | 'csv';
 
 /** Context/overflow menu class of `CommandItem.danger` items (AB#5570); styled globally in the list-view SCSS. */
 const DANGER_MENU_ITEM_CLASS = 'mm-list-view-menu-item--danger';
@@ -300,6 +301,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
 
   @Input() public excelExportFileName = 'Export.xlsx';
   @Input() public pdfExportFileName = 'Export.pdf';
+  /** File name of the CSV export (AB#8123). */
+  @Input() public csvExportFileName = 'Export.csv';
+  /** Field separator of the CSV export (AB#8123). Default `;`, so the file opens in columns in German Excel. */
+  @Input() public csvSeparator = ';';
+  /**
+   * Locale for numbers and dates in the CSV export (AB#8123). `undefined` (default) = the app's
+   * `LOCALE_ID` (`de-AT`: `1234,5`, `31.12.2025 23:45:00`); `null` = locale-neutral (`1234.5`, ISO 8601).
+   */
+  @Input() public csvLocale: string | null | undefined;
+  private readonly localeId = inject(LOCALE_ID);
 
   /**
    * Rows per request when an export fetches all rows of the current filter, search and sort
@@ -593,6 +604,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     commands.push(
       { id: 'excel', text: this._messages.exportToExcel, svgIcon: this.excelSVG },
       { id: 'pdf', text: this._messages.exportToPdf, svgIcon: this.pdfSVG },
+      { id: 'csv', text: this._messages.exportToCsv, svgIcon: this.csvSVG },
     );
     if (this.hasActiveFilters) {
       commands.push({ id: 'reset', text: this._messages.resetFilters, svgIcon: this.resetFilterIcon });
@@ -611,6 +623,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       case 'rowFilter': this.onShowRowFilter(); break;
       case 'excel': this.runExport('excel'); break;
       case 'pdf': this.runExport('pdf'); break;
+      case 'csv': this.runExport('csv'); break;
       case 'reset': this.onReset(); break;
       case 'refresh': this.onRefresh(); break;
     }
@@ -634,7 +647,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   /**
-   * Exports to Excel or PDF with all rows of the current filter, search and sort (AB#8122).
+   * Exports to Excel, PDF or CSV with all rows of the current filter, search and sort (AB#8122, AB#8123).
    *
    * When the grid already holds every row (client-side data, or a single page) the export
    * writes those rows as before. Otherwise the rows are fetched through the data binding —
@@ -702,6 +715,10 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       grid.saveAsExcel();
       return;
     }
+    if (format === 'csv') {
+      this.writeCsv(result ? result.rows : this.gridRows());
+      return;
+    }
     const pdf = this.pdfComponent;
     const directive = this.dataBindingDirective;
     // Kendo renders all pages only while the page size is below the grid total; otherwise the
@@ -719,6 +736,29 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       pdf.allPages = false;
       directive.cancelPdfExport();
     }
+  }
+
+  /**
+   * Writes the CSV file (AB#8123): header row with the column titles as in the Excel export, one
+   * line per row; a column `formatter` wins over the raw value, as in the list.
+   */
+  private writeCsv(rows: unknown[]): void {
+    const columns: CsvColumn[] = this._columns.map((column) => ({
+      title: this.csvColumnTitle(column),
+      isDate: column.dataType === 'date' || column.dataType === 'iso8601',
+      value: (row: unknown) => {
+        const element = row as Record<string, unknown>;
+        return column.formatter ? this.getFormattedValue(element, column) : this.getValue(element, column);
+      }
+    }));
+    const locale = this.csvLocale === undefined ? this.localeId : this.csvLocale;
+    downloadCsv(buildCsv(rows, columns, {separator: this.csvSeparator, locale}), this.csvExportFileName);
+  }
+
+  /** Header text of a column, same as the Excel export (display name, first letter upper case). */
+  private csvColumnTitle(column: TableColumn): string {
+    const name = this.getDisplayName(column) ?? '';
+    return name ? name.charAt(0).toUpperCase() + name.slice(1) : name;
   }
 
   /** Rows the grid holds right now (the current page with server paging). */
@@ -1509,6 +1549,7 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   protected readonly filterIcon = filterIcon;
   protected readonly pdfSVG: SVGIcon = filePdfIcon;
   protected readonly excelSVG: SVGIcon = fileExcelIcon;
+  protected readonly csvSVG: SVGIcon = fileCsvIcon;
   protected readonly refreshIcon = arrowRotateCwIcon;
   protected readonly resetFilterIcon = filterClearIcon;
 

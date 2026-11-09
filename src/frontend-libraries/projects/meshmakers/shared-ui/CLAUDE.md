@@ -372,7 +372,7 @@ and Tab still moves on.
 
 **Built-in commands (`collapseCommandsBelow`, AB#3444)**
 
-The toolbar's own command group — row filter, Excel, PDF, reset filters,
+The toolbar's own command group — row filter, Excel, PDF, CSV, reset filters,
 refresh — lays each command out as an icon button while there is room, and
 collapses all of them into a single overflow `kendo-dropdownbutton` once the
 list gets narrow. Reaching a command in one click beats hiding it behind a menu
@@ -425,6 +425,10 @@ Excel and PDF export all rows of the current filter, search and sort. `ListViewC
   (no request, state untouched). `cancelPdfExport()` drops a preparation Kendo did not start.
 - Limit reached → `MessageService.showWarning` ("Export limited to N of M rows." / PDF variant).
   Fetch error → `MessageService.showError(exportFailed)`, no file.
+- CSV (AB#8123): `writeExport('csv')` → `buildCsv()` / `downloadCsv()` in `list-view/list-view-csv.ts`
+  (BOM, header = Excel titles, RFC 4180 quoting, CRLF; `csvSeparator`, `csvLocale` — `undefined` =
+  `LOCALE_ID`, `null` = neutral; `formatter` wins; `date`/`iso8601` strings are parsed). Same limit and
+  messages as Excel. Specs: `list-view-csv.spec.ts`, CSV block of `list-view-export.component.spec.ts`.
 - Specs: `list-view-export.spec.ts` (paging, limit, error, client-side, sequential) and
   `list-view-export.component.spec.ts` (component flow, grid state untouched, PDF interception).
 
