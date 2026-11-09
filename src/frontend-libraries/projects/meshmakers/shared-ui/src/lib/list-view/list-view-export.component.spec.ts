@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { CommandSettingsService, MessageService } from '@meshmakers/shared-services';
 import { GridComponent } from '@progress/kendo-angular-grid';
 import { State } from '@progress/kendo-data-query/dist/npm/state';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 
 import { ListViewComponent } from './list-view.component';
@@ -33,6 +34,8 @@ class ExportDataSourceDirective extends DataSourceBase {
   public clientSide = false;
   /** Fail the n-th request (1-based), counted from the next request on. */
   public failAt: number | null = null;
+  /** The error the failing request throws. */
+  public failWith: unknown = new Error('server error');
 
   constructor() {
     super(inject(ListViewComponent));
@@ -42,7 +45,8 @@ class ExportDataSourceDirective extends DataSourceBase {
     this.calls.push({ state: JSON.parse(JSON.stringify(options.state)), textSearch: options.textSearch });
     if (this.failAt !== null && --this.failAt === 0) {
       this.failAt = null;
-      return throwError(() => new Error('server error'));
+      const error = this.failWith;
+      return throwError(() => error);
     }
     const all = Array.from({ length: this.total }, (_, i) => ({ name: `row-${i}` }));
     if (this.clientSide) {
@@ -180,6 +184,21 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
 
     expect(grid.saveAsExcel).not.toHaveBeenCalled();
     expect(messages.showError).toHaveBeenCalledWith('Export failed: the rows could not be loaded. No file was created.');
+    expect(api().isExporting).toBe(false);
+    flush();
+  }));
+
+  it('shows no second toast when the HTTP error interceptor already reported the failure', fakeAsync(() => {
+    create();
+    tick();
+    host.dataSource.failAt = 2;
+    host.dataSource.failWith = { networkError: new HttpErrorResponse({ status: 403, url: 'https://localhost/tenant/graphql' }) };
+
+    api().runExport('excel');
+    tick();
+
+    expect(grid.saveAsExcel).not.toHaveBeenCalled();
+    expect(messages.showError).not.toHaveBeenCalled();
     expect(api().isExporting).toBe(false);
     flush();
   }));

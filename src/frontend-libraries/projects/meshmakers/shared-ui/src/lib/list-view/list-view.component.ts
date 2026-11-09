@@ -36,7 +36,7 @@ import {
   HierarchyBindingDirective,
   MenuItem
 } from '@progress/kendo-angular-menu';
-import {CommandBaseService, CommandItem, CommandSettingsService, MessageService} from '@meshmakers/shared-services';
+import {CommandBaseService, CommandItem, CommandSettingsService, MessageService, MmHttpErrorInterceptor} from '@meshmakers/shared-services';
 import {LoaderComponent} from '@progress/kendo-angular-indicators';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ActionButtonComponent} from '../actions/action-button.component';
@@ -55,6 +55,17 @@ import {debounceTime, distinctUntilChanged, observeOn, takeUntil} from 'rxjs/ope
 import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.service';
 import {EmptyStateComponent} from '../empty-state/empty-state.component';
 import {ExportFetchProgress, ExportFetchResult, formatExportMessage} from './list-view-export';
+
+/**
+ * Whether the HTTP error interceptor already showed this failure to the user. Data sources pass
+ * errors through as they come (an `HttpErrorResponse`, or an Apollo error wrapping it as
+ * `networkError` / `cause`), so the wrapped error is checked too.
+ */
+function reportedByHttpInterceptor(error: unknown): boolean {
+  const wrapper = error as { networkError?: unknown; cause?: unknown } | null | undefined;
+  return [error, wrapper?.networkError, wrapper?.cause].some(
+    (candidate) => candidate !== undefined && candidate !== null && MmHttpErrorInterceptor.reportsToUser(candidate));
+}
 
 /** Export formats that fetch all rows of the current query (AB#8122). */
 type ListViewExportFormat = 'excel' | 'pdf';
@@ -660,7 +671,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
         this.exportSubscription = null;
         this.exportProgress.set(null);
         console.error('[mm-list-view] export fetch failed:', error);
-        this.messageService.showError(this._messages.exportFailed);
+        // The HTTP error interceptor may already have told the user (status 0, 400, 403, 409);
+        // a second toast for the same failure would only repeat it. No file is written either way.
+        if (!reportedByHttpInterceptor(error)) {
+          this.messageService.showError(this._messages.exportFailed);
+        }
       }
     });
   }

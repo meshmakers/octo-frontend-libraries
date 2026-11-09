@@ -118,17 +118,31 @@ describe('fetchAllRowsForExport (AB#8122)', () => {
     expect(result?.rows.length).toBe(2);
   });
 
-  it('skips null rows and reports progress after every page', () => {
+  it('skips null rows but counts them for the next offset, and reports progress after every page', () => {
     const progress: ExportFetchProgress[] = [];
-    const fetchPage = (skip: number): Observable<FetchResult> =>
-      of(new FetchResultBase(skip === 0 ? [{ i: 0 }, null, { i: 1 }] : [{ i: 2 }], 3));
+    const server = [{ i: 0 }, null, { i: 1 }, { i: 2 }, null, { i: 3 }];
+    const skips: number[] = [];
+    const fetchPage = (skip: number, take: number): Observable<FetchResult> => {
+      skips.push(skip);
+      return of(new FetchResultBase(server.slice(skip, skip + take), server.length));
+    };
     const { result } = run(fetchAllRowsForExport(fetchPage, 3, 100, (p) => progress.push(p)));
 
-    expect(result?.rows).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }]);
+    expect(skips).toEqual([0, 3]);
+    expect(result?.rows).toEqual([{ i: 0 }, { i: 1 }, { i: 2 }, { i: 3 }]);
     expect(progress).toEqual([
-      { fetched: 2, target: 3, totalCount: 3 },
-      { fetched: 3, target: 3, totalCount: 3 }
+      { fetched: 3, target: 6, totalCount: 6 },
+      { fetched: 6, target: 6, totalCount: 6 }
     ]);
+  });
+
+  it('goes on after a page that holds only null rows', () => {
+    const server = [null, null, { i: 2 }, { i: 3 }];
+    const fetchPage = (skip: number, take: number): Observable<FetchResult> =>
+      of(new FetchResultBase(server.slice(skip, skip + take), server.length));
+    const { result } = run(fetchAllRowsForExport(fetchPage, 2, 100));
+
+    expect(result?.rows).toEqual([{ i: 2 }, { i: 3 }]);
   });
 
   it('returns an empty result without a second request for an empty list', () => {

@@ -53,31 +53,34 @@ export function fetchAllRowsForExport(
     const size = Math.max(1, Math.floor(pageSize) || DEFAULT_EXPORT_PAGE_SIZE);
     const max = Math.max(0, Math.floor(limit));
     const rows: unknown[] = [];
+    /** Rows the server has returned so far, `null` items included: the `skip` of the next request. */
+    let offset = 0;
     let totalCount: number | null = null;
 
     const result = (): ExportFetchResult => {
-      const total = totalCount ?? rows.length;
-      return {rows, totalCount: total, limited: total > rows.length && rows.length >= max};
+      const total = totalCount ?? offset;
+      return {rows, totalCount: total, limited: total > offset && offset >= max};
     };
 
     const next = (): Observable<ExportFetchResult> => {
       const target = totalCount === null ? max : Math.min(totalCount, max);
-      const remaining = target - rows.length;
+      const remaining = target - offset;
       if (remaining <= 0) {
         return of(result());
       }
-      return fetchPage(rows.length, Math.min(size, remaining)).pipe(
+      return fetchPage(offset, Math.min(size, remaining)).pipe(
         take(1),
         switchMap((page) => {
           const data = Array.isArray(page?.data) ? (page.data as unknown[]) : [];
-          const pageRows = data.filter((row) => row !== null && row !== undefined);
           if (totalCount === null) {
-            totalCount = Math.max(0, page?.totalCount ?? pageRows.length);
+            totalCount = Math.max(0, page?.totalCount ?? data.length);
           }
-          const allowed = Math.min(totalCount, max) - rows.length;
-          rows.push(...pageRows.slice(0, Math.max(0, allowed)));
-          onProgress?.({fetched: rows.length, target: Math.min(totalCount, max), totalCount});
-          if (pageRows.length === 0) {
+          // A source that ignores skip/take (client-side data) may return more than asked for.
+          const pageData = data.slice(0, Math.max(0, Math.min(totalCount, max) - offset));
+          offset += pageData.length;
+          rows.push(...pageData.filter((row) => row !== null && row !== undefined));
+          onProgress?.({fetched: offset, target: Math.min(totalCount, max), totalCount});
+          if (data.length === 0) {
             return of(result());
           }
           return next();
