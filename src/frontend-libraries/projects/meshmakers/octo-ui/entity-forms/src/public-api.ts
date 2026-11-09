@@ -14,6 +14,7 @@ export * from './entity-forms.messages';
 // --- Services ---
 export * from './services/entity-form.service';
 export * from './services/entity-form-data.service';
+export * from './services/entity-form-data-adapter';
 
 // --- Components ---
 export * from './form/entity-form.component';

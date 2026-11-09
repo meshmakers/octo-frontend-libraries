@@ -124,9 +124,12 @@ create title on `new`).
 `saveChanges(): Promise<boolean>` (also called by `UnsavedChangesGuard` on "Yes"):
 
 - invalid form → all fields touched, warning, `false`;
-- create → `EntityFormDataService.create`, then navigation to `:rtId` (replacing `new`);
-- edit → only the changed attributes are sent (empty change set = "no changes"), then the
-  values are read again.
+- create → the data adapter's `save` (default: `EntityFormDataService.create`), then navigation to
+  `:rtId` (replacing `new`);
+- edit → only the changed attributes are sent (empty change set = "no changes", the adapter is not
+  called), then the values are read again through the adapter's `load`;
+- an adapter result with `applied: false` keeps the form open: its `fieldErrors` go under the fields,
+  its `message` (else `formInvalid` / `saveError`) is shown as an error, a `vetoed` failure as a warning.
 - a host `beforeSave` hook (see below) runs after validation and before the server call; a
   veto shows a warning (the hook's message or `saveVetoed`), an error shows `saveError`, and
   nothing is saved in either case.
@@ -163,6 +166,100 @@ const normaliseContact: EntityFormBeforeSaveHook = (changeSet) => {
 - **Secrets:** nothing beyond the change set reaches the hook. A SECRET attribute appears only as
   the write value the user just typed (or in `clearSecretAttributes`), never as a stored value —
   the form never reads stored secrets. Do not log the change set.
+
+### Data adapter (`EntityFormDataAdapter`, AB#8591)
+
+Entity forms render, validate and build the change set; **where the values come from and where they go** is
+the job of a data adapter. Without configuration nothing changes: the default `RtEntityFormDataAdapter`
+reads and writes runtime entities through GraphQL (`EntityFormDataService.load` / `create` / `update`).
+A host supplies its own adapter when the target is not a runtime entity (the Refinery Studio's archive
+correction writes a stream-data archive row):
+
+```ts
+export interface EntityFormDataContext {
+  readonly model: ResolvedEntityForm;
+  readonly mode: EntityFormMode;          // 'create' | 'edit' | 'view'
+  readonly rtId?: string;
+  readonly ckTypeId?: string;
+  readonly wellKnownName?: string;
+}
+
+export interface EntityFormSaveResult {
+  readonly applied: boolean;
+  readonly fieldErrors?: Readonly<Record<string, string>>;  // key = field key or attribute name
+  readonly message?: string;                                 // already in the user's language
+  readonly failure?: 'invalid' | 'vetoed' | 'rejected' | 'forbidden' | 'error';
+  readonly rtId?: string;                                    // required on create (default adapter)
+}
+
+export interface EntityFormDataAdapter<TContext extends EntityFormDataContext = EntityFormDataContext> {
+  load(context: TContext): Promise<EntityFormLoadResult | null>;
+  save(context: TContext, changeSet: EntityFormChangeSet, values: Readonly<Record<string, unknown>>): Promise<EntityFormSaveResult>;
+}
+```
+
+- **Where:** `mm-entity-form [dataAdapter]` / `mm-entity-page [dataAdapter]` > `ENTITY_FORM_DATA_ADAPTER` >
+  `RtEntityFormDataAdapter`. The page loads and saves through it; list, delete and the singleton probe
+  stay on runtime entities.
+- **`load`** resolves the values in form shape (`state.values` keyed by field key), or `null` when the
+  target does not exist.
+- **`save`** gets the change set (only changed attributes in edit mode, after the before-save hook) and
+  `values` — the current value of **every** field in form shape (`EntityFormComponent.getValues()`), so an
+  adapter that must send a whole record (e.g. every archive column) needs no second read. Expected refusals
+  resolve with `applied: false`; an unexpected failure may reject (the page then shows `saveError`).
+- **Context:** extend `EntityFormDataContext` with what the target needs (a row key, a reason). The form
+  passes the host's context through unchanged and only fills `model` and `mode` when absent.
+- **`EntityFormComponent.save(context)`** — for hosts that render `mm-entity-form` themselves (dialogs):
+  validates (invalid → `failure: 'invalid'`, adapter not called), runs the before-save hook (veto →
+  `failure: 'vetoed'`), skips an edit without changes (`{ applied: true }`), calls `adapter.save`, shows
+  `fieldErrors` under their fields and focuses the first. Each mark stays until the user edits that field
+  (also on a field the user had already changed). The form never notifies; the host shows `message` and
+  reacts to `failure` (e.g. locks the dialog on `forbidden`). `showSaveFieldErrors(errors)` shows marks
+  from a save the host ran itself.
+- **Secrets:** never log the change set or the values.
+
+Example — an adapter that writes one archive row (shortened from the Refinery Studio):
+
+```ts
+interface ArchiveRowContext extends EntityFormDataContext {
+  readonly archiveRtId: string;
+  readonly row: { rtId: string; from: string; to: string };
+  readonly reason: string;
+}
+
+class TimeRangeCorrectionAdapter implements EntityFormDataAdapter<ArchiveRowContext> {
+  constructor(private readonly http: HttpClient, private readonly url: (archiveRtId: string) => string) {}
+
+  async load(ctx: ArchiveRowContext): Promise<EntityFormLoadResult | null> {
+    return { rtId: ctx.row.rtId, ckTypeId: ctx.model.rtCkTypeId, state: { values: rowValuesOf(ctx), secretPresence: {}, associations: {} } };
+  }
+
+  async save(ctx: ArchiveRowContext, changeSet: EntityFormChangeSet, values: Readonly<Record<string, unknown>>): Promise<EntityFormSaveResult> {
+    const point = { ...ctx.row, attributes: toWire(values, changeSet), origin: 'manual', reason: ctx.reason };
+    try {
+      const result = await firstValueFrom(this.http.post<{ stored: number; skipped: number }>(this.url(ctx.archiveRtId), [point]));
+      return result.skipped > 0
+        ? { applied: false, failure: 'rejected', fieldErrors: marksForChanged(changeSet, 'Not saved') }
+        : { applied: true };
+    } catch (e) {
+      return (e as { status?: number }).status === 403
+        ? { applied: false, failure: 'forbidden', message: 'You may not correct archive values.' }
+        : { applied: false, failure: 'error', message: 'The correction could not be sent.' };
+    }
+  }
+}
+```
+
+```html
+<mm-entity-form #form mode="edit" [model]="model" [state]="state" [dataAdapter]="adapter" />
+```
+
+```ts
+const result = await this.form.save({ archiveRtId, row, reason } as Partial<ArchiveRowContext>);
+```
+
+Another target (e.g. a raw archive with a different endpoint) is a second adapter; the form and the
+dialog stay the same.
 
 ### Embedding without routes
 
@@ -224,7 +321,7 @@ responsible for keeping its copies in step with the seed.
 
 A host that lets users correct a stored value of a stream-data archive (Refinery Studio: archive
 data view, "Correct value") renders the editable data columns of the archive row with
-`<mm-entity-form mode="edit">`. The form for that dialog is a normal `System.UI/EntityForm`
+`<mm-entity-form mode="edit">` and saves through its own data adapter (see "Data adapter" above). The form for that dialog is a normal `System.UI/EntityForm`
 with a reserved category:
 
 | Property | Value |

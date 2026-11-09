@@ -10,6 +10,20 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui entity-forms: configurable data adapter (AB#8591)
+
+- New (non-breaking, additive): `EntityFormDataAdapter` — `load(context)` returns the form values,
+  `save(context, changeSet, values)` returns `EntityFormSaveResult` `{ applied, fieldErrors?, message?, failure?, rtId? }`.
+  Configured with the new `dataAdapter` input of `mm-entity-form` / `mm-entity-page` or the `ENTITY_FORM_DATA_ADAPTER`
+  token. Types `EntityFormDataContext`, `EntityFormSaveResult`, `EntityFormSaveFailure`.
+- The runtime-entity GraphQL path is the default adapter `RtEntityFormDataAdapter` (`EntityFormDataService.load` /
+  `create` / `update`). Without a configured adapter `mm-entity-page` behaves as before.
+- New on `EntityFormComponent`: `save(context)` (validate, before-save hook, adapter, field errors), `getValues()`
+  (every field in form shape) and `showSaveFieldErrors(errors)`. Save field errors are shown also on fields the user
+  changed, until the user edits the field again; the existing `fieldErrors` input is unchanged (pristine fields only).
+- `mm-entity-page`: an adapter result with `applied: false` keeps the form open, shows the field errors and the
+  message. README: "Data adapter" with the contract and an example.
+
 ### octo-ui entity-forms: archive correction forms (AB#8591)
 
 - New (non-breaking, additive): the reserved form category `ArchiveCorrection` for a `System.UI/EntityForm` that

@@ -15,6 +15,12 @@ import { ENTITY_FORM_BEFORE_SAVE, EntityFormSaveVeto } from '../core/before-save
 import { EntityFormChangeSet } from '../models/entity-form.models';
 import { EntityFormCrossFieldValidator, ENTITY_FORM_CROSS_FIELD_VALIDATORS } from '../core/cross-field-validation';
 import { ENTITY_FORM_UNSET_PLACEHOLDER_VALUES, EntityFormUnsetPlaceholderValues } from '../core/unset-placeholders';
+import {
+  ENTITY_FORM_DATA_ADAPTER,
+  EntityFormDataAdapter,
+  EntityFormDataContext,
+  RtEntityFormDataAdapter,
+} from '../services/entity-form-data-adapter';
 
 /** Protected-member view used by the spec. */
 interface Testable {
@@ -915,6 +921,102 @@ describe('EntityFormComponent', () => {
       api.control('low').setValue('9');
       api.control('low').markAsDirty();
       expect(component.getChangeSet().attributes).toEqual([{ attributeName: 'low', value: '9' }]);
+    });
+  });
+
+  describe('data adapter (AB#8591)', () => {
+    const errorOf = (key: string): string | null => fieldEl(key)?.querySelector('.mm-ef-field__error')?.textContent?.trim() ?? null;
+
+    interface RowContext extends EntityFormDataContext {
+      readonly reason: string;
+    }
+
+    function adapterMock(result: Awaited<ReturnType<EntityFormDataAdapter['save']>> = { applied: true }) {
+      return { load: vi.fn().mockResolvedValue(null), save: vi.fn().mockResolvedValue(result) };
+    }
+
+    it('saves through the dataAdapter input with the host context, the change set and every value', async () => {
+      const adapter = adapterMock({ applied: true });
+      fixture.componentRef.setInput('dataAdapter', adapter);
+      await render(sftpModel(), 'edit', editState());
+      api.control('port').setValue(2222);
+      const context: Partial<RowContext> = { rtId: 'r1', reason: 'meter swap' };
+      const result = await component.save(context);
+      expect(result).toEqual({ applied: true });
+      const [ctx, changeSet, values] = adapter.save.mock.calls[0];
+      expect(ctx).toEqual(expect.objectContaining({ rtId: 'r1', reason: 'meter swap', mode: 'edit', model: expect.objectContaining({ title: 'SFTP' }) }));
+      expect(changeSet.attributes).toEqual([{ attributeName: 'port', value: 2222 }]);
+      expect(values).toEqual(expect.objectContaining({ host: 'sftp.example.com', port: 2222 }));
+    });
+
+    it('shows the adapter field errors under the changed field until the user edits it again', async () => {
+      const adapter = adapterMock({ applied: false, failure: 'rejected', fieldErrors: { Port: 'Not saved: a manual value protects this window.' } });
+      fixture.componentRef.setInput('dataAdapter', adapter);
+      await render(sftpModel(), 'edit', editState());
+      api.control('port').setValue(2222);
+      api.control('port').markAsDirty();
+      const result = await component.save({ rtId: 'r1' });
+      fixture.detectChanges();
+      expect(result.applied).toBe(false);
+      expect(errorOf('port')).toBe('Not saved: a manual value protects this window.');
+      expect(api.control('port').value).toBe(2222);
+      expect(component.isDirty()).toBe(true);
+      api.control('port').setValue(2223);
+      api.control('port').markAsDirty();
+      fixture.detectChanges();
+      expect(errorOf('port')).toBeNull();
+    });
+
+    it('does not call the adapter for an invalid form or an edit without changes', async () => {
+      const adapter = adapterMock();
+      fixture.componentRef.setInput('dataAdapter', adapter);
+      await render(sftpModel(), 'create');
+      expect(await component.save()).toEqual({ applied: false, failure: 'invalid' });
+      await render(sftpModel(), 'edit', editState());
+      expect(await component.save({ rtId: 'r1' })).toEqual({ applied: true });
+      expect(adapter.save).not.toHaveBeenCalled();
+    });
+
+    it('reports a before-save veto without calling the adapter', async () => {
+      const adapter = adapterMock();
+      fixture.componentRef.setInput('dataAdapter', adapter);
+      fixture.componentRef.setInput('beforeSave', () => { throw new EntityFormSaveVeto('Nein'); });
+      await render(sftpModel(), 'edit', editState());
+      api.control('port').setValue(2222);
+      expect(await component.save({ rtId: 'r1' })).toEqual({ applied: false, failure: 'vetoed', message: 'Nein' });
+      expect(adapter.save).not.toHaveBeenCalled();
+    });
+
+    it('uses ENTITY_FORM_DATA_ADAPTER without an input, and the runtime-entity adapter without both', async () => {
+      const tokenAdapter = adapterMock();
+      const rtAdapter = adapterMock({ applied: true, rtId: 'r1' });
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        animationsEnabled: false,
+        providers: [{ provide: ENTITY_FORM_DATA_ADAPTER, useValue: tokenAdapter }, { provide: RtEntityFormDataAdapter, useValue: rtAdapter }],
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      api = component as unknown as Testable;
+      await render(sftpModel(), 'edit', editState());
+      api.control('port').setValue(2222);
+      await component.save({ rtId: 'r1' });
+      expect(tokenAdapter.save).toHaveBeenCalledTimes(1);
+
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [EntityFormComponent],
+        animationsEnabled: false,
+        providers: [{ provide: RtEntityFormDataAdapter, useValue: rtAdapter }],
+      }).compileComponents();
+      fixture = TestBed.createComponent(EntityFormComponent);
+      component = fixture.componentInstance;
+      api = component as unknown as Testable;
+      await render(sftpModel(), 'edit', editState());
+      api.control('port').setValue(2222);
+      expect(await component.save({ rtId: 'r1' })).toEqual({ applied: true, rtId: 'r1' });
+      expect(rtAdapter.save).toHaveBeenCalledTimes(1);
     });
   });
 

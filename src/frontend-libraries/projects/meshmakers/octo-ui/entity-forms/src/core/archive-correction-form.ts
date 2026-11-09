@@ -30,7 +30,10 @@ export function archiveCorrectionFormName(archiveKey: string): string {
  * (`archive-correction-meter-consumption-custom`, a tenant override). Case-insensitive.
  */
 export function matchesArchiveCorrectionFormName(wellKnownName: string | null | undefined, archiveKey: string): boolean {
+  if (archiveKey.trim() === '') {
+    return false;
+  }
   const name = (wellKnownName ?? '').trim().toLowerCase();
   const expected = archiveCorrectionFormName(archiveKey);
-  return archiveKey.trim() !== '' && (name === expected || name.startsWith(`${expected}-`));
+  return name === expected || name.startsWith(`${expected}-`);
 }
