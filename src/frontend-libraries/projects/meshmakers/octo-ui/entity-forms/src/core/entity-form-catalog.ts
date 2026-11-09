@@ -1,4 +1,5 @@
 import { EntityFormDefinition } from '../models/entity-form.models';
+import { isArchiveCorrectionForm } from './archive-correction-form';
 import { toKebabTypeKey } from './attribute-path';
 import { humanizeCkTypeName } from './ck-type-name';
 
@@ -53,12 +54,16 @@ function compareForms(a: EntityFormDefinition, b: EntityFormDefinition): number 
  * effective form has a `Category`. The effective form is picked like the resolver does for an
  * exact type match (tenant form first, then higher priority, then well-known name), so a tenant
  * override replaces the delivered entry — and can also move it to another category or remove it
- * from the overview by leaving `Category` empty. The key prefers a delivered `form-*` name of
+ * from the overview by leaving `Category` empty. Archive correction forms (category
+ * `ArchiveCorrection`, AB#8591) are skipped. The key prefers a delivered `form-*` name of
  * the type, so URLs stay stable when a tenant form is added. Sorted by title.
  */
 export function entityFormCatalog(forms: readonly EntityFormDefinition[]): EntityFormCatalogEntry[] {
   const byType = new Map<string, EntityFormDefinition[]>();
   for (const form of forms) {
+    if (isArchiveCorrectionForm(form)) {
+      continue; // AB#8591: an archive correction form is no settings entry and no type form.
+    }
     const target = (form.targetCkTypeId ?? '').trim();
     if (!target) {
       continue;
@@ -94,11 +99,15 @@ export function entityFormCatalog(forms: readonly EntityFormDefinition[]): Entit
 /**
  * Display names of CK types from the forms (AB#5524): per target type (lower-case key) the
  * `Name` of its effective form (tenant form first, then priority), for every form with a name —
- * also forms without `Category`. CK types carry no display name of their own.
+ * also forms without `Category`, but not archive correction forms (AB#8591). CK types carry no
+ * display name of their own.
  */
 export function entityFormTypeTitles(forms: readonly EntityFormDefinition[]): Map<string, string> {
   const titles = new Map<string, string>();
   for (const form of [...forms].sort(compareForms)) {
+    if (isArchiveCorrectionForm(form)) {
+      continue;
+    }
     const target = (form.targetCkTypeId ?? '').trim().toLowerCase();
     const name = form.name?.trim();
     if (target && name && !titles.has(target)) {

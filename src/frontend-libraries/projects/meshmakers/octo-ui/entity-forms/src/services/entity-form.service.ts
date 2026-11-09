@@ -1,6 +1,7 @@
 import { EnvironmentProviders, Injectable, inject, provideEnvironmentInitializer } from '@angular/core';
 import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
+import { isArchiveCorrectionForm } from '../core/archive-correction-form';
 import { toKebabTypeKey } from '../core/attribute-path';
 import { RawCkRecord, RawCkType, toCkRecordInfo, toCkTypeInfo } from '../core/ck-metadata';
 import { parseEntityForms, RawRtEntityRow } from '../core/entity-form-parser';
@@ -194,7 +195,8 @@ export class EntityFormService {
     if (!key) {
       return null;
     }
-    const forms = await this.getForms();
+    // Archive correction forms (AB#8591) are not reachable by form key.
+    const forms = (await this.getForms()).filter((f) => !isArchiveCorrectionForm(f));
     const match = forms.find((f) => (f.rtWellKnownName ?? '').toLowerCase() === key)
       ?? forms.find((f) => (f.rtWellKnownName ?? '').toLowerCase() === `form-${key}`)
       ?? forms.find((f) => toKebabTypeKey(f.targetCkTypeId) === key);

@@ -10,6 +10,19 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui entity-forms: archive correction forms (AB#8591)
+
+- New (non-breaking, additive): the reserved form category `ArchiveCorrection` for a `System.UI/EntityForm` that
+  describes the editable data columns of one stream-data archive (well-known name `archive-correction-{archiveKey}`).
+  `ARCHIVE_CORRECTION_FORM_CATEGORY`, `isArchiveCorrectionForm`, `archiveCorrectionFormName`,
+  `matchesArchiveCorrectionFormName`, `pickArchiveCorrectionForm(type, archiveKey, forms)` (tenant before seeded, then
+  priority) and `resolveEntityFormDefinition(type, form, source, opts)` (resolves a given form without picking; same
+  field rules as `resolveEntityForm`).
+- Behaviour: `pickEntityForm` / `resolveEntityForm` / `EntityFormService.resolve`, `entityFormCatalog`,
+  `entityFormTypeTitles` and `resolveByFormKey` ignore forms of that category, so a seeded correction form never
+  becomes the page form, settings entry or display name of its target type. No form with that category existed before.
+  README: "Archive correction forms" (how a blueprint ships one as seed data).
+
 ### octo-services: allow-list edits detect concurrent changes (AB#8520)
 
 - New (non-breaking, additive): `getCrossTenantGrantPermissions()` and `setCrossTenantGrantPermissions()` return

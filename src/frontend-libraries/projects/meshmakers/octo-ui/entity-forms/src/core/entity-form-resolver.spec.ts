@@ -7,8 +7,11 @@ import {
   DEFAULT_GENERATED_SECTION_TITLE,
   GENERATED_SECTION_KEY,
   isSecretAttribute,
+  pickArchiveCorrectionForm,
   pickEntityForm,
-  resolveEntityForm, associationFieldKey } from './entity-form-resolver';
+  resolveEntityForm,
+  resolveEntityFormDefinition,
+  associationFieldKey } from './entity-form-resolver';
 import { attr, ckType, form } from './testing/factories';
 import {
   LIVE_ENTITY_FORM_CK_TYPE,
@@ -26,6 +29,67 @@ function fields(model: ResolvedEntityForm) {
 function field(model: ResolvedEntityForm, key: string) {
   return fields(model).find((f) => f.key === key);
 }
+
+const METER = 'Test/Meter';
+const CORRECTION = 'ArchiveCorrection';
+
+describe('archive correction forms (AB#8591)', () => {
+  const meter = ckType(METER, { attributes: [attr('name'), attr('value', 'DOUBLE'), attr('quality', 'INT')] });
+
+  it('pickEntityForm never picks a correction form, even when it is the only form of the type', () => {
+    const correction = form(METER, { rtWellKnownName: 'archive-correction-meter-consumption', category: CORRECTION });
+    expect(pickEntityForm(meter, [correction])).toBeNull();
+    const general = form(METER, { rtWellKnownName: 'form-meter' });
+    expect(pickEntityForm(meter, [correction, general])?.form).toBe(general);
+  });
+
+  it('pickEntityForm skips a correction form at an ancestor with includeDerivedTypes', () => {
+    const derived = ckType('Test/SmartMeter', { ancestors: [METER, 'System/Entity'] });
+    const correction = form(METER, { includeDerivedTypes: true, category: CORRECTION, priority: 100 });
+    const base = form('System/Entity', { includeDerivedTypes: true });
+    expect(pickEntityForm(derived, [correction, base])?.form).toBe(base);
+  });
+
+  it('resolveEntityForm falls back to the built-in form instead of a correction form', () => {
+    const correction = form(METER, { rtWellKnownName: 'archive-correction-meter-consumption', category: CORRECTION });
+    expect(resolveEntityForm(meter, [correction]).source).toBe('builtIn');
+  });
+
+  it('pickArchiveCorrectionForm: tenant before seeded, then priority', () => {
+    const seeded = form(METER, { rtWellKnownName: 'archive-correction-meter-consumption', category: CORRECTION, priority: 50 });
+    const tenant = form(METER, { rtWellKnownName: 'archive-correction-meter-consumption-custom', category: CORRECTION, isTenantForm: true });
+    const picked = pickArchiveCorrectionForm(meter, 'meter-consumption', [seeded, tenant]);
+    expect(picked?.form).toBe(tenant);
+    expect(picked?.source).toBe('tenant');
+    const high = form(METER, { rtWellKnownName: 'archive-correction-meter-consumption-b', category: CORRECTION, priority: 60 });
+    expect(pickArchiveCorrectionForm(meter, 'meter-consumption', [seeded, high])?.form).toBe(high);
+  });
+
+  it('pickArchiveCorrectionForm ignores other archives, other types, uncategorised and general forms', () => {
+    const other = form(METER, { rtWellKnownName: 'archive-correction-meter-power', category: CORRECTION });
+    const otherType = form('Test/Inverter', { rtWellKnownName: 'archive-correction-meter-consumption', category: CORRECTION });
+    const noCategory = form(METER, { rtWellKnownName: 'archive-correction-meter-consumption' });
+    const general = form(METER, { rtWellKnownName: 'form-meter' });
+    expect(pickArchiveCorrectionForm(meter, 'meter-consumption', [other, otherType, noCategory, general])).toBeNull();
+  });
+
+  it('resolveEntityFormDefinition resolves a given form; null source means generated', () => {
+    const generated = form(METER, {
+      rtId: '', rtWellKnownName: null, category: CORRECTION, generateRemainingFields: false,
+      fields: [{ attributePath: 'value', required: true }, { attributePath: 'quality' }],
+    });
+    const model = resolveEntityFormDefinition(meter, generated, null);
+    expect(model.source).toBe('builtIn');
+    expect(model.formRtId).toBeUndefined();
+    expect(fields(model).map((f) => f.key)).toEqual(['value', 'quality']);
+    expect(field(model, 'value')?.required).toBe(true);
+
+    const stored = form(METER, { category: CORRECTION, fields: [{ attributePath: 'value' }] });
+    const fromStored = resolveEntityFormDefinition(meter, stored, 'seeded');
+    expect(fromStored.source).toBe('seeded');
+    expect(fromStored.formRtId).toBe(stored.rtId);
+  });
+});
 
 describe('pickEntityForm', () => {
   const type = ckType(SFTP, { ancestors: ['System/Configuration', 'System/Entity'] });

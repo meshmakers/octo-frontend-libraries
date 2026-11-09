@@ -13,7 +13,7 @@ import {
   LIVE_SFTP_CK_TYPE,
 } from '../core/testing/live-fixtures';
 import { EntityFormService } from './entity-form.service';
-import { attr, ckType as makeCkType } from '../core/testing/factories';
+import { attr, ckType as makeCkType, form } from '../core/testing/factories';
 import { ResolvedEntityForm, ResolvedField } from '../models/entity-form.models';
 
 describe('EntityFormService', () => {
@@ -119,6 +119,14 @@ describe('EntityFormService', () => {
     expect((await service.resolveByFormKey('form-sftp-configuration'))?.rtCkTypeId).toBe('System.Communication/SftpConfiguration');
     expect((await service.resolveByFormKey('sftp-configuration'))?.rtCkTypeId).toBe('System.Communication/SftpConfiguration');
     expect(await service.resolveByFormKey('nothing-here')).toBeNull();
+  });
+
+  it('resolveByFormKey never matches an archive correction form (AB#8591)', async () => {
+    vi.spyOn(service, 'getForms').mockResolvedValue([
+      form('System.Communication/SftpConfiguration', { rtWellKnownName: 'archive-correction-sftp-archive', category: 'ArchiveCorrection' }),
+    ]);
+    expect(await service.resolveByFormKey('archive-correction-sftp-archive')).toBeNull();
+    expect(await service.resolveByFormKey('sftp-configuration')).toBeNull();
   });
 
   it('attaches the target metadata of reference display attributes and drops secret ones (AB#5547)', async () => {

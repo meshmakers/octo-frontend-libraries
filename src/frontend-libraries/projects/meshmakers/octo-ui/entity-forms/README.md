@@ -23,6 +23,7 @@ and other packages, and hosts that do not use it keep the primary bundle unchang
 | `EntityFormDataService` | Reads values / secret state / associations; create, update (incl. `clearSecretAttributes`), delete |
 | `parseEntityForms`, `pickEntityForm`, `resolveEntityForm`, … | Pure functions behind the service, e.g. for a forms editor |
 | `entityFormCatalog(forms)`, `entityFormKey(form)` | Settings overview: one entry per target type whose effective form has a `Category`, with the URL key |
+| `pickArchiveCorrectionForm`, `resolveEntityFormDefinition`, `isArchiveCorrectionForm`, `archiveCorrectionFormName` | Archive correction forms (category `ArchiveCorrection`, AB#8591): a form for the data columns of one stream-data archive, see below |
 | `EntityFormsMessages`, `DEFAULT_ENTITY_FORMS_MESSAGES` | All UI strings (English defaults; pass `Partial<…>` via `messages`) |
 | `ENTITY_FORM_FALLBACK_FORMS`, `provideEntityFormFallbacks`, `selectFallbackForms` | Host-provided built-in forms that apply per type where the resolution would end at `form-default` (see below) |
 | `ENTITY_FORM_ACTION_CONFIRMATION` | Optional host hook asked before a delete (e.g. a production-mode check) |
@@ -218,6 +219,79 @@ providers: [{ provide: ENTITY_FORM_FALLBACK_FORMS, useValue: MY_FALLBACK_FORMS }
 
 This is the per-type counterpart of the built-in `form-default` safety net; the host is
 responsible for keeping its copies in step with the seed.
+
+## Archive correction forms (category `ArchiveCorrection`, AB#8591)
+
+A host that lets users correct a stored value of a stream-data archive (Refinery Studio: archive
+data view, "Correct value") renders the editable data columns of the archive row with
+`<mm-entity-form mode="edit">`. The form for that dialog is a normal `System.UI/EntityForm`
+with a reserved category:
+
+| Property | Value |
+|----------|-------|
+| `TargetCkTypeId` | The archive's target CK type, unversioned (`<Model>/Meter`), so CK metadata, editors and enum options resolve as usual |
+| `Category` | `ArchiveCorrection` (reserved; any casing) |
+| `RtWellKnownName` | `archive-correction-{archiveKey}` (lower case), or that name followed by `-` and a suffix (`archive-correction-meter-consumption-custom`). `{archiveKey}` is the archive's `rtWellKnownName`, or its rtId when it has none |
+| `Fields` | `AttributePath` = an archive column path (`Value`, `Amount.Value`); label, help, editor, min/max and required as for any form |
+
+Rules:
+
+- **Never a type form.** `pickEntityForm` (and so `resolveEntityForm` / `EntityFormService.resolve`),
+  `entityFormCatalog`, `entityFormTypeTitles` and `resolveByFormKey` ignore forms with this
+  category. A seeded correction form therefore never becomes the entity page form of its target type,
+  never shows up in the settings overview and never renames the type.
+- **Resolution** for one archive: `pickArchiveCorrectionForm(type, archiveKey, forms)` takes the forms
+  of `EntityFormService.getForms()` with category `ArchiveCorrection`, target = the archive's target
+  type and a matching well-known name, and orders them like `pickEntityForm`: tenant forms before
+  blueprint-seeded forms, then higher `Priority`, then name. It returns `null` when there is none; the
+  host then generates a form in memory from the archive's columns (one field per column,
+  `GenerateRemainingFields: false`). The general form of the target type is never used: it describes
+  the entity (a meter's name and serial), not the measured row.
+- `resolveEntityFormDefinition(type, form, source, { records })` resolves the picked (or generated)
+  definition with the same field rules as `resolveEntityForm`; `source: null` marks a generated form
+  (`source: 'builtIn'`, no `formRtId`). The host keeps only the fields of archive data columns.
+- **Dotted column paths.** Archive columns are often paths into a record of the target type
+  (`Amount.Value`), and the resolver skips dotted attribute paths. The Refinery Studio therefore
+  resolves the form against a *column type*: the target type reduced to one flat attribute per archive
+  column (`Amount.Value` → `amount__value`) carrying the CK metadata of that column (value type, enum
+  options, read through the record). Form fields still name the column path (`Amount.Value`); the host
+  maps them. See `archive-correction-form.service.ts` in the Studio.
+- A tenant overrides a seeded correction form by creating its own form for the same archive, e.g.
+  `archive-correction-{archiveKey}-custom` (tenant forms win).
+
+**Shipping a correction form with a blueprint.** Put a `System.UI/EntityForm` entity into the
+blueprint's seed data next to the archive. The archive in the same blueprint needs a well-known name,
+because the form's name refers to it. Example for an archive `meter-consumption` on
+`<Model>/Meter` with the columns `Value` and `Quality`:
+
+```yaml
+entities:
+  - rtId: '<fixed 24-hex rtId>'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: archive-correction-meter-consumption
+    attributes:
+      - { id: System/Name, value: "Correct meter consumption" }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "<Model>/Meter" }
+      - { id: System.UI/EntityForm.Category, value: "ArchiveCorrection" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Priority, value: 0 }
+      - { id: System.UI/EntityForm.GenerateRemainingFields, value: false }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Value" }
+          - { id: System.UI/EntityFormField.Label, value: "Consumption (kWh)" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Quality" }
+```
+
+The blueprint depends on `System.UI` ≥ 2.8.0 (the `EntityForm` type). Fields whose path is not a data
+column of the archive are dropped by the host; the row key (window or timestamp), the origin and the
+manual audit columns are never fields, and the correction reason is entered outside the form.
 
 ## Cross-field validation and field marks (AB#7422)
 
@@ -472,6 +546,7 @@ form defines explicitly keeps its own `ReadOnly`.
 2. Tenant forms beat seeded forms (empty `RtBlueprintSource`), then higher `Priority`, then
    `rtWellKnownName` / `rtId` ascending (deterministic tie-break).
 3. No match → built-in default form with a warning. Forms are never merged.
+   Archive correction forms (category `ArchiveCorrection`) are never candidates.
 4. Attribute paths match case-insensitively (forms write `Host`, CK names are `host`); unknown
    paths are skipped, dotted paths are skipped with a warning; unmentioned attributes go to a
    generated "Further attributes" section unless `GenerateRemainingFields: false`.

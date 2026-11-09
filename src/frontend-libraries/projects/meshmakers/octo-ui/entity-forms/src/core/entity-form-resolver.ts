@@ -15,6 +15,7 @@ import {
 } from '../models/entity-form.models';
 import { isSecretAttributeCandidate, isSecretValueType } from '@meshmakers/octo-services';
 import { canonicalisePath, isForcedReadOnly, isRuntimeStateAttribute } from './attribute-path';
+import { isArchiveCorrectionForm, matchesArchiveCorrectionFormName } from './archive-correction-form';
 import { BUILT_IN_DEFAULT_FORM } from './built-in-default-form';
 import { humanizeCkTypeName } from './ck-type-name';
 import { parseDefault, isArrayType, isDateType, isNumericType, isRecordType } from './entity-form-value-mapper';
@@ -108,21 +109,48 @@ function compareCandidates(a: EntityFormDefinition, b: EntityFormDefinition): nu
  * Picks the form for a type. Exact-target forms win; otherwise the nearest ancestor that has
  * forms with `includeDerivedTypes` supplies the candidates. Candidates are ordered tenant before
  * seeded, then priority descending, then rtWellKnownName/rtId ascending. Forms are never merged.
+ * Archive correction forms (category `ArchiveCorrection`, AB#8591) are never picked.
  */
 export function pickEntityForm(
   type: CkTypeInfo,
   forms: readonly EntityFormDefinition[],
 ): { form: EntityFormDefinition; source: EntityFormSource } | null {
-  let candidates = forms.filter((f) => sameId(f.targetCkTypeId, type.rtCkTypeId));
+  // Archive correction forms (AB#8591) describe an archive row, not the entity: never a type's form.
+  const entityForms = forms.filter((f) => !isArchiveCorrectionForm(f));
+  let candidates = entityForms.filter((f) => sameId(f.targetCkTypeId, type.rtCkTypeId));
   if (candidates.length === 0) {
     for (const ancestor of type.ancestors) {
-      const atAncestor = forms.filter((f) => f.includeDerivedTypes === true && sameId(f.targetCkTypeId, ancestor));
+      const atAncestor = entityForms.filter((f) => f.includeDerivedTypes === true && sameId(f.targetCkTypeId, ancestor));
       if (atAncestor.length > 0) {
         candidates = atAncestor;
         break;
       }
     }
   }
+  if (candidates.length === 0) {
+    return null;
+  }
+  const form = [...candidates].sort(compareCandidates)[0];
+  return { form, source: form.isTenantForm ? 'tenant' : 'seeded' };
+}
+
+/**
+ * Picks the correction form of a stream-data archive (AB#8591): among the forms with category
+ * `ArchiveCorrection` whose target is exactly the archive's target type and whose well-known name
+ * matches the archive ({@link matchesArchiveCorrectionFormName}), the first in
+ * {@link pickEntityForm} order (tenant before seeded, then priority, then name). Returns `null`
+ * when there is none; the host then generates a form from the archive's columns. The general
+ * form of the type is never returned.
+ */
+export function pickArchiveCorrectionForm(
+  type: CkTypeInfo,
+  archiveKey: string,
+  forms: readonly EntityFormDefinition[],
+): { form: EntityFormDefinition; source: EntityFormSource } | null {
+  const candidates = forms.filter((f) =>
+    isArchiveCorrectionForm(f)
+    && sameId(f.targetCkTypeId, type.rtCkTypeId)
+    && matchesArchiveCorrectionFormName(f.rtWellKnownName, archiveKey));
   if (candidates.length === 0) {
     return null;
   }
@@ -576,12 +604,38 @@ export function resolveEntityForm(
   forms: readonly EntityFormDefinition[],
   opts: ResolveEntityFormOptions = {},
 ): ResolvedEntityForm {
-  const warnings: string[] = [];
   const picked = pickEntityForm(type, forms);
-  const form = picked?.form ?? BUILT_IN_DEFAULT_FORM;
   if (!picked) {
-    warnings.push(`No entity form applies to '${type.rtCkTypeId}'; using the built-in default form.`);
+    return resolveDefinition(type, BUILT_IN_DEFAULT_FORM, null, opts, [
+      `No entity form applies to '${type.rtCkTypeId}'; using the built-in default form.`,
+    ]);
   }
+  return resolveDefinition(type, picked.form, picked.source, opts, []);
+}
+
+/**
+ * Resolves one given form definition against the CK metadata of `type`, without picking
+ * (same field rules as {@link resolveEntityForm}). Used by hosts that pick a form by their own
+ * rule, e.g. archive correction forms ({@link pickArchiveCorrectionForm}, AB#8591).
+ * `source` is the origin of a stored form; `null` marks a form that is not stored (built in or
+ * generated in memory): the result then has `source: 'builtIn'` and no `formRtId`.
+ */
+export function resolveEntityFormDefinition(
+  type: CkTypeInfo,
+  form: EntityFormDefinition,
+  source: EntityFormSource | null,
+  opts: ResolveEntityFormOptions = {},
+): ResolvedEntityForm {
+  return resolveDefinition(type, form, source, opts, []);
+}
+
+function resolveDefinition(
+  type: CkTypeInfo,
+  form: EntityFormDefinition,
+  source: EntityFormSource | null,
+  opts: ResolveEntityFormOptions,
+  warnings: string[],
+): ResolvedEntityForm {
   const exact = sameId(form.targetCkTypeId, type.rtCkTypeId);
 
   // Sections
@@ -741,7 +795,7 @@ export function resolveEntityForm(
   }
 
   const result: ResolvedEntityForm = {
-    source: picked ? picked.source : 'builtIn',
+    source: source ?? 'builtIn',
     rtCkTypeId: type.rtCkTypeId,
     ckTypeAncestors: [...type.ancestors],
     formTargetCkTypeId: form.targetCkTypeId,
@@ -767,7 +821,7 @@ export function resolveEntityForm(
   if (listDefaultSort.length > 0) {
     result.listDefaultSort = listDefaultSort;
   }
-  if (picked) {
+  if (source) {
     result.formRtId = form.rtId;
     if (form.rtWellKnownName) {
       result.formWellKnownName = form.rtWellKnownName;
