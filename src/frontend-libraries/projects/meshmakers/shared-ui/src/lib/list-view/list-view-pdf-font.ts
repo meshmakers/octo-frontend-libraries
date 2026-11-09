@@ -22,14 +22,7 @@ let fontLoading: Promise<boolean> | null = null;
 export function loadPdfExportFont(): Promise<boolean> {
   fontLoading ??= import('./list-view-pdf-font-data')
     .then(async (data) => {
-      const regular = base64ToBytes(data.DEJAVU_SANS_TTF_BASE64);
-      const bold = base64ToBytes(data.DEJAVU_SANS_BOLD_TTF_BASE64);
-      pdf.defineFont({
-        [PDF_EXPORT_FONT_FAMILY]: fontUrl(regular),
-        [`${PDF_EXPORT_FONT_FAMILY}|Bold`]: fontUrl(bold)
-      });
-      await registerDocumentFont(regular, 'normal');
-      await registerDocumentFont(bold, 'bold');
+      await registerPdfExportFont(data.DEJAVU_SANS_TTF_BASE64, data.DEJAVU_SANS_BOLD_TTF_BASE64);
       return true;
     })
     .catch((error: unknown) => {
@@ -38,6 +31,24 @@ export function loadPdfExportFont(): Promise<boolean> {
       return false;
     });
   return fontLoading;
+}
+
+/**
+ * Registers the regular and bold TrueType files (base64) as "DejaVu Sans" with Kendo
+ * (`pdf.defineFont`, blob URLs) and as document fonts. Returns the two blob URLs.
+ * Not memoised: {@link loadPdfExportFont} calls it once per page.
+ */
+export async function registerPdfExportFont(regularBase64: string, boldBase64: string): Promise<string[]> {
+  const regular = base64ToBytes(regularBase64);
+  const bold = base64ToBytes(boldBase64);
+  const urls = [fontUrl(regular), fontUrl(bold)];
+  pdf.defineFont({
+    [PDF_EXPORT_FONT_FAMILY]: urls[0],
+    [`${PDF_EXPORT_FONT_FAMILY}|Bold`]: urls[1]
+  });
+  await registerDocumentFont(regular, 'normal');
+  await registerDocumentFont(bold, 'bold');
+  return urls;
 }
 
 function base64ToBytes(base64: string): Uint8Array<ArrayBuffer> {

@@ -1,5 +1,5 @@
 import { DEJAVU_SANS_BOLD_TTF_BASE64, DEJAVU_SANS_TTF_BASE64 } from './list-view-pdf-font-data';
-import { loadPdfExportFont } from './list-view-pdf-font';
+import { loadPdfExportFont, registerPdfExportFont } from './list-view-pdf-font';
 
 function bytesOf(base64: string): DataView {
   const binary = atob(base64);
@@ -72,14 +72,20 @@ describe('PDF export font (AB#8630)', () => {
     });
   }
 
-  it('loads the font once and hands Kendo a TrueType URL per weight', async () => {
+  it('loads the font once per page', async () => {
+    // Other specs of the same worker may have loaded it already (the Angular unit-test builder
+    // runs Vitest with isolate: false), so only the memoisation is asserted here.
+    const first = loadPdfExportFont();
+    expect(loadPdfExportFont()).toBe(first);
+    await expect(first).resolves.toBe(true);
+  });
+
+  it('hands Kendo a TrueType URL per weight', async () => {
     const createObjectURL = vi.spyOn(URL, 'createObjectURL');
 
-    const first = loadPdfExportFont();
-    const second = loadPdfExportFont();
+    const urls = await registerPdfExportFont(DEJAVU_SANS_TTF_BASE64, DEJAVU_SANS_BOLD_TTF_BASE64);
 
-    expect(second).toBe(first);
-    await expect(first).resolves.toBe(true);
+    expect(urls.length).toBe(2);
     const blobs = createObjectURL.mock.calls.map(([blob]) => blob as Blob);
     expect(blobs.map((blob) => blob.type)).toEqual(['font/ttf', 'font/ttf']);
     expect(blobs.map((blob) => blob.size)).toEqual([
