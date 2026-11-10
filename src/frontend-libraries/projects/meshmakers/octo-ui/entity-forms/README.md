@@ -623,7 +623,8 @@ Secret values never reach the browser (AB#5522 D5, AB#5542, AB#5544 item 4, deci
 
 | Editor | Implementation |
 |--------|----------------|
-| text, multiline, email, url, password, number, toggle, enum, datetime | Kendo inputs; email / url validators by editor; `Min`/`Max` on numbers, `Pattern` on text |
+| text, multiline, email, url, password, toggle, enum, datetime | Kendo inputs; email / url validators by editor; `Pattern` on text |
+| number | `mm-entity-form-number-editor` (AB#8734): "." and "," both work as the decimal separator, a wrong grouping is refused, the parsed value is shown in the locale's format while editing; `Min`/`Max` apply |
 | chips | Array editor for `STRING_ARRAY` / `INT_ARRAY` |
 | cron | shared-ui `mm-cron-builder` |
 | **json / yaml** | Monospace `kendo-textarea` (no Monaco / YAML library in the workspace). `json` validates with `JSON.parse`, `yaml` is not validated. Both are stored as STRING. The Studio can swap in Monaco later via `CustomComponent`. |

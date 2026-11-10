@@ -5,6 +5,7 @@ import { formatSecretStatus } from '@meshmakers/octo-services';
 import { EntityFormsMessages, formatEntityFormsMessage, secretStatusLabelsOf } from '../entity-forms.messages';
 import { EntityFormFieldHint, ResolvedField } from '../models/entity-form.models';
 import { firstErrorKey } from './entity-form-controls';
+import { NUMBER_FORMAT_ERROR } from './editors/entity-form-number-editor.component';
 
 /**
  * Secret state shown next to a secret field (AB#5542 / AB#5544 item 4): set on the server, not set
@@ -190,10 +191,29 @@ export class EntityFormFieldComponent {
         return m.validationUrl;
       case 'json':
         return m.validationJson;
+      case NUMBER_FORMAT_ERROR:
+        return numberFormatText(control.errors?.[NUMBER_FORMAT_ERROR], m);
       case 'crossField':
         return crossField ?? m.formInvalid;
       default:
         return m.formInvalid;
     }
   });
+}
+
+/** Text of a {@link NUMBER_FORMAT_ERROR} by the parse's reason (AB#8734). */
+function numberFormatText(error: unknown, m: EntityFormsMessages): string {
+  const reason = (error as { reason?: string } | null | undefined)?.reason;
+  switch (reason) {
+    case 'grouping':
+      return m.validationNumberGrouping;
+    case 'integer':
+      return m.validationInteger;
+    case 'ambiguous': {
+      const { whole, decimal } = error as { whole?: string; decimal?: string };
+      return formatEntityFormsMessage(m.validationNumberAmbiguous, { whole: whole ?? '', decimal: decimal ?? '' });
+    }
+    default:
+      return m.validationNumber;
+  }
 }

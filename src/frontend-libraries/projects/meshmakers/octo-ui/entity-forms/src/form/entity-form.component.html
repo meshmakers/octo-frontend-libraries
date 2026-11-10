@@ -90,13 +90,13 @@
                       ></kendo-textarea>
                     }
                     @case ('number') {
-                      <kendo-numerictextbox
+                      <mm-entity-form-number-editor
                         [formControl]="ctrl"
-                        [decimals]="isIntegerField(field) ? 0 : 6"
-                        [format]="isIntegerField(field) ? 'n0' : 'n'"
+                        [integer]="isIntegerField(field)"
                         [placeholder]="placeholder(field)"
-                        [readonly]="ro"
-                      ></kendo-numerictextbox>
+                        [readOnly]="ro"
+                        [messages]="m"
+                      ></mm-entity-form-number-editor>
                     }
                     @case ('toggle') {
                       <kendo-switch
