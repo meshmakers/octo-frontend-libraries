@@ -23,6 +23,7 @@ and other packages, and hosts that do not use it keep the primary bundle unchang
 | `EntityFormDataService` | Reads values / secret state / associations; create, update (incl. `clearSecretAttributes`), delete |
 | `parseEntityForms`, `pickEntityForm`, `resolveEntityForm`, … | Pure functions behind the service, e.g. for a forms editor |
 | `entityFormCatalog(forms)`, `entityFormKey(form)` | Settings overview: one entry per target type whose effective form has a `Category`, with the URL key |
+| `pickArchiveCorrectionForm`, `resolveEntityFormDefinition`, `isArchiveCorrectionForm`, `archiveCorrectionFormName` | Archive correction forms (category `ArchiveCorrection`, AB#8591): a form for the data columns of one stream-data archive, see below |
 | `EntityFormsMessages`, `DEFAULT_ENTITY_FORMS_MESSAGES` | All UI strings (English defaults; pass `Partial<…>` via `messages`) |
 | `ENTITY_FORM_FALLBACK_FORMS`, `provideEntityFormFallbacks`, `selectFallbackForms` | Host-provided built-in forms that apply per type where the resolution would end at `form-default` (see below) |
 | `ENTITY_FORM_ACTION_CONFIRMATION` | Optional host hook asked before a delete (e.g. a production-mode check) |
@@ -123,9 +124,14 @@ create title on `new`).
 `saveChanges(): Promise<boolean>` (also called by `UnsavedChangesGuard` on "Yes"):
 
 - invalid form → all fields touched, warning, `false`;
-- create → `EntityFormDataService.create`, then navigation to `:rtId` (replacing `new`);
-- edit → only the changed attributes are sent (empty change set = "no changes"), then the
-  values are read again.
+- create → the data adapter's `save` (default: `EntityFormDataService.create`), then navigation to
+  `:rtId` (replacing `new`);
+- edit → only the changed attributes are sent (empty change set = "no changes", the adapter is not
+  called), then the values are read again through the adapter's `load`; a failing reload does not
+  undo the success (the save still returns `true`, no `saveError`), it only shows the
+  `reloadAfterSaveFailed` warning, so a retry never sends the change twice;
+- an adapter result with `applied: false` keeps the form open: its `fieldErrors` go under the fields,
+  its `message` (else `formInvalid` / `saveError`) is shown as an error, a `vetoed` failure as a warning.
 - a host `beforeSave` hook (see below) runs after validation and before the server call; a
   veto shows a warning (the hook's message or `saveVetoed`), an error shows `saveError`, and
   nothing is saved in either case.
@@ -162,6 +168,101 @@ const normaliseContact: EntityFormBeforeSaveHook = (changeSet) => {
 - **Secrets:** nothing beyond the change set reaches the hook. A SECRET attribute appears only as
   the write value the user just typed (or in `clearSecretAttributes`), never as a stored value —
   the form never reads stored secrets. Do not log the change set.
+
+### Data adapter (`EntityFormDataAdapter`, AB#8591)
+
+Entity forms render, validate and build the change set; **where the values come from and where they go** is
+the job of a data adapter. Without configuration nothing changes: the default `RtEntityFormDataAdapter`
+reads and writes runtime entities through GraphQL (`EntityFormDataService.load` / `create` / `update`).
+A host supplies its own adapter when the target is not a runtime entity (the Refinery Studio's archive
+correction writes a stream-data archive row):
+
+```ts
+export interface EntityFormDataContext {
+  readonly model: ResolvedEntityForm;
+  readonly mode: EntityFormMode;          // 'create' | 'edit' | 'view'
+  readonly rtId?: string;
+  readonly ckTypeId?: string;
+  readonly wellKnownName?: string;
+}
+
+export interface EntityFormSaveResult {
+  readonly applied: boolean;
+  readonly fieldErrors?: Readonly<Record<string, string>>;  // key = field key or attribute name
+  readonly message?: string;                                 // already in the user's language
+  readonly failure?: 'invalid' | 'vetoed' | 'rejected' | 'forbidden' | 'error' | 'busy';
+  readonly rtId?: string;                                    // required on create (default adapter)
+}
+
+export interface EntityFormDataAdapter<TContext extends EntityFormDataContext = EntityFormDataContext> {
+  load(context: TContext): Promise<EntityFormLoadResult | null>;
+  save(context: TContext, changeSet: EntityFormChangeSet, values: Readonly<Record<string, unknown>>): Promise<EntityFormSaveResult>;
+}
+```
+
+- **Where:** `mm-entity-form [dataAdapter]` / `mm-entity-page [dataAdapter]` > `ENTITY_FORM_DATA_ADAPTER` >
+  `RtEntityFormDataAdapter`. The page loads and saves through it; list, delete and the singleton probe
+  stay on runtime entities.
+- **`load`** resolves the values in form shape (`state.values` keyed by field key), or `null` when the
+  target does not exist.
+- **`save`** gets the change set (only changed attributes in edit mode, after the before-save hook) and
+  `values` — the current value of **every** field in form shape (`EntityFormComponent.getValues()`), so an
+  adapter that must send a whole record (e.g. every archive column) needs no second read. Expected refusals
+  resolve with `applied: false`; an unexpected failure may reject (the page then shows `saveError`).
+- **Context:** extend `EntityFormDataContext` with what the target needs (a row key, a reason). The form
+  passes the host's context through unchanged and only fills `model` and `mode` when absent.
+- **`EntityFormComponent.save(context)`** — for hosts that render `mm-entity-form` themselves (dialogs):
+  validates (invalid → `failure: 'invalid'`, adapter not called), runs the before-save hook (veto →
+  `failure: 'vetoed'`), skips an edit without changes (`{ applied: true }`), refuses a second call while one
+  is running (`failure: 'busy'`, so a double click never creates twice), calls `adapter.save`, shows
+  `fieldErrors` under their fields and focuses the first. Each mark stays until the user edits that field
+  (also on a field the user had already changed). The form never notifies; the host shows `message` and
+  reacts to `failure` (e.g. locks the dialog on `forbidden`). `showSaveFieldErrors(errors)` shows marks
+  from a save the host ran itself.
+- **Secrets:** never log the change set or the values.
+
+Example — an adapter that writes one archive row (shortened from the Refinery Studio):
+
+```ts
+interface ArchiveRowContext extends EntityFormDataContext {
+  readonly archiveRtId: string;
+  readonly row: { rtId: string; from: string; to: string };
+  readonly reason: string;
+}
+
+class TimeRangeCorrectionAdapter implements EntityFormDataAdapter<ArchiveRowContext> {
+  constructor(private readonly http: HttpClient, private readonly url: (archiveRtId: string) => string) {}
+
+  async load(ctx: ArchiveRowContext): Promise<EntityFormLoadResult | null> {
+    return { rtId: ctx.row.rtId, ckTypeId: ctx.model.rtCkTypeId, state: { values: rowValuesOf(ctx), secretPresence: {}, associations: {} } };
+  }
+
+  async save(ctx: ArchiveRowContext, changeSet: EntityFormChangeSet, values: Readonly<Record<string, unknown>>): Promise<EntityFormSaveResult> {
+    const point = { ...ctx.row, attributes: toWire(values, changeSet), origin: 'manual', reason: ctx.reason };
+    try {
+      const result = await firstValueFrom(this.http.post<{ stored: number; skipped: number }>(this.url(ctx.archiveRtId), [point]));
+      return result.skipped > 0
+        ? { applied: false, failure: 'rejected', fieldErrors: marksForChanged(changeSet, 'Not saved') }
+        : { applied: true };
+    } catch (e) {
+      return (e as { status?: number }).status === 403
+        ? { applied: false, failure: 'forbidden', message: 'You may not correct archive values.' }
+        : { applied: false, failure: 'error', message: 'The correction could not be sent.' };
+    }
+  }
+}
+```
+
+```html
+<mm-entity-form #form mode="edit" [model]="model" [state]="state" [dataAdapter]="adapter" />
+```
+
+```ts
+const result = await this.form.save({ archiveRtId, row, reason } as Partial<ArchiveRowContext>);
+```
+
+Another target (e.g. a raw archive with a different endpoint) is a second adapter; the form and the
+dialog stay the same.
 
 ### Embedding without routes
 
@@ -218,6 +319,79 @@ providers: [{ provide: ENTITY_FORM_FALLBACK_FORMS, useValue: MY_FALLBACK_FORMS }
 
 This is the per-type counterpart of the built-in `form-default` safety net; the host is
 responsible for keeping its copies in step with the seed.
+
+## Archive correction forms (category `ArchiveCorrection`, AB#8591)
+
+A host that lets users correct a stored value of a stream-data archive (Refinery Studio: archive
+data view, "Correct value") renders the editable data columns of the archive row with
+`<mm-entity-form mode="edit">` and saves through its own data adapter (see "Data adapter" above). The form for that dialog is a normal `System.UI/EntityForm`
+with a reserved category:
+
+| Property | Value |
+|----------|-------|
+| `TargetCkTypeId` | The archive's target CK type, unversioned (`<Model>/Meter`), so CK metadata, editors and enum options resolve as usual |
+| `Category` | `ArchiveCorrection` (reserved; any casing) |
+| `RtWellKnownName` | `archive-correction-{archiveKey}` (lower case), or that name followed by `-` and a suffix (`archive-correction-meter-consumption-custom`). `{archiveKey}` is the archive's `rtWellKnownName`, or its rtId when it has none |
+| `Fields` | `AttributePath` = an archive column path (`Value`, `Amount.Value`); label, help, editor, min/max and required as for any form |
+
+Rules:
+
+- **Never a type form.** `pickEntityForm` (and so `resolveEntityForm` / `EntityFormService.resolve`),
+  `entityFormCatalog`, `entityFormTypeTitles` and `resolveByFormKey` ignore forms with this
+  category. A seeded correction form therefore never becomes the entity page form of its target type,
+  never shows up in the settings overview and never renames the type.
+- **Resolution** for one archive: `pickArchiveCorrectionForm(type, archiveKey, forms)` takes the forms
+  of `EntityFormService.getForms()` with category `ArchiveCorrection`, target = the archive's target
+  type and a matching well-known name, and orders them like `pickEntityForm`: tenant forms before
+  blueprint-seeded forms, then higher `Priority`, then name. It returns `null` when there is none; the
+  host then generates a form in memory from the archive's columns (one field per column,
+  `GenerateRemainingFields: false`). The general form of the target type is never used: it describes
+  the entity (a meter's name and serial), not the measured row.
+- `resolveEntityFormDefinition(type, form, source, { records })` resolves the picked (or generated)
+  definition with the same field rules as `resolveEntityForm`; `source: null` marks a generated form
+  (`source: 'builtIn'`, no `formRtId`). The host keeps only the fields of archive data columns.
+- **Dotted column paths.** Archive columns are often paths into a record of the target type
+  (`Amount.Value`), and the resolver skips dotted attribute paths. The Refinery Studio therefore
+  resolves the form against a *column type*: the target type reduced to one flat attribute per archive
+  column (`Amount.Value` → `amount__value`) carrying the CK metadata of that column (value type, enum
+  options, read through the record). Form fields still name the column path (`Amount.Value`); the host
+  maps them. See `archive-correction-form.service.ts` in the Studio.
+- A tenant overrides a seeded correction form by creating its own form for the same archive, e.g.
+  `archive-correction-{archiveKey}-custom` (tenant forms win).
+
+**Shipping a correction form with a blueprint.** Put a `System.UI/EntityForm` entity into the
+blueprint's seed data next to the archive. The archive in the same blueprint needs a well-known name,
+because the form's name refers to it. Example for an archive `meter-consumption` on
+`<Model>/Meter` with the columns `Value` and `Quality`:
+
+```yaml
+entities:
+  - rtId: '<fixed 24-hex rtId>'
+    ckTypeId: System.UI/EntityForm
+    rtWellKnownName: archive-correction-meter-consumption
+    attributes:
+      - { id: System/Name, value: "Correct meter consumption" }
+      - { id: System.UI/EntityForm.TargetCkTypeId, value: "<Model>/Meter" }
+      - { id: System.UI/EntityForm.Category, value: "ArchiveCorrection" }
+      - { id: System.UI/EntityForm.IncludeDerivedTypes, value: false }
+      - { id: System.UI/EntityForm.Priority, value: 0 }
+      - { id: System.UI/EntityForm.GenerateRemainingFields, value: false }
+      - id: System.UI/EntityForm.Fields
+        value:
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Value" }
+          - { id: System.UI/EntityFormField.Label, value: "Consumption (kWh)" }
+          - { id: System.UI/EntityFormField.Required, value: true }
+          - { id: System.UI/EntityFormField.Min, value: 0 }
+        - ckRecordId: System.UI/EntityFormField
+          attributes:
+          - { id: System.UI/EntityFormField.AttributePath, value: "Quality" }
+```
+
+The blueprint depends on `System.UI` ≥ 2.8.0 (the `EntityForm` type). Fields whose path is not a data
+column of the archive are dropped by the host; the row key (window or timestamp), the origin and the
+manual audit columns are never fields, and the correction reason is entered outside the form.
 
 ## Cross-field validation and field marks (AB#7422)
 
@@ -472,6 +646,7 @@ form defines explicitly keeps its own `ReadOnly`.
 2. Tenant forms beat seeded forms (empty `RtBlueprintSource`), then higher `Priority`, then
    `rtWellKnownName` / `rtId` ascending (deterministic tie-break).
 3. No match → built-in default form with a warning. Forms are never merged.
+   Archive correction forms (category `ArchiveCorrection`) are never candidates.
 4. Attribute paths match case-insensitively (forms write `Host`, CK names are `host`); unknown
    paths are skipped, dotted paths are skipped with a warning; unmentioned attributes go to a
    generated "Further attributes" section unless `GenerateRemainingFields: false`.

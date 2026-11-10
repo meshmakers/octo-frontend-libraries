@@ -30,6 +30,15 @@ describe('entityFormCatalog', () => {
     expect(entries[0].description).toBe('Outgoing mail');
   });
 
+  it('skips archive correction forms (AB#8591), also for type titles', () => {
+    const correction = form(SFTP, { rtWellKnownName: 'archive-correction-x', name: 'Correct SFTP', category: 'ArchiveCorrection', isTenantForm: true });
+    const seeded = form(SFTP, { rtWellKnownName: 'form-sftp-configuration', name: 'SFTP configuration', category: 'connections' });
+    const entries = entityFormCatalog([correction, seeded]);
+    expect(entries.map((e) => e.form)).toEqual([seeded]);
+    expect(entityFormCatalog([correction])).toEqual([]);
+    expect(entityFormTypeTitles([correction, seeded]).get(SFTP.toLowerCase())).toBe('SFTP configuration');
+  });
+
   it('lets a tenant form win but keeps the delivered key', () => {
     const tenant = form(SFTP, { rtWellKnownName: null, isTenantForm: true, name: 'Our SFTP', category: 'data' });
     const entries = entityFormCatalog([

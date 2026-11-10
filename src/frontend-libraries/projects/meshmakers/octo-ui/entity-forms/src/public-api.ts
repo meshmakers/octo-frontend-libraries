@@ -14,6 +14,7 @@ export * from './entity-forms.messages';
 // --- Services ---
 export * from './services/entity-form.service';
 export * from './services/entity-form-data.service';
+export * from './services/entity-form-data-adapter';
 
 // --- Components ---
 export * from './form/entity-form.component';
@@ -34,7 +35,9 @@ export { parseEntityForm, parseEntityForms } from './core/entity-form-parser';
 export type { RawRtEntityRow } from './core/entity-form-parser';
 export {
   pickEntityForm,
+  pickArchiveCorrectionForm,
   resolveEntityForm,
+  resolveEntityFormDefinition,
   autoEditorFor,
   associationFieldKey,
   isEditorCompatible,
@@ -43,6 +46,13 @@ export {
   DEFAULT_GENERATED_SECTION_TITLE,
 } from './core/entity-form-resolver';
 export type { EntityFormSource, ResolveEntityFormOptions } from './core/entity-form-resolver';
+export {
+  ARCHIVE_CORRECTION_FORM_CATEGORY,
+  ARCHIVE_CORRECTION_FORM_NAME_PREFIX,
+  archiveCorrectionFormName,
+  isArchiveCorrectionForm,
+  matchesArchiveCorrectionFormName,
+} from './core/archive-correction-form';
 export { entityFormCatalog, entityFormKey, entityFormTypeTitles, ckTypeDisplayName } from './core/entity-form-catalog';
 export { humanizeCkTypeName, ckTypeShortName } from './core/ck-type-name';
 export type { EntityFormCatalogEntry } from './core/entity-form-catalog';

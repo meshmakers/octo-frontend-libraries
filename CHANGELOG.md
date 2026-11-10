@@ -10,6 +10,34 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui entity-forms: configurable data adapter (AB#8591)
+
+- New (non-breaking, additive): `EntityFormDataAdapter` — `load(context)` returns the form values,
+  `save(context, changeSet, values)` returns `EntityFormSaveResult` `{ applied, fieldErrors?, message?, failure?, rtId? }`.
+  Configured with the new `dataAdapter` input of `mm-entity-form` / `mm-entity-page` or the `ENTITY_FORM_DATA_ADAPTER`
+  token. Types `EntityFormDataContext`, `EntityFormSaveResult`, `EntityFormSaveFailure`.
+- The runtime-entity GraphQL path is the default adapter `RtEntityFormDataAdapter` (`EntityFormDataService.load` /
+  `create` / `update`). Without a configured adapter `mm-entity-page` behaves as before.
+- New on `EntityFormComponent`: `save(context)` (validate, before-save hook, adapter, field errors; a second call while
+  one runs resolves `failure: 'busy'`), `getValues()`
+  (every field in form shape) and `showSaveFieldErrors(errors)`. Save field errors are shown also on fields the user
+  changed, until the user edits the field again; the existing `fieldErrors` input is unchanged (pristine fields only).
+- `mm-entity-page`: an adapter result with `applied: false` keeps the form open, shows the field errors and the
+  message. README: "Data adapter" with the contract and an example.
+
+### octo-ui entity-forms: archive correction forms (AB#8591)
+
+- New (non-breaking, additive): the reserved form category `ArchiveCorrection` for a `System.UI/EntityForm` that
+  describes the editable data columns of one stream-data archive (well-known name `archive-correction-{archiveKey}`).
+  `ARCHIVE_CORRECTION_FORM_CATEGORY`, `isArchiveCorrectionForm`, `archiveCorrectionFormName`,
+  `matchesArchiveCorrectionFormName`, `pickArchiveCorrectionForm(type, archiveKey, forms)` (tenant before seeded, then
+  priority) and `resolveEntityFormDefinition(type, form, source, opts)` (resolves a given form without picking; same
+  field rules as `resolveEntityForm`).
+- Behaviour: `pickEntityForm` / `resolveEntityForm` / `EntityFormService.resolve`, `entityFormCatalog`,
+  `entityFormTypeTitles` and `resolveByFormKey` ignore forms of that category, so a seeded correction form never
+  becomes the page form, settings entry or display name of its target type. No form with that category existed before.
+  README: "Archive correction forms" (how a blueprint ships one as seed data).
+
 ### shared-ui: list view PDF export prints dates in one line, umlauts, and has a measured row limit (AB#8630)
 
 - Fix (non-breaking): the PDF export of `mm-list-view` printed `date` columns as the raw `Date.toString()`

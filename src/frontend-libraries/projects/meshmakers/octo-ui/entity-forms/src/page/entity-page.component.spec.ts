@@ -9,6 +9,7 @@ import { of } from 'rxjs';
 import { EntityFormGetListDtoGQL } from '../graphQL/getEntityFormList';
 import { EntityFormChangeSet, EntityFormValueState, ResolvedEntityForm } from '../models/entity-form.models';
 import { EntityFormDataService } from '../services/entity-form-data.service';
+import { ENTITY_FORM_DATA_ADAPTER } from '../services/entity-form-data-adapter';
 import { EntityFormService } from '../services/entity-form.service';
 import { EntityPageComponent } from './entity-page.component';
 import { EntityPageActionsDirective } from './entity-page-actions.directive';
@@ -48,6 +49,10 @@ class StubEntityFormComponent {
   markAllAsTouched(): void { /* noop */ }
   getChangeSet(): EntityFormChangeSet { return this.changeSet; }
   patchValues(values: Record<string, unknown>): string[] { this.patched.push(values); return Object.keys(values); }
+  values: Record<string, unknown> = { host: 'h', port: 22 };
+  saveErrors: (Readonly<Record<string, string>> | null)[] = [];
+  getValues(): Record<string, unknown> { return this.values; }
+  showSaveFieldErrors(errors: Readonly<Record<string, string>> | null): void { this.saveErrors.push(errors); }
 }
 
 /** Stand-in for `<mm-entity-list>` (inputs as bound by the page, `refresh` spied). */
@@ -111,6 +116,7 @@ interface Testable {
   entityRtId: () => string | null;
   formModel: () => ResolvedEntityForm | null;
   singletonWellKnownName: () => string | null;
+  saving: () => boolean;
 }
 
 describe('EntityPageComponent', () => {
@@ -363,6 +369,68 @@ describe('EntityPageComponent', () => {
     expect(await component.saveChanges()).toBe(true);
     expect(dataService.update).toHaveBeenCalledWith('r1', 'System.Communication/SftpConfiguration', stubForm().changeSet);
     expect(dataService.load).toHaveBeenCalledTimes(2);
+  });
+
+  describe('data adapter (AB#8591)', () => {
+    it('without a configured adapter saves and reloads through EntityFormDataService (regression)', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      dataService.load.mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE });
+      dataService.update.mockResolvedValue(undefined as never);
+      dataService.create.mockResolvedValue('r9');
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' });
+      expect(dataService.load).toHaveBeenCalledWith(expect.anything(), { rtId: 'r1' });
+      expect(await component.saveChanges()).toBe(true);
+      expect(dataService.update).toHaveBeenCalledWith('r1', 'System.Communication/SftpConfiguration', stubForm().changeSet);
+      expect(dataService.create).not.toHaveBeenCalled();
+      expect(stubForm().saveErrors).toEqual([]);
+    });
+
+    it('loads and saves through the dataAdapter input and shows its field errors and message', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      const adapter = {
+        load: vi.fn().mockResolvedValue({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE }),
+        save: vi.fn().mockResolvedValue({ applied: false, failure: 'rejected', fieldErrors: { host: 'Not saved' }, message: 'Refused' }),
+      };
+      const notifications = { showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn(), showInfo: vi.fn() };
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' }, {}, false,
+        [{ provide: ENTITY_FORM_DATA_ADAPTER, useValue: adapter }, { provide: NotificationDisplayService, useValue: notifications }]);
+      expect(adapter.load).toHaveBeenCalledWith(expect.objectContaining({ mode: 'edit', rtId: 'r1' }));
+      expect(dataService.load).not.toHaveBeenCalled();
+      expect(await component.saveChanges()).toBe(false);
+      expect(adapter.save).toHaveBeenCalledWith(
+        expect.objectContaining({ mode: 'edit', rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration' }),
+        stubForm().changeSet,
+        { host: 'h', port: 22 },
+      );
+      expect(stubForm().saveErrors).toEqual([{ host: 'Not saved' }]);
+      expect(notifications.showError).toHaveBeenCalledWith('Refused');
+      expect(dataService.update).not.toHaveBeenCalled();
+    });
+
+    it('keeps a successful save when the reload afterwards fails and only warns that the view is stale', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      const adapter = {
+        load: vi.fn()
+          .mockResolvedValueOnce({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE })
+          .mockRejectedValueOnce(new Error('reload endpoint down')),
+        save: vi.fn().mockResolvedValue({ applied: true }),
+      };
+      const notifications = { showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn(), showInfo: vi.fn() };
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' }, {}, false,
+        [{ provide: ENTITY_FORM_DATA_ADAPTER, useValue: adapter }, { provide: NotificationDisplayService, useValue: notifications }]);
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      try {
+        expect(await component.saveChanges()).toBe(true);
+      } finally {
+        warn.mockRestore();
+      }
+      expect(adapter.save).toHaveBeenCalledTimes(1);
+      expect(adapter.load).toHaveBeenCalledTimes(2);
+      expect(notifications.showSuccess).toHaveBeenCalledWith('Changes saved.', 3000);
+      expect(notifications.showError).not.toHaveBeenCalled();
+      expect(notifications.showWarning).toHaveBeenCalledWith(expect.stringContaining('could not be refreshed'));
+      expect(api.saving()).toBe(false);
+    });
   });
 
   it('emits saved after a create and after an update, but not for "no changes"', async () => {

@@ -42,6 +42,13 @@ import {
   runCrossFieldValidators,
 } from '../core/cross-field-validation';
 import { formValuesEqual } from '../core/entity-form-value-mapper';
+import {
+  ENTITY_FORM_DATA_ADAPTER,
+  EntityFormDataAdapter,
+  EntityFormDataContext,
+  EntityFormSaveResult,
+  RtEntityFormDataAdapter,
+} from '../services/entity-form-data-adapter';
 import { isVisible } from '../core/visible-when';
 import { ENTITY_FORM_LABEL_RESOLVER, EntityFormLabelResolver, localizeEntityForm } from '../core/entity-form-labels';
 import {
@@ -149,6 +156,7 @@ export class EntityFormComponent {
   private readonly keyRingConfigured = inject(ENTITY_FORM_SECRET_KEY_RING_CONFIGURED, { optional: true });
   private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
   private readonly injectedBeforeSave = inject(ENTITY_FORM_BEFORE_SAVE, { optional: true });
+  private readonly injectedDataAdapter = inject(ENTITY_FORM_DATA_ADAPTER, { optional: true });
   private readonly injectedCrossFieldValidators = flattenCrossFieldValidators(
     inject(ENTITY_FORM_CROSS_FIELD_VALIDATORS, { optional: true }),
   );
@@ -203,6 +211,12 @@ export class EntityFormComponent {
    */
   readonly fieldHints = input<EntityFormFieldHintsProvider | null | undefined>(undefined);
 
+  /**
+   * Where {@link save} writes the values (AB#8591). Wins over `ENTITY_FORM_DATA_ADAPTER`; without both the
+   * runtime-entity adapter (`RtEntityFormDataAdapter`, GraphQL) applies. See `EntityFormDataAdapter`.
+   */
+  readonly dataAdapter = input<EntityFormDataAdapter | null | undefined>(undefined);
+
   // --- Outputs ---
   /** The action link of a field hint was activated (`actionId` as given by the host, `key` = field key). */
   readonly fieldHintAction = output<{ key: string; actionId: string }>();
@@ -232,12 +246,16 @@ export class EntityFormComponent {
   /** Raw values (disabled controls included) for VisibleWhen evaluation. */
   private readonly rawValues = signal<Record<string, unknown>>({});
   private readonly collapsed = signal<ReadonlySet<string>>(new Set<string>());
+  /** True while {@link save} runs; a second call meanwhile resolves `failure: 'busy'` without calling the adapter. */
+  private saveInFlight = false;
+  /** Field errors of the last {@link save} by field key (AB#8591); shown until the user edits the field. */
+  private readonly saveFieldErrors = signal<Readonly<Record<string, string>>>({});
   /** Current cross-field errors by field key (the control validators read it; see {@link refreshCrossFieldErrors}). */
   private crossFieldErrorMap: Readonly<Record<string, string>> = {};
   /** Host field marks by field key. */
   protected readonly hostFieldMarks = computed<Readonly<Record<string, string>>>(() => {
-    const marks = this.fieldErrors();
-    if (!marks) {
+    const marks = { ...(this.fieldErrors() ?? {}), ...this.saveFieldErrors() };
+    if (Object.keys(marks).length === 0) {
       return {};
     }
     const byName = new Map<string, string>();
@@ -424,6 +442,91 @@ export class EntityFormComponent {
       ...(context.rtId ? { rtId: context.rtId } : {}),
       form: model,
     });
+  }
+
+  /**
+   * Saves through the data adapter (AB#8591): the `dataAdapter` input, else `ENTITY_FORM_DATA_ADAPTER`, else the
+   * runtime-entity adapter. Validates first (an invalid form marks its fields and resolves `failure: 'invalid'`
+   * without calling the adapter), then applies the before-save hook ({@link getChangeSetForSave}; a veto resolves
+   * `failure: 'vetoed'`), then calls `adapter.save(context, changeSet, values)` with the current values of every
+   * field. An edit without changes resolves `{ applied: true }` without calling the adapter. A call while a save
+   * is still running resolves `failure: 'busy'` and does not call the adapter again.
+   *
+   * `result.fieldErrors` are shown under their fields (key = field key or attribute name) and the focus moves to the
+   * first of them; each mark disappears as soon as the user edits that field. The form never notifies: the host shows
+   * `result.message` and reacts to `result.failure`. A rejected adapter promise propagates to the caller.
+   * `context` is passed to the adapter as given, with `model` and `mode` filled from this form when absent.
+   */
+  async save(context: Partial<EntityFormDataContext> = {}): Promise<EntityFormSaveResult> {
+    if (this.saveInFlight) {
+      return { applied: false, failure: 'busy' };
+    }
+    this.saveInFlight = true;
+    try {
+      return await this.saveOnce(context);
+    } finally {
+      this.saveInFlight = false;
+    }
+  }
+
+  private async saveOnce(context: Partial<EntityFormDataContext>): Promise<EntityFormSaveResult> {
+    this.showSaveFieldErrors(null);
+    if (!this.isValid()) {
+      this.markAllAsTouched();
+      return { applied: false, failure: 'invalid' };
+    }
+    const full = { ...context, model: context.model ?? this.model(), mode: context.mode ?? this.mode() } as EntityFormDataContext;
+    const outcome = await this.getChangeSetForSave({ rtId: full.rtId, ckTypeId: full.ckTypeId });
+    if (outcome.kind === 'veto') {
+      return { applied: false, failure: 'vetoed', ...(outcome.message ? { message: outcome.message } : {}) };
+    }
+    if (outcome.kind === 'error') {
+      throw outcome.error;
+    }
+    if (full.mode !== 'create' && outcome.changeSet.isEmpty) {
+      return { applied: true };
+    }
+    const adapter = this.dataAdapter() ?? this.injectedDataAdapter ?? this.injector.get(RtEntityFormDataAdapter);
+    const result = await adapter.save(full, outcome.changeSet, this.getValues());
+    if (!result.applied && result.fieldErrors) {
+      this.showSaveFieldErrors(result.fieldErrors);
+    }
+    return result;
+  }
+
+  /** Current values of every field in form shape, keyed by field key (also disabled and unchanged fields). */
+  getValues(): Record<string, unknown> {
+    return cloneValue(this.form().getRawValue()) as Record<string, unknown>;
+  }
+
+  /**
+   * Shows save errors under fields (AB#8591; key = field key or attribute name, any casing), e.g. a `fieldErrors`
+   * result of a data adapter the host called itself. Each mark is shown until the user edits that field; `null`
+   * clears them. The focus moves to the first marked field.
+   */
+  showSaveFieldErrors(errors: Readonly<Record<string, string>> | null): void {
+    const marks = errors ?? {};
+    this.saveFieldErrors.set(marks);
+    const names = Object.keys(marks).filter((k) => !!marks[k]);
+    if (names.length === 0) {
+      return;
+    }
+    // A mark shows on a field the user has not edited since (see the field component), so the marked
+    // controls start pristine again; their values stay what the user entered.
+    const controls = this.form().controls;
+    const byName = new Map<string, string>();
+    for (const f of allFields(this.model())) {
+      byName.set(f.key.toLowerCase(), f.key);
+      if (f.attributeName) {
+        byName.set(f.attributeName.toLowerCase(), f.key);
+      }
+    }
+    const keys = names.map((n) => byName.get(n.toLowerCase())).filter((k): k is string => !!k);
+    keys.forEach((k) => controls[k]?.markAsPristine());
+    this.bump();
+    if (keys[0]) {
+      this.focusField(keys[0]);
+    }
   }
 
   /** True when any editable, visible control differs from the value it was built with. */
@@ -701,6 +804,7 @@ export class EntityFormComponent {
     this.formSub?.unsubscribe();
     this.builtState = state;
     this.clearedSecrets.set(new Set<string>());
+    this.saveFieldErrors.set({});
     const form = buildFormGroup(model, mode, { state, readOnly });
     this.normaliseAttributeReferences(model, form);
     this.clearUnsetPlaceholders(model, form);

@@ -55,7 +55,13 @@ import {
 } from '../core/entity-form-labels';
 import { EntityFormPrefillValues } from '../core/entity-form-prefill';
 import { EntityPageActionsContext, EntityPageActionsDirective } from './entity-page-actions.directive';
-import { EntityFormDataService } from '../services/entity-form-data.service';
+import { EntityFormDataService, EntityFormLoadResult } from '../services/entity-form-data.service';
+import {
+  ENTITY_FORM_DATA_ADAPTER,
+  EntityFormDataAdapter,
+  EntityFormDataContext,
+  RtEntityFormDataAdapter,
+} from '../services/entity-form-data-adapter';
 import { EntityFormService } from '../services/entity-form.service';
 import { entityListIncludesDerivedTypes } from '../list/entity-list-data-source.directive';
 import { EntityListOpenAction, entityListCreateLabel } from '../list/entity-list.component';
@@ -186,6 +192,8 @@ export class EntityPageComponent implements HasUnsavedChanges {
   private readonly breadCrumbService = inject(BreadCrumbService, { optional: true });
   private readonly injectedLabelResolver = inject(ENTITY_FORM_LABEL_RESOLVER, { optional: true });
   private readonly injectedBeforeSave = inject(ENTITY_FORM_BEFORE_SAVE, { optional: true });
+  private readonly injectedDataAdapter = inject(ENTITY_FORM_DATA_ADAPTER, { optional: true });
+  private readonly defaultDataAdapter = inject(RtEntityFormDataAdapter);
 
   /** Form key (`form-sftp-configuration` or `sftp-configuration`). Wins over `ckTypeId`. */
   readonly formKey = input<string | undefined>(undefined);
@@ -216,6 +224,12 @@ export class EntityPageComponent implements HasUnsavedChanges {
    * route data `entityFormBeforeSave` and `ENTITY_FORM_BEFORE_SAVE`. See {@link EntityFormBeforeSaveHook}.
    */
   readonly beforeSave = input<EntityFormBeforeSaveHook | null | undefined>(undefined);
+  /**
+   * Where the page loads and saves the entity (AB#8591). Wins over `ENTITY_FORM_DATA_ADAPTER`; without both the
+   * runtime-entity adapter (`RtEntityFormDataAdapter`, GraphQL) applies — the behaviour before adapters existed.
+   * List, delete and the singleton probe stay on runtime entities. See `EntityFormDataAdapter`.
+   */
+  readonly dataAdapter = input<EntityFormDataAdapter | null | undefined>(undefined);
   /** Host toolbar actions of the list (AB#5623); "New {form title}" sits in the page header (AB#6211). */
   readonly listToolbarActions = input<readonly CommandItem[]>([]);
   /** Host row actions of the list (icon buttons after Edit / View, AB#5623). */
@@ -303,6 +317,18 @@ export class EntityPageComponent implements HasUnsavedChanges {
   });
 
   protected readonly effectiveLabelResolver = computed(() => this.labelResolver() ?? this.injectedLabelResolver ?? null);
+
+  /** The effective data adapter: input, else the token, else the runtime-entity adapter. */
+  private effectiveDataAdapter(): EntityFormDataAdapter {
+    return this.dataAdapter() ?? this.injectedDataAdapter ?? this.defaultDataAdapter;
+  }
+
+  private loadThroughAdapter(model: ResolvedEntityForm, key: { rtId: string } | { wellKnownName: string }): Promise<EntityFormLoadResult | null> {
+    const context: EntityFormDataContext = 'rtId' in key
+      ? { model, mode: 'edit', rtId: key.rtId }
+      : { model, mode: 'edit', wellKnownName: key.wellKnownName };
+    return this.effectiveDataAdapter().load(context);
+  }
 
   /** The effective before-save hook: input, else route data `entityFormBeforeSave`, else the token. */
   private effectiveBeforeSave(): EntityFormBeforeSaveHook | null {
@@ -553,8 +579,38 @@ export class EntityPageComponent implements HasUnsavedChanges {
       }
       changeSet = outcome.changeSet;
 
+      if (!isCreate && changeSet.isEmpty) {
+        this.notificationService.showInfo(m.noChanges, 2000);
+        if (this.dialogOpen()) {
+          this.closeDialog(false);
+        }
+        return true;
+      }
+      const editRtId = isCreate ? undefined : this.entityRtId();
+      if (!isCreate && !editRtId) {
+        return false;
+      }
+      const result = await this.effectiveDataAdapter().save(
+        { model, mode: isCreate ? 'create' : 'edit', ckTypeId, ...(editRtId ? { rtId: editRtId } : {}) },
+        changeSet,
+        form.getValues(),
+      );
+      if (!result.applied) {
+        form.showSaveFieldErrors(result.fieldErrors ?? null);
+        const message = result.message || (result.fieldErrors ? m.formInvalid : m.saveError);
+        if (result.failure === 'vetoed') {
+          this.notificationService.showWarning(message);
+        } else {
+          this.notificationService.showError(message);
+        }
+        return false;
+      }
+
       if (isCreate) {
-        const rtId = await this.dataService.create(model, ckTypeId, changeSet);
+        const rtId = result.rtId;
+        if (!rtId) {
+          throw new Error('mm-entity-page: the data adapter stored the entity but returned no rtId.');
+        }
         this.notificationService.showSuccess(m.createSuccess, 3000);
         this.saved.emit({ kind: 'create', rtId, ckTypeId });
         if (this.dialogOpen()) {
@@ -569,27 +625,23 @@ export class EntityPageComponent implements HasUnsavedChanges {
         return true;
       }
 
-      const rtId = this.entityRtId();
-      if (!rtId) {
-        return false;
-      }
-      if (changeSet.isEmpty) {
-        this.notificationService.showInfo(m.noChanges, 2000);
-        if (this.dialogOpen()) {
-          this.closeDialog(false);
-        }
-        return true;
-      }
-      await this.dataService.update(rtId, ckTypeId, changeSet);
+      const rtId = editRtId as string;
       this.notificationService.showSuccess(m.saveSuccess, 3000);
       this.saved.emit({ kind: 'update', rtId, ckTypeId });
       if (this.dialogOpen()) {
         this.closeDialog(true);
         return true;
       }
-      const reloaded = await this.dataService.load(model, { rtId });
-      if (reloaded) {
-        this.applyLoaded(reloaded.rtId, reloaded.ckTypeId, reloaded.state, reloaded.rtDisplayName);
+      // The adapter has already stored the changes: a failing reload must not turn the save into an
+      // error (a retry would send the change again). Report it as a refresh problem and keep the success.
+      try {
+        const reloaded = await this.loadThroughAdapter(model, { rtId });
+        if (reloaded) {
+          this.applyLoaded(reloaded.rtId, reloaded.ckTypeId, reloaded.state, reloaded.rtDisplayName);
+        }
+      } catch (error) {
+        console.warn('mm-entity-page: the changes were saved but could not be reloaded', error);
+        this.notificationService.showWarning(m.reloadAfterSaveFailed ?? m.loadError);
       }
       return true;
     } catch (error) {
@@ -819,13 +871,13 @@ export class EntityPageComponent implements HasUnsavedChanges {
     quietWhenMissing = false,
   ): Promise<boolean> {
     let formModel = model;
-    let loaded = await this.dataService.load(formModel, key);
+    let loaded = await this.loadThroughAdapter(formModel, key);
     if (token !== this.loadToken) {
       return false;
     }
     if (loaded && loaded.ckTypeId && loaded.ckTypeId !== formModel.rtCkTypeId) {
       formModel = await this.formService.resolve(loaded.ckTypeId);
-      loaded = await this.dataService.load(formModel, { rtId: loaded.rtId });
+      loaded = await this.loadThroughAdapter(formModel, { rtId: loaded.rtId });
       if (token !== this.loadToken) {
         return false;
       }
