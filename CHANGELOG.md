@@ -22,7 +22,8 @@ starts a new empty "Unreleased" section.
   ("Value: 77,5"), with a note when a single separator that is neither of the locale's symbols was read as decimal.
   Whole-number fields refuse a fraction.
 - New messages (English defaults): `validationNumberGrouping`, `validationNumberAmbiguous`, `validationInteger`,
-  `numberParsedValue`, `numberParsedValueAmbiguous`; validation error key `numberFormat` (`NUMBER_FORMAT_ERROR`, shown before `required`).
+  `numberParsedValue`, `numberParsedValueAmbiguous` (optional members, so complete message objects of hosts keep
+  compiling; defaults in `ENTITY_FORMS_NUMBER_MESSAGES`); validation error key `numberFormat` (`NUMBER_FORMAT_ERROR`, shown before `required`).
 - New exports: `EntityFormNumberEditorComponent`, `parseLocaleNumber`, `formatLocaleNumber`, `formatLocaleNumberInput`.
 - Visual change: number fields lose the spinner buttons; doubles are no longer cut to six decimals.
 

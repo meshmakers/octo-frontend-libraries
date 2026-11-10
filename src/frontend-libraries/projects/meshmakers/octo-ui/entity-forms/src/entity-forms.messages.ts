@@ -160,21 +160,21 @@ export interface EntityFormsMessages {
   /** A number text that does not parse (AB#8734). */
   validationNumber: string;
   /** A number text with digit grouping that is not valid, e.g. "1.23,4" (AB#8734). */
-  validationNumberGrouping: string;
+  validationNumberGrouping?: string;
   /**
    * The locale's group symbol before exactly three digits ("1.234" in German): whole number or decimal? `{whole}` and
    * `{decimal}` = the two ways to type it (AB#8734).
    */
-  validationNumberAmbiguous: string;
+  validationNumberAmbiguous?: string;
   /** A fraction typed into a whole-number field (AB#8734). */
-  validationInteger: string;
+  validationInteger?: string;
   /** The parsed value under a number field while the user edits it; `{value}` = value in the locale's format (AB#8734). */
-  numberParsedValue: string;
+  numberParsedValue?: string;
   /**
    * Like {@link numberParsedValue} when a single "." or "," before three digits was read as the decimal separator
    * ("1.234" → 1,234); `{value}` = value in the locale's format (AB#8734).
    */
-  numberParsedValueAmbiguous: string;
+  numberParsedValueAmbiguous?: string;
   /** `{max}` = maximum number of selected entities. */
   validationMaxItems: string;
   formInvalid: string;
@@ -223,6 +223,19 @@ export interface EntityFormsMessages {
   readOnlyNotice: string;
   singletonCreateHint: string;
 }
+
+/**
+ * Default texts of the number editor (AB#8734). The members are optional in {@link EntityFormsMessages}, so hosts
+ * that pass a complete message object keep compiling; readers fall back to these values.
+ */
+export const ENTITY_FORMS_NUMBER_MESSAGES = {
+  validationNumberGrouping: 'Check the digit grouping: use "." or "," once as the decimal separator, and group digits in threes.',
+  validationNumberAmbiguous: 'Ambiguous number: type {whole} for the whole number or {decimal} for the decimal number.',
+  validationInteger: 'Enter a whole number.',
+  numberParsedValue: 'Value: {value}',
+  numberParsedValueAmbiguous: 'Value: {value} — the separator was read as a decimal separator. For a whole number, type it without separators.',
+} as const satisfies Required<Pick<EntityFormsMessages,
+  'validationNumberGrouping' | 'validationNumberAmbiguous' | 'validationInteger' | 'numberParsedValue' | 'numberParsedValueAmbiguous'>>;
 
 /** English defaults; hosts may override any key via the `messages` input. */
 export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
@@ -312,11 +325,7 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   validationUrl: 'Enter a valid URL.',
   validationJson: 'Enter valid JSON.',
   validationNumber: 'Enter a valid number.',
-  validationNumberGrouping: 'Check the digit grouping: use "." or "," once as the decimal separator, and group digits in threes.',
-  validationNumberAmbiguous: 'Ambiguous number: type {whole} for the whole number or {decimal} for the decimal number.',
-  validationInteger: 'Enter a whole number.',
-  numberParsedValue: 'Value: {value}',
-  numberParsedValueAmbiguous: 'Value: {value} — the separator was read as a decimal separator. For a whole number, type it without separators.',
+  ...ENTITY_FORMS_NUMBER_MESSAGES,
   validationMaxItems: 'Select at most {max} entries.',
   formInvalid: 'Please correct the highlighted fields.',
 

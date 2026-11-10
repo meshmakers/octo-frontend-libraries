@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IntlService } from '@progress/kendo-angular-intl';
-import { DEFAULT_ENTITY_FORMS_MESSAGES } from '../../entity-forms.messages';
+import { DEFAULT_ENTITY_FORMS_MESSAGES, EntityFormsMessages } from '../../entity-forms.messages';
 import { firstErrorKey } from '../entity-form-controls';
 import { EntityFormNumberEditorComponent, NUMBER_FORMAT_ERROR } from './entity-form-number-editor.component';
 
@@ -14,7 +14,7 @@ import { EntityFormNumberEditorComponent, NUMBER_FORMAT_ERROR } from './entity-f
 class HostComponent {
   readonly control = new FormControl<number | null>(null, Validators.required);
   readonly integer = signal(false);
-  readonly messages = DEFAULT_ENTITY_FORMS_MESSAGES;
+  messages: EntityFormsMessages = DEFAULT_ENTITY_FORMS_MESSAGES;
 }
 
 function setup(symbols: { decimal: string; group: string }): ComponentFixture<HostComponent> {
@@ -51,6 +51,14 @@ describe('EntityFormNumberEditorComponent (AB#8734)', () => {
       type(fixture, '77.5');
       expect(fixture.componentInstance.control.value).toBe(77.5);
       expect(fixture.componentInstance.control.valid).toBe(true);
+      expect(parsedLine(fixture)).toBe('Value: 77,5');
+    });
+
+    it('falls back to the default texts when a host passes messages without the number keys', () => {
+      const { numberParsedValue: _omitted, ...older } = DEFAULT_ENTITY_FORMS_MESSAGES;
+      fixture.componentInstance.messages = older;
+      fixture.detectChanges();
+      type(fixture, '77.5');
       expect(parsedLine(fixture)).toBe('Value: 77,5');
     });
 

@@ -9,7 +9,7 @@ import {
   LocaleNumberSymbols,
   parseLocaleNumber,
 } from '../../core/locale-number';
-import { EntityFormsMessages, formatEntityFormsMessage } from '../../entity-forms.messages';
+import { ENTITY_FORMS_NUMBER_MESSAGES, EntityFormsMessages, formatEntityFormsMessage } from '../../entity-forms.messages';
 
 /** Validation error key of a number text that does not parse; its value is `{ reason }` of the parse. */
 export const NUMBER_FORMAT_ERROR = 'numberFormat';
@@ -83,7 +83,10 @@ export class EntityFormNumberEditorComponent implements ControlValueAccessor, Va
     }
     const m = this.messages();
     const value = formatLocaleNumber(parse.value, this.symbols());
-    return formatEntityFormsMessage(parse.ambiguous ? m.numberParsedValueAmbiguous : m.numberParsedValue, { value });
+    const text = parse.ambiguous
+      ? m.numberParsedValueAmbiguous ?? ENTITY_FORMS_NUMBER_MESSAGES.numberParsedValueAmbiguous
+      : m.numberParsedValue ?? ENTITY_FORMS_NUMBER_MESSAGES.numberParsedValue;
+    return formatEntityFormsMessage(text, { value });
   });
 
   private onChange: (value: number | null) => void = () => undefined;

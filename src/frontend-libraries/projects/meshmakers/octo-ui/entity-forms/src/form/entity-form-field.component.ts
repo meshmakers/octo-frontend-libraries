@@ -2,7 +2,7 @@ import { formatDate } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, output, LOCALE_ID, afterRenderEffect, computed, inject, input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { formatSecretStatus } from '@meshmakers/octo-services';
-import { EntityFormsMessages, formatEntityFormsMessage, secretStatusLabelsOf } from '../entity-forms.messages';
+import { ENTITY_FORMS_NUMBER_MESSAGES, EntityFormsMessages, formatEntityFormsMessage, secretStatusLabelsOf } from '../entity-forms.messages';
 import { EntityFormFieldHint, ResolvedField } from '../models/entity-form.models';
 import { firstErrorKey } from './entity-form-controls';
 import { NUMBER_FORMAT_ERROR } from './editors/entity-form-number-editor.component';
@@ -206,12 +206,12 @@ function numberFormatText(error: unknown, m: EntityFormsMessages): string {
   const reason = (error as { reason?: string } | null | undefined)?.reason;
   switch (reason) {
     case 'grouping':
-      return m.validationNumberGrouping;
+      return m.validationNumberGrouping ?? ENTITY_FORMS_NUMBER_MESSAGES.validationNumberGrouping;
     case 'integer':
-      return m.validationInteger;
+      return m.validationInteger ?? ENTITY_FORMS_NUMBER_MESSAGES.validationInteger;
     case 'ambiguous': {
       const { whole, decimal } = error as { whole?: string; decimal?: string };
-      return formatEntityFormsMessage(m.validationNumberAmbiguous, { whole: whole ?? '', decimal: decimal ?? '' });
+      return formatEntityFormsMessage(m.validationNumberAmbiguous ?? ENTITY_FORMS_NUMBER_MESSAGES.validationNumberAmbiguous, { whole: whole ?? '', decimal: decimal ?? '' });
     }
     default:
       return m.validationNumber;
