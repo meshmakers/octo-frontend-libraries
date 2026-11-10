@@ -235,7 +235,8 @@ export function firstErrorKey(errors: ValidationErrors | null | undefined): stri
   if (!errors) {
     return null;
   }
-  const order = ['required', 'crossField', 'min', 'max', 'pattern', 'email', 'url', 'json'];
+  // A number text that does not parse also leaves the value empty: name the parse error, not "required" (AB#8734).
+  const order = ['numberFormat', 'required', 'crossField', 'min', 'max', 'pattern', 'email', 'url', 'json'];
   return order.find((k) => k in errors) ?? Object.keys(errors)[0] ?? null;
 }
 

@@ -19,7 +19,6 @@ import { KENDO_SVGICON } from '@progress/kendo-angular-icons';
 import { KENDO_DATETIMEPICKER } from '@progress/kendo-angular-dateinputs';
 import { KENDO_DROPDOWNLIST } from '@progress/kendo-angular-dropdowns';
 import {
-  KENDO_NUMERICTEXTBOX,
   KENDO_SWITCH,
   KENDO_TEXTAREA,
   KENDO_TEXTBOX,
@@ -84,6 +83,7 @@ import {
 import { EntityFormRecordsFieldComponent } from './records/entity-form-records-field.component';
 import { EntityFormReferenceFieldComponent } from './reference/entity-form-reference-field.component';
 import { EntityFormChipsEditorComponent } from './editors/entity-form-chips-editor.component';
+import { EntityFormNumberEditorComponent } from './editors/entity-form-number-editor.component';
 import { EntityFormSecretEditorComponent } from './editors/entity-form-secret-editor.component';
 import {
   allFields,
@@ -135,7 +135,6 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
     ReactiveFormsModule,
     KENDO_TEXTBOX,
     KENDO_TEXTAREA,
-    KENDO_NUMERICTEXTBOX,
     KENDO_SWITCH,
     KENDO_DROPDOWNLIST,
     KENDO_DATETIMEPICKER,
@@ -143,6 +142,7 @@ const INTEGER_TYPES = ['INT', 'INTEGER', 'INT_64', 'INTEGER_64'];
     CronBuilderComponent,
     EntityFormFieldComponent,
     EntityFormChipsEditorComponent,
+    EntityFormNumberEditorComponent,
     EntityFormSecretEditorComponent,
     EntityFormReferenceFieldComponent,
     EntityFormRecordsFieldComponent,

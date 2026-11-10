@@ -10,6 +10,23 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui entity-forms: number fields parse "." and "," safely (AB#8734)
+
+- Fix: the `number` editor of `mm-entity-form` no longer uses the Kendo numeric text box, which parsed with the locale's
+  symbols only — in a German locale "77.5" was stored as 775 without a warning. The new `mm-entity-form-number-editor`
+  accepts both "." and "," as the decimal separator when the text holds one of them once; with both, the last one is the
+  decimal separator and the other one must group digits in threes; a grouping in the wrong place ("1.23,4") is refused
+  with a field error, never guessed. The locale's group symbol before exactly three digits ("1.234" in de-DE,
+  "1,234" in en-US) is refused as ambiguous with both ways to type it, except in whole-number fields, where it groups
+  the thousands. While the user edits, the parsed value is shown below the field in the locale's format
+  ("Value: 77,5"), with a note when a single separator that is neither of the locale's symbols was read as decimal.
+  Whole-number fields refuse a fraction.
+- New messages (English defaults): `validationNumberGrouping`, `validationNumberAmbiguous`, `validationInteger`,
+  `numberParsedValue`, `numberParsedValueAmbiguous` (optional members, so complete message objects of hosts keep
+  compiling; defaults in `ENTITY_FORMS_NUMBER_MESSAGES`); validation error key `numberFormat` (`NUMBER_FORMAT_ERROR`, shown before `required`).
+- New exports: `EntityFormNumberEditorComponent`, `parseLocaleNumber`, `formatLocaleNumber`, `formatLocaleNumberInput`.
+- Visual change: number fields lose the spinner buttons; doubles are no longer cut to six decimals.
+
 ### octo-ui entity-forms: configurable data adapter (AB#8591)
 
 - New (non-breaking, additive): `EntityFormDataAdapter` — `load(context)` returns the form values,
