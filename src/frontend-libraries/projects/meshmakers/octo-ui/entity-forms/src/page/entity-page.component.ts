@@ -632,9 +632,16 @@ export class EntityPageComponent implements HasUnsavedChanges {
         this.closeDialog(true);
         return true;
       }
-      const reloaded = await this.loadThroughAdapter(model, { rtId });
-      if (reloaded) {
-        this.applyLoaded(reloaded.rtId, reloaded.ckTypeId, reloaded.state, reloaded.rtDisplayName);
+      // The adapter has already stored the changes: a failing reload must not turn the save into an
+      // error (a retry would send the change again). Report it as a refresh problem and keep the success.
+      try {
+        const reloaded = await this.loadThroughAdapter(model, { rtId });
+        if (reloaded) {
+          this.applyLoaded(reloaded.rtId, reloaded.ckTypeId, reloaded.state, reloaded.rtDisplayName);
+        }
+      } catch (error) {
+        console.warn('mm-entity-page: the changes were saved but could not be reloaded', error);
+        this.notificationService.showWarning(m.reloadAfterSaveFailed ?? m.loadError);
       }
       return true;
     } catch (error) {

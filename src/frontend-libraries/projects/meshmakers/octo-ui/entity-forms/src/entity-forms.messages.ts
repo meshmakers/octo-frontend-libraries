@@ -131,6 +131,11 @@ export interface EntityFormsMessages {
    * (`ENTITY_FORM_UNSET_PLACEHOLDER_VALUES`, AB#5623). Optional for older complete message objects.
    */
   notConfigured?: string;
+  /**
+   * Warning when the changes were saved but the form could not be reloaded afterwards (AB#8591).
+   * Optional for older complete message objects.
+   */
+  reloadAfterSaveFailed?: string;
 
   // --- Empty / not found states ---
   emptyList: string;
@@ -271,6 +276,7 @@ export const DEFAULT_ENTITY_FORMS_MESSAGES: EntityFormsMessages = {
   loadError: 'The data could not be loaded.',
   noChanges: 'There are no changes to save.',
   saveVetoed: 'The changes were not saved.',
+  reloadAfterSaveFailed: 'The changes were saved, but the view could not be refreshed. Reload the page to see the current values.',
   notConfigured: 'Not configured',
 
   emptyList: 'No entries yet.',

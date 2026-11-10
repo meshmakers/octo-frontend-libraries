@@ -116,6 +116,7 @@ interface Testable {
   entityRtId: () => string | null;
   formModel: () => ResolvedEntityForm | null;
   singletonWellKnownName: () => string | null;
+  saving: () => boolean;
 }
 
 describe('EntityPageComponent', () => {
@@ -404,6 +405,31 @@ describe('EntityPageComponent', () => {
       expect(stubForm().saveErrors).toEqual([{ host: 'Not saved' }]);
       expect(notifications.showError).toHaveBeenCalledWith('Refused');
       expect(dataService.update).not.toHaveBeenCalled();
+    });
+
+    it('keeps a successful save when the reload afterwards fails and only warns that the view is stale', async () => {
+      formService.resolve.mockResolvedValue(makeModel());
+      const adapter = {
+        load: vi.fn()
+          .mockResolvedValueOnce({ rtId: 'r1', ckTypeId: 'System.Communication/SftpConfiguration', state: STATE })
+          .mockRejectedValueOnce(new Error('reload endpoint down')),
+        save: vi.fn().mockResolvedValue({ applied: true }),
+      };
+      const notifications = { showSuccess: vi.fn(), showError: vi.fn(), showWarning: vi.fn(), showInfo: vi.fn() };
+      await create({ ckTypeId: 'System.Communication/SftpConfiguration' }, { rtId: 'r1' }, {}, false,
+        [{ provide: ENTITY_FORM_DATA_ADAPTER, useValue: adapter }, { provide: NotificationDisplayService, useValue: notifications }]);
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      try {
+        expect(await component.saveChanges()).toBe(true);
+      } finally {
+        warn.mockRestore();
+      }
+      expect(adapter.save).toHaveBeenCalledTimes(1);
+      expect(adapter.load).toHaveBeenCalledTimes(2);
+      expect(notifications.showSuccess).toHaveBeenCalledWith('Changes saved.', 3000);
+      expect(notifications.showError).not.toHaveBeenCalled();
+      expect(notifications.showWarning).toHaveBeenCalledWith(expect.stringContaining('could not be refreshed'));
+      expect(api.saving()).toBe(false);
     });
   });
 

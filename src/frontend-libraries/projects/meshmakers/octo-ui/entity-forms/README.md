@@ -127,7 +127,9 @@ create title on `new`).
 - create → the data adapter's `save` (default: `EntityFormDataService.create`), then navigation to
   `:rtId` (replacing `new`);
 - edit → only the changed attributes are sent (empty change set = "no changes", the adapter is not
-  called), then the values are read again through the adapter's `load`;
+  called), then the values are read again through the adapter's `load`; a failing reload does not
+  undo the success (the save still returns `true`, no `saveError`), it only shows the
+  `reloadAfterSaveFailed` warning, so a retry never sends the change twice;
 - an adapter result with `applied: false` keeps the form open: its `fieldErrors` go under the fields,
   its `message` (else `formInvalid` / `saveError`) is shown as an error, a `vetoed` failure as a warning.
 - a host `beforeSave` hook (see below) runs after validation and before the server call; a
