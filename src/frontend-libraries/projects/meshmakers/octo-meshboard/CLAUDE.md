@@ -1788,6 +1788,30 @@ Current test files:
 - `widgets/table-widget/table-column-labels.spec.ts` - column `titles` / `valueLabels` resolution, malformed entries, dialog column merge (AB#7655)
 - `widgets/table-widget/table-widget.labels.spec.ts` - headers follow the host language without refetch, value-label cells, one warning per column, numeric enum cells for the resolver (AB#7655)
 - `widgets/table-widget/table-config-dialog.preserve-columns.spec.ts` - the table config dialog and registration keep authored columns on save and reload (AB#7655)
+- `widgets/table-widget/table-widget-data-source.paging.spec.ts` - table paging: variable / time filter / scope / runtime filter change returns to page 1, plain refresh keeps the page, out-of-range page (Apollo 4 and 3 error shapes) re-queries page 1 without console error, no loop at offset 0, other errors unchanged (AB#8801)
+- `widgets/table-widget/table-widget-data-source.list-binding.spec.ts` - the same through the real `mm-list-view` binding against a simulated asset repository (16 → 6 rows, INCOMPLETE_SLICE beyond the result): variable change queries OFFSET 0, unchanged refresh keeps page 2, shrunk data falls back to page 1 without console error (AB#8801)
+
+## Table paging on changed inputs (AB#8801)
+
+The list binding (shared-ui) owns `skip`; the table widget's data source only decides when to reset it.
+
+- `TableWidgetComponent.refresh()` calls `TableWidgetDataSourceDirective.refetch()`, never a bare `fetchAgain()`.
+  `refetch()` compares a signature of the query inputs outside the grid state with the one of the last fetch
+  (`queryInputsSignature`: data source, widget filters with variables resolved, time filter **selection** and host
+  period, entity-selector scope, and the board's `timeZoneMode` while a selection is active and no host period is set;
+  time filter, zone and host period only for a persistent query without `ignoreTimeFilter`). Changed → `fetchAgain({ resetSkip: true })`, so the new query goes out with OFFSET 0;
+  unchanged (auto-refresh, manual refresh) → the page stays. The selection, not the resolved instants, is compared,
+  so a relative range does not reset the page on every auto-refresh.
+- Both fetch paths end in `handleFetchError`: an out-of-range page (`isPageOutOfRangeError`, ASSET1002 /
+  INCOMPLETE_SLICE) at an offset > 0 emits nothing, logs one warning and refetches page 1 on a microtask
+  (`fetchAgain({ resetSkip: true })`); at offset 0 it cannot loop. Other errors keep the old behaviour (console error,
+  no rows) until AB#8121.
+- The persistent-query path forwards `queryOptions.forceRefresh` to `QueryExecutorService.execute`, so every
+  `fetchAgain` (refresh, reset, recovery) goes to the network; plain paging stays `cache-first`.
+- The directive overrides `isPageOutOfRangeError` to read Apollo 4 `CombinedGraphQLErrors.errors` as well; the
+  octo-ui base class reads only the Apollo 3 `graphQLErrors`.
+- The global `OctoErrorLink` (octo-services) still logs and toasts the INCOMPLETE_SLICE response of that one
+  out-of-range request; the reset before the query keeps it from happening on input changes.
 
 ## Table column titles per language and value labels (AB#7655)
 
