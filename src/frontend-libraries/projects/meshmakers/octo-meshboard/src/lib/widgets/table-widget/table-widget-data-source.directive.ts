@@ -230,7 +230,9 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
    * filter): the data source, the widget filters with MeshBoard variables
    * resolved, the time filter selection and the entity-selector scope. The time
    * filter enters as its selection, not as resolved instants, so a relative
-   * range ("last 24 hours") does not look changed on every auto-refresh.
+   * range ("last 24 hours") does not look changed on every auto-refresh. The
+   * board's time-zone mode enters with an active selection (no host period),
+   * because the selection's window is resolved in that zone.
    */
   private queryInputsSignature(): string {
     const config = this._config;
@@ -244,8 +246,11 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
     }
     const timeFilter = dataSource.ignoreTimeFilter ? null : (this.stateService.getConfig().timeFilter ?? null);
     const host = dataSource.ignoreTimeFilter ? null : this.stateService.hostTimeRange();
+    // Host periods are absolute instants (no zone conversion), so the zone only
+    // matters for the board's own selection.
+    const timeZone = timeFilter?.enabled && timeFilter.selection && !host ? this.stateService.timeZoneMode() : null;
     const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
-    return JSON.stringify({ dataSource, filters, timeFilter, host, scope });
+    return JSON.stringify({ dataSource, filters, timeFilter, timeZone, host, scope });
   }
 
   /**
@@ -345,7 +350,11 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
       fieldFilter: fieldFilter ?? undefined,
       streamDataArgs,
       // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
-      scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
+      scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined,
+      // A refetch (board refresh, changed inputs, page-1 recovery) bypasses the
+      // Apollo cache like the runtime-entity path does, so a cached page with a
+      // stale total count is never shown again (AB#8801).
+      forceRefresh: queryOptions.forceRefresh ?? false
     }).pipe(
       map(result => {
         // Extract columns from query response and update signal.

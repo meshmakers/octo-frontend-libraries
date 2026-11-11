@@ -141,6 +141,40 @@ describe('TableWidgetDataSourceDirective — paging (AB#8801)', () => {
       expect(refetches).toEqual([undefined]);
     });
 
+    it('resets the page when the board time zone changes under an active selection', async () => {
+      state.updateSettings({
+        name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8,
+        timeFilter: { enabled: true, defaultSelection: { type: 'day', year: 2026, month: 11, day: 10 } }
+      });
+      const { directive, refetches } = create();
+      await firstValueFrom(directive.fetchData(page(10)));
+
+      state.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+      directive.refetch();
+
+      expect(refetches).toEqual([{ resetSkip: true }]);
+    });
+
+    it('keeps the page on a time zone change without an active time filter', async () => {
+      const { directive, refetches } = create();
+      await firstValueFrom(directive.fetchData(page(10)));
+
+      state.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+      directive.refetch();
+
+      expect(refetches).toEqual([undefined]);
+    });
+
+    it('bypasses the Apollo cache for a persistent query only when the list forces a refresh', async () => {
+      const { directive } = create();
+      await firstValueFrom(directive.fetchData(page(10)));
+      expect(queryExecutor.execute.mock.calls.at(-1)?.[2].forceRefresh).toBe(false);
+
+      await firstValueFrom(directive.fetchData({ ...page(0), forceRefresh: true }));
+
+      expect(queryExecutor.execute.mock.calls.at(-1)?.[2].forceRefresh).toBe(true);
+    });
+
     it('sends the new query with OFFSET 0 once the list returned to page 1', async () => {
       const { directive } = create();
       await firstValueFrom(directive.fetchData(page(10)));

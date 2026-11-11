@@ -13,11 +13,14 @@ starts a new empty "Unreleased" section.
 ### octo-meshboard: table widget returns to page 1 when its inputs change (AB#8801)
 
 - Fix: a table widget on page 2 or later returns to page 1 when a MeshBoard variable used by its filters, the time
-  filter, the entity-selector scope or its data source changes, before the new query is sent. Before, it kept the old
+  filter (or the board's time zone while a time filter selection is active), the entity-selector scope or its data
+  source changes, before the new query is sent. Before, it kept the old
   page offset; when the new result had fewer rows the asset repository refused the page (ASSET1002 /
   INCOMPLETE_SLICE) and the widget showed "No records available". A plain or automatic refresh keeps the page.
 - Fix: if an out-of-range page still arrives (the data shrank between two loads), the widget loads page 1 instead of
   showing an empty list. Detection reads Apollo 4 `CombinedGraphQLErrors` as well.
+- Fix: a refresh of a persistent-query table (board refresh, changed inputs, page-1 recovery) bypasses the Apollo
+  cache like runtime-entity tables already did, so a cached page with a stale total count is not shown again.
 - New (additive): `TableWidgetDataSourceDirective.refetch()`.
 
 ### octo-ui entity-forms: number fields use the platform's locale parsing again (AB#8734)
