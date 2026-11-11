@@ -185,36 +185,6 @@ describe('EntityFormComponent', () => {
       expect(valid).toContain(false);
     });
 
-    it('number fields accept "." and "," as the decimal separator and name a wrong grouping (AB#8734)', async () => {
-      await render(model([section('values', [
-        field({ key: 'amount', valueType: 'DOUBLE', editor: 'number' }),
-        field({ key: 'count', valueType: 'INT', editor: 'number' }),
-      ])]), 'create');
-      const type = (key: string, text: string): void => {
-        const input = fieldEl(key)?.querySelector('input') as HTMLInputElement;
-        input.value = text;
-        input.dispatchEvent(new Event('input'));
-        fixture.detectChanges();
-      };
-
-      type('amount', '77,5');
-      expect(api.control('amount').value).toBe(77.5);
-      expect(fieldEl('amount')?.querySelector('[data-number-parsed]')?.textContent).toContain('Value: 77.5');
-      type('amount', '77.5');
-      expect(api.control('amount').value).toBe(77.5);
-      expect(component.isValid()).toBe(true);
-
-      type('amount', '1.23,4');
-      expect(component.isValid()).toBe(false);
-      expect(fieldEl('amount')?.querySelector('.mm-ef-field__error')?.textContent).toContain('Check the digit grouping');
-
-      type('amount', '1.234,5');
-      expect(api.control('amount').value).toBe(1234.5);
-      type('count', '7,5');
-      expect(component.isValid()).toBe(false);
-      expect(fieldEl('count')?.querySelector('.mm-ef-field__error')?.textContent).toContain('Enter a whole number.');
-    });
-
     it('shows the error text after markAllAsTouched', async () => {
       await render(sftpModel(), 'create');
       component.markAllAsTouched();
