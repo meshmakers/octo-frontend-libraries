@@ -482,7 +482,8 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     if (this.dataSource) {
       // Clear query columns in directive before fetching new data
       this.dataSource.clearQueryColumns();
-      this.dataSource.fetchAgain();
+      // Returns to page 1 when a variable, filter, time filter or scope changed (AB#8801).
+      this.dataSource.refetch();
     }
   }
 }

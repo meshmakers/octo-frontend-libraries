@@ -1,5 +1,5 @@
 import { Directive, forwardRef, inject, Input, signal, Signal, Output, EventEmitter } from '@angular/core';
-import { NEVER, Observable, from, of } from 'rxjs';
+import { EMPTY, NEVER, Observable, from, of } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { OctoGraphQlDataSource, SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { DataSourceBase, FetchDataOptions, FetchResultTyped, ListViewComponent } from '@meshmakers/shared-ui';
@@ -43,6 +43,13 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
 
   private _config: TableWidgetConfig | null = null;
 
+  /**
+   * Signature of the query inputs outside the grid state (data source, resolved
+   * widget filters, time filter, entity-selector scope) of the last fetch.
+   * `null` until the first fetch. See {@link refetch}.
+   */
+  private _lastQueryInputs: string | null = null;
+
   /** Signal for dynamically derived columns from persistent query */
   private readonly _queryColumns = signal<QueryColumn[]>([]);
 
@@ -74,7 +81,46 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
     super(listViewComponent);
   }
 
+  /**
+   * Refetches the widget data (board refresh, auto-refresh, config change).
+   *
+   * When a query input outside the grid state changed since the last fetch — a
+   * MeshBoard variable or widget filter, the time filter, the entity-selector
+   * scope or the data source itself — the result set is a different one, so the
+   * list returns to page 1 before the query is sent (AB#8801). Otherwise the old
+   * page offset could point past the end of the new result (asset repository:
+   * ASSET1002 / INCOMPLETE_SLICE). A plain refresh with unchanged inputs keeps
+   * the current page.
+   */
+  public refetch(): void {
+    const previous = this._lastQueryInputs;
+    const resetSkip = previous !== null && previous !== this.queryInputsSignature();
+    this.fetchAgain(resetSkip ? { resetSkip: true } : undefined);
+  }
+
+  /**
+   * Page-out-of-range detection for both error shapes: the inherited check reads
+   * `graphQLErrors` (Apollo 3 `ApolloError`); Apollo 4 rejects with
+   * `CombinedGraphQLErrors`, which carries the same entries in `errors`.
+   */
+  public override isPageOutOfRangeError(error: unknown): boolean {
+    if (super.isPageOutOfRangeError(error)) {
+      return true;
+    }
+    const errors = (error as { errors?: unknown })?.errors;
+    if (!Array.isArray(errors)) {
+      return false;
+    }
+    return errors.some((e: { extensions?: Record<string, unknown> } | null) => {
+      const extensions = e?.extensions;
+      const codes = Array.isArray(extensions?.['codes']) ? extensions['codes'] : [];
+      return codes.includes('INCOMPLETE_SLICE') || extensions?.['code'] === 'INCOMPLETE_SLICE';
+    });
+  }
+
   public override fetchData(queryOptions: FetchDataOptions): Observable<FetchResultTyped<Record<string, unknown>> | null> {
+    this._lastQueryInputs = this.queryInputsSignature();
+
     if (!this._config) {
       return of(new FetchResultTyped<Record<string, unknown>>([], 0));
     }
@@ -152,11 +198,54 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
 
         return new FetchResultTyped<Record<string, unknown>>(data, totalCount);
       }),
-      catchError(err => {
-        console.error('Error fetching table data:', err);
-        return of(new FetchResultTyped<Record<string, unknown>>([], 0));
-      })
+      catchError(err => this.handleFetchError(err, queryOptions, 'Error fetching table data:'))
     );
+  }
+
+  /**
+   * Error path of both fetch paths. A page offset beyond the result set
+   * (ASSET1002 / INCOMPLETE_SLICE, e.g. the data shrank since the last load)
+   * is not shown as an empty list: the list returns to page 1 and refetches
+   * once (AB#8801). The refetch runs on a microtask so the list binding's
+   * current subscription has ended first; skip 0 cannot be out of range, so
+   * this cannot loop. Any other error keeps today's behaviour (logged, no rows).
+   */
+  private handleFetchError(
+    err: unknown,
+    queryOptions: FetchDataOptions,
+    logMessage: string
+  ): Observable<FetchResultTyped<Record<string, unknown>>> {
+    const skip = queryOptions.state.skip ?? 0;
+    if (skip > 0 && this.isPageOutOfRangeError(err)) {
+      console.warn(`octo-meshboard: table widget page offset ${skip} lies beyond the result; returning to page 1`);
+      queueMicrotask(() => this.fetchAgain({ resetSkip: true }));
+      return EMPTY;
+    }
+    console.error(logMessage, err);
+    return of(new FetchResultTyped<Record<string, unknown>>([], 0));
+  }
+
+  /**
+   * Signature of every query input outside the grid state (paging, sort, grid
+   * filter): the data source, the widget filters with MeshBoard variables
+   * resolved, the time filter selection and the entity-selector scope. The time
+   * filter enters as its selection, not as resolved instants, so a relative
+   * range ("last 24 hours") does not look changed on every auto-refresh.
+   */
+  private queryInputsSignature(): string {
+    const config = this._config;
+    if (!config) {
+      return 'none';
+    }
+    const dataSource = config.dataSource;
+    const filters = this.convertFiltersToDto(config.filters) ?? null;
+    if (dataSource.type !== 'persistentQuery') {
+      return JSON.stringify({ dataSource, filters });
+    }
+    const timeFilter = dataSource.ignoreTimeFilter ? null : (this.stateService.getConfig().timeFilter ?? null);
+    const host = dataSource.ignoreTimeFilter ? null : this.stateService.hostTimeRange();
+    const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
+    return JSON.stringify({ dataSource, filters, timeFilter, host, scope });
   }
 
   /**
@@ -278,10 +367,7 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
 
         return new FetchResultTyped<Record<string, unknown>>(data, result.totalCount);
       }),
-      catchError(err => {
-        console.error('Error fetching query data:', err);
-        return of(new FetchResultTyped<Record<string, unknown>>([], 0));
-      })
+      catchError(err => this.handleFetchError(err, queryOptions, 'Error fetching query data:'))
     );
   }
 
