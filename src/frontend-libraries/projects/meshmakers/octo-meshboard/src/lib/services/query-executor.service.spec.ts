@@ -2,7 +2,7 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { firstValueFrom, of, throwError } from 'rxjs';
-import { CkRollupFunctionDto, FieldFilterOperatorsDto, OctoErrorLink, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
+import { CkRollupFunctionDto, FieldFilterOperatorsDto, OCTO_HANDLES_PAGE_OUT_OF_RANGE, OCTO_SILENT_ERRORS, OctoErrorLink, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { QueryExecutorService } from './query-executor.service';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
@@ -365,6 +365,40 @@ describe('QueryExecutorService', () => {
       streamDataGqlSpy.fetch.mockReturnValue(throwError(() => new Error('boom')) as never);
 
       await expect(service.fetchStreamDataColumns('q', window)).rejects.toThrow('boom');
+    });
+  });
+
+  describe('page-out-of-range opt-out (AB#8805)', () => {
+    const contextOf = (spy: { fetch: unknown }) =>
+      (vi.mocked(spy.fetch as (o: unknown) => unknown).mock.calls.at(-1)![0] as { context?: Record<string, unknown> }).context;
+    const empty = of(makeApolloResult({ runtime: { runtimeQuery: { items: [] } }, streamData: { streamDataQuery: { items: [] } } }));
+
+    it('passes the opt-out to a runtime query only when asked', async () => {
+      runtimeGqlSpy.fetch.mockReturnValue(empty as never);
+
+      await firstValueFrom(service.executeRuntime('q', { handlesPageOutOfRange: true }));
+      expect(OctoErrorLink.handlesPageOutOfRange({ getContext: () => contextOf(runtimeGqlSpy) ?? {} } as never)).toBe(true);
+
+      await firstValueFrom(service.executeRuntime('q', {}));
+      expect(contextOf(runtimeGqlSpy)).toBeUndefined();
+    });
+
+    it('keeps silentErrors a stream-data-only option on the runtime path', async () => {
+      runtimeGqlSpy.fetch.mockReturnValue(empty as never);
+
+      await firstValueFrom(service.executeRuntime('q', { silentErrors: true }));
+
+      expect(contextOf(runtimeGqlSpy)).toBeUndefined();
+    });
+
+    it('passes the opt-out to a stream-data query and combines it with silentErrors', async () => {
+      streamDataGqlSpy.fetch.mockReturnValue(empty as never);
+
+      await firstValueFrom(service.executeStreamData('q', { handlesPageOutOfRange: true }));
+      expect(contextOf(streamDataGqlSpy)).toEqual({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true });
+
+      await firstValueFrom(service.executeStreamData('q', { handlesPageOutOfRange: true, silentErrors: true }));
+      expect(contextOf(streamDataGqlSpy)).toEqual({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true, [OCTO_SILENT_ERRORS]: true });
     });
   });
 

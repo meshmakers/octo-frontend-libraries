@@ -628,6 +628,11 @@ shape a failed Apollo call comes in: Apollo 4 `CombinedGraphQLErrors.errors`, Ap
 GraphQL error. Only `INCOMPLETE_SLICE` (in `extensions.code` or `extensions.codes`) counts —
 the asset repository sends it next to the generic `ASSET1002`, which alone means nothing here.
 Until AB#8804 the check read only `graphQLErrors`, so the recovery never ran on Apollo 4.
+The global `OctoErrorLink` would still log and toast that answer; a subclass opts out by passing
+`context: this.pageOutOfRangeContext` (`OCTO_HANDLES_PAGE_OUT_OF_RANGE`, AB#8805) to the fetch of its
+`fetchData`. The base class does not send the query, so it cannot set the context itself — every subclass in this
+repo passes it (runtime browser entity and association lists, entity-forms list, MeshBoard table widget, demo-app);
+data sources in consuming apps get no change until they add it. Only INCOMPLETE_SLICE is skipped.
 Data sources whose own bar/quick-view filters changed must refetch
 with `fetchAgain({ resetSkip: true })` so the page resets up front (see the shared-ui
 server-binding invariants).

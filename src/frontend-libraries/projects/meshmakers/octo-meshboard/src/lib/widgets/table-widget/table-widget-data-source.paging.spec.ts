@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of, throwError, toArray } from 'rxjs';
-import { CkModelService, GraphQL } from '@meshmakers/octo-services';
+import { CkModelService, GraphQL, OCTO_HANDLES_PAGE_OUT_OF_RANGE } from '@meshmakers/octo-services';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
 import { FetchAgainOptions, FetchDataOptions, ListViewComponent } from '@meshmakers/shared-ui';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -183,6 +183,22 @@ describe('TableWidgetDataSourceDirective — paging (AB#8801)', () => {
       await firstValueFrom(directive.fetchData(page(0)));
 
       expect(queryExecutor.execute.mock.calls.at(-1)?.[2].after).toBe(GraphQL.offsetToCursor(0));
+    });
+  });
+
+  describe('global error toast opt-out (AB#8805)', () => {
+    it('asks the executor to leave INCOMPLETE_SLICE to the widget (persistent query)', async () => {
+      const { directive } = create();
+      await firstValueFrom(directive.fetchData(page(10)));
+
+      expect(queryExecutor.execute.mock.calls.at(-1)?.[2].handlesPageOutOfRange).toBe(true);
+    });
+
+    it('sends the opt-out context with the runtime-entity query', async () => {
+      const { directive } = create({ dataSource: { type: 'runtimeEntity', ckTypeId: 'Test/Device' } });
+      await firstValueFrom(directive.fetchData(page(10)));
+
+      expect(entitiesGql.fetch.mock.calls.at(-1)?.[0].context).toEqual({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true });
     });
   });
 

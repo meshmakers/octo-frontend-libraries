@@ -54,7 +54,11 @@ export class MeteringPointsDataSourceDirective extends OctoGraphQlDataSource<Met
     } as GetSdkMeteringPointQueryVariablesDto;
 
     return this.getSdkMeteringPointDtoGQL.fetch(
-      {variables: v, fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first'}
+      {
+        variables: v,
+        fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first',
+        context: this.pageOutOfRangeContext
+      }
     ).pipe(map(v => {
       return new FetchResultTyped<MeteringPointDto>(
         v.data?.runtime?.octoSdkDemoMeteringPoint?.items ?? [],

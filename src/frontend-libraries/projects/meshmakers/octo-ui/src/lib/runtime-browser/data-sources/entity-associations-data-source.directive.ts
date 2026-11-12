@@ -101,6 +101,7 @@ export class EntityAssociationsDataSourceDirective extends OctoGraphQlDataSource
       .fetch({
         variables: variables,
         fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first',
+        context: this.pageOutOfRangeContext,
       })
       .pipe(
         map((result) => {

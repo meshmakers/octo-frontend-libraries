@@ -1,15 +1,14 @@
 import {
   FieldFilterDto,
   FieldFilterOperatorsDto,
+  isIncompleteSliceGraphQlError,
+  OCTO_HANDLES_PAGE_OUT_OF_RANGE,
   SearchFilterDto,
   SearchFilterTypesDto, SortDto, SortOrdersDto
 } from '@meshmakers/octo-services';
 import {DataSourceTyped, ListViewComponent} from '@meshmakers/shared-ui';
 import {FilterOperator, isCompositeFilterDescriptor} from '@progress/kendo-data-query';
 import {State} from '@progress/kendo-data-query/dist/npm/state';
-
-/** Error code the asset repository adds when a page window lies beyond the result set. */
-const INCOMPLETE_SLICE_CODE = 'INCOMPLETE_SLICE';
 
 /** Guard against cyclic or deeply nested error objects. */
 const MAX_ERROR_NESTING = 4;
@@ -51,11 +50,19 @@ export abstract class OctoGraphQlDataSource<TDto> extends DataSourceTyped<TDto |
    * single GraphQL error.
    */
   public override isPageOutOfRangeError(error: unknown): boolean {
-    return OctoGraphQlDataSource.graphQlErrorEntries(error, 0).some((entry) => {
-      const extensions = OctoGraphQlDataSource.asRecord(entry['extensions']);
-      const codes = Array.isArray(extensions?.['codes']) ? extensions['codes'] : [];
-      return codes.includes(INCOMPLETE_SLICE_CODE) || extensions?.['code'] === INCOMPLETE_SLICE_CODE;
-    });
+    return OctoGraphQlDataSource.graphQlErrorEntries(error, 0).some((entry) =>
+      isIncompleteSliceGraphQlError({ extensions: OctoGraphQlDataSource.asRecord(entry['extensions']) }));
+  }
+
+  /**
+   * Apollo operation context for the paged query of {@link fetchData} (AB#8805). `MmListViewDataBindingDirective`
+   * recovers from a page-out-of-range answer itself (page 1 once, see {@link isPageOutOfRangeError}), so the global
+   * `OctoErrorLink` must not log or toast it. The base class does not send the query, so every subclass opts in by
+   * passing this context to its fetch: `gql.fetch({ variables, fetchPolicy, context: this.pageOutOfRangeContext })`.
+   * Only the INCOMPLETE_SLICE answer is skipped; every other error of the query is still logged and toasted.
+   */
+  protected get pageOutOfRangeContext(): Record<string, unknown> {
+    return { [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true };
   }
 
   private static asRecord(value: unknown): Record<string, unknown> | null {

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FetchDataOptions, ListViewComponent } from '@meshmakers/shared-ui';
 import { of } from 'rxjs';
 import { GetRuntimeEntitiesByTypeDtoGQL } from '../../graphQL/getRuntimeEntitiesByType';
-import { RtEntityDto } from '@meshmakers/octo-services';
+import { OCTO_HANDLES_PAGE_OUT_OF_RANGE, RtEntityDto } from '@meshmakers/octo-services';
 import { CkTypeEntitiesDataSourceDirective } from './ck-type-entities-data-source.directive';
 
 describe('CkTypeEntitiesDataSourceDirective', () => {
@@ -125,6 +125,14 @@ describe('CkTypeEntitiesDataSourceDirective', () => {
         const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
         expect(callArgs.variables.ckTypeId).toBe('TestType');
         expect(callArgs.variables.first).toBe(10);
+        done();
+      });
+    }));
+
+    it('should leave page-out-of-range answers to the list binding (AB#8805)', () => new Promise<void>((done) => {
+      directive.fetchData({ state: { take: 10, skip: 10 }, textSearch: null }).subscribe(() => {
+        const callArgs = vi.mocked(mockGetRuntimeEntitiesGQL.fetch).mock.lastCall![0];
+        expect(callArgs.context).toEqual({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true });
         done();
       });
     }));

@@ -10,6 +10,25 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services, octo-ui, octo-meshboard: no error toast for a page-out-of-range answer the list recovers from (AB#8805)
+
+- New (octo-services, additive): operation-context flag `OCTO_HANDLES_PAGE_OUT_OF_RANGE` next to
+  `OCTO_HANDLES_CK_UPGRADE_BLOCKED`, plus `INCOMPLETE_SLICE_CODE` and `isIncompleteSliceGraphQlError`. With the flag
+  set, `OctoErrorLink` neither logs (console error) nor toasts GraphQL errors that carry `INCOMPLETE_SLICE` in
+  `extensions.code` or `extensions.codes`; it writes one `console.warn` instead. Every other error of the operation is
+  still logged and toasted. `ASSET1002` alone is not skipped. Without the flag, and for `OCTO_SILENT_ERRORS` and
+  `OCTO_HANDLES_CK_UPGRADE_BLOCKED`, nothing changes.
+- New (octo-ui, additive): `OctoGraphQlDataSource.pageOutOfRangeContext` (protected getter) returns that context.
+  **Subclasses must pass it to the fetch of their `fetchData`** (`context: this.pageOutOfRangeContext`) to opt in:
+  the base class does not send the query, so data sources in consuming apps (Refinery Studio, voest app, ...) get
+  nothing automatically and keep the toast until they add it. Done here for the runtime browser's entity and
+  association lists, the entity-forms list and the demo-app lists. `isPageOutOfRangeError` now uses the shared
+  `isIncompleteSliceGraphQlError` (behaviour unchanged).
+- Fix (octo-meshboard): both fetch paths of the table widget opt out, so the page-1 recovery of AB#8801 shows no error
+  toast any more. New option `QueryExecutionOptions.handlesPageOutOfRange` (runtime and stream-data queries). The
+  widget's own Apollo 4 `isPageOutOfRangeError` override is removed; the octo-ui base class reads both shapes since
+  AB#8804.
+
 ### octo-ui: list views return to page 1 on page-out-of-range errors again (AB#8804)
 
 - Fix: `OctoGraphQlDataSource.isPageOutOfRangeError` reads Apollo 4 errors. A `mm-list-view` on page 2 or later whose

@@ -98,26 +98,6 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
     this.fetchAgain(resetSkip ? { resetSkip: true } : undefined);
   }
 
-  /**
-   * Page-out-of-range detection for both error shapes: the inherited check reads
-   * `graphQLErrors` (Apollo 3 `ApolloError`); Apollo 4 rejects with
-   * `CombinedGraphQLErrors`, which carries the same entries in `errors`.
-   */
-  public override isPageOutOfRangeError(error: unknown): boolean {
-    if (super.isPageOutOfRangeError(error)) {
-      return true;
-    }
-    const errors = (error as { errors?: unknown })?.errors;
-    if (!Array.isArray(errors)) {
-      return false;
-    }
-    return errors.some((e: { extensions?: Record<string, unknown> } | null) => {
-      const extensions = e?.extensions;
-      const codes = Array.isArray(extensions?.['codes']) ? extensions['codes'] : [];
-      return codes.includes('INCOMPLETE_SLICE') || extensions?.['code'] === 'INCOMPLETE_SLICE';
-    });
-  }
-
   public override fetchData(queryOptions: FetchDataOptions): Observable<FetchResultTyped<Record<string, unknown>> | null> {
     this._lastQueryInputs = this.queryInputsSignature();
 
@@ -172,7 +152,8 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
           fieldFilters: allFilters.length > 0 ? allFilters : undefined,
           searchFilter: searchFilterDto
         },
-        fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first'
+        fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first',
+        context: this.pageOutOfRangeContext
       })),
       map(result => {
         const items = result.data?.runtime?.runtimeEntities?.items ?? [];
@@ -354,7 +335,9 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
       // A refetch (board refresh, changed inputs, page-1 recovery) bypasses the
       // Apollo cache like the runtime-entity path does, so a cached page with a
       // stale total count is never shown again (AB#8801).
-      forceRefresh: queryOptions.forceRefresh ?? false
+      forceRefresh: queryOptions.forceRefresh ?? false,
+      // handleFetchError returns to page 1 on INCOMPLETE_SLICE, so the error link must not toast it (AB#8805).
+      handlesPageOutOfRange: true
     }).pipe(
       map(result => {
         // Extract columns from query response and update signal.
