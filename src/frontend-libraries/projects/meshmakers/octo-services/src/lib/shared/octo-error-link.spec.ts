@@ -2,7 +2,7 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ApolloLink } from '@apollo/client/core';
 import { throwError } from 'rxjs';
-import { CombinedGraphQLErrors } from '@apollo/client';
+import { CombinedGraphQLErrors, ServerError } from '@apollo/client';
 import {
   isIncompleteSliceGraphQlError,
   OCTO_HANDLES_CK_UPGRADE_BLOCKED,
@@ -191,6 +191,41 @@ describe('OctoErrorLink', () => {
       vi.spyOn(console, 'error').mockImplementation(() => undefined);
       run({ [OCTO_HANDLES_CK_UPGRADE_BLOCKED]: true }, [outOfRange]);
       expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
+    });
+
+    describe('non-2xx JSON answer (Apollo 4 ServerError)', () => {
+      function serverError(body: unknown): ServerError {
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body);
+        const response = new Response(bodyText, { status: 500, headers: { 'content-type': 'application/json' } });
+        return new ServerError('Response not successful: Received status code 500', { response, bodyText });
+      }
+      function runServerError(context: Record<string, unknown>, error: ServerError): void {
+        const forward = (() => throwError(() => error)) as unknown as ApolloLink.ForwardFunction;
+        octoErrorLink.request(op(context), forward).subscribe({ error: () => undefined });
+      }
+
+      it('shows no console error and no toast when the body holds only INCOMPLETE_SLICE errors and the caller opted out', () => {
+        const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        runServerError({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, serverError({ data: null, errors: [outOfRange] }));
+        expect(messageServiceMock.showError).not.toHaveBeenCalled();
+        expect(error).not.toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledTimes(1);
+      });
+
+      it('still logs and toasts it without the opt-out', () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        runServerError({}, serverError({ data: null, errors: [outOfRange] }));
+        expect(messageServiceMock.showError).toHaveBeenCalledTimes(1);
+      });
+
+      it('still logs and toasts a body with other errors or no GraphQL response', () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        runServerError({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, serverError({ data: null, errors: [outOfRange, other] }));
+        runServerError({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, serverError('<html>Bad Gateway</html>'));
+        runServerError({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, serverError({ errors: [] }));
+        expect(messageServiceMock.showError).toHaveBeenCalledTimes(3);
+      });
     });
 
     it('keeps silent operations silent', () => {

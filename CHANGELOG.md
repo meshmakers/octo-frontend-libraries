@@ -15,7 +15,8 @@ starts a new empty "Unreleased" section.
 - New (octo-services, additive): operation-context flag `OCTO_HANDLES_PAGE_OUT_OF_RANGE` next to
   `OCTO_HANDLES_CK_UPGRADE_BLOCKED`, plus `INCOMPLETE_SLICE_CODE` and `isIncompleteSliceGraphQlError`. With the flag
   set, `OctoErrorLink` neither logs (console error) nor toasts GraphQL errors that carry `INCOMPLETE_SLICE` in
-  `extensions.code` or `extensions.codes`; it writes one `console.warn` instead. Every other error of the operation is
+  `extensions.code` or `extensions.codes` (also inside the JSON body of an Apollo 4 `ServerError` that holds only such
+  errors); it writes one `console.warn` instead. Every other error of the operation is
   still logged and toasted. `ASSET1002` alone is not skipped. Without the flag, and for `OCTO_SILENT_ERRORS` and
   `OCTO_HANDLES_CK_UPGRADE_BLOCKED`, nothing changes.
 - New (octo-ui, additive): `OctoGraphQlDataSource.pageOutOfRangeContext` (protected getter) returns that context.

@@ -883,7 +883,8 @@ Operation context flags (all opt-in, set via `context: { … }` on the Apollo ca
 - `OCTO_HANDLES_PAGE_OUT_OF_RANGE` (AB#8805) — the caller of a paged query recovers from a page window beyond the
   result set itself (page 1 once). Errors carrying `INCOMPLETE_SLICE` in `extensions.code` or `extensions.codes`
   (`isIncompleteSliceGraphQlError`) get no console error and no toast, only one `console.warn`; every other error of
-  the operation is still logged and toasted. `ASSET1002` alone is the asset repository's generic code and is not
+  the operation is still logged and toasted. The same holds for an Apollo 4 `ServerError` (non-2xx answer with
+  `application/json`) whose JSON body holds only such errors. `ASSET1002` alone is the asset repository's generic code and is not
   skipped. Combines with the other two flags. octo-ui `OctoGraphQlDataSource.pageOutOfRangeContext` returns it for
   list data sources; the MeshBoard `QueryExecutorService` sets it with `handlesPageOutOfRange: true`.
 

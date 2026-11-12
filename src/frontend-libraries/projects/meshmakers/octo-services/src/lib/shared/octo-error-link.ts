@@ -67,6 +67,10 @@ export class OctoErrorLink extends ApolloLink {
             OctoErrorLink.handlesCkUpgradeBlocked(operation),
             OctoErrorLink.handlesPageOutOfRange(operation)
           );
+        } else if (OctoErrorLink.handlesPageOutOfRange(operation) && OctoErrorLink.isOnlyPageOutOfRangeBody(error)) {
+          // Non-2xx answer with media type application/json: Apollo 4 keeps the GraphQL errors only as the
+          // ServerError's body text. The caller recovers from them like from the CombinedGraphQLErrors shape.
+          console.warn('GraphQL page window out of range (recovered by the caller)', error);
         } else {
           this.showErrorLike(error);
         }
@@ -104,6 +108,28 @@ export class OctoErrorLink extends ApolloLink {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * True when the error is an Apollo 4 `ServerError` (structurally: a string `bodyText`) whose JSON body holds GraphQL
+   * errors that ALL carry `INCOMPLETE_SLICE` (AB#8805). Any other error in the body, or a body that is no GraphQL
+   * response, keeps the normal log and toast.
+   */
+  static isOnlyPageOutOfRangeBody(error: unknown): boolean {
+    const bodyText = (error as { bodyText?: unknown } | null | undefined)?.bodyText;
+    if (typeof bodyText !== 'string') {
+      return false;
+    }
+    let body: unknown;
+    try {
+      body = JSON.parse(bodyText);
+    } catch {
+      return false;
+    }
+    const errors = (body as { errors?: unknown } | null)?.errors;
+    return Array.isArray(errors)
+      && errors.length > 0
+      && errors.every(e => typeof e === 'object' && e !== null && isIncompleteSliceGraphQlError(e as { extensions?: Record<string, unknown> }));
   }
 
   private showErrorLike(error: ErrorLike): void {
