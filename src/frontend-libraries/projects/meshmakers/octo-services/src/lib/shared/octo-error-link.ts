@@ -19,6 +19,30 @@ export const OCTO_SILENT_ERRORS = 'octoSilentErrors';
  */
 export const OCTO_HANDLES_CK_UPGRADE_BLOCKED = 'octoHandlesCkUpgradeBlocked';
 
+/**
+ * Operation context flag (AB#8805): the caller of a paged query recovers from a page window that lies beyond the
+ * result set itself (e.g. `mm-list-view` and the MeshBoard table widget reload page 1). The asset repository answers
+ * such a window with `extensions.code = 'ASSET1002'` and `extensions.codes = ['ASSET1002', 'INCOMPLETE_SLICE']`.
+ * Errors carrying `INCOMPLETE_SLICE` (in `code` or `codes`) get no console error and no toast; every other error of
+ * the operation is logged and toasted as usual. ASSET1002 alone is the asset repository's generic code and is not
+ * skipped. Opt-in on purpose: a caller that does not recover keeps the toast. `OctoGraphQlDataSource`
+ * (`@meshmakers/octo-ui`) offers the context as `pageOutOfRangeContext` for its subclasses.
+ */
+export const OCTO_HANDLES_PAGE_OUT_OF_RANGE = 'octoHandlesPageOutOfRange';
+
+/** Error code the asset repository adds when a page window lies beyond the result set (AB#8805). */
+export const INCOMPLETE_SLICE_CODE = 'INCOMPLETE_SLICE';
+
+/** True when a GraphQL error entry carries `INCOMPLETE_SLICE` in `extensions.code` or `extensions.codes`. */
+export function isIncompleteSliceGraphQlError(error: { extensions?: Record<string, unknown> | null } | null | undefined): boolean {
+  const extensions = error?.extensions;
+  if (!extensions) {
+    return false;
+  }
+  const codes = extensions['codes'];
+  return extensions['code'] === INCOMPLETE_SLICE_CODE || (Array.isArray(codes) && codes.includes(INCOMPLETE_SLICE_CODE));
+}
+
 @Injectable()
 export class OctoErrorLink extends ApolloLink {
   private errorLink: ApolloLink;
@@ -38,7 +62,15 @@ export class OctoErrorLink extends ApolloLink {
         }
 
         if (error instanceof CombinedGraphQLErrors) {
-          this.showError(error, OctoErrorLink.handlesCkUpgradeBlocked(operation));
+          this.showError(
+            error,
+            OctoErrorLink.handlesCkUpgradeBlocked(operation),
+            OctoErrorLink.handlesPageOutOfRange(operation)
+          );
+        } else if (OctoErrorLink.handlesPageOutOfRange(operation) && OctoErrorLink.isOnlyPageOutOfRangeBody(error)) {
+          // Non-2xx answer with media type application/json: Apollo 4 keeps the GraphQL errors only as the
+          // ServerError's body text. The caller recovers from them like from the CombinedGraphQLErrors shape.
+          console.warn('GraphQL page window out of range (recovered by the caller)', error);
         } else {
           this.showErrorLike(error);
         }
@@ -69,6 +101,37 @@ export class OctoErrorLink extends ApolloLink {
     }
   }
 
+  /** True when the operation recovers from a page-out-of-range answer itself ({@link OCTO_HANDLES_PAGE_OUT_OF_RANGE}). */
+  static handlesPageOutOfRange(operation: ApolloLink.Operation | undefined): boolean {
+    try {
+      return operation?.getContext?.()?.[OCTO_HANDLES_PAGE_OUT_OF_RANGE] === true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * True when the error is an Apollo 4 `ServerError` (structurally: a string `bodyText`) whose JSON body holds GraphQL
+   * errors that ALL carry `INCOMPLETE_SLICE` (AB#8805). Any other error in the body, or a body that is no GraphQL
+   * response, keeps the normal log and toast.
+   */
+  static isOnlyPageOutOfRangeBody(error: unknown): boolean {
+    const bodyText = (error as { bodyText?: unknown } | null | undefined)?.bodyText;
+    if (typeof bodyText !== 'string') {
+      return false;
+    }
+    let body: unknown;
+    try {
+      body = JSON.parse(bodyText);
+    } catch {
+      return false;
+    }
+    const errors = (body as { errors?: unknown } | null)?.errors;
+    return Array.isArray(errors)
+      && errors.length > 0
+      && errors.every(e => typeof e === 'object' && e !== null && isIncompleteSliceGraphQlError(e as { extensions?: Record<string, unknown> }));
+  }
+
   private showErrorLike(error: ErrorLike): void {
     // Network connectivity errors (HTTP status 0) are already handled by MmHttpErrorInterceptor
     // which either shows the connection error overlay (via ON_CONNECTION_LOST) or a toast.
@@ -84,15 +147,27 @@ export class OctoErrorLink extends ApolloLink {
     messageService.showError(error.message);
   }
 
-  private showError(combinedGraphQLErrors: CombinedGraphQLErrors, skipCkUpgradeBlocked = false): void{
+  private showError(
+    combinedGraphQLErrors: CombinedGraphQLErrors,
+    skipCkUpgradeBlocked = false,
+    skipPageOutOfRange = false
+  ): void{
     const messageService = this.injector.get(MessageService);
 
-    const errors = skipCkUpgradeBlocked
+    const afterGuard = skipCkUpgradeBlocked
       ? combinedGraphQLErrors.errors.filter(e => e.extensions?.['code'] !== CK_UPGRADE_BLOCKED_CODE)
       : combinedGraphQLErrors.errors;
+    const errors = skipPageOutOfRange
+      ? afterGuard.filter(e => !isIncompleteSliceGraphQlError(e))
+      : afterGuard;
     if (errors.length === 0) {
-      // Only guard refusals, and the caller shows them with their blockers.
-      console.warn('GraphQL operation refused by the tenant upgrade guard (shown by the caller)', combinedGraphQLErrors.errors);
+      if (afterGuard.length > 0) {
+        // Only page-out-of-range answers, and the caller reloads page 1 itself.
+        console.warn('GraphQL page window out of range (recovered by the caller)', afterGuard);
+      } else {
+        // Only guard refusals, and the caller shows them with their blockers.
+        console.warn('GraphQL operation refused by the tenant upgrade guard (shown by the caller)', combinedGraphQLErrors.errors);
+      }
       return;
     }
 

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FetchDataOptions, ListViewComponent } from '@meshmakers/shared-ui';
 import { of } from 'rxjs';
 import { GetRuntimeEntityAssociationsByIdDtoGQL } from '../../graphQL/getRuntimeEntityAssociationsById';
-import { GraphDirectionDto } from '@meshmakers/octo-services';
+import { GraphDirectionDto, OCTO_HANDLES_PAGE_OUT_OF_RANGE } from '@meshmakers/octo-services';
 import { AssociationDisplayItem, EntityAssociationsDataSourceDirective, } from './entity-associations-data-source.directive';
 
 describe('EntityAssociationsDataSourceDirective', () => {
@@ -159,6 +159,8 @@ describe('EntityAssociationsDataSourceDirective', () => {
         expect(callArgs.variables.ckTypeId).toBe('OriginType');
         expect(callArgs.variables.direction).toBe(GraphDirectionDto.AnyDto);
         expect(callArgs.variables.first).toBe(10);
+        // AB#8805: the list binding recovers from INCOMPLETE_SLICE, so the error link must not toast it.
+        expect(callArgs.context).toEqual({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true });
         done();
       });
     }));

@@ -46,7 +46,11 @@ export class CustomersDataSourceDirective extends OctoGraphQlDataSource<OctoSdkD
     } as GetSdkCustomersQueryVariablesDto;
 
     return this.getSdkCustomersDtoGQL.fetch(
-      {variables: v, fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first'}
+      {
+        variables: v,
+        fetchPolicy: queryOptions.forceRefresh ? 'network-only' : 'cache-first',
+        context: this.pageOutOfRangeContext
+      }
     ).pipe(map(v => {
       return new FetchResultTyped<OctoSdkDemoCustomerDto>(
         v.data?.runtime?.octoSdkDemoCustomer?.items ?? [],

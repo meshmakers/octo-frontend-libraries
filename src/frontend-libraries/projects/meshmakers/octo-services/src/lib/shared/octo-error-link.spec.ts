@@ -2,7 +2,14 @@ import type { MockedObject } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ApolloLink } from '@apollo/client/core';
 import { throwError } from 'rxjs';
-import { OCTO_HANDLES_CK_UPGRADE_BLOCKED, OCTO_SILENT_ERRORS, OctoErrorLink } from './octo-error-link';
+import { CombinedGraphQLErrors, ServerError } from '@apollo/client';
+import {
+  isIncompleteSliceGraphQlError,
+  OCTO_HANDLES_CK_UPGRADE_BLOCKED,
+  OCTO_HANDLES_PAGE_OUT_OF_RANGE,
+  OCTO_SILENT_ERRORS,
+  OctoErrorLink
+} from './octo-error-link';
 import { MessageService } from '@meshmakers/shared-services';
 
 describe('OctoErrorLink', () => {
@@ -111,6 +118,120 @@ describe('OctoErrorLink', () => {
       show([refusal, other], true);
       expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
       expect(vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall![0]).toBe('Other error');
+    });
+  });
+
+  describe('page-out-of-range answers (AB#8805)', () => {
+    const outOfRange = { message: 'An error occurred', extensions: { code: 'ASSET1002', codes: ['ASSET1002', 'INCOMPLETE_SLICE'] } };
+    const other = { message: 'Other error', extensions: { code: 'ASSET1002', codes: ['ASSET1002'] } };
+    const refusal = { message: 'Blueprint update refused', extensions: { code: 'CK_UPGRADE_BLOCKED' } };
+    const op = (context: Record<string, unknown>) =>
+      ({ operationName: 'getPage', getContext: () => context }) as unknown as ApolloLink.Operation;
+
+    /** Runs a real operation through the link; the server answers with the given GraphQL errors. */
+    function run(context: Record<string, unknown>, errors: { message: string; extensions?: Record<string, unknown> }[]): void {
+      const forward = (() => throwError(() => new CombinedGraphQLErrors({ data: null, errors }))) as unknown as ApolloLink.ForwardFunction;
+      octoErrorLink.request(op(context), forward).subscribe({ error: () => undefined });
+    }
+
+    it('recognises the context flag', () => {
+      expect(OctoErrorLink.handlesPageOutOfRange(op({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }))).toBe(true);
+      expect(OctoErrorLink.handlesPageOutOfRange(op({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: 'yes' }))).toBe(false);
+      expect(OctoErrorLink.handlesPageOutOfRange(op({}))).toBe(false);
+      expect(OctoErrorLink.handlesPageOutOfRange(undefined)).toBe(false);
+    });
+
+    it('detects INCOMPLETE_SLICE in code or codes, never the generic ASSET1002 alone', () => {
+      expect(isIncompleteSliceGraphQlError(outOfRange)).toBe(true);
+      expect(isIncompleteSliceGraphQlError({ extensions: { code: 'INCOMPLETE_SLICE' } })).toBe(true);
+      expect(isIncompleteSliceGraphQlError(other)).toBe(false);
+      expect(isIncompleteSliceGraphQlError({ extensions: { code: 'ASSET1002' } })).toBe(false);
+      expect(isIncompleteSliceGraphQlError({ extensions: null })).toBe(false);
+      expect(isIncompleteSliceGraphQlError(null)).toBe(false);
+    });
+
+    it('logs and toasts the answer when the caller does not opt out', () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      run({}, [outOfRange]);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
+      expect(error).toHaveBeenCalledWith(outOfRange);
+    });
+
+    it('shows no console error and no toast when the caller recovers itself', () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      run({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, [outOfRange]);
+      expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
+      expect(messageServiceMock.showError).not.toHaveBeenCalled();
+      expect(error).not.toHaveBeenCalled();
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('still logs and toasts the other errors of the same operation', () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      run({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, [outOfRange, other]);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall![0]).toBe('Other error');
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(error).toHaveBeenCalledWith(other);
+    });
+
+    it('does not skip guard refusals; both opt-outs combine', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      run({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, [outOfRange, refusal]);
+      expect(vi.mocked(messageServiceMock.showErrorWithDetails).mock.lastCall![0]).toBe('Blueprint update refused');
+
+      messageServiceMock.showErrorWithDetails.mockClear();
+      run({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true, [OCTO_HANDLES_CK_UPGRADE_BLOCKED]: true }, [outOfRange, refusal]);
+      expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
+    });
+
+    it('does not change the guard opt-out: an out-of-range answer is still toasted under it', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      run({ [OCTO_HANDLES_CK_UPGRADE_BLOCKED]: true }, [outOfRange]);
+      expect(messageServiceMock.showErrorWithDetails).toHaveBeenCalledTimes(1);
+    });
+
+    describe('non-2xx JSON answer (Apollo 4 ServerError)', () => {
+      function serverError(body: unknown): ServerError {
+        const bodyText = typeof body === 'string' ? body : JSON.stringify(body);
+        const response = new Response(bodyText, { status: 500, headers: { 'content-type': 'application/json' } });
+        return new ServerError('Response not successful: Received status code 500', { response, bodyText });
+      }
+      function runServerError(context: Record<string, unknown>, error: ServerError): void {
+        const forward = (() => throwError(() => error)) as unknown as ApolloLink.ForwardFunction;
+        octoErrorLink.request(op(context), forward).subscribe({ error: () => undefined });
+      }
+
+      it('shows no console error and no toast when the body holds only INCOMPLETE_SLICE errors and the caller opted out', () => {
+        const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+        runServerError({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, serverError({ data: null, errors: [outOfRange] }));
+        expect(messageServiceMock.showError).not.toHaveBeenCalled();
+        expect(error).not.toHaveBeenCalled();
+        expect(warn).toHaveBeenCalledTimes(1);
+      });
+
+      it('still logs and toasts it without the opt-out', () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        runServerError({}, serverError({ data: null, errors: [outOfRange] }));
+        expect(messageServiceMock.showError).toHaveBeenCalledTimes(1);
+      });
+
+      it('still logs and toasts a body with other errors or no GraphQL response', () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        runServerError({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, serverError({ data: null, errors: [outOfRange, other] }));
+        runServerError({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, serverError('<html>Bad Gateway</html>'));
+        runServerError({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, serverError({ errors: [] }));
+        expect(messageServiceMock.showError).toHaveBeenCalledTimes(3);
+      });
+    });
+
+    it('keeps silent operations silent', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      run({ [OCTO_SILENT_ERRORS]: true, [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true }, [outOfRange, other]);
+      expect(messageServiceMock.showErrorWithDetails).not.toHaveBeenCalled();
     });
   });
 

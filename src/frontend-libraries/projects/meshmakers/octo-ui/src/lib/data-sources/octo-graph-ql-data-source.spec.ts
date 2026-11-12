@@ -1,5 +1,5 @@
 import { OctoGraphQlDataSource } from './octo-graph-ql-data-source';
-import { FieldFilterDto, FieldFilterOperatorsDto, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from '@meshmakers/octo-services';
+import { FieldFilterDto, FieldFilterOperatorsDto, OCTO_HANDLES_PAGE_OUT_OF_RANGE, OctoErrorLink, SearchFilterDto, SearchFilterTypesDto, SortDto, SortOrdersDto } from '@meshmakers/octo-services';
 import { ListViewComponent, FetchDataOptions, FetchResultTyped } from '@meshmakers/shared-ui';
 import { FilterOperator } from '@progress/kendo-data-query';
 import { State } from '@progress/kendo-data-query/dist/npm/state';
@@ -38,6 +38,10 @@ class TestableDataSource extends OctoGraphQlDataSource<TestDto> {
 
   public getSearchFilterAttributePathsValue(): string[] {
     return this.searchFilterAttributePaths;
+  }
+
+  public getPageOutOfRangeContext(): Record<string, unknown> {
+    return this.pageOutOfRangeContext;
   }
 
   // Required abstract method implementation
@@ -511,6 +515,18 @@ describe('OctoGraphQlDataSource', () => {
   // =========================================================================
   // isPageOutOfRangeError
   // =========================================================================
+
+  describe('pageOutOfRangeContext (AB#8805)', () => {
+    it('opts the query out of the global INCOMPLETE_SLICE toast', () => {
+      const context = dataSource.getPageOutOfRangeContext();
+      expect(context).toEqual({ [OCTO_HANDLES_PAGE_OUT_OF_RANGE]: true });
+      expect(OctoErrorLink.handlesPageOutOfRange({ getContext: () => context } as never)).toBe(true);
+    });
+
+    it('returns a fresh object per call, so a subclass cannot change it for others', () => {
+      expect(dataSource.getPageOutOfRangeContext()).not.toBe(dataSource.getPageOutOfRangeContext());
+    });
+  });
 
   describe('isPageOutOfRangeError', () => {
     const OUT_OF_RANGE_ENTRY = {

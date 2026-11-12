@@ -180,6 +180,7 @@ export class EntityListDataSourceDirective extends OctoGraphQlDataSource<EntityL
       .fetch({
         variables: variables as never,
         fetchPolicy: 'network-only',
+        context: this.pageOutOfRangeContext,
       })
       .pipe(
         map((result) => {

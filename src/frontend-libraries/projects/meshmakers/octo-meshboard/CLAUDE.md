@@ -1808,10 +1808,13 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
   no rows) until AB#8121.
 - The persistent-query path forwards `queryOptions.forceRefresh` to `QueryExecutorService.execute`, so every
   `fetchAgain` (refresh, reset, recovery) goes to the network; plain paging stays `cache-first`.
-- The directive overrides `isPageOutOfRangeError` to read Apollo 4 `CombinedGraphQLErrors.errors` as well; the
-  octo-ui base class reads only the Apollo 3 `graphQLErrors`.
-- The global `OctoErrorLink` (octo-services) still logs and toasts the INCOMPLETE_SLICE response of that one
-  out-of-range request; the reset before the query keeps it from happening on input changes.
+- `isPageOutOfRangeError` is the octo-ui base class's (reads Apollo 3 and Apollo 4 errors since AB#8804); the
+  directive's own Apollo 4 override of AB#8801 was removed in AB#8805.
+- Both fetch paths opt out of the global INCOMPLETE_SLICE toast (AB#8805): the runtime-entity query passes
+  `context: this.pageOutOfRangeContext`, the persistent-query path `handlesPageOutOfRange: true` to
+  `QueryExecutorService.execute` (runtime and stream-data queries map it to the `OCTO_HANDLES_PAGE_OUT_OF_RANGE`
+  context). The recovered out-of-range request therefore logs one warning and shows no toast; any other error of
+  the query is still toasted by `OctoErrorLink`.
 
 ## Table column titles per language and value labels (AB#7655)
 

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, firstValueFrom, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
-import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, OCTO_SILENT_ERRORS, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
+import { AggregationTypeDto, CkRollupFunctionDto, FieldFilterDto, FieldFilterOperatorsDto, OCTO_HANDLES_PAGE_OUT_OF_RANGE, OCTO_SILENT_ERRORS, QueryModeDto, ResolveSeriesQueryInputDto, SeriesResolutionSignalDto, SortDto, StreamDataArgumentsDto } from '@meshmakers/octo-services';
 import { ExecuteRuntimeQueryDtoGQL } from '../graphQL/executeRuntimeQuery';
 import { ExecuteStreamDataQueryDtoGQL } from '../graphQL/executeStreamDataQuery';
 import { GetEntitiesByCkTypeDtoGQL } from '../graphQL/getEntitiesByCkType';
@@ -113,6 +113,12 @@ export interface QueryExecutionOptions {
    * whose caller handles the failure itself (e.g. a retry with a time window).
    */
   silentErrors?: boolean;
+  /**
+   * Runtime and stream-data queries (AB#8805): the caller recovers from a page window beyond the
+   * result set itself (INCOMPLETE_SLICE), so the global GraphQL error link neither logs nor toasts
+   * that answer ({@link OCTO_HANDLES_PAGE_OUT_OF_RANGE}); every other error is still toasted.
+   */
+  handlesPageOutOfRange?: boolean;
 }
 
 export interface QueryColumnInfo {
@@ -246,7 +252,8 @@ export class QueryExecutorService {
         after: options.after ?? undefined,
         fieldFilter: QueryExecutorService.withRtIdScope(options.fieldFilter, options.scopeRtIds)
       },
-      fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first'
+      fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first',
+      ...QueryExecutorService.operationContext({ handlesPageOutOfRange: options.handlesPageOutOfRange })
     }).pipe(
       map(result => {
         const queryItem = result.data?.runtime?.runtimeQuery?.items?.[0];
@@ -280,7 +287,7 @@ export class QueryExecutorService {
         arg
       },
       fetchPolicy: options.forceRefresh ? 'network-only' : 'cache-first',
-      ...(options.silentErrors ? { context: { [OCTO_SILENT_ERRORS]: true } } : {})
+      ...QueryExecutorService.operationContext(options)
     }).pipe(
       map(result => {
         const queryItem = result.data?.streamData?.streamDataQuery?.items?.[0];
@@ -546,6 +553,21 @@ export class QueryExecutorService {
    * as aggregation / grouping results cover the scoped entities only. Returns the
    * caller's filters unchanged (or `undefined`) when there is no scope.
    */
+  /**
+   * Apollo operation context of a query call: {@link OCTO_SILENT_ERRORS} for `silentErrors`,
+   * {@link OCTO_HANDLES_PAGE_OUT_OF_RANGE} for `handlesPageOutOfRange` (AB#8805). Empty when neither is set.
+   */
+  static operationContext(options: Pick<QueryExecutionOptions, 'silentErrors' | 'handlesPageOutOfRange'>): { context?: Record<string, boolean> } {
+    const context: Record<string, boolean> = {};
+    if (options.silentErrors) {
+      context[OCTO_SILENT_ERRORS] = true;
+    }
+    if (options.handlesPageOutOfRange) {
+      context[OCTO_HANDLES_PAGE_OUT_OF_RANGE] = true;
+    }
+    return Object.keys(context).length > 0 ? { context } : {};
+  }
+
   static withRtIdScope(fieldFilter: FieldFilterDto[] | null | undefined, scopeRtIds: string[] | null | undefined): FieldFilterDto[] | undefined {
     if (!scopeRtIds || scopeRtIds.length === 0) {
       return fieldFilter ?? undefined;
