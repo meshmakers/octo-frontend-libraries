@@ -4,6 +4,7 @@ import { ListViewComponent, FetchDataOptions, FetchResultTyped } from '@meshmake
 import { FilterOperator } from '@progress/kendo-data-query';
 import { State } from '@progress/kendo-data-query/dist/npm/state';
 import { Observable, of } from 'rxjs';
+import { CombinedGraphQLErrors, ServerError } from '@apollo/client';
 
 interface TestDto {
   id: string;
@@ -512,35 +513,104 @@ describe('OctoGraphQlDataSource', () => {
   // =========================================================================
 
   describe('isPageOutOfRangeError', () => {
-    it('should detect INCOMPLETE_SLICE in the extensions codes list', () => {
-      const apolloError = {
-        graphQLErrors: [
-          { extensions: { code: 'ASSET1002', codes: ['ASSET1002', 'INCOMPLETE_SLICE'] } }
-        ]
-      };
-      expect(dataSource.isPageOutOfRangeError(apolloError)).toBe(true);
+    const OUT_OF_RANGE_ENTRY = {
+      message: 'An error occurred',
+      extensions: { code: 'ASSET1002', codes: ['ASSET1002', 'INCOMPLETE_SLICE'] }
+    };
+    const OTHER_ENTRY = { message: 'Other', extensions: { code: 'ASSET1002', codes: ['ASSET1002'] } };
+
+    function serverError(status: number, body: unknown): ServerError {
+      const bodyText = typeof body === 'string' ? body : JSON.stringify(body);
+      const response = new Response(bodyText, { status, headers: { 'content-type': 'application/json' } });
+      return new ServerError(`Response not successful: Received status code ${status}`, { response, bodyText });
+    }
+
+    describe('Apollo 3 shape (graphQLErrors)', () => {
+      it('should detect INCOMPLETE_SLICE in the extensions codes list', () => {
+        expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [OUT_OF_RANGE_ENTRY] })).toBe(true);
+      });
+
+      it('should detect INCOMPLETE_SLICE as the single extensions code', () => {
+        const apolloError = {
+          graphQLErrors: [{ extensions: { code: 'INCOMPLETE_SLICE' } }]
+        };
+        expect(dataSource.isPageOutOfRangeError(apolloError)).toBe(true);
+      });
+
+      it('should detect INCOMPLETE_SLICE in the parsed body of a network error', () => {
+        const apolloError = {
+          graphQLErrors: [],
+          networkError: { statusCode: 500, result: { errors: [OUT_OF_RANGE_ENTRY] } }
+        };
+        expect(dataSource.isPageOutOfRangeError(apolloError)).toBe(true);
+      });
     });
 
-    it('should detect INCOMPLETE_SLICE as the single extensions code', () => {
-      const apolloError = {
-        graphQLErrors: [{ extensions: { code: 'INCOMPLETE_SLICE' } }]
-      };
-      expect(dataSource.isPageOutOfRangeError(apolloError)).toBe(true);
+    describe('Apollo 4 shape (CombinedGraphQLErrors.errors)', () => {
+      it('should detect INCOMPLETE_SLICE in a real CombinedGraphQLErrors', () => {
+        const error = new CombinedGraphQLErrors({ data: null, errors: [OUT_OF_RANGE_ENTRY] });
+        expect(dataSource.isPageOutOfRangeError(error)).toBe(true);
+      });
+
+      it('should detect INCOMPLETE_SLICE as the single code among other errors', () => {
+        const error = new CombinedGraphQLErrors({
+          data: null,
+          errors: [OTHER_ENTRY, { message: 'Slice', extensions: { code: 'INCOMPLETE_SLICE' } }]
+        });
+        expect(dataSource.isPageOutOfRangeError(error)).toBe(true);
+      });
+
+      it('should detect a structural copy without the Apollo class', () => {
+        expect(dataSource.isPageOutOfRangeError({ errors: [OUT_OF_RANGE_ENTRY] })).toBe(true);
+      });
+
+      it('should detect a raw array and a single GraphQL error', () => {
+        expect(dataSource.isPageOutOfRangeError([OUT_OF_RANGE_ENTRY])).toBe(true);
+        expect(dataSource.isPageOutOfRangeError(OUT_OF_RANGE_ENTRY)).toBe(true);
+      });
     });
 
-    it('should return false for other GraphQL errors', () => {
-      const apolloError = {
-        graphQLErrors: [{ extensions: { code: 'ASSET1001', codes: ['ASSET1001'] } }]
-      };
-      expect(dataSource.isPageOutOfRangeError(apolloError)).toBe(false);
+    describe('Apollo 4 network-wrapped (ServerError)', () => {
+      it('should detect INCOMPLETE_SLICE in the JSON body of a non-2xx answer', () => {
+        expect(dataSource.isPageOutOfRangeError(serverError(500, { data: null, errors: [OUT_OF_RANGE_ENTRY] }))).toBe(true);
+      });
+
+      it('should return false for a ServerError without GraphQL errors in its body', () => {
+        expect(dataSource.isPageOutOfRangeError(serverError(502, '<html>Bad Gateway</html>'))).toBe(false);
+        expect(dataSource.isPageOutOfRangeError(serverError(500, { errors: [OTHER_ENTRY] }))).toBe(false);
+        expect(dataSource.isPageOutOfRangeError(serverError(401, ''))).toBe(false);
+      });
     });
 
-    it('should return false for non-GraphQL errors', () => {
-      expect(dataSource.isPageOutOfRangeError(new Error('network down'))).toBe(false);
-      expect(dataSource.isPageOutOfRangeError(null)).toBe(false);
-      expect(dataSource.isPageOutOfRangeError(undefined)).toBe(false);
-      expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [] })).toBe(false);
-      expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [{}] })).toBe(false);
+    describe('negative cases', () => {
+      it('should return false for other GraphQL errors', () => {
+        expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [OTHER_ENTRY] })).toBe(false);
+        expect(dataSource.isPageOutOfRangeError(new CombinedGraphQLErrors({ data: null, errors: [OTHER_ENTRY] }))).toBe(false);
+      });
+
+      it('should not treat the generic ASSET1002 code alone as out of range', () => {
+        expect(dataSource.isPageOutOfRangeError({ errors: [{ extensions: { code: 'ASSET1002' } }] })).toBe(false);
+      });
+
+      it('should return false for network errors without GraphQL errors', () => {
+        expect(dataSource.isPageOutOfRangeError(new Error('network down'))).toBe(false);
+        expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [], networkError: new Error('network down') })).toBe(false);
+      });
+
+      it('should return false for empty and missing values', () => {
+        expect(dataSource.isPageOutOfRangeError(null)).toBe(false);
+        expect(dataSource.isPageOutOfRangeError(undefined)).toBe(false);
+        expect(dataSource.isPageOutOfRangeError('INCOMPLETE_SLICE')).toBe(false);
+        expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [] })).toBe(false);
+        expect(dataSource.isPageOutOfRangeError({ graphQLErrors: [{}] })).toBe(false);
+        expect(dataSource.isPageOutOfRangeError({ errors: [null, 'x', { extensions: null }] })).toBe(false);
+      });
+
+      it('should stop on cyclic error objects', () => {
+        const cyclic: Record<string, unknown> = { message: 'cyclic' };
+        cyclic['networkError'] = cyclic;
+        expect(dataSource.isPageOutOfRangeError(cyclic)).toBe(false);
+      });
     });
   });
 

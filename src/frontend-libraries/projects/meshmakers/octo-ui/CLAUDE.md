@@ -621,7 +621,14 @@ export class CustomerDataSourceDirective extends OctoGraphQlDataSource<CustomerD
 server's rejection of a page window beyond the result set (e.g. a persisted page offset
 combined with filters that now match fewer rows). `MmListViewDataBindingDirective` uses it
 to recover by resetting to page 1 and refetching once instead of silently keeping the
-previous rows on screen. Data sources whose own bar/quick-view filters changed must refetch
+previous rows on screen. Detection is structural (no `instanceof`, AB#8804) and reads every
+shape a failed Apollo call comes in: Apollo 4 `CombinedGraphQLErrors.errors`, Apollo 3
+`graphQLErrors` and `networkError.result.errors`, an Apollo 4 `ServerError` whose JSON
+`bodyText` carries the errors (non-2xx answer with `application/json`), a raw array or a single
+GraphQL error. Only `INCOMPLETE_SLICE` (in `extensions.code` or `extensions.codes`) counts —
+the asset repository sends it next to the generic `ASSET1002`, which alone means nothing here.
+Until AB#8804 the check read only `graphQLErrors`, so the recovery never ran on Apollo 4.
+Data sources whose own bar/quick-view filters changed must refetch
 with `fetchAgain({ resetSkip: true })` so the page resets up front (see the shared-ui
 server-binding invariants).
 
