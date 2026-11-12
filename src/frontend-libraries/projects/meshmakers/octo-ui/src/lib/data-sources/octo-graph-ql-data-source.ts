@@ -8,6 +8,12 @@ import {DataSourceTyped, ListViewComponent} from '@meshmakers/shared-ui';
 import {FilterOperator, isCompositeFilterDescriptor} from '@progress/kendo-data-query';
 import {State} from '@progress/kendo-data-query/dist/npm/state';
 
+/** Error code the asset repository adds when a page window lies beyond the result set. */
+const INCOMPLETE_SLICE_CODE = 'INCOMPLETE_SLICE';
+
+/** Guard against cyclic or deeply nested error objects. */
+const MAX_ERROR_NESTING = 4;
+
 // noinspection JSUnusedGlobalSymbols
 export abstract class OctoGraphQlDataSource<TDto> extends DataSourceTyped<TDto | null> {
 
@@ -31,19 +37,76 @@ export abstract class OctoGraphQlDataSource<TDto> extends DataSourceTyped<TDto |
    * combined with filters that now match fewer rows). Reporting it here lets
    * MmListViewDataBindingDirective recover by resetting to page 1 instead of
    * silently keeping the previous rows on screen.
+   *
+   * The asset repository reports the error as `extensions.code = 'ASSET1002'`
+   * with `extensions.codes = ['ASSET1002', 'INCOMPLETE_SLICE']`. ASSET1002 is
+   * the generic GraphQL error code of the asset repository, so only
+   * INCOMPLETE_SLICE (in `code` or `codes`) marks a page out of range.
+   *
+   * Detection is structural (no `instanceof`) and accepts every shape a failed
+   * Apollo call comes in: Apollo 4 `CombinedGraphQLErrors` (`errors`), Apollo 3
+   * `ApolloError` (`graphQLErrors`, or `networkError.result.errors`), an Apollo 4
+   * `ServerError` whose JSON `bodyText` holds the GraphQL errors (non-2xx answer
+   * with media type `application/json`), a raw array of GraphQL errors or a
+   * single GraphQL error.
    */
   public override isPageOutOfRangeError(error: unknown): boolean {
-    const graphQLErrors = (error as {
-      graphQLErrors?: readonly { extensions?: Record<string, unknown> }[]
-    })?.graphQLErrors;
-    if (!graphQLErrors) {
-      return false;
-    }
-    return graphQLErrors.some((e) => {
-      const extensions = e?.extensions;
+    return OctoGraphQlDataSource.graphQlErrorEntries(error, 0).some((entry) => {
+      const extensions = OctoGraphQlDataSource.asRecord(entry['extensions']);
       const codes = Array.isArray(extensions?.['codes']) ? extensions['codes'] : [];
-      return codes.includes('INCOMPLETE_SLICE') || extensions?.['code'] === 'INCOMPLETE_SLICE';
+      return codes.includes(INCOMPLETE_SLICE_CODE) || extensions?.['code'] === INCOMPLETE_SLICE_CODE;
     });
+  }
+
+  private static asRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : null;
+  }
+
+  private static graphQlErrorEntries(error: unknown, depth: number): Record<string, unknown>[] {
+    if (depth > MAX_ERROR_NESTING) {
+      return [];
+    }
+    if (Array.isArray(error)) {
+      return error
+        .map((e) => OctoGraphQlDataSource.asRecord(e))
+        .filter((e): e is Record<string, unknown> => e !== null);
+    }
+    const candidate = OctoGraphQlDataSource.asRecord(error);
+    if (!candidate) {
+      return [];
+    }
+    if (Array.isArray(candidate['errors'])) {
+      return OctoGraphQlDataSource.graphQlErrorEntries(candidate['errors'], depth + 1);
+    }
+    const entries: Record<string, unknown>[] = [];
+    if (Array.isArray(candidate['graphQLErrors'])) {
+      entries.push(...OctoGraphQlDataSource.graphQlErrorEntries(candidate['graphQLErrors'], depth + 1));
+    }
+    // Apollo 3 network error (`ApolloError.networkError`) and its parsed body (`ServerError.result`).
+    for (const key of ['networkError', 'result']) {
+      if (candidate[key] !== undefined) {
+        entries.push(...OctoGraphQlDataSource.graphQlErrorEntries(candidate[key], depth + 1));
+      }
+    }
+    // Apollo 4 `ServerError`: only the raw body text is kept.
+    if (typeof candidate['bodyText'] === 'string') {
+      entries.push(...OctoGraphQlDataSource.graphQlErrorEntries(
+        OctoGraphQlDataSource.parseJson(candidate['bodyText']), depth + 1));
+    }
+    if (entries.length === 0 && candidate['extensions'] !== undefined) {
+      entries.push(candidate);
+    }
+    return entries;
+  }
+
+  private static parseJson(text: string): unknown {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
   }
 
   // noinspection JSUnusedGlobalSymbols

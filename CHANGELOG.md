@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui: list views return to page 1 on page-out-of-range errors again (AB#8804)
+
+- Fix: `OctoGraphQlDataSource.isPageOutOfRangeError` reads Apollo 4 errors. A `mm-list-view` on page 2 or later whose
+  next query is refused with ASSET1002 / INCOMPLETE_SLICE (the result shrank below the page offset) loads page 1 once
+  and shows its rows instead of staying on the empty page. Before, the check read only the Apollo 3 `graphQLErrors`
+  and never matched the `CombinedGraphQLErrors` of Apollo Client 4, so the recovery did not run in any app.
+- The check is structural and accepts `CombinedGraphQLErrors.errors`, `graphQLErrors`, `networkError.result.errors`,
+  a `ServerError` whose JSON body carries the errors, a raw error array or a single error. Only `INCOMPLETE_SLICE`
+  (`extensions.code` or `extensions.codes`) counts. No API change.
+
 ### octo-meshboard: table widget returns to page 1 when its inputs change (AB#8801)
 
 - Fix: a table widget on page 2 or later returns to page 1 when a MeshBoard variable used by its filters, the time
