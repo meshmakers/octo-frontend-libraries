@@ -111,20 +111,31 @@ describe('OctoGraphQlDataSource — page-out-of-range recovery through mm-list-v
     flush();
   }));
 
-  it('does not loop when page 1 itself fails', fakeAsync(() => {
+  it('retries page 1 only once when the page-1 retry fails as well', fakeAsync(() => {
     tick();
     const dataSource = fixture.componentInstance.dataSource;
-    dataSource.total = 0;
-    vi.spyOn(dataSource, 'fetchData').mockReturnValue(throwError(() => new CombinedGraphQLErrors({
-      data: null,
-      errors: [{ message: 'An error occurred', extensions: { code: 'INCOMPLETE_SLICE' } }]
-    })));
+
+    grid.pageChange.emit({ skip: 10, take: 10 });
+    fixture.detectChanges();
+    tick();
+    expect(dataSource.skips.at(-1)).toBe(10);
+
+    // Every further request is refused, the page-2 refetch and its page-1 retry alike.
+    const requested: number[] = [];
+    vi.spyOn(dataSource, 'fetchData').mockImplementation((options: FetchDataOptions) => {
+      requested.push(options.state.skip ?? 0);
+      return throwError(() => new CombinedGraphQLErrors({
+        data: null,
+        errors: [{ message: 'An error occurred', extensions: { code: 'INCOMPLETE_SLICE' } }]
+      }));
+    });
 
     dataSource.fetchAgain();
     fixture.detectChanges();
     tick();
 
-    expect(dataSource.fetchData).toHaveBeenCalledTimes(1);
+    expect(requested).toEqual([10, 0]);
+    expect(grid.skip).toBe(0);
     flush();
   }));
 });
