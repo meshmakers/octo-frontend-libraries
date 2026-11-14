@@ -76,8 +76,14 @@ export class OperationProgressWindowComponent extends DialogContentBase implemen
     this.ref.close();
   }
 
+  /**
+   * Runs the host's download. The host owns the failure handling (it shows its own message); a rejection that slips
+   * through is logged here so it never becomes an unhandled rejection.
+   */
   protected download(): void {
-    void this.onDownload?.();
+    Promise.resolve()
+      .then(() => this.onDownload?.())
+      .catch(error => console.error('Operation download failed', error));
   }
 
   /** Closes the window and lets the host start the operation again (the host opens a new window). */

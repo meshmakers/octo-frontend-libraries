@@ -10,7 +10,8 @@ State, progress and outcome of one long-running operation — today an asynchron
 - `OperationProgressWindowService.open({ title, view: Observable<OperationProgressView>, onDownload?, onStartNew?,
   onOpenOperations?, messages? })` — a closable dialog around it (Close, Download, Start again). Closing never cancels the
   operation; follow it only while the window is open (`dialogRef.result`). Unlike `ProgressWindowService` the window stays
-  open after the operation finished, so the user can download or read the error.
+  open after the operation finished, so the user can download or read the error. `onDownload` owns its failure
+  handling (show a message); the window only logs a rejection that reaches it.
 
 ```ts
 const view = operations.follow(id, { retryAfterSeconds }).pipe(/* map to OperationProgressView, e.g. toOperationProgressView */);

@@ -165,6 +165,27 @@ describe('CkMethodOperationService (AB#8448)', () => {
     expect(done()).toBe(true);
   });
 
+  it('stops polling on a permanent read error (GraphQL refusal or HTTP 403) instead of retrying', async () => {
+    fetch.mockReturnValue(throwError(() => ({ errors: [{ message: 'refused', extensions: { code: 'OPERATION_QUERY_REFUSED' } }] })));
+    const events: CkMethodOperationEvent[] = [];
+    const { done } = collect(events);
+    await vi.advanceTimersByTimeAsync(120_000);
+    expect(events.map(e => e.kind)).toEqual(['readFailed']);
+    expect(done()).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    expect(CkMethodOperationService.isTransientError({ statusCode: 403 })).toBe(false);
+    expect(CkMethodOperationService.isTransientError({ status: 404 })).toBe(false);
+  });
+
+  it('treats network errors, 0, 408, 429 and 5xx as transient', () => {
+    expect(CkMethodOperationService.isTransientError(new Error('Failed to fetch'))).toBe(true);
+    expect(CkMethodOperationService.isTransientError({ status: 0 })).toBe(true);
+    expect(CkMethodOperationService.isTransientError({ statusCode: 503 })).toBe(true);
+    expect(CkMethodOperationService.isTransientError({ status: 429 })).toBe(true);
+    expect(CkMethodOperationService.isTransientError({ status: 408 })).toBe(true);
+  });
+
   it('recognises a lost handler only for METHOD_OUTCOME_UNKNOWN with reason handler-lost', () => {
     const lost = operation(CkMethodOperationStateDto.FailedDto, {
       error: { code: 'METHOD_OUTCOME_UNKNOWN', parameters: [{ name: 'reason', value: 'handler-lost' }], details: [] }

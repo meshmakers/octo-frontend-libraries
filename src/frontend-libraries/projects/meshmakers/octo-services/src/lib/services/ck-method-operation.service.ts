@@ -54,8 +54,13 @@ export type CkMethodOperationEvent =
   | { kind: 'update'; operation: CkMethodOperationItem }
   /** The operation id is unknown, expired or not readable; following stops. */
   | { kind: 'notFound'; operationId: string }
-  /** A read failed (network, server); the next try follows after `retryInMs`. */
-  | { kind: 'connectionLost'; error: unknown; retryInMs: number };
+  /** A read failed transiently (network, timeout, 5xx, 429); the next try follows after `retryInMs`. */
+  | { kind: 'connectionLost'; error: unknown; retryInMs: number }
+  /**
+   * A read failed permanently (a GraphQL error other than `OPERATION_NOT_FOUND`, e.g. a refused query, or an HTTP 4xx
+   * answer); following stops, because another read would fail the same way.
+   */
+  | { kind: 'readFailed'; error: unknown };
 
 /** Options of {@link CkMethodOperationService.follow}. */
 export interface CkMethodOperationFollowOptions {
@@ -97,7 +102,8 @@ export const CK_METHOD_OPERATION_POLLING = new InjectionToken<CkMethodOperationP
  * - {@link listOperations} — the caller's operations (or, with `allOwners`, every caller's — tenant administrators).
  * - {@link follow} — polls one operation until it is final, not found any more, or the subscriber unsubscribes.
  *   The interval follows the handle's `retryAfterSeconds` (at least {@link CkMethodOperationPollingOptions.minIntervalMs});
- *   failed reads back off exponentially up to {@link CkMethodOperationPollingOptions.maxBackoffMs}. There is no time
+ *   transiently failed reads (network, 5xx, 408, 429) back off exponentially up to
+ *   {@link CkMethodOperationPollingOptions.maxBackoffMs}; a permanent failure (GraphQL error, other 4xx) ends with `readFailed`. There is no time
  *   limit: the state of the operation decides when following ends.
  *
  * Reads run with {@link OCTO_SILENT_ERRORS}: a failed read never raises a toast, the caller shows the state itself
@@ -128,6 +134,28 @@ export class CkMethodOperationService {
   /** True when the error is the GraphQL error `OPERATION_NOT_FOUND`. */
   static isNotFoundError(error: unknown): boolean {
     return graphQlErrorCodes(error).includes(OPERATION_NOT_FOUND_CODE);
+  }
+
+  /**
+   * True for a read failure worth retrying: no answer at all (network error, status 0), a timeout (408), throttling
+   * (429) or a server error (5xx). GraphQL errors in a 200 answer and other HTTP 4xx answers are permanent.
+   * Structural on purpose (no `instanceof`): Apollo 4 `ServerError` (`statusCode`), `HttpErrorResponse` (`status`),
+   * `CombinedGraphQLErrors` (`errors`).
+   */
+  static isTransientError(error: unknown): boolean {
+    const record = typeof error === 'object' && error !== null ? (error as Record<string, unknown>) : null;
+    if (!record) {
+      return true;
+    }
+    if (Array.isArray(record['errors']) || Array.isArray(record['graphQLErrors'])) {
+      return false;
+    }
+    const status = typeof record['statusCode'] === 'number' ? record['statusCode']
+      : typeof record['status'] === 'number' ? record['status'] : null;
+    if (status === null || status === 0) {
+      return true;
+    }
+    return status >= 500 || status === 408 || status === 429;
   }
 
   /**
@@ -203,6 +231,11 @@ export class CkMethodOperationService {
           if (stopped) return;
           if (error instanceof CkMethodOperationNotFoundError) {
             subscriber.next({ kind: 'notFound', operationId });
+            subscriber.complete();
+            return;
+          }
+          if (!CkMethodOperationService.isTransientError(error)) {
+            subscriber.next({ kind: 'readFailed', error });
             subscriber.complete();
             return;
           }

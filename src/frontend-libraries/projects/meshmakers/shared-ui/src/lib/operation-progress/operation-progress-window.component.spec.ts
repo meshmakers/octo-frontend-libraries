@@ -32,6 +32,16 @@ describe('OperationProgressWindowComponent (AB#8448)', () => {
     expect(onDownload).toHaveBeenCalledTimes(1);
   });
 
+  it('logs a rejected host download instead of leaving an unhandled rejection', async () => {
+    const onDownload = vi.fn().mockRejectedValue(new Error('offline'));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { el } = create({ status: 'succeeded', methodLabel: 'Tenant backup', canDownload: true }, c => c.onDownload = onDownload);
+    (el.querySelector('[data-download]') as HTMLButtonElement).click();
+    await new Promise(resolve => setTimeout(resolve));
+    expect(onDownload).toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith('Operation download failed', expect.any(Error));
+  });
+
   it('closes on Close without any cancel action', () => {
     const { el, close } = create({ status: 'running', methodLabel: 'Tenant backup' });
     const labels = Array.from(el.querySelectorAll('button')).map(b => b.textContent?.trim());

@@ -344,14 +344,15 @@ stays escaped.
 Reads and follows the operations of **asynchronous CK methods** (`execution.mode: async`) through
 `runtime.operations` of the tenant GraphQL endpoint (AB#8444). Document: `graphQL/getCkMethodOperations.graphql`
 (the `CkMethodOperation*` types and `RuntimeModelQuery.operations` were added to `schema.graphql` surgically from a
-local asset repository introspection). Reads use `fetchPolicy: 'no-cache'` and `OCTO_SILENT_ERRORS` — the caller shows
+local asset repository introspection, 2026-11-14, asset repository `main` with AB#8444; they are static asset-repository
+GraphQL types, not part of a CK model, so they carry no CK model version). Reads use `fetchPolicy: 'no-cache'` and `OCTO_SILENT_ERRORS` — the caller shows
 the state, so an expired operation or a network outage never loops error toasts.
 
 | Member | Description |
 |--------|-------------|
 | `getOperation(operationId)` | One operation; `OPERATION_NOT_FOUND` (unknown, expired after 7 days, or foreign) throws `CkMethodOperationNotFoundError` |
 | `listOperations({ allOwners?, methodId?, state?, since?, skip?, take? })` | One page, newest accepted first. `allOwners` = every caller's operations (tenant administrators, `AdminPanelManagement`) |
-| `follow(operationId, { retryAfterSeconds? })` | Observable of `update` / `notFound` / `connectionLost` events. First read after `retryAfterSeconds` of the handle (at once without one, e.g. after a reload), then every `max(retryAfterSeconds, 2 s)` (default 5 s); failed reads back off exponentially up to 60 s (`CK_METHOD_OPERATION_POLLING` overrides the limits). Completes on SUCCEEDED / FAILED and on `notFound`; unsubscribing stops polling. **No time limit** — the state decides |
+| `follow(operationId, { retryAfterSeconds? })` | Observable of `update` / `notFound` / `connectionLost` / `readFailed` events. First read after `retryAfterSeconds` of the handle (at once without one, e.g. after a reload), then every `max(retryAfterSeconds, 2 s)` (default 5 s). Transient read failures (network, status 0, 408, 429, 5xx — `isTransientError`) back off exponentially up to 60 s (`connectionLost`); a permanent one (GraphQL error, other 4xx) ends with `readFailed`. `CK_METHOD_OPERATION_POLLING` overrides the limits. Completes on SUCCEEDED / FAILED, `notFound` and `readFailed`; unsubscribing stops polling. **No time limit** — the state decides |
 | `CkMethodOperationService.isFinal(state)`, `isHandlerLost(op)`, `parameter(list, name)`, `isNotFoundError(error)` | Helpers; a lost handler is `FAILED` + `METHOD_OUTCOME_UNKNOWN` + `reason = handler-lost` (never re-run by the platform) |
 
 `ck-method-operation-view.ts` maps an operation to the `OperationProgressView` of `mm-operation-progress`

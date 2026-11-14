@@ -11,7 +11,10 @@ export interface OperationProgressWindowConfig {
   title: string;
   /** The live state; the window renders every emission. The host stops following when the window closes. */
   view: Observable<OperationProgressView>;
-  /** Download of a succeeded operation (button shown when the view says `canDownload`). */
+  /**
+   * Download of a succeeded operation (button shown when the view says `canDownload`). The host handles its own
+   * failures (e.g. a toast); the window only logs a rejection that reaches it.
+   */
   onDownload?: () => void | Promise<void>;
   /** "Start again" of a failed or lost operation (button shown when the view says `canStartNew`). */
   onStartNew?: () => void;
