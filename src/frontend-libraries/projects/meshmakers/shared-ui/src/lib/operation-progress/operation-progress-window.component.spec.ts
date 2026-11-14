@@ -42,6 +42,13 @@ describe('OperationProgressWindowComponent (AB#8448)', () => {
     expect(log).toHaveBeenCalledWith('Operation download failed', expect.any(Error));
   });
 
+  it('calls the host download synchronously within the click', () => {
+    const onDownload = vi.fn();
+    const { el } = create({ status: 'succeeded', methodLabel: 'Tenant backup', canDownload: true }, c => c.onDownload = onDownload);
+    (el.querySelector('[data-download]') as HTMLButtonElement).click();
+    expect(onDownload).toHaveBeenCalledTimes(1);
+  });
+
   it('closes on Close without any cancel action', () => {
     const { el, close } = create({ status: 'running', methodLabel: 'Tenant backup' });
     const labels = Array.from(el.querySelectorAll('button')).map(b => b.textContent?.trim());

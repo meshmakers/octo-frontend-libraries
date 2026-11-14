@@ -81,9 +81,12 @@ export class OperationProgressWindowComponent extends DialogContentBase implemen
    * through is logged here so it never becomes an unhandled rejection.
    */
   protected download(): void {
-    Promise.resolve()
-      .then(() => this.onDownload?.())
-      .catch(error => console.error('Operation download failed', error));
+    // Called synchronously, inside the click, so the host's download keeps the user gesture.
+    try {
+      void Promise.resolve(this.onDownload?.()).catch(error => console.error('Operation download failed', error));
+    } catch (error) {
+      console.error('Operation download failed', error);
+    }
   }
 
   /** Closes the window and lets the host start the operation again (the host opens a new window). */
