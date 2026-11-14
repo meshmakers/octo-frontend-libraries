@@ -1,0 +1,128 @@
+// mm-operation-progress (AB#8448): theme / Kendo CSS variables only, no hard-coded colours.
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--theme-space-3, 12px);
+  min-width: 0;
+  color: var(--kendo-color-on-app-surface);
+}
+
+.mm-operation-progress__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--theme-space-2, 8px) var(--theme-space-4, 16px);
+  margin: 0;
+}
+
+.mm-operation-progress__fact {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  dt {
+    font-size: 0.85em;
+    color: var(--kendo-color-subtle);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.mm-operation-progress__state {
+  font-weight: 600;
+}
+
+:host([data-status='succeeded']) .mm-operation-progress__state {
+  color: var(--kendo-color-success);
+}
+
+:host([data-status='failed']) .mm-operation-progress__state {
+  color: var(--kendo-color-error);
+}
+
+:host([data-status='outcomeUnknown']) .mm-operation-progress__state {
+  color: var(--kendo-color-warning);
+}
+
+.mm-operation-progress__running {
+  display: flex;
+  flex-direction: column;
+  gap: var(--theme-space-2, 8px);
+}
+
+.mm-operation-progress__bar {
+  width: 100%;
+}
+
+.mm-operation-progress__stage,
+.mm-operation-progress__hint,
+.mm-operation-progress__connection {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.mm-operation-progress__hint {
+  font-size: 0.9em;
+  color: var(--kendo-color-subtle);
+}
+
+.mm-operation-progress__connection {
+  color: var(--kendo-color-warning);
+}
+
+.mm-operation-progress__outcome {
+  padding: var(--theme-space-3, 12px);
+  border-radius: var(--kendo-border-radius-md, 4px);
+  border-inline-start: 4px solid var(--kendo-color-border);
+  overflow-wrap: anywhere;
+
+  p {
+    margin: 0 0 var(--theme-space-1, 4px);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.mm-operation-progress__outcome-title {
+  font-weight: 600;
+}
+
+.mm-operation-progress__outcome--success {
+  border-inline-start-color: var(--kendo-color-success);
+  background: var(--kendo-color-success-subtle);
+  color: var(--kendo-color-success-on-subtle);
+}
+
+.mm-operation-progress__outcome--error {
+  border-inline-start-color: var(--kendo-color-error);
+  background: var(--kendo-color-error-subtle);
+  color: var(--kendo-color-error-on-subtle);
+}
+
+.mm-operation-progress__outcome--warning {
+  border-inline-start-color: var(--kendo-color-warning);
+  background: var(--kendo-color-warning-subtle);
+  color: var(--kendo-color-warning-on-subtle);
+}
+
+.mm-operation-progress__outcome--info {
+  border-inline-start-color: var(--kendo-color-info);
+  background: var(--kendo-color-info-subtle);
+  color: var(--kendo-color-info-on-subtle);
+}
+
+.mm-operation-progress__link {
+  align-self: flex-start;
+  padding-inline: 0;
+}
+
+.mm-operation-progress__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--theme-space-2, 8px);
+  justify-content: flex-end;
+}

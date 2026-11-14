@@ -199,6 +199,25 @@ describe('BotService', () => {
     });
   });
 
+  describe('downloadOperationArtifact (AB#8448)', () => {
+    it('downloads the dump of a method operation on the tenant route, never on system/v1/jobs', async () => {
+      const resultPromise = service.downloadOperationArtifact('tenant-1', 'tenant-1/v1/jobs/download?id=job-123');
+      const req = httpMock.expectOne(`${baseUrl}tenant-1/v1/jobs/download?id=job-123`);
+      expect(req.request.method).toBe('GET');
+      expect(req.request.responseType).toBe('blob');
+      expect(req.request.url).not.toContain('system/v1/jobs');
+      req.flush(new Blob(['dump']));
+      expect(await resultPromise).toBeInstanceOf(Blob);
+    });
+
+    it('refuses a download path of another tenant or another endpoint', async () => {
+      await expect(service.downloadOperationArtifact('tenant-1', 'tenant-2/v1/jobs/download?id=job-123')).rejects.toThrow(/Unexpected download path/);
+      await expect(service.downloadOperationArtifact('tenant-1', 'tenant-1/v1/jobs/dump-repository')).rejects.toThrow(/Unexpected download path/);
+      await expect(service.downloadOperationArtifact('tenant-1', 'https://evil.example.com/x')).rejects.toThrow(/Unexpected download path/);
+      httpMock.expectNone(() => true);
+    });
+  });
+
   describe('downloadJobResultBinary', () => {
     it('should download job result as blob', async () => {
       const mockBlob = new Blob(['binary data'], { type: 'application/octet-stream' });

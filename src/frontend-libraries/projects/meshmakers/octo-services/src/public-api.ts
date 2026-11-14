@@ -73,6 +73,7 @@ export * from './lib/graphQL/getCkTypeAvailableQueryColumns';
 export * from './lib/graphQL/getCkTypes';
 export * from './lib/graphQL/getDerivedCkTypes';
 export * from './lib/graphQL/getCkModelById';
+export * from './lib/graphQL/getCkMethodOperations';
 
 // Configuration (Interface and Token for app-specific implementations)
 export * from './lib/services/configuration.service';
@@ -85,6 +86,8 @@ export * from './lib/services/ck-type-selector.service';
 export * from './lib/services/ck-model.service';
 export * from './lib/services/asset-repo.service';
 export * from './lib/services/bot-service';
+export * from './lib/services/ck-method-operation.service';
+export * from './lib/services/ck-method-operation-view';
 export * from './lib/services/bot-secrets.service';
 export * from './lib/services/health.service';
 export * from './lib/services/identity-service';

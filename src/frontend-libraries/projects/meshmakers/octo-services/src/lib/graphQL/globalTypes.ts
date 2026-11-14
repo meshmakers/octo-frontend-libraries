@@ -6752,6 +6752,98 @@ export enum CkExtensionUpdateOperationsDto {
   InsertDto = 'INSERT'
 }
 
+/** An operation of an asynchronous CK method: state, progress and the result or error. */
+export type CkMethodOperationDto = {
+  __typename?: 'CkMethodOperation';
+  /** Time (UTC) the operation was accepted. */
+  acceptedAtUtc: Scalars['DateTime']['output'];
+  /** Time (UTC) the operation became final. */
+  completedAtUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Error of a FAILED operation. */
+  error?: Maybe<CkMethodOperationErrorDto>;
+  /** Time (UTC) after which the operation is forgotten (completion plus the retention); null while it is open. */
+  expiresAtUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Id of the invocation that started the operation (correlation with the handler log). */
+  invocationId: Scalars['ID']['output'];
+  /** Qualified, model-version-less id of the method, e.g. 'System.Bot/Tenant.Dump-1'. */
+  methodId: Scalars['String']['output'];
+  /** Opaque id of the operation (the handle). */
+  operationId: Scalars['ID']['output'];
+  /** Last progress report; null when the handler reported none. */
+  progress?: Maybe<CkMethodOperationProgressDto>;
+  /** Result of a SUCCEEDED operation of a method with a result, in the JSON form of the method result; always null for a result the CK model marks sensitive. */
+  result?: Maybe<Scalars['SimpleScalar']['output']>;
+  /** Time (UTC) the handler started the work. */
+  startedAtUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Current state. */
+  state: CkMethodOperationStateDto;
+};
+
+/** A page of operations of asynchronous CK methods (runtime.operations), newest accepted first. */
+export type CkMethodOperationConnectionDto = {
+  __typename?: 'CkMethodOperationConnection';
+  /** The operations of the page. */
+  items: Array<CkMethodOperationDto>;
+  /** Number of operations that match the filter, ignoring skip and take. */
+  totalCount: Scalars['Int']['output'];
+};
+
+/** Error of a failed operation: a stable code (platform code METHOD_* or a code the method declares) with language-neutral parameters. METHOD_OUTCOME_UNKNOWN with reason handler-lost means the handler stopped before it finished; the operation is never started again. */
+export type CkMethodOperationErrorDto = {
+  __typename?: 'CkMethodOperationError';
+  code: Scalars['String']['output'];
+  /** Optional detail entries (empty when there are none). */
+  details: Array<CkMethodOperationErrorDetailDto>;
+  /** Parameters of the error, sorted by name. */
+  parameters: Array<CkMethodOperationParameterDto>;
+};
+
+/** Detail entry of an operation error. */
+export type CkMethodOperationErrorDetailDto = {
+  __typename?: 'CkMethodOperationErrorDetail';
+  code: Scalars['String']['output'];
+  parameters: Array<CkMethodOperationParameterDto>;
+};
+
+/** Handle of an accepted call of an asynchronous CK method. Read the state, progress and result with runtime.operations(operationId). */
+export type CkMethodOperationHandleDto = {
+  __typename?: 'CkMethodOperationHandle';
+  /** Time (UTC) the operation was accepted. */
+  acceptedAtUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Time (UTC) after which the platform may forget the operation; null while it is open. */
+  expiresAtUtc?: Maybe<Scalars['DateTime']['output']>;
+  /** Opaque id of the operation, unique in the tenant. */
+  operationId: Scalars['ID']['output'];
+  /** Suggested delay before the first status check, in seconds. */
+  retryAfterSeconds?: Maybe<Scalars['Int']['output']>;
+};
+
+/** A language-neutral parameter (name and string value). */
+export type CkMethodOperationParameterDto = {
+  __typename?: 'CkMethodOperationParameter';
+  name: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
+/** Progress of a running operation: an optional percentage and a language-neutral stage code with parameters (no message text; the client renders it in its own language). */
+export type CkMethodOperationProgressDto = {
+  __typename?: 'CkMethodOperationProgress';
+  /** Parameters of the stage, sorted by name. */
+  parameters: Array<CkMethodOperationParameterDto>;
+  /** Done in percent (0 to 100); null when the handler cannot tell. */
+  percent?: Maybe<Scalars['Int']['output']>;
+  /** Stable stage code (UPPER_SNAKE_CASE), e.g. COPYING_COLLECTIONS; null when not reported. */
+  stageCode?: Maybe<Scalars['String']['output']>;
+};
+
+/** State of an operation of an asynchronous CK method: ACCEPTED and RUNNING are open, SUCCEEDED and FAILED are final (a final operation never changes again). */
+export enum CkMethodOperationStateDto {
+  AcceptedDto = 'ACCEPTED',
+  FailedDto = 'FAILED',
+  RunningDto = 'RUNNING',
+  SucceededDto = 'SUCCEEDED'
+}
+
 /** A construction kit model */
 export type CkModelDto = {
   __typename?: 'CkModel';
@@ -25089,6 +25181,8 @@ export type RuntimeModelQueryDto = {
   octoSdkDemoCustomer?: Maybe<OctoSdkDemoCustomerConnectionDto>;
   octoSdkDemoMeteringPoint?: Maybe<OctoSdkDemoMeteringPointConnectionDto>;
   octoSdkDemoOperatingFacility?: Maybe<OctoSdkDemoOperatingFacilityConnectionDto>;
+  /** Operations of asynchronous CK methods (the handles returned by their mutations): state, progress and the result or error. With operationId: that operation, readable by the caller who started it and by tenant administrators; an unknown, expired or foreign id is OPERATION_NOT_FOUND. Without: the caller's own operations, newest first; allOwners: true lists every caller's operations of the tenant (tenant administrators only, otherwise OPERATION_QUERY_REFUSED). Operations are kept 7 days after completion by default. */
+  operations?: Maybe<CkMethodOperationConnectionDto>;
   runtimeEntities?: Maybe<RtEntityGenericDtoConnectionDto>;
   runtimeQuery?: Maybe<RtQueryDtoConnectionDto>;
   systemAggregationRtQuery?: Maybe<SystemAggregationRtQueryConnectionDto>;
@@ -26168,6 +26262,17 @@ export type RuntimeModelQueryOctoSdkDemoOperatingFacilityArgsDto = {
   rtIds?: InputMaybe<Array<InputMaybe<Scalars['OctoObjectId']['input']>>>;
   searchFilter?: InputMaybe<SearchFilterDto>;
   sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
+};
+
+
+export type RuntimeModelQueryOperationsArgsDto = {
+  allOwners?: InputMaybe<Scalars['Boolean']['input']>;
+  methodId?: InputMaybe<Scalars['String']['input']>;
+  operationId?: InputMaybe<Scalars['ID']['input']>;
+  since?: InputMaybe<Scalars['DateTime']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  state?: InputMaybe<CkMethodOperationStateDto>;
+  take?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
