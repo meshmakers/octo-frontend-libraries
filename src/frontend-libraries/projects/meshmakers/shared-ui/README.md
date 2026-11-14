@@ -236,6 +236,13 @@ buttons, toasts or errors): see [OctoBot](docs/octobot.md).
 
 Autocomplete input for entity selection with dialog fallback.
 
+### OperationProgressComponent (`mm-operation-progress`) and `OperationProgressWindowService`
+
+State, progress and outcome of one long-running operation (running with a determinate or indeterminate bar,
+succeeded with download and expiry, failed with code and message, outcome unknown, no longer available); no cancel.
+The window service opens it in a closable dialog that stays open after the operation finished (AB#8448). See
+`src/lib/operation-progress/USAGE.md`.
+
 ## Dialog Services
 
 All complex dialogs are opened via injected services:

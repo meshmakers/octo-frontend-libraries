@@ -339,6 +339,35 @@ metadata back. The service now stages uploads under the tenant's own directory. 
 with `buildTusEndpoint(botServicesUrl, tenantId)` rather than concatenating it, so the tenant segment
 stays escaped.
 
+### CkMethodOperationService (AB#8448, Feature F3.6)
+
+Reads and follows the operations of **asynchronous CK methods** (`execution.mode: async`) through
+`runtime.operations` of the tenant GraphQL endpoint (AB#8444). Document: `graphQL/getCkMethodOperations.graphql`
+(the `CkMethodOperation*` types and `RuntimeModelQuery.operations` were added to `schema.graphql` surgically from a
+local asset repository introspection). Reads use `fetchPolicy: 'no-cache'` and `OCTO_SILENT_ERRORS` — the caller shows
+the state, so an expired operation or a network outage never loops error toasts.
+
+| Member | Description |
+|--------|-------------|
+| `getOperation(operationId)` | One operation; `OPERATION_NOT_FOUND` (unknown, expired after 7 days, or foreign) throws `CkMethodOperationNotFoundError` |
+| `listOperations({ allOwners?, methodId?, state?, since?, skip?, take? })` | One page, newest accepted first. `allOwners` = every caller's operations (tenant administrators, `AdminPanelManagement`) |
+| `follow(operationId, { retryAfterSeconds? })` | Observable of `update` / `notFound` / `connectionLost` events. First read after `retryAfterSeconds` of the handle (at once without one, e.g. after a reload), then every `max(retryAfterSeconds, 2 s)` (default 5 s); failed reads back off exponentially up to 60 s (`CK_METHOD_OPERATION_POLLING` overrides the limits). Completes on SUCCEEDED / FAILED and on `notFound`; unsubscribing stops polling. **No time limit** — the state decides |
+| `CkMethodOperationService.isFinal(state)`, `isHandlerLost(op)`, `parameter(list, name)`, `isNotFoundError(error)` | Helpers; a lost handler is `FAILED` + `METHOD_OUTCOME_UNKNOWN` + `reason = handler-lost` (never re-run by the platform) |
+
+`ck-method-operation-view.ts` maps an operation to the `OperationProgressView` of `mm-operation-progress`
+(`@meshmakers/shared-ui`): `toOperationProgressView(operation, registry, { connectionLost?, canDownload?, canStartNew? })`,
+`notAvailableOperationView(label)`, `ckMethodOperationLabel(methodId, registry)`. The host supplies the plain-language
+texts per method id (`CkMethodOperationTextRegistry`: method label, stage codes, declared error codes); unknown codes are
+shown as the code. A SUCCEEDED operation is shown at 100 % (the record keeps the last progress report).
+`CkMethodOperationItem` is the operation type (`CkMethodOperationDto` is the generated schema type).
+
+`BotService.downloadOperationArtifact(tenantId, downloadPath)` downloads the result of the dump method
+`System.Bot/TenantRepository.Dump-1`: the operation result carries `downloadPath = {tenantId}/v1/jobs/download?id={jobId}`
+(tenant route of the job download, never `system/v1/jobs`). Only that path shape for that tenant is accepted.
+
+Job flows that still run on `system/v1/jobs` (`JobManagementService`, `BotService.dumpRepository` for the Child Tenants
+backup, restore, exports) are unchanged until their job types move to async methods (AB#8447, AB#8985).
+
 ### JobManagementService
 
 High-level job management with progress UI.

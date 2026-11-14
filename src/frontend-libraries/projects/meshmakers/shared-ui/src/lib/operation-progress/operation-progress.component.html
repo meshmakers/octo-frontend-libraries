@@ -1,0 +1,94 @@
+@let v = view();
+@let t = text();
+<dl class="mm-operation-progress__facts">
+  <div class="mm-operation-progress__fact">
+    <dt>{{ t.stateLabel }}</dt>
+    <dd class="mm-operation-progress__state" data-state>{{ stateLabel() }}</dd>
+  </div>
+  <div class="mm-operation-progress__fact">
+    <dt>{{ t.methodLabel }}</dt>
+    <dd data-method>{{ v.methodLabel }}</dd>
+  </div>
+  @if (v.startedAt) {
+    <div class="mm-operation-progress__fact">
+      <dt>{{ t.startedLabel }}</dt>
+      <dd data-started>{{ v.startedAt | date: dateFormat }}</dd>
+    </div>
+  }
+  @if (isFinal() && v.completedAt) {
+    <div class="mm-operation-progress__fact">
+      <dt>{{ t.finishedLabel }}</dt>
+      <dd data-finished>{{ v.completedAt | date: dateFormat }}</dd>
+    </div>
+  }
+</dl>
+
+@switch (v.status) {
+  @case ('running') {
+    <div class="mm-operation-progress__running">
+      @if (percent() !== null) {
+        <kendo-progressbar class="mm-operation-progress__bar" data-progress="determinate"
+                           [value]="percent()!" [max]="100" [label]="{ visible: true, format: 'percent' }"
+                           [attr.aria-label]="t.progressLabel" />
+      } @else {
+        <kendo-progressbar class="mm-operation-progress__bar" data-progress="indeterminate"
+                           [indeterminate]="true" [attr.aria-label]="t.progressLabel" />
+      }
+      @if (v.stageText) {
+        <p class="mm-operation-progress__stage" data-stage aria-live="polite">{{ v.stageText }}</p>
+      }
+      <p class="mm-operation-progress__hint">{{ t.runningHint }}</p>
+    </div>
+  }
+  @case ('succeeded') {
+    <div class="mm-operation-progress__outcome mm-operation-progress__outcome--success" role="status" data-outcome>
+      <p class="mm-operation-progress__outcome-title">{{ t.succeededText }}</p>
+      @if (v.expiresAt) {
+        <p data-expires>{{ availableUntilParts().before }}<time>{{ v.expiresAt | date: dateFormat }}</time>{{ availableUntilParts().after }}</p>
+      }
+    </div>
+  }
+  @case ('failed') {
+    <div class="mm-operation-progress__outcome mm-operation-progress__outcome--error" role="alert" data-outcome>
+      <p class="mm-operation-progress__outcome-title">{{ t.failedText }}</p>
+      @if (v.errorCode) {
+        <p><code data-error-code>{{ v.errorCode }}</code></p>
+      }
+      @if (v.errorMessage) {
+        <p data-error-message>{{ v.errorMessage }}</p>
+      }
+    </div>
+  }
+  @case ('outcomeUnknown') {
+    <div class="mm-operation-progress__outcome mm-operation-progress__outcome--warning" role="alert" data-outcome>
+      <p class="mm-operation-progress__outcome-title">{{ t.outcomeUnknown }}</p>
+      <p data-outcome-unknown>{{ v.errorMessage || t.outcomeUnknownText }}</p>
+    </div>
+  }
+  @case ('notAvailable') {
+    <div class="mm-operation-progress__outcome mm-operation-progress__outcome--info" role="status" data-outcome>
+      <p data-not-available>{{ v.errorMessage || t.notAvailableText }}</p>
+    </div>
+  }
+}
+
+@if (v.connectionLost && v.status === 'running') {
+  <p class="mm-operation-progress__connection" role="status" data-connection-lost>{{ t.connectionLost }}</p>
+}
+
+@if (showOperationsLink()) {
+  <button kendoButton type="button" fillMode="flat" themeColor="primary" class="mm-operation-progress__link"
+          data-open-operations (click)="openOperations.emit()">{{ t.openOperations }}</button>
+}
+
+@if (showActions() && ((v.status === 'succeeded' && v.canDownload) || v.canStartNew)) {
+  <div class="mm-operation-progress__actions">
+    @if (v.status === 'succeeded' && v.canDownload) {
+      <button kendoButton type="button" themeColor="primary" data-download (click)="download.emit()">{{ t.download }}</button>
+    }
+    @if (v.canStartNew && (v.status === 'failed' || v.status === 'outcomeUnknown')) {
+      <button kendoButton type="button" [themeColor]="v.status === 'outcomeUnknown' ? 'primary' : 'base'"
+              data-start-new (click)="startNew.emit()">{{ t.startNew }}</button>
+    }
+  </div>
+}

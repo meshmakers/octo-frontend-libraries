@@ -123,6 +123,30 @@ export class BotService {
   }
 
   /**
+   * Downloads the artifact of a dump started through the asynchronous method
+   * `System.Bot/TenantRepository.Dump-1` (AB#8448): the operation result carries the relative
+   * `downloadPath` `{tenantId}/v1/jobs/download?id={jobId}` (the tenant route of the job download,
+   * AB#5070), which is resolved against `botServices`. No request goes to `system/v1/jobs`.
+   *
+   * Only that one path shape is accepted, and only for `tenantId`: the path comes from server data,
+   * so it must not steer the request to any other endpoint or tenant.
+   *
+   * @throws Error when the path is not a job download path of `tenantId`.
+   */
+  public async downloadOperationArtifact(tenantId: string, downloadPath: string): Promise<Blob | null> {
+    const match = /^([^/?#]+)\/v1\/jobs\/download\?id=([^&#/]+)$/.exec(downloadPath);
+    if (!match || decodeURIComponent(match[1]) !== tenantId) {
+      throw new Error(`Unexpected download path '${downloadPath}'.`);
+    }
+    const baseUrl = this.jobsBaseUrlForTenant(tenantId);
+    if (!baseUrl) {
+      return null;
+    }
+    const params = new HttpParams().set('id', decodeURIComponent(match[2]));
+    return await firstValueFrom(this.httpClient.get(baseUrl + 'download', {params, responseType: 'blob'}));
+  }
+
+  /**
    * Polls a job by id. Job ids are not tenant-addressed, so this stays on the system route
    * (AB#5060 moved only the five tenant-securing verbs).
    */
