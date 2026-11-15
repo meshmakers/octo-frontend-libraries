@@ -17,6 +17,29 @@ export const PASSWORD_POLICY_VIOLATION_CODE = 'PASSWORD_POLICY_VIOLATION';
 export const USER_ALREADY_EXISTS_CODE = 'USER_ALREADY_EXISTS';
 /** The user does not exist (or the caller cannot read it). */
 export const METHOD_TARGET_NOT_FOUND_CODE = 'METHOD_TARGET_NOT_FOUND';
+/** A role name of `User.SetRoles` / `AddRole` / `RemoveRole` does not exist (`parameters.roleName`, AB#8863). */
+export const ROLE_NOT_FOUND_CODE = 'ROLE_NOT_FOUND';
+/** `User.AddRole`: the user already has the role (AB#8863). */
+export const ROLE_ALREADY_ASSIGNED_CODE = 'ROLE_ALREADY_ASSIGNED';
+/** `User.RemoveRole`: the user does not have the role (AB#8863). */
+export const ROLE_NOT_ASSIGNED_CODE = 'ROLE_NOT_ASSIGNED';
+/** `User.Merge`: the source user does not exist (AB#8863). */
+export const SOURCE_USER_NOT_FOUND_CODE = 'SOURCE_USER_NOT_FOUND';
+/** `User.Merge`: source and target are the same user (AB#8863). */
+export const CANNOT_MERGE_INTO_ITSELF_CODE = 'CANNOT_MERGE_INTO_ITSELF';
+
+/**
+ * Names of the request a method failure is about (AB#8863). They only fill the readable text of the role and merge codes,
+ * so it equals the text of the REST endpoint the method replaces; a name the server returns in `parameters` wins.
+ */
+export interface IdentityMethodNames {
+  /** The role of `addUserToRole` / `removeRoleFromUser`. */
+  roleName?: string;
+  /** The source user of `mergeUsers`. */
+  sourceUserName?: string;
+  /** Text of `METHOD_TARGET_NOT_FOUND`, when the replaced REST endpoint words it differently from `User 'x' not found.`. */
+  targetNotFoundMessage?: string;
+}
 
 /** One entry of a GraphQL `errors` array, as far as this module reads it. */
 export interface GraphQlErrorEntry {
@@ -43,7 +66,8 @@ export interface IdentityUserFailure {
 }
 
 /**
- * Thrown by the method path of `IdentityService.createUser` / `resetPassword` for a refused call. `message` and the
+ * Thrown by the method path of the `IdentityService` user operations (`createUser`, `resetPassword`, `updateUserRoles`,
+ * `addUserToRole`, `removeRoleFromUser`, `mergeUsers`) for a refused call. `message` and the
  * fields are those of {@link identityUserFailureOf}; the error never carries a request variable (no password).
  */
 export class IdentityMethodError extends Error implements IdentityUserFailure {
@@ -155,9 +179,10 @@ function policyFailure(details: IdentityUserFailureDetail[]): IdentityUserFailur
 /**
  * The {@link IdentityUserFailure} of a refused method call, or `null` when the error is no method refusal.
  *
- * @param userName The user the call was about; only used for the text of {@link METHOD_TARGET_NOT_FOUND_CODE}.
+ * @param userName The user the call was about; used for the texts of {@link METHOD_TARGET_NOT_FOUND_CODE} and the role codes.
+ * @param names Further names of the request for the texts of the role and merge codes (AB#8863).
  */
-export function methodFailureOf(error: unknown, userName?: string): IdentityUserFailure | null {
+export function methodFailureOf(error: unknown, userName?: string, names: IdentityMethodNames = {}): IdentityUserFailure | null {
   const entry = graphQlErrorsOf(error).find(e => typeof e.extensions?.['code'] === 'string');
   if (!entry) {
     return null;
@@ -178,10 +203,41 @@ export function methodFailureOf(error: unknown, userName?: string): IdentityUser
         message: USER_ALREADY_EXISTS_MESSAGES[parameters['field'] ?? ''] ?? USER_ALREADY_EXISTS_MESSAGES['userName']
       };
     case METHOD_TARGET_NOT_FOUND_CODE:
-      return { code, parameters, details: [], message: userNotFoundMessage(userName) };
+      return { code, parameters, details: [], message: names.targetNotFoundMessage ?? userNotFoundMessage(userName) };
+    case ROLE_NOT_FOUND_CODE:
+    case ROLE_ALREADY_ASSIGNED_CODE:
+    case ROLE_NOT_ASSIGNED_CODE:
+    case SOURCE_USER_NOT_FOUND_CODE:
+    case CANNOT_MERGE_INTO_ITSELF_CODE:
+      return { code, parameters, details: [], message: roleOrMergeMessage(code, parameters, userName, names) };
     default:
       // Every other code (METHOD_FORBIDDEN, METHOD_VALIDATION_FAILED, ...) keeps the gateway's language-neutral message.
       return { code, parameters, details: [], message: entry.message ?? code };
+  }
+}
+
+/**
+ * Texts of the role and merge codes, worded like the REST endpoints `PUT/DELETE users/{userName}/roles[/{roleName}]` and
+ * `POST users/{userName}/merge` of the identity service (AB#8863), so a page shows the same text on both paths.
+ */
+function roleOrMergeMessage(
+  code: string,
+  parameters: Record<string, string>,
+  userName: string | undefined,
+  names: IdentityMethodNames
+): string {
+  const roleName = parameters['roleName'] ?? names.roleName ?? '';
+  switch (code) {
+    case ROLE_NOT_FOUND_CODE:
+      return `Role with name '${roleName}' not found.`;
+    case ROLE_ALREADY_ASSIGNED_CODE:
+      return `User '${userName ?? ''}' already has role '${roleName}'`;
+    case ROLE_NOT_ASSIGNED_CODE:
+      return `User '${userName ?? ''}' doesn't have role '${roleName}'`;
+    case SOURCE_USER_NOT_FOUND_CODE:
+      return `Source user '${names.sourceUserName ?? ''}' not found.`;
+    default:
+      return 'Cannot merge a user into itself.';
   }
 }
 

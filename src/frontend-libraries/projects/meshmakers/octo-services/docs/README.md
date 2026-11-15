@@ -371,16 +371,22 @@ async loadClients(): Promise<void> {
 |--------|---------|-------------|
 | `getUsers(skip, take)` | `Promise<PagedResultDto<UserDto> \| null>` | List users |
 | `getUserDetails(userName)` | `Promise<UserDto \| null>` | Get user |
-| `createUser(user)` | `Promise<void>` | Create user |
+| `createUser(user)` | `Promise<void>` | Create user (CK method `User.CreateUser`, REST fallback) |
 | `updateUser(userName, user)` | `Promise<void>` | Update user |
 | `deleteUser(userName)` | `Promise<void>` | Delete user |
 | `getUserRoles(userName)` | `Promise<RoleDto[] \| null>` | Get user's roles |
-| `updateUserRoles(userName, roles)` | `Promise<void>` | Set user's roles |
-| `addUserToRole(userName, roleName)` | `Promise<void>` | Add role to user |
-| `removeRoleFromUser(userName, roleName)` | `Promise<void>` | Remove role |
-| `resetPassword(userName, password)` | `Promise<any>` | Reset password |
+| `updateUserRoles(userName, roles, userRtId?)` | `Promise<void>` | Set user's direct roles (CK method `User.SetRoles`, REST fallback) |
+| `addUserToRole(userName, roleName, userRtId?)` | `Promise<void>` | Add role to user (CK method `User.AddRole`, REST fallback) |
+| `removeRoleFromUser(userName, roleName, userRtId?)` | `Promise<void>` | Remove role (CK method `User.RemoveRole`, REST fallback) |
+| `resetPassword(userName, password)` | `Promise<any>` | Reset password (CK method `User.ResetPassword`, REST fallback) |
 | `generatePassword()` | `Promise<GeneratedPasswordDto \| null>` | Generate password |
-| `mergeUsers(targetUserName, sourceUserName)` | `Promise<void>` | Merge source user into target user |
+| `mergeUsers(targetUserName, sourceUserName, targetUserRtId?)` | `Promise<void>` | Merge source user into target user (CK method `User.Merge`, REST fallback) |
+
+The user methods marked "CK method" run through GraphQL when the host provides Apollo and fall back to the REST
+endpoint on a backend without the method (AB#8864, AB#8863). Pass the user's rtId (`UserDto.userId`) where the
+signature offers it, to save the rtId lookup. A refusal on the method path is an `IdentityMethodError` (`code`,
+`message`, `parameters`) and is **not** toasted: show `error.message` yourself. Details:
+`octo-services/CLAUDE.md`, "Identity user methods and REST fallback".
 
 **Role Management:**
 

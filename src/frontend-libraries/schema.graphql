@@ -85745,6 +85745,19 @@ type SystemIdentityUser implements SystemEntityInterface {
   ): SystemIdentityVerifiedExternalIdentifier_VerifiedExternalIdentifiersUnionConnection
 }
 
+"""Parameters of the CK method 'System.Identity/User.AddRole-1'."""
+input SystemIdentityUserAddRoleMethodInput {
+  roleName: String!
+}
+
+"""
+Result of a successful call of the CK method 'System.Identity/User.AddRole-1'. A failed call is one GraphQL error.
+"""
+type SystemIdentityUserAddRoleMethodResult {
+  """Id of the invocation, for correlation with the handler log."""
+  invocationId: ID!
+}
+
 """
 Runtime entities of construction kit record 'System.Identity/UserClaim'
 """
@@ -85887,7 +85900,37 @@ input SystemIdentityUserLoginInput {
   userId: String
 }
 
+"""Parameters of the CK method 'System.Identity/User.Merge-1'."""
+input SystemIdentityUserMergeMethodInput {
+  """User name of the user that is merged into this one and deleted."""
+  sourceUserName: String!
+}
+
+"""
+Result of a successful call of the CK method 'System.Identity/User.Merge-1'. A failed call is one GraphQL error.
+"""
+type SystemIdentityUserMergeMethodResult {
+  """Id of the invocation, for correlation with the handler log."""
+  invocationId: ID!
+}
+
 type SystemIdentityUserMutations {
+  """
+  Adds one direct role to the user. Calls the CK method 'System.Identity/User.AddRole-1'.
+  """
+  addRole(
+    """
+    Optional idempotency key (at most 128 characters). While the key is within its lifetime (24 hours by default, configured by Methods:Idempotency:Ttl), a second call by the same caller with the same key and the same parameters returns the first result instead of running the method again.
+    """
+    idempotencyKey: String
+
+    """The parameters of the method."""
+    input: SystemIdentityUserAddRoleMethodInput!
+
+    """Runtime id of the target entity."""
+    rtId: OctoObjectId!
+  ): SystemIdentityUserAddRoleMethodResult
+
   """Creates new entities of type 'SystemIdentityUser'."""
   create(entities: [SystemIdentityUserInput]!): [SystemIdentityUser]
 
@@ -85905,6 +85948,38 @@ type SystemIdentityUserMutations {
   ): SystemIdentityUserCreateUserMethodResult
 
   """
+  Moves the external logins of the source user to this user (the target) and deletes the source user. Calls the CK method 'System.Identity/User.Merge-1'.
+  """
+  merge(
+    """
+    Optional idempotency key (at most 128 characters). While the key is within its lifetime (24 hours by default, configured by Methods:Idempotency:Ttl), a second call by the same caller with the same key and the same parameters returns the first result instead of running the method again.
+    """
+    idempotencyKey: String
+
+    """The parameters of the method."""
+    input: SystemIdentityUserMergeMethodInput!
+
+    """Runtime id of the target entity."""
+    rtId: OctoObjectId!
+  ): SystemIdentityUserMergeMethodResult
+
+  """
+  Removes one direct role from the user. Calls the CK method 'System.Identity/User.RemoveRole-1'.
+  """
+  removeRole(
+    """
+    Optional idempotency key (at most 128 characters). While the key is within its lifetime (24 hours by default, configured by Methods:Idempotency:Ttl), a second call by the same caller with the same key and the same parameters returns the first result instead of running the method again.
+    """
+    idempotencyKey: String
+
+    """The parameters of the method."""
+    input: SystemIdentityUserRemoveRoleMethodInput!
+
+    """Runtime id of the target entity."""
+    rtId: OctoObjectId!
+  ): SystemIdentityUserRemoveRoleMethodResult
+
+  """
   An administrator sets a new password without the current one. Lifts a lockout; the user is notified. Calls the CK method 'System.Identity/User.ResetPassword-1'.
   """
   resetPassword(
@@ -85920,8 +85995,37 @@ type SystemIdentityUserMutations {
     rtId: OctoObjectId!
   ): SystemIdentityUserResetPasswordMethodResult
 
+  """
+  Replaces the direct roles of the user by the given role names. Calls the CK method 'System.Identity/User.SetRoles-1'.
+  """
+  setRoles(
+    """
+    Optional idempotency key (at most 128 characters). While the key is within its lifetime (24 hours by default, configured by Methods:Idempotency:Ttl), a second call by the same caller with the same key and the same parameters returns the first result instead of running the method again.
+    """
+    idempotencyKey: String
+
+    """The parameters of the method."""
+    input: SystemIdentityUserSetRolesMethodInput!
+
+    """Runtime id of the target entity."""
+    rtId: OctoObjectId!
+  ): SystemIdentityUserSetRolesMethodResult
+
   """Updates existing entity of type 'SystemIdentityUser'."""
   update(entities: [SystemIdentityUserInputUpdate]!): [SystemIdentityUser]
+}
+
+"""Parameters of the CK method 'System.Identity/User.RemoveRole-1'."""
+input SystemIdentityUserRemoveRoleMethodInput {
+  roleName: String!
+}
+
+"""
+Result of a successful call of the CK method 'System.Identity/User.RemoveRole-1'. A failed call is one GraphQL error.
+"""
+type SystemIdentityUserRemoveRoleMethodResult {
+  """Id of the invocation, for correlation with the handler log."""
+  invocationId: ID!
 }
 
 """Parameters of the CK method 'System.Identity/User.ResetPassword-1'."""
@@ -85934,6 +86038,20 @@ input SystemIdentityUserResetPasswordMethodInput {
 Result of a successful call of the CK method 'System.Identity/User.ResetPassword-1'. A failed call is one GraphQL error.
 """
 type SystemIdentityUserResetPasswordMethodResult {
+  """Id of the invocation, for correlation with the handler log."""
+  invocationId: ID!
+}
+
+"""Parameters of the CK method 'System.Identity/User.SetRoles-1'."""
+input SystemIdentityUserSetRolesMethodInput {
+  """The complete list of direct role names."""
+  roleNames: [String!]!
+}
+
+"""
+Result of a successful call of the CK method 'System.Identity/User.SetRoles-1'. A failed call is one GraphQL error.
+"""
+type SystemIdentityUserSetRolesMethodResult {
   """Id of the invocation, for correlation with the handler log."""
   invocationId: ID!
 }

@@ -169,17 +169,21 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 | `resetPassword(userName, password)` | Reset user password — CK method `User.ResetPassword`, REST fallback (see below) |
 | `getUserRoles(userName)` | Get user's roles (direct + group-inherited) |
 | `getUserDirectRoles(userName)` | Get user's directly assigned roles only |
-| `updateUserRoles(userName, roles)` | Update user's roles |
-| `addUserToRole(userName, roleName)` | Add user to role |
-| `removeRoleFromUser(userName, roleName)` | Remove user from role |
+| `updateUserRoles(userName, roles, userRtId?)` | Replace the user's direct roles — CK method `User.SetRoles`, REST fallback (see below) |
+| `addUserToRole(userName, roleName, userRtId?)` | Add user to role — CK method `User.AddRole`, REST fallback |
+| `removeRoleFromUser(userName, roleName, userRtId?)` | Remove user from role — CK method `User.RemoveRole`, REST fallback |
 
-**Identity user methods and REST fallback** (Feature F5.6 AB#5704; AB#8864 for create and reset; the role and merge
-methods of AB#8863 join this table when they move):
+**Identity user methods and REST fallback** (Feature F5.6 AB#5704; AB#8864 for create and reset, AB#8863 for the
+roles and the merge):
 
 | Library method | CK method (GraphQL) | REST endpoint it replaces | Falls back to REST on |
 |----------------|---------------------|---------------------------|------------------------|
 | `createUser(userDto)` | `System.Identity/User.CreateUser-1` — `runtime.systemIdentityUsers.createUser(input:)` (`graphQL/identityUserCreateUser.graphql`) | `POST {tenant}/v1/users` | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
 | `resetPassword(userName, password)` | `System.Identity/User.ResetPassword-1` — `runtime.systemIdentityUsers.resetPassword(rtId:, input:)` (`graphQL/identityUserResetPassword.graphql`) | `POST {tenant}/v1/users/ResetPassword` | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
+| `updateUserRoles(userName, roles, userRtId?)` | `System.Identity/User.SetRoles-1` — `setRoles(rtId:, input: { roleNames })` (`graphQL/identityUserSetRoles.graphql`) | `PUT {tenant}/v1/users/{userName}/roles` (role ids) | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
+| `addUserToRole(userName, roleName, userRtId?)` | `System.Identity/User.AddRole-1` — `addRole(rtId:, input: { roleName })` (`graphQL/identityUserAddRole.graphql`) | `PUT {tenant}/v1/users/{userName}/roles/{roleName}` | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
+| `removeRoleFromUser(userName, roleName, userRtId?)` | `System.Identity/User.RemoveRole-1` — `removeRole(rtId:, input: { roleName })` (`graphQL/identityUserRemoveRole.graphql`) | `DELETE {tenant}/v1/users/{userName}/roles/{roleName}` | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
+| `mergeUsers(targetUserName, sourceUserName, targetUserRtId?)` | `System.Identity/User.Merge-1` — `merge(rtId:, input: { sourceUserName })` on the target (`graphQL/identityUserMerge.graphql`) | `POST {tenant}/v1/users/{userName}/merge` | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
 
 - **Rule** (`IdentityService.runUserMethod`): the mutation runs with `OCTO_SILENT_ERRORS` (no toast) and
   `fetchPolicy: 'no-cache'` (the Apollo cache never holds the password) and `errorPolicy: 'none'` (pinned, so a host
@@ -196,6 +200,23 @@ methods of AB#8863 join this table when they move):
   `resetPasswordOnLogin: true` uses REST, because the method has no such parameter.
 - `resetPassword` needs the user's rtId: it reads `GET users/{userName}` once (404 → `IdentityMethodError`
   `METHOD_TARGET_NOT_FOUND`, `User '<name>' not found.`, no toast).
+- **Roles and merge** (AB#8863, `IdentityService.runUserTargetMethod`, which `resetPassword` uses too): the methods take the user's **rtId** and **role
+  names**, the REST routes the user name and (for `updateUserRoles`) role ids. Role names come from the passed data
+  (`RoleDto.name`); the rtId is the optional trailing parameter (`UserDto.userId`, the signatures stay source-compatible)
+  or, without it, read once with `GET users/{userName}` (404 → `METHOD_TARGET_NOT_FOUND`). Pass it when you have it: no
+  extra round trip. The fallback is remembered per tenant **and operation**. The REST fallback URLs encode the user and
+  role names (`encodeURIComponent`). Method refusals keep their code
+  (`ROLE_NOT_FOUND`, `ROLE_ALREADY_ASSIGNED`, `ROLE_NOT_ASSIGNED`, `SOURCE_USER_NOT_FOUND`, `CANNOT_MERGE_INTO_ITSELF`,
+  `MERGE_FAILED`, `METHOD_TARGET_NOT_FOUND`, `METHOD_FORBIDDEN` with `parameters.reason` of the role change guard,
+  `METHOD_VALIDATION_FAILED`, ...); for the role and merge codes and `METHOD_TARGET_NOT_FOUND` the text equals the REST
+  text of the replaced endpoint (`Role with name 'x' not found.`, `User 'u' already has role 'r'`, `User 'u' doesn't have
+  role 'r'`, `Source user 'x' not found.`, `Cannot merge a user into itself.`, `User with name 'u' not found.` /
+  `Target user 'u' not found.`); others keep the gateway's message. `identityUserFailureOf` maps only the REST answers of
+  create and reset to codes; REST refusals of the role and merge endpoints stay `HttpErrorResponse` and are toasted by
+  `MmHttpErrorInterceptor` as before.
+- **Differences between the paths (roles)**: REST `addUserToRole` also refuses a role the user holds only through a
+  group, the method adds it as a direct role; REST `removeRoleFromUser` accepts a group-only role and changes nothing, the
+  method answers `ROLE_NOT_ASSIGNED`.
 - **E-mail**: the REST reset sends the user the password-reset e-mail; the method sends none yet (AB#7775).
 - **Errors**: `identityUserFailureOf(error, userName?)` (`shared/identity-method-error.ts`) gives `{ code, message,
   parameters, details }` for an `IdentityMethodError` and for the REST `HttpErrorResponse` alike — same code and same
@@ -206,11 +227,16 @@ methods of AB#8863 join this table when they move):
   `HttpErrorResponse`, so `MmHttpErrorInterceptor` toasts them as before.
 - **Schema source**: the `createUser` / `resetPassword` fields and their four input/result types were added to
   `schema.graphql` surgically (2026-11-15) from an introspection of a local scratch tenant (System.Identity 3.x, identity
-  services 3.5.x, asset repository `main`).
+  services 3.5.x, asset repository `main`). The `setRoles` / `addRole` / `removeRole` / `merge` fields and their eight
+  input/result types (AB#8863, 2026-11-15) follow the same generated shape, written from the System.Identity 3.2.x model
+  (`ck-user.yaml` of `octo-identity-services` `main`, methods `SetRoles-1`, `AddRole-1`, `RemoveRole-1`, `Merge-1`) and the
+  asset repository's method type builder (`CkMethodGraphTypes`: `<Type><Method>MethodInput` / `…MethodResult`,
+  `StringArray` → `[String!]!`).
 - **Removing the fallback later** (own story once Gerald sets the REST sunset date): drop the `rest` branch of
-  `createUser` / `resetPassword`, `runUserMethod`'s fallback set and `resetPasswordOnLogin` REST path, and make Apollo
-  required for these methods.
-- Specs: `identity-service.user-methods.spec.ts` (real Apollo client with an `InMemoryCache` on a scripted link).
+  `createUser` / `resetPassword` / `updateUserRoles` / `addUserToRole` / `removeRoleFromUser` / `mergeUsers`,
+  `runUserMethod`'s fallback set and `resetPasswordOnLogin` REST path, and make Apollo required for these methods.
+- Specs: `identity-service.user-methods.spec.ts` (create, reset) and `identity-service.role-merge-methods.spec.ts`
+  (roles, merge) — real Apollo client with an `InMemoryCache` on a scripted link.
 
 **Role Management:**
 
@@ -282,7 +308,7 @@ methods of AB#8863 join this table when they move):
 | Method | Description |
 |--------|-------------|
 | `generatePassword()` | Generate secure password |
-| `mergeUsers(targetUserName, sourceUserName)` | Merge source user into target user |
+| `mergeUsers(targetUserName, sourceUserName, targetUserRtId?)` | Merge source user into target user — CK method `User.Merge`, REST fallback (see above) |
 | `userDiagnostics()` | Get user diagnostics info |
 
 **Cross-Tenant Admin Provisioning** (routed via the system tenant, `{issuer}octosystem/v1/adminProvisioning/{targetTenantId}/...`):

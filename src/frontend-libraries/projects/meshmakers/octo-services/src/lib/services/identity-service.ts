@@ -41,6 +41,7 @@ import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
 import {CreateExternalTenantUserGroupMappingDto, ProvisioningGroupDto} from '../shared/provisioningGroupDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
 import {Apollo} from 'apollo-angular';
+import type {DocumentNode} from 'graphql';
 import {
   IdentityUserCreateUserDocumentDto,
   IdentityUserCreateUserMutationDto,
@@ -53,7 +54,28 @@ import {
 } from '../graphQL/identityUserResetPassword';
 import {OCTO_SILENT_ERRORS} from '../shared/octo-error-link';
 import {
+  IdentityUserSetRolesDocumentDto,
+  IdentityUserSetRolesMutationDto,
+  IdentityUserSetRolesMutationVariablesDto
+} from '../graphQL/identityUserSetRoles';
+import {
+  IdentityUserAddRoleDocumentDto,
+  IdentityUserAddRoleMutationDto,
+  IdentityUserAddRoleMutationVariablesDto
+} from '../graphQL/identityUserAddRole';
+import {
+  IdentityUserRemoveRoleDocumentDto,
+  IdentityUserRemoveRoleMutationDto,
+  IdentityUserRemoveRoleMutationVariablesDto
+} from '../graphQL/identityUserRemoveRole';
+import {
+  IdentityUserMergeDocumentDto,
+  IdentityUserMergeMutationDto,
+  IdentityUserMergeMutationVariablesDto
+} from '../graphQL/identityUserMerge';
+import {
   IdentityMethodError,
+  IdentityMethodNames,
   isGraphQlSchemaMismatch,
   isMethodHandlerNotAvailable,
   methodFailureOf,
@@ -61,8 +83,9 @@ import {
   userNotFoundMessage
 } from '../shared/identity-method-error';
 
-/** Identity user operations that run a CK method through GraphQL and fall back to REST (AB#8864). */
-export type IdentityUserMethodOperation = 'createUser' | 'resetPassword';
+/** Identity user operations that run a CK method through GraphQL and fall back to REST (AB#8864, AB#8863). */
+export type IdentityUserMethodOperation =
+  'createUser' | 'resetPassword' | 'updateUserRoles' | 'addUserToRole' | 'removeRoleFromUser' | 'mergeUsers';
 
 @Injectable({
   providedIn: 'root'
@@ -97,12 +120,12 @@ export class IdentityService {
   }
 
   /**
-   * Runs an identity user operation through its CK method and falls back to REST (AB#8864):
+   * Runs an identity user operation through its CK method and falls back to REST (AB#8864, AB#8863):
    *
    * - without an Apollo client (or without a default client) in the host, the operation uses REST;
-   * - a GraphQL schema without the method (validation error) and `METHOD_HANDLER_NOT_AVAILABLE` (the password methods
-   *   are switched off) both mean the method did not run: the same request is completed through REST, and the
-   *   operation uses REST for this tenant for the rest of the session. That is logged once with `console.info`, no toast;
+   * - a GraphQL schema without the method (validation error) and `METHOD_HANDLER_NOT_AVAILABLE` (no live handler, e.g.
+   *   the password methods are switched off) both mean the method did not run: the same request is completed through
+   *   REST, and the operation uses REST for this tenant for the rest of the session. That is logged once with `console.info`, no toast;
    * - every other method error is raised to the caller as {@link IdentityMethodError}, never retried through REST.
    *
    * Neither the log line nor the error carries a request value.
@@ -111,7 +134,8 @@ export class IdentityService {
     operation: IdentityUserMethodOperation,
     userName: string | undefined,
     method: () => Promise<T>,
-    rest: () => Promise<T>
+    rest: () => Promise<T>,
+    names: IdentityMethodNames = {}
   ): Promise<T> {
     const tenantId = await this.currentTenantId();
     const key = `${tenantId}|${operation}`;
@@ -126,7 +150,7 @@ export class IdentityService {
       }
       const schemaMismatch = isGraphQlSchemaMismatch(error);
       if (!schemaMismatch && !isMethodHandlerNotAvailable(error)) {
-        const failure = methodFailureOf(error, userName);
+        const failure = methodFailureOf(error, userName, names);
         if (failure) {
           throw new IdentityMethodError(failure);
         }
@@ -409,39 +433,97 @@ export class IdentityService {
     return null;
   }
 
-  async updateUserRoles(userName: string, roles: RoleDto[]): Promise<void> {
+  /**
+   * Replaces the direct roles of a user (AB#8863). Runs the CK method `System.Identity/User.SetRoles-1`
+   * (`runtime.systemIdentityUsers.setRoles`) with the role **names** of `roles` and falls back to
+   * `PUT users/{userName}/roles` (role **ids**) where the method is not available (see {@link runUserMethod}).
+   *
+   * @param userName The user name.
+   * @param roles The complete list of direct roles; the method uses `name`, the REST fallback `id`.
+   * @param userRtId The user's rtId (`UserDto.userId`) when the caller has it; without it the method path reads it once
+   *   with `GET users/{userName}`.
+   * @throws IdentityMethodError on the method path (`ROLE_NOT_FOUND`, `METHOD_TARGET_NOT_FOUND`, `METHOD_FORBIDDEN`, ...);
+   *   the `HttpErrorResponse` on the REST path.
+   */
+  async updateUserRoles(userName: string, roles: RoleDto[], userRtId?: string): Promise<void> {
     const baseUrl = await this.getApiBaseUrl();
-    if (baseUrl) {
+    if (!baseUrl) {
+      return;
+    }
+    const rest = async (): Promise<void> => {
       const roleIds = roles.map((role) => role.id);
-
       await firstValueFrom(
-        this.httpClient.put<void>(baseUrl + `users/${userName}/roles`, roleIds, {
+        this.httpClient.put<void>(baseUrl + `users/${encodeURIComponent(userName)}/roles`, roleIds, {
           observe: 'response'
         })
       );
-    }
+    };
+    await this.runUserTargetMethod<IdentityUserSetRolesMutationDto, IdentityUserSetRolesMutationVariablesDto, void>(
+      'updateUserRoles', baseUrl, userName, userRtId, IdentityUserSetRolesDocumentDto,
+      rtId => ({ rtId, input: { roleNames: roles.map((role) => role.name) } }), rest, undefined,
+      { targetNotFoundMessage: `User with name '${userName}' not found.` });
   }
 
-  async addUserToRole(userName: string, roleName: string): Promise<void> {
+  /**
+   * Adds one direct role to a user (AB#8863). Runs the CK method `System.Identity/User.AddRole-1`
+   * (`runtime.systemIdentityUsers.addRole`) and falls back to `PUT users/{userName}/roles/{roleName}` where the method is
+   * not available (see {@link runUserMethod}).
+   *
+   * Difference between the paths: REST also refuses a role the user holds only through a group; the method looks at the
+   * direct roles only and adds it.
+   *
+   * @param userRtId The user's rtId (`UserDto.userId`) when the caller has it; without it the method path reads it once
+   *   with `GET users/{userName}`.
+   * @throws IdentityMethodError on the method path (`ROLE_NOT_FOUND`, `ROLE_ALREADY_ASSIGNED`, `METHOD_TARGET_NOT_FOUND`,
+   *   `METHOD_FORBIDDEN`, ...); the `HttpErrorResponse` on the REST path.
+   */
+  async addUserToRole(userName: string, roleName: string, userRtId?: string): Promise<void> {
     const baseUrl = await this.getApiBaseUrl();
-    if (baseUrl) {
+    if (!baseUrl) {
+      return;
+    }
+    const rest = async (): Promise<void> => {
       await firstValueFrom(
-        this.httpClient.put<void>(baseUrl + `users/${userName}/roles/${roleName}`, null, {
+        this.httpClient.put<void>(baseUrl + `users/${encodeURIComponent(userName)}/roles/${encodeURIComponent(roleName)}`, null, {
           observe: 'response'
         })
       );
-    }
+    };
+    await this.runUserTargetMethod<IdentityUserAddRoleMutationDto, IdentityUserAddRoleMutationVariablesDto, void>(
+      'addUserToRole', baseUrl, userName, userRtId, IdentityUserAddRoleDocumentDto,
+      rtId => ({ rtId, input: { roleName } }), rest, undefined,
+      { roleName, targetNotFoundMessage: `User with name '${userName}' not found.` });
   }
 
-  async removeRoleFromUser(userName: string, roleName: string): Promise<void> {
+  /**
+   * Removes one direct role from a user (AB#8863). Runs the CK method `System.Identity/User.RemoveRole-1`
+   * (`runtime.systemIdentityUsers.removeRole`) and falls back to `DELETE users/{userName}/roles/{roleName}` where the
+   * method is not available (see {@link runUserMethod}).
+   *
+   * Difference between the paths: REST accepts a role the user holds only through a group and changes nothing; the
+   * method answers `ROLE_NOT_ASSIGNED`.
+   *
+   * @param userRtId The user's rtId (`UserDto.userId`) when the caller has it; without it the method path reads it once
+   *   with `GET users/{userName}`.
+   * @throws IdentityMethodError on the method path (`ROLE_NOT_FOUND`, `ROLE_NOT_ASSIGNED`, `METHOD_TARGET_NOT_FOUND`,
+   *   `METHOD_FORBIDDEN`, ...); the `HttpErrorResponse` on the REST path.
+   */
+  async removeRoleFromUser(userName: string, roleName: string, userRtId?: string): Promise<void> {
     const baseUrl = await this.getApiBaseUrl();
-    if (baseUrl) {
+    if (!baseUrl) {
+      return;
+    }
+    const rest = async (): Promise<void> => {
       await firstValueFrom(
-        this.httpClient.delete<void>(baseUrl + `users/${userName}/roles/${roleName}`, {
+        this.httpClient.delete<void>(baseUrl + `users/${encodeURIComponent(userName)}/roles/${encodeURIComponent(roleName)}`, {
           observe: 'response'
         })
       );
-    }
+    };
+    await this.runUserTargetMethod<IdentityUserRemoveRoleMutationDto, IdentityUserRemoveRoleMutationVariablesDto, void>(
+      'removeRoleFromUser', baseUrl, userName, userRtId, IdentityUserRemoveRoleDocumentDto,
+      rtId => ({ rtId, input: { roleName } }), rest, undefined,
+      { roleName, targetNotFoundMessage: `User with name '${userName}' not found.` });
   }
 
   // ----- Client role assignment (AB#4183) -----
@@ -492,9 +574,22 @@ export class IdentityService {
     }
   }
 
-  async mergeUsers(targetUserName: string, sourceUserName: string): Promise<void> {
+  /**
+   * Moves the external logins of `sourceUserName` to `targetUserName` and deletes the source user (AB#8863). Runs the CK
+   * method `System.Identity/User.Merge-1` (`runtime.systemIdentityUsers.merge`) on the target user and falls back to
+   * `POST users/{targetUserName}/merge` where the method is not available (see {@link runUserMethod}).
+   *
+   * @param targetUserRtId The target user's rtId (`UserDto.userId`) when the caller has it; without it the method path
+   *   reads it once with `GET users/{targetUserName}`.
+   * @throws IdentityMethodError on the method path (`SOURCE_USER_NOT_FOUND`, `CANNOT_MERGE_INTO_ITSELF`, `MERGE_FAILED`,
+   *   `METHOD_TARGET_NOT_FOUND`, `METHOD_FORBIDDEN`, ...); the `HttpErrorResponse` on the REST path.
+   */
+  async mergeUsers(targetUserName: string, sourceUserName: string, targetUserRtId?: string): Promise<void> {
     const baseUrl = await this.getApiBaseUrl();
-    if (baseUrl) {
+    if (!baseUrl) {
+      return;
+    }
+    const rest = async (): Promise<void> => {
       const request: MergeUsersRequestDto = { sourceUserName };
       await firstValueFrom(
         this.httpClient.post<void>(
@@ -503,7 +598,45 @@ export class IdentityService {
           { observe: 'response' }
         )
       );
-    }
+    };
+    await this.runUserTargetMethod<IdentityUserMergeMutationDto, IdentityUserMergeMutationVariablesDto, void>(
+      'mergeUsers', baseUrl, targetUserName, targetUserRtId, IdentityUserMergeDocumentDto,
+      rtId => ({ rtId, input: { sourceUserName } }), rest, undefined,
+      { sourceUserName, targetNotFoundMessage: `Target user '${targetUserName}' not found.` });
+  }
+
+  /**
+   * Runs a CK method of `System.Identity/User` on one user (the target, by rtId) through {@link runUserMethod}
+   * (AB#8863): the rtId is `userRtId` or read once with `GET users/{userName}`; the mutation runs silently, without the
+   * Apollo cache and with `errorPolicy: 'none'`, so a refusal rejects whatever default error policy the host sets.
+   *
+   * @param variables Builds the mutation variables (typed by `TVariables`, the generated `…MutationVariablesDto`) from
+   *   the rtId.
+   * @param methodResult What the operation returns when the method ran (the REST path returns what `rest` returns).
+   */
+  private async runUserTargetMethod<TMutation, TVariables extends { rtId: string }, TResult>(
+    operation: IdentityUserMethodOperation,
+    baseUrl: string,
+    userName: string,
+    userRtId: string | undefined,
+    mutation: DocumentNode,
+    variables: (rtId: string) => TVariables,
+    rest: () => Promise<TResult>,
+    methodResult: TResult,
+    names: IdentityMethodNames = {}
+  ): Promise<TResult> {
+    return this.runUserMethod(operation, userName, async () => {
+      const rtId = userRtId || await this.findUserRtId(baseUrl, userName, names.targetNotFoundMessage);
+      await firstValueFrom(this.apollo!.mutate<TMutation, TVariables>({
+        mutation,
+        variables: variables(rtId),
+        fetchPolicy: 'no-cache',
+        // Pinned: a host default of 'all' or 'ignore' would resolve a GraphQL error and skip the REST fallback.
+        errorPolicy: 'none',
+        context: {[OCTO_SILENT_ERRORS]: true}
+      }));
+      return methodResult;
+    }, rest, names);
   }
 
   /**
@@ -537,25 +670,19 @@ export class IdentityService {
       );
       return response.body;
     };
-    return this.runUserMethod('resetPassword', userName, async () => {
-      const rtId = await this.findUserRtId(baseUrl, userName);
-      await firstValueFrom(this.apollo!.mutate<IdentityUserResetPasswordMutationDto, IdentityUserResetPasswordMutationVariablesDto>({
-        mutation: IdentityUserResetPasswordDocumentDto,
-        variables: { rtId, input: { newPassword: password } },
-        fetchPolicy: 'no-cache',
-        // Pinned: a host default of 'all' or 'ignore' would resolve a GraphQL error and skip the REST fallback.
-        errorPolicy: 'none',
-        context: {[OCTO_SILENT_ERRORS]: true}
-      }));
-      return null;
-    }, rest);
+    return this.runUserTargetMethod<IdentityUserResetPasswordMutationDto, IdentityUserResetPasswordMutationVariablesDto, unknown>(
+      'resetPassword', baseUrl, userName, undefined, IdentityUserResetPasswordDocumentDto,
+      rtId => ({ rtId, input: { newPassword: password } }), rest, null);
   }
 
-  /** The rtId (`userId`) of a user; an unknown user is an {@link IdentityMethodError} `METHOD_TARGET_NOT_FOUND`. */
-  private async findUserRtId(baseUrl: string, userName: string): Promise<string> {
+  /**
+   * The rtId (`userId`) of a user; an unknown user is an {@link IdentityMethodError} `METHOD_TARGET_NOT_FOUND` with
+   * `notFoundMessage` (default `User 'x' not found.`, the text of the REST endpoint the method replaces).
+   */
+  private async findUserRtId(baseUrl: string, userName: string, notFoundMessage?: string): Promise<string> {
     const notFound = (): IdentityMethodError => new IdentityMethodError({
       code: METHOD_TARGET_NOT_FOUND_CODE,
-      message: userNotFoundMessage(userName),
+      message: notFoundMessage ?? userNotFoundMessage(userName),
       parameters: {},
       details: []
     });
