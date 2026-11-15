@@ -7,6 +7,7 @@
  * with readable texts. {@link identityUserFailureOf} turns both into the same {@link IdentityUserFailure}: same code, same
  * text.
  */
+import {isHttpErrorLike} from './crossTenantGrantError';
 
 /** The gateway answers this code when no handler serves the method, e.g. the password methods are switched off. */
 export const METHOD_HANDLER_NOT_AVAILABLE_CODE = 'METHOD_HANDLER_NOT_AVAILABLE';
@@ -184,14 +185,10 @@ export function methodFailureOf(error: unknown, userName?: string): IdentityUser
   }
 }
 
-/** Structural check: the error may come from a second `@angular/common` copy, where `instanceof` fails. */
-function isHttpErrorResponse(error: unknown): error is { status: number; error: unknown } {
-  return typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'HttpErrorResponse';
-}
-
 /** The {@link IdentityUserFailure} of a refused REST call of `POST users` / `POST users/ResetPassword`, or `null`. */
 export function restFailureOf(error: unknown, userName?: string): IdentityUserFailure | null {
-  if (!isHttpErrorResponse(error)) {
+  // Structural check: the error may come from a second `@angular/common` copy, where `instanceof` fails.
+  if (!isHttpErrorLike(error)) {
     return null;
   }
   const body = (typeof error.error === 'object' && error.error !== null ? error.error : {}) as Record<string, unknown>;

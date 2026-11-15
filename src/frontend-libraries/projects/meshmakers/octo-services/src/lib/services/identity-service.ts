@@ -71,10 +71,26 @@ export class IdentityService {
   private readonly httpClient = inject(HttpClient);
   private readonly configurationService = inject(CONFIGURATION_SERVICE);
   private readonly tenantIdProvider: TenantIdProvider | null = inject(TENANT_ID_PROVIDER, {optional: true});
-  /** The host's Apollo client (tenant GraphQL endpoint); `null` in apps without GraphQL — they use REST. */
+  /**
+   * The host's Apollo client (tenant GraphQL endpoint); `null` in apps without GraphQL — they use REST. The method
+   * goes to the tenant of the default client, the REST fallback to the tenant of `TENANT_ID_PROVIDER`: hosts keep both
+   * on the same tenant (the Refinery Studio does).
+   */
   private readonly apollo: Apollo | null = inject(Apollo, {optional: true});
   /** `<tenantId>|<operation>` pairs that use REST for the rest of the session (AB#8864). */
   private readonly restFallbacks = new Set<string>();
+
+  /** True when the host provides Apollo with a default client (`Apollo.client` throws without one). */
+  private hasApolloClient(): boolean {
+    if (!this.apollo) {
+      return false;
+    }
+    try {
+      return !!this.apollo.client;
+    } catch {
+      return false;
+    }
+  }
 
   private async currentTenantId(): Promise<string> {
     return (this.tenantIdProvider ? await this.tenantIdProvider() : null) ?? 'octosystem';
@@ -83,7 +99,7 @@ export class IdentityService {
   /**
    * Runs an identity user operation through its CK method and falls back to REST (AB#8864):
    *
-   * - without an Apollo client in the host, the operation uses REST;
+   * - without an Apollo client (or without a default client) in the host, the operation uses REST;
    * - a GraphQL schema without the method (validation error) and `METHOD_HANDLER_NOT_AVAILABLE` (the password methods
    *   are switched off) both mean the method did not run: the same request is completed through REST, and the
    *   operation uses REST for this tenant for the rest of the session. That is logged once with `console.info`, no toast;
@@ -99,7 +115,7 @@ export class IdentityService {
   ): Promise<T> {
     const tenantId = await this.currentTenantId();
     const key = `${tenantId}|${operation}`;
-    if (!this.apollo || this.restFallbacks.has(key)) {
+    if (!this.hasApolloClient() || this.restFallbacks.has(key)) {
       return rest();
     }
     try {
@@ -115,6 +131,9 @@ export class IdentityService {
           throw new IdentityMethodError(failure);
         }
         throw error;
+      }
+      if (this.restFallbacks.has(key)) {
+        return rest();
       }
       this.restFallbacks.add(key);
       console.info(`IdentityService.${operation}: tenant '${tenantId}' uses REST for this session (${
@@ -546,7 +565,8 @@ export class IdentityService {
       }
       return response.body.userId;
     } catch (error) {
-      if (error instanceof HttpErrorResponse && error.status === 404) {
+      // Structural check like restFailureOf: the error may come from a second @angular/common copy.
+      if (isHttpErrorLike(error) && error.status === 404) {
         throw notFound();
       }
       throw error;

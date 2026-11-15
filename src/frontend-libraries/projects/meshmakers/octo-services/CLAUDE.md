@@ -189,7 +189,9 @@ methods of AB#8863 join this table when they move):
   mean the method did not run: the same request is completed through REST, and the operation uses REST for that tenant
   (`TENANT_ID_PROVIDER`) for the rest of the session, logged once with `console.info` (tenant and reason, no value).
   Every other method error is raised as `IdentityMethodError` and never retried through REST.
-- A host **without Apollo** (`inject(Apollo, { optional: true })` is `null`) uses REST. `createUser` with
+- A host **without Apollo** (`inject(Apollo, { optional: true })` is `null`) or without a default Apollo client uses
+  REST. The method goes to the tenant of the default client, the fallback to the tenant of `TENANT_ID_PROVIDER`; hosts
+  keep both on the same tenant (the Refinery Studio does). Concurrent calls that fall back log once. `createUser` with
   `resetPasswordOnLogin: true` uses REST, because the method has no such parameter.
 - `resetPassword` needs the user's rtId: it reads `GET users/{userName}` once (404 → `IdentityMethodError`
   `METHOD_TARGET_NOT_FOUND`, `User '<name>' not found.`, no toast).

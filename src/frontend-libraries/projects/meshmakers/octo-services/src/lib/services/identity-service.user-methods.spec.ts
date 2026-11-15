@@ -205,6 +205,29 @@ describe('IdentityService user methods (AB#8864)', () => {
       httpMock.expectNone(`${apiPrefix}users`);
     });
 
+    it('raises any other method refusal (METHOD_FORBIDDEN) without a REST call', async () => {
+      respond = () => graphQlError('METHOD_FORBIDDEN');
+      const error = await service.createUser(newUser).catch((e: unknown) => e) as IdentityMethodError;
+      expect(error).toBeInstanceOf(IdentityMethodError);
+      expect(error.code).toBe('METHOD_FORBIDDEN');
+      httpMock.expectNone(`${apiPrefix}users`);
+
+      // Not remembered as a fallback: the next call runs the method again.
+      respond = () => createdUser();
+      await service.createUser(newUser);
+      expect(calls.length).toBe(2);
+      expect(info).not.toHaveBeenCalled();
+    });
+
+    it('logs the fallback once when two calls fall back at the same time', async () => {
+      respond = () => graphQlError(METHOD_HANDLER_NOT_AVAILABLE_CODE);
+      const both = Promise.all([service.createUser(newUser), service.createUser({ ...newUser, name: 'john.doe' })]);
+      await tick(); await tick(); await tick();
+      httpMock.match(`${apiPrefix}users`).forEach(req => req.flush(null));
+      await both;
+      expect(info).toHaveBeenCalledTimes(1);
+    });
+
     it('raises a duplicate user name with the REST title', async () => {
       respond = () => graphQlError(USER_ALREADY_EXISTS_CODE, { parameters: { field: 'userName' } });
       const error = await service.createUser(newUser).catch((e: unknown) => e) as IdentityMethodError;
@@ -275,6 +298,17 @@ describe('IdentityService user methods (AB#8864)', () => {
       httpMock.expectNone(`${apiPrefix}users/jane.doe`);
       httpMock.expectOne(`${apiPrefix}users/ResetPassword`).flush(null);
       await second;
+      expect(calls.length).toBe(1);
+      expect(info).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses REST when the schema lacks the mutation', async () => {
+      respond = () => schemaMismatch();
+      const done = service.resetPassword('jane.doe', password);
+      await answerLookup();
+      await tick();
+      httpMock.expectOne(`${apiPrefix}users/ResetPassword`).flush(null);
+      await done;
       expect(calls.length).toBe(1);
       expect(info).toHaveBeenCalledTimes(1);
     });
