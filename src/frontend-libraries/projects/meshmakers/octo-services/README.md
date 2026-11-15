@@ -76,6 +76,7 @@ octo-services/
 | `CkTypeAttributeService` | Query CK type and record attributes |
 | `CkModelService` | Check model availability and versions |
 | `AttributeSelectorService` | Query available query columns for a CK type |
+| `CkMethodOperationService` | Read, list and follow operations of asynchronous CK methods (`runtime.operations`, AB#8448); `toOperationProgressView` maps them to `mm-operation-progress` |
 
 ## Quick Start
 

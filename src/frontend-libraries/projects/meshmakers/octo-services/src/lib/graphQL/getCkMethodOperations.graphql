@@ -1,0 +1,59 @@
+# AB#8448 (F3.6): reads operations of asynchronous CK methods (runtime.operations, AB#8444).
+# With $operationId: that one operation (OPERATION_NOT_FOUND when unknown, expired or foreign).
+# Without: a page of the caller's own operations; $allOwners lists every caller's (tenant administrators).
+query GetCkMethodOperations(
+  $operationId: ID
+  $methodId: String
+  $state: CkMethodOperationState
+  $since: DateTime
+  $allOwners: Boolean
+  $skip: Int
+  $take: Int
+) {
+  runtime {
+    operations(
+      operationId: $operationId
+      methodId: $methodId
+      state: $state
+      since: $since
+      allOwners: $allOwners
+      skip: $skip
+      take: $take
+    ) {
+      totalCount
+      items {
+        operationId
+        methodId
+        invocationId
+        state
+        progress {
+          percent
+          stageCode
+          parameters {
+            name
+            value
+          }
+        }
+        result
+        error {
+          code
+          parameters {
+            name
+            value
+          }
+          details {
+            code
+            parameters {
+              name
+              value
+            }
+          }
+        }
+        acceptedAtUtc
+        startedAtUtc
+        completedAtUtc
+        expiresAtUtc
+      }
+    }
+  }
+}
