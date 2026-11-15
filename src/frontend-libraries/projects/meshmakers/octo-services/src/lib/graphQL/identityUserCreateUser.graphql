@@ -1,0 +1,12 @@
+# AB#8864: static CK method System.Identity/User.CreateUser-1. The password travels only in $input.
+# Called with fetchPolicy 'no-cache' so the Apollo cache never stores the arguments.
+mutation identityUserCreateUser($input: SystemIdentityUserCreateUserMethodInput!) {
+  runtime {
+    systemIdentityUsers {
+      createUser(input: $input) {
+        invocationId
+        result
+      }
+    }
+  }
+}

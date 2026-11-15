@@ -15,6 +15,7 @@ export * from './lib/shared/levelMetaData';
 export * from './lib/shared/secret-safe-attributes';
 export * from './lib/shared/secret-state';
 export * from './lib/shared/octo-error-link';
+export * from './lib/shared/identity-method-error';
 export * from './lib/shared/externalLoginDto';
 export * from './lib/shared/userDto';
 export * from './lib/shared/userDirectoryEntryDto';

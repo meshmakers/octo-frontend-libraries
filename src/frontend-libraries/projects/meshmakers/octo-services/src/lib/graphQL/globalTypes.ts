@@ -51230,6 +51230,25 @@ export type SystemIdentityUserConnectionDto = {
   totalCount?: Maybe<Scalars['Int']['output']>;
 };
 
+/** Parameters of the CK method 'System.Identity/User.CreateUser-1'. */
+export type SystemIdentityUserCreateUserMethodInputDto = {
+  email?: InputMaybe<Scalars['String']['input']>;
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  /** Initial password; without it the user gets the welcome notification without a password. */
+  password?: InputMaybe<Scalars['String']['input']>;
+  userName: Scalars['String']['input'];
+};
+
+/** Result of a successful call of the CK method 'System.Identity/User.CreateUser-1'. A failed call is one GraphQL error. */
+export type SystemIdentityUserCreateUserMethodResultDto = {
+  __typename?: 'SystemIdentityUserCreateUserMethodResult';
+  /** Id of the invocation, for correlation with the handler log. */
+  invocationId: Scalars['ID']['output'];
+  /** The declared result of the method. */
+  result?: Maybe<Scalars['String']['output']>;
+};
+
 /** An edge in a connection from an object to another object of type `SystemIdentityUser`. */
 export type SystemIdentityUserEdgeDto = {
   __typename?: 'SystemIdentityUserEdge';
@@ -51305,6 +51324,10 @@ export type SystemIdentityUserMutationsDto = {
   __typename?: 'SystemIdentityUserMutations';
   /** Creates new entities of type 'SystemIdentityUser'. */
   create?: Maybe<Array<Maybe<SystemIdentityUserDto>>>;
+  /** Creates a user (REST user creation is unchanged). Calls the CK method 'System.Identity/User.CreateUser-1'. */
+  createUser?: Maybe<SystemIdentityUserCreateUserMethodResultDto>;
+  /** An administrator sets a new password without the current one. Lifts a lockout; the user is notified. Calls the CK method 'System.Identity/User.ResetPassword-1'. */
+  resetPassword?: Maybe<SystemIdentityUserResetPasswordMethodResultDto>;
   /** Updates existing entity of type 'SystemIdentityUser'. */
   update?: Maybe<Array<Maybe<SystemIdentityUserDto>>>;
 };
@@ -51315,8 +51338,34 @@ export type SystemIdentityUserMutationsCreateArgsDto = {
 };
 
 
+export type SystemIdentityUserMutationsCreateUserArgsDto = {
+  idempotencyKey?: InputMaybe<Scalars['String']['input']>;
+  input: SystemIdentityUserCreateUserMethodInputDto;
+};
+
+
+export type SystemIdentityUserMutationsResetPasswordArgsDto = {
+  idempotencyKey?: InputMaybe<Scalars['String']['input']>;
+  input: SystemIdentityUserResetPasswordMethodInputDto;
+  rtId: Scalars['OctoObjectId']['input'];
+};
+
+
 export type SystemIdentityUserMutationsUpdateArgsDto = {
   entities: Array<InputMaybe<SystemIdentityUserInputUpdateDto>>;
+};
+
+/** Parameters of the CK method 'System.Identity/User.ResetPassword-1'. */
+export type SystemIdentityUserResetPasswordMethodInputDto = {
+  /** The new password; must satisfy the password policy of the tenant. */
+  newPassword: Scalars['String']['input'];
+};
+
+/** Result of a successful call of the CK method 'System.Identity/User.ResetPassword-1'. A failed call is one GraphQL error. */
+export type SystemIdentityUserResetPasswordMethodResultDto = {
+  __typename?: 'SystemIdentityUserResetPasswordMethodResult';
+  /** Id of the invocation, for correlation with the handler log. */
+  invocationId: Scalars['ID']['output'];
 };
 
 /** Runtime entities of construction kit record 'System.Identity/UserToken' */
