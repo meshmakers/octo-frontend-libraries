@@ -26,7 +26,8 @@ starts a new empty "Unreleased" section.
   parameters, details }` for both paths, same text for `PASSWORD_POLICY_VIOLATION`, `USER_ALREADY_EXISTS`,
   `METHOD_TARGET_NOT_FOUND`), `isGraphQlSchemaMismatch`, `isMethodHandlerNotAvailable`, the code constants.
   REST refusals stay `HttpErrorResponse`, so the global error toast and existing callers are unchanged.
-- The password travels only in the GraphQL variables (mutation with `fetchPolicy: 'no-cache'`, `OCTO_SILENT_ERRORS`)
+- The password travels only in the GraphQL variables (mutation with `fetchPolicy: 'no-cache'`, `OCTO_SILENT_ERRORS`;
+  `errorPolicy: 'none'` is pinned, so a host default error policy cannot turn a refusal into a success)
   or the JSON body; never in a URL, a log line or an error.
 - `schema.graphql`: `createUser` / `resetPassword` and their input and result types added surgically from a local
   System.Identity 3.x introspection; codegen output committed.

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse, provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideApollo } from 'apollo-angular';
+import { Apollo, provideApollo } from 'apollo-angular';
 import { ApolloLink, InMemoryCache } from '@apollo/client/core';
 import { ServerError } from '@apollo/client/errors';
 import { Observable, of, throwError } from 'rxjs';
@@ -331,6 +331,51 @@ describe('IdentityService user methods (AB#8864)', () => {
       const error = await done as IdentityMethodError;
       expect(error.code).toBe(PASSWORD_POLICY_VIOLATION_CODE);
       expect(error.message).toBe('Passwords must have at least one uppercase (\'A\'-\'Z\').');
+      httpMock.expectNone(`${apiPrefix}users/ResetPassword`);
+    });
+  });
+
+  describe('host with defaultOptions.mutate.errorPolicy all (error policy pinned to none)', () => {
+    beforeEach(() => {
+      // Apollo 4 types allow this default only after a host augments DeclareDefaultOptions.Mutate; at runtime it applies.
+      (TestBed.inject(Apollo).client.defaultOptions as { mutate?: Record<string, unknown> }).mutate = { errorPolicy: 'all' };
+    });
+
+    it('createUser still falls back to REST on METHOD_HANDLER_NOT_AVAILABLE', async () => {
+      respond = () => graphQlError(METHOD_HANDLER_NOT_AVAILABLE_CODE);
+      const done = service.createUser(newUser);
+      await tick(); await tick();
+      httpMock.expectOne(`${apiPrefix}users`).flush(null);
+      await expect(done).resolves.toBeUndefined();
+      expect(calls.length).toBe(1);
+    });
+
+    it('createUser still rejects a refusal instead of reporting success', async () => {
+      respond = () => graphQlError('METHOD_FORBIDDEN');
+      const error = await service.createUser(newUser).catch((e: unknown) => e) as IdentityMethodError;
+      expect(error).toBeInstanceOf(IdentityMethodError);
+      expect(error.code).toBe('METHOD_FORBIDDEN');
+      httpMock.expectNone(`${apiPrefix}users`);
+    });
+
+    it('resetPassword still falls back to REST on METHOD_HANDLER_NOT_AVAILABLE', async () => {
+      respond = () => graphQlError(METHOD_HANDLER_NOT_AVAILABLE_CODE);
+      const done = service.resetPassword('jane.doe', password);
+      await tick(); await tick();
+      httpMock.expectOne(`${apiPrefix}users/jane.doe`).flush({ userId: '6ae7c66ccc5a608ccf779df9', name: 'jane.doe' });
+      await tick(); await tick();
+      httpMock.expectOne(`${apiPrefix}users/ResetPassword`).flush(null);
+      await expect(done).resolves.toBeNull();
+      expect(calls.length).toBe(1);
+    });
+
+    it('resetPassword still rejects a password policy refusal', async () => {
+      respond = () => graphQlError(PASSWORD_POLICY_VIOLATION_CODE, { details: [{ code: 'PasswordRequiresUpper', parameters: {} }] });
+      const done = service.resetPassword('jane.doe', password).catch((e: unknown) => e);
+      await tick(); await tick();
+      httpMock.expectOne(`${apiPrefix}users/jane.doe`).flush({ userId: '6ae7c66ccc5a608ccf779df9', name: 'jane.doe' });
+      const error = await done as IdentityMethodError;
+      expect(error.code).toBe(PASSWORD_POLICY_VIOLATION_CODE);
       httpMock.expectNone(`${apiPrefix}users/ResetPassword`);
     });
   });

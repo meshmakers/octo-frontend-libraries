@@ -182,7 +182,8 @@ methods of AB#8863 join this table when they move):
 | `resetPassword(userName, password)` | `System.Identity/User.ResetPassword-1` — `runtime.systemIdentityUsers.resetPassword(rtId:, input:)` (`graphQL/identityUserResetPassword.graphql`) | `POST {tenant}/v1/users/ResetPassword` | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
 
 - **Rule** (`IdentityService.runUserMethod`): the mutation runs with `OCTO_SILENT_ERRORS` (no toast) and
-  `fetchPolicy: 'no-cache'` (the Apollo cache never holds the password). A **schema mismatch** (every GraphQL error is
+  `fetchPolicy: 'no-cache'` (the Apollo cache never holds the password) and `errorPolicy: 'none'` (pinned, so a host
+  default of `all` or `ignore` cannot turn a refusal into a success or skip the REST fallback). A **schema mismatch** (every GraphQL error is
   `FIELDS_ON_CORRECT_TYPE`, `KNOWN_TYPE_NAMES`, `KNOWN_ARGUMENT_NAMES` or "Cannot query field" / "Unknown type|argument",
   also inside the body of a 400 `ServerError` — `isGraphQlSchemaMismatch`) and **`METHOD_HANDLER_NOT_AVAILABLE`**
   (`isMethodHandlerNotAvailable`; the password methods are off until `Methods:Identity:EnablePasswordMethods=true`) both

@@ -313,7 +313,8 @@ export class IdentityService {
    * Creates a user (AB#8864). Runs the static CK method `System.Identity/User.CreateUser-1`
    * (`runtime.systemIdentityUsers.createUser`) and falls back to `POST users` where the method is not available
    * (see {@link runUserMethod}). The password (`RegisterUserDto.password`) travels only in the GraphQL variables or the
-   * JSON body; the mutation runs with `fetchPolicy: 'no-cache'`, so the Apollo cache never holds it.
+   * JSON body; the mutation runs with `fetchPolicy: 'no-cache'`, so the Apollo cache never holds it, and with
+   * `errorPolicy: 'none'`, so a refusal rejects whatever default error policy the host sets.
    *
    * A user with `resetPasswordOnLogin: true` is always created through REST: the method has no such parameter, the REST
    * endpoint sets the flag after the method ran.
@@ -353,6 +354,8 @@ export class IdentityService {
         mutation: IdentityUserCreateUserDocumentDto,
         variables,
         fetchPolicy: 'no-cache',
+        // Pinned: a host default of 'all' or 'ignore' would resolve a GraphQL error and skip the REST fallback.
+        errorPolicy: 'none',
         context: {[OCTO_SILENT_ERRORS]: true}
       }));
     }, rest);
@@ -508,7 +511,8 @@ export class IdentityService {
    * `System.Identity/User.ResetPassword-1` (`runtime.systemIdentityUsers.resetPassword`) on the user, whose rtId is read
    * once with `GET users/{userName}`, and falls back to `POST users/ResetPassword` where the method is not available
    * (see {@link runUserMethod}). The password travels only in the GraphQL variables or the JSON body, never in a URL;
-   * the mutation runs with `fetchPolicy: 'no-cache'`, so the Apollo cache never holds it.
+   * the mutation runs with `fetchPolicy: 'no-cache'`, so the Apollo cache never holds it, and with `errorPolicy: 'none'`,
+   * so a refusal rejects whatever default error policy the host sets.
    *
    * Difference between the paths: the REST endpoint also sends the user the password-reset e-mail; the method sends no
    * e-mail yet (AB#7775).
@@ -539,6 +543,8 @@ export class IdentityService {
         mutation: IdentityUserResetPasswordDocumentDto,
         variables: { rtId, input: { newPassword: password } },
         fetchPolicy: 'no-cache',
+        // Pinned: a host default of 'all' or 'ignore' would resolve a GraphQL error and skip the REST fallback.
+        errorPolicy: 'none',
         context: {[OCTO_SILENT_ERRORS]: true}
       }));
       return null;
