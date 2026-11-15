@@ -10,6 +10,27 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services: createUser and resetPassword run the User methods, with a REST fallback (AB#8864)
+
+- Change: `IdentityService.createUser` runs the static CK method `System.Identity/User.CreateUser-1` and
+  `IdentityService.resetPassword` runs `System.Identity/User.ResetPassword-1` through GraphQL
+  (`runtime.systemIdentityUsers.createUser` / `resetPassword`) when the host provides Apollo. Signatures are unchanged.
+  `resetPassword` reads the user's rtId once with `GET users/{userName}`.
+- REST fallback: a GraphQL schema without the mutations, or the answer `METHOD_HANDLER_NOT_AVAILABLE` (password
+  methods switched off), completes the same request through `POST users` / `POST users/ResetPassword` and keeps that
+  operation on REST for the tenant for the rest of the session (one `console.info`, no toast). A host without Apollo
+  and `createUser` with `resetPasswordOnLogin: true` always use REST.
+- Behaviour difference: the method reset sends the user **no** password-reset e-mail yet (AB#7775); the REST reset does.
+- New (additive): `identity-method-error.ts` — `IdentityMethodError` (thrown for a refused method call: `code`,
+  `parameters`, `details`, readable `message`), `identityUserFailureOf(error, userName?)` (one `{ code, message,
+  parameters, details }` for both paths, same text for `PASSWORD_POLICY_VIOLATION`, `USER_ALREADY_EXISTS`,
+  `METHOD_TARGET_NOT_FOUND`), `isGraphQlSchemaMismatch`, `isMethodHandlerNotAvailable`, the code constants.
+  REST refusals stay `HttpErrorResponse`, so the global error toast and existing callers are unchanged.
+- The password travels only in the GraphQL variables (mutation with `fetchPolicy: 'no-cache'`, `OCTO_SILENT_ERRORS`)
+  or the JSON body; never in a URL, a log line or an error.
+- `schema.graphql`: `createUser` / `resetPassword` and their input and result types added surgically from a local
+  System.Identity 3.x introspection; codegen output committed.
+
 ### octo-meshboard: resolution-aware line charts load without starving the other widgets (AB#8994)
 
 - Fix: at most 3 transient downsampling requests of one line chart widget run at the same time

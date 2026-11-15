@@ -163,15 +163,51 @@ Manages users, roles, and OAuth clients. **Tenant-aware**: uses `TENANT_ID_PROVI
 |--------|-------------|
 | `getUsers(skip, take)` | List users with pagination |
 | `getUserDetails(userName)` | Get user details |
-| `createUser(userDto)` | Create user |
+| `createUser(userDto)` | Create user — CK method `User.CreateUser`, REST fallback (see below) |
 | `updateUser(userName, userDto)` | Update user |
 | `deleteUser(userName)` | Delete user |
-| `resetPassword(userName, password)` | Reset user password |
+| `resetPassword(userName, password)` | Reset user password — CK method `User.ResetPassword`, REST fallback (see below) |
 | `getUserRoles(userName)` | Get user's roles (direct + group-inherited) |
 | `getUserDirectRoles(userName)` | Get user's directly assigned roles only |
 | `updateUserRoles(userName, roles)` | Update user's roles |
 | `addUserToRole(userName, roleName)` | Add user to role |
 | `removeRoleFromUser(userName, roleName)` | Remove user from role |
+
+**Identity user methods and REST fallback** (Feature F5.6 AB#5704; AB#8864 for create and reset; the role and merge
+methods of AB#8863 join this table when they move):
+
+| Library method | CK method (GraphQL) | REST endpoint it replaces | Falls back to REST on |
+|----------------|---------------------|---------------------------|------------------------|
+| `createUser(userDto)` | `System.Identity/User.CreateUser-1` — `runtime.systemIdentityUsers.createUser(input:)` (`graphQL/identityUserCreateUser.graphql`) | `POST {tenant}/v1/users` | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
+| `resetPassword(userName, password)` | `System.Identity/User.ResetPassword-1` — `runtime.systemIdentityUsers.resetPassword(rtId:, input:)` (`graphQL/identityUserResetPassword.graphql`) | `POST {tenant}/v1/users/ResetPassword` | schema mismatch, `METHOD_HANDLER_NOT_AVAILABLE` |
+
+- **Rule** (`IdentityService.runUserMethod`): the mutation runs with `OCTO_SILENT_ERRORS` (no toast) and
+  `fetchPolicy: 'no-cache'` (the Apollo cache never holds the password). A **schema mismatch** (every GraphQL error is
+  `FIELDS_ON_CORRECT_TYPE`, `KNOWN_TYPE_NAMES`, `KNOWN_ARGUMENT_NAMES` or "Cannot query field" / "Unknown type|argument",
+  also inside the body of a 400 `ServerError` — `isGraphQlSchemaMismatch`) and **`METHOD_HANDLER_NOT_AVAILABLE`**
+  (`isMethodHandlerNotAvailable`; the password methods are off until `Methods:Identity:EnablePasswordMethods=true`) both
+  mean the method did not run: the same request is completed through REST, and the operation uses REST for that tenant
+  (`TENANT_ID_PROVIDER`) for the rest of the session, logged once with `console.info` (tenant and reason, no value).
+  Every other method error is raised as `IdentityMethodError` and never retried through REST.
+- A host **without Apollo** (`inject(Apollo, { optional: true })` is `null`) uses REST. `createUser` with
+  `resetPasswordOnLogin: true` uses REST, because the method has no such parameter.
+- `resetPassword` needs the user's rtId: it reads `GET users/{userName}` once (404 → `IdentityMethodError`
+  `METHOD_TARGET_NOT_FOUND`, `User '<name>' not found.`, no toast).
+- **E-mail**: the REST reset sends the user the password-reset e-mail; the method sends none yet (AB#7775).
+- **Errors**: `identityUserFailureOf(error, userName?)` (`shared/identity-method-error.ts`) gives `{ code, message,
+  parameters, details }` for an `IdentityMethodError` and for the REST `HttpErrorResponse` alike — same code and same
+  text for `PASSWORD_POLICY_VIOLATION` (one `details` entry per failed rule; texts = `PASSWORD_RULE_DESCRIPTIONS`, the
+  identity service's REST texts with the default password options, AB#8523), `USER_ALREADY_EXISTS` (`parameters.field`
+  = `userName` | `email`, title of the REST 409) and `METHOD_TARGET_NOT_FOUND`. Other codes keep the gateway's
+  language-neutral message. `null` = no refusal (network, 5xx): report it as before. REST refusals stay
+  `HttpErrorResponse`, so `MmHttpErrorInterceptor` toasts them as before.
+- **Schema source**: the `createUser` / `resetPassword` fields and their four input/result types were added to
+  `schema.graphql` surgically (2026-11-15) from an introspection of a local scratch tenant (System.Identity 3.x, identity
+  services 3.5.x, asset repository `main`).
+- **Removing the fallback later** (own story once Gerald sets the REST sunset date): drop the `rest` branch of
+  `createUser` / `resetPassword`, `runUserMethod`'s fallback set and `resetPasswordOnLogin` REST path, and make Apollo
+  required for these methods.
+- Specs: `identity-service.user-methods.spec.ts` (real Apollo client with an `InMemoryCache` on a scripted link).
 
 **Role Management:**
 

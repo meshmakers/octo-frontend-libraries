@@ -85786,6 +85786,30 @@ type SystemIdentityUserConnection {
   totalCount: Int
 }
 
+"""Parameters of the CK method 'System.Identity/User.CreateUser-1'."""
+input SystemIdentityUserCreateUserMethodInput {
+  email: String
+  firstName: String
+  lastName: String
+
+  """
+  Initial password; without it the user gets the welcome notification without a password.
+  """
+  password: String
+  userName: String!
+}
+
+"""
+Result of a successful call of the CK method 'System.Identity/User.CreateUser-1'. A failed call is one GraphQL error.
+"""
+type SystemIdentityUserCreateUserMethodResult {
+  """Id of the invocation, for correlation with the handler log."""
+  invocationId: ID!
+
+  """The declared result of the method."""
+  result: String
+}
+
 """
 An edge in a connection from an object to another object of type `SystemIdentityUser`.
 """
@@ -85867,8 +85891,51 @@ type SystemIdentityUserMutations {
   """Creates new entities of type 'SystemIdentityUser'."""
   create(entities: [SystemIdentityUserInput]!): [SystemIdentityUser]
 
+  """
+  Creates a user (REST user creation is unchanged). Calls the CK method 'System.Identity/User.CreateUser-1'.
+  """
+  createUser(
+    """
+    Optional idempotency key (at most 128 characters). While the key is within its lifetime (24 hours by default, configured by Methods:Idempotency:Ttl), a second call by the same caller with the same key and the same parameters returns the first result instead of running the method again.
+    """
+    idempotencyKey: String
+
+    """The parameters of the method."""
+    input: SystemIdentityUserCreateUserMethodInput!
+  ): SystemIdentityUserCreateUserMethodResult
+
+  """
+  An administrator sets a new password without the current one. Lifts a lockout; the user is notified. Calls the CK method 'System.Identity/User.ResetPassword-1'.
+  """
+  resetPassword(
+    """
+    Optional idempotency key (at most 128 characters). While the key is within its lifetime (24 hours by default, configured by Methods:Idempotency:Ttl), a second call by the same caller with the same key and the same parameters returns the first result instead of running the method again.
+    """
+    idempotencyKey: String
+
+    """The parameters of the method."""
+    input: SystemIdentityUserResetPasswordMethodInput!
+
+    """Runtime id of the target entity."""
+    rtId: OctoObjectId!
+  ): SystemIdentityUserResetPasswordMethodResult
+
   """Updates existing entity of type 'SystemIdentityUser'."""
   update(entities: [SystemIdentityUserInputUpdate]!): [SystemIdentityUser]
+}
+
+"""Parameters of the CK method 'System.Identity/User.ResetPassword-1'."""
+input SystemIdentityUserResetPasswordMethodInput {
+  """The new password; must satisfy the password policy of the tenant."""
+  newPassword: String!
+}
+
+"""
+Result of a successful call of the CK method 'System.Identity/User.ResetPassword-1'. A failed call is one GraphQL error.
+"""
+type SystemIdentityUserResetPasswordMethodResult {
+  """Id of the invocation, for correlation with the handler log."""
+  invocationId: ID!
 }
 
 """

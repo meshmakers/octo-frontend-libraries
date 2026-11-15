@@ -40,6 +40,29 @@ import {
 import {ProvisioningSourceUserDto} from '../shared/provisioningSourceUserDto';
 import {CreateExternalTenantUserGroupMappingDto, ProvisioningGroupDto} from '../shared/provisioningGroupDto';
 import {TENANT_ID_PROVIDER, TenantIdProvider} from './tenant-provider';
+import {Apollo} from 'apollo-angular';
+import {
+  IdentityUserCreateUserDocumentDto,
+  IdentityUserCreateUserMutationDto,
+  IdentityUserCreateUserMutationVariablesDto
+} from '../graphQL/identityUserCreateUser';
+import {
+  IdentityUserResetPasswordDocumentDto,
+  IdentityUserResetPasswordMutationDto,
+  IdentityUserResetPasswordMutationVariablesDto
+} from '../graphQL/identityUserResetPassword';
+import {OCTO_SILENT_ERRORS} from '../shared/octo-error-link';
+import {
+  IdentityMethodError,
+  isGraphQlSchemaMismatch,
+  isMethodHandlerNotAvailable,
+  methodFailureOf,
+  METHOD_TARGET_NOT_FOUND_CODE,
+  userNotFoundMessage
+} from '../shared/identity-method-error';
+
+/** Identity user operations that run a CK method through GraphQL and fall back to REST (AB#8864). */
+export type IdentityUserMethodOperation = 'createUser' | 'resetPassword';
 
 @Injectable({
   providedIn: 'root'
@@ -48,6 +71,57 @@ export class IdentityService {
   private readonly httpClient = inject(HttpClient);
   private readonly configurationService = inject(CONFIGURATION_SERVICE);
   private readonly tenantIdProvider: TenantIdProvider | null = inject(TENANT_ID_PROVIDER, {optional: true});
+  /** The host's Apollo client (tenant GraphQL endpoint); `null` in apps without GraphQL — they use REST. */
+  private readonly apollo: Apollo | null = inject(Apollo, {optional: true});
+  /** `<tenantId>|<operation>` pairs that use REST for the rest of the session (AB#8864). */
+  private readonly restFallbacks = new Set<string>();
+
+  private async currentTenantId(): Promise<string> {
+    return (this.tenantIdProvider ? await this.tenantIdProvider() : null) ?? 'octosystem';
+  }
+
+  /**
+   * Runs an identity user operation through its CK method and falls back to REST (AB#8864):
+   *
+   * - without an Apollo client in the host, the operation uses REST;
+   * - a GraphQL schema without the method (validation error) and `METHOD_HANDLER_NOT_AVAILABLE` (the password methods
+   *   are switched off) both mean the method did not run: the same request is completed through REST, and the
+   *   operation uses REST for this tenant for the rest of the session. That is logged once with `console.info`, no toast;
+   * - every other method error is raised to the caller as {@link IdentityMethodError}, never retried through REST.
+   *
+   * Neither the log line nor the error carries a request value.
+   */
+  private async runUserMethod<T>(
+    operation: IdentityUserMethodOperation,
+    userName: string | undefined,
+    method: () => Promise<T>,
+    rest: () => Promise<T>
+  ): Promise<T> {
+    const tenantId = await this.currentTenantId();
+    const key = `${tenantId}|${operation}`;
+    if (!this.apollo || this.restFallbacks.has(key)) {
+      return rest();
+    }
+    try {
+      return await method();
+    } catch (error) {
+      if (error instanceof IdentityMethodError) {
+        throw error;
+      }
+      const schemaMismatch = isGraphQlSchemaMismatch(error);
+      if (!schemaMismatch && !isMethodHandlerNotAvailable(error)) {
+        const failure = methodFailureOf(error, userName);
+        if (failure) {
+          throw new IdentityMethodError(failure);
+        }
+        throw error;
+      }
+      this.restFallbacks.add(key);
+      console.info(`IdentityService.${operation}: tenant '${tenantId}' uses REST for this session (${
+        schemaMismatch ? 'the GraphQL schema has no such method' : 'METHOD_HANDLER_NOT_AVAILABLE'}).`);
+      return rest();
+    }
+  }
 
   private async getApiBaseUrl(): Promise<string | null> {
     if (!this.configurationService.config?.issuer) return null;
@@ -216,15 +290,53 @@ export class IdentityService {
     return null;
   }
 
+  /**
+   * Creates a user (AB#8864). Runs the static CK method `System.Identity/User.CreateUser-1`
+   * (`runtime.systemIdentityUsers.createUser`) and falls back to `POST users` where the method is not available
+   * (see {@link runUserMethod}). The password (`RegisterUserDto.password`) travels only in the GraphQL variables or the
+   * JSON body; the mutation runs with `fetchPolicy: 'no-cache'`, so the Apollo cache never holds it.
+   *
+   * A user with `resetPasswordOnLogin: true` is always created through REST: the method has no such parameter, the REST
+   * endpoint sets the flag after the method ran.
+   *
+   * Refusals: on the method path an {@link IdentityMethodError} (`PASSWORD_POLICY_VIOLATION`, `USER_ALREADY_EXISTS`,
+   * `METHOD_VALIDATION_FAILED`, `METHOD_FORBIDDEN`, ...), on the REST path the `HttpErrorResponse`.
+   * `identityUserFailureOf(error)` reads both the same way (same code, same text).
+   */
   async createUser(userDto: UserDto): Promise<void> {
     const baseUrl = await this.getApiBaseUrl();
-    if (baseUrl) {
+    if (!baseUrl) {
+      return;
+    }
+    const rest = async (): Promise<void> => {
       await firstValueFrom(
         this.httpClient.post<void>(baseUrl + 'users', userDto, {
           observe: 'response'
         })
       );
+    };
+    const extra = userDto as UserDto & { password?: string | null; resetPasswordOnLogin?: boolean };
+    if (extra.resetPasswordOnLogin === true) {
+      return rest();
     }
+    const blankToNull = (value: string | null | undefined): string | null => value?.trim() ? value : null;
+    return this.runUserMethod('createUser', userDto.name, async () => {
+      const variables: IdentityUserCreateUserMutationVariablesDto = {
+        input: {
+          userName: userDto.name,
+          email: blankToNull(userDto.email),
+          firstName: userDto.firstName ?? null,
+          lastName: userDto.lastName ?? null,
+          password: blankToNull(extra.password)
+        }
+      };
+      await firstValueFrom(this.apollo!.mutate<IdentityUserCreateUserMutationDto, IdentityUserCreateUserMutationVariablesDto>({
+        mutation: IdentityUserCreateUserDocumentDto,
+        variables,
+        fetchPolicy: 'no-cache',
+        context: {[OCTO_SILENT_ERRORS]: true}
+      }));
+    }, rest);
   }
 
   async updateUser(userName: string, userDto: UserDto): Promise<void> {
@@ -373,12 +485,27 @@ export class IdentityService {
   }
 
   /**
-   * Sets a new password for a user (administrator reset). User name and password travel only in the JSON body;
-   * the identity service refuses the password as a URL query parameter (400).
+   * Sets a new password for a user (administrator reset, AB#8864). Runs the CK method
+   * `System.Identity/User.ResetPassword-1` (`runtime.systemIdentityUsers.resetPassword`) on the user, whose rtId is read
+   * once with `GET users/{userName}`, and falls back to `POST users/ResetPassword` where the method is not available
+   * (see {@link runUserMethod}). The password travels only in the GraphQL variables or the JSON body, never in a URL;
+   * the mutation runs with `fetchPolicy: 'no-cache'`, so the Apollo cache never holds it.
+   *
+   * Difference between the paths: the REST endpoint also sends the user the password-reset e-mail; the method sends no
+   * e-mail yet (AB#7775).
+   *
+   * Refusals: on the method path an {@link IdentityMethodError} (`PASSWORD_POLICY_VIOLATION`, `METHOD_TARGET_NOT_FOUND`
+   * for an unknown user, `METHOD_FORBIDDEN`, `SHADOW_USER_PASSWORD_NOT_ALLOWED`, ...), on the REST path the
+   * `HttpErrorResponse`. `identityUserFailureOf(error, userName)` reads both the same way (same code, same text).
+   *
+   * @returns The REST response body, or `null` (method path, or no identity URL configured).
    */
   async resetPassword(userName: string, password: string): Promise<unknown> {
     const baseUrl = await this.getApiBaseUrl();
-    if (baseUrl) {
+    if (!baseUrl) {
+      return null;
+    }
+    const rest = async (): Promise<unknown> => {
       const request: ResetUserPasswordRequestDto = { userName, password };
       const response = await firstValueFrom(
         this.httpClient.post<unknown>(baseUrl + 'users/ResetPassword', request, {
@@ -386,8 +513,44 @@ export class IdentityService {
         })
       );
       return response.body;
+    };
+    return this.runUserMethod('resetPassword', userName, async () => {
+      const rtId = await this.findUserRtId(baseUrl, userName);
+      await firstValueFrom(this.apollo!.mutate<IdentityUserResetPasswordMutationDto, IdentityUserResetPasswordMutationVariablesDto>({
+        mutation: IdentityUserResetPasswordDocumentDto,
+        variables: { rtId, input: { newPassword: password } },
+        fetchPolicy: 'no-cache',
+        context: {[OCTO_SILENT_ERRORS]: true}
+      }));
+      return null;
+    }, rest);
+  }
+
+  /** The rtId (`userId`) of a user; an unknown user is an {@link IdentityMethodError} `METHOD_TARGET_NOT_FOUND`. */
+  private async findUserRtId(baseUrl: string, userName: string): Promise<string> {
+    const notFound = (): IdentityMethodError => new IdentityMethodError({
+      code: METHOD_TARGET_NOT_FOUND_CODE,
+      message: userNotFoundMessage(userName),
+      parameters: {},
+      details: []
+    });
+    try {
+      const response = await firstValueFrom(
+        this.httpClient.get<UserDto | null>(baseUrl + `users/${encodeURIComponent(userName)}`, {
+          observe: 'response',
+          context: new HttpContext().set(MM_CALLER_HANDLED_STATUSES, [404])
+        })
+      );
+      if (!response.body?.userId) {
+        throw notFound();
+      }
+      return response.body.userId;
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        throw notFound();
+      }
+      throw error;
     }
-    return null;
   }
 
   async getClients(skip: number, take: number): Promise<PagedResultDto<ClientDto> | null> {
