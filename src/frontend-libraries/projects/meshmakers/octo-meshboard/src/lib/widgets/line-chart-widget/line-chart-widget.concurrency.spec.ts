@@ -59,7 +59,7 @@ function setup(cfg: LineChartWidgetConfig, opts: { width?: number; pin?: string[
       family: 'streamData' as const, queryRtId: 'q', associatedCkTypeId: null, columns: [],
       rows: [], totalCount: 0, hasNextPage: false, endCursor: null
     })),
-    fetchQueryArchive: vi.fn().mockResolvedValue({ archiveRtId: 'archive-raw-15min', ckTypeId: 'Demo/Meter', rtIds: opts.pin ?? null }),
+    fetchQueryArchive: vi.fn().mockResolvedValue({ archiveRtId: 'archive-raw-15min', ckTypeId: 'System/Entity', rtIds: opts.pin ?? null }),
     resolveSeriesQuery: vi.fn().mockResolvedValue({
       archiveRtId: 'rollup-1h', effectiveBucketMs: 3_600_000, points: 168,
       reducingFunction: 'SUM', signal: null, actualPoints: null, diagnostic: null
@@ -242,6 +242,72 @@ describe('LineChartWidgetComponent downsampling concurrency (AB#8994)', () => {
     await first;
 
     expect(Object.keys(s.series())).toEqual(['g1']);
+  });
+});
+
+describe('LineChartWidgetComponent superseded and destroyed loads (AB#8994)', () => {
+  beforeEach(() => TestBed.resetTestingModule());
+
+  it('destroying the widget drops its queued requests: none of them is sent', async () => {
+    const s = setup(config());
+    const load = s.load();
+    await flush();
+    expect(s.pending).toHaveLength(3);
+
+    s.fixture.destroy();
+    for (const call of s.pending.splice(0)) call.resolve(bins(call.rtIds));
+    await load;
+    await flush();
+
+    expect(s.qe.downsampleByArchive).toHaveBeenCalledTimes(3);
+  });
+
+  it('a load superseded while it was still preparing sends no request', async () => {
+    const s = setup(config());
+    let releaseGroups!: () => void;
+    s.qe.fetchEntityGroups.mockImplementationOnce(() => new Promise(resolve => {
+      releaseGroups = () => resolve(new Map(GROUPS.map((g, i) => [g, [ENTITIES[i]]])));
+    }));
+    const first = s.load();
+    await flush();
+    expect(s.qe.downsampleByArchive).not.toHaveBeenCalled();
+
+    s.qe.fetchEntityGroups.mockResolvedValue(new Map([['g0', ['e0']]]));
+    const second = s.load();
+    await drain(s, second);
+    releaseGroups();
+    await first;
+    await flush();
+
+    expect(s.qe.downsampleByArchive).toHaveBeenCalledTimes(1);
+    expect(Object.keys(s.series())).toEqual(['g0']);
+  });
+
+  it('a resize that leaves the capped resolver target unchanged does not reload', async () => {
+    const s = setup(config(), { width: 1500 });
+    await drain(s, s.load());
+    const cmp = s.cmp as unknown as { onResize(): void; resizeTimer?: unknown };
+
+    Object.defineProperty(s.fixture.nativeElement, 'offsetWidth', { value: 1510, configurable: true });
+    cmp.onResize();
+    expect(cmp.resizeTimer).toBeUndefined();
+
+    Object.defineProperty(s.fixture.nativeElement, 'offsetWidth', { value: 700, configurable: true });
+    cmp.onResize();
+    expect(cmp.resizeTimer).toBeDefined();
+    clearTimeout(cmp.resizeTimer as ReturnType<typeof setTimeout>);
+  });
+
+  it('a plain downsampled chart still reloads on a material resize above 1000 px', async () => {
+    const s = setup(config({ resolutionAware: false, aggregateSeriesByGroup: false }), { width: 1500 });
+    await s.load();
+    const cmp = s.cmp as unknown as { onResize(): void; resizeTimer?: unknown };
+
+    Object.defineProperty(s.fixture.nativeElement, 'offsetWidth', { value: 2400, configurable: true });
+    cmp.onResize();
+
+    expect(cmp.resizeTimer).toBeDefined();
+    clearTimeout(cmp.resizeTimer as ReturnType<typeof setTimeout>);
   });
 });
 

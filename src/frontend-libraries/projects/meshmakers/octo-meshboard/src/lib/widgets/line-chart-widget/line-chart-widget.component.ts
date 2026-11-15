@@ -463,8 +463,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   // FE-2 resize handling: re-query at a new resolution when the chart is resized materially.
   private resizeObserver?: ResizeObserver;
   private resizeTimer?: ReturnType<typeof setTimeout>;
-  /** The downsampling `limit` used by the last load; 0 when the last load wasn't downsampled. */
-  private lastLimit = 0;
+  /**
+   * Pixel-derived point counts the last load asked for (FE-2 resize check): `plain` for plain
+   * downsampling, `resolution` for the series resolver of resolution-aware sources (capped, AB#8994).
+   * 0 = that kind was not used; both 0 = the last load wasn't downsampled (or hasn't completed yet).
+   */
+  private lastRequested = { plain: 0, resolution: 0 };
   /** Bounds the transient downsampling requests of this widget across overlapping loads (AB#8994). */
   private readonly downsamplingLimiter: ConcurrencyLimiter;
   /** Incremented by every load; a load whose number is no longer current applies nothing (AB#8994). */
@@ -749,12 +753,18 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
     if (this.resizeTimer) clearTimeout(this.resizeTimer);
+    // Invalidate the running load and drop its queued downsampling requests (AB#8994): a destroyed
+    // widget sends no further requests and applies nothing.
+    this.loadGeneration++;
+    this.downsamplingLimiter.cancelQueued();
   }
 
   /**
    * FE-2: when the chart is resized so the pixel-derived bucket count would change materially
    * (>15%), re-query at the new resolution after a 300 ms debounce. Only relevant while
-   * downsampling is active (lastLimit > 0); raw charts don't depend on width.
+   * downsampling is active; raw charts don't depend on width. Each count is compared with the same
+   * calculation that produced it, so the 500-point resolver cap (AB#8994) does not trigger reloads
+   * for resizes that leave the capped target unchanged.
    */
   private setupResizeObserver(): void {
     if (typeof ResizeObserver === 'undefined') return;
@@ -763,9 +773,10 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   }
 
   private onResize(): void {
-    if (this.lastLimit <= 0) return; // last load wasn't downsampled (or hasn't completed yet)
-    const newLimit = this.computeDownsampleLimit();
-    if (Math.abs(newLimit - this.lastLimit) / this.lastLimit < 0.15) return;
+    const changed = (previous: number, next: number): boolean =>
+      previous > 0 && Math.abs(next - previous) / previous >= 0.15;
+    const { plain, resolution } = this.lastRequested;
+    if (!changed(plain, this.computeDownsampleLimit()) && !changed(resolution, this.resolutionTargetPoints())) return;
     if (this.resizeTimer) clearTimeout(this.resizeTimer);
     this.resizeTimer = setTimeout(() => this.ngZone.run(() => this.loadData()), 300);
   }
@@ -853,12 +864,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
           && this.config.valueField && timeArgs?.from && timeArgs?.to) {
         const sourceRtIds = this.stateService.resolveStreamDataRtIds(queryDataSource.entitySelectorId);
         const { rows, signal, requestedPoints, failures } = await this.loadResolutionAware(
-          queryDataSource, timeArgs.from, timeArgs.to, sourceRtIds, fieldFilter ?? undefined);
+          queryDataSource, timeArgs.from, timeArgs.to, sourceRtIds, fieldFilter ?? undefined, generation);
         if (generation !== this.loadGeneration) return;
         this._sourceHints.set(this.seriesFailureHints(failures));
         this._resolutionSignal.set(signal);
         this._resolutionTarget.set(requestedPoints);
-        this.lastLimit = signal?.points ?? this.resolutionTargetPoints();
+        this.lastRequested = { plain: 0, resolution: requestedPoints };
         this.processData(rows, true);
         this._dataInfo.set({ rows: rows.length, points: this._categories().length, total: rows.length });
         this._isLoading.set(false);
@@ -872,7 +883,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       // unconditionally because the runtime path ignores it.
       const streamDataArgs = this.buildStreamDataArgs();
       // Remember the resolution used so a later resize can decide whether to re-query (FE-2).
-      this.lastLimit = streamDataArgs?.limit ?? 0;
+      this.lastRequested = { plain: streamDataArgs?.limit ?? 0, resolution: 0 };
 
       const result = await firstValueFrom(
         this.queryExecutor.execute(queryDataSource.queryFamily, queryDataSource.queryRtId, {
@@ -924,7 +935,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     from: Date,
     to: Date,
     sourceRtIds: string[] | undefined,
-    fieldFilter: FieldFilterDto[] | undefined
+    fieldFilter: FieldFilterDto[] | undefined,
+    generation: number
   ): Promise<{ rows: QueryResultRow[]; signal: SeriesResolutionResult | null; requestedPoints: number; failures: SeriesLoadFailure[] }> {
     const targetPoints = this.resolutionTargetPoints();
     const info = await this.queryExecutor.fetchQueryArchive(ds.queryRtId);
@@ -982,7 +994,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         aggregation: resolution.reducingFunction,
         rtIds: rtIds && rtIds.length > 0 ? rtIds : undefined,
         fieldFilter
-      }).then(seriesRows => seriesRows.map(r => this.reshapeResolutionRow(r, label)));
+      }, generation).then(seriesRows => seriesRows.map(r => this.reshapeResolutionRow(r, label)));
 
     const { rows, failures } = ds.aggregateSeriesByGroup && info.ckTypeId
       ? await this.loadGroupAggregatedRows(info.ckTypeId, scopeRtIds, downsample)
@@ -1083,9 +1095,17 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     return { rows, failures };
   }
 
-  /** Every transient downsampling request of this widget goes through its limiter (AB#8994). */
-  private downsampleLimited(params: Parameters<QueryExecutorService['downsampleByArchive']>[0]): Promise<QueryResultRow[]> {
-    return this.downsamplingLimiter.run(() => this.queryExecutor.downsampleByArchive(params));
+  /**
+   * Every transient downsampling request of this widget goes through its limiter (AB#8994). A
+   * request of a superseded load (`generation` no longer current, also after destroy) is never sent:
+   * it is refused before it is queued and again when its slot comes up, so obsolete requests of a
+   * load that was still preparing never hold a slot the current load needs.
+   */
+  private downsampleLimited(params: Parameters<QueryExecutorService['downsampleByArchive']>[0], generation: number): Promise<QueryResultRow[]> {
+    const stale = (): boolean => generation !== this.loadGeneration;
+    if (stale()) return Promise.reject(new QueuedTaskCancelledError());
+    return this.downsamplingLimiter.run(() =>
+      stale() ? Promise.reject(new QueuedTaskCancelledError()) : this.queryExecutor.downsampleByArchive(params));
   }
 
   /**
@@ -1194,6 +1214,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       });
 
       const prepared = await Promise.allSettled(active.map(s => this.prepareSource(s)));
+      if (generation !== this.loadGeneration) return;
 
       // Plain sources keep the pixel-derived count; resolution-aware ones lower it to their rung below.
       let limit = this.computeDownsampleLimit();
@@ -1210,13 +1231,13 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       const fetched = await Promise.allSettled(active.map((source, i) => {
         const p = prepared[i];
         return p.status === 'fulfilled'
-          ? this.fetchSource(source, p.value, limit)
+          ? this.fetchSource(source, p.value, limit, generation)
           : Promise.reject(p.reason);
       }));
 
       // carryForward (AB#8046): the last value before the window is the start value of the series.
       const fixed = this.fixedBucketWindow();
-      const seeds = await this.loadCarryForwardSeeds(active, prepared, limit, fixed);
+      const seeds = await this.loadCarryForwardSeeds(active, prepared, limit, fixed, generation);
       if (generation !== this.loadGeneration) return;
 
       const gridSources: TimeGridSourceInput[] = [];
@@ -1274,7 +1295,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       this._sourceHints.set(hints);
       this._resolutionSignal.set(signal);
       this._resolutionTarget.set(signal ? targetPoints : null);
-      this.lastLimit = limit;
+      this.lastRequested = { plain: this.computeDownsampleLimit(), resolution: signal ? targetPoints : 0 };
       this._dataInfo.set({ rows: rowCount, points: grid.instants.length, total: rowCount });
       this._isLoading.set(false);
     } catch (err) {
@@ -1297,7 +1318,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     active: readonly MultiSourceEntry[],
     prepared: readonly PromiseSettledResult<PreparedSource>[],
     limit: number,
-    fixed: FixedBucketWindow | null
+    fixed: FixedBucketWindow | null,
+    generation: number
   ): Promise<Map<string, number | null>> {
     const seeds = new Map<string, number | null>();
     const definitions = this.config.additionalSeries ?? [];
@@ -1319,7 +1341,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         resolutionAware: p.value.resolutionAware ? { ...p.value.resolutionAware, from: lookbackFrom, to: from } : undefined
       };
       try {
-        const rows = await this.fetchSource(source, shifted, lookbackLimit);
+        const rows = await this.fetchSource(source, shifted, lookbackLimit, generation);
         seeds.set(source.key, lastValue(queryRowsToSeries(rows.rows, source.label, source.valueField, rows.downsampled).points));
       } catch (err) {
         console.warn(`Line Chart: no start value for "${source.label}" (look-back failed):`, err);
@@ -1362,7 +1384,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   private async fetchSource(
     source: MultiSourceEntry,
     prepared: PreparedSource,
-    limit: number
+    limit: number,
+    generation: number
   ): Promise<{ rows: QueryResultRow[]; downsampled: boolean; failures?: SeriesLoadFailure[] }> {
     const ds = source.dataSource;
     // Widget filters belong to the primary query's type; query series run unfiltered.
@@ -1382,7 +1405,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
           aggregation: resolution.reducingFunction,
           rtIds: rtIds && rtIds.length > 0 ? rtIds : undefined,
           fieldFilter
-        }).then(rows => source.primary
+        }, generation).then(rows => source.primary
           ? rows.map(r => this.reshapeResolutionRow(r, label))
           // The transient row's one value column is named after the reducer (`<field>_min` for MIN …);
           // re-emit it under the series' value field so no reducer suffix is mistaken for a band.

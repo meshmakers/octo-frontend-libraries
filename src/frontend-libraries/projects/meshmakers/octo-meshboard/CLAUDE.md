@@ -1392,9 +1392,12 @@ rollup archive does not carry the `seriesGroupField` column.
 > goes through one `ConcurrencyLimiter` (`utils/concurrency-limiter.ts`) per widget instance, limit
 > `MAX_CONCURRENT_DOWNSAMPLING` (3): both fan-outs, the resolution-aware query series of the multi-source path
 > and their carry-forward look-backs. Requests in flight count until they settle, so overlapping loads never
-> exceed the limit. Each `loadData` increments `loadGeneration` and calls `cancelQueued()` (queued requests
-> reject with `QueuedTaskCancelledError`); a load whose generation is no longer current applies nothing, not
-> even its error. The fan-outs return `{ rows, failures }` through `fanOut`: a failed call becomes a hint
+> exceed the limit. Each `loadData` (and `ngOnDestroy`) increments `loadGeneration` and calls `cancelQueued()`
+> (queued requests reject with `QueuedTaskCancelledError`); `downsampleLimited(params, generation)` refuses a
+> request of a stale generation before queueing it and again when its slot comes up, so a load superseded
+> while it was still preparing sends nothing; a load whose generation is no longer current applies nothing,
+> not even its error. The FE-2 resize check compares `lastRequested.plain` with `computeDownsampleLimit()`
+> and `lastRequested.resolution` with `resolutionTargetPoints()`, so the cap does not cause reloads. The fan-outs return `{ rows, failures }` through `fanOut`: a failed call becomes a hint
 > (`kind: 'error'`, text `Could not load <label>: timeout | request failed`, `title` = error message), the
 > others render; only when every call fails does it throw (widget error state). The resolver's target point
 > count is `resolutionTargetPoints()` = `min(MAX_DOWNSAMPLE_POINTS (500), computeDownsampleLimit())` so a 7-day
