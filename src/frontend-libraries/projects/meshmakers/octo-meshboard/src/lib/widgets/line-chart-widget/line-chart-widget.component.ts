@@ -1162,7 +1162,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * 3. Common bucket count: the smallest of the pixel-derived target and every resolved
    *    `points` (= the coarsest effective bucket). Every source is downsampled with this count over
    *    the same window, so all of them use the same bucket width.
-   * 4. Fetch all sources in parallel; one failing source gives an error hint, the others render.
+   * 4. Fetch all sources in parallel; one failing source gives an error hint, the others render;
+   *    when every source fails, the widget shows its error state (AB#8994).
    * 5. {@link alignOnTimeGrid}: shared categories, gaps as null, misaligned sources left out with a hint.
    */
   private async loadMultiSource(generation: number): Promise<void> {
@@ -1213,12 +1214,15 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         }
       });
 
-      const prepared = await Promise.allSettled(active.map(s => this.prepareSource(s)));
+      // Both counts are taken once, before the first request, so the resize check (FE-2) compares
+      // against the counts the requests actually used, even if the width changes during the load.
+      const plainLimit = this.computeDownsampleLimit();
+      const targetPoints = this.resolutionTargetPoints();
+      const prepared = await Promise.allSettled(active.map(s => this.prepareSource(s, targetPoints)));
       if (generation !== this.loadGeneration) return;
 
       // Plain sources keep the pixel-derived count; resolution-aware ones lower it to their rung below.
-      let limit = this.computeDownsampleLimit();
-      const targetPoints = this.resolutionTargetPoints();
+      let limit = plainLimit;
       let signal: SeriesResolutionResult | null = null;
       for (const p of prepared) {
         const resolution = p.status === 'fulfilled' ? p.value.resolutionAware?.resolution : null;
@@ -1234,6 +1238,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
           ? this.fetchSource(source, p.value, limit, generation)
           : Promise.reject(p.reason);
       }));
+
+      // Every source failed (AB#8994): the widget error state, not an empty chart with hints. A source
+      // with partly failed series, or one without data, does not count as failed.
+      if (fetched.length > 0 && fetched.every(f => f.status === 'rejected')) {
+        throw (fetched[0] as PromiseRejectedResult).reason;
+      }
 
       // carryForward (AB#8046): the last value before the window is the start value of the series.
       const fixed = this.fixedBucketWindow();
@@ -1295,7 +1305,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       this._sourceHints.set(hints);
       this._resolutionSignal.set(signal);
       this._resolutionTarget.set(signal ? targetPoints : null);
-      this.lastRequested = { plain: this.computeDownsampleLimit(), resolution: signal ? targetPoints : 0 };
+      this.lastRequested = { plain: plainLimit, resolution: signal ? targetPoints : 0 };
       this._dataInfo.set({ rows: rowCount, points: grid.instants.length, total: rowCount });
       this._isLoading.set(false);
     } catch (err) {
@@ -1351,7 +1361,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   }
 
   /** Resolution-aware sources resolve their rung first (step 2 of {@link loadMultiSource}). */
-  private async prepareSource(source: MultiSourceEntry): Promise<PreparedSource> {
+  private async prepareSource(source: MultiSourceEntry, targetPoints: number): Promise<PreparedSource> {
     const ds = source.dataSource;
     const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
@@ -1367,7 +1377,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       baseArchiveRtId: info.archiveRtId,
       from: timeArgs.from,
       to: timeArgs.to,
-      targetPoints: this.resolutionTargetPoints(),
+      targetPoints,
       requiredAggregation: (ds.requiredAggregation ?? 'SUM') as CkRollupFunctionDto,
       sourcePath: source.valueField,
       rtIds: scopeRtIds,

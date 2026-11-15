@@ -383,4 +383,38 @@ describe('LineChartWidgetComponent multi-source primary fan-out (AB#8994)', () =
       { kind: 'error', sourceLabel: 'g2', text: 'Could not load g2: timeout', title: 'timeout' }
     ]);
   });
+
+  it('every source failing puts the widget into its error state', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const extra: LineChartQuerySeries = {
+      kind: 'query', key: 'total', label: 'Total', valueField: 'amount.value',
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-total', queryFamily: 'streamData', resolutionAware: true, requiredAggregation: 'SUM' }
+    };
+    const s = setup(config({}, { additionalSeries: [extra] }));
+    s.qe.fetchEntityGroups.mockResolvedValue(new Map([['g0', ['e0']], ['g1', ['e1']]]));
+
+    await drain(s, s.load(), call => call.reject(new Error('down')));
+
+    expect(s.cmp.error()).toBe('Failed to load data');
+    expect(s.cmp.sourceHints()).toEqual([]);
+  });
+
+  it('the resize check keeps the counts the requests used, even if the width changed during the load', async () => {
+    const extra: LineChartQuerySeries = {
+      kind: 'query', key: 'total', label: 'Total', valueField: 'amount.value',
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-total', queryFamily: 'streamData' }
+    };
+    const s = setup(config({ resolutionAware: false, aggregateSeriesByGroup: false }, { additionalSeries: [extra] }), { width: 800 });
+    const load = s.load();
+    // The chart is widened while the queries run.
+    Object.defineProperty(s.fixture.nativeElement, 'offsetWidth', { value: 1600, configurable: true });
+    await load;
+    const cmp = s.cmp as unknown as { onResize(): void; resizeTimer?: unknown };
+
+    const args = s.qe.execute.mock.calls[0] as unknown as [string, string, { streamDataArgs?: { limit?: number } }];
+    expect(args[2].streamDataArgs?.limit).toBe(400);
+    cmp.onResize();
+    expect(cmp.resizeTimer).toBeDefined();
+    clearTimeout(cmp.resizeTimer as ReturnType<typeof setTimeout>);
+  });
 });

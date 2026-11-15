@@ -1397,7 +1397,10 @@ rollup archive does not carry the `seriesGroupField` column.
 > request of a stale generation before queueing it and again when its slot comes up, so a load superseded
 > while it was still preparing sends nothing; a load whose generation is no longer current applies nothing,
 > not even its error. The FE-2 resize check compares `lastRequested.plain` with `computeDownsampleLimit()`
-> and `lastRequested.resolution` with `resolutionTargetPoints()`, so the cap does not cause reloads. The fan-outs return `{ rows, failures }` through `fanOut`: a failed call becomes a hint
+> and `lastRequested.resolution` with `resolutionTargetPoints()`, so the cap does not cause reloads; both
+> counts are taken once before the first request of a load (the multi-source path passes the target into
+> `prepareSource`), so a width change during the load is still caught. In the multi-source path a source
+> with partly failed series counts as loaded; when every source rejects, the widget shows its error state. The fan-outs return `{ rows, failures }` through `fanOut`: a failed call becomes a hint
 > (`kind: 'error'`, text `Could not load <label>: timeout | request failed`, `title` = error message), the
 > others render; only when every call fails does it throw (widget error state). The resolver's target point
 > count is `resolutionTargetPoints()` = `min(MAX_DOWNSAMPLE_POINTS (500), computeDownsampleLimit())` so a 7-day
