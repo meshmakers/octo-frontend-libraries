@@ -1388,6 +1388,21 @@ downsampling groups only by time bin, so it reduces (per `requiredAggregation`) 
 one aggregate line per group value. The grouping comes from the source entities' attributes because a
 rollup archive does not carry the `seriesGroupField` column.
 
+> **Concurrency, point cap and per-series errors (AB#8994).** Every `downsampleByArchive` call of the widget
+> goes through one `ConcurrencyLimiter` (`utils/concurrency-limiter.ts`) per widget instance, limit
+> `MAX_CONCURRENT_DOWNSAMPLING` (3): both fan-outs, the resolution-aware query series of the multi-source path
+> and their carry-forward look-backs. Requests in flight count until they settle, so overlapping loads never
+> exceed the limit. Each `loadData` increments `loadGeneration` and calls `cancelQueued()` (queued requests
+> reject with `QueuedTaskCancelledError`); a load whose generation is no longer current applies nothing, not
+> even its error. The fan-outs return `{ rows, failures }` through `fanOut`: a failed call becomes a hint
+> (`kind: 'error'`, text `Could not load <label>: timeout | request failed`, `title` = error message), the
+> others render; only when every call fails does it throw (widget error state). The resolver's target point
+> count is `resolutionTargetPoints()` = `min(MAX_DOWNSAMPLE_POINTS (500), computeDownsampleLimit())` so a 7-day
+> window over a 15-min archive (672 points) always resolves to the hourly rollup; `computeDownsampleLimit()`
+> itself (plain downsampling, multi-source common bucket count before the rung lowers it) keeps its 4000 cap,
+> because without a rollup choice the cap would only cost detail. A fixed bucket size keeps its count on both.
+> Specs: `utils/concurrency-limiter.spec.ts`, `line-chart-widget.concurrency.spec.ts`.
+
 > **Coverage signal (AB#5157).** `SeriesResolutionResult.signal = CoverageLimited` means the
 > resolver's coverage filter skipped a finer rung because it holds no measured data over the
 > requested window, and `finerRungAvailableFrom` says from when that rung could serve. The widget

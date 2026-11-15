@@ -29,6 +29,8 @@ export interface LineChartSourceHint {
   kind: 'error' | 'noData' | 'misaligned' | 'dependency';
   sourceLabel: string;
   text: string;
+  /** Detail shown as tooltip, e.g. the error message of a failed series (AB#8994). */
+  title?: string;
 }
 
 /** Why a query source delivered no series (AB#7952: formula series that depend on it say so). */

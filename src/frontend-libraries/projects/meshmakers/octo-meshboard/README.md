@@ -640,6 +640,21 @@ row filter on the group column fails). Board JSON of a widget config:
 - In the dialog: *Field Mapping → Excluded series*, shown once a series group field is set. Choosing another
   series group field or another query clears the list.
 
+**Load behaviour of resolution-aware charts (AB#8994).** A resolution-aware chart sends one transient
+downsampling request per series group (`aggregateSeriesByGroup`) or per source entity:
+
+- At most **3** of these requests of one widget run at the same time (`MAX_CONCURRENT_DOWNSAMPLING`); the
+  others wait and start as earlier ones finish. A reload, a time-filter or selector change drops the waiting
+  requests of the previous load, and nothing of a superseded load is drawn.
+- The point count the chart asks the series resolver for is `min(500, max(50, width / 2))`
+  (`MAX_DOWNSAMPLE_POINTS`). With a 15-min raw archive and an hourly rollup a 7-day window (672 raw points)
+  therefore always uses the hourly rollup; the raw archive is still used up to about 5 days. A fixed bucket
+  size (`bucketMinutes`) keeps its own count. Plain (not resolution-aware) downsampling is not capped at 500;
+  it keeps `min(4000, max(50, width / 2))`.
+- When the request of one series fails or times out, the other series are drawn and the failed one gets a
+  hint in the chart (`Could not load <series>: timeout` or `… request failed`, the error message as tooltip).
+  The chart shows its error state only when every series fails.
+
 ### Chart value labels (`categoryLabels` / `seriesLabels`, AB#7235)
 
 A query often groups by a code - an OBIS code, a material number, a cost centre. A pie, bar or line

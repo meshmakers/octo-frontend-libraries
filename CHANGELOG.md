@@ -10,6 +10,20 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: resolution-aware line charts load without starving the other widgets (AB#8994)
+
+- Fix: at most 3 transient downsampling requests of one line chart widget run at the same time
+  (`MAX_CONCURRENT_DOWNSAMPLING`); the rest are queued. Before, a chart sent one request per series group or
+  source entity at once (about ten on a large tenant), which exhausted the archive database's connection pool
+  and made the other widgets of the board fail. A reload drops the queued requests of the previous load, and
+  results of a superseded load are no longer drawn.
+- Change: the point count a resolution-aware chart asks the series resolver for is capped at 500
+  (`MAX_DOWNSAMPLE_POINTS`, was 4000), so a 7-day window over a 15-min archive uses the hourly rollup on every
+  screen width. Plain (not resolution-aware) downsampling keeps its 4000 limit; fixed bucket sizes keep their count.
+- Fix: a failed or timed-out series shows a per-series hint (`Could not load <series>: timeout`, error message
+  as tooltip) and the other series are drawn; the widget error state appears only when every series fails.
+  `LineChartSourceHint` has a new optional `title`.
+
 ### octo-services, octo-ui, octo-meshboard: no error toast for a page-out-of-range answer the list recovers from (AB#8805)
 
 - New (octo-services, additive): operation-context flag `OCTO_HANDLES_PAGE_OUT_OF_RANGE` next to
