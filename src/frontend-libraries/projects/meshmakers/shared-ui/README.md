@@ -177,6 +177,13 @@ The toolbar's "Reset Filters" button only appears while something narrows the de
 </mm-list-view>
 ```
 
+Row menu items (`contextMenuCommandItems`) of the row's "…" button (`contextMenuType: 'actionMenu'`, the default) are
+evaluated per row: `isDisabled(row)` disables an item, a synchronous `isVisible(row) === false` leaves it out of that
+row's menu (separators around hidden items collapse; a row whose items are all hidden opens no menu), so a menu can offer
+"Show progress" instead of "Start" while a row's job runs. The right-click mode (`contextMenuType: 'contextMenu'`) still
+shows the static list. In card mode (`cardModeBelow`) every column after the first gets a labelled line when it has a
+value; set `alwaysShowInCards` on a `component` column whose component shows data that is not a field of the row.
+
 ### BaseFormComponent (`mm-base-form`)
 
 Form wrapper with save/cancel buttons, title, validation, and unsaved changes detection.

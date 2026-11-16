@@ -16,6 +16,11 @@ export type OperationProgressStatus = 'running' | 'succeeded' | 'failed' | 'outc
  */
 export interface OperationProgressView {
   status: OperationProgressStatus;
+  /**
+   * What the operation works on, shown as the first fact, e.g. `{ label: 'Child tenant', value: 'plant-b',
+   * note: '(of octosystem)' }` for the backup of a child tenant (AB#8985). Not set = no such line (as before).
+   */
+  subject?: OperationProgressSubject | null;
   /** Plain-language name of what runs ("Tenant backup"). */
   methodLabel: string;
   /** Plain-language state ("Running", "Succeeded" …); defaults to the message of `status`. */
@@ -39,4 +44,14 @@ export interface OperationProgressView {
   canDownload?: boolean;
   /** A failed or lost operation offers "Start new …". */
   canStartNew?: boolean;
+}
+
+/** The object of an operation as {@link OperationProgressView.subject} shows it. */
+export interface OperationProgressSubject {
+  /** Plain-language kind ("Child tenant"). */
+  label: string;
+  /** Its name or id ("plant-b"). */
+  value: string;
+  /** Optional context after the value ("(of octosystem)"). */
+  note?: string | null;
 }

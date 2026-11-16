@@ -75,6 +75,54 @@ describe('MmTableComponent', () => {
     });
   });
 
+  describe('row menu visibility per row (AB#8985)', () => {
+    type Built = { text?: string; separator?: boolean }[];
+    const build = (items: unknown[], row: unknown): Built =>
+      (component as unknown as { buildContextMenuItemsWithDisabledState(items: unknown[], row: unknown): Built })
+        .buildContextMenuItemsWithDisabledState(items, row);
+    const running = (row: unknown) => (row as { running: boolean }).running;
+    const menu = [
+      { id: 'open', type: 'link' as const, text: 'Open' },
+      { id: 'sep0', type: 'separator' as const },
+      { id: 'backup', type: 'link' as const, text: 'Backup', isVisible: (row?: unknown) => !running(row) },
+      { id: 'progress', type: 'link' as const, text: 'Show progress', isVisible: (row?: unknown) => running(row) },
+      { id: 'sep1', type: 'separator' as const },
+      { id: 'hidden', type: 'link' as const, text: 'Never', isVisible: false },
+      { id: 'sep2', type: 'separator' as const },
+      { id: 'async', type: 'link' as const, text: 'Async', isVisible: () => Promise.resolve(false) }
+    ];
+
+    it('leaves out items whose isVisible is false for the row', () => {
+      expect(build(menu, { running: false }).map(i => i.text ?? '|')).toEqual(['Open', '|', 'Backup', '|', 'Async']);
+      expect(build(menu, { running: true }).map(i => i.text ?? '|')).toEqual(['Open', '|', 'Show progress', '|', 'Async']);
+    });
+
+    it('opens no menu for a row whose items are all hidden', () => {
+      const show = vi.fn();
+      component.gridContextMenu = { show } as unknown as typeof component.gridContextMenu;
+      component.contextMenuCommandItems = [{ id: 'only', type: 'link', text: 'Only', isVisible: () => false }];
+      const open = (component as unknown as { onContextMenu(row: unknown, e: PointerEvent): void }).onContextMenu.bind(component);
+      open({}, { pageX: 10, pageY: 10, preventDefault: () => undefined, stopPropagation: () => undefined } as unknown as PointerEvent);
+      expect(show).not.toHaveBeenCalled();
+      expect((component as unknown as { _actionMenuSelectedRow: unknown })._actionMenuSelectedRow).toBeNull();
+      component.contextMenuCommandItems = [{ id: 'only', type: 'link', text: 'Only' }];
+      open({}, { pageX: 10, pageY: 10, preventDefault: () => undefined, stopPropagation: () => undefined } as unknown as PointerEvent);
+      expect(show).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops leading, repeated and trailing separators around hidden items', () => {
+      const items = [
+        { id: 'sep0', type: 'separator' as const },
+        { id: 'a', type: 'link' as const, text: 'A' },
+        { id: 'sep1', type: 'separator' as const },
+        { id: 'b', type: 'link' as const, text: 'B', isVisible: false },
+        { id: 'sep2', type: 'separator' as const },
+        { id: 'c', type: 'link' as const, text: 'C', isVisible: false }
+      ];
+      expect(build(items, {}).map(i => i.text ?? '|')).toEqual(['A']);
+    });
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -902,6 +950,13 @@ describe('MmTableComponent', () => {
       expect(api().hasCardValue({ value: 0 }, column)).toBe(true);
       expect(api().hasCardValue({ value: false }, column)).toBe(true);
       expect(api().hasCardValue({ value: 'x' }, column)).toBe(true);
+    });
+
+    it('shows a column with alwaysShowInCards in the card body even without a field value (AB#8985)', () => {
+      class CellStub {}
+      expect(api().hasCardValue({}, { field: 'lastBackup', dataType: 'component', cellComponent: CellStub, alwaysShowInCards: true })).toBe(true);
+      // Unchanged for every other column: an empty value renders no line.
+      expect(api().hasCardValue({}, { field: 'lastBackup', dataType: 'component', cellComponent: CellStub })).toBe(false);
     });
 
     it('keeps the checkbox column in card mode even below hideCheckboxesBelow', () => {

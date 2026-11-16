@@ -178,6 +178,11 @@ export interface TableColumn {
    * to `*ngComponentOutlet`'s `inputs` map (keyed by the @Input() property name).
    */
   cellInputs?: (item: unknown) => Record<string, unknown>;
+  /**
+   * Card mode (`cardModeBelow`) skips a body line whose `field` has no value. Set this for a `component` column whose
+   * component shows data that is not a field of the row (e.g. a status read per row), so its line is always rendered.
+   */
+  alwaysShowInCards?: boolean;
 }
 
 /** Icons of a `booleanIcon` column (AB#5623). */
