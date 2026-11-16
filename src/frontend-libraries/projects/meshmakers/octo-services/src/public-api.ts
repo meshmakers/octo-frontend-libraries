@@ -88,6 +88,7 @@ export * from './lib/services/ck-model.service';
 export * from './lib/services/asset-repo.service';
 export * from './lib/services/bot-service';
 export * from './lib/services/ck-method-operation.service';
+export * from './lib/shared/tenant-graphql-target';
 export * from './lib/services/ck-method-operation-view';
 export * from './lib/services/bot-secrets.service';
 export * from './lib/services/health.service';

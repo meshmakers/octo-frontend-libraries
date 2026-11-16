@@ -1,6 +1,12 @@
 @let v = view();
 @let t = text();
 <dl class="mm-operation-progress__facts">
+  @if (v.subject; as subject) {
+    <div class="mm-operation-progress__fact">
+      <dt>{{ subject.label }}</dt>
+      <dd data-subject><strong>{{ subject.value }}</strong>@if (subject.note) {<span class="mm-operation-progress__note"> {{ subject.note }}</span>}</dd>
+    </div>
+  }
   <div class="mm-operation-progress__fact">
     <dt>{{ t.stateLabel }}</dt>
     <dd class="mm-operation-progress__state" data-state>{{ stateLabel() }}</dd>

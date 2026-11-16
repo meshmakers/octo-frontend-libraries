@@ -821,8 +821,14 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return this._columns.slice(1);
   }
 
-  /** Empty values render no body line, so cards stay tight (AB#4930). */
+  /**
+   * Empty values render no body line, so cards stay tight (AB#4930). A column with `alwaysShowInCards` always gets its
+   * line: its component renders data that is not a field of the row (AB#8985: "Last backup" of the Child tenants list).
+   */
   protected hasCardValue(element: Record<string, unknown>, column: TableColumn): boolean {
+    if (column.alwaysShowInCards) {
+      return true;
+    }
     if (column.dataType === 'statusIcons') {
       return this.getStatusFields(column).some(
         (fieldConfig) => !!this.getStatusIconMapping(element, fieldConfig)
@@ -1759,17 +1765,34 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this._contextMenuItems = overflow.length && contextItems.length
       ? [...overflow, {separator: true}, ...contextItems]
       : [...overflow, ...contextItems];
+    if (this._contextMenuItems.length === 0) {
+      // Every item is hidden for this row (`isVisible`): no empty popup. No popup means no close event, so clear the
+      // selected row here, or a later selection would act on this row.
+      this._contextMenuItems = this.buildMenuItems(this._contextMenuCommandItems);
+      this._actionMenuSelectedRow = null;
+      return;
+    }
     this.gridContextMenu?.show({
       left: this.clampContextMenuX(e.pageX),
       top: e.pageY,
     });
   }
 
+  /**
+   * Row menu items of one row: `isDisabled` per row, and items whose `isVisible` is false for the row are left out
+   * (AB#8985 — a row menu offers "Show backup progress" instead of "Backup" while a backup runs). An asynchronous
+   * `isVisible` counts as visible (`CommandBaseService.getIsVisibleSync`). Separators that would lead, trail or
+   * repeat after hidden items are dropped.
+   */
   private buildContextMenuItemsWithDisabledState(commandItems: CommandItem[], dataItem: unknown): MenuItem[] {
     const items: MenuItem[] = [];
     for (const commandItem of commandItems) {
       if (commandItem.type === 'separator') {
-        items.push({ separator: true });
+        if (items.length > 0 && !items[items.length - 1].separator) {
+          items.push({ separator: true });
+        }
+      } else if (!CommandBaseService.getIsVisibleSync(commandItem, dataItem)) {
+        continue;
       } else {
         let childMenuItems: MenuItem[] | undefined;
         if (commandItem.children) {
@@ -1784,6 +1807,9 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
           cssClass: commandItem.danger ? DANGER_MENU_ITEM_CLASS : undefined,
         });
       }
+    }
+    while (items.length > 0 && items[items.length - 1].separator) {
+      items.pop();
     }
     return items;
   }

@@ -5,7 +5,9 @@ State, progress and outcome of one long-running operation — today an asynchron
 
 - `mm-operation-progress` — presentational. Input `view: OperationProgressView` (`status` = `running` | `succeeded` |
   `failed` | `outcomeUnknown` | `notAvailable`, method label, start / finish / expiry dates, `percent` — `null` renders an
-  indeterminate bar —, stage text, error code and message, `connectionLost`, `canDownload`, `canStartNew`), `messages`
+  indeterminate bar —, stage text, error code and message, `connectionLost`, `canDownload`, `canStartNew`, and the optional
+  `subject` `{ label, value, note? }` shown as the first fact, e.g. "Child tenant plant-b (of octosystem)" for the backup
+  of a child tenant, AB#8985), `messages`
   (i18n overrides), `showOperationsLink`, `showActions`. Outputs `download`, `startNew`, `openOperations`. No cancel action.
 - `OperationProgressWindowService.open({ title, view: Observable<OperationProgressView>, onDownload?, onStartNew?,
   onOpenOperations?, messages? })` — a closable dialog around it (Close, Download, Start again). Closing never cancels the
@@ -17,5 +19,9 @@ State, progress and outcome of one long-running operation — today an asynchron
 const view = operations.follow(id, { retryAfterSeconds }).pipe(/* map to OperationProgressView, e.g. toOperationProgressView */);
 operationProgressWindow.open({ title: 'Tenant backup · t1', view, onDownload: () => download(), onOpenOperations: () => router.navigate([...]) });
 ```
+
+Operations of another tenant than the route tenant (a parent administrator following a child tenant's backup, AB#8985):
+pass the tenant to the octo-services reads (`follow(id, { retryAfterSeconds, tenantId })`) and name it in `subject` and
+the window title; the running hint and the link label are `messages` (`runningHint`, `openOperations`).
 
 Colours are Kendo CSS variables only (`--kendo-color-success/-error/-warning/-info` and their `-subtle` variants).

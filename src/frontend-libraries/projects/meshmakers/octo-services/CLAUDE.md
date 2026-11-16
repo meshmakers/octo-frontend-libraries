@@ -427,6 +427,20 @@ the state, so an expired operation or a network outage never loops error toasts.
 | `follow(operationId, { retryAfterSeconds? })` | Observable of `update` / `notFound` / `connectionLost` / `readFailed` events. First read after `retryAfterSeconds` of the handle (at once without one, e.g. after a reload), then every `max(retryAfterSeconds, 2 s)` (default 5 s). Transient read failures (network, status 0, 408, 429, 5xx — `isTransientError`) back off exponentially up to 60 s (`connectionLost`); a permanent one (GraphQL error, other 4xx) ends with `readFailed`. `CK_METHOD_OPERATION_POLLING` overrides the limits. Completes on SUCCEEDED / FAILED, `notFound` and `readFailed`; unsubscribing stops polling. **No time limit** — the state decides |
 | `CkMethodOperationService.isFinal(state)`, `isHandlerLost(op)`, `parameter(list, name)`, `isNotFoundError(error)` | Helpers; a lost handler is `FAILED` + `METHOD_OUTCOME_UNKNOWN` + `reason = handler-lost` (never re-run by the platform) |
 
+**Target tenant (AB#8985).** `getOperation(id, { tenantId })`, `listOperations({ tenantId, … })` and
+`follow(id, { tenantId, … })` read the operations of another tenant than the route tenant: a parent tenant administrator
+follows the backup of a child tenant (`System.Bot/TenantRepository.*` and `runtime.operations` of a child are allowed for
+the parent's user token since AB#8986; a missing role answers `METHOD_FORBIDDEN` / `not-authorized`, a tenant that is no
+child any more `METHOD_FORBIDDEN` / `tenant-not-allowed` or HTTP 403 "is not an existing child tenant"). The read keeps
+the host's Apollo client (links, token) and sets the Apollo context `uri` to `{assetServices}tenants/{tenantId}/GraphQL`
+(`tenantGraphQlContext` / `tenantGraphQlUri` in `shared/tenant-graphql-target.ts`, exported for a host's own operations,
+such as the Studio's dump mutation). `apollo-angular`'s `HttpLink` prefers the context `uri` over the one it was created
+with. The context also carries `httpContext` with `MM_CALLER_HANDLED_STATUSES = [403]` (no global toast; the caller
+words the refusal) and `queryDeduplication: false`: Apollo deduplicates in-flight queries by document and variables only,
+not by `uri`, so two concurrent reads of different tenants with the same variables would share one request and one answer
+(pinned in `ck-method-operation.service.spec.ts` with a real Apollo client). Without `tenantId` the context is exactly
+`{ [OCTO_SILENT_ERRORS]: true }`, as before.
+
 `ck-method-operation-view.ts` maps an operation to the `OperationProgressView` of `mm-operation-progress`
 (`@meshmakers/shared-ui`): `toOperationProgressView(operation, registry, { connectionLost?, canDownload?, canStartNew? })`,
 `notAvailableOperationView(label)`, `ckMethodOperationLabel(methodId, registry)`. The host supplies the plain-language
@@ -438,8 +452,9 @@ shown as the code. A SUCCEEDED operation is shown at 100 % (the record keeps the
 `System.Bot/TenantRepository.Dump-1`: the operation result carries `downloadPath = {tenantId}/v1/jobs/download?id={jobId}`
 (tenant route of the job download, never `system/v1/jobs`). Only that path shape for that tenant is accepted.
 
-Job flows that still run on `system/v1/jobs` (`JobManagementService`, `BotService.dumpRepository` for the Child Tenants
-backup, restore, exports) are unchanged until their job types move to async methods (AB#8447, AB#8985).
+Job flows that still run on `system/v1/jobs` (`JobManagementService`, restore, exports) are unchanged until their job
+types move to async methods (AB#8447). `BotService.dumpRepository` is no longer used for backups by the Refinery Studio
+(the Child Tenants backup runs the dump method on the child tenant since AB#8985); it stays for other hosts.
 
 ### JobManagementService
 
