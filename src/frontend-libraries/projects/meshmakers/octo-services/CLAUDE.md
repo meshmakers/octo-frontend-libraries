@@ -231,7 +231,14 @@ roles and the merge):
   input/result types (AB#8863, 2026-11-15) follow the same generated shape, written from the System.Identity 3.2.x model
   (`ck-user.yaml` of `octo-identity-services` `main`, methods `SetRoles-1`, `AddRole-1`, `RemoveRole-1`, `Merge-1`) and the
   asset repository's method type builder (`CkMethodGraphTypes`: `<Type><Method>MethodInput` / `…MethodResult`,
-  `StringArray` → `[String!]!`).
+  `StringArray` → `[String!]!`). Confirmed against the local stack on 2026-11-16 (scratch tenant, asset repository and
+  identity services `main`): the four fields and their input types exist as written, success answers carry
+  `invocationId`, refusals arrive as HTTP 200 with `data.…<field> = null` and one error (`extensions.code`, `codes`,
+  `details` as a **string**, `parameters`: `roleName` for `ROLE_NOT_FOUND`, `methodId` for `METHOD_TARGET_NOT_FOUND`,
+  empty for the other role and merge codes). `details` is an array only for `PASSWORD_POLICY_VIOLATION` (see Errors
+  below); `methodFailureOf` ignores a string. The recorded shapes are pinned in `identity-service.role-merge-methods.spec.ts`
+  ("error answers recorded on the local stack"). On that stack `createUser` answered `METHOD_HANDLER_NOT_AVAILABLE`
+  (`reason = no-live-handler`, password methods off), which is the REST fallback case.
 - **Removing the fallback later** (own story once Gerald sets the REST sunset date): drop the `rest` branch of
   `createUser` / `resetPassword` / `updateUserRoles` / `addUserToRole` / `removeRoleFromUser` / `mergeUsers`,
   `runUserMethod`'s fallback set and `resetPasswordOnLogin` REST path, and make Apollo required for these methods.

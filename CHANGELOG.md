@@ -32,6 +32,8 @@ starts a new empty "Unreleased" section.
 - Fix: the REST URLs of `updateUserRoles`, `addUserToRole` and `removeRoleFromUser` encode the user and role names
   (`encodeURIComponent`), as `mergeUsers` already did; names with `/`, `#`, `?` or `&` reached the wrong route before.
 - `schema.graphql`: the four mutations and their eight input/result types added surgically; codegen output committed.
+- Verified against the local stack (2026-11-16, scratch tenant): the four mutations succeed and refuse with the codes
+  above; the recorded error answers are pinned in `identity-service.role-merge-methods.spec.ts`.
 
 ### octo-services: createUser and resetPassword run the User methods, with a REST fallback (AB#8864)
 

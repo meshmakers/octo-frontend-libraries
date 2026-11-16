@@ -288,6 +288,49 @@ describe('IdentityService role and merge methods (AB#8863)', () => {
     }
   });
 
+  /**
+   * Error answers recorded on the local stack (2026-11-16, scratch tenant, asset repository + identity services `main`):
+   * `extensions.details` is a string there and some codes carry `methodId` or no parameters at all.
+   */
+  describe('error answers recorded on the local stack', () => {
+    const recorded = (field: string, code: string, parameters: Record<string, unknown>) => () => of({
+      data: { runtime: { __typename: 'Runtime', systemIdentityUsers: { __typename: 'SystemIdentityUserMutations', [field]: null } } },
+      errors: [{
+        message: `The CK method call failed: ${code}`,
+        extensions: { code, codes: [code], details: `GraphQL.ExecutionError: The CK method call failed: ${code}`, parameters }
+      }]
+    } as unknown as ApolloLink.Result);
+    const cases: { op: number; code: string; parameters: Record<string, unknown>; message: string }[] = [
+      { op: 1, code: ROLE_ALREADY_ASSIGNED_CODE, parameters: {}, message: 'User \'jane.doe\' already has role \'Admin\'' },
+      { op: 1, code: ROLE_NOT_FOUND_CODE, parameters: { roleName: 'NoSuchRole' }, message: 'Role with name \'NoSuchRole\' not found.' },
+      { op: 2, code: ROLE_NOT_ASSIGNED_CODE, parameters: {}, message: 'User \'jane.doe\' doesn\'t have role \'Admin\'' },
+      { op: 0, code: ROLE_NOT_FOUND_CODE, parameters: { roleName: 'NoSuchRole' }, message: 'Role with name \'NoSuchRole\' not found.' },
+      {
+        op: 1, code: METHOD_TARGET_NOT_FOUND_CODE, parameters: { methodId: 'System.Identity/User.AddRole-1' },
+        message: 'User with name \'jane.doe\' not found.'
+      },
+      {
+        op: 3, code: METHOD_TARGET_NOT_FOUND_CODE, parameters: { methodId: 'System.Identity/User.Merge-1' },
+        message: 'Target user \'jane.doe\' not found.'
+      },
+      { op: 3, code: SOURCE_USER_NOT_FOUND_CODE, parameters: {}, message: 'Source user \'jane.google\' not found.' },
+      { op: 3, code: CANNOT_MERGE_INTO_ITSELF_CODE, parameters: {}, message: 'Cannot merge a user into itself.' }
+    ];
+    for (const c of cases) {
+      it(`${operations[c.op].name}: ${c.code}`, async () => {
+        respond = recorded(operations[c.op].field, c.code, c.parameters);
+        const error = await operations[c.op].call(service, rtId).catch((e: unknown) => e) as IdentityMethodError;
+        expect(error).toBeInstanceOf(IdentityMethodError);
+        expect(error.code).toBe(c.code);
+        expect(error.message).toBe(c.message);
+        expect(error.parameters).toEqual(c.parameters);
+        expect(error.details).toEqual([]);
+        httpMock.expectNone(operations[c.op].rest.url);
+        expect(info).not.toHaveBeenCalled();
+      });
+    }
+  });
+
   it('encodes the user and role name in the REST fallback URL', async () => {
     TestBed.resetTestingModule();
     configure(false);
