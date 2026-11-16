@@ -36,10 +36,10 @@ let nextEditorId = 0;
   template: `
     @if (visible()) {
       <fieldset class="form-field sd-time-shift-editor" [disabled]="ignoreTimeFilter()">
-        <legend>Compare with</legend>
+        <legend [class.k-disabled]="ignoreTimeFilter()">Compare with</legend>
         <div class="choices">
           @for (option of options; track option.value) {
-            <label class="choice">
+            <label class="choice" [class.k-disabled]="ignoreTimeFilter()">
               <input
                 type="radio"
                 kendoRadioButton
@@ -54,7 +54,7 @@ let nextEditorId = 0;
         </div>
         @if (choice() !== 'none') {
           <div class="periods">
-            <kendo-label text="Periods back" [for]="periodsBox"></kendo-label>
+            <kendo-label text="Periods back" [for]="periodsBox" [class.k-disabled]="ignoreTimeFilter()"></kendo-label>
             <kendo-numerictextbox
               #periodsBox
               class="periods-box"

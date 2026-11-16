@@ -136,6 +136,22 @@ describe('SdTimeShiftEditorComponent (AB#9095)', () => {
         .toBe('The shift has no effect while the MeshBoard time filter is ignored.');
       expect(emitted).toEqual([]);
     });
+
+    it('with "Ignore MeshBoard time filter" the legend and every label carry the Kendo disabled styling (k-disabled), enabled they do not', () => {
+      render('streamData', { by: 'year', count: -1 }, true);
+      const dimmed = (): Element[] => [
+        el().querySelector('legend')!,
+        ...Array.from(el().querySelectorAll('label.choice')),
+        el().querySelector('.periods kendo-label')!
+      ];
+
+      expect(dimmed()).toHaveLength(5);
+      expect(dimmed().every(e => e.classList.contains('k-disabled'))).toBe(true);
+      expect(el().querySelector('.field-hint')?.classList.contains('k-disabled')).toBe(false);
+
+      render('streamData', { by: 'year', count: -1 }, false);
+      expect(dimmed().some(e => e.classList.contains('k-disabled'))).toBe(false);
+    });
   });
 
   describe('criterion 7 Keyboard', () => {

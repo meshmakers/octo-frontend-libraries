@@ -313,14 +313,14 @@
                 @if (!(widget.chromeless && !isEditMode())) {
                   <div class="widget-title-block">
                     <span class="widget-title">{{ widget.title }}</span>
-                    <mm-time-shift-caption [dataSource]="widget.dataSource"></mm-time-shift-caption>
+                    <mm-time-shift-caption [widget]="widget"></mm-time-shift-caption>
                   </div>
                   @if (isWidgetUnconfigured(widget)) {
                     <span class="unconfigured-badge" title="Widget needs configuration">!</span>
                   }
                 } @else if (hasTimeShiftCaption(widget)) {
                   <div class="widget-title-block">
-                    <mm-time-shift-caption [dataSource]="widget.dataSource"></mm-time-shift-caption>
+                    <mm-time-shift-caption [widget]="widget"></mm-time-shift-caption>
                   </div>
                 }
                 @if (isEditMode()) {

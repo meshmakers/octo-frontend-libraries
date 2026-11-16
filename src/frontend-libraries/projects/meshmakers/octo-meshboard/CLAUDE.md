@@ -357,7 +357,8 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   dialogs: "Compare with" None / Previous period / Same period last year (`kendoRadioButton` group in a fieldset, the
   library's precedent in the attention-list dialog) and "Periods back" 1–10 (`MAX_TIME_SHIFT_PERIODS`, Kendo numeric
   textbox) for the other two. Same visibility as the toggle (stream-data queries only). With "Ignore MeshBoard time
-  filter" it is disabled and its hint reads "The shift has no effect while the MeshBoard time filter is ignored."; the
+  filter" it is disabled (legend, choices and "Periods back" label carry Kendo's `k-disabled` class, the same dimming Kendo
+  applies to the label of a disabled form field) and its hint reads "The shift has no effect while the MeshBoard time filter is ignored."; the
   shift is kept and saved, but not applied. The dialogs read `initialTimeShift` (`getInitialConfig`) and return
   `timeShift` only for a stream-data query; `applyConfigResult` sets the key only for a shift, so "None" removes it.
   Gauge, heatmap, stats grid, summary card and process dialogs have no control: they still rebuild the data source on
@@ -368,8 +369,9 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
 - **Caption (AB#9095):** `mm-time-shift-caption` (`components/time-shift-caption/`) renders under the widget title in
   the tile header of `MeshBoardViewComponent` (Grafana's panel-header time-shift hint), so it stays visible while the
   widget loads or shows its empty state. `resolveTimeShiftCaption(dataSource, state)` returns `null` (nothing rendered,
-  the header looks as before) without a persistent query, for a runtime query, with `ignoreTimeFilter`, without a valid
-  shift or without an active time filter. Texts from `utils/time-shift-caption.ts`: month `September 2026` (English month
+  the header looks as before) without a persistent query, for a runtime query, with `ignoreTimeFilter`, for a heatmap with
+  its own `timeWindow`, without a valid shift or without an active time filter. A heatmap's own time window, like
+  ignoreTimeFilter, takes precedence over the board filter and the shift. Texts from `utils/time-shift-caption.ts`: month `September 2026` (English month
   names of `TimeRangeUtils.generateMonthOptions`, as the time picker), quarter `Q4 2025`, year `2025`, day and any other
   range `dd.MM.yyyy` (`formatBoardDate`, board zone, inclusive last day: `03.11.2026 - 09.11.2026`); tooltip
   `<shift>: <first> - <last> (<zone>)` with `Previous period`, `Same period last year`, `N periods back`,

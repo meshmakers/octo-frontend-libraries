@@ -3,7 +3,7 @@ import { CkModelService } from '@meshmakers/octo-services';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardPersistenceService } from '../../services/meshboard-persistence.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
-import { DataSource, MeshBoardTimeShift, PersistentQueryDataSource, TimeRangeSelection } from '../../models/meshboard.models';
+import { AnyWidgetConfig, DataSource, MeshBoardTimeShift, PersistentQueryDataSource, TimeRangeSelection } from '../../models/meshboard.models';
 import { TimeShiftCaptionComponent } from './time-shift-caption.component';
 
 /**
@@ -25,9 +25,21 @@ describe('TimeShiftCaptionComponent (AB#9095)', () => {
     state.updateTimeFilterConfig({ enabled: true, selection });
   }
 
-  function render(dataSource: DataSource): void {
+  function kpi(dataSource: DataSource): AnyWidgetConfig {
+    return { id: 'w', type: 'kpi', title: 'Consumption', col: 1, row: 1, colSpan: 1, rowSpan: 1, valueAttribute: '', dataSource } as AnyWidgetConfig;
+  }
+
+  function heatmap(dataSource: DataSource, timeWindow?: { value: number; unit: 'days' }): AnyWidgetConfig {
+    return {
+      id: 'h', type: 'heatmap', title: 'Load', col: 1, row: 1, colSpan: 2, rowSpan: 2, dataSource,
+      dateField: 'timestamp', aggregation: 'count', colorScheme: 'green', ...(timeWindow && { timeWindow })
+    } as unknown as AnyWidgetConfig;
+  }
+
+  function render(dataSourceOrWidget: DataSource | AnyWidgetConfig): void {
+    const widget = 'dataSource' in dataSourceOrWidget ? dataSourceOrWidget : kpi(dataSourceOrWidget);
     fixture = TestBed.createComponent(TimeShiftCaptionComponent);
-    fixture.componentRef.setInput('dataSource', dataSource);
+    fixture.componentRef.setInput('widget', widget);
     fixture.detectChanges();
   }
 
@@ -138,6 +150,22 @@ describe('TimeShiftCaptionComponent (AB#9095)', () => {
       state.updateTimeFilterConfig({ enabled: false, selection: { type: 'month', year: 2026, month: 9 } });
       render(source(PREVIOUS_PERIOD));
       expect(caption()).toBeNull();
+    });
+  });
+
+  describe('criterion 5 Visible shifted period: a heatmap with its own time window', () => {
+    it('shows no caption, because its own window takes precedence over the board filter and the shift', () => {
+      boardOn({ type: 'month', year: 2026, month: 9 });
+      render(heatmap(source(PREVIOUS_PERIOD), { value: 30, unit: 'days' }));
+
+      expect(caption()).toBeNull();
+    });
+
+    it('without its own window shows the shifted period like any other widget', () => {
+      boardOn({ type: 'month', year: 2026, month: 9 });
+      render(heatmap(source(PREVIOUS_PERIOD)));
+
+      expect(caption()?.textContent?.trim()).toBe('September 2026');
     });
   });
 

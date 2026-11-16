@@ -1,19 +1,23 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import type { DataSource, PersistentQueryDataSource } from '../../models/meshboard.models';
+import type { AnyWidgetConfig, HeatmapWidgetConfig, PersistentQueryDataSource } from '../../models/meshboard.models';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { normalizeTimeShift } from '../../utils/time-shift';
+import { isValidHeatmapTimeWindow } from '../../widgets/heatmap-widget/heatmap-buckets';
 import { TimeShiftCaption, timeShiftCaption } from '../../utils/time-shift-caption';
 
 /**
  * Caption and tooltip of a widget whose stream-data query applies a time shift, or `null` when the
- * shift has no effect: no persistent query, a runtime query, `ignoreTimeFilter`, no valid shift or no
- * active time filter.
+ * shift has no effect: no persistent query, a runtime query, `ignoreTimeFilter`, a heatmap with its own
+ * time window, no valid shift or no active time filter.
  */
-export function resolveTimeShiftCaption(dataSource: DataSource | undefined, stateService: MeshBoardStateService): TimeShiftCaption | null {
-  if (dataSource?.type !== 'persistentQuery') {
+export function resolveTimeShiftCaption(widget: AnyWidgetConfig | undefined, stateService: MeshBoardStateService): TimeShiftCaption | null {
+  if (widget?.dataSource?.type !== 'persistentQuery') {
     return null;
   }
-  const query = dataSource as PersistentQueryDataSource;
+  if (widget.type === 'heatmap' && isValidHeatmapTimeWindow((widget as HeatmapWidgetConfig).timeWindow)) {
+    return null;
+  }
+  const query = widget.dataSource as PersistentQueryDataSource;
   const shift = normalizeTimeShift(query.timeShift);
   if (!shift || query.ignoreTimeFilter || query.queryFamily === 'runtime') {
     return null;
@@ -56,7 +60,7 @@ export function resolveTimeShiftCaption(dataSource: DataSource | undefined, stat
 export class TimeShiftCaptionComponent {
   private readonly stateService = inject(MeshBoardStateService);
 
-  readonly dataSource = input<DataSource | undefined>();
+  readonly widget = input<AnyWidgetConfig | undefined>();
 
-  readonly caption = computed(() => resolveTimeShiftCaption(this.dataSource(), this.stateService));
+  readonly caption = computed(() => resolveTimeShiftCaption(this.widget(), this.stateService));
 }

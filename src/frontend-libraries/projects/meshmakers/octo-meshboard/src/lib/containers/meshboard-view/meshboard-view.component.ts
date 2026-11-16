@@ -1774,7 +1774,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   /** True when the widget shows a time-shift caption; a chromeless tile then keeps its header for it. */
   hasTimeShiftCaption(widget: AnyWidgetConfig): boolean {
-    return resolveTimeShiftCaption(widget.dataSource, this.stateService) !== null;
+    return resolveTimeShiftCaption(widget, this.stateService) !== null;
   }
 
   /**

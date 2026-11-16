@@ -193,7 +193,7 @@ describe('AB#9095 time shift in the widget config dialogs', () => {
 
         expect((saved.dataSource as PersistentQueryDataSource).timeShift).toEqual({ by: 'year', count: -1 });
         expect(queriedWindow(saved)).toBeUndefined();
-        expect(resolveTimeShiftCaption(saved.dataSource, state)).toBeNull();
+        expect(resolveTimeShiftCaption(saved, state)).toBeNull();
       });
 
       it('criterion 4 Only where it applies: a runtime query saves no shift', async () => {
