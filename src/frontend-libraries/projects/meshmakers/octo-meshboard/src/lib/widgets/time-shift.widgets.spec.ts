@@ -34,6 +34,7 @@ import {
   GaugeWidgetConfig,
   HeatmapWidgetConfig,
   KpiWidgetConfig,
+  LineChartQuerySeries,
   LineChartWidgetConfig,
   MeshBoardTimeShift,
   PersistentQueryCellSource,
@@ -238,6 +239,93 @@ describe('stream-data consumers take the shifted window (AB#9094 AC8)', () => {
     await service.loadBindings(config);
 
     expect(lastWindow()).toEqual(SEPTEMBER_2026);
+  });
+
+  describe('multi-source charts shift each query series by its own timeShift', () => {
+    const LAST_PERIOD_SERIES: LineChartQuerySeries = {
+      kind: 'query', key: 'lastPeriod', label: 'Last period', valueField: 'value', categoryField: 'timestamp',
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-last', queryFamily: 'streamData', timeShift: PREVIOUS_PERIOD }
+    };
+
+    function windowOf(queryRtId: string): { from?: Date; to?: Date } | undefined {
+      const call = queryExecutor.execute.mock.calls.find(c => c[1] === queryRtId);
+      const args = (call?.[2] as QueryExecutionOptions | undefined)?.streamDataArgs;
+      return args ? { from: args.from ?? undefined, to: args.to ?? undefined } : undefined;
+    }
+
+    it('bar chart: the shifted query series reads September, the unshifted primary October', async () => {
+      const cmp = TestBed.createComponent(BarChartWidgetComponent).componentInstance;
+      cmp.config = {
+        id: 'bar', type: 'barChart', title: 'Bar', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+        dataSource: UNSHIFTED, chartType: 'column', categoryField: 'timestamp', series: [{ field: 'value', name: 'Value' }],
+        additionalSeries: [LAST_PERIOD_SERIES]
+      } as BarChartWidgetConfig;
+
+      await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+      expect(cmp.isMultiSource()).toBe(true);
+      expect(windowOf('q-sd')).toEqual(OCTOBER_2026);
+      expect(windowOf('q-last')).toEqual(SEPTEMBER_2026);
+    });
+
+    it('line chart: the shifted query series reads September, the unshifted primary October', async () => {
+      const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
+      cmp.config = {
+        id: 'line', type: 'lineChart', title: 'Line', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+        dataSource: UNSHIFTED, categoryField: 'timestamp', seriesGroupField: 'device', valueField: 'value',
+        additionalSeries: [LAST_PERIOD_SERIES]
+      } as LineChartWidgetConfig;
+
+      await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+      expect(cmp.hasAdditionalSeries()).toBe(true);
+      expect(windowOf('q-sd')).toEqual(OCTOBER_2026);
+      expect(windowOf('q-last')).toEqual(SEPTEMBER_2026);
+    });
+  });
+
+  it('line chart with a fixed bucket size reads the shifted window in whole buckets', async () => {
+    const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
+    cmp.config = {
+      id: 'line', type: 'lineChart', title: 'Line', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: SHIFTED, categoryField: 'timestamp', seriesGroupField: 'device', valueField: 'value', bucketMinutes: 15
+    } as LineChartWidgetConfig;
+
+    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+    expect(lastWindow()).toEqual(SEPTEMBER_2026);
+    // September 2026 in Europe/Vienna has 30 days without a DST change: 30 × 24 × 4 quarter hours.
+    expect((queryExecutor.execute.mock.calls.at(-1)?.[2] as QueryExecutionOptions).streamDataArgs?.limit).toBe(2880);
+  });
+
+  it('multi-source line chart with a fixed bucket size puts the shifted day on its own hour grid', async () => {
+    // Board day 2026-10-25 (25 hours, end of summer time) → previous period 2026-10-24 (24 hours).
+    state.updateTimeFilterConfig({ enabled: true, selection: { type: 'day', year: 2026, month: 9, day: 25 } });
+    const OCTOBER_24 = { from: new Date('2026-10-24T00:00:00+02:00'), to: new Date('2026-10-25T00:00:00+02:00') };
+    queryExecutor.execute.mockImplementation((_family: string, queryRtId: string) => of({
+      ...emptyResult('streamData'),
+      rows: queryRtId === 'q-last'
+        ? [{ __typename: 'StreamDataQueryRow', timestamp: new Date('2026-10-24T12:00:00+02:00'), cells: [{ attributePath: 'value', value: 7 }] }]
+        : []
+    }));
+    const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
+    cmp.config = {
+      id: 'line', type: 'lineChart', title: 'Line', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+      dataSource: SHIFTED, categoryField: 'timestamp', seriesGroupField: 'device', valueField: 'value', bucketMinutes: 60,
+      additionalSeries: [{
+        kind: 'query', key: 'lastPeriod', label: 'Last period', valueField: 'value',
+        dataSource: { type: 'persistentQuery', queryRtId: 'q-last', queryFamily: 'streamData', timeShift: PREVIOUS_PERIOD }
+      }]
+    } as LineChartWidgetConfig;
+
+    await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+    for (const call of queryExecutor.execute.mock.calls) {
+      const args = (call[2] as QueryExecutionOptions).streamDataArgs;
+      expect({ from: args?.from, to: args?.to, limit: args?.limit }).toEqual({ ...OCTOBER_24, limit: 24 });
+    }
+    expect(cmp.categories().length).toBe(24);
+    expect(cmp.seriesData().find(s => s.name === 'Last period')?.data[12]).toBe(7);
   });
 
   describe('AC7 resolution-aware line chart', () => {

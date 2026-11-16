@@ -1246,7 +1246,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       }
 
       // carryForward (AB#8046): the last value before the window is the start value of the series.
-      const fixed = this.fixedBucketWindow();
+      const fixed = this.fixedBucketWindow(undefined, this.primaryTimeShift());
       const seeds = await this.loadCarryForwardSeeds(active, prepared, limit, fixed, generation);
       if (generation !== this.loadGeneration) return;
 
@@ -1516,6 +1516,11 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     return snapWindowToBuckets(range.from, range.to, minutes, this.stateService.timeZoneMode());
   }
 
+  /** The primary query's time shift (AB#9094): the common bucket count and the fixed grid follow its window. */
+  private primaryTimeShift(): MeshBoardTimeShift | undefined {
+    return (this.config?.dataSource as PersistentQueryDataSource | undefined)?.timeShift;
+  }
+
   /**
    * Stream-data window of a source: the board window, snapped to whole buckets when the chart has a
    * fixed bucket size (AB#8046), so `(to - from) / limit` is exactly the bucket size.
@@ -1531,7 +1536,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * size (AB#8046) keeps its own count.
    */
   private computeDownsampleLimit(): number {
-    const fixed = this.fixedBucketWindow();
+    const fixed = this.fixedBucketWindow(undefined, this.primaryTimeShift());
     if (fixed) return fixed.count;
     const width = (this.elementRef.nativeElement as HTMLElement)?.offsetWidth ?? 0;
     const effective = width > 50 ? width : 1500;
@@ -1546,7 +1551,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * fixed bucket size (AB#8046) keeps its own count.
    */
   private resolutionTargetPoints(): number {
-    if (this.fixedBucketWindow()) return this.computeDownsampleLimit();
+    if (this.fixedBucketWindow(undefined, this.primaryTimeShift())) return this.computeDownsampleLimit();
     return Math.min(MAX_DOWNSAMPLE_POINTS, this.computeDownsampleLimit());
   }
 

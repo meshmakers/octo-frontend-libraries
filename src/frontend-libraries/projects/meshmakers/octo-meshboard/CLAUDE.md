@@ -347,14 +347,15 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   (`isStreamDataBlockedByHostTimeRange`) is unchanged, so an invalid host period blocks a shifted widget like any other.
 - The resolution-aware line chart passes the shifted window to `resolveSeriesQuery` with the unchanged zone,
   aggregation and point count; archive/rollup selection runs on it through the same code path. A fixed bucket size
-  (AB#8046) snaps the shifted window. The heatmap's own `timeWindow` (AB#7956) wins over the board filter and the shift.
+  (AB#8046) snaps the shifted window; the bucket count (`limit`) and the multi-source time grid follow the primary
+  query's shift, so a multi-source chart with a fixed bucket size needs the same shift on every source. The heatmap's own `timeWindow` (AB#7956) wins over the board filter and the shift.
 - Also on `PersistentQueryCellSource` (stats grid, summary card; stored verbatim with the cell) and on
   `ProcessWidgetBinding` (`parsePersistedProcessBindings` / `toPersistedProcessBindings` keep only a valid shift).
 - The widget config dialogs do not edit it yet (AB#9095): they rebuild the data source on save, so a dialog save drops
   a seeded `timeShift`.
 - Specs: `services/meshboard-state.service.time-shift.spec.ts` (AC windows in Europe/Vienna, DST, leap year,
-  own-length rule, composition), `widgets/time-shift.widgets.spec.ts` (every stream-data consumer, resolution-aware
-  line chart, runtime query unchanged), `registrations/default-widget-registrations.time-shift.spec.ts` (round trip).
+  own-length rule, composition), `widgets/time-shift.widgets.spec.ts` (every stream-data consumer, query series of the
+  multi-source bar and line chart, fixed bucket size, resolution-aware line chart, runtime query unchanged), `registrations/default-widget-registrations.time-shift.spec.ts` (round trip).
 
 #### Asset-scope binding (`entitySelectorId`)
 
