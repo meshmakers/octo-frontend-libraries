@@ -1060,6 +1060,24 @@ last year (Grafana's per-panel "time shift", Power BI's `SAMEPERIODLASTYEAR` / `
 - The same `timeShift` key exists on a stats-grid / summary-card `persistentQuerySource` and on a
   process widget binding. Without it every board queries exactly as before.
 
+**In the widget editor (AB#9095).** The config dialogs of the KPI, line chart, bar chart, pie chart
+and table show "Compare with" under "Ignore MeshBoard time filter", for stream-data queries only:
+*None*, *Previous period* (`by: 'period'`) or *Same period last year* (`by: 'year'`), and for the
+last two *Periods back* (1 to 10, saved as `count: -N`). *None* removes `timeShift` from the widget.
+While "Ignore MeshBoard time filter" is checked the control is disabled and says the shift has no
+effect; a saved shift is kept but not applied. Gauge, heatmap, stats grid, summary card and process
+widgets have no control: they apply a `timeShift` written into the board configuration, and saving
+their dialog drops it. A chart has one shift: the editor sets the primary query's shift, so do not
+mix shifted and unshifted query series in one chart (overlaying two periods is not supported yet).
+
+**On the widget.** A widget whose shift applies shows the shifted period under its title, in the
+board's time zone: `September 2026` for a month, `Q4 2025` for a quarter, `2025` for a year, the date
+for a day and `03.11.2026 - 09.11.2026` for any other range. The tooltip names the shift and the exact
+range with the zone, e.g. `Previous period: 01.09.2026 - 30.09.2026 (Europe/Vienna)`. The caption
+follows the board time filter, stays visible while the widget loads or shows no data, and is cut with
+an ellipsis in a narrow tile. Widgets without a shift (or with the time filter ignored) look as
+before; a chromeless tile shows its header only for the caption.
+
 ## Services
 
 ### MeshBoardStateService

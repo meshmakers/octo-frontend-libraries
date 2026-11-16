@@ -148,6 +148,7 @@ export class MyComponent {
 | `resolveCurrentTimeRange()` | `TimeRange \| null` | Resolve active time filter to `{from, to}` |
 | `resolveStreamDataTimeArgs(ignoreTimeFilter?, timeShift?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out (a `timeShift` is then ignored); with a valid `timeShift` the window of `resolveShiftedTimeRange` (AB#9094) |
 | `resolveShiftedTimeRange(timeShift?)` | `TimeRange \| null` | The active time filter moved by a calendar time shift (AB#9094, see *Time shift*); without a valid shift exactly `resolveCurrentTimeRange()` |
+| `resolveShiftedPeriod(timeShift?)` | `{ range, selection } \| null` | The shifted window plus the shifted calendar selection it came from (`null` selection for a relative, custom or host range); `null` without a valid shift or time filter. Feeds the widget caption (AB#9095) |
 | `setHostTimeRange(state \| null, owner?)` / `clearHostTimeRange(owner)` / `hostTimeRange` | `void` / `void` / `Signal<HostTimeRangeState \| null>` | Period of the embedding host (`mm-meshboard-view [timeRange]`, AB#7582): transient, never persisted, owner-aware clearing (root service shared by views); while set and the filter is enabled `resolveCurrentTimeRange()` returns its exact instants |
 | `isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?)` | `boolean` | True while an invalid host period blocks a stream-data query bound to the time filter (AB#7582); `resolveStreamDataScope(id, family, ignoreTimeFilter)` then returns `empty`/`invalidTimeRange`; the process binding and the widget-group repeater check it directly |
 | `setEntitySelectorScopePending(selectorId)` | `void` | Mark a selector's scope as resolving (AB#7721) |
@@ -351,11 +352,36 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   query's shift, so a multi-source chart with a fixed bucket size needs the same shift on every source. The heatmap's own `timeWindow` (AB#7956) wins over the board filter and the shift.
 - Also on `PersistentQueryCellSource` (stats grid, summary card; stored verbatim with the cell) and on
   `ProcessWidgetBinding` (`parsePersistedProcessBindings` / `toPersistedProcessBindings` keep only a valid shift).
-- The widget config dialogs do not edit it yet (AB#9095): they rebuild the data source on save, so a dialog save drops
-  a seeded `timeShift`.
+- **Editor (AB#9095):** `mm-sd-time-shift-editor` (`components/sd-time-shift-editor/`, signal inputs `family`,
+  `ignoreTimeFilter`, `model` `timeShift`) sits under `mm-sd-time-filter-toggle` in the KPI, line, bar, pie and table
+  dialogs: "Compare with" None / Previous period / Same period last year (`kendoRadioButton` group in a fieldset, the
+  library's precedent in the attention-list dialog) and "Periods back" 1–10 (`MAX_TIME_SHIFT_PERIODS`, Kendo numeric
+  textbox) for the other two. Same visibility as the toggle (stream-data queries only). With "Ignore MeshBoard time
+  filter" it is disabled and its hint reads "The shift has no effect while the MeshBoard time filter is ignored."; the
+  shift is kept and saved, but not applied. The dialogs read `initialTimeShift` (`getInitialConfig`) and return
+  `timeShift` only for a stream-data query; `applyConfigResult` sets the key only for a shift, so "None" removes it.
+  Gauge, heatmap, stats grid, summary card and process dialogs have no control: they still rebuild the data source on
+  save and drop a seeded `timeShift` (proposal on AB#9095, not built).
+- **One shift per chart:** the editor sets the primary query's shift only; additional query series of a multi-source
+  line or bar chart keep their own `timeShift` (none from the editor). Different shifts in one chart are not supported
+  (overlay of two periods: AB#7951); with a fixed bucket size the grid follows the primary query (above).
+- **Caption (AB#9095):** `mm-time-shift-caption` (`components/time-shift-caption/`) renders under the widget title in
+  the tile header of `MeshBoardViewComponent` (Grafana's panel-header time-shift hint), so it stays visible while the
+  widget loads or shows its empty state. `resolveTimeShiftCaption(dataSource, state)` returns `null` (nothing rendered,
+  the header looks as before) without a persistent query, for a runtime query, with `ignoreTimeFilter`, without a valid
+  shift or without an active time filter. Texts from `utils/time-shift-caption.ts`: month `September 2026` (English month
+  names of `TimeRangeUtils.generateMonthOptions`, as the time picker), quarter `Q4 2025`, year `2025`, day and any other
+  range `dd.MM.yyyy` (`formatBoardDate`, board zone, inclusive last day: `03.11.2026 - 09.11.2026`); tooltip
+  `<shift>: <first> - <last> (<zone>)` with `Previous period`, `Same period last year`, `N periods back`,
+  `N years back` and the IANA zone (`local` = the browser's, `utc` = `UTC`). It is a computed signal over the state
+  service, so it follows a change of the board time filter. A chromeless tile keeps its header while a caption applies
+  (`hasTimeShiftCaption`). Banner-zone widgets and widget-group children show no caption (no title in view mode).
 - Specs: `services/meshboard-state.service.time-shift.spec.ts` (AC windows in Europe/Vienna, DST, leap year,
   own-length rule, composition), `widgets/time-shift.widgets.spec.ts` (every stream-data consumer, query series of the
-  multi-source bar and line chart, fixed bucket size, resolution-aware line chart, runtime query unchanged), `registrations/default-widget-registrations.time-shift.spec.ts` (round trip).
+  multi-source bar and line chart, fixed bucket size, resolution-aware line chart, runtime query unchanged), `registrations/default-widget-registrations.time-shift.spec.ts` (round trip);
+  AB#9095: `widgets/time-shift.config-dialogs.spec.ts` (set, clear, ignore, runtime query through the five real dialogs
+  and registrations), `components/sd-time-shift-editor/sd-time-shift-editor.component.spec.ts` (rendered control),
+  `components/time-shift-caption/time-shift-caption.component.spec.ts` (caption texts per period type, tooltip, filter change).
 
 #### Asset-scope binding (`entitySelectorId`)
 

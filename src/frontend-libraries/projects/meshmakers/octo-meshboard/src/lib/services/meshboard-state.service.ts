@@ -814,19 +814,33 @@ export class MeshBoardStateService {
    */
   resolveShiftedTimeRange(timeShift?: MeshBoardTimeShift): TimeRange | null {
     const shift = normalizeTimeShift(timeShift);
+    if (!shift) {
+      return this.resolveCurrentTimeRange();
+    }
+    return this.resolveShiftedPeriod(shift)?.range ?? null;
+  }
+
+  /**
+   * The shifted window of {@link resolveShiftedTimeRange} together with the shifted calendar
+   * selection it was resolved from (`null` for a relative, custom or host-set range, which moves on
+   * its resolved bounds). `null` without a valid shift or without an active time filter.
+   */
+  resolveShiftedPeriod(timeShift?: MeshBoardTimeShift): { range: TimeRange; selection: TimeRangeSelection | null } | null {
+    const shift = normalizeTimeShift(timeShift);
     const range = this.resolveCurrentTimeRange();
     if (!shift || !range) {
-      return range;
+      return null;
     }
     const config = this._meshBoardConfig().timeFilter;
     const selection = config?.selection;
     if (!this._hostTimeRange() && selection) {
       const shifted = shiftCalendarSelection(selection, shift);
       if (shifted) {
-        return this.resolveSelection(shifted, config?.pickerConfig?.showTime ?? false);
+        const shiftedRange = this.resolveSelection(shifted, config?.pickerConfig?.showTime ?? false);
+        return shiftedRange ? { range: shiftedRange, selection: shifted } : null;
       }
     }
-    return shiftRange(range, shift, this.timeZoneMode());
+    return { range: shiftRange(range, shift, this.timeZoneMode()), selection: null };
   }
 
   /**

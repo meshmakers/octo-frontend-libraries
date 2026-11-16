@@ -309,12 +309,19 @@
             <kendo-tilelayout-item-header>
               <div class="widget-header"
                    [class.unconfigured]="isWidgetUnconfigured(widget)"
-                   [class.chromeless-header]="widget.chromeless && !isEditMode()">
+                   [class.chromeless-header]="widget.chromeless && !isEditMode() && !hasTimeShiftCaption(widget)">
                 @if (!(widget.chromeless && !isEditMode())) {
-                  <span class="widget-title">{{ widget.title }}</span>
+                  <div class="widget-title-block">
+                    <span class="widget-title">{{ widget.title }}</span>
+                    <mm-time-shift-caption [dataSource]="widget.dataSource"></mm-time-shift-caption>
+                  </div>
                   @if (isWidgetUnconfigured(widget)) {
                     <span class="unconfigured-badge" title="Widget needs configuration">!</span>
                   }
+                } @else if (hasTimeShiftCaption(widget)) {
+                  <div class="widget-title-block">
+                    <mm-time-shift-caption [dataSource]="widget.dataSource"></mm-time-shift-caption>
+                  </div>
                 }
                 @if (isEditMode()) {
                   <div class="widget-actions" (pointerdown)="$event.stopPropagation()">

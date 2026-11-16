@@ -10,7 +10,7 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
-### octo-meshboard: stream-data widgets show the previous period or the same period last year (AB#9094)
+### octo-meshboard: stream-data widgets show the previous period or the same period last year (AB#9094, AB#9095)
 
 - New: optional `timeShift: { by: 'period' | 'year'; count: <negative integer> }` on a stream-data
   `PersistentQueryDataSource`, on a stats-grid / summary-card `persistentQuerySource` and on a process widget
@@ -22,8 +22,14 @@ starts a new empty "Unreleased" section.
 - API (additive): `MeshBoardTimeShift`, `MeshBoardStateService.resolveShiftedTimeRange(timeShift?)` and a second
   optional parameter `resolveStreamDataTimeArgs(ignoreTimeFilter?, timeShift?)`. Boards without `timeShift`
   query and encode exactly as before.
-- Configurable through the board seed / stored widget config only; the widget dialogs follow in AB#9095 and,
-  until then, drop the key when a widget is saved through its dialog.
+- New (AB#9095): the KPI, line chart, bar chart, pie chart and table dialogs edit the shift ("Compare with": None,
+  Previous period, Same period last year; "Periods back" 1-10), shown for stream-data queries only and disabled while
+  "Ignore MeshBoard time filter" is checked (the shift is kept, not applied). A shifted widget shows the shifted period
+  under its title ("September 2026", "Q4 2025", "2025", a date or "03.11.2026 - 09.11.2026") with a tooltip naming the
+  shift, the range and the zone. One shift per chart: the editor sets the primary query's shift.
+- Gauge, heatmap, stats grid, summary card and process dialogs have no shift control and still drop a seeded
+  `timeShift` when their dialog is saved.
+- API (additive): `MeshBoardStateService.resolveShiftedPeriod(timeShift?)`.
 
 ### octo-services: user roles and merge run the User methods, with a REST fallback (AB#8863)
 

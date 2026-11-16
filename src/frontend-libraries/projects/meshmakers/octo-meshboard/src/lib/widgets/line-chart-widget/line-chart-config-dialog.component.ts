@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartSeriesDefinition, LineChartSeriesDisplayOptions, LINE_CHART_BUCKET_MINUTES, ChartValueLabels } from '../../models/meshboard.models';
+import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartSeriesDefinition, LineChartSeriesDisplayOptions, LINE_CHART_BUCKET_MINUTES, ChartValueLabels, MeshBoardTimeShift } from '../../models/meshboard.models';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
@@ -20,6 +20,8 @@ import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { SdTimeShiftEditorComponent } from '../../components/sd-time-shift-editor/sd-time-shift-editor.component';
+import { normalizeTimeShift } from '../../utils/time-shift';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { withStreamDataRowFields } from '../../utils/stream-data-row-fields';
 import { columnProbeWindow } from '../../utils/column-probe-window';
@@ -36,6 +38,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  timeShift?: MeshBoardTimeShift;
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
   /** Resolution-aware routing (AB#4290): auto-select the best archive/rollup before querying. */
@@ -84,6 +87,7 @@ export interface LineChartConfigResult extends WidgetConfigResult {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    SdTimeShiftEditorComponent,
     EntitySelectorScopePickerComponent,
     LoadingOverlayComponent,
     LineChartSeriesEditorComponent,
@@ -114,6 +118,12 @@ export interface LineChartConfigResult extends WidgetConfigResult {
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-sd-time-shift-editor
+            [family]="selectedQueryFamily"
+            [ignoreTimeFilter]="ignoreTimeFilter"
+            [(timeShift)]="timeShift">
+          </mm-sd-time-shift-editor>
 
           <mm-entity-selector-scope-picker
             [family]="selectedQueryFamily"
@@ -554,6 +564,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialTimeShift?: MeshBoardTimeShift;
   @Input() initialEntitySelectorId?: string;
   @Input() initialResolutionAware?: boolean;
   @Input() initialRequiredAggregation?: SeriesAggregationFunction;
@@ -619,6 +630,7 @@ export class LineChartConfigDialogComponent implements OnInit {
 
   /** Per-widget opt-out of the MeshBoard time-filter → stream-data binding. */
   ignoreTimeFilter = false;
+  timeShift?: MeshBoardTimeShift;
 
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
@@ -699,6 +711,7 @@ export class LineChartConfigDialogComponent implements OnInit {
 
     // Initialize form with initial values
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.timeShift = normalizeTimeShift(this.initialTimeShift);
     this.entitySelectorId = this.initialEntitySelectorId;
     this.resolutionAware = this.initialResolutionAware ?? false;
     this.requiredAggregation = this.initialRequiredAggregation ?? 'SUM';
@@ -895,6 +908,7 @@ export class LineChartConfigDialogComponent implements OnInit {
       queryName: this.selectedPersistentQuery.name,
       queryFamily: family,
       ignoreTimeFilter: this.ignoreTimeFilter,
+      timeShift: family === 'streamData' ? normalizeTimeShift(this.timeShift) : undefined,
       entitySelectorId: this.entitySelectorId,
       resolutionAware: this.resolutionAware || undefined,
       requiredAggregation: this.resolutionAware ? this.requiredAggregation : undefined,

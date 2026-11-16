@@ -240,6 +240,13 @@ kendo-tilelayout {
     background-color: rgba(255, 152, 0, 0.1);
   }
 
+  .widget-title-block {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
   .widget-title {
     flex: 1;
     font-weight: 500;
