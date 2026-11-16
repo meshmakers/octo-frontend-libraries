@@ -822,12 +822,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   }
 
   /**
-   * Empty values render no body line, so cards stay tight (AB#4930). A `component` column with a `cellComponent`
-   * always gets its line: the component renders its own value and empty state, often from data that is not a field of
-   * the row (AB#8985: the "Last backup" cell of the Child tenants list).
+   * Empty values render no body line, so cards stay tight (AB#4930). A column with `alwaysShowInCards` always gets its
+   * line: its component renders data that is not a field of the row (AB#8985: "Last backup" of the Child tenants list).
    */
   protected hasCardValue(element: Record<string, unknown>, column: TableColumn): boolean {
-    if (column.dataType === 'component' && column.cellComponent) {
+    if (column.alwaysShowInCards) {
       return true;
     }
     if (column.dataType === 'statusIcons') {
@@ -1766,6 +1765,11 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     this._contextMenuItems = overflow.length && contextItems.length
       ? [...overflow, {separator: true}, ...contextItems]
       : [...overflow, ...contextItems];
+    if (this._contextMenuItems.length === 0) {
+      // Every item is hidden for this row (`isVisible`): no empty popup.
+      this._contextMenuItems = this.buildMenuItems(this._contextMenuCommandItems);
+      return;
+    }
     this.gridContextMenu?.show({
       left: this.clampContextMenuX(e.pageX),
       top: e.pageY,

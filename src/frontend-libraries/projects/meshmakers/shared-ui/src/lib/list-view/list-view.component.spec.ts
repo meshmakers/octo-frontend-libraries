@@ -97,6 +97,18 @@ describe('MmTableComponent', () => {
       expect(build(menu, { running: true }).map(i => i.text ?? '|')).toEqual(['Open', '|', 'Show progress', '|', 'Async']);
     });
 
+    it('opens no menu for a row whose items are all hidden', () => {
+      const show = vi.fn();
+      component.gridContextMenu = { show } as unknown as typeof component.gridContextMenu;
+      component.contextMenuCommandItems = [{ id: 'only', type: 'link', text: 'Only', isVisible: () => false }];
+      const open = (component as unknown as { onContextMenu(row: unknown, e: PointerEvent): void }).onContextMenu.bind(component);
+      open({}, { pageX: 10, pageY: 10, preventDefault: () => undefined, stopPropagation: () => undefined } as unknown as PointerEvent);
+      expect(show).not.toHaveBeenCalled();
+      component.contextMenuCommandItems = [{ id: 'only', type: 'link', text: 'Only' }];
+      open({}, { pageX: 10, pageY: 10, preventDefault: () => undefined, stopPropagation: () => undefined } as unknown as PointerEvent);
+      expect(show).toHaveBeenCalledTimes(1);
+    });
+
     it('drops leading, repeated and trailing separators around hidden items', () => {
       const items = [
         { id: 'sep0', type: 'separator' as const },
@@ -939,10 +951,11 @@ describe('MmTableComponent', () => {
       expect(api().hasCardValue({ value: 'x' }, column)).toBe(true);
     });
 
-    it('always shows a component column in the card body: the component renders its own value (AB#8985)', () => {
+    it('shows a column with alwaysShowInCards in the card body even without a field value (AB#8985)', () => {
       class CellStub {}
-      expect(api().hasCardValue({}, { field: 'lastBackup', dataType: 'component', cellComponent: CellStub })).toBe(true);
-      expect(api().hasCardValue({}, { field: 'lastBackup', dataType: 'component' })).toBe(false);
+      expect(api().hasCardValue({}, { field: 'lastBackup', dataType: 'component', cellComponent: CellStub, alwaysShowInCards: true })).toBe(true);
+      // Unchanged for every other column: an empty value renders no line.
+      expect(api().hasCardValue({}, { field: 'lastBackup', dataType: 'component', cellComponent: CellStub })).toBe(false);
     });
 
     it('keeps the checkbox column in card mode even below hideCheckboxesBelow', () => {

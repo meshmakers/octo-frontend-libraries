@@ -25,11 +25,12 @@ starts a new empty "Unreleased" section.
   by a real-Apollo spec).
 - Fix (shared-ui `mm-list-view`): the row menu (`contextMenuCommandItems`, `contextMenuType: 'actionMenu'`) honours
   `CommandItem.isVisible` per row (a synchronous `false` hides the item; leading, repeated and trailing separators are
-  dropped). Before, only `isDisabled` was evaluated per row and every item was always shown — hosts that set `isVisible`
+  dropped; a row whose items are all hidden opens no menu). Right-click mode (`contextMenuType: 'contextMenu'`) is
+  unchanged. Before, only `isDisabled` was evaluated per row and every item was always shown — hosts that set `isVisible`
   on row menu items (Studio My operations "Download", archives list) now get what they declared.
-- Fix (shared-ui `mm-list-view`): in card mode (`cardModeBelow`) a `component` column with a `cellComponent` always gets
-  its body line; before it was skipped when the row had no value in the column's `field`, so cells that render data from
-  elsewhere (Studio "Last backup") disappeared on narrow screens.
+- New (additive, shared-ui `TableColumn.alwaysShowInCards`): in card mode (`cardModeBelow`) such a column always gets its
+  body line, also when the row has no value in its `field` — for `component` cells that render data from elsewhere
+  (Studio "Last backup"). Other columns are unchanged.
 - New (additive): `OperationProgressView.subject` (`OperationProgressSubject { label, value, note? }`), shown by
   `mm-operation-progress` as the first fact ("Child tenant plant-b (of octosystem)"). Not set = unchanged output.
 
