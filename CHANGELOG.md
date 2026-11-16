@@ -10,6 +10,31 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services: user roles and merge run the User methods, with a REST fallback (AB#8863)
+
+- Change: `IdentityService.updateUserRoles`, `addUserToRole`, `removeRoleFromUser` and `mergeUsers` run the CK methods
+  `System.Identity/User.SetRoles-1`, `AddRole-1`, `RemoveRole-1` and `Merge-1` through GraphQL
+  (`runtime.systemIdentityUsers.setRoles` / `addRole` / `removeRole` / `merge`) instead of the REST endpoints deprecated
+  in AB#8415. Same rule as AB#8864: a schema without the mutations or `METHOD_HANDLER_NOT_AVAILABLE` completes the
+  request through the REST endpoint and keeps that operation on REST for the tenant for the session (one
+  `console.info`, no toast); a host without Apollo uses REST; every other method error is an `IdentityMethodError`.
+- Signatures stay source-compatible: each method takes a new optional trailing `userRtId` (`targetUserRtId` for
+  `mergeUsers`). Without it the method path reads the rtId once with `GET users/{userName}`; role names come from
+  `RoleDto.name`.
+- Behaviour on the method path: refusals (`ROLE_NOT_FOUND`, `ROLE_ALREADY_ASSIGNED`, `ROLE_NOT_ASSIGNED`,
+  `SOURCE_USER_NOT_FOUND`, `CANNOT_MERGE_INTO_ITSELF`, `METHOD_TARGET_NOT_FOUND`, `METHOD_FORBIDDEN`, ...) are thrown as
+  `IdentityMethodError` with the REST endpoint's text and are **not toasted** (silent GraphQL context); pages that relied
+  on the HTTP interceptor toast should show `error.message` (Studio: AB#8865/AB#8866). `addUserToRole` adds a role the
+  user holds only through a group (REST refused it); `removeRoleFromUser` refuses a group-only role with
+  `ROLE_NOT_ASSIGNED` (REST accepted it and changed nothing).
+- New (additive) in `identity-method-error.ts`: the code constants above, `IdentityMethodNames`, an optional `names`
+  argument of `methodFailureOf`.
+- Fix: the REST URLs of `updateUserRoles`, `addUserToRole` and `removeRoleFromUser` encode the user and role names
+  (`encodeURIComponent`), as `mergeUsers` already did; names with `/`, `#`, `?` or `&` reached the wrong route before.
+- `schema.graphql`: the four mutations and their eight input/result types added surgically; codegen output committed.
+- Verified against the local stack (2026-11-16, scratch tenant): the four mutations succeed and refuse with the codes
+  above; the recorded error answers are pinned in `identity-service.role-merge-methods.spec.ts`.
+
 ### octo-services: createUser and resetPassword run the User methods, with a REST fallback (AB#8864)
 
 - Change: `IdentityService.createUser` runs the static CK method `System.Identity/User.CreateUser-1` and

@@ -51198,6 +51198,18 @@ export type SystemIdentityUserVerifiedExternalIdentifiersArgsDto = {
   sortOrder?: InputMaybe<Array<InputMaybe<SortDto>>>;
 };
 
+/** Parameters of the CK method 'System.Identity/User.AddRole-1'. */
+export type SystemIdentityUserAddRoleMethodInputDto = {
+  roleName: Scalars['String']['input'];
+};
+
+/** Result of a successful call of the CK method 'System.Identity/User.AddRole-1'. A failed call is one GraphQL error. */
+export type SystemIdentityUserAddRoleMethodResultDto = {
+  __typename?: 'SystemIdentityUserAddRoleMethodResult';
+  /** Id of the invocation, for correlation with the handler log. */
+  invocationId: Scalars['ID']['output'];
+};
+
 /** Runtime entities of construction kit record 'System.Identity/UserClaim' */
 export type SystemIdentityUserClaimDto = {
   __typename?: 'SystemIdentityUserClaim';
@@ -51320,16 +51332,44 @@ export type SystemIdentityUserLoginInputDto = {
   userId?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** Parameters of the CK method 'System.Identity/User.Merge-1'. */
+export type SystemIdentityUserMergeMethodInputDto = {
+  /** User name of the user that is merged into this one and deleted. */
+  sourceUserName: Scalars['String']['input'];
+};
+
+/** Result of a successful call of the CK method 'System.Identity/User.Merge-1'. A failed call is one GraphQL error. */
+export type SystemIdentityUserMergeMethodResultDto = {
+  __typename?: 'SystemIdentityUserMergeMethodResult';
+  /** Id of the invocation, for correlation with the handler log. */
+  invocationId: Scalars['ID']['output'];
+};
+
 export type SystemIdentityUserMutationsDto = {
   __typename?: 'SystemIdentityUserMutations';
+  /** Adds one direct role to the user. Calls the CK method 'System.Identity/User.AddRole-1'. */
+  addRole?: Maybe<SystemIdentityUserAddRoleMethodResultDto>;
   /** Creates new entities of type 'SystemIdentityUser'. */
   create?: Maybe<Array<Maybe<SystemIdentityUserDto>>>;
   /** Creates a user (REST user creation is unchanged). Calls the CK method 'System.Identity/User.CreateUser-1'. */
   createUser?: Maybe<SystemIdentityUserCreateUserMethodResultDto>;
+  /** Moves the external logins of the source user to this user (the target) and deletes the source user. Calls the CK method 'System.Identity/User.Merge-1'. */
+  merge?: Maybe<SystemIdentityUserMergeMethodResultDto>;
+  /** Removes one direct role from the user. Calls the CK method 'System.Identity/User.RemoveRole-1'. */
+  removeRole?: Maybe<SystemIdentityUserRemoveRoleMethodResultDto>;
   /** An administrator sets a new password without the current one. Lifts a lockout; the user is notified. Calls the CK method 'System.Identity/User.ResetPassword-1'. */
   resetPassword?: Maybe<SystemIdentityUserResetPasswordMethodResultDto>;
+  /** Replaces the direct roles of the user by the given role names. Calls the CK method 'System.Identity/User.SetRoles-1'. */
+  setRoles?: Maybe<SystemIdentityUserSetRolesMethodResultDto>;
   /** Updates existing entity of type 'SystemIdentityUser'. */
   update?: Maybe<Array<Maybe<SystemIdentityUserDto>>>;
+};
+
+
+export type SystemIdentityUserMutationsAddRoleArgsDto = {
+  idempotencyKey?: InputMaybe<Scalars['String']['input']>;
+  input: SystemIdentityUserAddRoleMethodInputDto;
+  rtId: Scalars['OctoObjectId']['input'];
 };
 
 
@@ -51344,6 +51384,20 @@ export type SystemIdentityUserMutationsCreateUserArgsDto = {
 };
 
 
+export type SystemIdentityUserMutationsMergeArgsDto = {
+  idempotencyKey?: InputMaybe<Scalars['String']['input']>;
+  input: SystemIdentityUserMergeMethodInputDto;
+  rtId: Scalars['OctoObjectId']['input'];
+};
+
+
+export type SystemIdentityUserMutationsRemoveRoleArgsDto = {
+  idempotencyKey?: InputMaybe<Scalars['String']['input']>;
+  input: SystemIdentityUserRemoveRoleMethodInputDto;
+  rtId: Scalars['OctoObjectId']['input'];
+};
+
+
 export type SystemIdentityUserMutationsResetPasswordArgsDto = {
   idempotencyKey?: InputMaybe<Scalars['String']['input']>;
   input: SystemIdentityUserResetPasswordMethodInputDto;
@@ -51351,8 +51405,27 @@ export type SystemIdentityUserMutationsResetPasswordArgsDto = {
 };
 
 
+export type SystemIdentityUserMutationsSetRolesArgsDto = {
+  idempotencyKey?: InputMaybe<Scalars['String']['input']>;
+  input: SystemIdentityUserSetRolesMethodInputDto;
+  rtId: Scalars['OctoObjectId']['input'];
+};
+
+
 export type SystemIdentityUserMutationsUpdateArgsDto = {
   entities: Array<InputMaybe<SystemIdentityUserInputUpdateDto>>;
+};
+
+/** Parameters of the CK method 'System.Identity/User.RemoveRole-1'. */
+export type SystemIdentityUserRemoveRoleMethodInputDto = {
+  roleName: Scalars['String']['input'];
+};
+
+/** Result of a successful call of the CK method 'System.Identity/User.RemoveRole-1'. A failed call is one GraphQL error. */
+export type SystemIdentityUserRemoveRoleMethodResultDto = {
+  __typename?: 'SystemIdentityUserRemoveRoleMethodResult';
+  /** Id of the invocation, for correlation with the handler log. */
+  invocationId: Scalars['ID']['output'];
 };
 
 /** Parameters of the CK method 'System.Identity/User.ResetPassword-1'. */
@@ -51364,6 +51437,19 @@ export type SystemIdentityUserResetPasswordMethodInputDto = {
 /** Result of a successful call of the CK method 'System.Identity/User.ResetPassword-1'. A failed call is one GraphQL error. */
 export type SystemIdentityUserResetPasswordMethodResultDto = {
   __typename?: 'SystemIdentityUserResetPasswordMethodResult';
+  /** Id of the invocation, for correlation with the handler log. */
+  invocationId: Scalars['ID']['output'];
+};
+
+/** Parameters of the CK method 'System.Identity/User.SetRoles-1'. */
+export type SystemIdentityUserSetRolesMethodInputDto = {
+  /** The complete list of direct role names. */
+  roleNames: Array<Scalars['String']['input']>;
+};
+
+/** Result of a successful call of the CK method 'System.Identity/User.SetRoles-1'. A failed call is one GraphQL error. */
+export type SystemIdentityUserSetRolesMethodResultDto = {
+  __typename?: 'SystemIdentityUserSetRolesMethodResult';
   /** Id of the invocation, for correlation with the handler log. */
   invocationId: Scalars['ID']['output'];
 };

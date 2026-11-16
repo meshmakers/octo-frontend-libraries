@@ -1,0 +1,11 @@
+# AB#8863: CK method System.Identity/User.RemoveRole-1 on one user (the target, by rtId); $input carries one direct role.
+# Replaces the deprecated REST endpoint (AB#8415); called with fetchPolicy 'no-cache' and errorPolicy 'none'.
+mutation identityUserRemoveRole($rtId: OctoObjectId!, $input: SystemIdentityUserRemoveRoleMethodInput!) {
+  runtime {
+    systemIdentityUsers {
+      removeRole(rtId: $rtId, input: $input) {
+        invocationId
+      }
+    }
+  }
+}
