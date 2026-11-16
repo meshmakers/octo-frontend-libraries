@@ -10,6 +10,29 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services / shared-ui: operations of a child tenant (AB#8985)
+
+- New (additive): `CkMethodOperationService.getOperation(operationId, { tenantId? })`, `listOperations({ tenantId?, … })`
+  and `follow(operationId, { retryAfterSeconds?, tenantId? })` read `runtime.operations` of another tenant than the route
+  tenant — a parent tenant administrator follows the backup of a child tenant (the platform allows the repository
+  methods and their operations on a child, AB#8986). The request keeps the app's Apollo client and only overrides its
+  URI (Apollo context `uri`). Without `tenantId` nothing changes: same endpoint, same context.
+- New (additive): `tenantGraphQlUri(assetServices, tenantId)` and `tenantGraphQlContext(configurationService, tenantId)`
+  (`shared/tenant-graphql-target.ts`) for hosts that send their own operation (e.g. the dump mutation) to a child tenant.
+  The context also marks a 403 caller-handled (`MM_CALLER_HANDLED_STATUSES`, no global "Access denied" toast per row)
+  and turns Apollo's query deduplication off: Apollo merges in-flight queries by document and variables only, so reads
+  of two tenants with the same variables returned the first tenant's answer for both (found on the local stack, pinned
+  by a real-Apollo spec).
+- Fix (shared-ui `mm-list-view`): the row menu (`contextMenuCommandItems`, `contextMenuType: 'actionMenu'`) honours
+  `CommandItem.isVisible` per row (a synchronous `false` hides the item; leading, repeated and trailing separators are
+  dropped). Before, only `isDisabled` was evaluated per row and every item was always shown — hosts that set `isVisible`
+  on row menu items (Studio My operations "Download", archives list) now get what they declared.
+- Fix (shared-ui `mm-list-view`): in card mode (`cardModeBelow`) a `component` column with a `cellComponent` always gets
+  its body line; before it was skipped when the row had no value in the column's `field`, so cells that render data from
+  elsewhere (Studio "Last backup") disappeared on narrow screens.
+- New (additive): `OperationProgressView.subject` (`OperationProgressSubject { label, value, note? }`), shown by
+  `mm-operation-progress` as the first fact ("Child tenant plant-b (of octosystem)"). Not set = unchanged output.
+
 ### octo-services: user roles and merge run the User methods, with a REST fallback (AB#8863)
 
 - Change: `IdentityService.updateUserRoles`, `addUserToRole`, `removeRoleFromUser` and `mergeUsers` run the CK methods

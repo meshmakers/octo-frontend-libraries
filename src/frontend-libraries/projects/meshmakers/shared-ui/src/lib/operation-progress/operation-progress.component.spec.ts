@@ -33,6 +33,20 @@ describe('OperationProgressComponent (AB#8448)', () => {
     expect(el.querySelector('[data-started]')?.textContent?.trim()).toBeTruthy();
   });
 
+  it('shows no subject line unless the view names one', async () => {
+    const el = await render(running);
+    expect(el.querySelector('[data-subject]')).toBeNull();
+  });
+
+  it('shows the subject of the operation as the first fact (child tenant backup, AB#8985)', async () => {
+    const el = await render({ ...running, subject: { label: 'Child tenant', value: 'plant-b', note: '(of octosystem)' } });
+    const subject = el.querySelector('[data-subject]');
+    expect(subject?.textContent?.replace(/\s+/g, ' ').trim()).toBe('plant-b (of octosystem)');
+    expect(subject?.previousElementSibling?.textContent?.trim()).toBe('Child tenant');
+    expect(el.querySelector('.mm-operation-progress__fact [data-subject]')).toBe(
+      el.querySelector('.mm-operation-progress__fact')?.querySelector('[data-subject]'));
+  });
+
   it('renders an indeterminate bar while no percentage is reported', async () => {
     const el = await render(running);
     expect(el.querySelector('[data-progress="indeterminate"]')).not.toBeNull();

@@ -7,6 +7,8 @@ import {
   GetCkMethodOperationsQueryVariablesDto
 } from '../graphQL/getCkMethodOperations';
 import { OCTO_SILENT_ERRORS } from '../shared/octo-error-link';
+import { tenantGraphQlContext } from '../shared/tenant-graphql-target';
+import { CONFIGURATION_SERVICE } from './configuration.service';
 
 /** One operation of an asynchronous CK method as `runtime.operations` returns it (AB#8444). */
 export type CkMethodOperationItem = NonNullable<
@@ -28,8 +30,17 @@ export class CkMethodOperationNotFoundError extends Error {
   }
 }
 
+/**
+ * The tenant whose `runtime.operations` is read (AB#8985). Without it (or with `null`) the route tenant's endpoint is
+ * used, as before. A parent tenant administrator passes a child tenant here to follow the child's backup; the platform
+ * allows that for the repository methods of the child (AB#8986).
+ */
+export interface CkMethodOperationTarget {
+  tenantId?: string | null;
+}
+
 /** Filter and page of {@link CkMethodOperationService.listOperations}. */
-export interface CkMethodOperationListRequest {
+export interface CkMethodOperationListRequest extends CkMethodOperationTarget {
   /** Every caller's operations of the tenant (tenant administrators only); default: the caller's own. */
   allOwners?: boolean;
   /** Qualified, version-less method id, e.g. `System.Bot/TenantRepository.Dump-1`. */
@@ -63,7 +74,7 @@ export type CkMethodOperationEvent =
   | { kind: 'readFailed'; error: unknown };
 
 /** Options of {@link CkMethodOperationService.follow}. */
-export interface CkMethodOperationFollowOptions {
+export interface CkMethodOperationFollowOptions extends CkMethodOperationTarget {
   /**
    * `retryAfterSeconds` of the handle the mutation returned: the delay before the first read and the polling
    * interval. Without it (e.g. after a page reload) the first read runs at once and the default interval applies.
@@ -108,11 +119,16 @@ export const CK_METHOD_OPERATION_POLLING = new InjectionToken<CkMethodOperationP
  *
  * Reads run with {@link OCTO_SILENT_ERRORS}: a failed read never raises a toast, the caller shows the state itself
  * (no toast loop while the network is down or after the operation expired).
+ *
+ * Every read takes an optional target tenant ({@link CkMethodOperationTarget}, AB#8985): the request then goes to that
+ * tenant's GraphQL endpoint (Apollo context `uri`, see `tenantGraphQlContext`) with the app's client and token. Without
+ * it the route tenant's endpoint is used, exactly as before.
  */
 @Injectable({ providedIn: 'root' })
 export class CkMethodOperationService {
   private readonly getOperationsGQL = inject(GetCkMethodOperationsDtoGQL);
   private readonly polling = inject(CK_METHOD_OPERATION_POLLING);
+  private readonly configurationService = inject(CONFIGURATION_SERVICE, { optional: true });
 
   /** True for SUCCEEDED and FAILED (a final operation never changes again). */
   static isFinal(state: CkMethodOperationStateDto | null | undefined): boolean {
@@ -161,12 +177,14 @@ export class CkMethodOperationService {
   /**
    * Reads one operation.
    *
+   * @param operationId The operation id of the handle.
+   * @param target The tenant of the operation; default the route tenant.
    * @throws CkMethodOperationNotFoundError when the id is unknown, expired or not readable for the caller.
    */
-  async getOperation(operationId: string): Promise<CkMethodOperationItem> {
+  async getOperation(operationId: string, target: CkMethodOperationTarget = {}): Promise<CkMethodOperationItem> {
     let result: Awaited<ReturnType<CkMethodOperationService['fetch']>>;
     try {
-      result = await this.fetch({ operationId });
+      result = await this.fetch({ operationId }, target.tenantId);
     } catch (error) {
       if (CkMethodOperationService.isNotFoundError(error)) {
         throw new CkMethodOperationNotFoundError(operationId);
@@ -180,7 +198,7 @@ export class CkMethodOperationService {
     return operation;
   }
 
-  /** Reads one page of operations, newest accepted first. */
+  /** Reads one page of operations, newest accepted first; `request.tenantId` reads them on that tenant (AB#8985). */
   async listOperations(request: CkMethodOperationListRequest = {}): Promise<CkMethodOperationPage> {
     const result = await this.fetch({
       allOwners: request.allOwners ?? false,
@@ -189,14 +207,14 @@ export class CkMethodOperationService {
       since: request.since ?? null,
       skip: request.skip ?? 0,
       take: request.take ?? 50
-    });
+    }, request.tenantId);
     const connection = result.data?.runtime?.operations;
     return { items: connection?.items ?? [], totalCount: connection?.totalCount ?? 0 };
   }
 
   /**
    * Follows one operation: emits its state after every read, completes after a final state or `notFound`, and stops
-   * polling when the subscriber unsubscribes.
+   * polling when the subscriber unsubscribes. `options.tenantId` reads the operation on that tenant (AB#8985).
    */
   follow(operationId: string, options: CkMethodOperationFollowOptions = {}): Observable<CkMethodOperationEvent> {
     const hintMs = options.retryAfterSeconds != null && options.retryAfterSeconds > 0
@@ -218,7 +236,7 @@ export class CkMethodOperationService {
 
       const read = async (): Promise<void> => {
         try {
-          const operation = await this.getOperation(operationId);
+          const operation = await this.getOperation(operationId, { tenantId: options.tenantId });
           if (stopped) return;
           failures = 0;
           subscriber.next({ kind: 'update', operation });
@@ -256,11 +274,11 @@ export class CkMethodOperationService {
     });
   }
 
-  private fetch(variables: GetCkMethodOperationsQueryVariablesDto) {
+  private fetch(variables: GetCkMethodOperationsQueryVariablesDto, tenantId: string | null | undefined) {
     return firstValueFrom(this.getOperationsGQL.fetch({
       variables,
       fetchPolicy: 'no-cache',
-      context: { [OCTO_SILENT_ERRORS]: true }
+      context: { [OCTO_SILENT_ERRORS]: true, ...tenantGraphQlContext(this.configurationService, tenantId) }
     }));
   }
 }

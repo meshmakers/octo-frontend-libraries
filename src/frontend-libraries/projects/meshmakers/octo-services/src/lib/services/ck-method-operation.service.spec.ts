@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { of, Subscription, throwError } from 'rxjs';
+import { map, of, Subscription, throwError, timer } from 'rxjs';
+import { provideApollo } from 'apollo-angular';
+import { ApolloLink, InMemoryCache } from '@apollo/client/core';
 import {
   CK_METHOD_OPERATION_POLLING,
   CkMethodOperationItem,
@@ -10,6 +12,8 @@ import {
 import { GetCkMethodOperationsDtoGQL } from '../graphQL/getCkMethodOperations';
 import { CkMethodOperationStateDto } from '../graphQL/globalTypes';
 import { OCTO_SILENT_ERRORS } from '../shared/octo-error-link';
+import { CONFIGURATION_SERVICE } from './configuration.service';
+import { MM_CALLER_HANDLED_STATUSES } from '@meshmakers/shared-services';
 
 describe('CkMethodOperationService (AB#8448)', () => {
   let fetch: ReturnType<typeof vi.fn>;
@@ -197,5 +201,106 @@ describe('CkMethodOperationService (AB#8448)', () => {
     expect(CkMethodOperationService.isHandlerLost(other)).toBe(false);
     expect(CkMethodOperationService.isFinal(CkMethodOperationStateDto.AcceptedDto)).toBe(false);
     expect(CkMethodOperationService.isFinal(CkMethodOperationStateDto.SucceededDto)).toBe(true);
+  });
+});
+
+describe('CkMethodOperationService with a target tenant (AB#8985)', () => {
+  let fetch: ReturnType<typeof vi.fn>;
+  let service: CkMethodOperationService;
+
+  const running: CkMethodOperationItem = {
+    operationId: 'op-1',
+    methodId: 'System.Bot/TenantRepository.Dump-1',
+    invocationId: 'inv-1',
+    state: CkMethodOperationStateDto.RunningDto,
+    acceptedAtUtc: '2026-11-16T09:12:40Z',
+    progress: null,
+    result: null,
+    error: null
+  };
+  const answer = () => of({ data: { runtime: { operations: { totalCount: 1, items: [running] } } } });
+  const childUri = 'https://assets.example/tenants/plant-b/GraphQL';
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    fetch = vi.fn().mockReturnValue(answer());
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: GetCkMethodOperationsDtoGQL, useValue: { fetch } },
+        { provide: CONFIGURATION_SERVICE, useValue: { config: { assetServices: 'https://assets.example/' }, loadConfigAsync: vi.fn() } }
+      ]
+    });
+    service = TestBed.inject(CkMethodOperationService);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('keeps the route tenant (no uri in the context) when no target tenant is given', async () => {
+    await service.getOperation('op-1');
+    await service.listOperations({ allOwners: true });
+    for (const call of fetch.mock.calls) {
+      expect(call[0].context).toEqual({ [OCTO_SILENT_ERRORS]: true });
+    }
+  });
+
+  it('sends getOperation, listOperations and follow to the target tenant endpoint, still silent', async () => {
+    await service.getOperation('op-1', { tenantId: 'plant-b' });
+    await service.listOperations({ tenantId: 'plant-b', allOwners: true, methodId: 'System.Bot/TenantRepository.Dump-1', take: 1 });
+    const sub = service.follow('op-1', { tenantId: 'plant-b' }).subscribe();
+    await vi.advanceTimersByTimeAsync(0);
+    sub.unsubscribe();
+
+    expect(fetch).toHaveBeenCalledTimes(3);
+    for (const call of fetch.mock.calls) {
+      expect(call[0].context).toEqual(expect.objectContaining({ [OCTO_SILENT_ERRORS]: true, uri: childUri, queryDeduplication: false }));
+      expect(call[0].context.httpContext.get(MM_CALLER_HANDLED_STATUSES)).toEqual([403]);
+    }
+    expect(fetch.mock.calls[1][0].variables).toEqual(expect.objectContaining({
+      allOwners: true, methodId: 'System.Bot/TenantRepository.Dump-1', take: 1
+    }));
+    expect(fetch.mock.calls[1][0].variables).not.toHaveProperty('tenantId');
+  });
+
+  it('treats a null target tenant like no target tenant', async () => {
+    await service.getOperation('op-1', { tenantId: null });
+    expect(fetch.mock.lastCall![0].context).toEqual({ [OCTO_SILENT_ERRORS]: true });
+  });
+});
+
+describe('CkMethodOperationService on a real Apollo client: one request per target tenant (AB#8985)', () => {
+  it('does not merge concurrent reads of two tenants with the same variables into one request', async () => {
+    const uris: string[] = [];
+    const link = new ApolloLink(operation => {
+      const uri = (operation.getContext() as { uri?: string }).uri ?? '';
+      uris.push(uri);
+      const tenant = uri.split('/tenants/')[1]?.split('/')[0] ?? 'route';
+      // Answer later than the second call starts, so Apollo would deduplicate the in-flight query.
+      return timer(10).pipe(map(() => ({ data: { runtime: { __typename: 'RuntimeModelQuery', operations: {
+        __typename: 'CkMethodOperationDtoConnection', totalCount: 1, items: [{
+          __typename: 'CkMethodOperationDto', operationId: `op-${tenant}`, methodId: 'System.Bot/TenantRepository.Dump-1',
+          invocationId: 'inv', state: CkMethodOperationStateDto.SucceededDto, progress: null, result: null, error: null,
+          acceptedAtUtc: '2026-11-16T09:00:00Z', startedAtUtc: null, completedAtUtc: null, expiresAtUtc: null
+        }]
+      } } } } as unknown as ApolloLink.Result)));
+    });
+    TestBed.configureTestingModule({
+      providers: [
+        provideApollo(() => ({ link, cache: new InMemoryCache() })),
+        { provide: CONFIGURATION_SERVICE, useValue: { config: { assetServices: 'https://assets.example/' }, loadConfigAsync: vi.fn() } }
+      ]
+    });
+    const service = TestBed.inject(CkMethodOperationService);
+    const request = { methodId: 'System.Bot/TenantRepository.Dump-1', allOwners: true, take: 1 };
+
+    const [a, b] = await Promise.all([
+      service.listOperations({ ...request, tenantId: 'plant-a' }),
+      service.listOperations({ ...request, tenantId: 'plant-b' })
+    ]);
+
+    expect(uris).toEqual(['https://assets.example/tenants/plant-a/GraphQL', 'https://assets.example/tenants/plant-b/GraphQL']);
+    expect(a.items[0].operationId).toBe('op-plant-a');
+    expect(b.items[0].operationId).toBe('op-plant-b');
   });
 });

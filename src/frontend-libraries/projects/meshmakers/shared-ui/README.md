@@ -177,6 +177,12 @@ The toolbar's "Reset Filters" button only appears while something narrows the de
 </mm-list-view>
 ```
 
+Row menu items (`contextMenuCommandItems`) are evaluated per row: `isDisabled(row)` disables an item, a synchronous
+`isVisible(row) === false` leaves it out of that row's menu (separators around hidden items collapse), so a menu can
+offer "Show progress" instead of "Start" while a row's job runs. In card mode (`cardModeBelow`) every column after the
+first gets a labelled line when it has a value; a `component` column with a `cellComponent` always gets its line, because
+its component renders its own value.
+
 ### BaseFormComponent (`mm-base-form`)
 
 Form wrapper with save/cancel buttons, title, validation, and unsaved changes detection.
