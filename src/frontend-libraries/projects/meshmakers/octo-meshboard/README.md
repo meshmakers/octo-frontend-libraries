@@ -909,6 +909,8 @@ interface PersistentQueryDataSource {
    * "Ignore MeshBoard time filter" toggle, shown only for stream-data queries.
    */
   ignoreTimeFilter?: boolean;
+  /** Calendar time shift of the board's time filter (AB#9094), see "Time shift" below. */
+  timeShift?: { by: 'period' | 'year'; count: number };
 }
 ```
 
@@ -1019,7 +1021,7 @@ a `fieldFilter` on `timestamp`. This pushes the range down to the backend
 (CrateDB `DATE_BIN` / downsampling bucket sizing) instead of post-filtering rows.
 
 The binding is resolved centrally by
-`MeshBoardStateService.resolveStreamDataTimeArgs(ignoreTimeFilter)`; every
+`MeshBoardStateService.resolveStreamDataTimeArgs(ignoreTimeFilter, timeShift)`; every
 stream-data widget calls it.
 
 **Per-widget opt-out:** the config dialog of each stream-data widget shows an
@@ -1027,6 +1029,36 @@ stream-data widget calls it.
 stream-data query). Enabling it sets `ignoreTimeFilter: true` on the data source
 so the saved query's intrinsic time range wins. Runtime queries ignore the time
 filter binding entirely and never show the toggle.
+
+### Time shift: previous period and same period last year (AB#9094)
+
+A stream-data persistent-query source can query a calendar-shifted copy of the board's time
+filter, so a KPI or chart can sit next to the same value for the previous period or the same period
+last year (Grafana's per-panel "time shift", Power BI's `SAMEPERIODLASTYEAR` / `DATEADD`):
+
+```json
+{ "type": "persistentQuery", "queryRtId": "<rtId>", "queryFamily": "streamData",
+  "timeShift": { "by": "year", "count": -1 } }
+```
+
+- `by: 'period'` moves by the board's selected period type: a year, quarter, month or day selection
+  moves by whole calendar periods in the board's time-zone mode (October 2026 → September 2026, the
+  whole 30 days; Q1 2026 → Q4 2025; 2026-03-30 → 2026-03-29). A relative, custom or host-set range
+  (`timeRange`, AB#7582) is not a calendar period and moves back by its own length
+  (2026-11-03 – 2026-11-10 → 2026-10-27 – 2026-11-03).
+- `by: 'year'` moves by calendar years in the board's time-zone mode (Q1 2026 → Q1 2025, February
+  2025 → the 29 days of February 2024); bounds of a relative, custom or host-set range keep their
+  wall-clock time, and a 29 February bound lands on 28 February.
+- `count` is a negative integer (`-1` = one period back). Any other value, a missing `by` or an
+  unknown unit means no shift; such a value is not written back on save.
+- Window bounds are local midnights of the shifted period, also across a DST change (March 2026 =
+  2026-03-01T00:00+01:00 to 2026-04-01T00:00+02:00), never the unshifted instants minus fixed hours.
+- With `ignoreTimeFilter: true` the shift is ignored and the query's own bounds apply. Runtime
+  queries ignore it. A resolution-aware line chart resolves its archive/rollup on the shifted
+  window (same zone, aggregation and point count). An invalid host period blocks a shifted widget
+  like an unshifted one.
+- The same `timeShift` key exists on a stats-grid / summary-card `persistentQuerySource` and on a
+  process widget binding. Without it every board queries exactly as before.
 
 ## Services
 

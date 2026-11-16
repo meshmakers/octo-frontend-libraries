@@ -208,6 +208,13 @@ Per-widget opt-out: when the widget's `PersistentQueryDataSource.ignoreTimeFilte
 is `true` (set via the dialog's "Ignore MeshBoard time filter" toggle), the helper
 returns `undefined` and the saved query's intrinsic range wins. See AB#4236.
 
+Time shift (AB#9094): widgets pass the source's `timeShift` as the second argument,
+`resolveStreamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift)`. A year, quarter, month or day
+selection is shifted on its calendar fields and resolved in the board's time-zone mode (`period`:
+the previous period, `year`: the same period N years back); a relative, custom or host-set range
+moves back by its own length (`period`) or by calendar years (`year`). With `ignoreTimeFilter` the
+shift is ignored; a resolution-aware chart passes the shifted window to `resolveSeriesQuery`.
+
 ## Transient queries (ad-hoc, not persisted)
 
 `streamData.transientStreamDataQuery.{simple,aggregation,groupingAggregation,downsampling}` exposes the four kinds without requiring a saved entity. The widget layer doesn't use these today — they're for tooling like the MCP `query_stream_data_*` tools. The row shape is identical to persistent SD rows (`StreamDataQueryRow`).

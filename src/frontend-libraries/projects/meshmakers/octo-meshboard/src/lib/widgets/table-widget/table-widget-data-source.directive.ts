@@ -451,7 +451,7 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
     const ds = this._config?.dataSource;
     const isPersistentQuery = ds?.type === 'persistentQuery';
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(isPersistentQuery ? ds.ignoreTimeFilter : undefined);
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(isPersistentQuery ? ds.ignoreTimeFilter : undefined, isPersistentQuery ? ds.timeShift : undefined);
     const rtIds = this.stateService.resolveStreamDataRtIds(isPersistentQuery ? ds.entitySelectorId : undefined);
     if (!timeArgs && !rtIds) {
       return undefined;

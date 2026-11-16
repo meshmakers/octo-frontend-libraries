@@ -10,6 +10,21 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: stream-data widgets show the previous period or the same period last year (AB#9094)
+
+- New: optional `timeShift: { by: 'period' | 'year'; count: <negative integer> }` on a stream-data
+  `PersistentQueryDataSource`, on a stats-grid / summary-card `persistentQuerySource` and on a process widget
+  binding. `period` moves a year, quarter, month or day filter by whole calendar periods in the board's
+  time-zone mode (October 2026 → September 2026); relative, custom and host-set ranges move back by their own
+  length (Grafana's time shift). `year` moves by calendar years (Q1 2026 → Q1 2025, a 29 February bound lands on
+  28 February). Ignored with `ignoreTimeFilter` and for runtime queries; a resolution-aware line chart resolves
+  its archive on the shifted window.
+- API (additive): `MeshBoardTimeShift`, `MeshBoardStateService.resolveShiftedTimeRange(timeShift?)` and a second
+  optional parameter `resolveStreamDataTimeArgs(ignoreTimeFilter?, timeShift?)`. Boards without `timeShift`
+  query and encode exactly as before.
+- Configurable through the board seed / stored widget config only; the widget dialogs follow in AB#9095 and,
+  until then, drop the key when a widget is saved through its dialog.
+
 ### octo-services: user roles and merge run the User methods, with a REST fallback (AB#8863)
 
 - Change: `IdentityService.updateUserRoles`, `addUserToRole`, `removeRoleFromUser` and `mergeUsers` run the CK methods

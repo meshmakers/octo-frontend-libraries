@@ -1,5 +1,6 @@
 import type { WidgetFilterConfig } from '../../models/meshboard.models';
 import type { QueryFamily } from '../../utils/query-family';
+import { normalizeTimeShift } from '../../utils/time-shift';
 import {
   DEFAULT_PROCESS_BINDING_NAME,
   DiagramPropertyMapping,
@@ -211,6 +212,7 @@ export function parsePersistedProcessBindings(raw: unknown): ProcessWidgetBindin
       queryName: e['queryName'] as string | undefined,
       queryFamily: e['queryFamily'] as QueryFamily | undefined,
       ignoreTimeFilter: e['ignoreTimeFilter'] as boolean | undefined,
+      timeShift: normalizeTimeShift(e['timeShift']),
       entitySelectorId: e['entitySelectorId'] as string | undefined,
       filters: e['filters'] as WidgetFilterConfig[] | undefined
     }));
@@ -227,6 +229,7 @@ export function toPersistedProcessBindings(bindings: readonly ProcessWidgetBindi
 }
 
 function compactBinding(binding: ProcessWidgetBinding): ProcessWidgetBinding {
+  const timeShift = normalizeTimeShift(binding.timeShift);
   return {
     name: binding.name,
     mode: binding.mode,
@@ -236,6 +239,7 @@ function compactBinding(binding: ProcessWidgetBinding): ProcessWidgetBinding {
     ...(binding.queryName && { queryName: binding.queryName }),
     ...(binding.queryFamily && { queryFamily: binding.queryFamily }),
     ...(binding.ignoreTimeFilter === true && { ignoreTimeFilter: true }),
+    ...(timeShift && { timeShift }),
     ...(binding.entitySelectorId && { entitySelectorId: binding.entitySelectorId }),
     ...(binding.filters && binding.filters.length > 0 && { filters: binding.filters })
   };

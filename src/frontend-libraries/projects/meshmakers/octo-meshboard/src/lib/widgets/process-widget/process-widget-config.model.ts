@@ -1,4 +1,4 @@
-import { WidgetConfig, WidgetFilterConfig } from '../../models/meshboard.models';
+import { MeshBoardTimeShift, WidgetConfig, WidgetFilterConfig } from '../../models/meshboard.models';
 import type { QueryFamily } from '../../utils/query-family';
 import type { ProcessWidgetSpecificConfig } from '@meshmakers/octo-process-diagrams';
 
@@ -159,6 +159,9 @@ export interface ProcessWidgetBinding {
 
   /** Stream data: do not bind the MeshBoard time filter (see `bindingIgnoreTimeFilter`). */
   ignoreTimeFilter?: boolean;
+
+  /** Stream data: calendar time shift of the board's time filter (AB#9094), see `PersistentQueryDataSource.timeShift`. */
+  timeShift?: MeshBoardTimeShift;
 
   // --- Both modes ---
 

@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES, LineChartQuerySeries, LineChartWidgetConfig, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
+import { DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES, LineChartQuerySeries, LineChartWidgetConfig, MeshBoardTimeShift, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
@@ -859,7 +859,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       // window + target point count, then downsample each source series against it. Requires a
       // stream-data query, a resolved time range, and a value field (which doubles as the series'
       // source path — the resolver matches it against the rollup's aggregation spec, case-insensitively).
-      const timeArgs = this.streamDataTimeArgs(queryDataSource.ignoreTimeFilter);
+      const timeArgs = this.streamDataTimeArgs(queryDataSource.ignoreTimeFilter, queryDataSource.timeShift);
       if (queryDataSource.resolutionAware && queryDataSource.queryFamily === 'streamData'
           && this.config.valueField && timeArgs?.from && timeArgs?.to) {
         const sourceRtIds = this.stateService.resolveStreamDataRtIds(queryDataSource.entitySelectorId);
@@ -1363,7 +1363,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   /** Resolution-aware sources resolve their rung first (step 2 of {@link loadMultiSource}). */
   private async prepareSource(source: MultiSourceEntry, targetPoints: number): Promise<PreparedSource> {
     const ds = source.dataSource;
-    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!(ds.resolutionAware && ds.queryFamily === 'streamData' && source.valueField && timeArgs?.from && timeArgs?.to)) {
       return { timeArgs, rtIds };
@@ -1490,7 +1490,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;
@@ -1508,10 +1508,10 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * The board window snapped to the fixed bucket size (AB#8046), `null` without `bucketMinutes`, without
    * a time range or for an invalid size. `ignoreTimeFilter` sources have no window and get `null`.
    */
-  private fixedBucketWindow(ignoreTimeFilter?: boolean): FixedBucketWindow | null {
+  private fixedBucketWindow(ignoreTimeFilter?: boolean, timeShift?: MeshBoardTimeShift): FixedBucketWindow | null {
     const minutes = this.config?.bucketMinutes;
     if (!minutes) return null;
-    const range = this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter);
+    const range = this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter, timeShift);
     if (!range?.from || !range?.to) return null;
     return snapWindowToBuckets(range.from, range.to, minutes, this.stateService.timeZoneMode());
   }
@@ -1520,9 +1520,9 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * Stream-data window of a source: the board window, snapped to whole buckets when the chart has a
    * fixed bucket size (AB#8046), so `(to - from) / limit` is exactly the bucket size.
    */
-  private streamDataTimeArgs(ignoreTimeFilter?: boolean): { from: Date; to: Date } | undefined {
-    const fixed = this.fixedBucketWindow(ignoreTimeFilter);
-    return fixed ? { from: fixed.from, to: fixed.to } : this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter);
+  private streamDataTimeArgs(ignoreTimeFilter?: boolean, timeShift?: MeshBoardTimeShift): { from: Date; to: Date } | undefined {
+    const fixed = this.fixedBucketWindow(ignoreTimeFilter, timeShift);
+    return fixed ? { from: fixed.from, to: fixed.to } : this.stateService.resolveStreamDataTimeArgs(ignoreTimeFilter, timeShift);
   }
 
   /**

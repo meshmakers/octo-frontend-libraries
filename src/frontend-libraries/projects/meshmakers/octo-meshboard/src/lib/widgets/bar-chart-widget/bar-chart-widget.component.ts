@@ -669,7 +669,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   /** Rows of one source of the multi-source path; widget filters apply to the primary query only. */
   private async fetchSourceRows(source: BarChartSourceEntry, scopeRtIds: string[] | undefined): Promise<QueryResultRow[]> {
     const ds = source.dataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     const streamDataArgs: StreamDataExecutionArgs | undefined = timeArgs || rtIds ? { ...timeArgs, rtIds } : undefined;
     const result = await firstValueFrom(this.queryExecutor.execute(ds.queryFamily, ds.queryRtId, {
@@ -722,7 +722,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;

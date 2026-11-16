@@ -444,7 +444,7 @@ export class HeatmapWidgetComponent implements DashboardWidget<HeatmapWidgetConf
 
   private buildStreamDataArgs(ownWindow?: { from: Date; to: Date }): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = ownWindow ?? this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = ownWindow ?? this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;

@@ -236,7 +236,7 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
   }
 
   private buildStreamDataArgs(source: PersistentQueryCellSource): StreamDataExecutionArgs | undefined {
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(source.ignoreTimeFilter);
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(source.ignoreTimeFilter, source.timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(source.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;

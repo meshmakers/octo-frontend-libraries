@@ -146,7 +146,8 @@ export class MyComponent {
 | `setEntitySelectorVariables(selectorId, values[])` | `void` | Set variables from entity selection |
 | `clearEntitySelectorVariables(selectorId)` | `void` | Clear variables for a selector |
 | `resolveCurrentTimeRange()` | `TimeRange \| null` | Resolve active time filter to `{from, to}` |
-| `resolveStreamDataTimeArgs(ignoreTimeFilter?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out |
+| `resolveStreamDataTimeArgs(ignoreTimeFilter?, timeShift?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out (a `timeShift` is then ignored); with a valid `timeShift` the window of `resolveShiftedTimeRange` (AB#9094) |
+| `resolveShiftedTimeRange(timeShift?)` | `TimeRange \| null` | The active time filter moved by a calendar time shift (AB#9094, see *Time shift*); without a valid shift exactly `resolveCurrentTimeRange()` |
 | `setHostTimeRange(state \| null, owner?)` / `clearHostTimeRange(owner)` / `hostTimeRange` | `void` / `void` / `Signal<HostTimeRangeState \| null>` | Period of the embedding host (`mm-meshboard-view [timeRange]`, AB#7582): transient, never persisted, owner-aware clearing (root service shared by views); while set and the filter is enabled `resolveCurrentTimeRange()` returns its exact instants |
 | `isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?)` | `boolean` | True while an invalid host period blocks a stream-data query bound to the time filter (AB#7582); `resolveStreamDataScope(id, family, ignoreTimeFilter)` then returns `empty`/`invalidTimeRange`; the process binding and the widget-group repeater check it directly |
 | `setEntitySelectorScopePending(selectorId)` | `void` | Mark a selector's scope as resolving (AB#7721) |
@@ -322,9 +323,38 @@ interface PersistentQueryDataSource {
   queryName?: string;         // Display name
   queryFamily?: QueryFamily;  // 'runtime' | 'streamData' (derived when absent)
   ignoreTimeFilter?: boolean; // SD opt-out of the MeshBoard time-filter binding
+  timeShift?: MeshBoardTimeShift; // SD calendar shift of the time filter (AB#9094) — see *Time shift*
   entitySelectorId?: string;  // Asset-scope binding (runtime + stream-data, AB#7725) — see below
 }
 ```
+
+#### Time shift (`timeShift`, AB#9094)
+
+`MeshBoardTimeShift = { by: 'period' | 'year'; count: number }` (Grafana's per-panel time shift,
+Power BI `SAMEPERIODLASTYEAR` / `DATEADD`). Resolved only by
+`MeshBoardStateService.resolveShiftedTimeRange`, which `resolveStreamDataTimeArgs(ignoreTimeFilter, timeShift)`
+calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure helpers in
+`utils/time-shift.ts` (`normalizeTimeShift`, `shiftCalendarSelection`, `shiftRange`).
+
+| Board range | `by: 'period'` | `by: 'year'` |
+|---|---|---|
+| year / quarter / month / day selection | the selection's calendar fields move by `count` periods, then `TimeRangeUtils.getTimeRangeFromSelection` resolves it in the board's zone (October 2026 → September 2026, Q1 2026 → Q4 2025, 2026-03-30 → 2026-03-29; hour limits of a day stay) | the year moves by `count`; a day 29 February becomes 28 February |
+| relative, custom, host period (AB#7582) | both bounds move back by the range's own length | both bounds move by calendar years at the same wall-clock time in the board's zone (`getZonedDateParts` + `TimeRangeUtils.getDayRange`); a 29 February bound lands on 28 February |
+
+- A `count` that is not a negative integer, a missing or unknown `by` = no shift (`normalizeTimeShift`); the
+  registrations drop it on load and never write it (`timeShiftConfig`), so boards without a shift encode byte-identically.
+- `ignoreTimeFilter: true` ignores the shift; runtime queries ignore it (the executor sends no `arg`). The host gate
+  (`isStreamDataBlockedByHostTimeRange`) is unchanged, so an invalid host period blocks a shifted widget like any other.
+- The resolution-aware line chart passes the shifted window to `resolveSeriesQuery` with the unchanged zone,
+  aggregation and point count; archive/rollup selection runs on it through the same code path. A fixed bucket size
+  (AB#8046) snaps the shifted window. The heatmap's own `timeWindow` (AB#7956) wins over the board filter and the shift.
+- Also on `PersistentQueryCellSource` (stats grid, summary card; stored verbatim with the cell) and on
+  `ProcessWidgetBinding` (`parsePersistedProcessBindings` / `toPersistedProcessBindings` keep only a valid shift).
+- The widget config dialogs do not edit it yet (AB#9095): they rebuild the data source on save, so a dialog save drops
+  a seeded `timeShift`.
+- Specs: `services/meshboard-state.service.time-shift.spec.ts` (AC windows in Europe/Vienna, DST, leap year,
+  own-length rule, composition), `widgets/time-shift.widgets.spec.ts` (every stream-data consumer, resolution-aware
+  line chart, runtime query unchanged), `registrations/default-widget-registrations.time-shift.spec.ts` (round trip).
 
 #### Asset-scope binding (`entitySelectorId`)
 

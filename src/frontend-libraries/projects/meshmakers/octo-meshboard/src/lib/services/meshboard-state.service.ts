@@ -10,6 +10,7 @@ import {
   MeshBoardVariableSource,
   MeshBoardTimeFilterConfig,
   MeshBoardTimeZoneMode,
+  MeshBoardTimeShift,
   DEFAULT_TIME_ZONE_MODE,
   TimeRangeSelection,
   VariableResolutionError,
@@ -17,6 +18,7 @@ import {
 } from '../models/meshboard.models';
 import { EntitySelectorScopeState, StreamDataScope } from '../utils/stream-data-scope';
 import type { QueryFamily } from '../utils/query-family';
+import { normalizeTimeShift, shiftCalendarSelection, shiftRange } from '../utils/time-shift';
 
 /** The CK model required for the MeshBoard feature */
 const REQUIRED_CK_MODEL = 'System.UI';
@@ -790,10 +792,12 @@ export class MeshBoardStateService {
     if (!config.selection) {
       return null;
     }
-    const showTime = config.pickerConfig?.showTime ?? false;
+    return this.resolveSelection(config.selection, config.pickerConfig?.showTime ?? false);
+  }
+
+  private resolveSelection(selection: TimeRangeSelection, showTime: boolean): TimeRange | null {
     // The model stores customFrom/customTo as ISO strings for JSON persistence,
     // shared-ui's TimeRangeUtils expects Date objects — convert before delegating.
-    const selection = config.selection;
     const sharedSelection: SharedTimeRangeSelection = {
       ...selection,
       customFrom: selection.customFrom ? new Date(selection.customFrom) : undefined,
@@ -803,19 +807,44 @@ export class MeshBoardStateService {
   }
 
   /**
+   * The active time filter moved by a calendar time shift (AB#9094), see {@link MeshBoardTimeShift}.
+   * Without a valid shift this is exactly {@link resolveCurrentTimeRange}. A year, quarter, month or
+   * day selection is shifted on its calendar fields and resolved in the board's zone; a relative,
+   * custom or host-set range is shifted on its resolved bounds (`period`: by its own length).
+   */
+  resolveShiftedTimeRange(timeShift?: MeshBoardTimeShift): TimeRange | null {
+    const shift = normalizeTimeShift(timeShift);
+    const range = this.resolveCurrentTimeRange();
+    if (!shift || !range) {
+      return range;
+    }
+    const config = this._meshBoardConfig().timeFilter;
+    const selection = config?.selection;
+    if (!this._hostTimeRange() && selection) {
+      const shifted = shiftCalendarSelection(selection, shift);
+      if (shifted) {
+        return this.resolveSelection(shifted, config?.pickerConfig?.showTime ?? false);
+      }
+    }
+    return shiftRange(range, shift, this.timeZoneMode());
+  }
+
+  /**
    * Resolves the active time filter into stream-data `{from, to}` arguments for
    * a persistent-query widget. Centralizes the per-widget binding so every
    * stream-data consumer shares one implementation.
    *
    * Returns `undefined` (so the query's intrinsic bounds apply) when either:
-   * - the widget opted out via `ignoreTimeFilter`, or
+   * - the widget opted out via `ignoreTimeFilter` (a `timeShift` is then ignored), or
    * - no time filter is active / the selection is incomplete.
+   *
+   * With `timeShift` (AB#9094) the window is {@link resolveShiftedTimeRange}.
    */
-  resolveStreamDataTimeArgs(ignoreTimeFilter?: boolean): { from: Date; to: Date } | undefined {
+  resolveStreamDataTimeArgs(ignoreTimeFilter?: boolean, timeShift?: MeshBoardTimeShift): { from: Date; to: Date } | undefined {
     if (ignoreTimeFilter) {
       return undefined;
     }
-    const range = this.resolveCurrentTimeRange();
+    const range = this.resolveShiftedTimeRange(timeShift);
     if (!range) {
       return undefined;
     }
