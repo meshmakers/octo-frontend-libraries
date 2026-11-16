@@ -1766,8 +1766,10 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       ? [...overflow, {separator: true}, ...contextItems]
       : [...overflow, ...contextItems];
     if (this._contextMenuItems.length === 0) {
-      // Every item is hidden for this row (`isVisible`): no empty popup.
+      // Every item is hidden for this row (`isVisible`): no empty popup. No popup means no close event, so clear the
+      // selected row here, or a later selection would act on this row.
       this._contextMenuItems = this.buildMenuItems(this._contextMenuCommandItems);
+      this._actionMenuSelectedRow = null;
       return;
     }
     this.gridContextMenu?.show({

@@ -104,6 +104,7 @@ describe('MmTableComponent', () => {
       const open = (component as unknown as { onContextMenu(row: unknown, e: PointerEvent): void }).onContextMenu.bind(component);
       open({}, { pageX: 10, pageY: 10, preventDefault: () => undefined, stopPropagation: () => undefined } as unknown as PointerEvent);
       expect(show).not.toHaveBeenCalled();
+      expect((component as unknown as { _actionMenuSelectedRow: unknown })._actionMenuSelectedRow).toBeNull();
       component.contextMenuCommandItems = [{ id: 'only', type: 'link', text: 'Only' }];
       open({}, { pageX: 10, pageY: 10, preventDefault: () => undefined, stopPropagation: () => undefined } as unknown as PointerEvent);
       expect(show).toHaveBeenCalledTimes(1);

@@ -24,9 +24,13 @@ import { IConfigurationService } from '../services/configuration.service';
 /** HTTP statuses a request to another tenant leaves to the caller (see the module comment). */
 export const TENANT_TARGET_CALLER_HANDLED_STATUSES: readonly number[] = [403];
 
-/** URI of the GraphQL endpoint of `tenantId` under the asset repository base URL (`…/tenants/{tenantId}/GraphQL`). */
+/**
+ * URI of the GraphQL endpoint of `tenantId` under the asset repository base URL (`…/tenants/{tenantId}/GraphQL`); a base
+ * without a trailing slash gets one.
+ */
 export function tenantGraphQlUri(assetServices: string | null | undefined, tenantId: string): string {
-  return `${assetServices ?? ''}tenants/${encodeURIComponent(tenantId)}/GraphQL`;
+  const base = assetServices ? (assetServices.endsWith('/') ? assetServices : `${assetServices}/`) : '';
+  return `${base}tenants/${encodeURIComponent(tenantId)}/GraphQL`;
 }
 
 /** Apollo operation context of {@link tenantGraphQlContext}. */

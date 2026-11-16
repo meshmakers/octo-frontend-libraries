@@ -13,6 +13,7 @@ describe('tenant GraphQL target (AB#8985)', () => {
     expect(tenantGraphQlUri('https://assets.example/', 'plant-b')).toBe('https://assets.example/tenants/plant-b/GraphQL');
     expect(tenantGraphQlUri('https://assets.example/', 'a/b?c')).toBe('https://assets.example/tenants/a%2Fb%3Fc/GraphQL');
     expect(tenantGraphQlUri(undefined, 'plant-b')).toBe('tenants/plant-b/GraphQL');
+    expect(tenantGraphQlUri('https://assets.example', 'plant-b')).toBe('https://assets.example/tenants/plant-b/GraphQL');
   });
 
   it('returns a uri context for a target tenant that leaves a 403 to the caller, and an empty context without one', () => {
