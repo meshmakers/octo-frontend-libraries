@@ -35,7 +35,7 @@ let nextEditorId = 0;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (visible()) {
-      <fieldset class="form-field sd-time-shift-editor" [disabled]="ignoreTimeFilter()">
+      <fieldset class="form-field sd-time-shift-editor" [disabled]="ignoreTimeFilter()" [attr.aria-describedby]="hintId">
         <legend [class.k-disabled]="ignoreTimeFilter()">Compare with</legend>
         <div class="choices">
           @for (option of options; track option.value) {
@@ -71,7 +71,7 @@ let nextEditorId = 0;
             </kendo-numerictextbox>
           </div>
         }
-        <p class="field-hint">{{ hint() }}</p>
+        <p class="field-hint" [id]="hintId">{{ hint() }}</p>
       </fieldset>
     }
   `,
@@ -130,6 +130,8 @@ export class SdTimeShiftEditorComponent {
   readonly timeShift = model<MeshBoardTimeShift | undefined>(undefined);
 
   readonly groupName = `mm-time-shift-${nextEditorId++}`;
+
+  readonly hintId = `${this.groupName}-hint`;
 
   readonly options: readonly { value: TimeShiftChoice; label: string }[] = [
     { value: 'none', label: 'None' },

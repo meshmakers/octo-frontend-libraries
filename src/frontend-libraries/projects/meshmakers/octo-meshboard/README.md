@@ -1045,7 +1045,8 @@ last year (Grafana's per-panel "time shift", Power BI's `SAMEPERIODLASTYEAR` / `
   moves by whole calendar periods in the board's time-zone mode (October 2026 → September 2026, the
   whole 30 days; Q1 2026 → Q4 2025; 2026-03-30 → 2026-03-29). A relative, custom or host-set range
   (`timeRange`, AB#7582) is not a calendar period and moves back by its own length
-  (2026-11-03 – 2026-11-10 → 2026-10-27 – 2026-11-03).
+  (2026-11-03 – 2026-11-10 → 2026-10-27 – 2026-11-03). A custom range of whole days (no time of day)
+  moves by its number of days, so its bounds stay local midnights across a DST change.
 - `by: 'year'` moves by calendar years in the board's time-zone mode (Q1 2026 → Q1 2025, February
   2025 → the 29 days of February 2024); bounds of a relative, custom or host-set range keep their
   wall-clock time, and a 29 February bound lands on 28 February.
@@ -1070,7 +1071,8 @@ widgets have no control: they apply a `timeShift` written into the board configu
 their dialog drops it. A chart has one shift: the editor sets the primary query's shift, so do not
 mix shifted and unshifted query series in one chart (overlaying two periods is not supported yet).
 
-**On the widget.** A widget whose shift applies shows the shifted period under its title, in the
+**On the widget.** A widget whose own data source applies a shift shows the shifted period under its
+title (stats-grid / summary-card cells and process bindings with a `timeShift` show no caption), in the
 board's time zone: `September 2026` for a month, `Q4 2025` for a quarter, `2025` for a year, the date
 for a day and `03.11.2026 - 09.11.2026` for any other range. The tooltip names the shift and the exact
 range with the zone, e.g. `Previous period: 01.09.2026 - 30.09.2026 (Europe/Vienna)`. The caption

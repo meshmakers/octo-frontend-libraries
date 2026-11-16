@@ -18,7 +18,7 @@ import {
 } from '../models/meshboard.models';
 import { EntitySelectorScopeState, StreamDataScope } from '../utils/stream-data-scope';
 import type { QueryFamily } from '../utils/query-family';
-import { normalizeTimeShift, shiftCalendarSelection, shiftRange } from '../utils/time-shift';
+import { normalizeTimeShift, shiftCalendarSelection, shiftRange, shiftWholeDayRange } from '../utils/time-shift';
 
 /** The CK model required for the MeshBoard feature */
 const REQUIRED_CK_MODEL = 'System.UI';
@@ -839,6 +839,9 @@ export class MeshBoardStateService {
         const shiftedRange = this.resolveSelection(shifted, config?.pickerConfig?.showTime ?? false);
         return shiftedRange ? { range: shiftedRange, selection: shifted } : null;
       }
+    }
+    if (!this._hostTimeRange() && selection?.type === 'custom' && !(config?.pickerConfig?.showTime ?? false)) {
+      return { range: shiftWholeDayRange(range, shift, this.timeZoneMode()), selection: null };
     }
     return { range: shiftRange(range, shift, this.timeZoneMode()), selection: null };
   }

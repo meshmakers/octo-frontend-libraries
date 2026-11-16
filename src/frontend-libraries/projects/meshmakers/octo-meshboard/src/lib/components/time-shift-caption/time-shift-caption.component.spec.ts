@@ -112,6 +112,13 @@ describe('TimeShiftCaptionComponent (AB#9095)', () => {
       expect(caption()?.getAttribute('title')).toBe('Previous period: 03.11.2026 - 09.11.2026 (Europe/Vienna)');
     });
 
+    it('custom range of whole days across the DST change: "22.03.2026 - 29.03.2026"', () => {
+      boardOn({ type: 'custom', customFrom: '2026-03-30T00:00:00+02:00', customTo: '2026-04-06T00:00:00+02:00' } as TimeRangeSelection);
+      render(source(PREVIOUS_PERIOD));
+
+      expect(caption()?.textContent?.trim()).toBe('22.03.2026 - 29.03.2026');
+    });
+
     it('names a shift of several periods: "3 periods back"', () => {
       boardOn({ type: 'month', year: 2026, month: 9 });
       render(source({ by: 'period', count: -3 }));

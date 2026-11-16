@@ -80,6 +80,28 @@ export function shiftRange(range: TimeRange, shift: MeshBoardTimeShift, zone: Me
   return { from: shiftInstantByYears(range.from, shift.count, zone), to: shiftInstantByYears(range.to, shift.count, zone) };
 }
 
+/**
+ * A range of whole local days (a custom selection without time) moved back by its own number of days: the
+ * bounds stay local midnights in `zone`, also when the target window has a DST change. A `year` shift is left
+ * to {@link shiftRange}, which keeps the wall-clock time anyway.
+ */
+export function shiftWholeDayRange(range: TimeRange, shift: MeshBoardTimeShift, zone: MeshBoardTimeZoneMode): TimeRange {
+  if (shift.by === 'year') {
+    return shiftRange(range, shift, zone);
+  }
+  const days = Math.round((range.to.getTime() - range.from.getTime()) / 86_400_000);
+  return { from: shiftLocalMidnight(range.from, days * shift.count, zone), to: shiftLocalMidnight(range.to, days * shift.count, zone) };
+}
+
+function shiftLocalMidnight(instant: Date, days: number, zone: MeshBoardTimeZoneMode): Date {
+  const parts = getZonedDateParts(instant, zone);
+  if (!parts) {
+    return instant;
+  }
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
+  return TimeRangeUtils.getDayRange(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), undefined, undefined, zone).from;
+}
+
 /** The instant with the same wall-clock time `years` calendar years away in `zone` (29 February → 28 February). */
 function shiftInstantByYears(instant: Date, years: number, zone: MeshBoardTimeZoneMode): Date {
   const parts = getZonedDateParts(instant, zone);

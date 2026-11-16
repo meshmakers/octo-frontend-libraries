@@ -340,7 +340,7 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
 | Board range | `by: 'period'` | `by: 'year'` |
 |---|---|---|
 | year / quarter / month / day selection | the selection's calendar fields move by `count` periods, then `TimeRangeUtils.getTimeRangeFromSelection` resolves it in the board's zone (October 2026 → September 2026, Q1 2026 → Q4 2025, 2026-03-30 → 2026-03-29; hour limits of a day stay) | the year moves by `count`; a day 29 February becomes 28 February |
-| relative, custom, host period (AB#7582) | both bounds move back by the range's own length | both bounds move by calendar years at the same wall-clock time in the board's zone (`getZonedDateParts` + `TimeRangeUtils.getDayRange`); a 29 February bound lands on 28 February |
+| relative, custom, host period (AB#7582) | both bounds move back by the range's own length; a custom range of whole days (no `showTime`) by its number of days, so its bounds stay local midnights across a DST change (`shiftWholeDayRange`) | both bounds move by calendar years at the same wall-clock time in the board's zone (`getZonedDateParts` + `TimeRangeUtils.getDayRange`); a 29 February bound lands on 28 February |
 
 - A `count` that is not a negative integer, a missing or unknown `by` = no shift (`normalizeTimeShift`); the
   registrations drop it on load and never write it (`timeShiftConfig`), so boards without a shift encode byte-identically.
@@ -377,7 +377,8 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   `<shift>: <first> - <last> (<zone>)` with `Previous period`, `Same period last year`, `N periods back`,
   `N years back` and the IANA zone (`local` = the browser's, `utc` = `UTC`). It is a computed signal over the state
   service, so it follows a change of the board time filter. A chromeless tile keeps its header while a caption applies
-  (`hasTimeShiftCaption`). Banner-zone widgets and widget-group children show no caption (no title in view mode).
+  (`hasTimeShiftCaption`). Banner-zone widgets and widget-group children show no caption (no title in view mode); nor do
+  stats-grid / summary-card cells and process bindings with a `timeShift` (the caption reads only `widget.dataSource`).
 - Specs: `services/meshboard-state.service.time-shift.spec.ts` (AC windows in Europe/Vienna, DST, leap year,
   own-length rule, composition), `widgets/time-shift.widgets.spec.ts` (every stream-data consumer, query series of the
   multi-source bar and line chart, fixed bucket size, resolution-aware line chart, runtime query unchanged), `registrations/default-widget-registrations.time-shift.spec.ts` (round trip);

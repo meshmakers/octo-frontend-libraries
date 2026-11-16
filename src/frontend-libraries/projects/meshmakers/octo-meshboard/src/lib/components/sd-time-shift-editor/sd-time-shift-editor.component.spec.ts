@@ -142,6 +142,9 @@ describe('SdTimeShiftEditorComponent (AB#9095)', () => {
       expect(periodsInput()?.disabled).toBe(true);
       expect(el().querySelector('.field-hint')?.textContent?.trim())
         .toBe('The shift has no effect while the MeshBoard time filter is ignored.');
+      const describedBy = el().querySelector('fieldset')?.getAttribute('aria-describedby');
+      expect(describedBy && el().querySelector(`[id="${describedBy}"]`)?.textContent?.trim())
+        .toBe('The shift has no effect while the MeshBoard time filter is ignored.');
       expect(emitted).toEqual([]);
     });
 

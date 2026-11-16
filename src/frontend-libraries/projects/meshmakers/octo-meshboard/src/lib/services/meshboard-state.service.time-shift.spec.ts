@@ -209,6 +209,13 @@ describe('MeshBoardStateService — time shift (AB#9094)', () => {
       expect(shifted(PREVIOUS_PERIOD)).toEqual(window('2026-10-27T00:00:00+01:00', '2026-11-03T00:00:00+01:00'));
     });
 
+    it('custom range of whole days across the DST change moves back by its days and keeps local midnights', () => {
+      boardWith({ type: 'custom', customFrom: '2026-03-30T00:00:00+02:00', customTo: '2026-04-06T00:00:00+02:00' });
+
+      expect(service.resolveStreamDataTimeArgs()).toEqual(window('2026-03-30T00:00:00+02:00', '2026-04-07T00:00:00+02:00'));
+      expect(shifted(PREVIOUS_PERIOD)).toEqual(window('2026-03-22T00:00:00+01:00', '2026-03-30T00:00:00+02:00'));
+    });
+
     it('relative range "last 7 days" moves back by 7 days', () => {
       vi.useFakeTimers({ toFake: ['Date'] });
       vi.setSystemTime(at('2026-11-10T00:00:00+01:00'));
