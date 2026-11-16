@@ -95,6 +95,14 @@ describe('SdTimeShiftEditorComponent (AB#9095)', () => {
       expect(emitted.at(-1)).toEqual({ by: 'period', count: -10 });
     });
 
+    it('"Periods back" below 1 becomes 1', () => {
+      render('streamData', { by: 'period', count: -3 });
+
+      fixture.componentInstance.onPeriods(0);
+
+      expect(emitted.at(-1)).toEqual({ by: 'period', count: -1 });
+    });
+
     it('reopening shows the saved choice: "Same period last year", 2 periods back', () => {
       render('streamData', { by: 'year', count: -2 });
 

@@ -368,7 +368,7 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   (overlay of two periods: AB#7951); with a fixed bucket size the grid follows the primary query (above).
 - **Caption (AB#9095):** `mm-time-shift-caption` (`components/time-shift-caption/`) renders under the widget title in
   the tile header of `MeshBoardViewComponent` (Grafana's panel-header time-shift hint), so it stays visible while the
-  widget loads or shows its empty state. `resolveTimeShiftCaption(dataSource, state)` returns `null` (nothing rendered,
+  widget loads or shows its empty state. `resolveTimeShiftCaption(widget, state)` returns `null` (nothing rendered,
   the header looks as before) without a persistent query, for a runtime query, with `ignoreTimeFilter`, for a heatmap with
   its own `timeWindow`, without a valid shift or without an active time filter. A heatmap's own time window, like
   ignoreTimeFilter, takes precedence over the board filter and the shift. Texts from `utils/time-shift-caption.ts`: month `September 2026` (English month
@@ -383,7 +383,10 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   multi-source bar and line chart, fixed bucket size, resolution-aware line chart, runtime query unchanged), `registrations/default-widget-registrations.time-shift.spec.ts` (round trip);
   AB#9095: `widgets/time-shift.config-dialogs.spec.ts` (set, clear, ignore, runtime query through the five real dialogs
   and registrations), `components/sd-time-shift-editor/sd-time-shift-editor.component.spec.ts` (rendered control),
-  `components/time-shift-caption/time-shift-caption.component.spec.ts` (caption texts per period type, tooltip, filter change).
+  `components/time-shift-caption/time-shift-caption.component.spec.ts` (caption texts per period type, tooltip, filter change,
+  heatmap with own window), `widgets/kpi-widget/kpi-config-dialog.time-shift-render.spec.ts` (control in the rendered dialog,
+  disabled with the time filter ignored), `containers/meshboard-view/meshboard-view.time-shift-caption.spec.ts` (caption in
+  the rendered tile header, chromeless tile).
 
 #### Asset-scope binding (`entitySelectorId`)
 
