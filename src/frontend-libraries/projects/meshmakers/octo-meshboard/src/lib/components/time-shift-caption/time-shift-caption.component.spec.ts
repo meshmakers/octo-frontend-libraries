@@ -153,6 +153,23 @@ describe('TimeShiftCaptionComponent (AB#9095)', () => {
       expect(caption()?.getAttribute('title')).toBe('Previous period: 09.11.2026 12:00 - 10.11.2026 (Europe/Vienna)');
     });
 
+    it('host period whose shifted start is a local midnight: the start stays a date, the end shows its time', () => {
+      boardOn({ type: 'month', year: 2026, month: 10 });
+      state.setHostTimeRange({ status: 'valid', from: new Date('2026-11-10T12:00:00+01:00'), to: new Date('2026-11-11T00:00:00+01:00') });
+      render(source(PREVIOUS_PERIOD));
+
+      expect(caption()?.getAttribute('title')).toBe('Previous period: 10.11.2026 - 10.11.2026 12:00 (Europe/Vienna)');
+    });
+
+    it('board zone UTC: a bound 30 seconds after midnight is not a midnight and shows its time', () => {
+      state.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+      boardOn({ type: 'month', year: 2026, month: 10 });
+      state.setHostTimeRange({ status: 'valid', from: new Date('2026-11-11T00:00:30Z'), to: new Date('2026-11-12T00:00:30Z') });
+      render(source(PREVIOUS_PERIOD));
+
+      expect(caption()?.getAttribute('title')).toBe('Previous period: 10.11.2026 00:00 - 11.11.2026 00:00 (UTC)');
+    });
+
     it('names a shift of several periods: "3 periods back"', () => {
       boardOn({ type: 'month', year: 2026, month: 9 });
       render(source({ by: 'period', count: -3 }));
