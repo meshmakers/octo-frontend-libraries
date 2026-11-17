@@ -219,6 +219,19 @@ describe('InAppHistoryService', () => {
     expect((location.getState() as Record<string, unknown>)['origin']).toBe('form');
   });
 
+  it('resolves false instead of rejecting when the fallback navigation fails', async () => {
+    const service = setUp();
+    await router.navigateByUrl('/form');
+    vi.spyOn(router, 'navigate').mockRejectedValue(new Error('chunk load failed'));
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const result = await service.back(['/list']);
+
+    expect(result).toBe(false);
+    expect(error).toHaveBeenCalledWith('Navigation to the fallback route failed:', 'chunk load failed');
+    expect(location.path()).toBe('/form');
+  });
+
   it('returns false when the fallback navigation is refused', async () => {
     TestBed.configureTestingModule({
       providers: [

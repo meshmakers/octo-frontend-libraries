@@ -321,6 +321,7 @@ export class MyFormComponent {
 - `back(fallback, extras?)` calls `location.back()` in that case; otherwise it navigates to `fallback` (absolute
   commands or a `UrlTree`) with `replaceUrl`, so the browser's back button does not return to the page that was left.
   The route's `UnsavedChangesGuard` runs in both cases, so a dirty form asks in the app, not with the browser prompt.
+  The promise never rejects: a failed fallback navigation is logged and resolves `false`, so handlers can drop it.
 - How it knows: the service writes a depth counter into `history.state` (`mmInAppHistoryDepth`) of every entry the
   router creates: 0 for the first entry of the app, +1 per pushed entry, unchanged for a replaced one. Browser
   Back/Forward and a reload restore the counter of their entry. The router's own navigation record cannot answer the

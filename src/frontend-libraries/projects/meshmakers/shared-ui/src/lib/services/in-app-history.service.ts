@@ -72,9 +72,13 @@ export class InAppHistoryService {
    * Goes back to the previous page of this app, or, when there is none, navigates to `fallback` and replaces the
    * current history entry. Route guards (e.g. the unsaved-changes guard) run in both cases.
    *
+   * The returned promise never rejects, so a button handler can drop it: a failed fallback navigation (e.g. a lazy
+   * chunk that no longer loads after a deploy) is logged and resolves `false`, and the user stays on the page.
+   *
    * @param fallback Absolute router commands or a URL tree used when the previous entry is not a page of this app.
    * @param extras Extras of the fallback navigation; `replaceUrl` is always set.
-   * @returns For the fallback, the result of the navigation; `true` when the browser was sent back.
+   * @returns For the fallback, the result of the navigation (`false` when refused or failed); `true` when the browser
+   * was sent back (that navigation runs after the promise resolved).
    */
   async back(fallback: readonly unknown[] | UrlTree, extras: NavigationExtras = {}): Promise<boolean> {
     if (this.canGoBack()) {
@@ -82,9 +86,14 @@ export class InAppHistoryService {
       return true;
     }
     const navigationExtras: NavigationExtras = { ...extras, replaceUrl: true };
-    return fallback instanceof UrlTree
-      ? this.router.navigateByUrl(fallback, navigationExtras)
-      : this.router.navigate([...fallback], navigationExtras);
+    try {
+      return await (fallback instanceof UrlTree
+        ? this.router.navigateByUrl(fallback, navigationExtras)
+        : this.router.navigate([...fallback], navigationExtras));
+    } catch (error) {
+      console.error('Navigation to the fallback route failed:', error instanceof Error ? error.message : error);
+      return false;
+    }
   }
 
   private onRouterEvent(event: RouterEvent): void {
