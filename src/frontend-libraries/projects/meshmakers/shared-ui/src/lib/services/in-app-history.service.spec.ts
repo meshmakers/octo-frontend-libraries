@@ -3,13 +3,13 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Location } from '@angular/common';
 import { provideLocationMocks, SpyLocation } from '@angular/common/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter, Router, Routes } from '@angular/router';
 import { IN_APP_HISTORY_DEPTH_STATE_KEY, InAppHistoryService, provideInAppHistory } from './in-app-history.service';
 
 @Component({ template: '', standalone: true })
 class PageComponent {}
 
-const routes = [
+const routes: Routes = [
   { path: 'list', component: PageComponent },
   { path: 'form', component: PageComponent },
   { path: 'other', component: PageComponent }
@@ -159,6 +159,47 @@ describe('InAppHistoryService', () => {
     expect((location.getState() as Record<string, unknown>)['origin']).toBe('list');
   });
 
+  it('counts a navigation the router replaces because the browser URL stays the same', async () => {
+    const service = setUp();
+    await router.navigateByUrl('/list');
+    await router.navigateByUrl('/form', { browserUrl: '/list' });
+
+    expect(location.path()).toBe('/list');
+    expect(service.canGoBack()).toBe(false);
+  });
+
+  it('takes the depth of the entry Back moved to when a guard redirects that navigation', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          ...routes,
+          { path: 'moved', canActivate: [() => TestBed.inject(Router).parseUrl('/other')], component: PageComponent }
+        ]),
+        provideLocationMocks(),
+        provideInAppHistory()
+      ]
+    });
+    router = TestBed.inject(Router);
+    location = TestBed.inject(Location) as SpyLocation;
+    router.setUpLocationChangeListener();
+    const service = TestBed.inject(InAppHistoryService);
+    await router.navigateByUrl('/list');
+    // An entry of the app that now redirects (e.g. a page that moved), two entries deep.
+    location.go('/moved', '', { navigationId: 99, [IN_APP_HISTORY_DEPTH_STATE_KEY]: 1 });
+    await router.navigateByUrl('/form');
+    await router.navigateByUrl('/other');
+    expect(depthOfCurrentEntry()).toBe(2);
+
+    location.back();
+    await settle();
+    location.back();
+    await settle();
+
+    expect(location.path()).toBe('/other');
+    expect(depthOfCurrentEntry()).toBe(1);
+    expect(service.canGoBack()).toBe(true);
+  });
+
   it('does not count a navigation that skips the location change', async () => {
     const service = setUp();
     await router.navigateByUrl('/list');
@@ -171,10 +212,11 @@ describe('InAppHistoryService', () => {
     const service = setUp();
     await router.navigateByUrl('/form');
 
-    await service.back(router.parseUrl('/list?tab=2'), { replaceUrl: false });
+    await service.back(router.parseUrl('/list?tab=2'), { replaceUrl: false, state: { origin: 'form' } });
 
     expect(location.path()).toBe('/list?tab=2');
     expect(location.urlChanges[location.urlChanges.length - 1]).toBe('replace: /list?tab=2');
+    expect((location.getState() as Record<string, unknown>)['origin']).toBe('form');
   });
 
   it('returns false when the fallback navigation is refused', async () => {
@@ -250,6 +292,17 @@ describe('InAppHistoryService', () => {
 
       expect(confirmLeave).toHaveBeenCalledOnce();
       expect(location.path()).toBe('/form');
+      // The browser stays on the entry it moved to (the first of the app), showing the form again: a second Back
+      // must fall back instead of leaving the app.
+      expect(service.canGoBack()).toBe(false);
+      expect(depthOfCurrentEntry()).toBe(0);
+      const back = vi.spyOn(location, 'back');
+      confirmLeave.mockReturnValue(true);
+
+      await service.back(['/other']);
+
+      expect(back).not.toHaveBeenCalled();
+      expect(location.path()).toBe('/other');
     });
   });
 });

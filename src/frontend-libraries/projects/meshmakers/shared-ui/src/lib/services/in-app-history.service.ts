@@ -1,6 +1,17 @@
 import { DestroyRef, EnvironmentProviders, inject, Injectable, provideEnvironmentInitializer } from '@angular/core';
 import { Location } from '@angular/common';
-import { NavigationEnd, NavigationExtras, Router, UrlTree } from '@angular/router';
+import {
+  Event as RouterEvent,
+  NavigationCancel,
+  NavigationCancellationCode,
+  NavigationEnd,
+  NavigationError,
+  NavigationExtras,
+  NavigationSkipped,
+  NavigationStart,
+  Router,
+  UrlTree
+} from '@angular/router';
 
 /**
  * Key of the history state entry that holds how many entries of this app lie before the current one.
@@ -9,8 +20,8 @@ import { NavigationEnd, NavigationExtras, Router, UrlTree } from '@angular/route
 export const IN_APP_HISTORY_DEPTH_STATE_KEY = 'mmInAppHistoryDepth';
 
 /**
- * Knows whether the previous browser history entry belongs to this app, so "Back" and "Cancel" buttons never
- * leave the app.
+ * Knows whether the previous browser history entry belongs to this app, so "Back" and "Cancel" buttons stay in the
+ * app.
  *
  * `location.back()` alone leaves the app when the page was opened directly (a link, a new tab, a bookmark or the
  * return from the login page): the previous entry is then a foreign page or none at all, and a form with unsaved
@@ -23,9 +34,14 @@ export const IN_APP_HISTORY_DEPTH_STATE_KEY = 'mmInAppHistoryDepth';
  * otherwise navigates to the fallback route with `replaceUrl`, so the browser's back button does not return to the
  * page that was left.
  *
+ * Where the service cannot be sure, it counts low, so {@link back} falls back to the route rather than leave the app:
+ * an entry without a counter (created before the service ran, or by code outside the router) counts as the first
+ * one, and a navigation that started with browser Back/Forward (also when a guard cancels or redirects it) takes the
+ * counter of the entry the browser moved to.
+ *
  * The service must run from the first navigation on: it is started by `provideMmSharedUi()` (or
- * {@link provideInAppHistory} for apps without it). Started later, it counts from the entry it sees first, which
- * only makes {@link back} fall back to the route more often, never leave the app.
+ * {@link provideInAppHistory} for apps without it). It supports the router's default history handling
+ * (`HistoryStateManager`), not the experimental Navigation API integration; there it only falls back more often.
  */
 @Injectable({ providedIn: 'root' })
 export class InAppHistoryService {
@@ -34,18 +50,20 @@ export class InAppHistoryService {
 
   /** Depth of the current history entry; `undefined` until the first navigation was seen. */
   private depth: number | undefined;
-  private lastUrl: string | undefined;
+  /** Browser path of the current entry when its depth was last set (the router replaces an entry for the same path). */
+  private lastPath: string | undefined;
+  /**
+   * Depth of the entry browser Back/Forward moved to, from its `NavigationStart` until the navigation (or the redirect
+   * that continues it) ends; `undefined` outside such a navigation.
+   */
+  private popstateTargetDepth: number | undefined;
 
   constructor() {
-    const subscription = this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        this.onNavigationEnd(event);
-      }
-    });
+    const subscription = this.router.events.subscribe(event => this.onRouterEvent(event));
     inject(DestroyRef).onDestroy(() => subscription.unsubscribe());
   }
 
-  /** True when the previous browser history entry is a page of this app. */
+  /** True when the previous browser history entry is a page of this app, as far as the service can tell. */
   canGoBack(): boolean {
     return (this.depth ?? 0) > 0;
   }
@@ -69,27 +87,69 @@ export class InAppHistoryService {
       : this.router.navigate([...fallback], navigationExtras);
   }
 
-  private onNavigationEnd(event: NavigationEnd): void {
+  private onRouterEvent(event: RouterEvent): void {
+    if (event instanceof NavigationStart) {
+      if (event.navigationTrigger === 'popstate') {
+        this.popstateTargetDepth = InAppHistoryService.depthOf(event.restoredState) ?? 0;
+      }
+    } else if (event instanceof NavigationEnd) {
+      this.onNavigationEnd();
+      this.popstateTargetDepth = undefined;
+    } else if (event instanceof NavigationCancel) {
+      if (event.code === NavigationCancellationCode.Redirect
+        || event.code === NavigationCancellationCode.SupersededByNewNavigation) {
+        // Another navigation continues this one; it decides the depth.
+        return;
+      }
+      this.onNavigationAborted();
+    } else if (event instanceof NavigationError) {
+      this.onNavigationAborted();
+    } else if (event instanceof NavigationSkipped) {
+      this.popstateTargetDepth = undefined;
+    }
+  }
+
+  private onNavigationEnd(): void {
     const navigation = this.router.lastSuccessfulNavigation();
     if (navigation?.extras.skipLocationChange) {
       return;
     }
 
     const stored = this.storedDepth();
+    const path = this.location.path();
     let depth: number;
-    if (this.depth === undefined || !navigation?.previousNavigation || navigation.trigger === 'popstate') {
-      // First page of this document, a reload, or browser Back/Forward: the entry carries its own depth. An entry
-      // without one is the first of the app (or was created before this service ran).
+    if (this.popstateTargetDepth !== undefined) {
+      // Browser Back/Forward, also when a guard redirected it: the browser is on the entry it moved to.
+      depth = stored ?? this.popstateTargetDepth;
+    } else if (this.depth === undefined || !navigation?.previousNavigation) {
+      // First page of this document or a reload: the entry carries its own depth, or it is the first of the app.
       depth = stored ?? 0;
-    } else if (navigation.extras.replaceUrl || event.urlAfterRedirects === this.lastUrl) {
-      // The router replaced the current entry (it also does so for a navigation to the same URL).
+    } else if (navigation.extras.replaceUrl || path === this.lastPath) {
+      // The router replaced the current entry (it also does so when the browser path stays the same).
       depth = this.depth;
     } else {
       depth = this.depth + 1;
     }
+    this.setDepth(depth, stored);
+  }
 
+  /**
+   * A navigation was refused (a guard said no) or failed. The router then rewrites the current entry without the
+   * counter; after browser Back/Forward the browser also stays on the entry it moved to.
+   */
+  private onNavigationAborted(): void {
+    const target = this.popstateTargetDepth;
+    this.popstateTargetDepth = undefined;
+    const depth = target ?? this.depth;
+    if (depth === undefined) {
+      return;
+    }
+    this.setDepth(depth, this.storedDepth());
+  }
+
+  private setDepth(depth: number, stored: number | undefined): void {
     this.depth = depth;
-    this.lastUrl = event.urlAfterRedirects;
+    this.lastPath = this.location.path();
     if (stored !== depth) {
       const state = this.currentState();
       this.location.replaceState(this.location.path(true), '', { ...state, [IN_APP_HISTORY_DEPTH_STATE_KEY]: depth });
@@ -102,7 +162,14 @@ export class InAppHistoryService {
   }
 
   private storedDepth(): number | undefined {
-    const value = this.currentState()[IN_APP_HISTORY_DEPTH_STATE_KEY];
+    return InAppHistoryService.depthOf(this.currentState());
+  }
+
+  private static depthOf(state: unknown): number | undefined {
+    if (state === null || typeof state !== 'object') {
+      return undefined;
+    }
+    const value = (state as Record<string, unknown>)[IN_APP_HISTORY_DEPTH_STATE_KEY];
     return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : undefined;
   }
 }
