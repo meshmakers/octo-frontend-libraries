@@ -309,6 +309,7 @@ Two-level protection against accidental data loss:
 | `UnsavedChangesDirective` | Browser back/refresh/close (beforeunload) |
 | `UnsavedChangesGuard` | In-app navigation (Angular Router canDeactivate) |
 | `HasUnsavedChanges` | Interface for components to implement |
+| `InAppHistoryService` | Back/Cancel leaving the app on a directly opened page (`back(fallback)`) |
 
 See [Unsaved Changes Guard Documentation](docs/unsaved-changes-guard.md) for implementation guide.
 

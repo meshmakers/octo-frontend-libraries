@@ -95,6 +95,7 @@ Services registered via `provideMmSharedUi()`:
 - `EntitySelectDialogService`
 - `SaveAsDialogService`
 - `ImportStrategyDialogService`
+- `InAppHistoryService` (started eagerly through `provideInAppHistory()`, see below)
 
 ### Data Source Pattern
 
@@ -131,6 +132,11 @@ export class MyComponent implements HasUnsavedChanges {
   async saveChanges(): Promise<boolean> { /* optional save */ }
 }
 ```
+
+Back and Cancel buttons use `InAppHistoryService.back(fallback)`, never `location.back()`: the service keeps a depth
+counter in `history.state` (`mmInAppHistoryDepth`) and goes back only to a page of the app, otherwise to `fallback` with
+`replaceUrl`. On a directly opened page `location.back()` left the app and a dirty form raised the browser's
+"Leave site?" prompt. Details: [docs/unsaved-changes-guard.md](docs/unsaved-changes-guard.md).
 
 ### ListViewComponent Column Types
 

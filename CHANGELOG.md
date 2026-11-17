@@ -37,6 +37,20 @@ starts a new empty "Unreleased" section.
   `timeShift` when their dialog is saved.
 - API (additive): `MeshBoardStateService.resolveShiftedPeriod(timeShift?)`.
 
+### shared-ui: Back and Cancel stay inside the app on a directly opened page
+
+- New (additive): `InAppHistoryService` (`services/in-app-history.service.ts`) with `canGoBack()` and
+  `back(fallback, extras?)`. It writes a depth counter into the state of every history entry the router creates
+  (`mmInAppHistoryDepth`: 0 for the first entry of the app, +1 per pushed entry, unchanged for a replaced one; restored
+  by browser Back/Forward and a reload). `back()` calls `location.back()` only when the previous entry is a page of the
+  app; otherwise it navigates to the fallback route with `replaceUrl`. Use it instead of `location.back()` for "Back"
+  and "Cancel" buttons: on a page opened directly (link, new tab, bookmark, login return) `location.back()` left the app,
+  and a dirty `mm-base-form` raised the browser's "Leave site?" prompt; with the fallback the route's
+  `UnsavedChangesGuard` asks in the app instead.
+- `provideMmSharedUi()` starts the service with the app (`provideInAppHistory()`, also exported for apps without
+  `provideMmSharedUi()`), so it sees the first navigation.
+
+
 ### octo-services / shared-ui: operations of a child tenant (AB#8985)
 
 - New (additive): `CkMethodOperationService.getOperation(operationId, { tenantId? })`, `listOperations({ tenantId?, … })`

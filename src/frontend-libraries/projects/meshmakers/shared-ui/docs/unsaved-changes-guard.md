@@ -292,6 +292,45 @@ export const routes: Routes = [
 
 ---
 
+## Leaving the Page: Back and Cancel Stay in the App
+
+A "Back" or "Cancel" button must not call `location.back()` directly. When the page was opened directly - a link, a
+new tab, a bookmark, the return from the login page - the previous browser entry is a foreign page (or there is none):
+`location.back()` then leaves the app, and a dirty form raises the browser's "Leave site?" prompt of
+`UnsavedChangesDirective`.
+
+Use `InAppHistoryService.back(fallback)`:
+
+```typescript
+import { InAppHistoryService } from '@meshmakers/shared-ui';
+
+export class MyFormComponent {
+  private readonly history = inject(InAppHistoryService);
+
+  protected onCancel(): Promise<boolean> {
+    // Back to the previous page of the app, else to the list (replaceUrl).
+    return this.history.back(['/', tenantId, 'items']);
+  }
+}
+```
+
+- `canGoBack()` is true when the previous browser entry is a page of this app.
+- `back(fallback, extras?)` calls `location.back()` in that case; otherwise it navigates to `fallback` (absolute
+  commands or a `UrlTree`) with `replaceUrl`, so the browser's back button does not return to the page that was left.
+  The route's `UnsavedChangesGuard` runs in both cases, so a dirty form asks in the app, not with the browser prompt.
+- How it knows: the service writes a depth counter into `history.state` (`mmInAppHistoryDepth`) of every entry the
+  router creates: 0 for the first entry of the app, +1 per pushed entry, unchanged for a replaced one. Browser
+  Back/Forward and a reload restore the counter of their entry. The router's own navigation record cannot answer the
+  question, because it starts empty after every page load while the browser keeps the app's earlier entries.
+- `provideMmSharedUi()` starts the service with the app (`provideInAppHistory()` for apps without it). Started later,
+  it only falls back to the route more often; it never leaves the app.
+
+**After a successful save** mark the form pristine (`form.markAsPristine()` or `hasChanges: false`) **before** you
+navigate away, and navigate in the app (`router.navigate(...)`) to the list or the saved item. `mm-base-form` only
+emits `saveForm`; it does not know whether the save succeeded, so the host component owns both steps.
+
+---
+
 ## Checklist
 
 ### Minimal Protection (browser events only):
@@ -304,6 +343,8 @@ export const routes: Routes = [
 - [ ] All items from above
 - [ ] Route has `canDeactivate: [UnsavedChangesGuard]`
 - [ ] Optional: `saveChanges(): Promise<boolean>` implemented
+- [ ] Back/Cancel use `InAppHistoryService.back(fallback)`, never `location.back()`
+- [ ] A successful save marks the form pristine before it navigates
 
 ---
 
