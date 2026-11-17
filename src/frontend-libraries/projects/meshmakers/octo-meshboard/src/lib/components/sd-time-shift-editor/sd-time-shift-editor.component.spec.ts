@@ -64,7 +64,7 @@ describe('SdTimeShiftEditorComponent (AB#9095)', () => {
       expect(radio('None').checked).toBe(true);
       expect(periodsInput()).toBeNull();
       expect(el().querySelector('.field-hint')?.textContent?.trim())
-        .toBe('Shows the selected board period moved back. Custom ranges move by their own length.');
+        .toBe('Shows the selected board period moved back. With Previous period a custom range of whole days moves by calendar days, a relative range or a custom range with a time of day by its exact length.');
     });
 
     it('"Previous period" emits { by: period, count: -1 } and shows "Periods back" 1', () => {

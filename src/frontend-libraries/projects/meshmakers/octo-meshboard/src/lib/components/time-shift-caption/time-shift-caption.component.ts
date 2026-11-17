@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import type { AnyWidgetConfig, HeatmapWidgetConfig, PersistentQueryDataSource } from '../../models/meshboard.models';
+import type { AnyWidgetConfig, HeatmapWidgetConfig, MeshBoardTimeShift, PersistentQueryDataSource } from '../../models/meshboard.models';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { normalizeTimeShift } from '../../utils/time-shift';
 import { isValidHeatmapTimeWindow } from '../../widgets/heatmap-widget/heatmap-buckets';
@@ -11,6 +11,19 @@ import { TimeShiftCaption, timeShiftCaption } from '../../utils/time-shift-capti
  * time window, no valid shift or no active time filter.
  */
 export function resolveTimeShiftCaption(widget: AnyWidgetConfig | undefined, stateService: MeshBoardStateService): TimeShiftCaption | null {
+  const shifted = resolveCaptionedShift(widget, stateService);
+  return shifted ? timeShiftCaption(shifted.shift, shifted.period, stateService.timeZoneMode()) : null;
+}
+
+/** True when {@link resolveTimeShiftCaption} renders a caption, without formatting it. */
+export function hasTimeShiftCaption(widget: AnyWidgetConfig | undefined, stateService: MeshBoardStateService): boolean {
+  return resolveCaptionedShift(widget, stateService) !== null;
+}
+
+function resolveCaptionedShift(
+  widget: AnyWidgetConfig | undefined,
+  stateService: MeshBoardStateService
+): { shift: MeshBoardTimeShift; period: NonNullable<ReturnType<MeshBoardStateService['resolveShiftedPeriod']>> } | null {
   if (widget?.dataSource?.type !== 'persistentQuery') {
     return null;
   }
@@ -23,7 +36,7 @@ export function resolveTimeShiftCaption(widget: AnyWidgetConfig | undefined, sta
     return null;
   }
   const period = stateService.resolveShiftedPeriod(shift);
-  return period ? timeShiftCaption(shift, period, stateService.timeZoneMode()) : null;
+  return period ? { shift, period } : null;
 }
 
 /**
