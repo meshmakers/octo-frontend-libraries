@@ -292,6 +292,58 @@ export const routes: Routes = [
 
 ---
 
+## Leaving the Page: Back and Cancel Stay in the App
+
+A "Back" or "Cancel" button must not call `location.back()` directly. When the page was opened directly - a link, a
+new tab, a bookmark, the return from the login page - the previous browser entry is a foreign page (or there is none):
+`location.back()` then leaves the app, and a dirty form raises the browser's "Leave site?" prompt of
+`UnsavedChangesDirective`.
+
+Use `InAppHistoryService.back(fallback)`:
+
+```typescript
+import { InAppHistoryService } from '@meshmakers/shared-ui';
+
+export class MyFormComponent {
+  private readonly history = inject(InAppHistoryService);
+  private readonly route = inject(ActivatedRoute);
+
+  protected onCancel(): Promise<boolean> {
+    // Back to the previous page of the app, else to the list (replaceUrl).
+    const tenantId = this.route.snapshot.paramMap.get('tenantId');
+    return this.history.back(['/', tenantId, 'items']);
+  }
+}
+```
+
+- `canGoBack()` is true when the previous browser entry is a page of this app, as far as the service can tell (see
+  below).
+- `back(fallback, extras?)` calls `location.back()` in that case; otherwise it navigates to `fallback` (absolute
+  commands or a `UrlTree`) with `replaceUrl`, so the browser's back button does not return to the page that was left.
+  The route's `UnsavedChangesGuard` runs in both cases, so a dirty form asks in the app, not with the browser prompt.
+  The promise never rejects: a failed fallback navigation is logged and resolves `false`, so handlers can drop it.
+- How it knows: the service writes a depth counter into `history.state` (`mmInAppHistoryDepth`) of every entry the
+  router creates: 0 for the first entry of the app, +1 per pushed entry, unchanged for a replaced one. Browser
+  Back/Forward and a reload restore the counter of their entry. The router's own navigation record cannot answer the
+  question, because it starts empty after every page load while the browser keeps the app's earlier entries.
+- Where it cannot be sure it counts low, so it falls back rather than leave the app: an entry without a counter counts
+  as the first one; browser Back/Forward takes the counter of the entry the browser moved to, also when a guard
+  refuses that navigation (the browser stays on that entry), redirects it, skips it (same URL) or a newer navigation
+  supersedes it (the newer one counts from that entry); a navigation the router replaces because the browser path
+  stays the same (`browserUrl`) keeps the counter; `back()` counts down at once, so a second click before the router
+  handled the first cannot step past the first entry of the app.
+- No `instanceof` against Angular classes: router events are told apart by `type`, the fallback by `Array.isArray`,
+  so a host with a second copy of the router still works.
+- `provideMmSharedUi()` starts the service with the app (`provideInAppHistory()` for apps without it). It supports the
+  router's default history handling, not the experimental Navigation API integration (there it falls back more
+  often).
+
+**After a successful save** mark the form pristine (`form.markAsPristine()` or `hasChanges: false`) **before** you
+navigate away, and navigate in the app (`router.navigate(...)`) to the list or the saved item. `mm-base-form` only
+emits `saveForm`; it does not know whether the save succeeded, so the host component owns both steps.
+
+---
+
 ## Checklist
 
 ### Minimal Protection (browser events only):
@@ -304,6 +356,8 @@ export const routes: Routes = [
 - [ ] All items from above
 - [ ] Route has `canDeactivate: [UnsavedChangesGuard]`
 - [ ] Optional: `saveChanges(): Promise<boolean>` implemented
+- [ ] Back/Cancel use `InAppHistoryService.back(fallback)`, never `location.back()`
+- [ ] A successful save marks the form pristine before it navigates
 
 ---
 

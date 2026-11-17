@@ -74,6 +74,7 @@ export * from './lib/copyable-text/copyable-text.component';
 export * from './lib/import-strategy-dialog/import-strategy-dialog.component';
 export * from './lib/import-strategy-dialog/import-strategy-dialog.service';
 export * from './lib/services/window-state.service';
+export * from './lib/services/in-app-history.service';
 export * from './lib/actions';
 export * from './lib/octobot/octobot.component';
 export * from './lib/empty-state/empty-state.component';
@@ -82,6 +83,7 @@ export * from './lib/i18n';
 import { EntitySelectDialogService } from './lib/entity-select-dialog/entity-select-dialog.service';
 import { SaveAsDialogService } from './lib/save-as-dialog';
 import { ImportStrategyDialogService } from './lib/import-strategy-dialog/import-strategy-dialog.service';
+import { provideInAppHistory } from './lib/services/in-app-history.service';
 
 export function provideMmSharedUi(): EnvironmentProviders {
   return makeEnvironmentProviders([
@@ -96,6 +98,7 @@ export function provideMmSharedUi(): EnvironmentProviders {
     EntitySelectDialogService,
     SaveAsDialogService,
     ImportStrategyDialogService,
+    provideInAppHistory(),
   ]);
 }
 
