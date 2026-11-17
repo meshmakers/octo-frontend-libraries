@@ -328,8 +328,11 @@ export class MyFormComponent {
   question, because it starts empty after every page load while the browser keeps the app's earlier entries.
 - Where it cannot be sure it counts low, so it falls back rather than leave the app: an entry without a counter counts
   as the first one; browser Back/Forward takes the counter of the entry the browser moved to, also when a guard
-  refuses that navigation (the browser stays on that entry) or redirects it; a navigation the router replaces because
-  the browser path stays the same (`browserUrl`) keeps the counter.
+  refuses that navigation (the browser stays on that entry), redirects it or skips it (same URL); a navigation the
+  router replaces because the browser path stays the same (`browserUrl`) keeps the counter; `back()` counts down at
+  once, so a second click before the router handled the first cannot step past the first entry of the app.
+- No `instanceof` against Angular classes: router events are told apart by `type`, the fallback by `Array.isArray`,
+  so a host with a second copy of the router still works.
 - `provideMmSharedUi()` starts the service with the app (`provideInAppHistory()` for apps without it). It supports the
   router's default history handling, not the experimental Navigation API integration (there it falls back more
   often).

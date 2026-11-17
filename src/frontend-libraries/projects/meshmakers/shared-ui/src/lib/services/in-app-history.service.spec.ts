@@ -82,6 +82,18 @@ describe('InAppHistoryService', () => {
     expect(service.canGoBack()).toBe(false);
   });
 
+  it('does not step past the first entry of the app when Back is clicked twice before the router handled the first', async () => {
+    const service = setUp();
+    await router.navigateByUrl('/list');
+    await router.navigateByUrl('/form');
+    const back = vi.spyOn(location, 'back');
+
+    await service.back(['/other']);
+    await service.back(['/other']);
+
+    expect(back).toHaveBeenCalledOnce();
+  });
+
   it('keeps the depth for a replaceUrl navigation', async () => {
     const service = setUp();
     await router.navigateByUrl('/list');
@@ -316,6 +328,30 @@ describe('InAppHistoryService', () => {
 
       expect(back).not.toHaveBeenCalled();
       expect(location.path()).toBe('/other');
+    });
+    it('takes the depth of the entry a skipped Back moved to (same URL after a refused Back)', async () => {
+      const service = setUpGuarded();
+      await router.navigateByUrl('/form');
+      await router.navigateByUrl('/list');
+      await router.navigateByUrl('/form');
+      confirmLeave.mockReturnValue(false);
+
+      // Refused: the browser stays on the /list entry (depth 1), showing /form again.
+      location.back();
+      await settle();
+      expect(location.path()).toBe('/form');
+      expect(service.canGoBack()).toBe(true);
+
+      // To the first entry, also /form: the router skips the same-URL navigation, the browser is on depth 0 now.
+      location.back();
+      await settle();
+
+      expect(service.canGoBack()).toBe(false);
+      const back = vi.spyOn(location, 'back');
+      confirmLeave.mockReturnValue(true);
+      await service.back(['/list']);
+      expect(back).not.toHaveBeenCalled();
+      expect(location.path()).toBe('/list');
     });
   });
 });

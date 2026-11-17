@@ -2,13 +2,9 @@ import { DestroyRef, EnvironmentProviders, inject, Injectable, provideEnvironmen
 import { Location } from '@angular/common';
 import {
   Event as RouterEvent,
-  NavigationCancel,
+  EventType,
   NavigationCancellationCode,
-  NavigationEnd,
-  NavigationError,
   NavigationExtras,
-  NavigationSkipped,
-  NavigationStart,
   Router,
   UrlTree
 } from '@angular/router';
@@ -81,40 +77,51 @@ export class InAppHistoryService {
    * was sent back (that navigation runs after the promise resolved).
    */
   async back(fallback: readonly unknown[] | UrlTree, extras: NavigationExtras = {}): Promise<boolean> {
-    if (this.canGoBack()) {
+    if (this.depth !== undefined && this.depth > 0) {
+      // Counted down at once, so a second click before the router handled this Back cannot step past the first entry
+      // of the app; the navigation's end (or its refusal) sets the depth of the entry the browser reached.
+      this.depth -= 1;
       this.location.back();
       return true;
     }
     const navigationExtras: NavigationExtras = { ...extras, replaceUrl: true };
     try {
-      return await (fallback instanceof UrlTree
-        ? this.router.navigateByUrl(fallback, navigationExtras)
-        : this.router.navigate([...fallback], navigationExtras));
+      // Structural check, no `instanceof UrlTree`: a host may load another copy of the Angular router.
+      return await (Array.isArray(fallback)
+        ? this.router.navigate([...fallback], navigationExtras)
+        : this.router.navigateByUrl(fallback as UrlTree, navigationExtras));
     } catch (error) {
       console.error('Navigation to the fallback route failed:', error instanceof Error ? error.message : error);
       return false;
     }
   }
 
+  /** Router events are told apart by their `type` discriminant, not by `instanceof` (another router copy). */
   private onRouterEvent(event: RouterEvent): void {
-    if (event instanceof NavigationStart) {
-      if (event.navigationTrigger === 'popstate') {
-        this.popstateTargetDepth = InAppHistoryService.depthOf(event.restoredState) ?? 0;
-      }
-    } else if (event instanceof NavigationEnd) {
-      this.onNavigationEnd();
-      this.popstateTargetDepth = undefined;
-    } else if (event instanceof NavigationCancel) {
-      if (event.code === NavigationCancellationCode.Redirect
-        || event.code === NavigationCancellationCode.SupersededByNewNavigation) {
-        // Another navigation continues this one; it decides the depth.
-        return;
-      }
-      this.onNavigationAborted();
-    } else if (event instanceof NavigationError) {
-      this.onNavigationAborted();
-    } else if (event instanceof NavigationSkipped) {
-      this.popstateTargetDepth = undefined;
+    switch (event.type) {
+      case EventType.NavigationStart:
+        if (event.navigationTrigger === 'popstate') {
+          this.popstateTargetDepth = InAppHistoryService.depthOf(event.restoredState) ?? 0;
+        }
+        break;
+      case EventType.NavigationEnd:
+        this.onNavigationEnd();
+        this.popstateTargetDepth = undefined;
+        break;
+      case EventType.NavigationCancel:
+        if (event.code === NavigationCancellationCode.Redirect
+          || event.code === NavigationCancellationCode.SupersededByNewNavigation) {
+          // Another navigation continues this one; it decides the depth.
+          break;
+        }
+        this.onNavigationAborted();
+        break;
+      case EventType.NavigationError:
+        this.onNavigationAborted();
+        break;
+      case EventType.NavigationSkipped:
+        this.onNavigationSkipped();
+        break;
     }
   }
 
@@ -154,6 +161,21 @@ export class InAppHistoryService {
       return;
     }
     this.setDepth(depth, this.storedDepth());
+  }
+
+  /**
+   * A navigation to the current URL was skipped. After browser Back/Forward to an entry with the same URL the browser is
+   * on that entry now, and the router skips before any `NavigationStart`: the entry's own counter is the depth.
+   */
+  private onNavigationSkipped(): void {
+    const target = this.popstateTargetDepth;
+    this.popstateTargetDepth = undefined;
+    const stored = this.storedDepth();
+    const depth = stored ?? target ?? this.depth;
+    if (depth === undefined) {
+      return;
+    }
+    this.setDepth(depth, stored);
   }
 
   private setDepth(depth: number, stored: number | undefined): void {
