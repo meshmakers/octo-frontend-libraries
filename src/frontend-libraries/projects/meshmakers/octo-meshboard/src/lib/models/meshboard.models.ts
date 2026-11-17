@@ -147,7 +147,8 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
  *   days moves back by its number of calendar days in the board's zone, also across a DST change; a
  *   relative range, a custom range with a time of day and a host-set range move back by their exact length.
  * - `by: 'year'`: calendar years in the board's time-zone mode (Q1 2026, -1 → Q1 2025); a
- *   29 February start lands on 28 February, a 29 February (exclusive) end on 1 March.
+ *   29 February start lands on 28 February, a 29 February (exclusive) end on 1 March (on 28 February
+ *   when the start is on that 29 February too).
  *
  * `count` is a negative integer (-1 = one period back); any other value means no shift.
  */

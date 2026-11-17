@@ -305,6 +305,13 @@ describe('MeshBoardStateService — time shift (AB#9094)', () => {
       expect(range).toEqual(window('2023-02-28T23:00:00+01:00', '2023-03-01T01:00:00+01:00'));
       expect((range.to.getTime() - range.from.getTime()) / HOUR).toBe(2);
     });
+
+    it('host period inside 29.02.2024 (12:00 - 13:00) with "year" stays one hour on 28.02.2023', () => {
+      boardWith({ type: 'month', year: 2024, month: 1 });
+      service.setHostTimeRange({ status: 'valid', from: at('2024-02-29T12:00:00+01:00'), to: at('2024-02-29T13:00:00+01:00') });
+
+      expect(shifted(LAST_YEAR)).toEqual(window('2023-02-28T12:00:00+01:00', '2023-02-28T13:00:00+01:00'));
+    });
   });
 
   describe('AC7 composition with ignoreTimeFilter and the host gate', () => {
