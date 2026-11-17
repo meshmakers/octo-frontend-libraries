@@ -313,6 +313,13 @@ describe('MeshBoardStateService — time shift (AB#9094)', () => {
       expect(shifted(LAST_YEAR)).toEqual(window('2023-10-27T02:30:00+02:00', '2023-10-27T03:15:00+02:00'));
     });
 
+    it('host period whose end has the start wall-clock time in the repeated DST hour (27.10.2024 02:30+02 - 02:30+01) with "year" is never empty: one hour from 27.10.2023 02:30', () => {
+      boardWith({ type: 'month', year: 2024, month: 9 });
+      service.setHostTimeRange({ status: 'valid', from: at('2024-10-27T02:30:00+02:00'), to: at('2024-10-27T02:30:00+01:00') });
+
+      expect(shifted(LAST_YEAR)).toEqual(window('2023-10-27T02:30:00+02:00', '2023-10-27T03:30:00+02:00'));
+    });
+
     it('host period inside 29.02.2024 (12:00 - 13:00) with "year" stays one hour on 28.02.2023', () => {
       boardWith({ type: 'month', year: 2024, month: 1 });
       service.setHostTimeRange({ status: 'valid', from: at('2024-02-29T12:00:00+01:00'), to: at('2024-02-29T13:00:00+01:00') });
