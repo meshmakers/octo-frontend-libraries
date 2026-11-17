@@ -28,7 +28,8 @@ starts a new empty "Unreleased" section.
   Previous period, Same period last year; "Periods back" 1-10), shown for stream-data queries only and disabled while
   "Ignore MeshBoard time filter" is checked (the shift is kept, not applied). A shifted widget shows the shifted period
   under its title ("September 2026", "Q4 2025", "2025", a date or "03.11.2026 - 09.11.2026") with a tooltip naming the
-  shift, the range and the zone. One shift per chart: the editor sets the primary query's shift.
+  shift, the exact range and the zone; a bound that is not a local midnight shows its time
+  ("Previous period: 14.11.2026 09:17 - 15.11.2026 09:17 (Europe/Vienna)"). One shift per chart: the editor sets the primary query's shift.
 - Gauge, heatmap, stats grid, summary card and process dialogs have no shift control and still drop a seeded
   `timeShift` when their dialog is saved.
 - API (additive): `MeshBoardStateService.resolveShiftedPeriod(timeShift?)`.

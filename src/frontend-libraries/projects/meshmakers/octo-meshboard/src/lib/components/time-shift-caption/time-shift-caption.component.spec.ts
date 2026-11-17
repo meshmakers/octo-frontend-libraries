@@ -117,6 +117,40 @@ describe('TimeShiftCaptionComponent (AB#9095)', () => {
       render(source(PREVIOUS_PERIOD));
 
       expect(caption()?.textContent?.trim()).toBe('22.03.2026 - 29.03.2026');
+      expect(caption()?.getAttribute('title')).toBe('Previous period: 22.03.2026 - 29.03.2026 (Europe/Vienna)');
+    });
+
+    it('relative "last 24 hours" at 09:17: the tooltip shows the exact range with its times, the caption dates only', () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      try {
+        vi.setSystemTime(new Date('2026-11-16T09:17:00+01:00'));
+        boardOn({ type: 'relative', relativeValue: 24, relativeUnit: 'hours' } as TimeRangeSelection);
+        render(source(PREVIOUS_PERIOD));
+
+        expect(caption()?.textContent?.trim()).toBe('14.11.2026 - 15.11.2026');
+        expect(caption()?.getAttribute('title')).toBe('Previous period: 14.11.2026 09:17 - 15.11.2026 09:17 (Europe/Vienna)');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('custom range with a time of day: the tooltip shows both times', () => {
+      state.updateTimeFilterConfig({
+        enabled: true,
+        selection: { type: 'custom', customFrom: '2026-11-10T08:30:00+01:00', customTo: '2026-11-10T17:45:00+01:00' } as TimeRangeSelection,
+        pickerConfig: { showTime: true }
+      });
+      render(source(PREVIOUS_PERIOD));
+
+      expect(caption()?.getAttribute('title')).toBe('Previous period: 09.11.2026 23:15 - 10.11.2026 08:30 (Europe/Vienna)');
+    });
+
+    it('host period whose shifted end is a local midnight: the end stays the last day, the start shows its time', () => {
+      boardOn({ type: 'month', year: 2026, month: 10 });
+      state.setHostTimeRange({ status: 'valid', from: new Date('2026-11-11T00:00:00+01:00'), to: new Date('2026-11-12T12:00:00+01:00') });
+      render(source(PREVIOUS_PERIOD));
+
+      expect(caption()?.getAttribute('title')).toBe('Previous period: 09.11.2026 12:00 - 10.11.2026 (Europe/Vienna)');
     });
 
     it('names a shift of several periods: "3 periods back"', () => {

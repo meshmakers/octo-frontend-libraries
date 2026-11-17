@@ -1076,7 +1076,9 @@ mix shifted and unshifted query series in one chart (overlaying two periods is n
 title (stats-grid / summary-card cells and process bindings with a `timeShift` show no caption), in the
 board's time zone: `September 2026` for a month, `Q4 2025` for a quarter, `2025` for a year, the date
 for a day and `03.11.2026 - 09.11.2026` for any other range. The tooltip names the shift and the exact
-range with the zone, e.g. `Previous period: 01.09.2026 - 30.09.2026 (Europe/Vienna)`. The caption
+range with the zone, e.g. `Previous period: 01.09.2026 - 30.09.2026 (Europe/Vienna)`; a bound that is
+not a local midnight (a relative range, a custom range with a time of day, a host period) shows its
+time, e.g. `Previous period: 14.11.2026 09:17 - 15.11.2026 09:17 (Europe/Vienna)`. The caption shows dates only. The caption
 follows the board time filter, stays visible while the widget loads or shows no data, and is cut with
 an ellipsis in a narrow tile. A heatmap's own time window, like ignoreTimeFilter, takes precedence
 over the board filter and the shift, so such a heatmap shows no caption. Widgets without a shift (or with the
