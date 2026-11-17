@@ -212,6 +212,39 @@ describe('InAppHistoryService', () => {
     expect(service.canGoBack()).toBe(true);
   });
 
+  it('counts from the entry Back moved to when a newer navigation supersedes that Back', async () => {
+    // While true, the form's guard never answers, so a navigation to the form stays pending.
+    let holdForm = false;
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes.map(route => route.path === 'form'
+          ? { ...route, canActivate: [() => holdForm ? new Promise<boolean>(() => undefined) : true] }
+          : route)),
+        provideLocationMocks(),
+        provideInAppHistory()
+      ]
+    });
+    router = TestBed.inject(Router);
+    location = TestBed.inject(Location) as SpyLocation;
+    router.setUpLocationChangeListener();
+    const service = TestBed.inject(InAppHistoryService);
+    await router.navigateByUrl('/list');
+    await router.navigateByUrl('/form');
+    await router.navigateByUrl('/other');
+    expect(depthOfCurrentEntry()).toBe(2);
+
+    // Back to the form entry (depth 1); its guard is still pending when the user opens the list.
+    holdForm = true;
+    location.back();
+    await new Promise(resolve => setTimeout(resolve));
+    await router.navigateByUrl('/list');
+
+    // The browser was on the form entry, so the list was pushed after it.
+    expect(location.path()).toBe('/list');
+    expect(depthOfCurrentEntry()).toBe(2);
+    expect(service.canGoBack()).toBe(true);
+  });
+
   it('does not count a navigation that skips the location change', async () => {
     const service = setUp();
     await router.navigateByUrl('/list');

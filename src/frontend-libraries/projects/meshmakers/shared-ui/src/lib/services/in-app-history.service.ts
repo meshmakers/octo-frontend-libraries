@@ -109,9 +109,12 @@ export class InAppHistoryService {
         this.popstateTargetDepth = undefined;
         break;
       case EventType.NavigationCancel:
-        if (event.code === NavigationCancellationCode.Redirect
-          || event.code === NavigationCancellationCode.SupersededByNewNavigation) {
-          // Another navigation continues this one; it decides the depth.
+        if (event.code === NavigationCancellationCode.Redirect) {
+          // The redirect continues this navigation and keeps its target depth.
+          break;
+        }
+        if (event.code === NavigationCancellationCode.SupersededByNewNavigation) {
+          this.onNavigationSuperseded();
           break;
         }
         this.onNavigationAborted();
@@ -161,6 +164,18 @@ export class InAppHistoryService {
       return;
     }
     this.setDepth(depth, this.storedDepth());
+  }
+
+  /**
+   * A newer navigation replaced this one. After browser Back/Forward the browser already sits on the entry it moved to,
+   * so that entry's depth is the base the newer navigation counts from.
+   */
+  private onNavigationSuperseded(): void {
+    const target = this.popstateTargetDepth;
+    this.popstateTargetDepth = undefined;
+    if (target !== undefined) {
+      this.setDepth(target, this.storedDepth());
+    }
   }
 
   /**
