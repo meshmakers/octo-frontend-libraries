@@ -15,8 +15,10 @@ starts a new empty "Unreleased" section.
 - New: optional `timeShift: { by: 'period' | 'year'; count: <negative integer> }` on a stream-data
   `PersistentQueryDataSource`, on a stats-grid / summary-card `persistentQuerySource` and on a process widget
   binding. `period` moves a year, quarter, month or day filter by whole calendar periods in the board's
-  time-zone mode (October 2026 → September 2026); relative, custom and host-set ranges move back by their own
-  length (Grafana's time shift). `year` moves by calendar years (Q1 2026 → Q1 2025, a 29 February bound lands on
+  time-zone mode (October 2026 → September 2026); a custom range of whole days moves back by its number of
+  calendar days in the board's zone, also across a DST change (30.03-06.04.2026 → 22.03-29.03.2026); relative
+  ranges, custom ranges with a time of day and host-set ranges move back by their exact length (Grafana's time
+  shift). `year` moves by calendar years (Q1 2026 → Q1 2025, a 29 February bound lands on
   28 February). Ignored with `ignoreTimeFilter` and for runtime queries; a resolution-aware line chart resolves
   its archive on the shifted window.
 - API (additive): `MeshBoardTimeShift`, `MeshBoardStateService.resolveShiftedTimeRange(timeShift?)` and a second

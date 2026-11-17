@@ -211,8 +211,10 @@ returns `undefined` and the saved query's intrinsic range wins. See AB#4236.
 Time shift (AB#9094): widgets pass the source's `timeShift` as the second argument,
 `resolveStreamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift)`. A year, quarter, month or day
 selection is shifted on its calendar fields and resolved in the board's time-zone mode (`period`:
-the previous period, `year`: the same period N years back); a relative, custom or host-set range
-moves back by its own length (`period`) or by calendar years (`year`). With `ignoreTimeFilter` the
+the previous period, `year`: the same period N years back). With `period` a custom range of whole
+days moves back by its number of calendar days in the board's zone, also across a DST change; a
+relative range, a custom range with a time of day and a host-set range move back by their exact
+length. With `year` every range moves by calendar years. With `ignoreTimeFilter` the
 shift is ignored; a resolution-aware chart passes the shifted window to `resolveSeriesQuery`.
 
 ## Transient queries (ad-hoc, not persisted)

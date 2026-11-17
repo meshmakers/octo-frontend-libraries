@@ -810,7 +810,8 @@ export class MeshBoardStateService {
    * The active time filter moved by a calendar time shift (AB#9094), see {@link MeshBoardTimeShift}.
    * Without a valid shift this is exactly {@link resolveCurrentTimeRange}. A year, quarter, month or
    * day selection is shifted on its calendar fields and resolved in the board's zone; a relative,
-   * custom or host-set range is shifted on its resolved bounds (`period`: by its own length).
+   * custom or host-set range is shifted on its resolved bounds (`period`: a whole-day custom range by its
+   * calendar days, any other by its exact length).
    */
   resolveShiftedTimeRange(timeShift?: MeshBoardTimeShift): TimeRange | null {
     const shift = normalizeTimeShift(timeShift);

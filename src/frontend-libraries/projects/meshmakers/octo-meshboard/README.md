@@ -1043,10 +1043,11 @@ last year (Grafana's per-panel "time shift", Power BI's `SAMEPERIODLASTYEAR` / `
 
 - `by: 'period'` moves by the board's selected period type: a year, quarter, month or day selection
   moves by whole calendar periods in the board's time-zone mode (October 2026 → September 2026, the
-  whole 30 days; Q1 2026 → Q4 2025; 2026-03-30 → 2026-03-29). A relative, custom or host-set range
-  (`timeRange`, AB#7582) is not a calendar period and moves back by its own length
-  (2026-11-03 – 2026-11-10 → 2026-10-27 – 2026-11-03). A custom range of whole days (no time of day)
-  moves by its number of days, so its bounds stay local midnights across a DST change.
+  whole 30 days; Q1 2026 → Q4 2025; 2026-03-30 → 2026-03-29). A custom range of whole days (no time
+  of day) moves back by its number of calendar days in the board's time-zone mode, also across a DST
+  change, so its bounds stay local midnights (30.03 – 06.04.2026 → 22.03 – 29.03.2026). A relative
+  range, a custom range with a time of day and a host-set range (`timeRange`, AB#7582) move back by
+  their exact length (2026-11-03 – 2026-11-10 → 2026-10-27 – 2026-11-03).
 - `by: 'year'` moves by calendar years in the board's time-zone mode (Q1 2026 → Q1 2025, February
   2025 → the 29 days of February 2024); bounds of a relative, custom or host-set range keep their
   wall-clock time, and a 29 February bound lands on 28 February.

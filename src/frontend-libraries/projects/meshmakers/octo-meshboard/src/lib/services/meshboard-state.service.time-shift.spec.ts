@@ -202,7 +202,7 @@ describe('MeshBoardStateService — time shift (AB#9094)', () => {
     });
   });
 
-  describe('AC6 non-calendar ranges shift by their own length (Grafana rule)', () => {
+  describe('AC6 non-calendar ranges: whole-day custom ranges by calendar days, relative and host ranges by their exact length', () => {
     it('custom range 2026-11-03 to 2026-11-10 -> 2026-10-27 to 2026-11-03', () => {
       boardWith({ type: 'custom', customFrom: '2026-11-03T00:00:00+01:00', customTo: '2026-11-10T00:00:00+01:00' }, true);
 
@@ -214,6 +214,52 @@ describe('MeshBoardStateService — time shift (AB#9094)', () => {
 
       expect(service.resolveStreamDataTimeArgs()).toEqual(window('2026-03-30T00:00:00+02:00', '2026-04-07T00:00:00+02:00'));
       expect(shifted(PREVIOUS_PERIOD)).toEqual(window('2026-03-22T00:00:00+01:00', '2026-03-30T00:00:00+02:00'));
+    });
+
+    it('custom range of whole days containing the spring DST change (167 h) moves back by 7 calendar days (168 h)', () => {
+      boardWith({ type: 'custom', customFrom: '2026-03-23T00:00:00+01:00', customTo: '2026-03-29T00:00:00+01:00' });
+
+      const unshifted = service.resolveStreamDataTimeArgs()!;
+      const range = shifted(PREVIOUS_PERIOD)!;
+
+      expect(unshifted).toEqual(window('2026-03-23T00:00:00+01:00', '2026-03-30T00:00:00+02:00'));
+      expect((unshifted.to.getTime() - unshifted.from.getTime()) / HOUR).toBe(7 * 24 - 1);
+      expect(range).toEqual(window('2026-03-16T00:00:00+01:00', '2026-03-23T00:00:00+01:00'));
+      expect((range.to.getTime() - range.from.getTime()) / HOUR).toBe(7 * 24);
+    });
+
+    it('custom range with a time of day across the DST change moves back by its exact length (143 h)', () => {
+      boardWith({ type: 'custom', customFrom: '2026-03-25T10:00:00+01:00', customTo: '2026-03-31T10:00:00+02:00' }, true);
+
+      const range = shifted(PREVIOUS_PERIOD)!;
+
+      expect(range).toEqual(window('2026-03-19T11:00:00+01:00', '2026-03-25T10:00:00+01:00'));
+      expect((range.to.getTime() - range.from.getTime()) / HOUR).toBe(6 * 24 - 1);
+    });
+
+    it('host period over a board with a whole-day custom range moves back by its exact length, not by calendar days', () => {
+      boardWith({ type: 'custom', customFrom: '2026-01-05T00:00:00+01:00', customTo: '2026-01-11T00:00:00+01:00' });
+      service.setHostTimeRange({ status: 'valid', from: at('2026-03-30T00:00:00+02:00'), to: at('2026-04-06T00:00:00+02:00') });
+
+      const range = shifted(PREVIOUS_PERIOD)!;
+
+      expect(range).toEqual(window('2026-03-22T23:00:00+01:00', '2026-03-30T00:00:00+02:00'));
+      expect((range.to.getTime() - range.from.getTime()) / HOUR).toBe(7 * 24);
+    });
+
+    it('relative range "last 7 days" at 10:30 across the spring DST change keeps its exact length and time of day', () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(at('2026-04-02T10:30:00+02:00'));
+      boardWith({ type: 'relative', relativeValue: 7, relativeUnit: 'days' });
+
+      const unshifted = service.resolveStreamDataTimeArgs()!;
+      const range = shifted(PREVIOUS_PERIOD)!;
+      const length = unshifted.to.getTime() - unshifted.from.getTime();
+
+      expect(unshifted.to).toEqual(at('2026-04-02T10:30:00+02:00'));
+      expect(range.to).toEqual(unshifted.from);
+      expect(range.to.getTime() - range.from.getTime()).toBe(length);
+      expect(range.to.getUTCMinutes()).toBe(30);
     });
 
     it('relative range "last 7 days" moves back by 7 days', () => {

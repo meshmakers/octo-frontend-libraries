@@ -143,8 +143,9 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
  * modelled on Grafana's per-panel "time shift" and Power BI's `SAMEPERIODLASTYEAR` / `DATEADD`.
  *
  * - `by: 'period'`: the board's selected period type. A year, quarter, month or day selection
- *   moves by whole calendar periods (October 2026, -1 → September 2026); a relative, custom or
- *   host-set range moves back by its own length.
+ *   moves by whole calendar periods (October 2026, -1 → September 2026); a custom range of whole
+ *   days moves back by its number of calendar days in the board's zone, also across a DST change; a
+ *   relative range, a custom range with a time of day and a host-set range move back by their exact length.
  * - `by: 'year'`: calendar years in the board's time-zone mode (Q1 2026, -1 → Q1 2025); a
  *   29 February bound lands on 28 February.
  *
