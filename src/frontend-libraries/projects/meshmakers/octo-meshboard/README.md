@@ -1071,8 +1071,9 @@ last two *Periods back* (1 to 10, saved as `count: -N`). *None* removes `timeShi
 While "Ignore MeshBoard time filter" is checked the control is disabled and says the shift has no
 effect; a saved shift is kept but not applied. Gauge, heatmap, stats grid, summary card and process
 widgets have no control: they apply a `timeShift` written into the board configuration, and saving
-their dialog drops it. A chart has one shift: the editor sets the primary query's shift, so do not
-mix shifted and unshifted query series in one chart (overlaying two periods is not supported yet).
+their dialog drops it. A chart has one shift: the primary query's shift applies to every query series
+of a line or bar chart that uses the MeshBoard time filter (like Grafana's panel time shift), and a
+series' own `timeShift` is ignored (overlaying two periods is not supported yet).
 
 **On the widget.** A widget whose own data source applies a shift shows the shifted period under its
 title (stats-grid / summary-card cells and process bindings with a `timeShift` show no caption), in the

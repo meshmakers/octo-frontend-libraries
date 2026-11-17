@@ -1363,7 +1363,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   /** Resolution-aware sources resolve their rung first (step 2 of {@link loadMultiSource}). */
   private async prepareSource(source: MultiSourceEntry, targetPoints: number): Promise<PreparedSource> {
     const ds = source.dataSource;
-    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift);
+    const timeArgs = this.streamDataTimeArgs(ds.ignoreTimeFilter, this.primaryTimeShift());
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!(ds.resolutionAware && ds.queryFamily === 'streamData' && source.valueField && timeArgs?.from && timeArgs?.to)) {
       return { timeArgs, rtIds };
@@ -1516,7 +1516,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     return snapWindowToBuckets(range.from, range.to, minutes, this.stateService.timeZoneMode());
   }
 
-  /** The primary query's time shift (AB#9094): the common bucket count and the fixed grid follow its window. */
+  /** The primary query's time shift (AB#9094), the one shift of the chart: every source and the fixed grid use it. */
   private primaryTimeShift(): MeshBoardTimeShift | undefined {
     return (this.config?.dataSource as PersistentQueryDataSource | undefined)?.timeShift;
   }

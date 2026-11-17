@@ -241,10 +241,14 @@ describe('stream-data consumers take the shifted window (AB#9094 AC8)', () => {
     expect(lastWindow()).toEqual(SEPTEMBER_2026);
   });
 
-  describe('multi-source charts shift each query series by its own timeShift', () => {
+  describe('one shift per chart: every query series of a multi-source chart takes the primary query shift', () => {
     const LAST_PERIOD_SERIES: LineChartQuerySeries = {
       kind: 'query', key: 'lastPeriod', label: 'Last period', valueField: 'value', categoryField: 'timestamp',
       dataSource: { type: 'persistentQuery', queryRtId: 'q-last', queryFamily: 'streamData', timeShift: PREVIOUS_PERIOD }
+    };
+    const PLAIN_SERIES: LineChartQuerySeries = {
+      kind: 'query', key: 'plain', label: 'Plain', valueField: 'value', categoryField: 'timestamp',
+      dataSource: { type: 'persistentQuery', queryRtId: 'q-plain', queryFamily: 'streamData' }
     };
 
     function windowOf(queryRtId: string): { from?: Date; to?: Date } | undefined {
@@ -253,34 +257,62 @@ describe('stream-data consumers take the shifted window (AB#9094 AC8)', () => {
       return args ? { from: args.from ?? undefined, to: args.to ?? undefined } : undefined;
     }
 
-    it('bar chart: the shifted query series reads September, the unshifted primary October', async () => {
+    function barChart(dataSource: PersistentQueryDataSource, series: LineChartQuerySeries): BarChartWidgetComponent {
       const cmp = TestBed.createComponent(BarChartWidgetComponent).componentInstance;
       cmp.config = {
         id: 'bar', type: 'barChart', title: 'Bar', col: 1, row: 1, colSpan: 2, rowSpan: 2,
-        dataSource: UNSHIFTED, chartType: 'column', categoryField: 'timestamp', series: [{ field: 'value', name: 'Value' }],
-        additionalSeries: [LAST_PERIOD_SERIES]
+        dataSource, chartType: 'column', categoryField: 'timestamp', series: [{ field: 'value', name: 'Value' }],
+        additionalSeries: [series]
       } as BarChartWidgetConfig;
+      return cmp;
+    }
+
+    function lineChart(dataSource: PersistentQueryDataSource, series: LineChartQuerySeries): LineChartWidgetComponent {
+      const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
+      cmp.config = {
+        id: 'line', type: 'lineChart', title: 'Line', col: 1, row: 1, colSpan: 2, rowSpan: 2,
+        dataSource, categoryField: 'timestamp', seriesGroupField: 'device', valueField: 'value',
+        additionalSeries: [series]
+      } as LineChartWidgetConfig;
+      return cmp;
+    }
+
+    it('bar chart: primary on "Previous period", an unshifted query series reads September too', async () => {
+      const cmp = barChart(SHIFTED, PLAIN_SERIES);
 
       await (cmp as unknown as { loadData(): Promise<void> }).loadData();
 
       expect(cmp.isMultiSource()).toBe(true);
-      expect(windowOf('q-sd')).toEqual(OCTOBER_2026);
-      expect(windowOf('q-last')).toEqual(SEPTEMBER_2026);
+      expect(windowOf('q-sd')).toEqual(SEPTEMBER_2026);
+      expect(windowOf('q-plain')).toEqual(SEPTEMBER_2026);
     });
 
-    it('line chart: the shifted query series reads September, the unshifted primary October', async () => {
-      const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
-      cmp.config = {
-        id: 'line', type: 'lineChart', title: 'Line', col: 1, row: 1, colSpan: 2, rowSpan: 2,
-        dataSource: UNSHIFTED, categoryField: 'timestamp', seriesGroupField: 'device', valueField: 'value',
-        additionalSeries: [LAST_PERIOD_SERIES]
-      } as LineChartWidgetConfig;
+    it('bar chart: the own shift of a query series is ignored when the primary has none (both read October)', async () => {
+      const cmp = barChart(UNSHIFTED, LAST_PERIOD_SERIES);
+
+      await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
+      expect(windowOf('q-sd')).toEqual(OCTOBER_2026);
+      expect(windowOf('q-last')).toEqual(OCTOBER_2026);
+    });
+
+    it('line chart: primary on "Previous period", an unshifted query series reads September too', async () => {
+      const cmp = lineChart(SHIFTED, PLAIN_SERIES);
 
       await (cmp as unknown as { loadData(): Promise<void> }).loadData();
 
       expect(cmp.hasAdditionalSeries()).toBe(true);
+      expect(windowOf('q-sd')).toEqual(SEPTEMBER_2026);
+      expect(windowOf('q-plain')).toEqual(SEPTEMBER_2026);
+    });
+
+    it('line chart: the own shift of a query series is ignored when the primary has none (both read October)', async () => {
+      const cmp = lineChart(UNSHIFTED, LAST_PERIOD_SERIES);
+
+      await (cmp as unknown as { loadData(): Promise<void> }).loadData();
+
       expect(windowOf('q-sd')).toEqual(OCTOBER_2026);
-      expect(windowOf('q-last')).toEqual(SEPTEMBER_2026);
+      expect(windowOf('q-last')).toEqual(OCTOBER_2026);
     });
   });
 
@@ -298,7 +330,7 @@ describe('stream-data consumers take the shifted window (AB#9094 AC8)', () => {
     expect((queryExecutor.execute.mock.calls.at(-1)?.[2] as QueryExecutionOptions).streamDataArgs?.limit).toBe(2880);
   });
 
-  it('multi-source line chart with a fixed bucket size puts the shifted day on its own hour grid', async () => {
+  it('multi-source line chart with a fixed bucket size: an unshifted query series follows the primary shift and is not dropped', async () => {
     // Board day 2026-10-25 (25 hours, end of summer time) → previous period 2026-10-24 (24 hours).
     state.updateTimeFilterConfig({ enabled: true, selection: { type: 'day', year: 2026, month: 9, day: 25 } });
     const OCTOBER_24 = { from: new Date('2026-10-24T00:00:00+02:00'), to: new Date('2026-10-25T00:00:00+02:00') };
@@ -314,7 +346,7 @@ describe('stream-data consumers take the shifted window (AB#9094 AC8)', () => {
       dataSource: SHIFTED, categoryField: 'timestamp', seriesGroupField: 'device', valueField: 'value', bucketMinutes: 60,
       additionalSeries: [{
         kind: 'query', key: 'lastPeriod', label: 'Last period', valueField: 'value',
-        dataSource: { type: 'persistentQuery', queryRtId: 'q-last', queryFamily: 'streamData', timeShift: PREVIOUS_PERIOD }
+        dataSource: { type: 'persistentQuery', queryRtId: 'q-last', queryFamily: 'streamData' }
       }]
     } as LineChartWidgetConfig;
 

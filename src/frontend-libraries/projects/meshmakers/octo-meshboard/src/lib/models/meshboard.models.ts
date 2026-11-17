@@ -92,7 +92,8 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    * Calendar time shift of the board's time filter for this stream-data query (AB#9094):
    * `{ by: 'period', count: -1 }` queries the previous period, `{ by: 'year', count: -1 }` the
    * same period last year. Absent, or a `count` that is not a negative integer, means no shift.
-   * Ignored with {@link ignoreTimeFilter} and for runtime queries. See {@link MeshBoardTimeShift}.
+   * Ignored with {@link ignoreTimeFilter} and for runtime queries. On an additional query series of a
+   * line or bar chart it is ignored too: the primary query's shift applies. See {@link MeshBoardTimeShift}.
    */
   timeShift?: MeshBoardTimeShift;
   /**

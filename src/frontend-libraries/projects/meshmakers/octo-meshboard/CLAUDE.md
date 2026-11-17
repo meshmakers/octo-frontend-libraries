@@ -340,7 +340,7 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
 | Board range | `by: 'period'` | `by: 'year'` |
 |---|---|---|
 | year / quarter / month / day selection | the selection's calendar fields move by `count` periods, then `TimeRangeUtils.getTimeRangeFromSelection` resolves it in the board's zone (October 2026 → September 2026, Q1 2026 → Q4 2025, 2026-03-30 → 2026-03-29; hour limits of a day stay) | the year moves by `count`; a day 29 February becomes 28 February |
-| relative, custom, host period (AB#7582) | a custom range of whole days (no `showTime`) moves back by its number of calendar days in the board's zone, also across a DST change, so its bounds stay local midnights (`shiftWholeDayRange`; 30.03-06.04.2026 → 22.03-29.03.2026); a relative range, a custom range with `showTime` and a host period move both bounds back by their exact length (`shiftRange`) | both bounds move by calendar years at the same wall-clock time in the board's zone (`getZonedDateParts` + `TimeRangeUtils.getDayRange`); a 29 February start lands on 28 February, a 29 February (exclusive) end on 1 March unless the start is on that 29 February too (then both 28 February), so a window never becomes empty, reversed or a day longer (28.02.2024 → 28.02.2023) |
+| relative, custom, host period (AB#7582) | a custom range of whole days (no `showTime`) moves back by its number of calendar days in the board's zone, also across a DST change, so its bounds stay local midnights (`shiftWholeDayRange`; 30.03-06.04.2026 → 22.03-29.03.2026); a relative range, a custom range with `showTime` and a host period move both bounds back by their exact length (`shiftRange`) | both bounds move by calendar years at the same wall-clock time in the board's zone (`getZonedDateParts` + `TimeRangeUtils.getDayRange`); a 29 February start lands on 28 February, a 29 February (exclusive) end on 1 March unless the start is on that 29 February too (then both 28 February), so a window never becomes empty, reversed or a day longer (28.02.2024 → 28.02.2023); an end that still does not lie after the start (a range inside a repeated DST hour) becomes the start plus the range's length |
 
 - A `count` that is not a negative integer, a missing or unknown `by` = no shift (`normalizeTimeShift`); the
   registrations drop it on load and never write it (`timeShiftConfig`), so boards without a shift encode byte-identically.
@@ -348,8 +348,8 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   (`isStreamDataBlockedByHostTimeRange`) is unchanged, so an invalid host period blocks a shifted widget like any other.
 - The resolution-aware line chart passes the shifted window to `resolveSeriesQuery` with the unchanged zone,
   aggregation and point count; archive/rollup selection runs on it through the same code path. A fixed bucket size
-  (AB#8046) snaps the shifted window; the bucket count (`limit`) and the multi-source time grid follow the primary
-  query's shift, so a multi-source chart with a fixed bucket size needs the same shift on every source. The heatmap's own `timeWindow` (AB#7956) wins over the board filter and the shift.
+  (AB#8046) snaps the shifted window; every source, the bucket count (`limit`) and the multi-source time grid follow the primary
+  query's shift. The heatmap's own `timeWindow` (AB#7956) wins over the board filter and the shift.
 - Also on `PersistentQueryCellSource` (stats grid, summary card; stored verbatim with the cell) and on
   `ProcessWidgetBinding` (`parsePersistedProcessBindings` / `toPersistedProcessBindings` keep only a valid shift).
 - **Editor (AB#9095):** `mm-sd-time-shift-editor` (`components/sd-time-shift-editor/`, signal inputs `family`,
@@ -363,9 +363,11 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   `timeShift` only for a stream-data query; `applyConfigResult` sets the key only for a shift, so "None" removes it.
   Gauge, heatmap, stats grid, summary card and process dialogs have no control: they still rebuild the data source on
   save and drop a seeded `timeShift` (proposal on AB#9095, not built).
-- **One shift per chart:** the editor sets the primary query's shift only; additional query series of a multi-source
-  line or bar chart keep their own `timeShift` (none from the editor). Different shifts in one chart are not supported
-  (overlay of two periods: AB#7951); with a fixed bucket size the grid follows the primary query (above).
+- **One shift per chart (Grafana's panel time shift):** the primary query's shift applies to every query series of a
+  multi-source line or bar chart that uses the board time filter (a series with its own `ignoreTimeFilter` reads
+  unfiltered and unshifted; `primaryTimeShift()` in the line chart, `fetchSourceRows` in the bar chart); a
+  series' own `timeShift` is ignored, so no series can fall outside the fixed bucket grid. Overlaying two periods in
+  one chart is not supported (AB#7951).
 - **Caption (AB#9095):** `mm-time-shift-caption` (`components/time-shift-caption/`) renders under the widget title in
   the tile header of `MeshBoardViewComponent` (Grafana's panel-header time-shift hint), so it stays visible while the
   widget loads or shows its empty state. `resolveTimeShiftCaption(widget, state)` returns `null` (nothing rendered,

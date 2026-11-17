@@ -72,7 +72,8 @@ export function shiftCalendarSelection(selection: TimeRangeSelection, shift: Mes
  * A relative, custom or host-set range moved by the shift: `period` moves both bounds back by the
  * range's own length (Grafana's time shift), `year` moves both bounds by calendar years in `zone`; a
  * 29 February start lands on 28 February, a 29 February (exclusive) end on 1 March, unless the start lies
- * on that 29 February too (then both land on 28 February).
+ * on that 29 February too (then both land on 28 February). An end that would not lie after the start (a range
+ * inside a repeated DST hour) is the start plus the range's length.
  */
 export function shiftRange(range: TimeRange, shift: MeshBoardTimeShift, zone: MeshBoardTimeZoneMode): TimeRange {
   if (shift.by === 'period') {
@@ -80,10 +81,9 @@ export function shiftRange(range: TimeRange, shift: MeshBoardTimeShift, zone: Me
     return { from: new Date(range.from.getTime() + offset), to: new Date(range.to.getTime() + offset) };
   }
   const startOnMissingDay = landsOnMissingDay(range.from, shift.count, zone);
-  return {
-    from: shiftInstantByYears(range.from, shift.count, zone, false),
-    to: shiftInstantByYears(range.to, shift.count, zone, !startOnMissingDay)
-  };
+  const from = shiftInstantByYears(range.from, shift.count, zone, false);
+  const to = shiftInstantByYears(range.to, shift.count, zone, !startOnMissingDay);
+  return to > from ? { from, to } : { from, to: new Date(from.getTime() + range.to.getTime() - range.from.getTime()) };
 }
 
 /**

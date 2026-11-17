@@ -30,7 +30,9 @@ starts a new empty "Unreleased" section.
   "Ignore MeshBoard time filter" is checked (the shift is kept, not applied). A shifted widget shows the shifted period
   under its title ("September 2026", "Q4 2025", "2025", a date or "03.11.2026 - 09.11.2026") with a tooltip naming the
   shift, the exact range and the zone; a bound that is not a local midnight shows its time
-  ("Previous period: 14.11.2026 09:17 - 15.11.2026 09:17 (Europe/Vienna)"). One shift per chart: the editor sets the primary query's shift.
+  ("Previous period: 14.11.2026 09:17 - 15.11.2026 09:17 (Europe/Vienna)"). One shift per chart: the primary
+  query's shift applies to every query series of a line or bar chart that uses the MeshBoard time filter
+  (Grafana's panel time shift); a series' own `timeShift` is ignored.
 - Gauge, heatmap, stats grid, summary card and process dialogs have no shift control and still drop a seeded
   `timeShift` when their dialog is saved.
 - API (additive): `MeshBoardStateService.resolveShiftedPeriod(timeShift?)`.
