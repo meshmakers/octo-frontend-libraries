@@ -356,7 +356,8 @@ kendo-tilelayout {
 
 // Chromeless grid widgets: collapse header and hide card styling in view mode.
 // Since Kendo TileLayout components ignore Angular host bindings ([class], [attr]),
-// we target the inner .chromeless-header class that we control.
+// we target the inner .chromeless-header (header hidden) and .chromeless-card
+// (no card styling; stays while a time-shift caption keeps the header) classes we control.
 .widget-header.chromeless-header {
   display: none;
 }
@@ -365,7 +366,7 @@ kendo-tilelayout {
   display: none;
 }
 
-:host ::ng-deep kendo-tilelayout-item:has(.chromeless-header) {
+:host ::ng-deep kendo-tilelayout-item:has(.chromeless-card) {
   &.k-tilelayout-item,
   &.k-card {
     border: none;

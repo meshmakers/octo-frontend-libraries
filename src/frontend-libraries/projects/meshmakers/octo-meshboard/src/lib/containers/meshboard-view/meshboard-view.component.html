@@ -309,6 +309,7 @@
             <kendo-tilelayout-item-header>
               <div class="widget-header"
                    [class.unconfigured]="isWidgetUnconfigured(widget)"
+                   [class.chromeless-card]="widget.chromeless && !isEditMode()"
                    [class.chromeless-header]="widget.chromeless && !isEditMode() && !hasTimeShiftCaption(widget)">
                 @if (!(widget.chromeless && !isEditMode())) {
                   <div class="widget-title-block">

@@ -17,6 +17,7 @@ import { ProcessWidgetConfig } from '../models/meshboard.models';
 import { ProcessWidgetComponent } from '../widgets/process-widget/process-widget.component';
 import { ProcessConfigDialogComponent, ProcessConfigResult } from '../widgets/process-widget/process-config-dialog.component';
 import { DEFAULT_PROCESS_BINDING_NAME, ProcessConnectionDirection, ProcessWidgetBinding } from '../widgets/process-widget/process-widget-config.model';
+import { normalizeTimeShift } from '../utils/time-shift';
 import {
   hasNamedProcessBindings,
   parsePersistedProcessBindings,
@@ -44,14 +45,15 @@ function legacyFieldsOf(binding: ProcessWidgetBinding): Partial<ProcessWidgetCon
 
 /**
  * Normalizes the binding fields before persisting: a single binding named
- * `default` collapses into the legacy fields; anything else keeps `bindings`.
+ * `default` without a time shift collapses into the legacy fields (they have
+ * no field for the shift); anything else keeps `bindings`.
  */
 function normalizeBindings(widget: ProcessWidgetConfig): ProcessWidgetConfig {
   if (!hasNamedProcessBindings(widget)) {
     return widget;
   }
   const bindings = widget.bindings!;
-  if (bindings.length === 1 && bindings[0].name === DEFAULT_PROCESS_BINDING_NAME) {
+  if (bindings.length === 1 && bindings[0].name === DEFAULT_PROCESS_BINDING_NAME && !normalizeTimeShift(bindings[0].timeShift)) {
     const { bindings: _dropped, ...rest } = widget;
     return { ...rest, ...legacyFieldsOf(bindings[0]) };
   }

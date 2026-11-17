@@ -340,7 +340,7 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
 | Board range | `by: 'period'` | `by: 'year'` |
 |---|---|---|
 | year / quarter / month / day selection | the selection's calendar fields move by `count` periods, then `TimeRangeUtils.getTimeRangeFromSelection` resolves it in the board's zone (October 2026 → September 2026, Q1 2026 → Q4 2025, 2026-03-30 → 2026-03-29; hour limits of a day stay) | the year moves by `count`; a day 29 February becomes 28 February |
-| relative, custom, host period (AB#7582) | a custom range of whole days (no `showTime`) moves back by its number of calendar days in the board's zone, also across a DST change, so its bounds stay local midnights (`shiftWholeDayRange`; 30.03-06.04.2026 → 22.03-29.03.2026); a relative range, a custom range with `showTime` and a host period move both bounds back by their exact length (`shiftRange`) | both bounds move by calendar years at the same wall-clock time in the board's zone (`getZonedDateParts` + `TimeRangeUtils.getDayRange`); a 29 February bound lands on 28 February |
+| relative, custom, host period (AB#7582) | a custom range of whole days (no `showTime`) moves back by its number of calendar days in the board's zone, also across a DST change, so its bounds stay local midnights (`shiftWholeDayRange`; 30.03-06.04.2026 → 22.03-29.03.2026); a relative range, a custom range with `showTime` and a host period move both bounds back by their exact length (`shiftRange`) | both bounds move by calendar years at the same wall-clock time in the board's zone (`getZonedDateParts` + `TimeRangeUtils.getDayRange`); a 29 February start lands on 28 February, a 29 February (exclusive) end on 1 March, so a window never becomes empty or reversed (28.02.2024 → 28.02.2023) |
 
 - A `count` that is not a negative integer, a missing or unknown `by` = no shift (`normalizeTimeShift`); the
   registrations drop it on load and never write it (`timeShiftConfig`), so boards without a shift encode byte-identically.
@@ -378,7 +378,7 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   an end at local midnight stays the last day; the caption keeps dates only) with `Previous period`, `Same period last year`, `N periods back`,
   `N years back` and the IANA zone (`local` = the browser's, `utc` = `UTC`). It is a computed signal over the state
   service, so it follows a change of the board time filter. A chromeless tile keeps its header while a caption applies
-  (`hasTimeShiftCaption`). Banner-zone widgets and widget-group children show no caption (no title in view mode); nor do
+  (`hasTimeShiftCaption`, class `chromeless-header` off) and its card-less look (class `chromeless-card`). Banner-zone widgets and widget-group children show no caption (no title in view mode); nor do
   stats-grid / summary-card cells and process bindings with a `timeShift` (the caption reads only `widget.dataSource`).
 - Specs: `services/meshboard-state.service.time-shift.spec.ts` (AC windows in Europe/Vienna, DST, leap year,
   whole-day custom ranges by calendar days, relative / host / time-of-day ranges by exact length, composition), `widgets/time-shift.widgets.spec.ts` (every stream-data consumer, query series of the
@@ -2144,7 +2144,8 @@ propertyMappings:
 - **Compatibility:** a config without `bindings` (or with an empty list) is read as one binding named
   `default` (`DEFAULT_PROCESS_BINDING_NAME`) from the legacy fields `dataBindingMode`, `bindingCkTypeId`, …;
   a mapping without `bindingName` reads `default`. Legacy widgets load, refresh and save byte-identically.
-  A widget saved with exactly one binding named `default` is written in the legacy shape; any other
+  A widget saved with exactly one binding named `default` and no `timeShift` is written in the legacy shape (it has no
+  field for the shift); any other
   binding list is written as `bindings` (only set keys).
 - **Loading** (`ProcessDataService.loadBindings`): all bindings in parallel, one `BoundDataResult` per name
   (with `bindingName`). Per binding the AB#7721 scope contract applies: `pending` → result `pending`, no

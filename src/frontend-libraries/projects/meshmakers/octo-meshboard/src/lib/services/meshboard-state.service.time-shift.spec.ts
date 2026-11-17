@@ -289,6 +289,22 @@ describe('MeshBoardStateService — time shift (AB#9094)', () => {
 
       expect(shifted(LAST_YEAR)).toEqual(window('2023-02-28T00:00:00+01:00', '2023-03-07T00:00:00+01:00'));
     });
+
+    it('whole-day custom range 28.02.2024 with "year": the exclusive end 29 February lands on 1 March, so the day 28.02.2023 is queried', () => {
+      boardWith({ type: 'custom', customFrom: '2024-02-28T00:00:00+01:00', customTo: '2024-02-28T00:00:00+01:00' });
+
+      expect(service.resolveStreamDataTimeArgs()).toEqual(window('2024-02-28T00:00:00+01:00', '2024-02-29T00:00:00+01:00'));
+      expect(shifted(LAST_YEAR)).toEqual(window('2023-02-28T00:00:00+01:00', '2023-03-01T00:00:00+01:00'));
+    });
+
+    it('custom range 28.02.2024 23:00 - 29.02.2024 01:00 with "year" keeps its 2 hours: 28.02.2023 23:00 - 01.03.2023 01:00', () => {
+      boardWith({ type: 'custom', customFrom: '2024-02-28T23:00:00+01:00', customTo: '2024-02-29T01:00:00+01:00' }, true);
+
+      const range = shifted(LAST_YEAR)!;
+
+      expect(range).toEqual(window('2023-02-28T23:00:00+01:00', '2023-03-01T01:00:00+01:00'));
+      expect((range.to.getTime() - range.from.getTime()) / HOUR).toBe(2);
+    });
   });
 
   describe('AC7 composition with ignoreTimeFilter and the host gate', () => {

@@ -118,6 +118,7 @@ describe('MeshBoardViewComponent — time shift caption in the tile header (AB#9
 
     const [shifted, plain] = headers(el);
     expect(shifted.classList.contains('chromeless-header')).toBe(false);
+    expect(shifted.classList.contains('chromeless-card')).toBe(true);
     expect(shifted.querySelector('.widget-title')).toBeNull();
     expect(shifted.querySelector('.time-shift-caption')?.textContent?.trim()).toBe('September 2026');
     expect(plain.classList.contains('chromeless-header')).toBe(true);

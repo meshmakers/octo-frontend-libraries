@@ -10,6 +10,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
+import { normalizeTimeShift } from '../../utils/time-shift';
 
 /**
  * Column info derived from a persistent query response
@@ -227,9 +228,10 @@ export class TableWidgetDataSourceDirective extends OctoGraphQlDataSource<Record
     }
     const timeFilter = dataSource.ignoreTimeFilter ? null : (this.stateService.getConfig().timeFilter ?? null);
     const host = dataSource.ignoreTimeFilter ? null : this.stateService.hostTimeRange();
-    // Host periods are absolute instants (no zone conversion), so the zone only
-    // matters for the board's own selection.
-    const timeZone = timeFilter?.enabled && timeFilter.selection && !host ? this.stateService.timeZoneMode() : null;
+    // Host periods are absolute instants, so the zone matters for the board's own
+    // selection and for a year shift, which moves a host period in the board zone.
+    const zoneApplies = host ? normalizeTimeShift(dataSource.timeShift)?.by === 'year' : !!timeFilter?.selection;
+    const timeZone = timeFilter?.enabled && zoneApplies ? this.stateService.timeZoneMode() : null;
     const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
     return JSON.stringify({ dataSource, filters, timeFilter, timeZone, host, scope });
   }

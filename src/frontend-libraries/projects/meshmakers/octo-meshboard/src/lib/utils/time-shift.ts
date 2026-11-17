@@ -70,14 +70,15 @@ export function shiftCalendarSelection(selection: TimeRangeSelection, shift: Mes
 
 /**
  * A relative, custom or host-set range moved by the shift: `period` moves both bounds back by the
- * range's own length (Grafana's time shift), `year` moves both bounds by calendar years in `zone`.
+ * range's own length (Grafana's time shift), `year` moves both bounds by calendar years in `zone`; a
+ * 29 February start lands on 28 February, a 29 February (exclusive) end on 1 March.
  */
 export function shiftRange(range: TimeRange, shift: MeshBoardTimeShift, zone: MeshBoardTimeZoneMode): TimeRange {
   if (shift.by === 'period') {
     const offset = (range.to.getTime() - range.from.getTime()) * shift.count;
     return { from: new Date(range.from.getTime() + offset), to: new Date(range.to.getTime() + offset) };
   }
-  return { from: shiftInstantByYears(range.from, shift.count, zone), to: shiftInstantByYears(range.to, shift.count, zone) };
+  return { from: shiftInstantByYears(range.from, shift.count, zone, false), to: shiftInstantByYears(range.to, shift.count, zone, true) };
 }
 
 /**
@@ -102,15 +103,20 @@ function shiftLocalMidnight(instant: Date, days: number, zone: MeshBoardTimeZone
   return TimeRangeUtils.getDayRange(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), undefined, undefined, zone).from;
 }
 
-/** The instant with the same wall-clock time `years` calendar years away in `zone` (29 February → 28 February). */
-function shiftInstantByYears(instant: Date, years: number, zone: MeshBoardTimeZoneMode): Date {
+/**
+ * The instant with the same wall-clock time `years` calendar years away in `zone`. A 29 February that does
+ * not exist there becomes 28 February for a start bound and 1 March for an end bound, so the window keeps its length.
+ */
+function shiftInstantByYears(instant: Date, years: number, zone: MeshBoardTimeZoneMode, isEnd: boolean): Date {
   const parts = getZonedDateParts(instant, zone);
   if (!parts) {
     return instant;
   }
   const year = parts.year + years;
-  const day = Math.min(parts.day, daysInMonth(year, parts.month - 1));
-  const hourStart = TimeRangeUtils.getDayRange(year, parts.month - 1, day, parts.hour, undefined, zone).from;
+  const missingDay = parts.day > daysInMonth(year, parts.month - 1);
+  const month = missingDay && isEnd ? parts.month : parts.month - 1;
+  const day = missingDay ? (isEnd ? 1 : daysInMonth(year, parts.month - 1)) : parts.day;
+  const hourStart = TimeRangeUtils.getDayRange(year, month, day, parts.hour, undefined, zone).from;
   return new Date(hourStart.getTime() + parts.minute * 60_000 + instant.getUTCSeconds() * 1000 + instant.getUTCMilliseconds());
 }
 

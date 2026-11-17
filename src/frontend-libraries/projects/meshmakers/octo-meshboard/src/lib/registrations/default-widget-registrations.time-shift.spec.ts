@@ -117,4 +117,27 @@ describe('Default widget registrations — timeShift round trip (AB#9094 AC2)', 
     expect(loaded.bindings?.[0].timeShift).toEqual(SHIFT);
     expect(loaded.bindings?.[1]).not.toHaveProperty('timeShift');
   });
+
+  it('process widget: a single binding named "default" keeps its timeShift through save and load', () => {
+    const widget = {
+      ...BASE, id: 'flow', type: 'process', dataSource: { type: 'static', data: null }, processDiagramRtId: 'd-1', propertyMappings: [],
+      bindings: [{ name: 'default', mode: 'persistentQuery', queryRtId: 'q-a22', queryFamily: 'streamData', timeShift: SHIFT }]
+    } as unknown as ProcessWidgetConfig;
+
+    const loaded = loadSeeded(widget, {}) as ProcessWidgetConfig;
+
+    expect(loaded.bindings).toEqual([expect.objectContaining({ name: 'default', timeShift: SHIFT })]);
+  });
+
+  it('process widget: a single "default" binding without a shift is still saved in the legacy shape', () => {
+    const widget = {
+      ...BASE, id: 'flow', type: 'process', dataSource: { type: 'static', data: null }, processDiagramRtId: 'd-1', propertyMappings: [],
+      bindings: [{ name: 'default', mode: 'persistentQuery', queryRtId: 'q-a22', queryFamily: 'streamData' }]
+    } as unknown as ProcessWidgetConfig;
+
+    const config = registry.serializeWidget(widget).config as Record<string, unknown>;
+
+    expect(config).not.toHaveProperty('bindings');
+    expect(config).toEqual(expect.objectContaining({ dataBindingMode: 'persistentQuery', bindingQueryRtId: 'q-a22' }));
+  });
 });

@@ -1050,7 +1050,9 @@ last year (Grafana's per-panel "time shift", Power BI's `SAMEPERIODLASTYEAR` / `
   their exact length (2026-11-03 – 2026-11-10 → 2026-10-27 – 2026-11-03).
 - `by: 'year'` moves by calendar years in the board's time-zone mode (Q1 2026 → Q1 2025, February
   2025 → the 29 days of February 2024); bounds of a relative, custom or host-set range keep their
-  wall-clock time, and a 29 February bound lands on 28 February.
+  wall-clock time. A 29 February start lands on 28 February and a 29 February end (exclusive) on 1 March,
+  so the window keeps its length: the day 28.02.2024 becomes 28.02.2023, 28.02.2024 23:00 – 29.02.2024 01:00
+  becomes 28.02.2023 23:00 – 01.03.2023 01:00.
 - `count` is a negative integer (`-1` = one period back). Any other value, a missing `by` or an
   unknown unit means no shift; such a value is not written back on save.
 - Window bounds are local midnights of the shifted period, also across a DST change (March 2026 =

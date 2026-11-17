@@ -155,6 +155,38 @@ describe('TableWidgetDataSourceDirective — paging (AB#8801)', () => {
       expect(refetches).toEqual([{ resetSkip: true }]);
     });
 
+    it('resets the page when the board time zone changes under a host period with a "year" shift', async () => {
+      state.updateSettings({
+        name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8,
+        timeFilter: { enabled: true, defaultSelection: { type: 'day', year: 2026, month: 11, day: 10 } }
+      });
+      state.setHostTimeRange({ status: 'valid', from: new Date('2026-03-29T01:30:00Z'), to: new Date('2026-03-29T02:30:00Z') });
+      const { directive, refetches } = create({ dataSource: { ...QUERY, timeShift: { by: 'year', count: -1 } } });
+      await firstValueFrom(directive.fetchData(page(10)));
+
+      state.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+      directive.refetch();
+      state.setHostTimeRange(null);
+
+      expect(refetches).toEqual([{ resetSkip: true }]);
+    });
+
+    it('keeps the page on a time zone change under a host period without a shift', async () => {
+      state.updateSettings({
+        name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8,
+        timeFilter: { enabled: true, defaultSelection: { type: 'day', year: 2026, month: 11, day: 10 } }
+      });
+      state.setHostTimeRange({ status: 'valid', from: new Date('2026-03-29T01:30:00Z'), to: new Date('2026-03-29T02:30:00Z') });
+      const { directive, refetches } = create();
+      await firstValueFrom(directive.fetchData(page(10)));
+
+      state.updateSettings({ name: 'B', description: '', columns: 4, rowHeight: 150, gap: 8, timeZoneMode: 'utc' });
+      directive.refetch();
+      state.setHostTimeRange(null);
+
+      expect(refetches).toEqual([undefined]);
+    });
+
     it('keeps the page on a time zone change without an active time filter', async () => {
       const { directive, refetches } = create();
       await firstValueFrom(directive.fetchData(page(10)));

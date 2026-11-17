@@ -18,8 +18,8 @@ starts a new empty "Unreleased" section.
   time-zone mode (October 2026 → September 2026); a custom range of whole days moves back by its number of
   calendar days in the board's zone, also across a DST change (30.03-06.04.2026 → 22.03-29.03.2026); relative
   ranges, custom ranges with a time of day and host-set ranges move back by their exact length (Grafana's time
-  shift). `year` moves by calendar years (Q1 2026 → Q1 2025, a 29 February bound lands on
-  28 February). Ignored with `ignoreTimeFilter` and for runtime queries; a resolution-aware line chart resolves
+  shift). `year` moves by calendar years (Q1 2026 → Q1 2025, a 29 February start lands on
+  28 February, a 29 February end on 1 March, so 28.02.2024 → 28.02.2023 stays one day). Ignored with `ignoreTimeFilter` and for runtime queries; a resolution-aware line chart resolves
   its archive on the shifted window.
 - API (additive): `MeshBoardTimeShift`, `MeshBoardStateService.resolveShiftedTimeRange(timeShift?)` and a second
   optional parameter `resolveStreamDataTimeArgs(ignoreTimeFilter?, timeShift?)`. Boards without `timeShift`
