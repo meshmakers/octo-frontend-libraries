@@ -21,6 +21,15 @@
         }
       </div>
 
+      @if (change(); as shownChange) {
+        <div class="kpi-change" [ngClass]="'change-' + shownChange.direction">
+          @if (changeArrow(); as arrow) {
+            <span class="kpi-change-arrow" aria-hidden="true">{{ arrow }}</span>
+          }
+          <span class="kpi-change-text">{{ shownChange.text }}</span>
+        </div>
+      }
+
       @if (comparisonText()) {
         <div class="kpi-comparison" [ngClass]="trendClass()">
           @if (config.trend) {

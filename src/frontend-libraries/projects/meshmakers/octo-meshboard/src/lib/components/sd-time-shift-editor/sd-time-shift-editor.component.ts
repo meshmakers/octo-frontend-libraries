@@ -27,6 +27,8 @@ let nextEditorId = 0;
  *   [(timeShift)]="timeShift">
  * </mm-sd-time-shift-editor>
  * ```
+ *
+ * The KPI dialog adds `[offerShowChange]="true" [(showChange)]="showChange"` (AB#9245).
  */
 @Component({
   selector: 'mm-sd-time-shift-editor',
@@ -70,6 +72,20 @@ let nextEditorId = 0;
               (valueChange)="onPeriods($event)">
             </kendo-numerictextbox>
           </div>
+          @if (offerShowChange()) {
+            <div class="show-change">
+              <span class="show-change-label" [class.k-disabled]="ignoreTimeFilter()">Show change</span>
+              <label class="show-change-choice" [class.k-disabled]="ignoreTimeFilter()">
+                <input
+                  type="checkbox"
+                  kendoCheckBox
+                  [checked]="showChange()"
+                  [disabled]="ignoreTimeFilter()"
+                  (change)="onShowChange($any($event.target).checked)" />
+                Show the change to the current period (value and %)
+              </label>
+            </div>
+          }
         }
         <p class="field-hint" [id]="hintId">{{ hint() }}</p>
       </fieldset>
@@ -112,6 +128,20 @@ let nextEditorId = 0;
       width: 90px;
     }
 
+    .show-change {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .show-change-choice {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
     .field-hint {
       font-size: 0.85em;
       margin-top: 4px;
@@ -128,6 +158,15 @@ export class SdTimeShiftEditorComponent {
 
   /** The shift, `undefined` for "None". */
   readonly timeShift = model<MeshBoardTimeShift | undefined>(undefined);
+
+  /**
+   * Offers "Show change" for a shift (KPI dialog only, AB#9245): shown with Previous period or Same
+   * period last year, disabled like the shift while the time filter is ignored.
+   */
+  readonly offerShowChange = input(false);
+
+  /** "Show the change to the current period"; only meaningful while {@link offerShowChange} is set. */
+  readonly showChange = model(false);
 
   readonly groupName = `mm-time-shift-${nextEditorId++}`;
 
@@ -164,6 +203,10 @@ export class SdTimeShiftEditorComponent {
       return;
     }
     this.timeShift.set({ by: choice, count: -this.periods() });
+  }
+
+  onShowChange(checked: boolean): void {
+    this.showChange.set(checked);
   }
 
   onPeriods(value: number | null): void {

@@ -363,6 +363,20 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   `timeShift` only for a stream-data query; `applyConfigResult` sets the key only for a shift, so "None" removes it.
   Gauge, heatmap, stats grid, summary card and process dialogs have no control: they still rebuild the data source on
   save and drop a seeded `timeShift` (proposal on AB#9095, not built).
+- **KPI change to the current period (AB#9245):** `KpiWidgetConfig.showChange?: true` (absent when off; the
+  registration writes and reads it only as `true`, the dialog returns it only with a valid shift on a stream-data
+  query, `applyConfigResult` drops it otherwise). The editor offers it through `mm-sd-time-shift-editor`
+  `[offerShowChange]="true" [(showChange)]` (KPI dialog only; shown with a shift, disabled like the shift while the time
+  filter is ignored). The widget's `changeApplies` is `showChange` plus `hasTimeShiftCaption` (the caption's rule);
+  then `loadPersistentQueryData` sends the shifted query and a second one with
+  `resolveStreamDataTimeArgs(ignoreTimeFilter)` (no shift) in parallel, same filters, scope, `queryMode` and
+  `valueMultiplier` (`queryValue`). `formatChange`: change = current - shifted, rounded to the KPI decimals (automatic: 2
+  for a fraction) before the sign, so a rounded zero has no sign; % = change / |shifted| x 100, one decimal; sign `+`
+  or U+2212; unit = `suffix`; `–` (U+2013) when the shifted value is 0, null or not numeric. Line `.kpi-change`
+  with class `change-up|down|neutral` (`--kendo-color-success|error|subtle`, no fallback colour) and `▲`/`▼`.
+  Spec: `widgets/kpi-widget/kpi-widget.show-change.spec.ts` (values, colours, no base, every range type, host range,
+  loading, empty scope), `widgets/kpi-widget/kpi-config-dialog.show-change.spec.ts` (option in the rendered dialog,
+  save, reload, removal, unchanged boards).
 - **One shift per chart (Grafana's panel time shift):** the primary query's shift applies to every query series of a
   multi-source line or bar chart that uses the board time filter (a series with its own `ignoreTimeFilter` reads
   unfiltered and unshifted; `primaryTimeShift()` in the line chart, `fetchSourceRows` in the bar chart); a

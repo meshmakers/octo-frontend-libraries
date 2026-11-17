@@ -239,6 +239,12 @@ function kpiDisplayFieldsFromResult(result: KpiConfigResult): Pick<KpiWidgetConf
   };
 }
 
+function withoutShowChange(widget: KpiWidgetConfig): KpiWidgetConfig {
+  const copy = { ...widget };
+  delete copy.showChange;
+  return copy;
+}
+
 function kpiDisplayFieldsFromPersisted(config: Record<string, unknown>): Pick<KpiWidgetConfig, 'prefix' | 'suffix' | 'icon' | 'trend' | 'comparisonText' | 'outputVariableName' | 'decimalPlaces'> {
   return {
     prefix: config['prefix'] as string | undefined,
@@ -362,6 +368,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryFamily: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
         initialTimeShift: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).timeShift : undefined,
+        initialShowChange: isPersistentQuery && kpiWidget.showChange === true,
         initialEntitySelectorId: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialQueryMode: kpiWidget.queryMode,
         initialQueryValueField: kpiWidget.queryValueField,
@@ -382,13 +389,14 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialFilters: kpiWidget.filters
       };
     },
-    applyConfigResult: (widget, result) => {
+    applyConfigResult: (kpiWidget, result) => {
       // Convert filters from DTO to widget format
       const filters: WidgetFilterConfig[] | undefined = result.filters?.map(f => ({
         attributePath: f.attributePath,
         operator: String(f.operator),
         comparisonValue: f.comparisonValue
       }));
+      const widget = withoutShowChange(kpiWidget);
 
       if (result.dataSourceType === 'formula') {
         return {
@@ -446,6 +454,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryCategoryField: result.queryCategoryField,
           queryCategoryValue: result.queryCategoryValue,
           ...kpiDisplayFieldsFromResult(result),
+          ...(result.showChange && result.timeShift && { showChange: true as const }),
           filters
         };
       } else {
@@ -498,6 +507,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           trend: widget.trend,
           comparisonText: widget.comparisonText,
           decimalPlaces: widget.decimalPlaces,
+          ...(isPersistentQuery && widget.showChange === true && { showChange: true }),
           staticValue: widget.staticValue,
           valueMode: widget.valueMode,
           formula: widget.formula,
@@ -558,6 +568,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryCategoryValue: config['queryCategoryValue'] as string | undefined,
           valueMultiplier: config['valueMultiplier'] as number | undefined,
           ...kpiDisplayFieldsFromPersisted(config),
+          ...(config['showChange'] === true && { showChange: true as const }),
           filters: config['filters'] as WidgetFilterConfig[] | undefined
         };
       }

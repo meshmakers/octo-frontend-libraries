@@ -15,6 +15,13 @@ import { applyValueMultiplier, formatWidgetNumber, getNumberFormat, matchesAttri
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
+import { hasTimeShiftCaption } from '../../components/time-shift-caption/time-shift-caption.component';
+
+/** Change of the current period against the shifted value (AB#9245), as shown under the value. */
+export interface KpiChange {
+  text: string;
+  direction: 'up' | 'down' | 'neutral';
+}
 
 @Component({
   selector: 'mm-kpi-widget',
@@ -52,6 +59,9 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   private readonly _isLoading = signal(false);
   private readonly _data = signal<RuntimeEntityData | null>(null);
   private readonly _error = signal<string | null>(null);
+
+  /** Value of the query over the unshifted board window; `undefined` while not queried (AB#9245). */
+  private readonly _currentValue = signal<number | string | null | undefined>(undefined);
 
   readonly isLoading = this._isLoading.asReadonly();
   readonly data = this._data.asReadonly();
@@ -316,6 +326,30 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     }
   });
 
+  /**
+   * True when the KPI shows the change to the current period: `showChange` on a persistent query
+   * whose time shift applies (the rule of the time-shift caption, AB#9095).
+   */
+  readonly changeApplies = computed(() => {
+    const config = this.currentConfig();
+    return config?.showChange === true && hasTimeShiftCaption(config, this.stateService);
+  });
+
+  readonly change = computed<KpiChange | null>(() => {
+    if (!this.changeApplies() || this._error()) return null;
+    const current = this._currentValue();
+    if (current === undefined) return null;
+    return this.formatChange(current, this.rawValue());
+  });
+
+  readonly changeArrow = computed(() => {
+    switch (this.change()?.direction) {
+      case 'up': return '\u25B2';
+      case 'down': return '\u25BC';
+      default: return null;
+    }
+  });
+
   readonly comparisonText = computed(() => {
     const comparisonText = this.currentConfig()?.comparisonText;
     if (!comparisonText) return null;
@@ -481,42 +515,27 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         this._isLoading.set(false);
         return;
       }
-      const streamDataArgs = this.buildStreamDataArgs();
-
-      const result = await firstValueFrom(
+      const scopeRtIds = scope.kind === 'scoped' ? scope.rtIds : undefined;
+      const execute = (streamDataArgs: StreamDataExecutionArgs | undefined): Promise<number | string | null> => firstValueFrom(
         this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
           fieldFilter: fieldFilter ?? undefined,
           streamDataArgs,
           // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
-          scopeRtIds: scope.kind === 'scoped' ? scope.rtIds : undefined
+          scopeRtIds
         }).pipe(
           catchError(err => {
             console.error('Error loading KPI query data:', err);
             throw err;
           })
         )
-      );
+      ).then(result => this.queryValue(result));
 
-      let value: number | string | null = 0;
-      const queryMode = this.config.queryMode ?? 'simpleCount';
-
-      switch (queryMode) {
-        case 'simpleCount':
-          value = result.totalCount;
-          break;
-
-        case 'aggregation':
-          value = this.extractAggregationValue(result);
-          break;
-
-        case 'groupedAggregation':
-          value = this.extractGroupedAggregationValue(result);
-          break;
-      }
-
-      // Optional unit factor (e.g. 1 for an Integral over kW → kWh, 0.001 for W → kWh).
-      // Applied to numeric values only; strings and null (no data) pass through unchanged.
-      value = applyValueMultiplier(value, this.config.valueMultiplier);
+      this._currentValue.set(undefined);
+      const [value, currentValue] = await Promise.all([
+        execute(this.buildStreamDataArgs(dataSource.timeShift)),
+        this.changeApplies() ? execute(this.buildStreamDataArgs(undefined)) : Promise.resolve(undefined)
+      ]);
+      this._currentValue.set(currentValue);
 
       // Create a synthetic entity with the value
       const kpiEntity: RuntimeEntityData = {
@@ -535,9 +554,67 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     }
   }
 
-  private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
+  /**
+   * The KPI value of a query result by `queryMode`, scaled by the optional unit factor
+   * (e.g. 1 for an Integral over kW → kWh, 0.001 for W → kWh). The factor applies to numeric
+   * values only; strings and null (no data) pass through unchanged.
+   */
+  private queryValue(result: QueryExecutionResult): number | string | null {
+    let value: number | string | null = 0;
+    switch (this.config.queryMode ?? 'simpleCount') {
+      case 'simpleCount':
+        value = result.totalCount;
+        break;
+
+      case 'aggregation':
+        value = this.extractAggregationValue(result);
+        break;
+
+      case 'groupedAggregation':
+        value = this.extractGroupedAggregationValue(result);
+        break;
+    }
+    return applyValueMultiplier(value, this.config.valueMultiplier);
+  }
+
+  /**
+   * Change line: current - shifted in the KPI's unit and decimals, and change / |shifted| x 100 with
+   * one decimal, both with sign and never "-0"; an en dash without a base value (shifted 0 or no data).
+   */
+  private formatChange(current: unknown, shifted: unknown): KpiChange {
+    const base = KpiWidgetComponent.finiteNumber(shifted);
+    const now = KpiWidgetComponent.finiteNumber(current);
+    if (base === null || now === null || base === 0) {
+      return { text: '\u2013', direction: 'neutral' };
+    }
+    const decimals = normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces);
+    const diff = now - base;
+    const shownDiff = Number(getNumberFormat('en-US', 0, decimals ?? 2, false).format(Math.abs(diff)));
+    const diffText = decimals !== undefined
+      ? formatWidgetNumber(shownDiff, decimals, 'exact')
+      : shownDiff.toLocaleString('de-AT', { minimumFractionDigits: shownDiff % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
+    const percent = diff / Math.abs(base) * 100;
+    const shownPercent = Number(getNumberFormat('en-US', 0, 1, false).format(Math.abs(percent)));
+    const percentText = formatWidgetNumber(shownPercent, 1, 'exact');
+    const sign = (shown: number, raw: number): string => shown === 0 ? '' : raw > 0 ? '+' : '\u2212';
+    const suffix = this.currentConfig()?.suffix;
+    const unit = suffix ? ` ${suffix}` : '';
+    return {
+      text: `${sign(shownDiff, diff)}${diffText}${unit} (${sign(shownPercent, percent)}${percentText} %)`,
+      direction: shownDiff === 0 ? 'neutral' : diff > 0 ? 'up' : 'down'
+    };
+  }
+
+  private static finiteNumber(value: unknown): number | null {
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value !== 'string') return null;
+    const parsed = KpiWidgetComponent.strictNumber(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private buildStreamDataArgs(timeShift: PersistentQueryDataSource['timeShift']): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift);
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter, timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;

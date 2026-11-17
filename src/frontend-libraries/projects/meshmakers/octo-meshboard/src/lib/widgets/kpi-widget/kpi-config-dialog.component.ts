@@ -55,6 +55,8 @@ export interface KpiConfigResult extends WidgetConfigResult {
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
   timeShift?: MeshBoardTimeShift;
+  /** Change to the current period under the shifted value (AB#9245); set only with a time shift. */
+  showChange?: true;
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
   queryMode?: KpiQueryMode;
@@ -296,7 +298,9 @@ interface TrendOption {
           <mm-sd-time-shift-editor
             [family]="selectedQueryFamily"
             [ignoreTimeFilter]="ignoreTimeFilter"
-            [(timeShift)]="timeShift">
+            [(timeShift)]="timeShift"
+            [offerShowChange]="true"
+            [(showChange)]="showChange">
           </mm-sd-time-shift-editor>
 
           <mm-entity-selector-scope-picker
@@ -730,6 +734,7 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
   @Input() initialTimeShift?: MeshBoardTimeShift;
+  @Input() initialShowChange?: boolean;
   @Input() initialEntitySelectorId?: string;
   @Input() initialQueryMode?: KpiQueryMode;
   @Input() initialQueryValueField?: string;
@@ -764,6 +769,7 @@ export class KpiConfigDialogComponent implements OnInit {
   /** Stream-data opt-out: when true the MeshBoard time filter is not bound to the query. */
   ignoreTimeFilter = false;
   timeShift?: MeshBoardTimeShift;
+  showChange = false;
   entitySelectorId?: string;
   queryColumns: QueryColumnItem[] = [];
   categoryValues: CategoryValueItem[] = [];
@@ -975,6 +981,7 @@ export class KpiConfigDialogComponent implements OnInit {
     this.queryMode = this.initialQueryMode || 'simpleCount';
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
     this.timeShift = normalizeTimeShift(this.initialTimeShift);
+    this.showChange = this.initialShowChange === true;
     this.entitySelectorId = this.initialEntitySelectorId;
 
     // Check if this is count mode (for runtime entity)
@@ -1198,6 +1205,7 @@ export class KpiConfigDialogComponent implements OnInit {
         queryFamily: family,
         ignoreTimeFilter: this.ignoreTimeFilter,
         timeShift: family === 'streamData' ? normalizeTimeShift(this.timeShift) : undefined,
+        showChange: family === 'streamData' && normalizeTimeShift(this.timeShift) && this.showChange ? true : undefined,
         entitySelectorId: this.entitySelectorId,
         queryMode: this.queryMode,
         queryValueField: this.form.queryValueField || undefined,

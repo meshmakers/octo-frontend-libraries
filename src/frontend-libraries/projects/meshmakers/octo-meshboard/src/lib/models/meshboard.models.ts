@@ -425,6 +425,11 @@ export interface KpiWidgetConfig extends WidgetConfig {
    * MeshBoard variable of this name (source `'widget'`, never persisted).
    */
   outputVariableName?: string;
+  /**
+   * With a time-shifted stream-data query (`dataSource.timeShift`), also query the unshifted board
+   * window and show the change to the current period under the value (AB#9245). Absent when off.
+   */
+  showChange?: true;
 }
 
 /**
