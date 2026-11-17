@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { searchIcon, chartPieIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
-import { PieChartType, PieChartLabelPosition, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig, ChartValueLabels } from '../../models/meshboard.models';
+import { PieChartType, PieChartLabelPosition, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig, ChartValueLabels, MeshBoardTimeShift } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -19,6 +19,8 @@ import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { SdTimeShiftEditorComponent } from '../../components/sd-time-shift-editor/sd-time-shift-editor.component';
+import { normalizeTimeShift } from '../../utils/time-shift';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { columnProbeWindow } from '../../utils/column-probe-window';
@@ -35,6 +37,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  timeShift?: MeshBoardTimeShift;
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
   categoryField: string;
@@ -75,6 +78,7 @@ export interface PieChartConfigResult extends WidgetConfigResult {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    SdTimeShiftEditorComponent,
     EntitySelectorScopePickerComponent,
     LoadingOverlayComponent,
     ValueLabelsEditorComponent
@@ -119,6 +123,12 @@ export interface PieChartConfigResult extends WidgetConfigResult {
               [family]="selectedQueryFamily"
               [(ignoreTimeFilter)]="ignoreTimeFilter">
             </mm-sd-time-filter-toggle>
+
+            <mm-sd-time-shift-editor
+              [family]="selectedQueryFamily"
+              [ignoreTimeFilter]="ignoreTimeFilter"
+              [(timeShift)]="timeShift">
+            </mm-sd-time-shift-editor>
 
             <mm-entity-selector-scope-picker
               [family]="selectedQueryFamily"
@@ -466,6 +476,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialTimeShift?: MeshBoardTimeShift;
   @Input() initialEntitySelectorId?: string;
   @Input() initialChartType?: PieChartType;
   @Input() initialCategoryField?: string;
@@ -528,6 +539,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   selectedPersistentQuery: PersistentQueryItem | null = null;
   /** Stream-data opt-out: when true the MeshBoard time filter is not bound to the query. */
   ignoreTimeFilter = false;
+  timeShift?: MeshBoardTimeShift;
   entitySelectorId?: string;
   queryColumns: QueryColumnItem[] = [];
 
@@ -604,6 +616,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
     this.categoryLabelRows = toValueLabelRows(this.initialCategoryLabels);
     this.categoryColorRows = Object.entries(this.initialCategoryColors ?? {}).map(([category, color]) => ({ id: this.nextCategoryColorId++, category, color }));
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.timeShift = normalizeTimeShift(this.initialTimeShift);
     this.entitySelectorId = this.initialEntitySelectorId;
 
     // Initialize filters
@@ -822,6 +835,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
       result.queryName = this.selectedPersistentQuery.name;
       result.queryFamily = queryFamily(this.selectedPersistentQuery.ckTypeId) ?? this.initialQueryFamily ?? undefined;
       result.ignoreTimeFilter = this.ignoreTimeFilter;
+      result.timeShift = result.queryFamily === 'streamData' ? normalizeTimeShift(this.timeShift) : undefined;
       result.entitySelectorId = this.entitySelectorId;
     } else if (this.form.dataSourceType === 'constructionKitQuery') {
       result.ckQueryTarget = this.form.ckQueryTarget;

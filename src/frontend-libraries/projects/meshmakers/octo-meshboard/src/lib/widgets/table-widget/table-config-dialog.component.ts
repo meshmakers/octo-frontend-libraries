@@ -27,11 +27,13 @@ import {
   GetCkTypeAvailableQueryColumnsDtoGQL
 } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
-import { TableColumn, EntitySelectorConfig, TableRowActionConfig, TableValueMarkerConfig } from '../../models/meshboard.models';
+import { TableColumn, EntitySelectorConfig, TableRowActionConfig, TableValueMarkerConfig, MeshBoardTimeShift } from '../../models/meshboard.models';
 import { PersistentQueryItem } from '../../utils/runtime-entity-data-sources';
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { SdTimeShiftEditorComponent } from '../../components/sd-time-shift-editor/sd-time-shift-editor.component';
+import { normalizeTimeShift } from '../../utils/time-shift';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { QueryExecutorService } from '../../services/query-executor.service';
@@ -62,6 +64,7 @@ export interface TableConfigResult {
   queryFamily?: QueryFamily;
   /** Stream-data opt-out: keep the query's own time bounds, ignore the MeshBoard time filter. */
   ignoreTimeFilter?: boolean;
+  timeShift?: MeshBoardTimeShift;
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
   // Common:
@@ -97,6 +100,7 @@ export const TABLE_VALUE_MARKER_ICONS: readonly string[] = [
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    SdTimeShiftEditorComponent,
     EntitySelectorScopePickerComponent,
     LoadingOverlayComponent
   ],
@@ -225,6 +229,12 @@ export const TABLE_VALUE_MARKER_ICONS: readonly string[] = [
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-sd-time-shift-editor
+            [family]="selectedQueryFamily"
+            [ignoreTimeFilter]="ignoreTimeFilter"
+            [(timeShift)]="timeShift">
+          </mm-sd-time-shift-editor>
 
           <mm-entity-selector-scope-picker
             [family]="selectedQueryFamily"
@@ -596,6 +606,7 @@ export class TableConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialTimeShift?: MeshBoardTimeShift;
   @Input() initialEntitySelectorId?: string;
   @Input() initialRowAction?: TableRowActionConfig;
   @Input() initialValueMarkers?: TableValueMarkerConfig[];
@@ -637,6 +648,7 @@ export class TableConfigDialogComponent implements OnInit {
   // Query configuration
   selectedPersistentQuery: PersistentQueryItem | null = null;
   ignoreTimeFilter = false;
+  timeShift?: MeshBoardTimeShift;
   entitySelectorId?: string;
 
   // Variables for filter editor
@@ -686,6 +698,7 @@ export class TableConfigDialogComponent implements OnInit {
     this.form.pageSize = this.initialPageSize ?? 10;
     this.form.sortable = this.initialSortable ?? true;
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.timeShift = normalizeTimeShift(this.initialTimeShift);
     this.entitySelectorId = this.initialEntitySelectorId;
     this.rowActionEnabled = !!this.initialRowAction?.label;
     this.rowActionLabel = this.initialRowAction?.label ?? '';
@@ -990,6 +1003,7 @@ export class TableConfigDialogComponent implements OnInit {
         queryName: query.name,
         queryFamily: family,
         ignoreTimeFilter: this.ignoreTimeFilter,
+        timeShift: family === 'streamData' ? normalizeTimeShift(this.timeShift) : undefined,
         entitySelectorId: this.entitySelectorId,
         pageSize: this.form.pageSize,
         sortable: this.form.sortable,

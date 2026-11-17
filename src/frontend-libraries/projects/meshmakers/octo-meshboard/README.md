@@ -909,6 +909,8 @@ interface PersistentQueryDataSource {
    * "Ignore MeshBoard time filter" toggle, shown only for stream-data queries.
    */
   ignoreTimeFilter?: boolean;
+  /** Calendar time shift of the board's time filter (AB#9094), see "Time shift" below. */
+  timeShift?: { by: 'period' | 'year'; count: number };
 }
 ```
 
@@ -1019,7 +1021,7 @@ a `fieldFilter` on `timestamp`. This pushes the range down to the backend
 (CrateDB `DATE_BIN` / downsampling bucket sizing) instead of post-filtering rows.
 
 The binding is resolved centrally by
-`MeshBoardStateService.resolveStreamDataTimeArgs(ignoreTimeFilter)`; every
+`MeshBoardStateService.resolveStreamDataTimeArgs(ignoreTimeFilter, timeShift)`; every
 stream-data widget calls it.
 
 **Per-widget opt-out:** the config dialog of each stream-data widget shows an
@@ -1027,6 +1029,63 @@ stream-data widget calls it.
 stream-data query). Enabling it sets `ignoreTimeFilter: true` on the data source
 so the saved query's intrinsic time range wins. Runtime queries ignore the time
 filter binding entirely and never show the toggle.
+
+### Time shift: previous period and same period last year (AB#9094)
+
+A stream-data persistent-query source can query a calendar-shifted copy of the board's time
+filter, so a KPI or chart can sit next to the same value for the previous period or the same period
+last year (Grafana's per-panel "time shift", Power BI's `SAMEPERIODLASTYEAR` / `DATEADD`):
+
+```json
+{ "type": "persistentQuery", "queryRtId": "<rtId>", "queryFamily": "streamData",
+  "timeShift": { "by": "year", "count": -1 } }
+```
+
+- `by: 'period'` moves by the board's selected period type: a year, quarter, month or day selection
+  moves by whole calendar periods in the board's time-zone mode (October 2026 → September 2026, the
+  whole 30 days; Q1 2026 → Q4 2025; 2026-03-30 → 2026-03-29). A custom range of whole days (no time
+  of day) moves back by its number of calendar days in the board's time-zone mode, also across a DST
+  change, so its bounds stay local midnights (30.03 – 06.04.2026 → 22.03 – 29.03.2026). A relative
+  range, a custom range with a time of day and a host-set range (`timeRange`, AB#7582) move back by
+  their exact length (2026-11-03 – 2026-11-10 → 2026-10-27 – 2026-11-03).
+- `by: 'year'` moves by calendar years in the board's time-zone mode (Q1 2026 → Q1 2025, February
+  2025 → the 29 days of February 2024); bounds of a relative, custom or host-set range keep their
+  wall-clock time. A 29 February start lands on 28 February and a 29 February end (exclusive) on 1 March,
+  so the window keeps its length: the day 28.02.2024 becomes 28.02.2023, 28.02.2024 23:00 – 29.02.2024 01:00
+  becomes 28.02.2023 23:00 – 01.03.2023 01:00. A window that starts and ends on 29 February moves to 28 February.
+- `count` is a negative integer (`-1` = one period back). Any other value, a missing `by` or an
+  unknown unit means no shift; such a value is not written back on save.
+- Window bounds are local midnights of the shifted period, also across a DST change (March 2026 =
+  2026-03-01T00:00+01:00 to 2026-04-01T00:00+02:00), never the unshifted instants minus fixed hours.
+- With `ignoreTimeFilter: true` the shift is ignored and the query's own bounds apply. Runtime
+  queries ignore it. A resolution-aware line chart resolves its archive/rollup on the shifted
+  window (same zone, aggregation and point count). An invalid host period blocks a shifted widget
+  like an unshifted one.
+- The same `timeShift` key exists on a stats-grid / summary-card `persistentQuerySource` and on a
+  process widget binding. Without it every board queries exactly as before.
+
+**In the widget editor (AB#9095).** The config dialogs of the KPI, line chart, bar chart, pie chart
+and table show "Compare with" under "Ignore MeshBoard time filter", for stream-data queries only:
+*None*, *Previous period* (`by: 'period'`) or *Same period last year* (`by: 'year'`), and for the
+last two *Periods back* (1 to 10, saved as `count: -N`). *None* removes `timeShift` from the widget.
+While "Ignore MeshBoard time filter" is checked the control is disabled and says the shift has no
+effect; a saved shift is kept but not applied. Gauge, heatmap, stats grid, summary card and process
+widgets have no control: they apply a `timeShift` written into the board configuration, and saving
+their dialog drops it. A chart has one shift: the primary query's shift applies to every query series
+of a line or bar chart that uses the MeshBoard time filter (like Grafana's panel time shift), and a
+series' own `timeShift` is ignored (overlaying two periods is not supported yet).
+
+**On the widget.** A widget whose own data source applies a shift shows the shifted period under its
+title (stats-grid / summary-card cells and process bindings with a `timeShift` show no caption), in the
+board's time zone: `September 2026` for a month, `Q4 2025` for a quarter, `2025` for a year, the date
+for a day and `03.11.2026 - 09.11.2026` for any other range. The tooltip names the shift and the exact
+range with the zone, e.g. `Previous period: 01.09.2026 - 30.09.2026 (Europe/Vienna)`; a bound that is
+not a local midnight (a relative range, a custom range with a time of day, a host period) shows its
+time, e.g. `Previous period: 14.11.2026 09:17 - 15.11.2026 09:17 (Europe/Vienna)`. The caption shows dates only. The caption
+follows the board time filter, stays visible while the widget loads or shows no data, and is cut with
+an ellipsis in a narrow tile. A heatmap's own time window, like ignoreTimeFilter, takes precedence
+over the board filter and the shift, so such a heatmap shows no caption. Widgets without a shift (or with the
+time filter ignored) look as before; a chromeless tile shows its header only for the caption.
 
 ## Services
 

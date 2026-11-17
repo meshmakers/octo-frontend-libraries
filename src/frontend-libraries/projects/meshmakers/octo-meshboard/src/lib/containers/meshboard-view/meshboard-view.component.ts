@@ -67,6 +67,7 @@ import {
 import type { EntitySelectorScopeState } from '../../utils/stream-data-scope';
 import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
 import { MeshBoardEmptyStateComponent } from '../../components/meshboard-empty-state/meshboard-empty-state.component';
+import { hasTimeShiftCaption, TimeShiftCaptionComponent } from '../../components/time-shift-caption/time-shift-caption.component';
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
 import { EditWidgetDialogComponent, WidgetPositionUpdate } from '../../dialogs/edit-widget-dialog/edit-widget-dialog.component';
 import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
@@ -101,7 +102,8 @@ import {
     EditWidgetDialogComponent,
     TimeRangePickerComponent,
     EntitySelectorToolbarComponent,
-    MeshBoardEmptyStateComponent
+    MeshBoardEmptyStateComponent,
+    TimeShiftCaptionComponent
   ],
   hostDirectives: [UnsavedChangesDirective],
   providers: [
@@ -1768,6 +1770,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    */
   trackByWidgetId(_index: number, widget: AnyWidgetConfig): string {
     return widget.id;
+  }
+
+  /** True when the widget shows a time-shift caption; a chromeless tile then keeps its header for it. */
+  hasTimeShiftCaption(widget: AnyWidgetConfig): boolean {
+    return hasTimeShiftCaption(widget, this.stateService);
   }
 
   /**

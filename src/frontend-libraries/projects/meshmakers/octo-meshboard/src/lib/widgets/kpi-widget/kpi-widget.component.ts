@@ -537,7 +537,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
 
   private buildStreamDataArgs(): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter);
+    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter, ds.timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;

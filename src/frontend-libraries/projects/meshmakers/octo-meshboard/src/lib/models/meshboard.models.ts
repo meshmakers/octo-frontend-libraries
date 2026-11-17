@@ -89,6 +89,14 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    */
   ignoreTimeFilter?: boolean;
   /**
+   * Calendar time shift of the board's time filter for this stream-data query (AB#9094):
+   * `{ by: 'period', count: -1 }` queries the previous period, `{ by: 'year', count: -1 }` the
+   * same period last year. Absent, or a `count` that is not a negative integer, means no shift.
+   * Ignored with {@link ignoreTimeFilter} and for runtime queries. On an additional query series of a
+   * line or bar chart it is ignored too: the primary query's shift applies. See {@link MeshBoardTimeShift}.
+   */
+  timeShift?: MeshBoardTimeShift;
+  /**
    * Asset-scope binding: the `id` of an entity selector whose selection scopes
    * this widget's stream-data query. The selector resolves its picked entity to
    * a set of source rtIds (via its `childScope` hop or path, or the picked entity
@@ -129,6 +137,25 @@ export interface PersistentQueryDataSource extends WidgetDataSource {
    * grouping column). Stream-data only.
    */
   aggregateSeriesByGroup?: boolean;
+}
+
+/**
+ * Calendar time shift of a stream-data query relative to the board's time filter (AB#9094),
+ * modelled on Grafana's per-panel "time shift" and Power BI's `SAMEPERIODLASTYEAR` / `DATEADD`.
+ *
+ * - `by: 'period'`: the board's selected period type. A year, quarter, month or day selection
+ *   moves by whole calendar periods (October 2026, -1 → September 2026); a custom range of whole
+ *   days moves back by its number of calendar days in the board's zone, also across a DST change; a
+ *   relative range, a custom range with a time of day and a host-set range move back by their exact length.
+ * - `by: 'year'`: calendar years in the board's time-zone mode (Q1 2026, -1 → Q1 2025); a
+ *   29 February start lands on 28 February, a 29 February (exclusive) end on 1 March (on 28 February
+ *   when the start is on that 29 February too).
+ *
+ * `count` is a negative integer (-1 = one period back); any other value means no shift.
+ */
+export interface MeshBoardTimeShift {
+  by: 'period' | 'year';
+  count: number;
 }
 
 /**
@@ -1101,6 +1128,8 @@ export interface PersistentQueryCellSource {
    * the query's `streamDataArgs.from/.to`. Ignored for runtime queries.
    */
   ignoreTimeFilter?: boolean;
+  /** Calendar time shift of the board's time filter (AB#9094), see {@link PersistentQueryDataSource.timeShift}. */
+  timeShift?: MeshBoardTimeShift;
   /**
    * Asset-scope binding: the `id` of an entity selector whose selection scopes the
    * stream-data query via `streamDataArgs.rtIds`. Ignored for runtime queries.

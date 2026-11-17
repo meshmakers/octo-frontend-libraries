@@ -10,6 +10,33 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: stream-data widgets show the previous period or the same period last year (AB#9094, AB#9095)
+
+- New: optional `timeShift: { by: 'period' | 'year'; count: <negative integer> }` on a stream-data
+  `PersistentQueryDataSource`, on a stats-grid / summary-card `persistentQuerySource` and on a process widget
+  binding. `period` moves a year, quarter, month or day filter by whole calendar periods in the board's
+  time-zone mode (October 2026 → September 2026); a custom range of whole days moves back by its number of
+  calendar days in the board's zone, also across a DST change (30.03-06.04.2026 → 22.03-29.03.2026); relative
+  ranges, custom ranges with a time of day and host-set ranges move back by their exact length (Grafana's time
+  shift). `year` moves by calendar years (Q1 2026 → Q1 2025, a 29 February start lands on
+  28 February, a 29 February end on 1 March, so 28.02.2024 → 28.02.2023 stays one day; a window inside 29 February moves to
+  28 February). Ignored with `ignoreTimeFilter` and for runtime queries; a resolution-aware line chart resolves
+  its archive on the shifted window.
+- API (additive): `MeshBoardTimeShift`, `MeshBoardStateService.resolveShiftedTimeRange(timeShift?)` and a second
+  optional parameter `resolveStreamDataTimeArgs(ignoreTimeFilter?, timeShift?)`. Boards without `timeShift`
+  query and encode exactly as before.
+- New (AB#9095): the KPI, line chart, bar chart, pie chart and table dialogs edit the shift ("Compare with": None,
+  Previous period, Same period last year; "Periods back" 1-10), shown for stream-data queries only and disabled while
+  "Ignore MeshBoard time filter" is checked (the shift is kept, not applied). A shifted widget shows the shifted period
+  under its title ("September 2026", "Q4 2025", "2025", a date or "03.11.2026 - 09.11.2026") with a tooltip naming the
+  shift, the exact range and the zone; a bound that is not a local midnight shows its time
+  ("Previous period: 14.11.2026 09:17 - 15.11.2026 09:17 (Europe/Vienna)"). One shift per chart: the primary
+  query's shift applies to every query series of a line or bar chart that uses the MeshBoard time filter
+  (Grafana's panel time shift); a series' own `timeShift` is ignored.
+- Gauge, heatmap, stats grid, summary card and process dialogs have no shift control and still drop a seeded
+  `timeShift` when their dialog is saved.
+- API (additive): `MeshBoardStateService.resolveShiftedPeriod(timeShift?)`.
+
 ### octo-services / shared-ui: operations of a child tenant (AB#8985)
 
 - New (additive): `CkMethodOperationService.getOperation(operationId, { tenantId? })`, `listOperations({ tenantId?, … })`

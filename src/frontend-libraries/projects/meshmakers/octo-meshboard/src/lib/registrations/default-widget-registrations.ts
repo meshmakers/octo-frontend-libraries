@@ -35,8 +35,10 @@ import {
   AiInsightsWidgetConfig,
   DataSource,
   WidgetFilterConfig,
-  ChartValueLabels
+  ChartValueLabels,
+  MeshBoardTimeShift
 } from '../models/meshboard.models';
+import { normalizeTimeShift } from '../utils/time-shift';
 
 // Widget Components
 import { EntityCardWidgetComponent } from '../widgets/entity-card-widget/entity-card-widget.component';
@@ -144,6 +146,12 @@ export function parseTableRowExtras(config: Record<string, unknown>): Pick<Table
   };
 }
 
+/** The `timeShift` key of a persisted persistent-query config (AB#9094): written only for a valid shift. */
+function timeShiftConfig(dataSource: PersistentQueryDataSource): { timeShift?: MeshBoardTimeShift } {
+  const timeShift = normalizeTimeShift(dataSource.timeShift);
+  return timeShift ? { timeShift } : {};
+}
+
 /**
  * Builds a DataSource from persisted data.
  * Maps 'systemQuery' from backend to 'persistentQuery' for frontend.
@@ -161,6 +169,10 @@ function buildDataSourceFromPersisted(data: PersistedWidgetData, config: Record<
     }
     if (typeof config['ignoreTimeFilter'] === 'boolean') {
       persisted.ignoreTimeFilter = config['ignoreTimeFilter'];
+    }
+    const timeShift = normalizeTimeShift(config['timeShift']);
+    if (timeShift) {
+      persisted.timeShift = timeShift;
     }
     if (typeof config['entitySelectorId'] === 'string' && config['entitySelectorId']) {
       persisted.entitySelectorId = config['entitySelectorId'];
@@ -349,6 +361,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialTimeShift: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).timeShift : undefined,
         initialEntitySelectorId: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialQueryMode: kpiWidget.queryMode,
         initialQueryValueField: kpiWidget.queryValueField,
@@ -417,6 +430,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryName: result.queryName,
           queryFamily: result.queryFamily,
           ignoreTimeFilter: result.ignoreTimeFilter,
+          ...(result.timeShift && { timeShift: result.timeShift }),
           entitySelectorId: result.entitySelectorId
         };
 
@@ -503,6 +517,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
             ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
               ignoreTimeFilter: true
             }),
+            ...timeShiftConfig(widget.dataSource as PersistentQueryDataSource),
             ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
               entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
             })
@@ -674,6 +689,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialTimeShift: isPersistentQuery ? (dataSource as PersistentQueryDataSource).timeShift : undefined,
         initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialRowAction: tableWidget.rowAction,
         initialValueMarkers: tableWidget.valueMarkers
@@ -694,6 +710,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryName: result.queryName,
           queryFamily: result.queryFamily,
           ignoreTimeFilter: result.ignoreTimeFilter,
+          ...(result.timeShift && { timeShift: result.timeShift }),
           entitySelectorId: result.entitySelectorId
         };
 
@@ -777,6 +794,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
             queryRtId: queryDataSource.queryRtId,
             ...(queryDataSource.queryFamily && { queryFamily: queryDataSource.queryFamily }),
             ...(queryDataSource.ignoreTimeFilter && { ignoreTimeFilter: true }),
+            ...timeShiftConfig(queryDataSource),
             ...(queryDataSource.entitySelectorId && { entitySelectorId: queryDataSource.entitySelectorId })
           })
         }
@@ -990,6 +1008,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
             ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
               ignoreTimeFilter: true
             }),
+            ...timeShiftConfig(widget.dataSource as PersistentQueryDataSource),
             ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
               entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
             })
@@ -1089,6 +1108,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialTimeShift: isPersistentQuery ? (dataSource as PersistentQueryDataSource).timeShift : undefined,
         initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialCkQueryTarget: isCkQuery ? (dataSource as ConstructionKitQueryDataSource).queryTarget : undefined,
         initialCkGroupBy: isCkQuery ? (dataSource as ConstructionKitQueryDataSource).groupBy : undefined,
@@ -1130,6 +1150,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryName: result.queryName,
           queryFamily: result.queryFamily,
           ignoreTimeFilter: result.ignoreTimeFilter,
+          ...(result.timeShift && { timeShift: result.timeShift }),
           entitySelectorId: result.entitySelectorId
         } as PersistentQueryDataSource;
       }
@@ -1208,6 +1229,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           ...((dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
             ignoreTimeFilter: true
           }),
+          ...timeShiftConfig(dataSource as PersistentQueryDataSource),
           ...((dataSource as PersistentQueryDataSource).entitySelectorId && {
             entitySelectorId: (dataSource as PersistentQueryDataSource).entitySelectorId
           }),
@@ -1283,6 +1305,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialTimeShift: isPersistentQuery ? (dataSource as PersistentQueryDataSource).timeShift : undefined,
         initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialChartType: barWidget.chartType,
         initialCategoryField: barWidget.categoryField,
@@ -1308,6 +1331,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         queryName: result.queryName,
         queryFamily: result.queryFamily,
         ignoreTimeFilter: result.ignoreTimeFilter,
+        ...(result.timeShift && { timeShift: result.timeShift }),
         entitySelectorId: result.entitySelectorId
       };
 
@@ -1384,6 +1408,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
           ignoreTimeFilter: true
         }),
+        ...timeShiftConfig(widget.dataSource as PersistentQueryDataSource),
         ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
           entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
         }),
@@ -1441,6 +1466,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialQueryName: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryName : undefined,
         initialQueryFamily: isPersistentQuery ? (dataSource as PersistentQueryDataSource).queryFamily : undefined,
         initialIgnoreTimeFilter: isPersistentQuery ? (dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
+        initialTimeShift: isPersistentQuery ? (dataSource as PersistentQueryDataSource).timeShift : undefined,
         initialEntitySelectorId: isPersistentQuery ? (dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialResolutionAware: isPersistentQuery ? (dataSource as PersistentQueryDataSource).resolutionAware : undefined,
         initialRequiredAggregation: isPersistentQuery ? (dataSource as PersistentQueryDataSource).requiredAggregation : undefined,
@@ -1473,6 +1499,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         queryName: result.queryName,
         queryFamily: result.queryFamily,
         ignoreTimeFilter: result.ignoreTimeFilter,
+        ...(result.timeShift && { timeShift: result.timeShift }),
         entitySelectorId: result.entitySelectorId,
         resolutionAware: result.resolutionAware,
         requiredAggregation: result.requiredAggregation,
@@ -1545,6 +1572,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
           ignoreTimeFilter: true
         }),
+        ...timeShiftConfig(widget.dataSource as PersistentQueryDataSource),
         ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
           entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
         }),
@@ -2180,6 +2208,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...((widget.dataSource as PersistentQueryDataSource).ignoreTimeFilter && {
           ignoreTimeFilter: true
         }),
+        ...timeShiftConfig(widget.dataSource as PersistentQueryDataSource),
         ...((widget.dataSource as PersistentQueryDataSource).entitySelectorId && {
           entitySelectorId: (widget.dataSource as PersistentQueryDataSource).entitySelectorId
         }),

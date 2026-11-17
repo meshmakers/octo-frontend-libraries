@@ -828,7 +828,9 @@ export class ProcessDataService {
    * time filter, opted out). Runtime queries ignore the result.
    */
   private buildBindingStreamDataArgs(binding: ProcessWidgetBinding): StreamDataExecutionArgs | undefined {
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(binding.ignoreTimeFilter);
+    const timeArgs = binding.timeShift
+      ? this.stateService.resolveStreamDataTimeArgs(binding.ignoreTimeFilter, binding.timeShift)
+      : this.stateService.resolveStreamDataTimeArgs(binding.ignoreTimeFilter);
     const rtIds = this.stateService.resolveStreamDataRtIds(binding.entitySelectorId);
 
     if (!timeArgs && !rtIds) {

@@ -15,7 +15,7 @@ import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { firstValueFrom } from 'rxjs';
-import { AnyWidgetConfig, KpiQueryMode, KpiWidgetConfig, WidgetFilterConfig, EntitySelectorConfig, MeshBoardVariable } from '../../models/meshboard.models';
+import { AnyWidgetConfig, KpiQueryMode, KpiWidgetConfig, WidgetFilterConfig, EntitySelectorConfig, MeshBoardVariable, MeshBoardTimeShift } from '../../models/meshboard.models';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
@@ -26,6 +26,8 @@ import { RuntimeEntityItem, PersistentQueryItem, QueryColumnItem, CategoryValueI
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { SdTimeShiftEditorComponent } from '../../components/sd-time-shift-editor/sd-time-shift-editor.component';
+import { normalizeTimeShift } from '../../utils/time-shift';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 import { KPI_MAX_DECIMAL_PLACES, normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
@@ -52,6 +54,7 @@ export interface KpiConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  timeShift?: MeshBoardTimeShift;
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
   queryMode?: KpiQueryMode;
@@ -97,6 +100,7 @@ interface TrendOption {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    SdTimeShiftEditorComponent,
     EntitySelectorScopePickerComponent,
     LoadingOverlayComponent,
     FormulaFieldComponent
@@ -288,6 +292,12 @@ interface TrendOption {
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-sd-time-shift-editor
+            [family]="selectedQueryFamily"
+            [ignoreTimeFilter]="ignoreTimeFilter"
+            [(timeShift)]="timeShift">
+          </mm-sd-time-shift-editor>
 
           <mm-entity-selector-scope-picker
             [family]="selectedQueryFamily"
@@ -719,6 +729,7 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialTimeShift?: MeshBoardTimeShift;
   @Input() initialEntitySelectorId?: string;
   @Input() initialQueryMode?: KpiQueryMode;
   @Input() initialQueryValueField?: string;
@@ -752,6 +763,7 @@ export class KpiConfigDialogComponent implements OnInit {
   selectedPersistentQuery: PersistentQueryItem | null = null;
   /** Stream-data opt-out: when true the MeshBoard time filter is not bound to the query. */
   ignoreTimeFilter = false;
+  timeShift?: MeshBoardTimeShift;
   entitySelectorId?: string;
   queryColumns: QueryColumnItem[] = [];
   categoryValues: CategoryValueItem[] = [];
@@ -962,6 +974,7 @@ export class KpiConfigDialogComponent implements OnInit {
     this.dataSourceType = this.initialDataSourceType || 'runtimeEntity';
     this.queryMode = this.initialQueryMode || 'simpleCount';
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.timeShift = normalizeTimeShift(this.initialTimeShift);
     this.entitySelectorId = this.initialEntitySelectorId;
 
     // Check if this is count mode (for runtime entity)
@@ -1184,6 +1197,7 @@ export class KpiConfigDialogComponent implements OnInit {
         queryName: this.selectedPersistentQuery.name,
         queryFamily: family,
         ignoreTimeFilter: this.ignoreTimeFilter,
+        timeShift: family === 'streamData' ? normalizeTimeShift(this.timeShift) : undefined,
         entitySelectorId: this.entitySelectorId,
         queryMode: this.queryMode,
         queryValueField: this.form.queryValueField || undefined,

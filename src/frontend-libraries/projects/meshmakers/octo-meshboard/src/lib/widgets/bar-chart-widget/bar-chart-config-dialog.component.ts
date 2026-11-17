@@ -17,7 +17,8 @@ import {
   WidgetFilterConfig,
   EntitySelectorConfig,
   LineChartSeriesDisplayOptions,
-  ChartValueLabels
+  ChartValueLabels,
+  MeshBoardTimeShift
 } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
@@ -29,6 +30,8 @@ import { PersistentQueryItem, QueryColumnItem } from '../../utils/runtime-entity
 import { QueryFamily, queryFamily } from '../../utils/query-family';
 import { QuerySelectorComponent } from '../../components/query-selector/query-selector.component';
 import { SdTimeFilterToggleComponent } from '../../components/sd-time-filter-toggle/sd-time-filter-toggle.component';
+import { SdTimeShiftEditorComponent } from '../../components/sd-time-shift-editor/sd-time-shift-editor.component';
+import { normalizeTimeShift } from '../../utils/time-shift';
 import { EntitySelectorScopePickerComponent } from '../../components/entity-selector-scope-picker/entity-selector-scope-picker.component';
 import { columnProbeWindow } from '../../utils/column-probe-window';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
@@ -50,6 +53,7 @@ export interface BarChartConfigResult extends WidgetConfigResult {
   queryName?: string;
   queryFamily?: QueryFamily;
   ignoreTimeFilter?: boolean;
+  timeShift?: MeshBoardTimeShift;
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
   chartType: BarChartType;
@@ -92,6 +96,7 @@ export interface BarChartConfigResult extends WidgetConfigResult {
     FieldFilterEditorComponent,
     QuerySelectorComponent,
     SdTimeFilterToggleComponent,
+    SdTimeShiftEditorComponent,
     EntitySelectorScopePickerComponent,
     LoadingOverlayComponent,
     LineChartSeriesEditorComponent,
@@ -122,6 +127,12 @@ export interface BarChartConfigResult extends WidgetConfigResult {
             [family]="selectedQueryFamily"
             [(ignoreTimeFilter)]="ignoreTimeFilter">
           </mm-sd-time-filter-toggle>
+
+          <mm-sd-time-shift-editor
+            [family]="selectedQueryFamily"
+            [ignoreTimeFilter]="ignoreTimeFilter"
+            [(timeShift)]="timeShift">
+          </mm-sd-time-shift-editor>
 
           <mm-entity-selector-scope-picker
             [family]="selectedQueryFamily"
@@ -549,6 +560,7 @@ export class BarChartConfigDialogComponent implements OnInit {
   @Input() initialQueryName?: string;
   @Input() initialQueryFamily?: QueryFamily;
   @Input() initialIgnoreTimeFilter?: boolean;
+  @Input() initialTimeShift?: MeshBoardTimeShift;
   @Input() initialEntitySelectorId?: string;
   @Input() initialChartType?: BarChartType;
   @Input() initialCategoryField?: string;
@@ -591,6 +603,7 @@ export class BarChartConfigDialogComponent implements OnInit {
 
   /** Per-widget opt-out of the MeshBoard time-filter → stream-data binding. */
   ignoreTimeFilter = false;
+  timeShift?: MeshBoardTimeShift;
 
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
@@ -669,6 +682,7 @@ export class BarChartConfigDialogComponent implements OnInit {
 
     // Initialize form with initial values
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
+    this.timeShift = normalizeTimeShift(this.initialTimeShift);
     this.entitySelectorId = this.initialEntitySelectorId;
     this.form.chartType = this.initialChartType ?? 'column';
     this.form.categoryField = this.initialCategoryField ?? '';
@@ -855,6 +869,7 @@ export class BarChartConfigDialogComponent implements OnInit {
       queryName: this.selectedPersistentQuery.name,
       queryFamily: family,
       ignoreTimeFilter: this.ignoreTimeFilter,
+      timeShift: family === 'streamData' ? normalizeTimeShift(this.timeShift) : undefined,
       entitySelectorId: this.entitySelectorId,
       chartType: this.form.chartType,
       categoryField: this.form.categoryField,
