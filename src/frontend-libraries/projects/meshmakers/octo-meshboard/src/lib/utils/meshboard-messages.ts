@@ -26,9 +26,9 @@ export interface MeshBoardMessages {
    * label. Default: 'Pick a {label} to see this data.'
    */
   scopePickRequired?: string;
-  /** Word on the KPI change line of a good change, next to the arrow (AB#9245). Default: 'favourable' */
+  /** Word under the numbers of the KPI change line for a good change (AB#9245). Default: 'Favourable' */
   kpiChangeFavourable?: string;
-  /** Word on the KPI change line of a bad change, next to the arrow (AB#9245). Default: 'unfavourable' */
+  /** Word under the numbers of the KPI change line for a bad change (AB#9245). Default: 'Unfavourable' */
   kpiChangeUnfavourable?: string;
 }
 
@@ -37,8 +37,8 @@ export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'table
   tableNotConfigured: 'Table not configured',
   scopeResolutionFailed: 'Could not resolve the scope of "{label}" - widgets bound to it show no data.',
   scopePickRequired: 'Pick a {label} to see this data.',
-  kpiChangeFavourable: 'favourable',
-  kpiChangeUnfavourable: 'unfavourable',
+  kpiChangeFavourable: 'Favourable',
+  kpiChangeUnfavourable: 'Unfavourable',
 };
 
 /**

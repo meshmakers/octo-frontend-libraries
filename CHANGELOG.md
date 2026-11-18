@@ -22,7 +22,7 @@ starts a new empty "Unreleased" section.
 - New: *An increase is good / bad* under *Show change* (`KpiWidgetConfig.increaseIsGood?: false`, stored only for
   *bad*; editor model `increaseIsGood`). The arrow follows the direction, the colour whether the change is good
   (success) or bad (error), like Power BI's "Low is good" and Grafana's "Inverted". A small word under the numbers, in the
-  same colour, says it without relying on colour: *favourable* / *unfavourable* (none for zero), translatable with the new
+  same colour, says it without relying on colour: *Favourable* / *Unfavourable* (none for zero), translatable with the new
   `MeshBoardMessages.kpiChangeFavourable` / `kpiChangeUnfavourable`.
 
 ### octo-meshboard: stream-data widgets show the previous period or the same period last year (AB#9094, AB#9095)

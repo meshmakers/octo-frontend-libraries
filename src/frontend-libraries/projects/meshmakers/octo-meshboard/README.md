@@ -365,8 +365,8 @@ zero). The colour follows *An increase is (•) good ( ) bad*, shown under *Show
 change `--kendo-color-error`, zero and `–` `--kendo-color-subtle`. Default is *good*; *bad* is saved as
 `increaseIsGood: false` (absent otherwise), so a consumption increase shows `▲ +2 316,17 kWh (+5,7 %)` in the
 error colour and a decrease `▼` in the success colour. So that the meaning does not rest on the colour alone,
-a small word in the same colour stands under the numbers: *favourable* for a good change, *unfavourable* for a
-bad one, none for zero or `–` (e.g. `▲ +2 316,17 kWh (+5,7 %)` with *unfavourable* below it on a consumption
+a small word in the same colour stands under the numbers: *Favourable* for a good change, *Unfavourable* for a
+bad one, none for zero or `–` (e.g. `▲ +2 316,17 kWh (+5,7 %)` with *Unfavourable* below it on a consumption
 tile). The host translates the two words with
 `MESHBOARD_MESSAGES` (`kpiChangeFavourable`, `kpiChangeUnfavourable`). The line follows the
 rules of the time-shift caption: it is shown only while the shift applies (a time filter is active, the

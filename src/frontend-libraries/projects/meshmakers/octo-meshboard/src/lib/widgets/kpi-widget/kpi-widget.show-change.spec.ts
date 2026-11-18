@@ -234,7 +234,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
       expect(arrow(line)).toBe('▲');
-      expect(cue(line)).toBe('favourable');
+      expect(cue(line)).toBe('Favourable');
       expect(line.classList).toContain('change-good');
     });
 
@@ -244,7 +244,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       const line = changeLine(await render(kpi()))!;
 
       expect(arrow(line)).toBe('▼');
-      expect(cue(line)).toBe('unfavourable');
+      expect(cue(line)).toBe('Unfavourable');
       expect(line.classList).toContain('change-bad');
     });
 
@@ -255,7 +255,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
       expect(arrow(line)).toBe('▲');
-      expect(cue(line)).toBe('unfavourable');
+      expect(cue(line)).toBe('Unfavourable');
       expect(line.classList).toContain('change-bad');
     });
 
@@ -266,7 +266,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('−206,27 kWh (−5,6 %)');
       expect(arrow(line)).toBe('▼');
-      expect(cue(line)).toBe('favourable');
+      expect(cue(line)).toBe('Favourable');
       expect(line.classList).toContain('change-good');
     });
 
@@ -309,9 +309,12 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       hostMessages.set({ kpiChangeFavourable: 'günstig', kpiChangeUnfavourable: 'ungünstig' });
       increase();
 
-      const line = changeLine(await render(kpi({ increaseIsGood: false })))!;
+      const unfavourable = changeLine(await render(kpi({ increaseIsGood: false })))!;
+      expect(cue(unfavourable)).toBe('ungünstig');
 
-      expect(cue(line)).toBe('ungünstig');
+      fixture.destroy();
+      const favourable = changeLine(await render(kpi()))!;
+      expect(cue(favourable)).toBe('günstig');
     });
 
     it('the colours are theme variables only (good success, bad error, neutral subtle), no hard-coded colour', async () => {
