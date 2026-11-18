@@ -26,6 +26,8 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
   let fixture: ComponentFixture<KpiWidgetComponent>;
   let state: MeshBoardStateService;
   let execute: ReturnType<typeof vi.fn>;
+  let resolveFamily: ReturnType<typeof vi.fn>;
+  let dataService: Record<string, ReturnType<typeof vi.fn>>;
   let valuesByWindowStart: Map<number, unknown>;
 
   function rows(value: unknown): QueryExecutionResult {
@@ -85,6 +87,8 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       const from = options.streamDataArgs?.from as Date | undefined;
       return of(rows(from ? valuesByWindowStart.get(from.getTime()) : undefined));
     });
+    resolveFamily = vi.fn().mockResolvedValue('streamData');
+    dataService = {};
     TestBed.configureTestingModule({
       imports: [KpiWidgetComponent],
       providers: [
@@ -92,8 +96,8 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         { provide: MeshBoardPersistenceService, useValue: {} },
         { provide: MeshBoardGridService, useValue: { resolveOverlaps: vi.fn().mockReturnValue([]) } },
         { provide: CkModelService, useValue: { isModelAvailableWithMinVersion: vi.fn() } },
-        { provide: DashboardDataService, useValue: {} },
-        { provide: QueryExecutorService, useValue: { execute } },
+        { provide: DashboardDataService, useValue: dataService },
+        { provide: QueryExecutorService, useValue: { execute, resolveFamily } },
         { provide: MESHBOARD_MESSAGES, useValue: hostMessages }
       ]
     });
@@ -342,6 +346,16 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       expect(cueRule).toMatch(/flex-basis:\s*100%/);
       expect(cueRule).not.toMatch(/(^|;)\s*color:/);
     });
+
+    it('the line wraps in a narrow tile instead of overflowing it', async () => {
+      increase();
+      await render(kpi());
+
+      const css = Array.from(document.querySelectorAll('style')).map(s => s.textContent ?? '').join('\n');
+      const lineRule = css.match(/\.kpi-change\[[^{]*\{([^}]*)\}/)?.[1] ?? css.match(/\.kpi-change\s*\{([^}]*)\}/)?.[1] ?? '';
+      expect(lineRule).toMatch(/flex-wrap:\s*wrap/);
+      expect(lineRule).not.toMatch(/white-space:\s*nowrap/);
+    });
   });
 
   describe('criterion 4: no base value -> "–"', () => {
@@ -361,6 +375,44 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       const line = changeLine(await render(kpi()))!;
 
       expect(plain(line.textContent)).toBe('–');
+    });
+
+    it('current period without rows -> "–", not −100 %, the tile keeps the shifted 100', async () => {
+      answer(SEPTEMBER_2026.from, 100);
+
+      const el = await render(kpi());
+
+      expect(value(el)).toBe('100');
+      expect(plain(changeLine(el)!.textContent)).toBe('–');
+      expect(changeLine(el)!.classList).toContain('change-neutral');
+    });
+
+    it('a real current total of 0 is a change: 0 vs shifted 100 -> "−100 kWh (−100,0 %)"', async () => {
+      answer(SEPTEMBER_2026.from, 100);
+      answer(OCTOBER_2026.from, 0);
+
+      const el = await render(kpi());
+
+      expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('−100 kWh (−100,0 %)');
+    });
+
+    it('grouped query: no row of the KPI category in the current period -> "–"; a 0 in that row is a change', async () => {
+      const grouped = (category: string, total: unknown): QueryExecutionResult => ({
+        ...rows(undefined),
+        rows: [{ __typename: 'RtGroupingAggregationQueryRow', cells: [{ attributePath: 'site', value: category }, { attributePath: 'energy', value: total }] }]
+      }) as unknown as QueryExecutionResult;
+      const config = kpi({ queryMode: 'groupedAggregation', queryCategoryField: 'site', queryCategoryValue: 'North' });
+      let current = grouped('South', 80);
+      execute.mockImplementation((_family: unknown, _rtId: unknown, options: QueryExecutionOptions): Observable<QueryExecutionResult> =>
+        of((options.streamDataArgs!.from as Date).getTime() === SEPTEMBER_2026.from.getTime() ? grouped('North', 100) : current));
+
+      let el = await render(config);
+      expect(value(el)).toBe('100');
+      expect(plain(changeLine(el)!.textContent)).toBe('–');
+
+      current = grouped('North', 0);
+      el = await render(config);
+      expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('−100 kWh (−100,0 %)');
     });
 
     it('shifted period with an empty (null) cell -> value "-" and change "–"', async () => {
@@ -624,6 +676,155 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       expect(execute).not.toHaveBeenCalled();
       expect(value(el)).toBe('-');
       expect(changeLine(el)).toBeNull();
+    });
+  });
+
+  describe('the current-period query is optional: it never holds back or disturbs the shifted value', () => {
+    beforeEach(() => {
+      answer(SEPTEMBER_2026.from, 40674.316);
+      answer(OCTOBER_2026.from, 42990.484);
+    });
+
+    it('the shifted 40 674,32 shows as soon as its query answers, while the current-period query still runs; the line follows', async () => {
+      const slowCurrent = new Subject<QueryExecutionResult>();
+      execute.mockImplementation((_family: unknown, _rtId: unknown, options: QueryExecutionOptions): Observable<QueryExecutionResult> => {
+        const from = options.streamDataArgs!.from as Date;
+        return from.getTime() === OCTOBER_2026.from.getTime() ? slowCurrent : of(rows(valuesByWindowStart.get(from.getTime())));
+      });
+
+      const el = await render(kpi({ outputVariableName: 'shiftedEnergy' }));
+
+      expect(el.querySelector('.loading-indicator')).toBeNull();
+      expect(value(el)).toBe('40 674,32');
+      expect(changeLine(el)).toBeNull();
+      expect(state.getVariables().find(v => v.name === 'shiftedEnergy')?.value).toBe('40674.316');
+
+      slowCurrent.next(rows(42990.484));
+      slowCurrent.complete();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+    });
+
+    it('a failure of the current-period query is not toasted (silentErrors), a failure of the shifted query is', async () => {
+      await render(kpi());
+
+      const silent = execute.mock.calls.map(call => {
+        const options = call[2] as QueryExecutionOptions;
+        return { from: (options.streamDataArgs!.from as Date).getTime(), silentErrors: options.silentErrors === true };
+      });
+      expect(silent).toEqual(expect.arrayContaining([
+        { from: OCTOBER_2026.from.getTime(), silentErrors: true },
+        { from: SEPTEMBER_2026.from.getTime(), silentErrors: false }
+      ]));
+      expect(silent).toHaveLength(2);
+    });
+
+    it('a saved config without queryFamily that resolves to a runtime query sends one query and shows no change line', async () => {
+      resolveFamily.mockResolvedValue('runtime');
+
+      const el = await render(kpi({}, source({ queryFamily: undefined })));
+
+      expect(resolveFamily).toHaveBeenCalledWith('q-energy');
+      expect(execute).toHaveBeenCalledTimes(1);
+      expect(windows()).toEqual([SEPTEMBER_2026]);
+      expect(changeLine(el)).toBeNull();
+    });
+
+    it('a saved config without queryFamily that resolves to stream data shows the change line', async () => {
+      const el = await render(kpi({}, source({ queryFamily: undefined })));
+
+      expect(windows()).toEqual(expect.arrayContaining([SEPTEMBER_2026, OCTOBER_2026]));
+      expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+    });
+
+    it('a relative range: both windows come from one clock reading, so the previous window ends where the current one starts', async () => {
+      board({ type: 'relative', relativeValue: 1, relativeUnit: 'hours' });
+      let reading = 0;
+      vi.spyOn(state, 'resolveCurrentTimeRange').mockImplementation(() => {
+        const to = at('2026-11-10T12:00:00+01:00').getTime() + 20 * reading++;
+        return { from: new Date(to - 3_600_000), to: new Date(to) };
+      });
+
+      await render(kpi());
+
+      const [first, second] = windows().sort((a, b) => a.from.getTime() - b.from.getTime());
+      expect(windows()).toHaveLength(2);
+      expect(first.to.getTime()).toBe(second.from.getTime());
+    });
+  });
+
+  describe('runtime-entity loads of a KPI switched to the shifted query write nothing (load generation)', () => {
+    const entity = (rtId: string, total: number) => ({
+      rtId, ckTypeId: 'System/Entity', attributes: [{ attributeName: 'energy', value: total }], associations: []
+    });
+
+    beforeEach(() => {
+      answer(SEPTEMBER_2026.from, 40674.316);
+      answer(OCTOBER_2026.from, 42990.484);
+    });
+
+    async function switchToShiftedQuery(runtime: KpiWidgetConfig): Promise<HTMLElement> {
+      fixture = TestBed.createComponent(KpiWidgetComponent);
+      fixture.componentRef.setInput('config', runtime);
+      fixture.detectChanges();
+      fixture.componentRef.setInput('config', kpi({ outputVariableName: 'shiftedEnergy' }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    }
+
+    it('a late runtime entity does not replace the shifted value, its change line or its output variable', async () => {
+      const lateEntity = new Subject<ReturnType<typeof entity>>();
+      dataService['fetchEntityWithAssociations'] = vi.fn().mockReturnValue(lateEntity);
+      const runtime = kpi({ showChange: undefined, valueAttribute: 'energy' },
+        { type: 'runtimeEntity', rtId: 'meter-1', ckTypeId: 'System/Entity' } as unknown as PersistentQueryDataSource);
+
+      const el = await switchToShiftedQuery(runtime);
+      expect(value(el)).toBe('40 674,32');
+
+      lateEntity.next(entity('meter-1', 7));
+      lateEntity.complete();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(value(el)).toBe('40 674,32');
+      expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+      expect(state.getVariables().find(v => v.name === 'shiftedEnergy')?.value).toBe('40674.316');
+    });
+
+    it('a late runtime-entity error does not show an error on the shifted query', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const lateEntity = new Subject<ReturnType<typeof entity>>();
+      dataService['fetchEntityWithAssociations'] = vi.fn().mockReturnValue(lateEntity);
+      const runtime = kpi({ showChange: undefined, valueAttribute: 'energy' },
+        { type: 'runtimeEntity', rtId: 'meter-1', ckTypeId: 'System/Entity' } as unknown as PersistentQueryDataSource);
+
+      const el = await switchToShiftedQuery(runtime);
+      lateEntity.error(new Error('late failure'));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(el.querySelector('.error-message')).toBeNull();
+      expect(value(el)).toBe('40 674,32');
+    });
+
+    it('a late runtime count does not replace the shifted value', async () => {
+      let answerCount!: (value: Map<string, number>) => void;
+      dataService['fetchAggregations'] = vi.fn().mockReturnValue(new Promise(resolve => { answerCount = resolve; }));
+      const count = kpi({ showChange: undefined, valueAttribute: '_count' },
+        { type: 'runtimeEntity', ckTypeId: 'System/Entity' } as unknown as PersistentQueryDataSource);
+
+      const el = await switchToShiftedQuery(count);
+      answerCount(new Map([['count', 7]]));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(value(el)).toBe('40 674,32');
+      expect(el.querySelector('.loading-indicator')).toBeNull();
+      expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
     });
   });
 });

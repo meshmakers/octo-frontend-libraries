@@ -358,6 +358,7 @@ digit from the difference of the rounded values shown here (42 990,484 - 40 674,
 | 1 250 | 1 250 | `0 kWh (0,0 %)` (with 2 decimals: `0,00 kWh (0,0 %)`) |
 | 3,004 | 3 | `0,00 kWh (0,0 %)` with 2 decimals: a change that rounds to zero counts as zero |
 | any | 0 or no data | `–` |
+| no data (no row, or an empty cell) | any | `–` (a current total of 0 is a real value: 0 vs 100 is `▼ −100 kWh (−100,0 %)`) |
 
 The tile value stays the shifted value. The arrow follows the direction (▲ increase, ▼ decrease, none for
 zero). The colour follows *An increase is (•) good ( ) bad*, shown under *Show change* (like Power BI's KPI
@@ -370,11 +371,15 @@ bad one, none for zero or `–` (e.g. `▲ +2 316,17 kWh (+5,7 %)` with *Unfavou
 tile). The host translates the two words with
 `MESHBOARD_MESSAGES` (`kpiChangeFavourable`, `kpiChangeUnfavourable`). The line follows the
 rules of the time-shift caption: it is shown only while the shift applies (a time filter is active, the
-time filter is not ignored, not a runtime query). While the queries run the tile shows its loading state;
-an empty entity-selector scope shows `-` and no line, without a query. When only the query of the current
-period fails, the tile keeps the shifted value (and its output variable) without a line; when the shifted
-query fails, the tile shows its error. A load that a newer one replaced (a refresh, another pick) changes
-nothing when it ends late.
+time filter is not ignored, not a runtime query; a saved widget without a query family is looked up first and
+sends the second query only for stream data). Both windows come from one reading of the clock, so with a
+relative range ("last hour") the shifted window ends exactly where the current one starts. While the shifted
+query runs the tile shows its loading state; its value shows as soon as it arrives, and the line follows when
+the query of the current period answers. An empty entity-selector scope shows `-` and no line, without a
+query. When only the query of the current period fails, the tile keeps the shifted value (and its output
+variable) without a line and without an error message; when the shifted query fails, the tile shows its error.
+A load that a newer one replaced (a refresh, another pick, a switch to another data source) changes nothing
+when it ends late.
 
 ### Gauge Widget
 Displays a numeric value as arc, circular, linear, or radial gauge.

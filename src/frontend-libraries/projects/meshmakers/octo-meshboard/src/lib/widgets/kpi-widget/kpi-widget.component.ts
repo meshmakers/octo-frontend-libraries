@@ -14,6 +14,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
 import { applyValueMultiplier, formatWidgetNumber, getNumberFormat, matchesAttributePath } from '../../utils/widget-data-utils';
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
+import { QueryFamily } from '../../utils/query-family';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { hasTimeShiftCaption } from '../../components/time-shift-caption/time-shift-caption.component';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
@@ -454,18 +455,22 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
 
       // Normal case: fetch single entity and display attribute
       // Note: isNotConfigured() check at top of loadData() ensures rtId and ckTypeId are set
+      const generation = this.loadGeneration;
       this._isLoading.set(true);
       this._error.set(null);
 
       this.dataService.fetchEntityWithAssociations(dataSource.rtId!, dataSource.ckTypeId!)
         .pipe(
           catchError(err => {
-            console.error('Error loading KPI data:', err);
-            this._error.set('Failed to load data');
+            if (generation === this.loadGeneration) {
+              console.error('Error loading KPI data:', err);
+              this._error.set('Failed to load data');
+            }
             return of(null);
           })
         )
         .subscribe(entityData => {
+          if (generation !== this.loadGeneration) return;
           this._data.set(entityData);
           this._isLoading.set(false);
         });
@@ -476,6 +481,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     // Note: isNotConfigured() check in loadData() ensures ckTypeId is set
     const dataSource = this.config.dataSource;
     if (dataSource.type !== 'runtimeEntity') return;
+    const generation = this.loadGeneration;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -490,6 +496,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       }];
 
       const results = await this.dataService.fetchAggregations(queries);
+      if (generation !== this.loadGeneration) return;
       const count = results.get('count') ?? 0;
 
       // Create a synthetic entity with the count as an attribute
@@ -500,10 +507,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         associations: []
       };
       this._data.set(countEntity);
+      this._isLoading.set(false);
     } catch (err) {
+      if (generation !== this.loadGeneration) return;
       console.error('Error loading count data:', err);
       this._error.set('Failed to load count');
-    } finally {
       this._isLoading.set(false);
     }
   }
@@ -535,26 +543,49 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         return;
       }
       const scopeRtIds = scope.kind === 'scoped' ? scope.rtIds : undefined;
-      const execute = (streamDataArgs: StreamDataExecutionArgs | undefined): Promise<number | string | null> => firstValueFrom(
-        this.queryExecutor.execute(dataSource.queryFamily, dataSource.queryRtId, {
+      const execute = (
+        family: QueryFamily | undefined,
+        streamDataArgs: StreamDataExecutionArgs | undefined,
+        silentErrors = false
+      ): Promise<QueryExecutionResult> => firstValueFrom(
+        this.queryExecutor.execute(family, dataSource.queryRtId, {
           fieldFilter: fieldFilter ?? undefined,
           streamDataArgs,
           // Runtime queries: `rtId IN` field filter (AB#7725); stream data: arg.rtIds.
-          scopeRtIds
+          scopeRtIds,
+          ...(silentErrors && { silentErrors })
         }).pipe(
           catchError(err => {
             console.error('Error loading KPI query data:', err);
             throw err;
           })
         )
-      ).then(result => this.queryValue(result));
+      );
 
-      const [value, currentValue] = await Promise.all([
-        execute(this.buildStreamDataArgs(dataSource.timeShift)),
-        this.changeApplies() ? execute(this.buildStreamDataArgs(undefined)).catch(() => undefined) : Promise.resolve(undefined)
-      ]);
+      const comparison = this.changeApplies()
+        ? this.stateService.resolveStreamDataComparisonTimeArgs(dataSource.ignoreTimeFilter, dataSource.timeShift)
+        : undefined;
+      if (comparison) {
+        const currentArgs = this.buildStreamDataArgs(comparison.current);
+        const family = dataSource.queryFamily
+          ? Promise.resolve(dataSource.queryFamily)
+          : this.queryExecutor.resolveFamily(dataSource.queryRtId);
+        family
+          .then(resolved => resolved === 'streamData'
+            ? execute(resolved, currentArgs, true).then(result => this.queryValue(result, null))
+            : undefined)
+          .catch(() => undefined)
+          .then(currentValue => {
+            if (generation === this.loadGeneration && currentValue !== undefined) {
+              this._currentValue.set(currentValue);
+            }
+          });
+      }
+
+      const shiftedTimeArgs = comparison?.shifted
+        ?? this.stateService.resolveStreamDataTimeArgs(dataSource.ignoreTimeFilter, dataSource.timeShift);
+      const value = this.queryValue(await execute(dataSource.queryFamily, this.buildStreamDataArgs(shiftedTimeArgs)));
       if (generation !== this.loadGeneration) return;
-      this._currentValue.set(currentValue);
 
       // Create a synthetic entity with the value
       const kpiEntity: RuntimeEntityData = {
@@ -579,7 +610,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
    * (e.g. 1 for an Integral over kW → kWh, 0.001 for W → kWh). The factor applies to numeric
    * values only; strings and null (no data) pass through unchanged.
    */
-  private queryValue(result: QueryExecutionResult): number | string | null {
+  private queryValue(result: QueryExecutionResult, withoutRow: 0 | null = 0): number | string | null {
     let value: number | string | null = 0;
     switch (this.config.queryMode ?? 'simpleCount') {
       case 'simpleCount':
@@ -587,11 +618,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         break;
 
       case 'aggregation':
-        value = this.extractAggregationValue(result);
+        value = KpiWidgetComponent.orWithoutRow(this.extractAggregationValue(result), withoutRow);
         break;
 
       case 'groupedAggregation':
-        value = this.extractGroupedAggregationValue(result);
+        value = KpiWidgetComponent.orWithoutRow(this.extractGroupedAggregationValue(result), withoutRow);
         break;
     }
     return applyValueMultiplier(value, this.config.valueMultiplier);
@@ -628,6 +659,10 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     };
   }
 
+  private static orWithoutRow(value: number | string | null | undefined, withoutRow: 0 | null): number | string | null {
+    return value === undefined ? withoutRow : value;
+  }
+
   private static finiteNumber(value: unknown): number | null {
     if (typeof value === 'number') return Number.isFinite(value) ? value : null;
     if (typeof value !== 'string') return null;
@@ -635,9 +670,8 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return Number.isFinite(parsed) ? parsed : null;
   }
 
-  private buildStreamDataArgs(timeShift: PersistentQueryDataSource['timeShift']): StreamDataExecutionArgs | undefined {
+  private buildStreamDataArgs(timeArgs: { from: Date; to: Date } | undefined): StreamDataExecutionArgs | undefined {
     const ds = this.config.dataSource as PersistentQueryDataSource;
-    const timeArgs = this.stateService.resolveStreamDataTimeArgs(ds.ignoreTimeFilter, timeShift);
     const rtIds = this.stateService.resolveStreamDataRtIds(ds.entitySelectorId);
     if (!timeArgs && !rtIds) {
       return undefined;
@@ -645,11 +679,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return { ...timeArgs, rtIds };
   }
 
-  private extractAggregationValue(queryResult: QueryExecutionResult): number | string | null {
+  private extractAggregationValue(queryResult: QueryExecutionResult): number | string | null | undefined {
     const firstRow = queryResult.rows.find(row =>
       KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
     );
-    if (!firstRow) return 0;
+    if (!firstRow) return undefined;
 
     const valueField = this.config.queryValueField;
     for (const cell of firstRow.cells) {
@@ -662,7 +696,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return firstRow.cells.length > 0 ? this.extractCellValue(firstRow.cells[0].value) : 0;
   }
 
-  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number | string | null {
+  private extractGroupedAggregationValue(queryResult: QueryExecutionResult): number | string | null | undefined {
     const categoryField = this.config.queryCategoryField;
     const categoryValue = this.config.queryCategoryValue;
     const valueField = this.config.queryValueField;
@@ -691,7 +725,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       }
     }
 
-    return 0;
+    return undefined;
   }
 
   /**

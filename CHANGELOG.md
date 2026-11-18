@@ -15,7 +15,11 @@ starts a new empty "Unreleased" section.
 - New (additive): `KpiWidgetConfig.showChange?: true`. A KPI on a stream-data query with a time shift can show
   one line under the shifted value with the change to the current (unshifted) board period, e.g.
   `▲ +2 316,17 kWh (+5,7 %)` or `▼ −206,27 kWh (−5,6 %)`, coloured with `--kendo-color-success` / `--kendo-color-error`
-  (zero neutral), `–` when the shifted period has no data. The KPI then sends a second query for the current window.
+  (zero neutral), `–` when either period has no data. The KPI then sends a second query for the current window
+  (stream data only, without an error toast); the shifted value does not wait for it, and both windows come from one
+  clock reading (new `MeshBoardStateService.resolveStreamDataComparisonTimeArgs`).
+- Fix: a KPI whose runtime-entity or runtime-count load ends after the widget switched to another data source no
+  longer overwrites the new value or shows that load's error.
 - New: *Show change* under *Compare with* in the KPI dialog (`mm-sd-time-shift-editor` input `offerShowChange`, model
   `showChange`); only with *Previous period* / *Same period last year*, disabled while the time filter is ignored.
   Boards without the option store, query and render exactly as before.

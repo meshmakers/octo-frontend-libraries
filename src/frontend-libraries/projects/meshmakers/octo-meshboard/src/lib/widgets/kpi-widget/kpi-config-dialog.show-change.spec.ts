@@ -213,6 +213,18 @@ describe('KPI dialog — criterion 1: "Show change" option visibility and storag
       }
       expect(direction(el, 'good')!.closest('fieldset')).toBe(direction(el, 'bad')!.closest('fieldset'));
       expect(direction(el, 'good')!.name).toBe(direction(el, 'bad')!.name);
+      expect(direction(el, 'good')!.name).not.toBe('');
+      expect(direction(el, 'good')!.name).not.toBe(radio(el, 'Previous period').name);
+    });
+
+    it('choosing "bad" keeps "Previous period" checked: the two groups do not uncheck each other', async () => {
+      const el = await open(withShift({ by: 'period', count: -1 }, {}, true));
+
+      direction(el, 'bad')!.click();
+      fixture.detectChanges();
+
+      expect(radio(el, 'Previous period').checked).toBe(true);
+      expect(direction(el, 'bad')!.checked).toBe(true);
     });
 
     it('is disabled while "Ignore MeshBoard time filter" is on', async () => {

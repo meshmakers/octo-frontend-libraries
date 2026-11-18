@@ -832,6 +832,28 @@ export class MeshBoardStateService {
     if (!shift || !range) {
       return null;
     }
+    return this.shiftedPeriodOf(range, shift);
+  }
+
+  /**
+   * The current board window and the window moved by `timeShift`, both from one reading of the clock, so the
+   * windows of a relative range meet exactly (AB#9245, the KPI change line). `undefined` with `ignoreTimeFilter`,
+   * without a valid shift or without an active time filter.
+   */
+  resolveStreamDataComparisonTimeArgs(
+    ignoreTimeFilter: boolean | undefined,
+    timeShift: MeshBoardTimeShift | undefined
+  ): { current: { from: Date; to: Date }; shifted: { from: Date; to: Date } } | undefined {
+    const shift = normalizeTimeShift(timeShift);
+    const range = ignoreTimeFilter || !shift ? null : this.resolveCurrentTimeRange();
+    const shifted = range && shift ? this.shiftedPeriodOf(range, shift)?.range : undefined;
+    if (!range || !shifted) {
+      return undefined;
+    }
+    return { current: { from: range.from, to: range.to }, shifted: { from: shifted.from, to: shifted.to } };
+  }
+
+  private shiftedPeriodOf(range: TimeRange, shift: MeshBoardTimeShift): { range: TimeRange; selection: TimeRangeSelection | null } | null {
     const config = this._meshBoardConfig().timeFilter;
     const selection = config?.selection;
     if (!this._hostTimeRange() && selection) {

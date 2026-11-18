@@ -149,6 +149,7 @@ export class MyComponent {
 | `resolveStreamDataTimeArgs(ignoreTimeFilter?, timeShift?)` | `{from, to} \| undefined` | Bind time filter to SD `streamDataArgs`; `undefined` when no filter or opted out (a `timeShift` is then ignored); with a valid `timeShift` the window of `resolveShiftedTimeRange` (AB#9094) |
 | `resolveShiftedTimeRange(timeShift?)` | `TimeRange \| null` | The active time filter moved by a calendar time shift (AB#9094, see *Time shift*); without a valid shift exactly `resolveCurrentTimeRange()` |
 | `resolveShiftedPeriod(timeShift?)` | `{ range, selection } \| null` | The shifted window plus the shifted calendar selection it came from (`null` selection for a relative, custom or host range); `null` without a valid shift or time filter. Feeds the widget caption (AB#9095) |
+| `resolveStreamDataComparisonTimeArgs(ignoreTimeFilter, timeShift)` | `{ current, shifted } \| undefined` | Current board window and shifted window from one clock reading (AB#9245, KPI change line); `undefined` when ignored, without a valid shift or without a time filter |
 | `setHostTimeRange(state \| null, owner?)` / `clearHostTimeRange(owner)` / `hostTimeRange` | `void` / `void` / `Signal<HostTimeRangeState \| null>` | Period of the embedding host (`mm-meshboard-view [timeRange]`, AB#7582): transient, never persisted, owner-aware clearing (root service shared by views); while set and the filter is enabled `resolveCurrentTimeRange()` returns its exact instants |
 | `isStreamDataBlockedByHostTimeRange(ignoreTimeFilter?)` | `boolean` | True while an invalid host period blocks a stream-data query bound to the time filter (AB#7582); `resolveStreamDataScope(id, family, ignoreTimeFilter)` then returns `empty`/`invalidTimeRange`; the process binding and the widget-group repeater check it directly |
 | `setEntitySelectorScopePending(selectorId)` | `void` | Mark a selector's scope as resolving (AB#7721) |
@@ -368,16 +369,24 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   query, `applyConfigResult` drops it otherwise). The editor offers it through `mm-sd-time-shift-editor`
   `[offerShowChange]="true" [(showChange)]` (KPI dialog only; shown with a shift, disabled like the shift while the time
   filter is ignored). The widget's `changeApplies` is `showChange` plus `hasTimeShiftCaption` (the caption's rule);
-  then `loadPersistentQueryData` sends the shifted query and a second one with
-  `resolveStreamDataTimeArgs(ignoreTimeFilter)` (no shift) in parallel, same filters, scope, `queryMode` and
-  `valueMultiplier` (`queryValue`). A failure of the current-period query only drops the line (tile, value and
+  then `loadPersistentQueryData` takes both windows from `resolveStreamDataComparisonTimeArgs(ignoreTimeFilter,
+  timeShift)` (one `resolveCurrentTimeRange()` reading, the shifted window derived from it, so relative windows meet
+  exactly) and sends the shifted query and a second one for the current window in parallel, same filters, scope,
+  `queryMode` and `valueMultiplier` (`queryValue`). The second query goes out only for stream data: without a saved
+  `queryFamily` the widget asks `QueryExecutorService.resolveFamily` first. It runs with `silentErrors: true` (no
+  toast) and is not awaited: the shifted value, the output variable and the end of the loading state come with the
+  shifted query, the line when the current value arrives. The current value is `null` (en dash) when the result has
+  no row for the KPI (aggregation: no supported row; grouped: no row of `queryCategoryValue`), where the shifted side
+  keeps the 0 of the tile. A failure of the current-period query only drops the line (tile, value and
   output variable stay); a failure of the shifted query is the tile's error. `loadGeneration` (bumped by every
   `loadData` and `ngOnDestroy`, the line chart's AB#8994 pattern) lets a superseded load write nothing, also not
-  its error; `loadData` clears `_isLoading` right after the bump, so a tile switched to formula, static or "not
+  its error, for persistent queries, runtime entities and runtime counts alike; `loadData` clears `_isLoading` right
+  after the bump, so a tile switched to formula, static or "not
   configured" during a load does not keep its loading state. `formatChange`: change = current - shifted, rounded to the KPI decimals (automatic: 2
   for a fraction) before the sign; a change that rounds to zero is zero: no sign, % `0,0`, neutral, no arrow;
   otherwise % = change / |shifted| x 100, one decimal; sign `+`
-  or U+2212; unit = `suffix`; `–` (U+2013) when the shifted value is 0, null or not numeric. Line `.kpi-change`
+  or U+2212; unit = `suffix`; `–` (U+2013) when the shifted value is 0, null or not numeric, or the current value
+  is null or not numeric. Line `.kpi-change`
   with `▲`/`▼` by direction (`KpiChange.direction`) and class `change-good|bad|neutral` by `KpiChange.tone`
   (`--kendo-color-success|error|subtle`, no fallback colour) and, as last item of the line with `flex-basis: 100%` (so
   on its own row under the numbers, inheriting the tone colour), the word `.kpi-change-cue`
@@ -388,8 +397,10 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   bad* (`[(increaseIsGood)]`, radio group in its own fieldset with the legend "An increase is", so a screen
   reader does not announce it under "Compare with") only while *Show change* is checked.
   Spec: `widgets/kpi-widget/kpi-widget.show-change.spec.ts` (values, colours, no base, every range type, host range,
-  loading, empty scope, error of either query, no old line while a refresh runs, superseded loads), `widgets/kpi-widget/kpi-config-dialog.show-change.spec.ts` (option in the rendered dialog,
-  save, reload, removal, unchanged boards).
+  loading, empty scope, error of either query, no old line while a refresh runs, superseded loads, no current row,
+  shifted value before the current answer, silent current query, legacy config without family, one clock reading,
+  late runtime entity / count, line wraps), `widgets/kpi-widget/kpi-config-dialog.show-change.spec.ts` (option in the
+  rendered dialog, save, reload, removal, unchanged boards, separate radio groups).
 - **One shift per chart (Grafana's panel time shift):** the primary query's shift applies to every query series of a
   multi-source line or bar chart that uses the board time filter (a series with its own `ignoreTimeFilter` reads
   unfiltered and unshifted; `primaryTimeShift()` in the line chart, `fetchSourceRows` in the bar chart); a
