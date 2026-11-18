@@ -543,6 +543,23 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         expect(fixture.componentInstance.change()).toBeNull();
       });
 
+      it('switching the tile to a static value while the query runs shows 42, not the loading dots', async () => {
+        answerLate(OCTOBER_2026.from);
+        fixture = TestBed.createComponent(KpiWidgetComponent);
+        fixture.componentRef.setInput('config', kpi({}, source({ entitySelectorId: 'site' })));
+        fixture.detectChanges();
+        const el = fixture.nativeElement as HTMLElement;
+        expect(el.querySelector('.loading-indicator')).not.toBeNull();
+
+        fixture.componentRef.setInput('config', kpi({ showChange: undefined, staticValue: '42' }, { type: 'static' } as unknown as PersistentQueryDataSource));
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(el.querySelector('.loading-indicator')).toBeNull();
+        expect(value(el)).toBe('42');
+      });
+
       it('a late failure of the old pick\'s shifted query does not show an error', async () => {
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
         const el = await switchToEmptyScopeWhileQueryRuns(SEPTEMBER_2026.from);

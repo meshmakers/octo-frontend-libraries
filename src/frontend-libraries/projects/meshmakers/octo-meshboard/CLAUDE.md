@@ -373,7 +373,8 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   `valueMultiplier` (`queryValue`). A failure of the current-period query only drops the line (tile, value and
   output variable stay); a failure of the shifted query is the tile's error. `loadGeneration` (bumped by every
   `loadData` and `ngOnDestroy`, the line chart's AB#8994 pattern) lets a superseded load write nothing, also not
-  its error. `formatChange`: change = current - shifted, rounded to the KPI decimals (automatic: 2
+  its error; `loadData` clears `_isLoading` right after the bump, so a tile switched to formula, static or "not
+  configured" during a load does not keep its loading state. `formatChange`: change = current - shifted, rounded to the KPI decimals (automatic: 2
   for a fraction) before the sign; a change that rounds to zero is zero: no sign, % `0,0`, neutral, no arrow;
   otherwise % = change / |shifted| x 100, one decimal; sign `+`
   or U+2212; unit = `suffix`; `–` (U+2013) when the shifted value is 0, null or not numeric. Line `.kpi-change`

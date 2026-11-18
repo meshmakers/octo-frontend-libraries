@@ -402,6 +402,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
 
   private loadData(): void {
     this.loadGeneration++;
+    this._isLoading.set(false);
     // Skip loading if widget is not configured - isNotConfigured() handles the display
     if (this.isNotConfigured()) {
       return;
