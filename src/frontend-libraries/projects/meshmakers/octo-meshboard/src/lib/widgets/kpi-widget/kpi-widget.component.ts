@@ -548,7 +548,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         : dataSource.queryFamily;
       if (generation !== this.loadGeneration) return;
 
-      const scope =this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
+      const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
       if (scope.kind === 'pending') {
         return;
       }
