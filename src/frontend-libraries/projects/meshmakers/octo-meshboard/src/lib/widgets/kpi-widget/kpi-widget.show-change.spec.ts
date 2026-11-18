@@ -347,14 +347,16 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       expect(cueRule).not.toMatch(/(^|;)\s*color:/);
     });
 
-    it('the line wraps in a narrow tile instead of overflowing it', async () => {
+    it('the line wraps in a narrow tile: the line rule wraps and neither the line nor its text forbids wrapping', async () => {
       increase();
       await render(kpi());
 
       const css = Array.from(document.querySelectorAll('style')).map(s => s.textContent ?? '').join('\n');
-      const lineRule = css.match(/\.kpi-change\[[^{]*\{([^}]*)\}/)?.[1] ?? css.match(/\.kpi-change\s*\{([^}]*)\}/)?.[1] ?? '';
-      expect(lineRule).toMatch(/flex-wrap:\s*wrap/);
-      expect(lineRule).not.toMatch(/white-space:\s*nowrap/);
+      const rule = (selector: string): string =>
+        css.match(new RegExp(`${selector}\\[[^{]*\\{([^}]*)\\}`))?.[1] ?? css.match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+      expect(rule('\\.kpi-change')).toMatch(/flex-wrap:\s*wrap/);
+      expect(rule('\\.kpi-change')).not.toMatch(/white-space:\s*nowrap/);
+      expect(rule('\\.kpi-change-text')).not.toMatch(/white-space:\s*nowrap/);
     });
   });
 
@@ -413,6 +415,27 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       current = grouped('North', 0);
       el = await render(config);
       expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('−100 kWh (−100,0 %)');
+    });
+
+    it('grouped query: the KPI category row of the current period has no value cell -> "–", not −100 %', async () => {
+      const shifted = { ...rows(undefined), rows: [{ __typename: 'RtGroupingAggregationQueryRow', cells: [{ attributePath: 'site', value: 'North' }, { attributePath: 'energy', value: 100 }] }] };
+      const current = { ...rows(undefined), rows: [{ __typename: 'RtGroupingAggregationQueryRow', cells: [{ attributePath: 'site', value: 'North' }] }] };
+      execute.mockImplementation((_family: unknown, _rtId: unknown, options: QueryExecutionOptions): Observable<QueryExecutionResult> =>
+        of(((options.streamDataArgs!.from as Date).getTime() === SEPTEMBER_2026.from.getTime() ? shifted : current) as unknown as QueryExecutionResult));
+
+      const el = await render(kpi({ queryMode: 'groupedAggregation', queryCategoryField: 'site', queryCategoryValue: 'North' }));
+
+      expect(value(el)).toBe('100');
+      expect(plain(changeLine(el)!.textContent)).toBe('–');
+    });
+
+    it('grouped query: a shifted row without value cell still shows 0 in the tile, as before', async () => {
+      const shifted = { ...rows(undefined), rows: [{ __typename: 'RtGroupingAggregationQueryRow', cells: [{ attributePath: 'site', value: 'North' }] }] };
+      execute.mockImplementation((): Observable<QueryExecutionResult> => of(shifted as unknown as QueryExecutionResult));
+
+      const el = await render(kpi({ showChange: undefined, queryMode: 'groupedAggregation', queryCategoryField: 'site', queryCategoryValue: 'North' }));
+
+      expect(value(el)).toBe('0');
     });
 
     it('shifted period with an empty (null) cell -> value "-" and change "–"', async () => {
@@ -726,17 +749,41 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       const el = await render(kpi({}, source({ queryFamily: undefined })));
 
+      expect(resolveFamily).toHaveBeenCalledTimes(1);
       expect(resolveFamily).toHaveBeenCalledWith('q-energy');
       expect(execute).toHaveBeenCalledTimes(1);
+      expect(execute.mock.calls[0][0]).toBe('runtime');
       expect(windows()).toEqual([SEPTEMBER_2026]);
       expect(changeLine(el)).toBeNull();
     });
 
-    it('a saved config without queryFamily that resolves to stream data shows the change line', async () => {
+    it('a saved config without queryFamily that resolves to stream data: one lookup, both queries as stream data, the change line', async () => {
       const el = await render(kpi({}, source({ queryFamily: undefined })));
 
+      expect(resolveFamily).toHaveBeenCalledTimes(1);
+      expect(execute.mock.calls.map(call => call[0])).toEqual(['streamData', 'streamData']);
       expect(windows()).toEqual(expect.arrayContaining([SEPTEMBER_2026, OCTOBER_2026]));
       expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+    });
+
+    it('a family lookup that ends after a refresh into an empty scope sends no query for the old pick', async () => {
+      let lookupDone!: (family: string) => void;
+      resolveFamily.mockReturnValue(new Promise(resolve => { lookupDone = resolve; }));
+      state.updateEntitySelectors([{ id: 'site', label: 'Site', ckTypeId: 'System/Entity', attributeMappings: [] }]);
+      state.setEntitySelectorRtIds('site', ['site-1']);
+      fixture = TestBed.createComponent(KpiWidgetComponent);
+      fixture.componentRef.setInput('config', kpi({}, source({ queryFamily: undefined, entitySelectorId: 'site' })));
+      fixture.detectChanges();
+
+      state.setEntitySelectorRtIds('site', []);
+      fixture.componentInstance.refresh();
+      lookupDone('streamData');
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(execute).not.toHaveBeenCalled();
+      expect(value(fixture.nativeElement as HTMLElement)).toBe('-');
+      expect(changeLine(fixture.nativeElement as HTMLElement)).toBeNull();
     });
 
     it('a relative range: both windows come from one clock reading, so the previous window ends where the current one starts', async () => {

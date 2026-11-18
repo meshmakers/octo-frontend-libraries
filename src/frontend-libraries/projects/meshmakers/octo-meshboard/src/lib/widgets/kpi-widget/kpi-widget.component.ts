@@ -565,26 +565,24 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       const comparison = this.changeApplies()
         ? this.stateService.resolveStreamDataComparisonTimeArgs(dataSource.ignoreTimeFilter, dataSource.timeShift)
         : undefined;
-      if (comparison) {
-        const currentArgs = this.buildStreamDataArgs(comparison.current);
-        const family = dataSource.queryFamily
-          ? Promise.resolve(dataSource.queryFamily)
-          : this.queryExecutor.resolveFamily(dataSource.queryRtId);
-        family
-          .then(resolved => resolved === 'streamData'
-            ? execute(resolved, currentArgs, true).then(result => this.queryValue(result, null))
-            : undefined)
-          .catch(() => undefined)
+      const family = comparison && !dataSource.queryFamily
+        ? await this.queryExecutor.resolveFamily(dataSource.queryRtId)
+        : dataSource.queryFamily;
+      if (generation !== this.loadGeneration) return;
+      if (comparison && family === 'streamData') {
+        execute(family, this.buildStreamDataArgs(comparison.current), true)
+          .then(result => this.queryValue(result, null))
           .then(currentValue => {
-            if (generation === this.loadGeneration && currentValue !== undefined) {
+            if (generation === this.loadGeneration) {
               this._currentValue.set(currentValue);
             }
-          });
+          })
+          .catch(() => undefined);
       }
 
       const shiftedTimeArgs = comparison?.shifted
         ?? this.stateService.resolveStreamDataTimeArgs(dataSource.ignoreTimeFilter, dataSource.timeShift);
-      const value = this.queryValue(await execute(dataSource.queryFamily, this.buildStreamDataArgs(shiftedTimeArgs)));
+      const value = this.queryValue(await execute(family, this.buildStreamDataArgs(shiftedTimeArgs)));
       if (generation !== this.loadGeneration) return;
 
       // Create a synthetic entity with the value
@@ -709,7 +707,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       if (!KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')) continue;
 
       let categoryMatch = false;
-      let value: number | string | null = 0;
+      let value: number | string | null | undefined;
 
       for (const cell of row.cells) {
         if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {

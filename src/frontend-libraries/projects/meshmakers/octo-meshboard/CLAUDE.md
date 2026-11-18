@@ -373,10 +373,12 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   timeShift)` (one `resolveCurrentTimeRange()` reading, the shifted window derived from it, so relative windows meet
   exactly) and sends the shifted query and a second one for the current window in parallel, same filters, scope,
   `queryMode` and `valueMultiplier` (`queryValue`). The second query goes out only for stream data: without a saved
-  `queryFamily` the widget asks `QueryExecutorService.resolveFamily` first. It runs with `silentErrors: true` (no
+  `queryFamily` the widget asks `QueryExecutorService.resolveFamily` once, before either query, and passes that
+family to both (a load superseded during the lookup sends nothing). It runs with `silentErrors: true` (no
   toast) and is not awaited: the shifted value, the output variable and the end of the loading state come with the
   shifted query, the line when the current value arrives. The current value is `null` (en dash) when the result has
-  no row for the KPI (aggregation: no supported row; grouped: no row of `queryCategoryValue`), where the shifted side
+  no row for the KPI (aggregation: no supported row; grouped: no row of `queryCategoryValue`, or that row without a
+`queryValueField` cell), where the shifted side
   keeps the 0 of the tile. A failure of the current-period query only drops the line (tile, value and
   output variable stay); a failure of the shifted query is the tile's error. `loadGeneration` (bumped by every
   `loadData` and `ngOnDestroy`, the line chart's AB#8994 pattern) lets a superseded load write nothing, also not
