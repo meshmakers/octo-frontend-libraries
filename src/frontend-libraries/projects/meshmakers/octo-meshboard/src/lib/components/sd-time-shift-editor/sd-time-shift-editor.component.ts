@@ -86,8 +86,8 @@ let nextEditorId = 0;
               </label>
             </div>
             @if (showChange()) {
-              <div class="change-direction">
-                <span class="change-direction-label" [class.k-disabled]="ignoreTimeFilter()">An increase is</span>
+              <fieldset class="change-direction">
+                <legend class="change-direction-label" [class.k-disabled]="ignoreTimeFilter()">An increase is</legend>
                 @for (option of directionOptions; track option.label) {
                   <label class="choice" [class.k-disabled]="ignoreTimeFilter()">
                     <input
@@ -101,7 +101,7 @@ let nextEditorId = 0;
                     {{ option.label }}
                   </label>
                 }
-              </div>
+              </fieldset>
             }
           }
         }
@@ -158,7 +158,15 @@ let nextEditorId = 0;
       align-items: center;
       gap: 4px 16px;
       flex-wrap: wrap;
-      margin-top: 8px;
+      margin: 8px 0 0;
+      padding: 0;
+      border: none;
+      min-width: 0;
+    }
+
+    .sd-time-shift-editor .change-direction-label {
+      float: left;
+      margin: 0;
     }
 
     .show-change-choice {

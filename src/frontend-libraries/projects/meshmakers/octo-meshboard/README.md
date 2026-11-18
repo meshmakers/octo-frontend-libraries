@@ -347,7 +347,9 @@ period (value and %)") appears for *Previous period* and *Same period last year*
 `showChange: true` in the widget config and is absent when off, so existing boards are unchanged.
 With the option on, the KPI sends a second query for the unshifted board window (same filters, scope
 and multiplier) and shows one line under the value: the change = current - shifted in the KPI's
-suffix and decimals, and change / |shifted| x 100 with one decimal, both with sign and never `-0`:
+suffix and decimals, and change / |shifted| x 100 with one decimal, both with sign and never `-0`.
+The change is computed from the unrounded totals and rounded afterwards, so it can differ in the last
+digit from the difference of the rounded values shown here (42 990,484 - 40 674,316 = 2 316,168):
 
 | Current | Shifted | Change line |
 |---|---|---|
@@ -365,7 +367,10 @@ change `--kendo-color-error`, zero and `–` `--kendo-color-subtle`. Default is 
 error colour and a decrease `▼` in the success colour. The line follows the
 rules of the time-shift caption: it is shown only while the shift applies (a time filter is active, the
 time filter is not ignored, not a runtime query). While the queries run the tile shows its loading state;
-an empty entity-selector scope shows `-` and no line, without a query.
+an empty entity-selector scope shows `-` and no line, without a query. When only the query of the current
+period fails, the tile keeps the shifted value (and its output variable) without a line; when the shifted
+query fails, the tile shows its error. A load that a newer one replaced (a refresh, another pick) changes
+nothing when it ends late.
 
 ### Gauge Widget
 Displays a numeric value as arc, circular, linear, or radial gauge.

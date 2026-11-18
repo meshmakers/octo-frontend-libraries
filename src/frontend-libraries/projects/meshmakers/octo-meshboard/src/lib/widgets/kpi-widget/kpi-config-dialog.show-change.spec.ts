@@ -204,6 +204,17 @@ describe('KPI dialog — criterion 1: "Show change" option visibility and storag
       expect(direction(el, 'bad')!.checked).toBe(false);
     });
 
+    it('the good and bad radios are a group of their own, labelled "An increase is", not "Compare with"', async () => {
+      const el = await open(withShift({ by: 'period', count: -1 }, {}, true));
+
+      for (const label of ['good', 'bad'] as const) {
+        const group = direction(el, label)!.closest('fieldset')!;
+        expect(group.querySelector(':scope > legend')?.textContent?.trim()).toBe('An increase is');
+      }
+      expect(direction(el, 'good')!.closest('fieldset')).toBe(direction(el, 'bad')!.closest('fieldset'));
+      expect(direction(el, 'good')!.name).toBe(direction(el, 'bad')!.name);
+    });
+
     it('is disabled while "Ignore MeshBoard time filter" is on', async () => {
       const el = await open(withShift({ by: 'period', count: -1 }, { ignoreTimeFilter: true }, true));
 

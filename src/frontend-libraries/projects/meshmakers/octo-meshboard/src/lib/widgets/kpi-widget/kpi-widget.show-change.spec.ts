@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, Subject, throwError } from 'rxjs';
 import { CkModelService } from '@meshmakers/octo-services';
 import { KpiWidgetComponent } from './kpi-widget.component';
 import { DashboardDataService } from '../../services/meshboard-data.service';
@@ -423,14 +423,16 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
       });
 
-      it('the current (unshifted) query fails: the tile shows its error and no change line', async () => {
+      it('only the current (unshifted) query fails: the tile keeps the shifted 40 674,32 and publishes it, no change line, no error', async () => {
         failing(OCTOBER_2026.from);
 
-        const el = await render(kpi());
+        const el = await render(kpi({ outputVariableName: 'shiftedEnergy' }));
 
-        expect(plain(el.querySelector('.error-message')?.textContent)).toBe('Failed to load data');
+        expect(el.querySelector('.error-message')).toBeNull();
+        expect(value(el)).toBe('40 674,32');
         expect(changeLine(el)).toBeNull();
         expect(fixture.componentInstance.change()).toBeNull();
+        expect(state.getVariables().find(v => v.name === 'shiftedEnergy')?.value).toBe('40674.316');
       });
 
       it('the shifted query fails: the tile shows its error and no change line', async () => {
@@ -447,7 +449,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         const el = await render(kpi());
         expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
 
-        failing(OCTOBER_2026.from);
+        failing(SEPTEMBER_2026.from);
         fixture.componentInstance.refresh();
         await fixture.whenStable();
         fixture.detectChanges();
@@ -455,6 +457,63 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         expect(plain(el.querySelector('.error-message')?.textContent)).toBe('Failed to load data');
         expect(changeLine(el)).toBeNull();
         expect(fixture.componentInstance.change()).toBeNull();
+      });
+    });
+
+    describe('a superseded load writes nothing', () => {
+      let late: Subject<QueryExecutionResult>;
+
+      beforeEach(() => {
+        answer(SEPTEMBER_2026.from, 40674.316);
+        answer(OCTOBER_2026.from, 42990.484);
+        late = new Subject<QueryExecutionResult>();
+        state.updateEntitySelectors([{ id: 'site', label: 'Site', ckTypeId: 'System/Entity', attributeMappings: [] }]);
+        state.setEntitySelectorRtIds('site', ['site-1']);
+      });
+
+      function answerLate(lateWindowStart: Date): void {
+        execute.mockImplementation((_family: unknown, _rtId: unknown, options: QueryExecutionOptions): Observable<QueryExecutionResult> => {
+          const from = options.streamDataArgs!.from as Date;
+          return from.getTime() === lateWindowStart.getTime() ? late : of(rows(valuesByWindowStart.get(from.getTime())));
+        });
+      }
+
+      async function switchToEmptyScopeWhileQueryRuns(lateWindowStart: Date): Promise<HTMLElement> {
+        answerLate(lateWindowStart);
+        fixture = TestBed.createComponent(KpiWidgetComponent);
+        fixture.componentRef.setInput('config', kpi({}, source({ entitySelectorId: 'site' })));
+        fixture.detectChanges();
+        state.setEntitySelectorRtIds('site', []);
+        fixture.componentInstance.refresh();
+        await fixture.whenStable();
+        fixture.detectChanges();
+        return fixture.nativeElement as HTMLElement;
+      }
+
+      it('a late current value of the old pick does not bring back value or change line', async () => {
+        const el = await switchToEmptyScopeWhileQueryRuns(OCTOBER_2026.from);
+        expect(value(el)).toBe('-');
+
+        late.next(rows(42990.484));
+        late.complete();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(value(el)).toBe('-');
+        expect(changeLine(el)).toBeNull();
+        expect(fixture.componentInstance.change()).toBeNull();
+      });
+
+      it('a late failure of the old pick\'s shifted query does not show an error', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const el = await switchToEmptyScopeWhileQueryRuns(SEPTEMBER_2026.from);
+
+        late.error(new Error('late failure'));
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(el.querySelector('.error-message')).toBeNull();
+        expect(value(el)).toBe('-');
       });
     });
 
@@ -482,12 +541,18 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         state.setEntitySelectorRtIds('site', ['site-1']);
         const el = await render(kpi({}, source({ entitySelectorId: 'site' })));
         expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+        const scopes = execute.mock.calls.map(call => {
+          const options = call[2] as QueryExecutionOptions;
+          return { scopeRtIds: options.scopeRtIds, rtIds: options.streamDataArgs?.rtIds };
+        });
+        expect(scopes).toEqual([{ scopeRtIds: ['site-1'], rtIds: ['site-1'] }, { scopeRtIds: ['site-1'], rtIds: ['site-1'] }]);
 
         state.setEntitySelectorRtIds('site', []);
         fixture.componentInstance.refresh();
         await fixture.whenStable();
         fixture.detectChanges();
 
+        expect(execute).toHaveBeenCalledTimes(2);
         expect(value(el)).toBe('-');
         expect(changeLine(el)).toBeNull();
         expect(fixture.componentInstance.change()).toBeNull();

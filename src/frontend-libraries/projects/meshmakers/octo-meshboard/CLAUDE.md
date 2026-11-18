@@ -370,7 +370,10 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   filter is ignored). The widget's `changeApplies` is `showChange` plus `hasTimeShiftCaption` (the caption's rule);
   then `loadPersistentQueryData` sends the shifted query and a second one with
   `resolveStreamDataTimeArgs(ignoreTimeFilter)` (no shift) in parallel, same filters, scope, `queryMode` and
-  `valueMultiplier` (`queryValue`). `formatChange`: change = current - shifted, rounded to the KPI decimals (automatic: 2
+  `valueMultiplier` (`queryValue`). A failure of the current-period query only drops the line (tile, value and
+  output variable stay); a failure of the shifted query is the tile's error. `loadGeneration` (bumped by every
+  `loadData` and `ngOnDestroy`, the line chart's AB#8994 pattern) lets a superseded load write nothing, also not
+  its error. `formatChange`: change = current - shifted, rounded to the KPI decimals (automatic: 2
   for a fraction) before the sign; a change that rounds to zero is zero: no sign, % `0,0`, neutral, no arrow;
   otherwise % = change / |shifted| x 100, one decimal; sign `+`
   or U+2212; unit = `suffix`; `–` (U+2013) when the shifted value is 0, null or not numeric. Line `.kpi-change`
@@ -378,9 +381,10 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   (`--kendo-color-success|error|subtle`, no fallback colour): an increase is good unless
   `KpiWidgetConfig.increaseIsGood === false`. That field is stored only as `false` and only with `showChange`
   (registration, dialog result and `applyConfigResult` drop it otherwise); the editor shows *An increase is good /
-  bad* (`[(increaseIsGood)]`, radio group) only while *Show change* is checked.
+  bad* (`[(increaseIsGood)]`, radio group in its own fieldset with the legend "An increase is", so a screen
+  reader does not announce it under "Compare with") only while *Show change* is checked.
   Spec: `widgets/kpi-widget/kpi-widget.show-change.spec.ts` (values, colours, no base, every range type, host range,
-  loading, empty scope, error of either query, no old line while a refresh runs), `widgets/kpi-widget/kpi-config-dialog.show-change.spec.ts` (option in the rendered dialog,
+  loading, empty scope, error of either query, no old line while a refresh runs, superseded loads), `widgets/kpi-widget/kpi-config-dialog.show-change.spec.ts` (option in the rendered dialog,
   save, reload, removal, unchanged boards).
 - **One shift per chart (Grafana's panel time shift):** the primary query's shift applies to every query series of a
   multi-source line or bar chart that uses the board time filter (a series with its own `ignoreTimeFilter` reads

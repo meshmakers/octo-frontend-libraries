@@ -56,7 +56,8 @@
   align-items: center;
   gap: 4px;
   justify-content: center;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  text-align: center;
 
   &.change-good { color: var(--kendo-color-success); }
   &.change-bad { color: var(--kendo-color-error); }

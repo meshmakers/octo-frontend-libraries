@@ -65,6 +65,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
 
   /** Value of the query over the unshifted board window; `undefined` while not queried (AB#9245). */
   private readonly _currentValue = signal<number | string | null | undefined>(undefined);
+  private loadGeneration = 0;
 
   readonly isLoading = this._isLoading.asReadonly();
   readonly data = this._data.asReadonly();
@@ -379,6 +380,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   }
 
   ngOnDestroy(): void {
+    this.loadGeneration++;
     if (this.config?.id) {
       this.stateService.clearWidgetVariable(this.config.id);
     }
@@ -389,6 +391,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   }
 
   private loadData(): void {
+    this.loadGeneration++;
     // Skip loading if widget is not configured - isNotConfigured() handles the display
     if (this.isNotConfigured()) {
       return;
@@ -497,6 +500,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   private async loadPersistentQueryData(): Promise<void> {
     // Note: isNotConfigured() check in loadData() ensures queryRtId is set
     const dataSource = this.config.dataSource as PersistentQueryDataSource;
+    const generation = this.loadGeneration;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -536,8 +540,9 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
 
       const [value, currentValue] = await Promise.all([
         execute(this.buildStreamDataArgs(dataSource.timeShift)),
-        this.changeApplies() ? execute(this.buildStreamDataArgs(undefined)) : Promise.resolve(undefined)
+        this.changeApplies() ? execute(this.buildStreamDataArgs(undefined)).catch(() => undefined) : Promise.resolve(undefined)
       ]);
+      if (generation !== this.loadGeneration) return;
       this._currentValue.set(currentValue);
 
       // Create a synthetic entity with the value
@@ -551,6 +556,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       this._isLoading.set(false);
 
     } catch (err) {
+      if (generation !== this.loadGeneration) return;
       console.error('Error loading KPI query data:', err);
       this._error.set('Failed to load data');
       this._isLoading.set(false);
