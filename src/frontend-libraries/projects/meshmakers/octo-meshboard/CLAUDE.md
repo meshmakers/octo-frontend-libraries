@@ -371,7 +371,8 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   then `loadPersistentQueryData` sends the shifted query and a second one with
   `resolveStreamDataTimeArgs(ignoreTimeFilter)` (no shift) in parallel, same filters, scope, `queryMode` and
   `valueMultiplier` (`queryValue`). `formatChange`: change = current - shifted, rounded to the KPI decimals (automatic: 2
-  for a fraction) before the sign, so a rounded zero has no sign; % = change / |shifted| x 100, one decimal; sign `+`
+  for a fraction) before the sign; a change that rounds to zero is zero: no sign, % `0,0`, neutral, no arrow;
+  otherwise % = change / |shifted| x 100, one decimal; sign `+`
   or U+2212; unit = `suffix`; `–` (U+2013) when the shifted value is 0, null or not numeric. Line `.kpi-change`
   with `▲`/`▼` by direction (`KpiChange.direction`) and class `change-good|bad|neutral` by `KpiChange.tone`
   (`--kendo-color-success|error|subtle`, no fallback colour): an increase is good unless
@@ -379,7 +380,7 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   (registration, dialog result and `applyConfigResult` drop it otherwise); the editor shows *An increase is good /
   bad* (`[(increaseIsGood)]`, radio group) only while *Show change* is checked.
   Spec: `widgets/kpi-widget/kpi-widget.show-change.spec.ts` (values, colours, no base, every range type, host range,
-  loading, empty scope), `widgets/kpi-widget/kpi-config-dialog.show-change.spec.ts` (option in the rendered dialog,
+  loading, empty scope, error of either query, no old line while a refresh runs), `widgets/kpi-widget/kpi-config-dialog.show-change.spec.ts` (option in the rendered dialog,
   save, reload, removal, unchanged boards).
 - **One shift per chart (Grafana's panel time shift):** the primary query's shift applies to every query series of a
   multi-source line or bar chart that uses the board time filter (a series with its own `ignoreTimeFilter` reads

@@ -354,6 +354,7 @@ suffix and decimals, and change / |shifted| x 100 with one decimal, both with si
 | 42 990,48 | 40 674,32 | `▲ +2 316,17 kWh (+5,7 %)` |
 | 3 482,59 | 3 688,86 | `▼ −206,27 kWh (−5,6 %)` |
 | 1 250 | 1 250 | `0 kWh (0,0 %)` (with 2 decimals: `0,00 kWh (0,0 %)`) |
+| 3,004 | 3 | `0,00 kWh (0,0 %)` with 2 decimals: a change that rounds to zero counts as zero |
 | any | 0 or no data | `–` |
 
 The tile value stays the shifted value. The arrow follows the direction (▲ increase, ▼ decrease, none for

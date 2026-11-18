@@ -500,6 +500,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
 
     this._isLoading.set(true);
     this._error.set(null);
+    this._currentValue.set(undefined);
 
     try {
       const fieldFilter = this.convertFiltersToDto(this.config.filters);
@@ -533,7 +534,6 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         )
       ).then(result => this.queryValue(result));
 
-      this._currentValue.set(undefined);
       const [value, currentValue] = await Promise.all([
         execute(this.buildStreamDataArgs(dataSource.timeShift)),
         this.changeApplies() ? execute(this.buildStreamDataArgs(undefined)) : Promise.resolve(undefined)
@@ -596,7 +596,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     const diffText = decimals !== undefined
       ? formatWidgetNumber(shownDiff, decimals, 'exact')
       : shownDiff.toLocaleString('de-AT', { minimumFractionDigits: shownDiff % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
-    const percent = diff / Math.abs(base) * 100;
+    const percent = shownDiff === 0 ? 0 : diff / Math.abs(base) * 100;
     const shownPercent = Number(getNumberFormat('en-US', 0, 1, false).format(Math.abs(percent)));
     const percentText = formatWidgetNumber(shownPercent, 1, 'exact');
     const sign = (shown: number, raw: number): string => shown === 0 ? '' : raw > 0 ? '+' : '\u2212';

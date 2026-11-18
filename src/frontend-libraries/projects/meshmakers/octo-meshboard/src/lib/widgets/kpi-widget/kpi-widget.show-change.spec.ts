@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { CkModelService } from '@meshmakers/octo-services';
 import { KpiWidgetComponent } from './kpi-widget.component';
 import { DashboardDataService } from '../../services/meshboard-data.service';
@@ -269,6 +269,28 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       expect(line.querySelector('.kpi-change-arrow')).toBeNull();
     });
 
+    it('a change that rounds to zero is neutral like equal totals: 3,004 vs 3 with 2 decimals -> "0,00 kWh (0,0 %)", no arrow', async () => {
+      answer(SEPTEMBER_2026.from, 3);
+      answer(OCTOBER_2026.from, 3.004);
+
+      const line = changeLine(await render(kpi({ decimalPlaces: 2 })))!;
+
+      expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('0,00 kWh (0,0 %)');
+      expect(line.classList).toContain('change-neutral');
+      expect(line.querySelector('.kpi-change-arrow')).toBeNull();
+    });
+
+    it('a decrease that rounds to zero is neutral with "An increase is bad": 2,996 vs 3 with 2 decimals -> "0,00 kWh (0,0 %)", no arrow', async () => {
+      answer(SEPTEMBER_2026.from, 3);
+      answer(OCTOBER_2026.from, 2.996);
+
+      const line = changeLine(await render(kpi({ decimalPlaces: 2, increaseIsGood: false })))!;
+
+      expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('0,00 kWh (0,0 %)');
+      expect(line.classList).toContain('change-neutral');
+      expect(line.querySelector('.kpi-change-arrow')).toBeNull();
+    });
+
     it('the colours are theme variables only (good success, bad error, neutral subtle), no hard-coded colour', async () => {
       answer(SEPTEMBER_2026.from, 1);
       answer(OCTOBER_2026.from, 2);
@@ -383,6 +405,93 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(el.querySelector('.loading-indicator')).not.toBeNull();
       expect(changeLine(el)).toBeNull();
+    });
+
+    describe('error state', () => {
+      const failing = (failingWindowStart: Date): void => {
+        execute.mockImplementation((_family: unknown, _rtId: unknown, options: QueryExecutionOptions): Observable<QueryExecutionResult> => {
+          const from = options.streamDataArgs?.from as Date | undefined;
+          return from?.getTime() === failingWindowStart.getTime()
+            ? throwError(() => new Error('query failed'))
+            : of(rows(from ? valuesByWindowStart.get(from.getTime()) : undefined));
+        });
+      };
+
+      beforeEach(() => {
+        answer(SEPTEMBER_2026.from, 40674.316);
+        answer(OCTOBER_2026.from, 42990.484);
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      });
+
+      it('the current (unshifted) query fails: the tile shows its error and no change line', async () => {
+        failing(OCTOBER_2026.from);
+
+        const el = await render(kpi());
+
+        expect(plain(el.querySelector('.error-message')?.textContent)).toBe('Failed to load data');
+        expect(changeLine(el)).toBeNull();
+        expect(fixture.componentInstance.change()).toBeNull();
+      });
+
+      it('the shifted query fails: the tile shows its error and no change line', async () => {
+        failing(SEPTEMBER_2026.from);
+
+        const el = await render(kpi());
+
+        expect(plain(el.querySelector('.error-message')?.textContent)).toBe('Failed to load data');
+        expect(changeLine(el)).toBeNull();
+        expect(fixture.componentInstance.change()).toBeNull();
+      });
+
+      it('a refresh that fails after "+2 316,17 kWh (+5,7 %)" shows the error, not the old change line', async () => {
+        const el = await render(kpi());
+        expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+
+        failing(OCTOBER_2026.from);
+        fixture.componentInstance.refresh();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(plain(el.querySelector('.error-message')?.textContent)).toBe('Failed to load data');
+        expect(changeLine(el)).toBeNull();
+        expect(fixture.componentInstance.change()).toBeNull();
+      });
+    });
+
+    describe('refresh', () => {
+      beforeEach(() => {
+        answer(SEPTEMBER_2026.from, 40674.316);
+        answer(OCTOBER_2026.from, 42990.484);
+      });
+
+      it('while a refresh runs the old "+2 316,17 kWh (+5,7 %)" is not shown', async () => {
+        const el = await render(kpi());
+        expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+
+        execute.mockReturnValue(new Observable<QueryExecutionResult>(() => undefined));
+        fixture.componentInstance.refresh();
+        fixture.detectChanges();
+
+        expect(el.querySelector('.loading-indicator')).not.toBeNull();
+        expect(changeLine(el)).toBeNull();
+        expect(fixture.componentInstance.change()).toBeNull();
+      });
+
+      it('a refresh into an empty entity-selector scope drops the old change line', async () => {
+        state.updateEntitySelectors([{ id: 'site', label: 'Site', ckTypeId: 'System/Entity', attributeMappings: [] }]);
+        state.setEntitySelectorRtIds('site', ['site-1']);
+        const el = await render(kpi({}, source({ entitySelectorId: 'site' })));
+        expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+
+        state.setEntitySelectorRtIds('site', []);
+        fixture.componentInstance.refresh();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(value(el)).toBe('-');
+        expect(changeLine(el)).toBeNull();
+        expect(fixture.componentInstance.change()).toBeNull();
+      });
     });
 
     it('an empty entity-selector scope shows "-" as today, sends no query and shows no change line', async () => {
