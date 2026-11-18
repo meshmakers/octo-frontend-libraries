@@ -536,12 +536,19 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       const comparison = this.changeApplies()
         ? this.stateService.resolveStreamDataComparisonTimeArgs(dataSource.ignoreTimeFilter, dataSource.timeShift)
         : undefined;
-      const family = comparison && !dataSource.queryFamily
+      const lookupFamily = !!comparison && !dataSource.queryFamily;
+      if (lookupFamily
+        && this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter).kind === 'empty') {
+        this._data.set(null);
+        this._isLoading.set(false);
+        return;
+      }
+      const family = lookupFamily
         ? await this.queryExecutor.resolveFamily(dataSource.queryRtId)
         : dataSource.queryFamily;
       if (generation !== this.loadGeneration) return;
 
-      const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
+      const scope =this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
       if (scope.kind === 'pending') {
         return;
       }
@@ -617,7 +624,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         break;
 
       case 'aggregation':
-        value = KpiWidgetComponent.orWithoutRow(this.extractAggregationValue(result), withoutRow);
+        value = KpiWidgetComponent.orWithoutRow(this.extractAggregationValue(result, withoutRow === null), withoutRow);
         break;
 
       case 'groupedAggregation':
@@ -678,7 +685,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return { ...timeArgs, rtIds };
   }
 
-  private extractAggregationValue(queryResult: QueryExecutionResult): number | string | null | undefined {
+  private extractAggregationValue(queryResult: QueryExecutionResult, comparison = false): number | string | null | undefined {
     const firstRow = queryResult.rows.find(row =>
       KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')
     );
@@ -690,6 +697,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         return this.extractCellValue(cell.value);
       }
     }
+    if (comparison && (valueField || firstRow.cells.length === 0)) return undefined;
 
     // Fallback: return first cell value if no specific field configured
     return firstRow.cells.length > 0 ? this.extractCellValue(firstRow.cells[0].value) : 0;

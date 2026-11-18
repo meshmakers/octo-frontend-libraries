@@ -354,10 +354,14 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       const css = Array.from(document.querySelectorAll('style')).map(s => s.textContent ?? '').join('\n');
       const rulesOf = (selector: RegExp): string[] =>
         Array.from(css.matchAll(/([^{}]+)\{([^}]*)\}/g)).filter(m => selector.test(m[1])).map(m => m[2]);
-      const lineRules = rulesOf(/\.kpi-change(?![-\w])/);
+      const lineRules = Array.from(css.matchAll(/([^{}]+)\{([^}]*)\}/g)).filter(m => /\.kpi-change(?![-\w])/.test(m[1]));
       expect(lineRules.length).toBeGreaterThan(1);
-      expect(lineRules.some(body => /flex-wrap:\s*wrap/.test(body))).toBe(true);
-      expect(lineRules.filter(body => /white-space:\s*nowrap/.test(body))).toEqual([]);
+      for (const tone of ['good', 'bad', 'neutral']) {
+        const applying = lineRules.filter(m => !/\.change-(good|bad|neutral)/.test(m[1]) || m[1].includes(`.change-${tone}`));
+        const wraps = applying.map(m => m[2].match(/flex-wrap:\s*([\w-]+)/)?.[1]).filter((v): v is string => !!v);
+        expect(wraps.at(-1), `effective flex-wrap of .kpi-change.change-${tone}`).toBe('wrap');
+        expect(applying.filter(m => /white-space:\s*nowrap/.test(m[2])).map(m => m[1].trim())).toEqual([]);
+      }
       expect(rulesOf(/\.kpi-change-text(?![-\w])/).filter(body => /white-space:\s*nowrap/.test(body))).toEqual([]);
     });
   });
@@ -417,6 +421,26 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       current = grouped('North', 0);
       el = await render(config);
       expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('−100 kWh (−100,0 %)');
+    });
+
+    it('current period row without cells, or with only another field -> "–"; the tile keeps its fallback', async () => {
+      const row = (cells: { attributePath: string; value: unknown }[]): QueryExecutionResult =>
+        ({ ...rows(undefined), rows: [{ __typename: 'StreamDataQueryRow', cells }] }) as unknown as QueryExecutionResult;
+      let current = row([]);
+      execute.mockImplementation((_family: unknown, _rtId: unknown, options: QueryExecutionOptions): Observable<QueryExecutionResult> =>
+        of((options.streamDataArgs!.from as Date).getTime() === SEPTEMBER_2026.from.getTime() ? row([{ attributePath: 'energy', value: 100 }]) : current));
+
+      let el = await render(kpi());
+      expect(value(el)).toBe('100');
+      expect(plain(changeLine(el)!.textContent)).toBe('–');
+
+      current = row([{ attributePath: 'power', value: 80 }]);
+      el = await render(kpi());
+      expect(plain(changeLine(el)!.textContent)).toBe('–');
+
+      execute.mockImplementation((): Observable<QueryExecutionResult> => of(row([])));
+      el = await render(kpi({ showChange: undefined }));
+      expect(value(el)).toBe('0');
     });
 
     it('grouped query: the KPI category row of the current period has no value cell -> "–", not −100 %', async () => {
@@ -786,6 +810,19 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       expect(execute).not.toHaveBeenCalled();
       expect(value(fixture.nativeElement as HTMLElement)).toBe('-');
       expect(changeLine(fixture.nativeElement as HTMLElement)).toBeNull();
+    });
+
+    it('a legacy config with an empty scope shows "-" without waiting for the family lookup', async () => {
+      resolveFamily.mockReturnValue(new Promise(() => undefined));
+      state.updateEntitySelectors([{ id: 'site', label: 'Site', ckTypeId: 'System/Entity', attributeMappings: [] }]);
+      state.setEntitySelectorRtIds('site', []);
+
+      const el = await render(kpi({}, source({ queryFamily: undefined, entitySelectorId: 'site' })));
+
+      expect(resolveFamily).not.toHaveBeenCalled();
+      expect(execute).not.toHaveBeenCalled();
+      expect(el.querySelector('.loading-indicator')).toBeNull();
+      expect(value(el)).toBe('-');
     });
 
     it('a pick that turns the scope pending during the family lookup sends no query with the old ids', async () => {
