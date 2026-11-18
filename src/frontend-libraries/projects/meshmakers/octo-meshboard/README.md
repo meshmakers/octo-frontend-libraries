@@ -319,6 +319,8 @@ interface KpiWidgetConfig {
   queryMode?: 'simpleCount' | 'aggregation' | 'groupedAggregation';
   queryValueField?: string;
   filters?: WidgetFilterConfig[];
+  showChange?: true; // change to the current period under a time-shifted value (AB#9245)
+  increaseIsGood?: false; // with showChange: an increase is coloured as bad (e.g. consumption)
 }
 ```
 
@@ -336,6 +338,48 @@ that is a complete number (`"12"`, `" 12 "`, `"1e3"`) is formatted, anything els
 A negative value that rounds to zero is shown without a sign (`-0.04` with 1 -> `0,0`). The setting also
 applies to KPI children of a widget group (`childTemplate.staticConfig.decimalPlaces`, also offered in the
 widget-group configuration dialog).
+
+**Change to the current period (AB#9245).** A KPI on a stream-data query with a time shift (see *Time
+shift* below) can show how the current period differs from the shifted one, like Grafana's Stat panel
+"percent change". In the dialog, under *Compare with*, *Show change* ("Show the change to the current
+period (value and %)") appears for *Previous period* and *Same period last year*; it is hidden with
+*None* and disabled while "Ignore MeshBoard time filter" is checked, like the shift. It is saved as
+`showChange: true` in the widget config and is absent when off, so existing boards are unchanged.
+With the option on, the KPI sends a second query for the unshifted board window (same filters, scope
+and multiplier) and shows one line under the value: the change = current - shifted in the KPI's
+suffix and decimals, and change / |shifted| x 100 with one decimal, both with sign and never `-0`.
+The change is computed from the unrounded totals and rounded afterwards, so it can differ in the last
+digit from the difference of the rounded values shown here (42 990,484 - 40 674,316 = 2 316,168):
+
+| Current | Shifted | Change line |
+|---|---|---|
+| 42 990,48 | 40 674,32 | `▲ +2 316,17 kWh (+5,7 %)` |
+| 3 482,59 | 3 688,86 | `▼ −206,27 kWh (−5,6 %)` |
+| 1 250 | 1 250 | `0 kWh (0,0 %)` (with 2 decimals: `0,00 kWh (0,0 %)`) |
+| 3,004 | 3 | `0,00 kWh (0,0 %)` with 2 decimals: a change that rounds to zero counts as zero |
+| any | 0 or no data | `–` |
+| no data (no row, or an empty cell) | any | `–` (a current total of 0 is a real value: 0 vs 100 is `▼ −100 kWh (−100,0 %)`) |
+
+The tile value stays the shifted value. The arrow follows the direction (▲ increase, ▼ decrease, none for
+zero). The colour follows *An increase is (•) good ( ) bad*, shown under *Show change* (like Power BI's KPI
+"High is good / Low is good" and Grafana's Stat "Inverted"): a good change uses `--kendo-color-success`, a bad
+change `--kendo-color-error`, zero and `–` `--kendo-color-subtle`. Default is *good*; *bad* is saved as
+`increaseIsGood: false` (absent otherwise), so a consumption increase shows `▲ +2 316,17 kWh (+5,7 %)` in the
+error colour and a decrease `▼` in the success colour. So that the meaning does not rest on the colour alone,
+a small word in the same colour stands under the numbers: *Favourable* for a good change, *Unfavourable* for a
+bad one, none for zero or `–` (e.g. `▲ +2 316,17 kWh (+5,7 %)` with *Unfavourable* below it on a consumption
+tile). The host translates the two words with
+`MESHBOARD_MESSAGES` (`kpiChangeFavourable`, `kpiChangeUnfavourable`). The line follows the
+rules of the time-shift caption: it is shown only while the shift applies (a time filter is active, the
+time filter is not ignored, not a runtime query; a saved widget without a query family is looked up first and
+sends the second query only for stream data). Both windows come from one reading of the clock, so with a
+relative range ("last hour") the shifted window ends exactly where the current one starts. While the shifted
+query runs the tile shows its loading state; its value shows as soon as it arrives, and the line follows when
+the query of the current period answers. An empty entity-selector scope shows `-` and no line, without a
+query. When only the query of the current period fails, the tile keeps the shifted value (and its output
+variable) without a line and without an error message; when the shifted query fails, the tile shows its error.
+A load that a newer one replaced (a refresh, another pick, a switch to another data source) changes nothing
+when it ends late.
 
 ### Gauge Widget
 Displays a numeric value as arc, circular, linear, or radial gauge.
@@ -420,7 +464,8 @@ providers: [
 ]
 ```
 
-`tableNotConfigured` translates the placeholder of an unconfigured table.
+`tableNotConfigured` translates the placeholder of an unconfigured table; `kpiChangeFavourable` /
+`kpiChangeUnfavourable` the words on a KPI's change line (AB#9245).
 
 **Enum labels (AB#5622).** `MESHBOARD_LABEL_RESOLVER` (same pattern as the entity forms'
 `ENTITY_FORM_LABEL_RESOLVER`) translates enum values: `(request) => string | null | undefined`
@@ -1073,7 +1118,8 @@ effect; a saved shift is kept but not applied. Gauge, heatmap, stats grid, summa
 widgets have no control: they apply a `timeShift` written into the board configuration, and saving
 their dialog drops it. A chart has one shift: the primary query's shift applies to every query series
 of a line or bar chart that uses the MeshBoard time filter (like Grafana's panel time shift), and a
-series' own `timeShift` is ignored (overlaying two periods is not supported yet).
+series' own `timeShift` is ignored (overlaying two periods is not supported yet). The KPI dialog adds
+*Show change* under *Compare with* (AB#9245, see *KPI Widget*).
 
 **On the widget.** A widget whose own data source applies a shift shows the shifted period under its
 title (stats-grid / summary-card cells and process bindings with a `timeShift` show no caption), in the

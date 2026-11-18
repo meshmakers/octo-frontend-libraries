@@ -48,6 +48,28 @@
   &.trend-neutral { color: var(--kendo-color-subtle, #6c757d); }
 }
 
+.kpi-change {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+
+  .kpi-change-cue {
+    flex-basis: 100%;
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
+  &.change-good { color: var(--kendo-color-success); }
+  &.change-bad { color: var(--kendo-color-error); }
+  &.change-neutral { color: var(--kendo-color-subtle); }
+}
+
 .kpi-label {
   margin-top: 8px;
   font-size: 0.875rem;

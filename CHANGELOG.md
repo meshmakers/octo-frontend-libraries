@@ -10,6 +10,25 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: a shifted KPI shows the change to the current period (AB#9245)
+
+- New (additive): `KpiWidgetConfig.showChange?: true`. A KPI on a stream-data query with a time shift can show
+  one line under the shifted value with the change to the current (unshifted) board period, e.g.
+  `▲ +2 316,17 kWh (+5,7 %)` or `▼ −206,27 kWh (−5,6 %)`, coloured with `--kendo-color-success` / `--kendo-color-error`
+  (zero neutral), `–` when either period has no data. The KPI then sends a second query for the current window
+  (stream data only, without an error toast); the shifted value does not wait for it, and both windows come from one
+  clock reading (new `MeshBoardStateService.resolveStreamDataComparisonTimeArgs`).
+- Fix: a KPI whose runtime-entity or runtime-count load ends after the widget switched to another data source no
+  longer overwrites the new value or shows that load's error.
+- New: *Show change* under *Compare with* in the KPI dialog (`mm-sd-time-shift-editor` input `offerShowChange`, model
+  `showChange`); only with *Previous period* / *Same period last year*, disabled while the time filter is ignored.
+  Boards without the option store, query and render exactly as before.
+- New: *An increase is good / bad* under *Show change* (`KpiWidgetConfig.increaseIsGood?: false`, stored only for
+  *bad*; editor model `increaseIsGood`). The arrow follows the direction, the colour whether the change is good
+  (success) or bad (error), like Power BI's "Low is good" and Grafana's "Inverted". A small word under the numbers, in the
+  same colour, says it without relying on colour: *Favourable* / *Unfavourable* (none for zero), translatable with the new
+  `MeshBoardMessages.kpiChangeFavourable` / `kpiChangeUnfavourable`.
+
 ### octo-meshboard: stream-data widgets show the previous period or the same period last year (AB#9094, AB#9095)
 
 - New: optional `timeShift: { by: 'period' | 'year'; count: <negative integer> }` on a stream-data

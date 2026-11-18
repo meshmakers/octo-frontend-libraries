@@ -106,10 +106,10 @@ function persisted(row: SeedWidgetRow, index: number): PersistedWidgetData {
 
 /** Reads the widget rows of a seed YAML without a YAML parser (attribute id / value pairs). */
 function parseSeedWidgets(yaml: string): SeedWidgetRow[] {
-  const entities = yaml.split(/\n {2}- rtId: /).slice(1).filter(block => block.includes('ckTypeId: System.UI/DashboardWidget-1'));
+  const entities = yaml.split(/\r?\n {2}- rtId: /).slice(1).filter(block => block.includes('ckTypeId: System.UI/DashboardWidget-1'));
   return entities.map(block => {
     const value = (id: string): string => {
-      const match = block.match(new RegExp(`- id: ${id.replace(/[./]/g, '\\$&')}\\n\\s+value: (.*)`));
+      const match = block.match(new RegExp(`- id: ${id.replace(/[./]/g, '\\$&')}\\r?\\n\\s+value: (.*)`));
       if (!match) {
         throw new Error(`${id} missing in seed widget`);
       }

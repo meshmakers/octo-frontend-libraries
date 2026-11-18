@@ -27,6 +27,8 @@ let nextEditorId = 0;
  *   [(timeShift)]="timeShift">
  * </mm-sd-time-shift-editor>
  * ```
+ *
+ * The KPI dialog adds `[offerShowChange]="true" [(showChange)]="showChange" [(increaseIsGood)]="increaseIsGood"` (AB#9245).
  */
 @Component({
   selector: 'mm-sd-time-shift-editor',
@@ -70,6 +72,38 @@ let nextEditorId = 0;
               (valueChange)="onPeriods($event)">
             </kendo-numerictextbox>
           </div>
+          @if (offerShowChange()) {
+            <div class="show-change">
+              <span class="show-change-label" [class.k-disabled]="ignoreTimeFilter()">Show change</span>
+              <label class="show-change-choice" [class.k-disabled]="ignoreTimeFilter()">
+                <input
+                  type="checkbox"
+                  kendoCheckBox
+                  [checked]="showChange()"
+                  [disabled]="ignoreTimeFilter()"
+                  (change)="onShowChange($any($event.target).checked)" />
+                Show the change to the current period (value and %)
+              </label>
+            </div>
+            @if (showChange()) {
+              <fieldset class="change-direction">
+                <legend class="change-direction-label" [class.k-disabled]="ignoreTimeFilter()">An increase is</legend>
+                @for (option of directionOptions; track option.label) {
+                  <label class="choice" [class.k-disabled]="ignoreTimeFilter()">
+                    <input
+                      type="radio"
+                      kendoRadioButton
+                      [name]="directionGroupName"
+                      [value]="option.label"
+                      [checked]="increaseIsGood() === option.good"
+                      [disabled]="ignoreTimeFilter()"
+                      (change)="increaseIsGood.set(option.good)" />
+                    {{ option.label }}
+                  </label>
+                }
+              </fieldset>
+            }
+          }
         }
         <p class="field-hint" [id]="hintId">{{ hint() }}</p>
       </fieldset>
@@ -112,6 +146,36 @@ let nextEditorId = 0;
       width: 90px;
     }
 
+    .show-change {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .change-direction {
+      display: flex;
+      align-items: center;
+      gap: 4px 16px;
+      flex-wrap: wrap;
+      margin: 8px 0 0;
+      padding: 0;
+      border: none;
+      min-width: 0;
+    }
+
+    .sd-time-shift-editor .change-direction-label {
+      float: left;
+      margin: 0;
+    }
+
+    .show-change-choice {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
     .field-hint {
       font-size: 0.85em;
       margin-top: 4px;
@@ -129,7 +193,26 @@ export class SdTimeShiftEditorComponent {
   /** The shift, `undefined` for "None". */
   readonly timeShift = model<MeshBoardTimeShift | undefined>(undefined);
 
+  /**
+   * Offers "Show change" for a shift (KPI dialog only, AB#9245): shown with Previous period or Same
+   * period last year, disabled like the shift while the time filter is ignored.
+   */
+  readonly offerShowChange = input(false);
+
+  /** "Show the change to the current period"; only meaningful while {@link offerShowChange} is set. */
+  readonly showChange = model(false);
+
+  /** "An increase is good / bad" of the change line (AB#9245); `true` = good. */
+  readonly increaseIsGood = model(true);
+
+  readonly directionOptions: readonly { label: string; good: boolean }[] = [
+    { label: 'good', good: true },
+    { label: 'bad', good: false }
+  ];
+
   readonly groupName = `mm-time-shift-${nextEditorId++}`;
+
+  readonly directionGroupName = `${this.groupName}-direction`;
 
   readonly hintId = `${this.groupName}-hint`;
 
@@ -164,6 +247,10 @@ export class SdTimeShiftEditorComponent {
       return;
     }
     this.timeShift.set({ by: choice, count: -this.periods() });
+  }
+
+  onShowChange(checked: boolean): void {
+    this.showChange.set(checked);
   }
 
   onPeriods(value: number | null): void {
