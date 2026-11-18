@@ -16,6 +16,7 @@ import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '..
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { hasTimeShiftCaption } from '../../components/time-shift-caption/time-shift-caption.component';
+import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 
 /** Change of the current period against the shifted value (AB#9245), as shown under the value. */
 export interface KpiChange {
@@ -40,6 +41,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
   private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
+  private readonly texts = injectMeshBoardMessages();
 
   /**
    * Row __typenames KPI extraction recognises.
@@ -350,6 +352,14 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     switch (this.change()?.direction) {
       case 'up': return '\u25B2';
       case 'down': return '\u25BC';
+      default: return null;
+    }
+  });
+
+  readonly changeCue = computed(() => {
+    switch (this.change()?.tone) {
+      case 'good': return this.texts().kpiChangeFavourable;
+      case 'bad': return this.texts().kpiChangeUnfavourable;
       default: return null;
     }
   });

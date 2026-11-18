@@ -26,6 +26,10 @@ export interface MeshBoardMessages {
    * label. Default: 'Pick a {label} to see this data.'
    */
   scopePickRequired?: string;
+  /** Word on the KPI change line of a good change, next to the arrow (AB#9245). Default: 'favourable' */
+  kpiChangeFavourable?: string;
+  /** Word on the KPI change line of a bad change, next to the arrow (AB#9245). Default: 'unfavourable' */
+  kpiChangeUnfavourable?: string;
 }
 
 /** Default texts of {@link MeshBoardMessages} (the list texts default inside `mm-list-view`). */
@@ -33,6 +37,8 @@ export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'table
   tableNotConfigured: 'Table not configured',
   scopeResolutionFailed: 'Could not resolve the scope of "{label}" - widgets bound to it show no data.',
   scopePickRequired: 'Pick a {label} to see this data.',
+  kpiChangeFavourable: 'favourable',
+  kpiChangeUnfavourable: 'unfavourable',
 };
 
 /**
@@ -68,6 +74,8 @@ export function resolveMeshBoardMessages(messages: MeshBoardMessages | null | un
     ...(messages?.tableNotConfigured ? { tableNotConfigured: messages.tableNotConfigured } : {}),
     ...(messages?.scopeResolutionFailed ? { scopeResolutionFailed: messages.scopeResolutionFailed } : {}),
     ...(messages?.scopePickRequired ? { scopePickRequired: messages.scopePickRequired } : {}),
+    ...(messages?.kpiChangeFavourable ? { kpiChangeFavourable: messages.kpiChangeFavourable } : {}),
+    ...(messages?.kpiChangeUnfavourable ? { kpiChangeUnfavourable: messages.kpiChangeUnfavourable } : {}),
   };
 }
 

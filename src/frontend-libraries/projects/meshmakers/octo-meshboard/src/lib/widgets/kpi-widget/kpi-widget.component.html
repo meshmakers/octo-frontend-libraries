@@ -27,6 +27,9 @@
             <span class="kpi-change-arrow" aria-hidden="true">{{ arrow }}</span>
           }
           <span class="kpi-change-text">{{ shownChange.text }}</span>
+          @if (changeCue(); as cue) {
+            <span class="kpi-change-cue">{{ cue }}</span>
+          }
         </div>
       }
 

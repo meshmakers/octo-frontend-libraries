@@ -59,6 +59,12 @@
   flex-wrap: wrap;
   text-align: center;
 
+  .kpi-change-cue {
+    flex-basis: 100%;
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
   &.change-good { color: var(--kendo-color-success); }
   &.change-bad { color: var(--kendo-color-error); }
   &.change-neutral { color: var(--kendo-color-subtle); }

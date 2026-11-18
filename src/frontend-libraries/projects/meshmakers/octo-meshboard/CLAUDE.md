@@ -378,7 +378,10 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   otherwise % = change / |shifted| x 100, one decimal; sign `+`
   or U+2212; unit = `suffix`; `–` (U+2013) when the shifted value is 0, null or not numeric. Line `.kpi-change`
   with `▲`/`▼` by direction (`KpiChange.direction`) and class `change-good|bad|neutral` by `KpiChange.tone`
-  (`--kendo-color-success|error|subtle`, no fallback colour): an increase is good unless
+  (`--kendo-color-success|error|subtle`, no fallback colour) and, as last item of the line with `flex-basis: 100%` (so
+  on its own row under the numbers, inheriting the tone colour), the word `.kpi-change-cue`
+  (`changeCue`: `MeshBoardMessages.kpiChangeFavourable` / `kpiChangeUnfavourable`, default *favourable* /
+  *unfavourable*, none for a neutral tone), so the meaning does not rest on colour alone: an increase is good unless
   `KpiWidgetConfig.increaseIsGood === false`. That field is stored only as `false` and only with `showChange`
   (registration, dialog result and `applyConfigResult` drop it otherwise); the editor shows *An increase is good /
   bad* (`[(increaseIsGood)]`, radio group in its own fieldset with the legend "An increase is", so a screen

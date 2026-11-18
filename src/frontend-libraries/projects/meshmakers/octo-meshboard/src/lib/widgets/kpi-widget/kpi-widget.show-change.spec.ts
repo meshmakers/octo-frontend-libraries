@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { Observable, of, Subject, throwError } from 'rxjs';
+import { MESHBOARD_MESSAGES, MeshBoardMessages } from '../../utils/meshboard-messages';
 import { CkModelService } from '@meshmakers/octo-services';
 import { KpiWidgetComponent } from './kpi-widget.component';
 import { DashboardDataService } from '../../services/meshboard-data.service';
@@ -74,7 +76,10 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
   const changeLine = (el: HTMLElement): HTMLElement | null => el.querySelector('.kpi-change');
   const value = (el: HTMLElement): string => plain(el.querySelector('.kpi-value')?.textContent);
 
+  const hostMessages = signal<MeshBoardMessages | null>(null);
+
   beforeEach(() => {
+    hostMessages.set(null);
     valuesByWindowStart = new Map();
     execute = vi.fn((_family: unknown, _rtId: unknown, options: QueryExecutionOptions): Observable<QueryExecutionResult> => {
       const from = options.streamDataArgs?.from as Date | undefined;
@@ -88,7 +93,8 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         { provide: MeshBoardGridService, useValue: { resolveOverlaps: vi.fn().mockReturnValue([]) } },
         { provide: CkModelService, useValue: { isModelAvailableWithMinVersion: vi.fn() } },
         { provide: DashboardDataService, useValue: {} },
-        { provide: QueryExecutorService, useValue: { execute } }
+        { provide: QueryExecutorService, useValue: { execute } },
+        { provide: MESHBOARD_MESSAGES, useValue: hostMessages }
       ]
     });
     state = TestBed.inject(MeshBoardStateService);
@@ -219,6 +225,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
     const increase = (): void => { answer(SEPTEMBER_2026.from, 40674.316); answer(OCTOBER_2026.from, 42990.484); };
     const decrease = (): void => { answer(SEPTEMBER_2026.from, 3688.86); answer(OCTOBER_2026.from, 3482.59); };
     const arrow = (line: HTMLElement): string | undefined => line.querySelector('.kpi-change-arrow')?.textContent?.trim();
+    const cue = (line: HTMLElement): string | undefined => line.querySelector('.kpi-change-cue')?.textContent?.trim();
 
     it('an increase is good by default: ▲ with the success colour class', async () => {
       increase();
@@ -227,6 +234,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
       expect(arrow(line)).toBe('▲');
+      expect(cue(line)).toBe('favourable');
       expect(line.classList).toContain('change-good');
     });
 
@@ -236,6 +244,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       const line = changeLine(await render(kpi()))!;
 
       expect(arrow(line)).toBe('▼');
+      expect(cue(line)).toBe('unfavourable');
       expect(line.classList).toContain('change-bad');
     });
 
@@ -246,6 +255,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
       expect(arrow(line)).toBe('▲');
+      expect(cue(line)).toBe('unfavourable');
       expect(line.classList).toContain('change-bad');
     });
 
@@ -256,6 +266,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('−206,27 kWh (−5,6 %)');
       expect(arrow(line)).toBe('▼');
+      expect(cue(line)).toBe('favourable');
       expect(line.classList).toContain('change-good');
     });
 
@@ -267,6 +278,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(line.classList).toContain('change-neutral');
       expect(line.querySelector('.kpi-change-arrow')).toBeNull();
+      expect(line.querySelector('.kpi-change-cue')).toBeNull();
     });
 
     it('a change that rounds to zero is neutral like equal totals: 3,004 vs 3 with 2 decimals -> "0,00 kWh (0,0 %)", no arrow', async () => {
@@ -278,6 +290,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('0,00 kWh (0,0 %)');
       expect(line.classList).toContain('change-neutral');
       expect(line.querySelector('.kpi-change-arrow')).toBeNull();
+      expect(line.querySelector('.kpi-change-cue')).toBeNull();
     });
 
     it('a decrease that rounds to zero is neutral with "An increase is bad": 2,996 vs 3 with 2 decimals -> "0,00 kWh (0,0 %)", no arrow', async () => {
@@ -289,6 +302,16 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('0,00 kWh (0,0 %)');
       expect(line.classList).toContain('change-neutral');
       expect(line.querySelector('.kpi-change-arrow')).toBeNull();
+      expect(line.querySelector('.kpi-change-cue')).toBeNull();
+    });
+
+    it('the words follow the host translation (MESHBOARD_MESSAGES): "günstig" / "ungünstig"', async () => {
+      hostMessages.set({ kpiChangeFavourable: 'günstig', kpiChangeUnfavourable: 'ungünstig' });
+      increase();
+
+      const line = changeLine(await render(kpi({ increaseIsGood: false })))!;
+
+      expect(cue(line)).toBe('ungünstig');
     });
 
     it('the colours are theme variables only (good success, bad error, neutral subtle), no hard-coded colour', async () => {
@@ -302,6 +325,19 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       expect(rule('change-good')).toMatch(/^\s*color:\s*var\(--kendo-color-success\);?\s*$/);
       expect(rule('change-bad')).toMatch(/^\s*color:\s*var\(--kendo-color-error\);?\s*$/);
       expect(rule('change-neutral')).toMatch(/^\s*color:\s*var\(--kendo-color-subtle\);?\s*$/);
+    });
+
+    it('the word stands on its own line under the numbers, inside the coloured line, with no colour of its own', async () => {
+      increase();
+      const line = changeLine(await render(kpi({ increaseIsGood: false })))!;
+
+      const word = line.querySelector('.kpi-change-cue')!;
+      expect(word.previousElementSibling?.classList).toContain('kpi-change-text');
+      expect(word.nextElementSibling).toBeNull();
+      const css = Array.from(document.querySelectorAll('style')).map(s => s.textContent ?? '').join('\n');
+      const cueRule = css.match(/\.kpi-change-cue[^{]*\{([^}]*)\}/)?.[1] ?? '';
+      expect(cueRule).toMatch(/flex-basis:\s*100%/);
+      expect(cueRule).not.toMatch(/(^|;)\s*color:/);
     });
   });
 
