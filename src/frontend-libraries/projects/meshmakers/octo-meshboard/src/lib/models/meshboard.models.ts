@@ -430,6 +430,11 @@ export interface KpiWidgetConfig extends WidgetConfig {
    * window and show the change to the current period under the value (AB#9245). Absent when off.
    */
   showChange?: true;
+  /**
+   * With {@link showChange}: `false` colours an increase as bad (error) and a decrease as good (success),
+   * e.g. for consumption (AB#9245). Absent = an increase is good.
+   */
+  increaseIsGood?: false;
 }
 
 /**

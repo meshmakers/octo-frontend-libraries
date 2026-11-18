@@ -58,8 +58,8 @@
   justify-content: center;
   white-space: nowrap;
 
-  &.change-up { color: var(--kendo-color-success); }
-  &.change-down { color: var(--kendo-color-error); }
+  &.change-good { color: var(--kendo-color-success); }
+  &.change-bad { color: var(--kendo-color-error); }
   &.change-neutral { color: var(--kendo-color-subtle); }
 }
 

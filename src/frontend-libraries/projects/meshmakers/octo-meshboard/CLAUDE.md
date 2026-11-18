@@ -373,7 +373,11 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   `valueMultiplier` (`queryValue`). `formatChange`: change = current - shifted, rounded to the KPI decimals (automatic: 2
   for a fraction) before the sign, so a rounded zero has no sign; % = change / |shifted| x 100, one decimal; sign `+`
   or U+2212; unit = `suffix`; `–` (U+2013) when the shifted value is 0, null or not numeric. Line `.kpi-change`
-  with class `change-up|down|neutral` (`--kendo-color-success|error|subtle`, no fallback colour) and `▲`/`▼`.
+  with `▲`/`▼` by direction (`KpiChange.direction`) and class `change-good|bad|neutral` by `KpiChange.tone`
+  (`--kendo-color-success|error|subtle`, no fallback colour): an increase is good unless
+  `KpiWidgetConfig.increaseIsGood === false`. That field is stored only as `false` and only with `showChange`
+  (registration, dialog result and `applyConfigResult` drop it otherwise); the editor shows *An increase is good /
+  bad* (`[(increaseIsGood)]`, radio group) only while *Show change* is checked.
   Spec: `widgets/kpi-widget/kpi-widget.show-change.spec.ts` (values, colours, no base, every range type, host range,
   loading, empty scope), `widgets/kpi-widget/kpi-config-dialog.show-change.spec.ts` (option in the rendered dialog,
   save, reload, removal, unchanged boards).

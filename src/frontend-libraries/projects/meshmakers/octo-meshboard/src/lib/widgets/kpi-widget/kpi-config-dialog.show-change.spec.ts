@@ -187,6 +187,73 @@ describe('KPI dialog — criterion 1: "Show change" option visibility and storag
     expect('showChange' in reloaded).toBe(false);
   });
 
+  describe('"An increase is good / bad" (colour of the change line)', () => {
+    const direction = (el: HTMLElement, label: 'good' | 'bad'): HTMLInputElement | undefined =>
+      Array.from(el.querySelectorAll<HTMLLabelElement>('mm-sd-time-shift-editor .change-direction label.choice'))
+        .find(l => l.textContent?.trim() === label)?.querySelector('input[type="radio"]') as HTMLInputElement | undefined;
+
+    it('is shown only while "Show change" is on, with "good" preselected', async () => {
+      const el = await open(withShift({ by: 'period', count: -1 }));
+      expect(el.querySelector('mm-sd-time-shift-editor .change-direction')).toBeNull();
+
+      checkbox(el)!.click();
+      fixture.detectChanges();
+
+      expect(el.querySelector('mm-sd-time-shift-editor .change-direction-label')?.textContent?.trim()).toBe('An increase is');
+      expect(direction(el, 'good')!.checked).toBe(true);
+      expect(direction(el, 'bad')!.checked).toBe(false);
+    });
+
+    it('is disabled while "Ignore MeshBoard time filter" is on', async () => {
+      const el = await open(withShift({ by: 'period', count: -1 }, { ignoreTimeFilter: true }, true));
+
+      expect(direction(el, 'good')!.disabled).toBe(true);
+      expect(direction(el, 'bad')!.disabled).toBe(true);
+    });
+
+    it('"bad" saves increaseIsGood: false, stores it and reopens with "bad"', async () => {
+      const widget = withShift({ by: 'period', count: -1 }, {}, true);
+      const el = await open(widget);
+      direction(el, 'bad')!.click();
+      fixture.detectChanges();
+
+      const saved = await save(widget);
+
+      expect(saved.increaseIsGood).toBe(false);
+      expect(stored(saved)['increaseIsGood']).toBe(false);
+      const reloaded = registry.deserializeWidget({
+        rtId: 'w', ckTypeId: 'System.UI/MeshBoardWidget', name: 'Energy', type: 'kpi', col: 1, row: 1, colSpan: 1, rowSpan: 1,
+        dataSourceType: 'persistentQuery', dataSourceRtId: 'q-energy', config: JSON.stringify(stored(saved))
+      }) as KpiWidgetConfig;
+      expect(reloaded.increaseIsGood).toBe(false);
+      expect(direction(await open(reloaded), 'bad')!.checked).toBe(true);
+    });
+
+    it('"good" (the default) stores no key', async () => {
+      const widget = { ...withShift({ by: 'period', count: -1 }, {}, true), increaseIsGood: false as const };
+      const el = await open(widget);
+      direction(el, 'good')!.click();
+      fixture.detectChanges();
+
+      const saved = await save(widget);
+
+      expect('increaseIsGood' in saved).toBe(false);
+      expect('increaseIsGood' in stored(saved)).toBe(false);
+    });
+
+    it('turning "Show change" off removes "bad" too', async () => {
+      const widget = { ...withShift({ by: 'period', count: -1 }, {}, true), increaseIsGood: false as const };
+      const el = await open(widget);
+      checkbox(el)!.click();
+      fixture.detectChanges();
+
+      const saved = await save(widget);
+
+      expect('increaseIsGood' in saved).toBe(false);
+      expect('increaseIsGood' in stored(saved)).toBe(false);
+    });
+  });
+
   it('the editor offers the option only where a dialog asks for it (line, bar, pie and table dialogs do not)', () => {
     const editor = TestBed.createComponent(SdTimeShiftEditorComponent);
     editor.componentRef.setInput('family', 'streamData');

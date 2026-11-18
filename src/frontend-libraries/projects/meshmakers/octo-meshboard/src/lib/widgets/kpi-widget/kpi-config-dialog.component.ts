@@ -57,6 +57,8 @@ export interface KpiConfigResult extends WidgetConfigResult {
   timeShift?: MeshBoardTimeShift;
   /** Change to the current period under the shifted value (AB#9245); set only with a time shift. */
   showChange?: true;
+  /** With showChange: an increase is bad (AB#9245); set only when bad. */
+  increaseIsGood?: false;
   /** Asset-scope binding: id of the entity selector whose selection scopes the stream-data query. */
   entitySelectorId?: string;
   queryMode?: KpiQueryMode;
@@ -300,7 +302,8 @@ interface TrendOption {
             [ignoreTimeFilter]="ignoreTimeFilter"
             [(timeShift)]="timeShift"
             [offerShowChange]="true"
-            [(showChange)]="showChange">
+            [(showChange)]="showChange"
+            [(increaseIsGood)]="increaseIsGood">
           </mm-sd-time-shift-editor>
 
           <mm-entity-selector-scope-picker
@@ -735,6 +738,7 @@ export class KpiConfigDialogComponent implements OnInit {
   @Input() initialIgnoreTimeFilter?: boolean;
   @Input() initialTimeShift?: MeshBoardTimeShift;
   @Input() initialShowChange?: boolean;
+  @Input() initialIncreaseIsGood?: boolean;
   @Input() initialEntitySelectorId?: string;
   @Input() initialQueryMode?: KpiQueryMode;
   @Input() initialQueryValueField?: string;
@@ -770,6 +774,7 @@ export class KpiConfigDialogComponent implements OnInit {
   ignoreTimeFilter = false;
   timeShift?: MeshBoardTimeShift;
   showChange = false;
+  increaseIsGood = true;
   entitySelectorId?: string;
   queryColumns: QueryColumnItem[] = [];
   categoryValues: CategoryValueItem[] = [];
@@ -982,6 +987,7 @@ export class KpiConfigDialogComponent implements OnInit {
     this.ignoreTimeFilter = this.initialIgnoreTimeFilter ?? false;
     this.timeShift = normalizeTimeShift(this.initialTimeShift);
     this.showChange = this.initialShowChange === true;
+    this.increaseIsGood = this.initialIncreaseIsGood !== false;
     this.entitySelectorId = this.initialEntitySelectorId;
 
     // Check if this is count mode (for runtime entity)
@@ -1206,6 +1212,7 @@ export class KpiConfigDialogComponent implements OnInit {
         ignoreTimeFilter: this.ignoreTimeFilter,
         timeShift: family === 'streamData' ? normalizeTimeShift(this.timeShift) : undefined,
         showChange: family === 'streamData' && normalizeTimeShift(this.timeShift) && this.showChange ? true : undefined,
+        increaseIsGood: family === 'streamData' && normalizeTimeShift(this.timeShift) && this.showChange && !this.increaseIsGood ? false : undefined,
         entitySelectorId: this.entitySelectorId,
         queryMode: this.queryMode,
         queryValueField: this.form.queryValueField || undefined,

@@ -320,6 +320,7 @@ interface KpiWidgetConfig {
   queryValueField?: string;
   filters?: WidgetFilterConfig[];
   showChange?: true; // change to the current period under a time-shifted value (AB#9245)
+  increaseIsGood?: false; // with showChange: an increase is coloured as bad (e.g. consumption)
 }
 ```
 
@@ -355,8 +356,12 @@ suffix and decimals, and change / |shifted| x 100 with one decimal, both with si
 | 1 250 | 1 250 | `0 kWh (0,0 %)` (with 2 decimals: `0,00 kWh (0,0 %)`) |
 | any | 0 or no data | `–` |
 
-The tile value stays the shifted value. An increase is coloured with `--kendo-color-success`, a decrease
-with `--kendo-color-error`, zero and `–` with `--kendo-color-subtle` (no arrow). The line follows the
+The tile value stays the shifted value. The arrow follows the direction (▲ increase, ▼ decrease, none for
+zero). The colour follows *An increase is (•) good ( ) bad*, shown under *Show change* (like Power BI's KPI
+"High is good / Low is good" and Grafana's Stat "Inverted"): a good change uses `--kendo-color-success`, a bad
+change `--kendo-color-error`, zero and `–` `--kendo-color-subtle`. Default is *good*; *bad* is saved as
+`increaseIsGood: false` (absent otherwise), so a consumption increase shows `▲ +2 316,17 kWh (+5,7 %)` in the
+error colour and a decrease `▼` in the success colour. The line follows the
 rules of the time-shift caption: it is shown only while the shift applies (a time filter is active, the
 time filter is not ignored, not a runtime query). While the queries run the tile shows its loading state;
 an empty entity-selector scope shows `-` and no line, without a query.

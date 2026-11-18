@@ -215,38 +215,61 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
     });
   });
 
-  describe('criterion 3: colour and arrow by sign', () => {
-    it('an increase is marked up with ▲', async () => {
-      answer(SEPTEMBER_2026.from, 40674.316);
-      answer(OCTOBER_2026.from, 42990.484);
+  describe('criterion 3: arrow by direction, colour by good or bad change (theme variables only)', () => {
+    const increase = (): void => { answer(SEPTEMBER_2026.from, 40674.316); answer(OCTOBER_2026.from, 42990.484); };
+    const decrease = (): void => { answer(SEPTEMBER_2026.from, 3688.86); answer(OCTOBER_2026.from, 3482.59); };
+    const arrow = (line: HTMLElement): string | undefined => line.querySelector('.kpi-change-arrow')?.textContent?.trim();
+
+    it('an increase is good by default: ▲ with the success colour class', async () => {
+      increase();
 
       const line = changeLine(await render(kpi()))!;
 
-      expect(line.classList).toContain('change-up');
-      expect(line.querySelector('.kpi-change-arrow')?.textContent?.trim()).toBe('▲');
+      expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+      expect(arrow(line)).toBe('▲');
+      expect(line.classList).toContain('change-good');
     });
 
-    it('a decrease is marked down with ▼', async () => {
-      answer(SEPTEMBER_2026.from, 3688.86);
-      answer(OCTOBER_2026.from, 3482.59);
+    it('a decrease is bad by default: ▼ with the error colour class', async () => {
+      decrease();
 
       const line = changeLine(await render(kpi()))!;
 
-      expect(line.classList).toContain('change-down');
-      expect(line.querySelector('.kpi-change-arrow')?.textContent?.trim()).toBe('▼');
+      expect(arrow(line)).toBe('▼');
+      expect(line.classList).toContain('change-bad');
     });
 
-    it('zero is neutral without arrow', async () => {
+    it('"An increase is bad" + "+2 316,17 kWh (+5,7 %)": ▲ with the error colour class', async () => {
+      increase();
+
+      const line = changeLine(await render(kpi({ increaseIsGood: false })))!;
+
+      expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
+      expect(arrow(line)).toBe('▲');
+      expect(line.classList).toContain('change-bad');
+    });
+
+    it('"An increase is bad" + "−206,27 kWh (−5,6 %)": ▼ with the success colour class', async () => {
+      decrease();
+
+      const line = changeLine(await render(kpi({ increaseIsGood: false })))!;
+
+      expect(plain(line.querySelector('.kpi-change-text')?.textContent)).toBe('−206,27 kWh (−5,6 %)');
+      expect(arrow(line)).toBe('▼');
+      expect(line.classList).toContain('change-good');
+    });
+
+    it('zero is neutral without arrow, also with "An increase is bad"', async () => {
       answer(SEPTEMBER_2026.from, 1250);
       answer(OCTOBER_2026.from, 1250);
 
-      const line = changeLine(await render(kpi()))!;
+      const line = changeLine(await render(kpi({ increaseIsGood: false })))!;
 
       expect(line.classList).toContain('change-neutral');
       expect(line.querySelector('.kpi-change-arrow')).toBeNull();
     });
 
-    it('the colours are theme variables only (success, error, subtle), no hard-coded colour', async () => {
+    it('the colours are theme variables only (good success, bad error, neutral subtle), no hard-coded colour', async () => {
       answer(SEPTEMBER_2026.from, 1);
       answer(OCTOBER_2026.from, 2);
       await render(kpi());
@@ -254,8 +277,8 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       const css = Array.from(document.querySelectorAll('style')).map(s => s.textContent ?? '').join('\n');
       const rule = (selector: string): string => css.match(new RegExp(`\\.kpi-change\\.${selector}[^{]*\\{([^}]*)\\}`))?.[1] ?? '';
 
-      expect(rule('change-up')).toMatch(/^\s*color:\s*var\(--kendo-color-success\);?\s*$/);
-      expect(rule('change-down')).toMatch(/^\s*color:\s*var\(--kendo-color-error\);?\s*$/);
+      expect(rule('change-good')).toMatch(/^\s*color:\s*var\(--kendo-color-success\);?\s*$/);
+      expect(rule('change-bad')).toMatch(/^\s*color:\s*var\(--kendo-color-error\);?\s*$/);
       expect(rule('change-neutral')).toMatch(/^\s*color:\s*var\(--kendo-color-subtle\);?\s*$/);
     });
   });

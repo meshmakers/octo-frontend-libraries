@@ -242,6 +242,7 @@ function kpiDisplayFieldsFromResult(result: KpiConfigResult): Pick<KpiWidgetConf
 function withoutShowChange(widget: KpiWidgetConfig): KpiWidgetConfig {
   const copy = { ...widget };
   delete copy.showChange;
+  delete copy.increaseIsGood;
   return copy;
 }
 
@@ -369,6 +370,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         initialIgnoreTimeFilter: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).ignoreTimeFilter : undefined,
         initialTimeShift: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).timeShift : undefined,
         initialShowChange: isPersistentQuery && kpiWidget.showChange === true,
+        initialIncreaseIsGood: kpiWidget.increaseIsGood !== false,
         initialEntitySelectorId: isPersistentQuery ? (kpiWidget.dataSource as PersistentQueryDataSource).entitySelectorId : undefined,
         initialQueryMode: kpiWidget.queryMode,
         initialQueryValueField: kpiWidget.queryValueField,
@@ -455,6 +457,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           queryCategoryValue: result.queryCategoryValue,
           ...kpiDisplayFieldsFromResult(result),
           ...(result.showChange && result.timeShift && { showChange: true as const }),
+          ...(result.showChange && result.timeShift && result.increaseIsGood === false && { increaseIsGood: false as const }),
           filters
         };
       } else {
@@ -508,6 +511,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           comparisonText: widget.comparisonText,
           decimalPlaces: widget.decimalPlaces,
           ...(isPersistentQuery && widget.showChange === true && { showChange: true }),
+          ...(isPersistentQuery && widget.showChange === true && widget.increaseIsGood === false && { increaseIsGood: false }),
           staticValue: widget.staticValue,
           valueMode: widget.valueMode,
           formula: widget.formula,
@@ -569,6 +573,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           valueMultiplier: config['valueMultiplier'] as number | undefined,
           ...kpiDisplayFieldsFromPersisted(config),
           ...(config['showChange'] === true && { showChange: true as const }),
+          ...(config['showChange'] === true && config['increaseIsGood'] === false && { increaseIsGood: false as const }),
           filters: config['filters'] as WidgetFilterConfig[] | undefined
         };
       }

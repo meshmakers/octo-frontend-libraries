@@ -28,7 +28,7 @@ let nextEditorId = 0;
  * </mm-sd-time-shift-editor>
  * ```
  *
- * The KPI dialog adds `[offerShowChange]="true" [(showChange)]="showChange"` (AB#9245).
+ * The KPI dialog adds `[offerShowChange]="true" [(showChange)]="showChange" [(increaseIsGood)]="increaseIsGood"` (AB#9245).
  */
 @Component({
   selector: 'mm-sd-time-shift-editor',
@@ -85,6 +85,24 @@ let nextEditorId = 0;
                 Show the change to the current period (value and %)
               </label>
             </div>
+            @if (showChange()) {
+              <div class="change-direction">
+                <span class="change-direction-label" [class.k-disabled]="ignoreTimeFilter()">An increase is</span>
+                @for (option of directionOptions; track option.label) {
+                  <label class="choice" [class.k-disabled]="ignoreTimeFilter()">
+                    <input
+                      type="radio"
+                      kendoRadioButton
+                      [name]="directionGroupName"
+                      [value]="option.label"
+                      [checked]="increaseIsGood() === option.good"
+                      [disabled]="ignoreTimeFilter()"
+                      (change)="increaseIsGood.set(option.good)" />
+                    {{ option.label }}
+                  </label>
+                }
+              </div>
+            }
           }
         }
         <p class="field-hint" [id]="hintId">{{ hint() }}</p>
@@ -135,6 +153,14 @@ let nextEditorId = 0;
       margin-top: 8px;
     }
 
+    .change-direction {
+      display: flex;
+      align-items: center;
+      gap: 4px 16px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
     .show-change-choice {
       display: inline-flex;
       align-items: center;
@@ -168,7 +194,17 @@ export class SdTimeShiftEditorComponent {
   /** "Show the change to the current period"; only meaningful while {@link offerShowChange} is set. */
   readonly showChange = model(false);
 
+  /** "An increase is good / bad" of the change line (AB#9245); `true` = good. */
+  readonly increaseIsGood = model(true);
+
+  readonly directionOptions: readonly { label: string; good: boolean }[] = [
+    { label: 'good', good: true },
+    { label: 'bad', good: false }
+  ];
+
   readonly groupName = `mm-time-shift-${nextEditorId++}`;
+
+  readonly directionGroupName = `${this.groupName}-direction`;
 
   readonly hintId = `${this.groupName}-hint`;
 

@@ -20,7 +20,10 @@ import { hasTimeShiftCaption } from '../../components/time-shift-caption/time-sh
 /** Change of the current period against the shifted value (AB#9245), as shown under the value. */
 export interface KpiChange {
   text: string;
+  /** Arrow: an increase is up, a decrease down. */
   direction: 'up' | 'down' | 'neutral';
+  /** Colour: an increase is good unless `increaseIsGood` is `false`. */
+  tone: 'good' | 'bad' | 'neutral';
 }
 
 @Component({
@@ -585,7 +588,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     const base = KpiWidgetComponent.finiteNumber(shifted);
     const now = KpiWidgetComponent.finiteNumber(current);
     if (base === null || now === null || base === 0) {
-      return { text: '\u2013', direction: 'neutral' };
+      return { text: '\u2013', direction: 'neutral', tone: 'neutral' };
     }
     const decimals = normalizeKpiDecimalPlaces(this.currentConfig()?.decimalPlaces);
     const diff = now - base;
@@ -597,11 +600,14 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     const shownPercent = Number(getNumberFormat('en-US', 0, 1, false).format(Math.abs(percent)));
     const percentText = formatWidgetNumber(shownPercent, 1, 'exact');
     const sign = (shown: number, raw: number): string => shown === 0 ? '' : raw > 0 ? '+' : '\u2212';
-    const suffix = this.currentConfig()?.suffix;
-    const unit = suffix ? ` ${suffix}` : '';
+    const config = this.currentConfig();
+    const unit = config?.suffix ? ` ${config.suffix}` : '';
+    const direction = shownDiff === 0 ? 'neutral' : diff > 0 ? 'up' : 'down';
+    const good = config?.increaseIsGood === false ? 'down' : 'up';
     return {
       text: `${sign(shownDiff, diff)}${diffText}${unit} (${sign(shownPercent, percent)}${percentText} %)`,
-      direction: shownDiff === 0 ? 'neutral' : diff > 0 ? 'up' : 'down'
+      direction,
+      tone: direction === 'neutral' ? 'neutral' : direction === good ? 'good' : 'bad'
     };
   }
 

@@ -19,6 +19,9 @@ starts a new empty "Unreleased" section.
 - New: *Show change* under *Compare with* in the KPI dialog (`mm-sd-time-shift-editor` input `offerShowChange`, model
   `showChange`); only with *Previous period* / *Same period last year*, disabled while the time filter is ignored.
   Boards without the option store, query and render exactly as before.
+- New: *An increase is good / bad* under *Show change* (`KpiWidgetConfig.increaseIsGood?: false`, stored only for
+  *bad*; editor model `increaseIsGood`). The arrow follows the direction, the colour whether the change is good
+  (success) or bad (error), like Power BI's "Low is good" and Grafana's "Inverted".
 
 ### octo-meshboard: stream-data widgets show the previous period or the same period last year (AB#9094, AB#9095)
 
