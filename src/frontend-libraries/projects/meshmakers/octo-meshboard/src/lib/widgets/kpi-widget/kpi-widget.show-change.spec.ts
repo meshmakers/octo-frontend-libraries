@@ -354,13 +354,18 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       const css = Array.from(document.querySelectorAll('style')).map(s => s.textContent ?? '').join('\n');
       const rulesOf = (selector: RegExp): string[] =>
         Array.from(css.matchAll(/([^{}]+)\{([^}]*)\}/g)).filter(m => selector.test(m[1])).map(m => m[2]);
-      const lineRules = Array.from(css.matchAll(/([^{}]+)\{([^}]*)\}/g)).filter(m => /\.kpi-change(?![-\w])/.test(m[1]));
+      const lineRules = Array.from(css.matchAll(/([^{}]+)\{([^}]*)\}/g)).flatMap((m, order) => m[1].split(',')
+        .map(selector => selector.trim())
+        .filter(selector => /\.kpi-change(?![-\w])/.test(selector.split(/\s+/).at(-1) ?? ''))
+        .map(selector => ({ selector, body: m[2], order, specificity: (selector.match(/[.[]/g) ?? []).length })));
       expect(lineRules.length).toBeGreaterThan(1);
       for (const tone of ['good', 'bad', 'neutral']) {
-        const applying = lineRules.filter(m => !/\.change-(good|bad|neutral)/.test(m[1]) || m[1].includes(`.change-${tone}`));
-        const wraps = applying.map(m => m[2].match(/flex-wrap:\s*([\w-]+)/)?.[1]).filter((v): v is string => !!v);
+        const applying = lineRules
+          .filter(rule => !/\.change-(good|bad|neutral)/.test(rule.selector) || rule.selector.includes(`.change-${tone}`))
+          .sort((a, b) => a.specificity - b.specificity || a.order - b.order);
+        const wraps = applying.map(rule => rule.body.match(/flex-wrap:\s*([\w-]+)/)?.[1]).filter((v): v is string => !!v);
         expect(wraps.at(-1), `effective flex-wrap of .kpi-change.change-${tone}`).toBe('wrap');
-        expect(applying.filter(m => /white-space:\s*nowrap/.test(m[2])).map(m => m[1].trim())).toEqual([]);
+        expect(applying.filter(rule => /white-space:\s*nowrap/.test(rule.body)).map(rule => rule.selector)).toEqual([]);
       }
       expect(rulesOf(/\.kpi-change-text(?![-\w])/).filter(body => /white-space:\s*nowrap/.test(body))).toEqual([]);
     });

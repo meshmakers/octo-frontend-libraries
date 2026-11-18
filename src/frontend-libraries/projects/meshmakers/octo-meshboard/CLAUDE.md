@@ -380,7 +380,7 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   toast) and is not awaited: the shifted value, the output variable and the end of the loading state come with the
   shifted query, the line when the current value arrives. The current value is `null` (en dash) when the result has
   no row for the KPI (aggregation: no supported row, a row without cells, or a row without the `queryValueField` cell,
-  as the tile's first-cell fallback does not apply to the comparison; grouped: no row of `queryCategoryValue`, or that
+  as the tile's first-cell fallback does not apply to the comparison when `queryValueField` is set; grouped: no row of `queryCategoryValue`, or that
   row without a `queryValueField` cell), where the shifted side
   keeps the 0 of the tile. A failure of the current-period query only drops the line (tile, value and
   output variable stay); a failure of the shifted query is the tile's error. `loadGeneration` (bumped by every
