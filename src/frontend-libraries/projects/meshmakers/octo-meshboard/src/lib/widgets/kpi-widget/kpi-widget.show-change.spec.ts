@@ -352,11 +352,13 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       await render(kpi());
 
       const css = Array.from(document.querySelectorAll('style')).map(s => s.textContent ?? '').join('\n');
-      const rule = (selector: string): string =>
-        css.match(new RegExp(`${selector}\\[[^{]*\\{([^}]*)\\}`))?.[1] ?? css.match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
-      expect(rule('\\.kpi-change')).toMatch(/flex-wrap:\s*wrap/);
-      expect(rule('\\.kpi-change')).not.toMatch(/white-space:\s*nowrap/);
-      expect(rule('\\.kpi-change-text')).not.toMatch(/white-space:\s*nowrap/);
+      const rulesOf = (selector: RegExp): string[] =>
+        Array.from(css.matchAll(/([^{}]+)\{([^}]*)\}/g)).filter(m => selector.test(m[1])).map(m => m[2]);
+      const lineRules = rulesOf(/\.kpi-change(?![-\w])/);
+      expect(lineRules.length).toBeGreaterThan(1);
+      expect(lineRules.some(body => /flex-wrap:\s*wrap/.test(body))).toBe(true);
+      expect(lineRules.filter(body => /white-space:\s*nowrap/.test(body))).toEqual([]);
+      expect(rulesOf(/\.kpi-change-text(?![-\w])/).filter(body => /white-space:\s*nowrap/.test(body))).toEqual([]);
     });
   });
 
@@ -783,6 +785,25 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(execute).not.toHaveBeenCalled();
       expect(value(fixture.nativeElement as HTMLElement)).toBe('-');
+      expect(changeLine(fixture.nativeElement as HTMLElement)).toBeNull();
+    });
+
+    it('a pick that turns the scope pending during the family lookup sends no query with the old ids', async () => {
+      let lookupDone!: (family: string) => void;
+      resolveFamily.mockReturnValue(new Promise(resolve => { lookupDone = resolve; }));
+      state.updateEntitySelectors([{ id: 'site', label: 'Site', ckTypeId: 'System/Entity', attributeMappings: [] }]);
+      state.setEntitySelectorRtIds('site', ['site-1']);
+      fixture = TestBed.createComponent(KpiWidgetComponent);
+      fixture.componentRef.setInput('config', kpi({}, source({ queryFamily: undefined, entitySelectorId: 'site' })));
+      fixture.detectChanges();
+
+      state.setEntitySelectorScopePending('site');
+      lookupDone('streamData');
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(execute).not.toHaveBeenCalled();
+      expect((fixture.nativeElement as HTMLElement).querySelector('.loading-indicator')).not.toBeNull();
       expect(changeLine(fixture.nativeElement as HTMLElement)).toBeNull();
     });
 

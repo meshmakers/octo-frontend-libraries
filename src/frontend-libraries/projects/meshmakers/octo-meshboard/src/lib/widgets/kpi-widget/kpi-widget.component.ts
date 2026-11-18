@@ -11,7 +11,7 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { applyValueMultiplier, formatWidgetNumber, getNumberFormat, matchesAttributePath } from '../../utils/widget-data-utils';
+import { applyValueMultiplier, findCellForField, formatWidgetNumber, getNumberFormat, matchesAttributePath } from '../../utils/widget-data-utils';
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { QueryFamily } from '../../utils/query-family';
@@ -533,6 +533,14 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       // Entity-selector scope (AB#7721): pending → stay in the loading state and
       // send no query (the view refreshes once the scope is known); empty → show
       // the no-data value '-' without querying the persisted (unscoped) scope.
+      const comparison = this.changeApplies()
+        ? this.stateService.resolveStreamDataComparisonTimeArgs(dataSource.ignoreTimeFilter, dataSource.timeShift)
+        : undefined;
+      const family = comparison && !dataSource.queryFamily
+        ? await this.queryExecutor.resolveFamily(dataSource.queryRtId)
+        : dataSource.queryFamily;
+      if (generation !== this.loadGeneration) return;
+
       const scope = this.stateService.resolveStreamDataScope(dataSource.entitySelectorId, dataSource.queryFamily, dataSource.ignoreTimeFilter);
       if (scope.kind === 'pending') {
         return;
@@ -562,13 +570,6 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
         )
       );
 
-      const comparison = this.changeApplies()
-        ? this.stateService.resolveStreamDataComparisonTimeArgs(dataSource.ignoreTimeFilter, dataSource.timeShift)
-        : undefined;
-      const family = comparison && !dataSource.queryFamily
-        ? await this.queryExecutor.resolveFamily(dataSource.queryRtId)
-        : dataSource.queryFamily;
-      if (generation !== this.loadGeneration) return;
       if (comparison && family === 'streamData') {
         execute(family, this.buildStreamDataArgs(comparison.current), true)
           .then(result => this.queryValue(result, null))
@@ -706,20 +707,10 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     for (const row of queryResult.rows) {
       if (!KpiWidgetComponent.SUPPORTED_ROW_TYPES.has(row.__typename ?? '')) continue;
 
-      let categoryMatch = false;
-      let value: number | string | null | undefined;
-
-      for (const cell of row.cells) {
-        if (matchesAttributePath(cell.attributePath, categoryField) && String(cell.value) === categoryValue) {
-          categoryMatch = true;
-        }
-        if (matchesAttributePath(cell.attributePath, valueField)) {
-          value = this.extractCellValue(cell.value);
-        }
-      }
-
-      if (categoryMatch) {
-        return value;
+      const categoryCell = findCellForField(row.cells, categoryField);
+      if (categoryCell && String(categoryCell.value) === categoryValue) {
+        const valueCell = findCellForField(row.cells, valueField);
+        return valueCell ? this.extractCellValue(valueCell.value) : undefined;
       }
     }
 

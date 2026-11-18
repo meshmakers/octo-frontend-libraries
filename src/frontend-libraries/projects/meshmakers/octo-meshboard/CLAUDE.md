@@ -374,7 +374,8 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   exactly) and sends the shifted query and a second one for the current window in parallel, same filters, scope,
   `queryMode` and `valueMultiplier` (`queryValue`). The second query goes out only for stream data: without a saved
   `queryFamily` the widget asks `QueryExecutorService.resolveFamily` once, before either query, and passes that
-family to both (a load superseded during the lookup sends nothing). It runs with `silentErrors: true` (no
+family to both (a load superseded during the lookup sends nothing; the entity-selector scope is read after the
+lookup, so a scope that turned pending meanwhile sends nothing either). It runs with `silentErrors: true` (no
   toast) and is not awaited: the shifted value, the output variable and the end of the loading state come with the
   shifted query, the line when the current value arrives. The current value is `null` (en dash) when the result has
   no row for the KPI (aggregation: no supported row; grouped: no row of `queryCategoryValue`, or that row without a
