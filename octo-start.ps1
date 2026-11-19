@@ -13,8 +13,41 @@ if (!(Test-Path $frontendLibsPath)) {
     exit 1
 }
 
+# HTTPS of ng serve (angular.json: localhost.crt / localhost.key next to it, not tracked): the ASP.NET Core
+# development certificate - the one the backends use, trusted on every OS by `dotnet dev-certs https --trust` -,
+# exported when the files are missing or expire within a week. A certificate of your own that is still valid
+# (scripts/generate-dev-certs.ps1, other host names) is left alone.
+function Sync-DevCertificate([string]$folder) {
+    $crt = Join-Path $folder 'localhost.crt'
+    $key = Join-Path $folder 'localhost.key'
+    if ((Test-Path $crt) -and (Test-Path $key)) {
+        try {
+            $current = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($crt)
+            if ($current.NotAfter -gt (Get-Date).AddDays(7)) { return }
+            Write-Host "localhost.crt expires on $($current.NotAfter.ToString('yyyy-MM-dd')): exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
+        }
+        catch {
+            Write-Host "localhost.crt cannot be read: exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
+        }
+    }
+    else {
+        Write-Host "No localhost.crt / localhost.key: exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
+    }
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+        Write-Host "dotnet is not on PATH: install the .NET SDK and run 'dotnet dev-certs https --trust', or run scripts/generate-dev-certs.ps1" -ForegroundColor Red
+        return
+    }
+    # PEM: localhost.crt and, next to it, localhost.key (unencrypted, like the files generate-dev-certs.ps1 writes).
+    & dotnet dev-certs https --export-path $crt --format Pem --no-password
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "dotnet dev-certs https --export-path failed (exit code $LASTEXITCODE): run 'dotnet dev-certs https --trust' first" -ForegroundColor Red
+    }
+}
+
 Push-Location $frontendLibsPath
 try {
+    Sync-DevCertificate $frontendLibsPath
+
     # Check if node_modules exists, if not run npm ci
     $nodeModules = Join-Path $frontendLibsPath "node_modules"
     if (!(Test-Path $nodeModules)) {
