@@ -15,20 +15,25 @@ if (!(Test-Path $frontendLibsPath)) {
 
 # HTTPS of ng serve (angular.json: localhost.crt / localhost.key next to it, not tracked): the ASP.NET Core
 # development certificate - the one the backends use, trusted on every OS by `dotnet dev-certs https --trust` -,
-# exported when the files are missing or expire within a week. A certificate of your own that is still valid
-# (scripts/generate-dev-certs.ps1, other host names) is left alone.
+# exported when the files are missing, unreadable or expire within a week. A certificate of your own that is still
+# valid (scripts/generate-dev-certs.ps1, other host names) is left alone.
+function Test-DevCertificateFiles([string]$crt, [string]$key) {
+    # Usable for ng serve: both files there and the certificate readable (an expired one still serves, the browser warns).
+    if (-not ((Test-Path $crt) -and (Test-Path $key))) { return $null }
+    try { return [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($crt) }
+    catch { return $null }
+}
+
 function Sync-DevCertificate([string]$folder) {
     $crt = Join-Path $folder 'localhost.crt'
     $key = Join-Path $folder 'localhost.key'
-    if ((Test-Path $crt) -and (Test-Path $key)) {
-        try {
-            $current = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($crt)
-            if ($current.NotAfter -gt (Get-Date).AddDays(7)) { return }
-            Write-Host "localhost.crt expires on $($current.NotAfter.ToString('yyyy-MM-dd')): exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
-        }
-        catch {
-            Write-Host "localhost.crt cannot be read: exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
-        }
+    $current = Test-DevCertificateFiles $crt $key
+    if ($current) {
+        if ($current.NotAfter -gt (Get-Date).AddDays(7)) { return }
+        Write-Host "localhost.crt expires on $($current.NotAfter.ToString('yyyy-MM-dd')): exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
+    }
+    elseif ((Test-Path $crt) -and (Test-Path $key)) {
+        Write-Host "localhost.crt cannot be read: exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
     }
     else {
         Write-Host "No localhost.crt / localhost.key: exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
@@ -37,14 +42,14 @@ function Sync-DevCertificate([string]$folder) {
         Write-Host "dotnet is not on PATH: install the .NET SDK and run 'dotnet dev-certs https --trust', or run scripts/generate-dev-certs.ps1" -ForegroundColor Red
     }
     else {
-        # Only a trusted development certificate replaces files that exist: an untrusted one (or one the export would
-        # create) would break HTTPS where the old one still worked. Missing files get one anyway, so ng serve can start.
+        # Only a trusted development certificate replaces files that still work: an untrusted one would break HTTPS where
+        # the old one still served. Missing or unreadable files get one anyway, so ng serve can start.
         & dotnet dev-certs https --check --trust *> $null
         $trusted = $LASTEXITCODE -eq 0
         if (-not $trusted) {
             Write-Host "The ASP.NET Core development certificate is missing or not trusted: run 'dotnet dev-certs https --trust'" -ForegroundColor Yellow
         }
-        if ($trusted -or -not ((Test-Path $crt) -and (Test-Path $key))) {
+        if ($trusted -or -not $current) {
             # PEM: localhost.crt and, next to it, localhost.key (unencrypted, like the files generate-dev-certs.ps1 writes).
             & dotnet dev-certs https --export-path $crt --format Pem --no-password
             if ($LASTEXITCODE -ne 0) {
@@ -55,10 +60,9 @@ function Sync-DevCertificate([string]$folder) {
             Write-Host "localhost.crt / localhost.key are kept until the development certificate is trusted" -ForegroundColor Yellow
         }
     }
-    # Without the files ng serve cannot start: stop here with the reason. An expired certificate still serves (the
-    # browser warns), as before this check existed.
-    if (-not ((Test-Path $crt) -and (Test-Path $key))) {
-        Write-Host "ng serve needs localhost.crt and localhost.key in ${folder}: fix the export above and start again" -ForegroundColor Red
+    # Without usable files ng serve cannot start: stop here with the reason.
+    if (-not (Test-DevCertificateFiles $crt $key)) {
+        Write-Host "ng serve needs a readable localhost.crt and localhost.key in ${folder}: fix the export above and start again" -ForegroundColor Red
         exit 1
     }
 }
