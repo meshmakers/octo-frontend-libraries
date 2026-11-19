@@ -13,8 +13,66 @@ if (!(Test-Path $frontendLibsPath)) {
     exit 1
 }
 
+# HTTPS of ng serve (angular.json: localhost.crt / localhost.key next to it, not tracked): the ASP.NET Core
+# development certificate - the one the backends use, trusted on every OS by `dotnet dev-certs https --trust` -,
+# exported when the files are missing, unreadable or expire within a week. A certificate of your own that is still
+# valid (scripts/generate-dev-certs.ps1, other host names) is left alone.
+function Test-DevCertificateFiles([string]$crt, [string]$key) {
+    # Usable for ng serve: both files there, the certificate readable and the key its own (an expired one still serves,
+    # the browser warns).
+    if (-not ((Test-Path $crt) -and (Test-Path $key))) { return $null }
+    # CreateFromPemFile reads both and refuses a key that is empty, malformed or does not belong to the certificate.
+    try { return [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromPemFile($crt, $key) }
+    catch { return $null }
+}
+
+function Sync-DevCertificate([string]$folder) {
+    $crt = Join-Path $folder 'localhost.crt'
+    $key = Join-Path $folder 'localhost.key'
+    $current = Test-DevCertificateFiles $crt $key
+    if ($current) {
+        if ($current.NotAfter -gt (Get-Date).AddDays(7)) { return }
+        Write-Host "localhost.crt expires on $($current.NotAfter.ToString('yyyy-MM-dd')): exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
+    }
+    elseif ((Test-Path $crt) -and (Test-Path $key)) {
+        Write-Host "localhost.crt cannot be read: exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "No localhost.crt / localhost.key: exporting the ASP.NET Core development certificate" -ForegroundColor Yellow
+    }
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+        Write-Host "dotnet is not on PATH: install the .NET SDK and run 'dotnet dev-certs https --trust', or run scripts/generate-dev-certs.ps1" -ForegroundColor Red
+    }
+    else {
+        # Only a trusted development certificate replaces files that still work: an untrusted one would break HTTPS where
+        # the old one still served. Missing or unreadable files get one anyway, so ng serve can start.
+        & dotnet dev-certs https --check --trust *> $null
+        $trusted = $LASTEXITCODE -eq 0
+        if (-not $trusted) {
+            Write-Host "The ASP.NET Core development certificate is missing or not trusted: run 'dotnet dev-certs https --trust'" -ForegroundColor Yellow
+        }
+        if ($trusted -or -not $current) {
+            # PEM: localhost.crt and, next to it, localhost.key (unencrypted, like the files generate-dev-certs.ps1 writes).
+            & dotnet dev-certs https --export-path $crt --format Pem --no-password
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "dotnet dev-certs https --export-path failed (exit code $LASTEXITCODE): run 'dotnet dev-certs https --trust' first" -ForegroundColor Red
+            }
+        }
+        else {
+            Write-Host "localhost.crt / localhost.key are kept until the development certificate is trusted" -ForegroundColor Yellow
+        }
+    }
+    # Without usable files ng serve cannot start: stop here with the reason.
+    if (-not (Test-DevCertificateFiles $crt $key)) {
+        Write-Host "ng serve needs a readable localhost.crt and localhost.key in ${folder}: fix the export above and start again" -ForegroundColor Red
+        exit 1
+    }
+}
+
 Push-Location $frontendLibsPath
 try {
+    Sync-DevCertificate $frontendLibsPath
+
     # Check if node_modules exists, if not run npm ci
     $nodeModules = Join-Path $frontendLibsPath "node_modules"
     if (!(Test-Path $nodeModules)) {
@@ -68,7 +126,11 @@ try {
         $psi.UseShellExecute = $false
         $psi.RedirectStandardOutput = $true
         $psi.RedirectStandardError = $true
-        $psi.CreateNoWindow = $true
+        # Windows: the dev servers share this script's console (hidden under Start-Job and octo-devstack, so no window
+        # opens), so a CTRL_BREAK or Ctrl+C to it reaches them too; they end and so does the loop below. With a console of
+        # their own they kept running, the loop never ended, and a graceful stop (octo-devstack's stack_stop) had to kill
+        # the whole tree after its timeout. macOS/Linux ignore the setting.
+        $psi.CreateNoWindow = [bool]($IsMacOS -or $IsLinux)
 
         $proc = [System.Diagnostics.Process]::new()
         $proc.StartInfo = $psi

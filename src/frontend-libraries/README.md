@@ -55,6 +55,8 @@ npm start
 
 Navigate to `https://localhost:4201/`. The application will automatically reload on file changes.
 
+The dev server uses HTTPS with `localhost.crt` / `localhost.key` in this folder (git-ignored). `octo-start.ps1` at the repository root (also run by `Start-Octo`) exports the ASP.NET Core development certificate there when the files are missing, unreadable or expire within 7 days, and replaces existing files only while that certificate is trusted (once: `dotnet dev-certs https --trust`). A certificate of your own that is still valid (`scripts/generate-dev-certs.ps1`, other host names) is left alone.
+
 ### Building Libraries
 
 ```bash
