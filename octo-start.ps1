@@ -18,9 +18,11 @@ if (!(Test-Path $frontendLibsPath)) {
 # exported when the files are missing, unreadable or expire within a week. A certificate of your own that is still
 # valid (scripts/generate-dev-certs.ps1, other host names) is left alone.
 function Test-DevCertificateFiles([string]$crt, [string]$key) {
-    # Usable for ng serve: both files there and the certificate readable (an expired one still serves, the browser warns).
+    # Usable for ng serve: both files there, the certificate readable and the key its own (an expired one still serves,
+    # the browser warns).
     if (-not ((Test-Path $crt) -and (Test-Path $key))) { return $null }
-    try { return [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($crt) }
+    # CreateFromPemFile reads both and refuses a key that is empty, malformed or does not belong to the certificate.
+    try { return [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromPemFile($crt, $key) }
     catch { return $null }
 }
 
