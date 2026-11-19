@@ -68,7 +68,11 @@ try {
         $psi.UseShellExecute = $false
         $psi.RedirectStandardOutput = $true
         $psi.RedirectStandardError = $true
-        $psi.CreateNoWindow = $true
+        # Windows: the dev servers share this script's console (hidden under Start-Job and octo-devstack, so no window
+        # opens), so a CTRL_BREAK or Ctrl+C to it reaches them too; they end and so does the loop below. With a console of
+        # their own they kept running, the loop never ended, and a graceful stop (octo-devstack's stack_stop) had to kill
+        # the whole tree after its timeout. macOS/Linux ignore the setting.
+        $psi.CreateNoWindow = [bool]($IsMacOS -or $IsLinux)
 
         $proc = [System.Diagnostics.Process]::new()
         $proc.StartInfo = $psi
