@@ -35,12 +35,19 @@ function Sync-DevCertificate([string]$folder) {
     }
     if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
         Write-Host "dotnet is not on PATH: install the .NET SDK and run 'dotnet dev-certs https --trust', or run scripts/generate-dev-certs.ps1" -ForegroundColor Red
-        return
     }
-    # PEM: localhost.crt and, next to it, localhost.key (unencrypted, like the files generate-dev-certs.ps1 writes).
-    & dotnet dev-certs https --export-path $crt --format Pem --no-password
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "dotnet dev-certs https --export-path failed (exit code $LASTEXITCODE): run 'dotnet dev-certs https --trust' first" -ForegroundColor Red
+    else {
+        # PEM: localhost.crt and, next to it, localhost.key (unencrypted, like the files generate-dev-certs.ps1 writes).
+        & dotnet dev-certs https --export-path $crt --format Pem --no-password
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "dotnet dev-certs https --export-path failed (exit code $LASTEXITCODE): run 'dotnet dev-certs https --trust' first" -ForegroundColor Red
+        }
+    }
+    # Without the files ng serve cannot start: stop here with the reason. An expired certificate still serves (the
+    # browser warns), as before this check existed.
+    if (-not ((Test-Path $crt) -and (Test-Path $key))) {
+        Write-Host "ng serve needs localhost.crt and localhost.key in ${folder}: fix the export above and start again" -ForegroundColor Red
+        exit 1
     }
 }
 
