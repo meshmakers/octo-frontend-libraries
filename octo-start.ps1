@@ -1,3 +1,4 @@
+#Requires -Version 7.1
 param(
     [string]$configuration = "Release"
 )
@@ -19,7 +20,8 @@ if (!(Test-Path $frontendLibsPath)) {
 # valid (scripts/generate-dev-certs.ps1, other host names) is left alone.
 function Test-DevCertificateFiles([string]$crt, [string]$key) {
     # Usable for ng serve: both files there, the certificate readable and the key its own (an expired one still serves,
-    # the browser warns).
+    # the browser warns). A key .NET cannot load counts as unusable: dotnet dev-certs and generate-dev-certs.ps1 make RSA
+    # keys, and an Ed25519 server certificate - which .NET does not load - is not accepted by the major browsers anyway.
     if (-not ((Test-Path $crt) -and (Test-Path $key))) { return $null }
     # CreateFromPemFile reads both and refuses a key that is empty, malformed or does not belong to the certificate.
     try { return [System.Security.Cryptography.X509Certificates.X509Certificate2]::CreateFromPemFile($crt, $key) }
