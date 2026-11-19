@@ -37,10 +37,22 @@ function Sync-DevCertificate([string]$folder) {
         Write-Host "dotnet is not on PATH: install the .NET SDK and run 'dotnet dev-certs https --trust', or run scripts/generate-dev-certs.ps1" -ForegroundColor Red
     }
     else {
-        # PEM: localhost.crt and, next to it, localhost.key (unencrypted, like the files generate-dev-certs.ps1 writes).
-        & dotnet dev-certs https --export-path $crt --format Pem --no-password
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "dotnet dev-certs https --export-path failed (exit code $LASTEXITCODE): run 'dotnet dev-certs https --trust' first" -ForegroundColor Red
+        # Only a trusted development certificate replaces files that exist: an untrusted one (or one the export would
+        # create) would break HTTPS where the old one still worked. Missing files get one anyway, so ng serve can start.
+        & dotnet dev-certs https --check --trust *> $null
+        $trusted = $LASTEXITCODE -eq 0
+        if (-not $trusted) {
+            Write-Host "The ASP.NET Core development certificate is missing or not trusted: run 'dotnet dev-certs https --trust'" -ForegroundColor Yellow
+        }
+        if ($trusted -or -not ((Test-Path $crt) -and (Test-Path $key))) {
+            # PEM: localhost.crt and, next to it, localhost.key (unencrypted, like the files generate-dev-certs.ps1 writes).
+            & dotnet dev-certs https --export-path $crt --format Pem --no-password
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "dotnet dev-certs https --export-path failed (exit code $LASTEXITCODE): run 'dotnet dev-certs https --trust' first" -ForegroundColor Red
+            }
+        }
+        else {
+            Write-Host "localhost.crt / localhost.key are kept until the development certificate is trusted" -ForegroundColor Yellow
         }
     }
     # Without the files ng serve cannot start: stop here with the reason. An expired certificate still serves (the
