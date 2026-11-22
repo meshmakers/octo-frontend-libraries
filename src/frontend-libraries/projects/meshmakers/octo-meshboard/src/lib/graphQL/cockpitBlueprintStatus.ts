@@ -1,14 +1,14 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type CockpitBlueprintStatusQueryVariablesDto = Types.Exact<{
-  take?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type CockpitBlueprintStatusQueryVariablesDto = Exact<{
+  take?: number | null | undefined;
 }>;
 
 
-export type CockpitBlueprintStatusQueryDto = { __typename?: 'OctoQuery', blueprints?: { __typename?: 'BlueprintsQuery', installations: Array<{ __typename?: 'BlueprintInstallation', blueprintId: string, isDependency: boolean }>, list: { __typename?: 'BlueprintListResponse', totalCount: number, items: Array<{ __typename?: 'Blueprint', name: string, version: string }> } } | null };
+export type CockpitBlueprintStatusQueryDto = { blueprints: { installations: Array<{ blueprintId: string, isDependency: boolean }>, list: { totalCount: number, items: Array<{ name: string, version: string }> } } | null };
 
 export const CockpitBlueprintStatusDocumentDto = gql`
     query cockpitBlueprintStatus($take: Int) {

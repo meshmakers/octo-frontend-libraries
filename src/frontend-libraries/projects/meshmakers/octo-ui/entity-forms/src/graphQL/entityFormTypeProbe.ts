@@ -1,12 +1,12 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type EntityFormTypeProbeQueryVariablesDto = Types.Exact<{ [key: string]: never; }>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type EntityFormTypeProbeQueryVariablesDto = Exact<{ [key: string]: never; }>;
 
 
-export type EntityFormTypeProbeQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', rtCkTypeId: any } | null> | null } | null } | null };
+export type EntityFormTypeProbeQueryDto = { constructionKit: { types: { items: Array<{ rtCkTypeId: any } | null> | null } | null } | null };
 
 export const EntityFormTypeProbeDocumentDto = gql`
     query entityFormTypeProbe {

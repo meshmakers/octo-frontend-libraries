@@ -1,19 +1,21 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkTypesQueryVariablesDto = Types.Exact<{
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  searchFilter?: Types.InputMaybe<Types.SearchFilterDto>;
-  fieldFilters?: Types.InputMaybe<Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>>;
-  sort?: Types.InputMaybe<Array<Types.InputMaybe<Types.SortDto>> | Types.InputMaybe<Types.SortDto>>;
-  ckModelIds?: Types.InputMaybe<Array<Types.InputMaybe<Types.Scalars['String']['input']>> | Types.InputMaybe<Types.Scalars['String']['input']>>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkTypesQueryVariablesDto = Exact<{
+  after?: string | null | undefined;
+  first?: number | null | undefined;
+  searchFilter?: Types.SearchFilterDto | null | undefined;
+  fieldFilters?: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto | null | undefined;
+  sort?: Array<Types.SortDto | null | undefined> | Types.SortDto | null | undefined;
+  ckModelIds?: Array<string | null | undefined> | string | null | undefined;
 }>;
 
 
-export type GetCkTypesQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'CkType', rtCkTypeId: any, isAbstract: boolean, isFinal: boolean, description?: string | null, baseType?: { __typename?: 'CkType', rtCkTypeId: any, isAbstract: boolean, isFinal: boolean, ckTypeId: { __typename?: 'CkTypeId', fullName: string } } | null, ckTypeId: { __typename?: 'CkTypeId', fullName: string } } | null> | null } | null } | null };
+export type GetCkTypesQueryDto = { constructionKit: { types: { totalCount: number | null, items: Array<{ rtCkTypeId: any, isAbstract: boolean, isFinal: boolean, description: string | null, baseType: { rtCkTypeId: any, isAbstract: boolean, isFinal: boolean, ckTypeId: { fullName: string } } | null, ckTypeId: { fullName: string } } | null> | null } | null } | null };
 
 export const GetCkTypesDocumentDto = gql`
     query getCkTypes($after: String, $first: Int, $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort], $ckModelIds: [String]) {

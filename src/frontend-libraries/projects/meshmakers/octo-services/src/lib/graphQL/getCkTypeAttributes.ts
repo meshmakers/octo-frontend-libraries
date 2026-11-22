@@ -1,15 +1,17 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkTypeAttributesQueryVariablesDto = Types.Exact<{
-  ckTypeId: Types.Scalars['String']['input'];
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkTypeAttributesQueryVariablesDto = Exact<{
+  ckTypeId: string;
+  first?: number | null | undefined;
 }>;
 
 
-export type GetCkTypeAttributesQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', rtCkTypeId: any, ckTypeId: { __typename?: 'CkTypeId', fullName: string }, attributes?: { __typename?: 'CkTypeAttributeDtoConnection', items?: Array<{ __typename?: 'CkTypeAttribute', attributeName: string, attributeValueType: Types.AttributeValueTypeDto } | null> | null } | null } | null> | null } | null } | null };
+export type GetCkTypeAttributesQueryDto = { constructionKit: { types: { items: Array<{ rtCkTypeId: any, ckTypeId: { fullName: string }, attributes: { items: Array<{ attributeName: string, attributeValueType: Types.AttributeValueTypeDto } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetCkTypeAttributesDocumentDto = gql`
     query getCkTypeAttributes($ckTypeId: String!, $first: Int) {

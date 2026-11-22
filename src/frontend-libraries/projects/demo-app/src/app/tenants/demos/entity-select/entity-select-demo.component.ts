@@ -10,7 +10,8 @@ import {
 } from '@meshmakers/shared-ui';
 import { EntitySelectDataSource, EntitySelectResult } from '@meshmakers/shared-services';
 import { GetSdkCustomersDtoGQL, GetSdkCustomersQueryVariablesDto } from '../../../graphQL/getSdkCustomers';
-import { OctoSdkDemoCustomerDto, SearchFilterTypesDto } from '@meshmakers/octo-services';
+import { SearchFilterTypesDto } from '@meshmakers/octo-services';
+import { SdkCustomer } from '../sdk-customer';
 import { firstValueFrom, Observable, from, map } from 'rxjs';
 import { ColumnDefinition } from '@meshmakers/shared-ui';
 
@@ -74,10 +75,10 @@ class MockEntityDataSource implements EntitySelectDataSource<MockEntity> {
 }
 
 // Octo Mesh Customer data source - searches by contact.firstName, contact.lastName, contact.address.cityTown
-class CustomerEntityDataSource implements EntitySelectDataSource<OctoSdkDemoCustomerDto> {
+class CustomerEntityDataSource implements EntitySelectDataSource<SdkCustomer> {
   constructor(private getSdkCustomersDtoGQL: GetSdkCustomersDtoGQL) {}
 
-  async onFilter(filter: string, take = 50): Promise<EntitySelectResult<OctoSdkDemoCustomerDto>> {
+  async onFilter(filter: string, take = 50): Promise<EntitySelectResult<SdkCustomer>> {
     const variables: GetSdkCustomersQueryVariablesDto = {
       first: take,
       searchFilter: {
@@ -90,7 +91,7 @@ class CustomerEntityDataSource implements EntitySelectDataSource<OctoSdkDemoCust
     const result = await firstValueFrom(this.getSdkCustomersDtoGQL.fetch({ variables }));
 
     const items = (result.data?.runtime?.octoSdkDemoCustomer?.items ?? [])
-      .filter((item): item is OctoSdkDemoCustomerDto => item !== null);
+      .flatMap((item) => (item !== null ? [item] : []));
 
     return {
       totalCount: result.data?.runtime?.octoSdkDemoCustomer?.totalCount ?? 0,
@@ -98,17 +99,17 @@ class CustomerEntityDataSource implements EntitySelectDataSource<OctoSdkDemoCust
     };
   }
 
-  onDisplayEntity(entity: OctoSdkDemoCustomerDto): string {
+  onDisplayEntity(entity: SdkCustomer): string {
     return `${entity.contact?.firstName ?? ''} ${entity.contact?.lastName ?? ''} (${entity.contact?.address?.cityTown ?? ''})`;
   }
 
-  getIdEntity(entity: OctoSdkDemoCustomerDto): string {
+  getIdEntity(entity: SdkCustomer): string {
     return entity.rtId;
   }
 }
 
 // Customer Dialog DataSource - for the advanced search dialog with grid
-class CustomerDialogDataSource implements EntitySelectDialogDataSource<OctoSdkDemoCustomerDto> {
+class CustomerDialogDataSource implements EntitySelectDialogDataSource<SdkCustomer> {
   constructor(private getSdkCustomersDtoGQL: GetSdkCustomersDtoGQL) {}
 
   getColumns(): ColumnDefinition[] {
@@ -121,7 +122,7 @@ class CustomerDialogDataSource implements EntitySelectDialogDataSource<OctoSdkDe
     ];
   }
 
-  fetchData(options: DialogFetchOptions): Observable<DialogFetchResult<OctoSdkDemoCustomerDto>> {
+  fetchData(options: DialogFetchOptions): Observable<DialogFetchResult<SdkCustomer>> {
     // Note: This API uses cursor-based pagination. For demo purposes,
     // we fetch all items up to skip+take and slice client-side.
     // In production, implement proper cursor-based pagination.
@@ -137,7 +138,7 @@ class CustomerDialogDataSource implements EntitySelectDialogDataSource<OctoSdkDe
     return from(this.getSdkCustomersDtoGQL.fetch({ variables })).pipe(
       map(result => {
         const allItems = (result.data?.runtime?.octoSdkDemoCustomer?.items ?? [])
-          .filter((item): item is OctoSdkDemoCustomerDto => item !== null);
+          .flatMap((item) => (item !== null ? [item] : []));
 
         // Client-side pagination slice
         const pagedItems = allItems.slice(options.skip, options.skip + options.take);
@@ -150,11 +151,11 @@ class CustomerDialogDataSource implements EntitySelectDialogDataSource<OctoSdkDe
     );
   }
 
-  onDisplayEntity(entity: OctoSdkDemoCustomerDto): string {
+  onDisplayEntity(entity: SdkCustomer): string {
     return `${entity.contact?.firstName ?? ''} ${entity.contact?.lastName ?? ''} (${entity.contact?.address?.cityTown ?? ''})`;
   }
 
-  getIdEntity(entity: OctoSdkDemoCustomerDto): string {
+  getIdEntity(entity: SdkCustomer): string {
     return entity.rtId;
   }
 }
@@ -548,7 +549,7 @@ export class EntitySelectDemoComponent implements OnInit {
   public customerDialogDataSource: CustomerDialogDataSource;
 
   // Octo Mesh Customer selection
-  public selectedCustomer: OctoSdkDemoCustomerDto | null = null;
+  public selectedCustomer: SdkCustomer | null = null;
 
   // Basic usage
   public basicSelectedEntity: MockEntity | null = null;
@@ -557,8 +558,8 @@ export class EntitySelectDemoComponent implements OnInit {
   public scannerSelectedEntity: MockEntity | null = null;
 
   // Dialog selection
-  public dialogSelectedCustomer: OctoSdkDemoCustomerDto | null = null;
-  public multiSelectedCustomers: OctoSdkDemoCustomerDto[] = [];
+  public dialogSelectedCustomer: SdkCustomer | null = null;
+  public multiSelectedCustomers: SdkCustomer[] = [];
 
   // Form
   public demoForm: FormGroup;
@@ -580,7 +581,7 @@ export class EntitySelectDemoComponent implements OnInit {
   }
 
   // Event handlers - Octo Mesh Customer
-  public onCustomerSelected(entity: OctoSdkDemoCustomerDto): void {
+  public onCustomerSelected(entity: SdkCustomer): void {
     this.selectedCustomer = entity;
     console.log('Customer selected:', entity);
   }
@@ -607,7 +608,7 @@ export class EntitySelectDemoComponent implements OnInit {
   }
 
   // Event handlers - Dialog Customer Selection (Single)
-  public onDialogCustomerSelected(entity: OctoSdkDemoCustomerDto): void {
+  public onDialogCustomerSelected(entity: SdkCustomer): void {
     this.dialogSelectedCustomer = entity;
     console.log('Dialog customer selected:', entity);
   }
@@ -618,13 +619,13 @@ export class EntitySelectDemoComponent implements OnInit {
   }
 
   // Event handlers - Dialog Customer Selection (Multi)
-  public onMultiDialogCustomerSelected(entity: OctoSdkDemoCustomerDto): void {
+  public onMultiDialogCustomerSelected(entity: SdkCustomer): void {
     // Single selection from autocomplete in multi-select mode
     this.multiSelectedCustomers = [entity];
     console.log('Multi-dialog single customer selected:', entity);
   }
 
-  public onMultipleCustomersSelected(entities: OctoSdkDemoCustomerDto[]): void {
+  public onMultipleCustomersSelected(entities: SdkCustomer[]): void {
     this.multiSelectedCustomers = entities;
     console.log('Multiple customers selected:', entities);
   }

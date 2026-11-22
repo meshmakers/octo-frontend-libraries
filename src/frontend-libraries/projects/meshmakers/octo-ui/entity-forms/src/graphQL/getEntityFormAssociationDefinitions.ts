@@ -1,18 +1,20 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type EntityFormGetAssociationDefinitionsQueryVariablesDto = Types.Exact<{
-  ckTypeId: Types.Scalars['String']['input'];
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  roleId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type EntityFormGetAssociationDefinitionsQueryVariablesDto = Exact<{
+  ckTypeId: string;
+  rtId: any;
+  roleId: string;
   direction: Types.GraphDirectionDto;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  first?: number | null | undefined;
 }>;
 
 
-export type EntityFormGetAssociationDefinitionsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, associations?: { __typename?: 'RtEntityGenericAssociation', definitions?: { __typename?: 'RtAssociationDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtAssociation', originRtId: any, originCkTypeId: any, targetRtId: any, targetCkTypeId: any, ckAssociationRoleId: any } | null> | null } | null } | null } | null> | null } | null } | null };
+export type EntityFormGetAssociationDefinitionsQueryDto = { runtime: { runtimeEntities: { items: Array<{ rtId: any, associations: { definitions: { totalCount: number | null, items: Array<{ originRtId: any, originCkTypeId: any, targetRtId: any, targetCkTypeId: any, ckAssociationRoleId: any } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const EntityFormGetAssociationDefinitionsDocumentDto = gql`
     query entityFormGetAssociationDefinitions($ckTypeId: String!, $rtId: OctoObjectId!, $roleId: String!, $direction: GraphDirection!, $first: Int) {

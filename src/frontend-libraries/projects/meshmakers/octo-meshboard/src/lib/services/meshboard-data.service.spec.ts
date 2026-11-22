@@ -151,8 +151,11 @@ describe('MeshBoardDataService', () => {
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
                 rtDisplayName: 'Test Entity',
+                rtWellKnownName: null,
+                rtCreationDateTime: null,
+                rtChangedDateTime: null,
                 attributes: { items: [] },
-                associations: { definitions: { items: [] } }
+                associations: { definitions: { totalCount: null, items: [] } }
               }]
             }
           }
@@ -299,6 +302,9 @@ describe('MeshBoardDataService', () => {
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
                 rtDisplayName: 'Test Entity',
+                rtWellKnownName: null,
+                rtCreationDateTime: null,
+                rtChangedDateTime: null,
                 attributes: {
                   items: [
                     null,
@@ -306,7 +312,7 @@ describe('MeshBoardDataService', () => {
                     { attributeName: 'valid', value: 'keep' }
                   ]
                 },
-                associations: { definitions: { items: [] } }
+                associations: { definitions: { totalCount: null, items: [] } }
               }]
             }
           }
@@ -337,9 +343,13 @@ describe('MeshBoardDataService', () => {
                 rtId: 'test-rt-id',
                 ckTypeId: 'TestType',
                 rtDisplayName: 'Test Entity',
+                rtWellKnownName: null,
+                rtCreationDateTime: null,
+                rtChangedDateTime: null,
                 attributes: { items: [] },
                 associations: {
                   definitions: {
+                    totalCount: null,
                     items: [
                       null,
                       {
@@ -485,8 +495,11 @@ describe('MeshBoardDataService', () => {
                 rtId: 'entity-1',
                 ckTypeId: 'EntityType',
                 rtDisplayName: 'Test Entity',
+                rtWellKnownName: null,
+                rtCreationDateTime: null,
+                rtChangedDateTime: null,
                 attributes: { items: [] },
-                associations: { definitions: { items: [] } }
+                associations: { definitions: { totalCount: null, items: [] } }
               }]
             }
           }
@@ -627,7 +640,8 @@ describe('MeshBoardDataService', () => {
         data: {
           runtime: {
             runtimeEntities: {
-              totalCount: 42
+              totalCount: 42,
+              items: []
             }
           }
         },
@@ -664,7 +678,8 @@ describe('MeshBoardDataService', () => {
         data: {
           runtime: {
             runtimeEntities: {
-              totalCount: 100
+              totalCount: 100,
+              items: []
             }
           }
         },
@@ -727,7 +742,8 @@ describe('MeshBoardDataService', () => {
         data: {
           runtime: {
             runtimeEntities: {
-              totalCount: 25
+              totalCount: 25,
+              items: []
             }
           }
         },
@@ -750,7 +766,8 @@ describe('MeshBoardDataService', () => {
         data: {
           runtime: {
             runtimeEntities: {
-              totalCount: null
+              totalCount: null,
+              items: []
             }
           }
         },
@@ -1408,8 +1425,10 @@ describe('MeshBoardDataService', () => {
                 ckTypeId: 'TestType',
                 rtWellKnownName: null,
                 rtDisplayName: 'Test Entity',
+                rtCreationDateTime: null,
+                rtChangedDateTime: null,
                 attributes: { items: [] },
-                associations: { definitions: { items: [] } }
+                associations: { definitions: { totalCount: null, items: [] } }
               }]
             }
           }
@@ -1434,8 +1453,10 @@ describe('MeshBoardDataService', () => {
                 ckTypeId: 'Meshmakers.Accounting/FiscalYear',
                 rtWellKnownName: null,
                 rtDisplayName: '2026',
+                rtCreationDateTime: null,
+                rtChangedDateTime: null,
                 attributes: { items: [] },
-                associations: { definitions: { items: [] } }
+                associations: { definitions: { totalCount: null, items: [] } }
               }]
             }
           }

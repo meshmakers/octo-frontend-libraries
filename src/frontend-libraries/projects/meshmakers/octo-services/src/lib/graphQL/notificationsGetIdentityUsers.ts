@@ -1,15 +1,15 @@
-import * as Types from './globalTypes';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type NotificationsGetIdentityUsersQueryVariablesDto = Types.Exact<{
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type NotificationsGetIdentityUsersQueryVariablesDto = Exact<{
+  first?: number | null | undefined;
+  after?: string | null | undefined;
 }>;
 
 
-export type NotificationsGetIdentityUsersQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemIdentityUser?: { __typename?: 'SystemIdentityUserConnection', totalCount?: number | null, items?: Array<{ __typename?: 'SystemIdentityUser', rtId: any, userName?: string | null, firstName?: string | null, lastName?: string | null, email?: string | null } | null> | null } | null } | null };
+export type NotificationsGetIdentityUsersQueryDto = { runtime: { systemIdentityUser: { totalCount: number | null, items: Array<{ rtId: any, userName: string | null, firstName: string | null, lastName: string | null, email: string | null } | null> | null } | null } | null };
 
 export const NotificationsGetIdentityUsersDocumentDto = gql`
     query notificationsGetIdentityUsers($first: Int, $after: String) {

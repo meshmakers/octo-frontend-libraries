@@ -43,6 +43,7 @@ import { TypeHelperService } from '../services/type-helper.service';
 // Extended type to handle both Runtime Entities and CK Models/Types
 type BrowserItem =
   | RtEntityDto
+  | TreeEntity
   | CkModelDto
   | CkTypeDto
   | { isCkModelsRoot?: boolean; ckModelId?: string }
@@ -90,9 +91,23 @@ interface EntityInboundRoleGroup {
   count: number;
 }
 
+/**
+ * The fields the tree reads off an entity row. Association targets are loaded with a narrow
+ * selection (no `pageInfo` on `attributes`, ...), so they are not full `RtEntityDto`s; every
+ * `RtEntityDto` still satisfies this shape.
+ */
+type TreeEntity = Pick<
+  RtEntityDto,
+  'rtId' | 'ckTypeId' | 'rtDisplayName' | 'rtDisplayDescription' | 'rtWellKnownName'
+> & {
+  attributes?: {
+    items?: ({ attributeName?: string | null; value?: unknown } | null)[] | null;
+  } | null;
+};
+
 /** The fields {@link RuntimeBrowserDataSource.extractDisplayName} reads off an entity row. */
 type DisplayNameSource = Pick<
-  RtEntityDto,
+  TreeEntity,
   'rtId' | 'ckTypeId' | 'rtDisplayName' | 'rtWellKnownName' | 'attributes'
 >;
 
@@ -788,7 +803,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
     roleId: string,
     targetCkTypeId: string,
     direction: GraphDirectionDto,
-  ): Promise<RtEntityDto[]> {
+  ): Promise<TreeEntity[]> {
     try {
       const response = await firstValueFrom(
         this.getTreeAssociationTargetsDtoGQL.fetch({
@@ -798,7 +813,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
       const items =
         response.data?.runtime?.runtimeEntities?.items?.[0]?.associations
           ?.targets?.items ?? [];
-      return items.filter((i): i is RtEntityDto => !!i);
+      return items.flatMap((i) => (i ? [i] : []));
     } catch (error) {
       console.error(
         'Error fetching association targets',
@@ -817,10 +832,10 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
    * own expansion can exclude it in turn.
    */
   private async buildEntityTreeItems(
-    entities: RtEntityDto[],
+    entities: TreeEntity[],
     opts?: { parentRtId?: string; excludeRtId?: string },
   ): Promise<TreeItemDataTyped<BrowserItem>[]> {
-    const unique = new Map<string, RtEntityDto>();
+    const unique = new Map<string, TreeEntity>();
     for (const entity of entities) {
       if (
         entity?.rtId &&
@@ -902,7 +917,7 @@ export class RuntimeBrowserDataSource extends OctoGraphQlHierarchyDataSource<Bro
   }
 
   /** Resolves the tooltip of an entity: the engine-computed rtDisplayDescription. */
-  private extractTooltip(entity: RtEntityDto): string {
+  private extractTooltip(entity: TreeEntity): string {
     return entity.rtDisplayDescription || `${entity.ckTypeId} - ${entity.rtId}`;
   }
 

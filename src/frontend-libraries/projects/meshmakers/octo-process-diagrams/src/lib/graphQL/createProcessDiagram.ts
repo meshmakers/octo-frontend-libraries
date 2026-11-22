@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type CreateProcessDiagramMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.SystemUiProcessDiagramInputDto>> | Types.InputMaybe<Types.SystemUiProcessDiagramInputDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type CreateProcessDiagramMutationVariablesDto = Exact<{
+  entities: Array<Types.SystemUiProcessDiagramInputDto | null | undefined> | Types.SystemUiProcessDiagramInputDto;
 }>;
 
 
-export type CreateProcessDiagramMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemUIProcessDiagrams?: { __typename?: 'SystemUIProcessDiagramMutations', create?: Array<{ __typename?: 'SystemUIProcessDiagram', rtId: any, ckTypeId: any, name: string, description?: string | null, version: string, canvasWidth: number, canvasHeight: number, rtCreationDateTime?: any | null } | null> | null } | null } | null };
+export type CreateProcessDiagramMutationDto = { runtime: { systemUIProcessDiagrams: { create: Array<{ rtId: any, ckTypeId: any, name: string, description: string | null, version: string, canvasWidth: number, canvasHeight: number, rtCreationDateTime: any } | null> | null } | null } | null };
 
 export const CreateProcessDiagramDocumentDto = gql`
     mutation createProcessDiagram($entities: [SystemUIProcessDiagramInput]!) {

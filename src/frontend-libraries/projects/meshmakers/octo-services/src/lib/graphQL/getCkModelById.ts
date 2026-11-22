@@ -1,14 +1,16 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkModelByIdQueryVariablesDto = Types.Exact<{
-  model: Types.Scalars['SimpleScalar']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkModelByIdQueryVariablesDto = Exact<{
+  model: any;
 }>;
 
 
-export type GetCkModelByIdQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', models?: { __typename?: 'CkModelDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'CkModel', modelState?: Types.ModelStateDto | null, id: { __typename?: 'CkModelId', name: string, version: any, fullName: string, semanticVersionedFullName: string } } | null> | null } | null } | null };
+export type GetCkModelByIdQueryDto = { constructionKit: { models: { totalCount: number | null, items: Array<{ modelState: Types.ModelStateDto | null, id: { name: string, version: any, fullName: string, semanticVersionedFullName: string } } | null> | null } | null } | null };
 
 export const GetCkModelByIdDocumentDto = gql`
     query getCkModelById($model: SimpleScalar!) {

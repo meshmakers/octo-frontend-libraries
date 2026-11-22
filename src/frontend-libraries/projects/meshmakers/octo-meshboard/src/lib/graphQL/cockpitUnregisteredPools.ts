@@ -1,14 +1,14 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type CockpitUnregisteredPoolsQueryVariablesDto = Types.Exact<{
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type CockpitUnregisteredPoolsQueryVariablesDto = Exact<{
+  first?: number | null | undefined;
 }>;
 
 
-export type CockpitUnregisteredPoolsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemCommunicationDeploymentSite?: { __typename?: 'SystemCommunicationDeploymentSiteConnection', totalCount?: number | null, items?: Array<{ __typename?: 'SystemCommunicationDeploymentSite', rtId: any, name?: string | null } | null> | null } | null } | null };
+export type CockpitUnregisteredPoolsQueryDto = { runtime: { systemCommunicationDeploymentSite: { totalCount: number | null, items: Array<{ rtId: any, name: string | null } | null> | null } | null } | null };
 
 export const CockpitUnregisteredPoolsDocumentDto = gql`
     query cockpitUnregisteredPools($first: Int) {

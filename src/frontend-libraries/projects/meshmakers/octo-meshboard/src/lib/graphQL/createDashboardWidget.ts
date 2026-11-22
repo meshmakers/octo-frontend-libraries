@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type CreateDashboardWidgetMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.SystemUiDashboardWidgetInputDto>> | Types.InputMaybe<Types.SystemUiDashboardWidgetInputDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type CreateDashboardWidgetMutationVariablesDto = Exact<{
+  entities: Array<Types.SystemUiDashboardWidgetInputDto | null | undefined> | Types.SystemUiDashboardWidgetInputDto;
 }>;
 
 
-export type CreateDashboardWidgetMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemUIDashboardWidgets?: { __typename?: 'SystemUIDashboardWidgetMutations', create?: Array<{ __typename?: 'SystemUIDashboardWidget', rtId: any, ckTypeId: any, name: string, type: string, col: number, row: number, colSpan: number, rowSpan: number, dataSourceType: string, dataSourceCkTypeId?: string | null, dataSourceRtId?: string | null, config: string, rtCreationDateTime?: any | null } | null> | null } | null } | null };
+export type CreateDashboardWidgetMutationDto = { runtime: { systemUIDashboardWidgets: { create: Array<{ rtId: any, ckTypeId: any, name: string, type: string, col: number, row: number, colSpan: number, rowSpan: number, dataSourceType: string, dataSourceCkTypeId: string | null, dataSourceRtId: string | null, config: string, rtCreationDateTime: any } | null> | null } | null } | null };
 
 export const CreateDashboardWidgetDocumentDto = gql`
     mutation createDashboardWidget($entities: [SystemUIDashboardWidgetInput]!) {

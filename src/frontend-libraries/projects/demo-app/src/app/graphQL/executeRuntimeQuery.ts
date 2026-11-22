@@ -1,20 +1,22 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type ExecuteRuntimeQueryQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type ExecuteRuntimeQueryQueryVariablesDto = Exact<{
+  rtId: any;
+  after?: string | null | undefined;
+  first?: number | null | undefined;
 }>;
 
 
-export type ExecuteRuntimeQueryQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeQuery?: { __typename?: 'RtQueryDtoConnection', items?: Array<{ __typename?: 'RtQuery', queryRtId: any, associatedCkTypeId: any, columns: Array<{ __typename?: 'RtQueryColumn', attributePath?: string | null, attributeValueType?: Types.AttributeValueTypeDto | null }>, rows?: { __typename?: 'RtQueryRowDtoConnection', totalCount?: number | null, items?: Array<
-            | { __typename?: 'RtAggregationQueryRow', ckTypeId?: any | null, cells?: { __typename?: 'RtQueryCellDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtQueryCell', attributePath: string, value?: any | null }> | null } | null }
-            | { __typename?: 'RtGroupingAggregationQueryRow', ckTypeId?: any | null, cells?: { __typename?: 'RtQueryCellDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtQueryCell', attributePath: string, value?: any | null }> | null } | null }
-            | { __typename?: 'RtSimpleQueryRow', rtId?: any | null, ckTypeId?: any | null, cells?: { __typename?: 'RtQueryCellDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtQueryCell', attributePath: string, value?: any | null }> | null } | null }
-          > | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } | null }> | null } | null } | null };
+export type ExecuteRuntimeQueryQueryDto = { runtime: { runtimeQuery: { items: Array<{ queryRtId: any, associatedCkTypeId: any, columns: Array<{ attributePath: string | null, attributeValueType: Types.AttributeValueTypeDto | null }>, rows: { totalCount: number | null, items: Array<
+            | { ckTypeId: any, cells: { totalCount: number | null, items: Array<{ attributePath: string, value: any }> | null } | null }
+            | { ckTypeId: any, cells: { totalCount: number | null, items: Array<{ attributePath: string, value: any }> | null } | null }
+            | { rtId: any, ckTypeId: any, cells: { totalCount: number | null, items: Array<{ attributePath: string, value: any }> | null } | null }
+          > | null, pageInfo: { hasNextPage: boolean, endCursor: string | null } } | null }> | null } | null } | null };
 
 export const ExecuteRuntimeQueryDocumentDto = gql`
     query executeRuntimeQuery($rtId: OctoObjectId!, $after: String, $first: Int) {

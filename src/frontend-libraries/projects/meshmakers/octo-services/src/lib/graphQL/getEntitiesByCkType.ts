@@ -1,21 +1,23 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetEntitiesByCkTypeQueryVariablesDto = Types.Exact<{
-  ckTypeId: Types.Scalars['String']['input'];
-  attributeNames: Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input'];
-  rtId?: Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>;
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  searchFilter?: Types.InputMaybe<Types.SearchFilterDto>;
-  fieldFilters?: Types.InputMaybe<Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>>;
-  sort?: Types.InputMaybe<Array<Types.InputMaybe<Types.SortDto>> | Types.InputMaybe<Types.SortDto>>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetEntitiesByCkTypeQueryVariablesDto = Exact<{
+  ckTypeId: string;
+  attributeNames: Array<string> | string;
+  rtId?: any;
+  after?: string | null | undefined;
+  first?: number | null | undefined;
+  searchFilter?: Types.SearchFilterDto | null | undefined;
+  fieldFilters?: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto | null | undefined;
+  sort?: Array<Types.SortDto | null | undefined> | Types.SortDto | null | undefined;
 }>;
 
 
-export type GetEntitiesByCkTypeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, rtDisplayDescription?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null };
+export type GetEntitiesByCkTypeQueryDto = { runtime: { runtimeEntities: { totalCount: number | null, items: Array<{ rtId: any, ckTypeId: any, rtWellKnownName: string | null, rtDisplayName: string, rtDisplayDescription: string | null, rtCreationDateTime: any, rtChangedDateTime: any, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetEntitiesByCkTypeDocumentDto = gql`
     query getEntitiesByCkType($ckTypeId: String!, $attributeNames: [String!]!, $rtId: OctoObjectId, $after: String, $first: Int, $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {

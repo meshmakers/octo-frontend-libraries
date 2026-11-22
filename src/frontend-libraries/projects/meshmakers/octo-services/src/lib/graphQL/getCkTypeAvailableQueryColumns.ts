@@ -1,23 +1,25 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkTypeAvailableQueryColumnsQueryVariablesDto = Types.Exact<{
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  rtCkId: Types.Scalars['String']['input'];
-  filter?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  attributeValueType?: Types.InputMaybe<Types.AttributeValueTypeDto>;
-  searchTerm?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  includeNavigationProperties?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
-  maxDepth?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  attributePaths?: Types.InputMaybe<Array<Types.InputMaybe<Types.Scalars['String']['input']>> | Types.InputMaybe<Types.Scalars['String']['input']>>;
-  includeManyNavigations?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkTypeAvailableQueryColumnsQueryVariablesDto = Exact<{
+  after?: string | null | undefined;
+  first?: number | null | undefined;
+  rtCkId: string;
+  filter?: string | null | undefined;
+  attributeValueType?: Types.AttributeValueTypeDto | null | undefined;
+  searchTerm?: string | null | undefined;
+  includeNavigationProperties?: boolean | null | undefined;
+  maxDepth?: number | null | undefined;
+  attributePaths?: Array<string | null | undefined> | string | null | undefined;
+  includeManyNavigations?: boolean | null | undefined;
 }>;
 
 
-export type GetCkTypeAvailableQueryColumnsQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', rtCkTypeId: any, ckTypeId: { __typename?: 'CkTypeId', fullName: string, semanticVersionedFullName: string }, availableQueryColumns?: { __typename?: 'CkTypeQueryColumnDtoConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null }, items?: Array<{ __typename?: 'CkTypeQueryColumn', attributePath: string, attributeValueType: Types.AttributeValueTypeDto, description?: string | null } | null> | null } | null } | null> | null } | null } | null };
+export type GetCkTypeAvailableQueryColumnsQueryDto = { constructionKit: { types: { items: Array<{ rtCkTypeId: any, ckTypeId: { fullName: string, semanticVersionedFullName: string }, availableQueryColumns: { totalCount: number | null, pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null, endCursor: string | null }, items: Array<{ attributePath: string, attributeValueType: Types.AttributeValueTypeDto, description: string | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetCkTypeAvailableQueryColumnsDocumentDto = gql`
     query getCkTypeAvailableQueryColumns($after: String, $first: Int, $rtCkId: String!, $filter: String, $attributeValueType: AttributeValueType, $searchTerm: String, $includeNavigationProperties: Boolean, $maxDepth: Int, $attributePaths: [String], $includeManyNavigations: Boolean) {

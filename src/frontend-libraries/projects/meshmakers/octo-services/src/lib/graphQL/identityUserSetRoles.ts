@@ -1,15 +1,17 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type IdentityUserSetRolesMutationVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type IdentityUserSetRolesMutationVariablesDto = Exact<{
+  rtId: any;
   input: Types.SystemIdentityUserSetRolesMethodInputDto;
 }>;
 
 
-export type IdentityUserSetRolesMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemIdentityUsers?: { __typename?: 'SystemIdentityUserMutations', setRoles?: { __typename?: 'SystemIdentityUserSetRolesMethodResult', invocationId: string } | null } | null } | null };
+export type IdentityUserSetRolesMutationDto = { runtime: { systemIdentityUsers: { setRoles: { invocationId: string } | null } | null } | null };
 
 export const IdentityUserSetRolesDocumentDto = gql`
     mutation identityUserSetRoles($rtId: OctoObjectId!, $input: SystemIdentityUserSetRolesMethodInput!) {

@@ -1,12 +1,12 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkAttributesCountQueryVariablesDto = Types.Exact<{ [key: string]: never; }>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkAttributesCountQueryVariablesDto = Exact<{ [key: string]: never; }>;
 
 
-export type GetCkAttributesCountQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', attributes?: { __typename?: 'CkAttributeDtoConnection', totalCount?: number | null } | null } | null };
+export type GetCkAttributesCountQueryDto = { constructionKit: { attributes: { totalCount: number | null } | null } | null };
 
 export const GetCkAttributesCountDocumentDto = gql`
     query getCkAttributesCount {

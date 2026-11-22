@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetSdkCustomerDetailsQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetSdkCustomerDetailsQueryVariablesDto = Exact<{
+  rtId: any;
 }>;
 
 
-export type GetSdkCustomerDetailsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', octoSdkDemoCustomer?: { __typename?: 'OctoSdkDemoCustomerConnection', items?: Array<{ __typename?: 'OctoSdkDemoCustomer', rtId: any, ckTypeId: any, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { __typename?: 'BasicContact', legalEntityType?: Types.BasicLegalEntityTypeDto | null, firstName?: string | null, lastName?: string | null, companyName?: string | null, address?: { __typename?: 'BasicAddress', street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
+export type GetSdkCustomerDetailsQueryDto = { runtime: { octoSdkDemoCustomer: { items: Array<{ rtId: any, ckTypeId: any, rtCreationDateTime: any, rtChangedDateTime: any, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { legalEntityType: Types.BasicLegalEntityTypeDto | null, firstName: string | null, lastName: string | null, companyName: string | null, address: { street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
 
 export const GetSdkCustomerDetailsDocumentDto = gql`
     query getSdkCustomerDetails($rtId: OctoObjectId!) {

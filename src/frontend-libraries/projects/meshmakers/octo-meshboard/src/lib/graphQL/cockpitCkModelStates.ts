@@ -1,14 +1,14 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type CockpitCkModelStatesQueryVariablesDto = Types.Exact<{
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type CockpitCkModelStatesQueryVariablesDto = Exact<{
+  first?: number | null | undefined;
 }>;
 
 
-export type CockpitCkModelStatesQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', all?: { __typename?: 'CkModelDtoConnection', totalCount?: number | null } | null, available?: { __typename?: 'CkModelDtoConnection', totalCount?: number | null } | null, importing?: { __typename?: 'CkModelDtoConnection', totalCount?: number | null } | null, resolveFailed?: { __typename?: 'CkModelDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'CkModel', id: { __typename?: 'CkModelId', fullName: string } } | null> | null } | null } | null };
+export type CockpitCkModelStatesQueryDto = { constructionKit: { all: { totalCount: number | null } | null, available: { totalCount: number | null } | null, importing: { totalCount: number | null } | null, resolveFailed: { totalCount: number | null, items: Array<{ id: { fullName: string } } | null> | null } | null } | null };
 
 export const CockpitCkModelStatesDocumentDto = gql`
     query cockpitCkModelStates($first: Int) {

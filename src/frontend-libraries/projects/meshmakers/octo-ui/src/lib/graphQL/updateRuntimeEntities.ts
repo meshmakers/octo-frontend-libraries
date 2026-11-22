@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type UpdateRuntimeEntitiesMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.RtEntityUpdateDto>> | Types.InputMaybe<Types.RtEntityUpdateDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type UpdateRuntimeEntitiesMutationVariablesDto = Exact<{
+  entities: Array<Types.RtEntityUpdateDto | null | undefined> | Types.RtEntityUpdateDto;
 }>;
 
 
-export type UpdateRuntimeEntitiesMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', runtimeEntities?: { __typename?: 'RtEntityMutations', update?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any } | null> | null } | null } | null };
+export type UpdateRuntimeEntitiesMutationDto = { runtime: { runtimeEntities: { update: Array<{ rtId: any, ckTypeId: any } | null> | null } | null } | null };
 
 export const UpdateRuntimeEntitiesDocumentDto = gql`
     mutation UpdateRuntimeEntities($entities: [RtEntityUpdate]!) {

@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type UpdateSdkDemoCustomerMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.OctoSdkDemoCustomerInputUpdateDto>> | Types.InputMaybe<Types.OctoSdkDemoCustomerInputUpdateDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type UpdateSdkDemoCustomerMutationVariablesDto = Exact<{
+  entities: Array<Types.OctoSdkDemoCustomerInputUpdateDto | null | undefined> | Types.OctoSdkDemoCustomerInputUpdateDto;
 }>;
 
 
-export type UpdateSdkDemoCustomerMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', octoSdkDemoCustomers?: { __typename?: 'OctoSdkDemoCustomerMutations', update?: Array<{ __typename?: 'OctoSdkDemoCustomer', rtId: any, ckTypeId: any, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { __typename?: 'BasicContact', legalEntityType?: Types.BasicLegalEntityTypeDto | null, firstName?: string | null, lastName?: string | null, companyName?: string | null, address?: { __typename?: 'BasicAddress', street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
+export type UpdateSdkDemoCustomerMutationDto = { runtime: { octoSdkDemoCustomers: { update: Array<{ rtId: any, ckTypeId: any, rtCreationDateTime: any, rtChangedDateTime: any, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { legalEntityType: Types.BasicLegalEntityTypeDto | null, firstName: string | null, lastName: string | null, companyName: string | null, address: { street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
 
 export const UpdateSdkDemoCustomerDocumentDto = gql`
     mutation updateSdkDemoCustomer($entities: [OctoSdkDemoCustomerInputUpdate]!) {

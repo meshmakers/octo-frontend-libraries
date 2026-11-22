@@ -1,14 +1,14 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetSymbolDefinitionQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetSymbolDefinitionQueryVariablesDto = Exact<{
+  rtId: any;
 }>;
 
 
-export type GetSymbolDefinitionQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemUISymbolDefinition?: { __typename?: 'SystemUISymbolDefinitionConnection', items?: Array<{ __typename?: 'SystemUISymbolDefinition', rtId: any, ckTypeId: any, name: string, description?: string | null, version: string, primitives: string, symbolInstances?: string | null, boundsWidth: number, boundsHeight: number, connectionPoints?: string | null, parameters?: string | null, category?: string | null, tags?: string | null, previewImage?: string | null, gridSize?: number | null, canvasSizeWidth?: number | null, canvasSizeHeight?: number | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null } | null> | null } | null } | null };
+export type GetSymbolDefinitionQueryDto = { runtime: { systemUISymbolDefinition: { items: Array<{ rtId: any, ckTypeId: any, name: string, description: string | null, version: string, primitives: string, symbolInstances: string | null, boundsWidth: number, boundsHeight: number, connectionPoints: string | null, parameters: string | null, category: string | null, tags: string | null, previewImage: string | null, gridSize: number | null, canvasSizeWidth: number | null, canvasSizeHeight: number | null, rtCreationDateTime: any, rtChangedDateTime: any } | null> | null } | null } | null };
 
 export const GetSymbolDefinitionDocumentDto = gql`
     query getSymbolDefinition($rtId: OctoObjectId!) {

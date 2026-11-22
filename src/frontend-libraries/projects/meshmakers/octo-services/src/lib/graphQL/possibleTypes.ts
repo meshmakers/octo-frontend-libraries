@@ -1,5 +1,4 @@
-
-      export type PossibleTypesResultData = {
+export type PossibleTypesResultData = {
   "possibleTypes": {
     "BasicAsset_EventSourceUnion": [
       "BasicAsset",
@@ -2281,7 +2280,7 @@
     ]
   }
 };
-      const result: PossibleTypesResultData = {
+const result: PossibleTypesResultData = {
   "possibleTypes": {
     "BasicAsset_EventSourceUnion": [
       "BasicAsset",
@@ -4563,5 +4562,4 @@
     ]
   }
 };
-      export default result;
-    
+export default result;

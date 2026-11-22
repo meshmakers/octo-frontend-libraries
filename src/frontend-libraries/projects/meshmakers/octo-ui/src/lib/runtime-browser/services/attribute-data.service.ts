@@ -81,19 +81,13 @@ export class AttributeDataService {
         const items =
           res.data?.runtime?.runtimeEntities?.items?.[0]?.attributes?.items ??
           [];
-        return items
-          .filter(
-            (
-              item,
-            ): item is {
-              attributeName?: string | null;
-              value?: unknown | null;
-            } => !!item?.attributeName,
-          )
-          .map((item) => ({
-            attributeName: item.attributeName ?? '',
-            value: item.value ?? null,
-          }));
+        // Skip null rows and rows without a name; the generated row type has
+        // nullable (not optional) members, so narrow through flatMap.
+        return items.flatMap((item) =>
+          item?.attributeName
+            ? [{ attributeName: item.attributeName, value: item.value ?? null }]
+            : [],
+        );
       }),
     );
   }

@@ -1,20 +1,22 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetAssociationTargetsQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  ckTypeId: Types.Scalars['String']['input'];
-  targetCkTypeId: Types.Scalars['String']['input'];
-  roleId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetAssociationTargetsQueryVariablesDto = Exact<{
+  rtId: any;
+  ckTypeId: string;
+  targetCkTypeId: string;
+  roleId: string;
   direction: Types.GraphDirectionDto;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  attributeNames: Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input'];
+  first?: number | null | undefined;
+  attributeNames: Array<string> | string;
 }>;
 
 
-export type GetAssociationTargetsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, associations?: { __typename?: 'RtEntityGenericAssociation', targets?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetAssociationTargetsQueryDto = { runtime: { runtimeEntities: { items: Array<{ rtId: any, associations: { targets: { totalCount: number | null, items: Array<{ rtId: any, ckTypeId: any, rtWellKnownName: string | null, rtDisplayName: string, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetAssociationTargetsDocumentDto = gql`
     query getAssociationTargets($rtId: OctoObjectId!, $ckTypeId: String!, $targetCkTypeId: String!, $roleId: String!, $direction: GraphDirection!, $first: Int, $attributeNames: [String!]!) {

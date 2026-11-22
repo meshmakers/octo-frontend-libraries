@@ -1,19 +1,21 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetSdkCustomersQueryVariablesDto = Types.Exact<{
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  rtIds?: Types.InputMaybe<Array<Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>> | Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>>;
-  searchFilter?: Types.InputMaybe<Types.SearchFilterDto>;
-  fieldFilters?: Types.InputMaybe<Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>>;
-  sort?: Types.InputMaybe<Array<Types.InputMaybe<Types.SortDto>> | Types.InputMaybe<Types.SortDto>>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetSdkCustomersQueryVariablesDto = Exact<{
+  after?: string | null | undefined;
+  first?: number | null | undefined;
+  rtIds?: Array<any> | any | null | undefined;
+  searchFilter?: Types.SearchFilterDto | null | undefined;
+  fieldFilters?: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto | null | undefined;
+  sort?: Array<Types.SortDto | null | undefined> | Types.SortDto | null | undefined;
 }>;
 
 
-export type GetSdkCustomersQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', octoSdkDemoCustomer?: { __typename?: 'OctoSdkDemoCustomerConnection', totalCount?: number | null, items?: Array<{ __typename?: 'OctoSdkDemoCustomer', rtId: any, ckTypeId: any, rtDisplayName: string, rtDisplayDescription?: string | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { __typename?: 'BasicContact', legalEntityType?: Types.BasicLegalEntityTypeDto | null, firstName?: string | null, lastName?: string | null, companyName?: string | null, address?: { __typename?: 'BasicAddress', street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
+export type GetSdkCustomersQueryDto = { runtime: { octoSdkDemoCustomer: { totalCount: number | null, items: Array<{ rtId: any, ckTypeId: any, rtDisplayName: string, rtDisplayDescription: string | null, rtCreationDateTime: any, rtChangedDateTime: any, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { legalEntityType: Types.BasicLegalEntityTypeDto | null, firstName: string | null, lastName: string | null, companyName: string | null, address: { street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
 
 export const GetSdkCustomersDocumentDto = gql`
     query getSdkCustomers($after: String, $first: Int, $rtIds: [OctoObjectId], $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {

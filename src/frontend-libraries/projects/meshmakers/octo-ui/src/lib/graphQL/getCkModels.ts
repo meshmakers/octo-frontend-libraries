@@ -1,19 +1,21 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkModelsQueryVariablesDto = Types.Exact<{
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  searchFilter?: Types.InputMaybe<Types.SearchFilterDto>;
-  fieldFilters?: Types.InputMaybe<Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>>;
-  sort?: Types.InputMaybe<Array<Types.InputMaybe<Types.SortDto>> | Types.InputMaybe<Types.SortDto>>;
-  ckId?: Types.InputMaybe<Types.Scalars['String']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkModelsQueryVariablesDto = Exact<{
+  after?: string | null | undefined;
+  first?: number | null | undefined;
+  searchFilter?: Types.SearchFilterDto | null | undefined;
+  fieldFilters?: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto | null | undefined;
+  sort?: Array<Types.SortDto | null | undefined> | Types.SortDto | null | undefined;
+  ckId?: string | null | undefined;
 }>;
 
 
-export type GetCkModelsQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', models?: { __typename?: 'CkModelDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'CkModel', modelState?: Types.ModelStateDto | null, id: { __typename?: 'CkModelId', name: string, version: any, fullName: string, semanticVersionedFullName: string }, dependencies: Array<{ __typename?: 'CkModelId', fullName: string }> } | null> | null } | null } | null };
+export type GetCkModelsQueryDto = { constructionKit: { models: { totalCount: number | null, items: Array<{ modelState: Types.ModelStateDto | null, id: { name: string, version: any, fullName: string, semanticVersionedFullName: string }, dependencies: Array<{ fullName: string }> } | null> | null } | null } | null };
 
 export const GetCkModelsDocumentDto = gql`
     query getCkModels($after: String, $first: Int, $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort], $ckId: String) {

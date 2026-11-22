@@ -47,7 +47,9 @@ describe('getAssociationTargets with a host cache keyed by rtId (AB#7649)', () =
       first: 100,
       attributeNames: []
     };
-    const data: GetAssociationTargetsQueryDto = {
+    // Deliberately not annotated: the cache needs __typename on the wire, which the generated result
+    // type no longer declares (codegen 8), so an annotated literal would fail the excess-property check.
+    const data = {
       __typename: 'OctoQuery',
       runtime: {
         __typename: 'RuntimeModelQuery',

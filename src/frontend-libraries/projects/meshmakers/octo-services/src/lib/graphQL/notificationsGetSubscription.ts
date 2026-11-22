@@ -1,22 +1,17 @@
-import * as Types from './globalTypes';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type NotificationsGetSubscriptionQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type NotificationsGetSubscriptionQueryVariablesDto = Exact<{
+  rtId: any;
 }>;
 
 
-export type NotificationsGetSubscriptionQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemNotificationNotificationSubscription?: { __typename?: 'SystemNotificationNotificationSubscriptionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationSubscription', rtId: any, ckTypeId: any, name: string, description?: string | null, enabled: boolean, query?: { __typename?: 'SystemPersistentQuery_QueryUnionConnection', items?: Array<
-            | { __typename?: 'SystemAggregationRtQuery' }
-            | { __typename?: 'SystemAggregationSdQuery' }
-            | { __typename?: 'SystemDownsamplingSdQuery' }
-            | { __typename?: 'SystemGroupingAggregationRtQuery' }
-            | { __typename?: 'SystemGroupingAggregationSdQuery' }
-            | { __typename?: 'SystemSimpleRtQuery', rtId: any, ckTypeId: any, name: string }
-            | { __typename?: 'SystemSimpleSdQuery' }
-           | null> | null } | null, template?: { __typename?: 'SystemNotificationNotificationTemplate_TemplateUnionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationTemplate', rtId: any, ckTypeId: any, rtWellKnownName?: string | null } | null> | null } | null } | null> | null } | null } | null };
+export type NotificationsGetSubscriptionQueryDto = { runtime: { systemNotificationNotificationSubscription: { items: Array<{ rtId: any, ckTypeId: any, name: string, description: string | null, enabled: boolean, query: { items: Array<
+            | { rtId: any, ckTypeId: any, name: string }
+            | Record<PropertyKey, never>
+           | null> | null } | null, template: { items: Array<{ rtId: any, ckTypeId: any, rtWellKnownName: string | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const NotificationsGetSubscriptionDocumentDto = gql`
     query NotificationsGetSubscription($rtId: OctoObjectId!) {

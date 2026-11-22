@@ -824,12 +824,12 @@ export class RuntimeBrowserComponent implements AfterViewInit {
       const result = await firstValueFrom(this.ckTypesGQL.fetch());
       const allTypes = (
         result.data?.constructionKit?.types?.items ?? []
-      ).filter((type): type is CkTypeDto => type != null);
+      ).flatMap((type) => (type != null ? [type] : []));
 
       const rtEntityDto = this
         .selectedItem as TreeItemDataTyped<RtEntityDto> | null;
       const rtCkTypeId = allTypes.find(
-        (type) => type!.rtCkTypeId === rtEntityDto?.item?.ckTypeId,
+        (type) => type.rtCkTypeId ===rtEntityDto?.item?.ckTypeId,
       )?.ckTypeId?.fullName;
 
       if (!rtCkTypeId) {

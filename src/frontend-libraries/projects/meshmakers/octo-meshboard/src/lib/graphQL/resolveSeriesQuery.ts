@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type ResolveSeriesQueryQueryVariablesDto = Types.Exact<{
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type ResolveSeriesQueryQueryVariablesDto = Exact<{
   input: Types.ResolveSeriesQueryInputDto;
 }>;
 
 
-export type ResolveSeriesQueryQueryDto = { __typename?: 'OctoQuery', streamData?: { __typename?: 'StreamDataModelQuery', resolveSeriesQuery?: { __typename?: 'ResolveSeriesQueryResult', archiveRtId: any, effectiveBucketMs: any, points: number, reducingFunction: Types.CkRollupFunctionDto, signal: Types.SeriesResolutionSignalDto, actualPoints?: number | null, diagnostic?: string | null, finerRungAvailableFrom?: any | null } | null } | null };
+export type ResolveSeriesQueryQueryDto = { streamData: { resolveSeriesQuery: { archiveRtId: any, effectiveBucketMs: any, points: number, reducingFunction: Types.CkRollupFunctionDto, signal: Types.SeriesResolutionSignalDto, actualPoints: number | null, diagnostic: string | null, finerRungAvailableFrom: any } | null } | null };
 
 export const ResolveSeriesQueryDocumentDto = gql`
     query resolveSeriesQuery($input: ResolveSeriesQueryInput!) {

@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkTypeAssociationRolesQueryVariablesDto = Types.Exact<{
-  ckTypeId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkTypeAssociationRolesQueryVariablesDto = Exact<{
+  ckTypeId: string;
 }>;
 
 
-export type GetCkTypeAssociationRolesQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', rtCkTypeId: any, associations?: { __typename?: 'CkTypeAssociationDirection', in?: { __typename?: 'CkTypeAssociationSource', all?: Array<{ __typename?: 'CkTypeAssociation', rtRoleId: any, navigationPropertyName: string, multiplicity: Types.MultiplicitiesDto, rtTargetCkTypeId: any, roleId: { __typename?: 'CkAssociationRoleId', fullName: string, semanticVersionedFullName: string }, targetCkTypeId: { __typename?: 'CkTypeId', fullName: string } } | null> | null } | null, out?: { __typename?: 'CkTypeAssociationSource', all?: Array<{ __typename?: 'CkTypeAssociation', rtRoleId: any, navigationPropertyName: string, multiplicity: Types.MultiplicitiesDto, rtTargetCkTypeId: any, roleId: { __typename?: 'CkAssociationRoleId', fullName: string, semanticVersionedFullName: string }, targetCkTypeId: { __typename?: 'CkTypeId', fullName: string } } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetCkTypeAssociationRolesQueryDto = { constructionKit: { types: { items: Array<{ rtCkTypeId: any, associations: { in: { all: Array<{ rtRoleId: any, navigationPropertyName: string, multiplicity: Types.MultiplicitiesDto, rtTargetCkTypeId: any, roleId: { fullName: string, semanticVersionedFullName: string }, targetCkTypeId: { fullName: string } } | null> | null } | null, out: { all: Array<{ rtRoleId: any, navigationPropertyName: string, multiplicity: Types.MultiplicitiesDto, rtTargetCkTypeId: any, roleId: { fullName: string, semanticVersionedFullName: string }, targetCkTypeId: { fullName: string } } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetCkTypeAssociationRolesDocumentDto = gql`
     query getCkTypeAssociationRoles($ckTypeId: String!) {

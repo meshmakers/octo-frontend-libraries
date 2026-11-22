@@ -1,14 +1,16 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type IdentityUserCreateUserMutationVariablesDto = Types.Exact<{
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type IdentityUserCreateUserMutationVariablesDto = Exact<{
   input: Types.SystemIdentityUserCreateUserMethodInputDto;
 }>;
 
 
-export type IdentityUserCreateUserMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemIdentityUsers?: { __typename?: 'SystemIdentityUserMutations', createUser?: { __typename?: 'SystemIdentityUserCreateUserMethodResult', invocationId: string, result?: string | null } | null } | null } | null };
+export type IdentityUserCreateUserMutationDto = { runtime: { systemIdentityUsers: { createUser: { invocationId: string, result: string | null } | null } | null } | null };
 
 export const IdentityUserCreateUserDocumentDto = gql`
     mutation identityUserCreateUser($input: SystemIdentityUserCreateUserMethodInput!) {

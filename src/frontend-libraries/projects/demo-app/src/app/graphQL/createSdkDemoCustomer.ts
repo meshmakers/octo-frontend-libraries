@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type CreateSdkDemoCustomerMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.OctoSdkDemoCustomerInputDto>> | Types.InputMaybe<Types.OctoSdkDemoCustomerInputDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type CreateSdkDemoCustomerMutationVariablesDto = Exact<{
+  entities: Array<Types.OctoSdkDemoCustomerInputDto | null | undefined> | Types.OctoSdkDemoCustomerInputDto;
 }>;
 
 
-export type CreateSdkDemoCustomerMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', octoSdkDemoCustomers?: { __typename?: 'OctoSdkDemoCustomerMutations', create?: Array<{ __typename?: 'OctoSdkDemoCustomer', rtId: any, ckTypeId: any, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { __typename?: 'BasicContact', legalEntityType?: Types.BasicLegalEntityTypeDto | null, firstName?: string | null, lastName?: string | null, companyName?: string | null, address?: { __typename?: 'BasicAddress', street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
+export type CreateSdkDemoCustomerMutationDto = { runtime: { octoSdkDemoCustomers: { create: Array<{ rtId: any, ckTypeId: any, rtCreationDateTime: any, rtChangedDateTime: any, customerStatus: Types.OctoSdkDemoCustomerStatusDto, contact: { legalEntityType: Types.BasicLegalEntityTypeDto | null, firstName: string | null, lastName: string | null, companyName: string | null, address: { street: string, zipcode: number, cityTown: string, nationalCode: string } | null } } | null> | null } | null } | null };
 
 export const CreateSdkDemoCustomerDocumentDto = gql`
     mutation createSdkDemoCustomer($entities: [OctoSdkDemoCustomerInput]!) {

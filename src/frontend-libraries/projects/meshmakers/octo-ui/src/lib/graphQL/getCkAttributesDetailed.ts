@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkAttributesDetailedQueryVariablesDto = Types.Exact<{
-  ckId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkAttributesDetailedQueryVariablesDto = Exact<{
+  ckId: string;
 }>;
 
 
-export type GetCkAttributesDetailedQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', ckTypeId: { __typename?: 'CkTypeId', fullName: string }, attributes?: { __typename?: 'CkTypeAttributeDtoConnection', items?: Array<{ __typename?: 'CkTypeAttribute', attributeName: string, attributeValueType: Types.AttributeValueTypeDto, isOptional: boolean, autoCompleteValues?: Array<string | null> | null, ckAttributeId: { __typename?: 'CkAttributeId', fullName: string }, attribute?: { __typename?: 'CkAttribute', defaultValues?: Array<any | null> | null, ckRecord?: { __typename?: 'CkRecord', ckRecordId: { __typename?: 'CkRecordId', fullName: string } } | null, ckEnum?: { __typename?: 'CkEnum', ckEnumId: { __typename?: 'CkEnumId', fullName: string }, values: Array<{ __typename?: 'CkEnumValue', key?: number | null, name?: string | null } | null> } | null, metaData?: Array<{ __typename?: 'CkAttributeMetaData', key: string, value?: string | null } | null> | null } | null } | null> | null } | null } | null> | null } | null } | null };
+export type GetCkAttributesDetailedQueryDto = { constructionKit: { types: { items: Array<{ ckTypeId: { fullName: string }, attributes: { items: Array<{ attributeName: string, attributeValueType: Types.AttributeValueTypeDto, isOptional: boolean, autoCompleteValues: Array<string | null> | null, ckAttributeId: { fullName: string }, attribute: { defaultValues: Array<any> | null, ckRecord: { ckRecordId: { fullName: string } } | null, ckEnum: { ckEnumId: { fullName: string }, values: Array<{ key: number | null, name: string | null } | null> } | null, metaData: Array<{ key: string, value: string | null } | null> | null } | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetCkAttributesDetailedDocumentDto = gql`
     query getCkAttributesDetailed($ckId: String!) {
