@@ -1,17 +1,17 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetLatestValidationExecutionQueryVariablesDto = Types.Exact<{
-  pipelineRtId: Types.Scalars['OctoObjectId']['input'];
-  pipelineCkTypeId: Types.Scalars['String']['input'];
-  executesRoleId: Types.Scalars['String']['input'];
-  executionCkTypeId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetLatestValidationExecutionQueryVariablesDto = Exact<{
+  pipelineRtId: any;
+  pipelineCkTypeId: string;
+  executesRoleId: string;
+  executionCkTypeId: string;
 }>;
 
 
-export type GetLatestValidationExecutionQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, associations?: { __typename?: 'RtEntityGenericAssociation', executions?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetLatestValidationExecutionQueryDto = { runtime: { runtimeEntities: { items: Array<{ rtId: any, ckTypeId: any, associations: { executions: { items: Array<{ rtId: any, ckTypeId: any, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetLatestValidationExecutionDocumentDto = gql`
     query getLatestValidationExecution($pipelineRtId: OctoObjectId!, $pipelineCkTypeId: String!, $executesRoleId: String!, $executionCkTypeId: String!) {

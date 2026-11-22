@@ -1,21 +1,23 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetOrphanCandidatesQueryVariablesDto = Types.Exact<{
-  ckTypeId: Types.Scalars['String']['input'];
-  mapsFromRoleId: Types.Scalars['String']['input'];
-  mappingCkTypeId: Types.Scalars['String']['input'];
-  childRoleId: Types.Scalars['String']['input'];
-  childCkTypeId: Types.Scalars['String']['input'];
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  searchFilter?: Types.InputMaybe<Types.SearchFilterDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetOrphanCandidatesQueryVariablesDto = Exact<{
+  ckTypeId: string;
+  mapsFromRoleId: string;
+  mappingCkTypeId: string;
+  childRoleId: string;
+  childCkTypeId: string;
+  first?: number | null | undefined;
+  after?: string | null | undefined;
+  searchFilter?: Types.SearchFilterDto | null | undefined;
 }>;
 
 
-export type GetOrphanCandidatesQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', mappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, parent?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', parent?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', parent?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetOrphanCandidatesQueryDto = { runtime: { runtimeEntities: { totalCount: number | null, pageInfo: { hasNextPage: boolean, endCursor: string | null }, items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, rtWellKnownName: string | null, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null, associations: { mappings: { totalCount: number | null } | null, parent: { items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, rtWellKnownName: string | null, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null, associations: { parent: { items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, rtWellKnownName: string | null, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null, associations: { parent: { items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, rtWellKnownName: string | null, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null } | null> | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetOrphanCandidatesDocumentDto = gql`
     query getOrphanCandidates($ckTypeId: String!, $mapsFromRoleId: String!, $mappingCkTypeId: String!, $childRoleId: String!, $childCkTypeId: String!, $first: Int, $after: String, $searchFilter: SearchFilter) {

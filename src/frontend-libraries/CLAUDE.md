@@ -631,7 +631,7 @@ compiling against the old base types.
 
 🔴 **This repo and `octo-frontend-refinery-studio` must be refreshed from the SAME tenant in the
 same pass.** The Studio's codegen takes its base types from `@meshmakers/octo-services`
-(`baseTypesPath`), so a CK rename that lands here but not there — or the other way round — does not
+(`importSchemaTypesFrom`), so a CK rename that lands here but not there — or the other way round — does not
 fail at codegen, it fails at `tsc` with "has no exported member named …". That is exactly how
 `System.Communication` 4.0.0's `Pool` → `DeploymentSite` rename surfaced (AB#4924 §11a.2 part B):
 nothing in this repo's `.graphql` documents mentions `Pool`, yet `globalTypes.ts` and
@@ -652,7 +652,7 @@ projects/meshmakers/<other library>/src/lib/graphQL/   (octo-ui, octo-ui/brandin
 ```
 
 The base types (`Scalars`, `*Dto` types, enums) exist exactly once, in `octo-services`. Every
-other codegen target uses `baseTypesPath: ~@meshmakers/octo-services`, so its generated files
+other codegen target uses `importSchemaTypesFrom: "~@meshmakers/octo-services"`, so its generated files
 import them from the package, and hand-written code imports them from the package as well.
 Do not add a per-library `globalTypes.ts` that re-exports the package (`export * from
 '@meshmakers/octo-services'`) and do not generate a second full copy: a star re-export of an
@@ -660,6 +660,30 @@ external package turns into a lazily initialised namespace object under the vite
 (`externalPackages: true`) and fails at the first enum access, and a second copy produces
 nominally different enum types (see the refinery-studio CLAUDE.md, "GraphQL types come from
 the package", for the full history).
+
+### graphql-codegen 8 configuration (AB#9634)
+
+The codegen family is `@graphql-codegen/cli` 8, `typescript-operations` 7, `typescript` 7 (via the cli),
+`near-operation-file-preset` 6, `typescript-apollo-angular` 6 and `fragment-matcher` 8. Every
+`near-operation-file` block in `codegen.yml` therefore carries:
+
+- **No `baseTypesPath`** (the preset no longer passes it through) and `config.importSchemaTypesFrom`
+  instead — `'~@meshmakers/octo-services'`, and inside octo-services itself the path of its
+  `globalTypes` file. Without it `typescript-operations` 6+ generates its own copies of the input types
+  and enums.
+- **`config.scalars`** mapping all 17 schema scalars (`BigInt` … `Uri`) to `any`; the `globalTypes.ts` block
+  keeps its existing typed mappings (`DateTime: Date`, `Decimal: number`, ...) and adds the missing ones.
+  A new schema scalar has to be added to every block.
+- **A `hooks.afterAllFileWrite` script** (`scripts/codegen-strip-incremental.mjs`) that removes the per-file
+  `export type Incremental<T>` which operations 6+ writes into every operation file; it collides in the
+  `export *` barrels (TS2308).
+
+Shape of the generated operation types (what hand-written code must expect): result types have **no
+`__typename?`**; nullable fields are `T | null` and **required**, not optional; `unknown`/`any` per the
+scalars map; variables use native types; a narrow selection is **not assignable to the full schema `*Dto`
+type** (derive item types from the query result type, never type-guard to the schema type); `globalTypes`
+no longer exports `Exact`, `MakeOptional`, `MakeMaybe`, `MakeEmpty`, `Incremental`. Cache fixtures that need
+`__typename` on the wire must not be annotated with the generated result type.
 
 ### Adding a schema field ahead of the server rollout
 

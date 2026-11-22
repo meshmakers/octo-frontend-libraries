@@ -1,17 +1,19 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type EntityFormGetValuesQueryVariablesDto = Types.Exact<{
-  ckTypeId: Types.Scalars['String']['input'];
-  rtId?: Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>;
-  fieldFilters?: Types.InputMaybe<Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>>;
-  attributeNames: Array<Types.InputMaybe<Types.Scalars['String']['input']>> | Types.InputMaybe<Types.Scalars['String']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type EntityFormGetValuesQueryVariablesDto = Exact<{
+  ckTypeId: string;
+  rtId?: any;
+  fieldFilters?: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto | null | undefined;
+  attributeNames: Array<string | null | undefined> | string;
 }>;
 
 
-export type EntityFormGetValuesQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, rtDisplayName: string, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null, secretIsSet?: boolean | null, secretKeyMissing?: boolean | null, secretSetAt?: any | null } | null> | null } | null } | null> | null } | null } | null };
+export type EntityFormGetValuesQueryDto = { runtime: { runtimeEntities: { totalCount: number | null, items: Array<{ rtId: any, ckTypeId: any, rtWellKnownName: string | null, rtDisplayName: string, rtCreationDateTime: any, rtChangedDateTime: any, attributes: { items: Array<{ attributeName: string | null, value: any, secretIsSet: boolean | null, secretKeyMissing: boolean | null, secretSetAt: any } | null> | null } | null } | null> | null } | null } | null };
 
 export const EntityFormGetValuesDocumentDto = gql`
     query entityFormGetValues($ckTypeId: String!, $rtId: OctoObjectId, $fieldFilters: [FieldFilter], $attributeNames: [String]!) {

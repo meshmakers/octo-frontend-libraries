@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type UpdateSymbolDefinitionMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.SystemUiSymbolDefinitionInputUpdateDto>> | Types.InputMaybe<Types.SystemUiSymbolDefinitionInputUpdateDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type UpdateSymbolDefinitionMutationVariablesDto = Exact<{
+  entities: Array<Types.SystemUiSymbolDefinitionInputUpdateDto | null | undefined> | Types.SystemUiSymbolDefinitionInputUpdateDto;
 }>;
 
 
-export type UpdateSymbolDefinitionMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemUISymbolDefinitions?: { __typename?: 'SystemUISymbolDefinitionMutations', update?: Array<{ __typename?: 'SystemUISymbolDefinition', rtId: any, ckTypeId: any, name: string, description?: string | null, version: string, boundsWidth: number, boundsHeight: number, category?: string | null, tags?: string | null, gridSize?: number | null, canvasSizeWidth?: number | null, canvasSizeHeight?: number | null, rtChangedDateTime?: any | null } | null> | null } | null } | null };
+export type UpdateSymbolDefinitionMutationDto = { runtime: { systemUISymbolDefinitions: { update: Array<{ rtId: any, ckTypeId: any, name: string, description: string | null, version: string, boundsWidth: number, boundsHeight: number, category: string | null, tags: string | null, gridSize: number | null, canvasSizeWidth: number | null, canvasSizeHeight: number | null, rtChangedDateTime: any } | null> | null } | null } | null };
 
 export const UpdateSymbolDefinitionDocumentDto = gql`
     mutation updateSymbolDefinition($entities: [SystemUISymbolDefinitionInputUpdate]!) {

@@ -14,6 +14,7 @@ describe('toOperationProgressView (AB#8448)', () => {
   const op = (state: CkMethodOperationStateDto, extra: Partial<CkMethodOperationItem> = {}): CkMethodOperationItem => ({
     operationId: 'op-1', methodId: DUMP, invocationId: 'inv', state,
     acceptedAtUtc: '2026-11-14T06:29:12Z', startedAtUtc: '2026-11-14T06:29:13Z',
+    completedAtUtc: null, expiresAtUtc: null,
     progress: null, result: null, error: null, ...extra
   });
 

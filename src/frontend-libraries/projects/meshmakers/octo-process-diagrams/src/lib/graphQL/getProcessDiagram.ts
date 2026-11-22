@@ -1,14 +1,14 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetProcessDiagramQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetProcessDiagramQueryVariablesDto = Exact<{
+  rtId: any;
 }>;
 
 
-export type GetProcessDiagramQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemUIProcessDiagram?: { __typename?: 'SystemUIProcessDiagramConnection', items?: Array<{ __typename?: 'SystemUIProcessDiagram', rtId: any, ckTypeId: any, name: string, description?: string | null, version: string, canvasWidth: number, canvasHeight: number, canvasBackgroundColor?: string | null, elements: string, primitives?: string | null, symbolInstances?: string | null, connections: string, variables?: string | null, transformProperties?: string | null, propertyBindings?: string | null, animations?: string | null, refreshInterval?: number | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null } | null> | null } | null } | null };
+export type GetProcessDiagramQueryDto = { runtime: { systemUIProcessDiagram: { items: Array<{ rtId: any, ckTypeId: any, name: string, description: string | null, version: string, canvasWidth: number, canvasHeight: number, canvasBackgroundColor: string | null, elements: string, primitives: string | null, symbolInstances: string | null, connections: string, variables: string | null, transformProperties: string | null, propertyBindings: string | null, animations: string | null, refreshInterval: number | null, rtCreationDateTime: any, rtChangedDateTime: any } | null> | null } | null } | null };
 
 export const GetProcessDiagramDocumentDto = gql`
     query getProcessDiagram($rtId: OctoObjectId!) {

@@ -1,21 +1,23 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetRuntimeEntityAssociationsByIdQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  ckTypeId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetRuntimeEntityAssociationsByIdQueryVariablesDto = Exact<{
+  rtId: any;
+  ckTypeId: string;
   direction: Types.GraphDirectionDto;
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  roleId?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  relatedRtCkId?: Types.InputMaybe<Types.Scalars['RtCkTypeId']['input']>;
-  relatedRtId?: Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>;
+  after?: string | null | undefined;
+  first?: number | null | undefined;
+  roleId?: string | null | undefined;
+  relatedRtCkId?: any;
+  relatedRtId?: any;
 }>;
 
 
-export type GetRuntimeEntityAssociationsByIdQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, associations?: { __typename?: 'RtEntityGenericAssociation', definitions?: { __typename?: 'RtAssociationDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtAssociation', targetRtId: any, targetCkTypeId: any, originRtId: any, originCkTypeId: any, ckAssociationRoleId: any } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetRuntimeEntityAssociationsByIdQueryDto = { runtime: { runtimeEntities: { items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, associations: { definitions: { totalCount: number | null, items: Array<{ targetRtId: any, targetCkTypeId: any, originRtId: any, originCkTypeId: any, ckAssociationRoleId: any } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetRuntimeEntityAssociationsByIdDocumentDto = gql`
     query getRuntimeEntityAssociationsById($rtId: OctoObjectId!, $ckTypeId: String!, $direction: GraphDirection!, $after: String, $first: Int, $roleId: String, $relatedRtCkId: RtCkTypeId, $relatedRtId: OctoObjectId) {

@@ -1,14 +1,14 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetDashboardWithWidgetsQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetDashboardWithWidgetsQueryVariablesDto = Exact<{
+  rtId: any;
 }>;
 
 
-export type GetDashboardWithWidgetsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemUIDashboard?: { __typename?: 'SystemUIDashboardConnection', items?: Array<{ __typename?: 'SystemUIDashboard', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, name: string, description: string, columns: number, rowHeight: number, gap: number, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, children?: { __typename?: 'SystemUIDashboardWidget_ChildrenUnionConnection', items?: Array<{ __typename?: 'SystemUIDashboardWidget', rtId: any, ckTypeId: any, name: string, type: string, col: number, row: number, colSpan: number, rowSpan: number, dataSourceType: string, dataSourceCkTypeId?: string | null, dataSourceRtId?: string | null, config: string } | null> | null } | null } | null> | null } | null } | null };
+export type GetDashboardWithWidgetsQueryDto = { runtime: { systemUIDashboard: { items: Array<{ rtId: any, ckTypeId: any, rtWellKnownName: string | null, name: string, description: string, columns: number, rowHeight: number, gap: number, rtCreationDateTime: any, rtChangedDateTime: any, children: { items: Array<{ rtId: any, ckTypeId: any, name: string, type: string, col: number, row: number, colSpan: number, rowSpan: number, dataSourceType: string, dataSourceCkTypeId: string | null, dataSourceRtId: string | null, config: string } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetDashboardWithWidgetsDocumentDto = gql`
     query getDashboardWithWidgets($rtId: OctoObjectId!) {

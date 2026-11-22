@@ -10,6 +10,18 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### GraphQL code generated with graphql-codegen 8 (AB#9634)
+
+- **BREAKING (types only, no runtime change):** `@graphql-codegen/cli` 8, `typescript-operations` 7, `typescript` 7,
+  `near-operation-file-preset` 6, `typescript-apollo-angular` 6, `fragment-matcher` 8. The generated operation types
+  of `@meshmakers/octo-services`, octo-ui, octo-meshboard and octo-process-diagrams change shape: result types have no
+  `__typename?`, nullable fields are required `T | null` (no longer optional), `unknown`/`any` for scalars, variables use
+  native types, a narrow query result is not assignable to the full schema `*Dto` type, and `globalTypes` no longer
+  exports `Exact`, `MakeOptional`, `MakeMaybe`, `MakeEmpty`, `Incremental`. Consumers regenerate their own code with
+  codegen 8 and adapt type guards and test fixtures.
+- Chore: `codegen.yml` uses `importSchemaTypesFrom` instead of `baseTypesPath`, maps all 17 scalars and strips the per-file
+  `Incremental` type with `scripts/codegen-strip-incremental.mjs`. npm audit: 18 -> 4 findings.
+
 ### Dependencies: newest versions within the Angular 22 line (AB#9617)
 
 - Chore: Angular and Angular CDK/Material 22.1.5 -> 22.3.0 (CLI/build 22.3.0, ng-packagr 22.3.0), angular-eslint 22.8.0,

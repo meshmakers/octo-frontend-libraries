@@ -1,15 +1,17 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetSymbolLibrariesQueryVariablesDto = Types.Exact<{
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  searchFilter?: Types.InputMaybe<Types.SearchFilterDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetSymbolLibrariesQueryVariablesDto = Exact<{
+  first?: number | null | undefined;
+  searchFilter?: Types.SearchFilterDto | null | undefined;
 }>;
 
 
-export type GetSymbolLibrariesQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemUISymbolLibrary?: { __typename?: 'SystemUISymbolLibraryConnection', totalCount?: number | null, items?: Array<{ __typename?: 'SystemUISymbolLibrary', rtId: any, ckTypeId: any, name: string, description?: string | null, version: string, author?: string | null, isBuiltIn?: boolean | null, isReadOnly?: boolean | null, rtCreationDateTime?: any | null, rtChangedDateTime?: any | null, children?: { __typename?: 'SystemUISymbolDefinition_ChildrenUnionConnection', totalCount?: number | null } | null } | null> | null } | null } | null };
+export type GetSymbolLibrariesQueryDto = { runtime: { systemUISymbolLibrary: { totalCount: number | null, items: Array<{ rtId: any, ckTypeId: any, name: string, description: string | null, version: string, author: string | null, isBuiltIn: boolean | null, isReadOnly: boolean | null, rtCreationDateTime: any, rtChangedDateTime: any, children: { totalCount: number | null } | null } | null> | null } | null } | null };
 
 export const GetSymbolLibrariesDocumentDto = gql`
     query getSymbolLibraries($first: Int, $searchFilter: SearchFilter) {

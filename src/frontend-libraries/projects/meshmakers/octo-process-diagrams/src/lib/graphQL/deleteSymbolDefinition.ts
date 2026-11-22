@@ -1,15 +1,17 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type DeleteSymbolDefinitionMutationVariablesDto = Types.Exact<{
-  rtEntityIds: Array<Types.InputMaybe<Types.RtEntityIdDto>> | Types.InputMaybe<Types.RtEntityIdDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type DeleteSymbolDefinitionMutationVariablesDto = Exact<{
+  rtEntityIds: Array<Types.RtEntityIdDto | null | undefined> | Types.RtEntityIdDto;
   deleteStrategy?: Types.DeleteStrategiesDto;
 }>;
 
 
-export type DeleteSymbolDefinitionMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', runtimeEntities?: { __typename?: 'RtEntityMutations', delete?: boolean | null } | null } | null };
+export type DeleteSymbolDefinitionMutationDto = { runtime: { runtimeEntities: { delete: boolean | null } | null } | null };
 
 export const DeleteSymbolDefinitionDocumentDto = gql`
     mutation deleteSymbolDefinition($rtEntityIds: [RtEntityId]!, $deleteStrategy: DeleteStrategies! = ARCHIVE) {

@@ -1,12 +1,12 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type EntityFormGetEntityFormsQueryVariablesDto = Types.Exact<{ [key: string]: never; }>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type EntityFormGetEntityFormsQueryVariablesDto = Exact<{ [key: string]: never; }>;
 
 
-export type EntityFormGetEntityFormsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, rtWellKnownName?: string | null, ckTypeId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null } | null> | null } | null } | null };
+export type EntityFormGetEntityFormsQueryDto = { runtime: { runtimeEntities: { totalCount: number | null, items: Array<{ rtId: any, rtWellKnownName: string | null, ckTypeId: any, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null } | null> | null } | null } | null };
 
 export const EntityFormGetEntityFormsDocumentDto = gql`
     query entityFormGetEntityForms {

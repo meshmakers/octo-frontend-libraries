@@ -19,7 +19,7 @@ module.exports = tseslint.config(
       // …except the hand-written file that lives in such a generated folder (checked against
       // codegen.yml): legacy-demo-app's hand-written Apollo SDK client. The single real
       // `globalTypes.ts` (octo-services; every other codegen target imports the base types from
-      // the package via `baseTypesPath: ~@meshmakers/octo-services`) and `possibleTypes.ts` are
+      // the package via `importSchemaTypesFrom: ~@meshmakers/octo-services`) and `possibleTypes.ts` are
       // codegen output and stay ignored.
       "!**/legacy-demo-app/src/app/graphQL/get-sdk-customers.ts",
       "**/environments/version.ts",

@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetSecretSafeTypeAttributesQueryVariablesDto = Types.Exact<{
-  rtCkTypeId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetSecretSafeTypeAttributesQueryVariablesDto = Exact<{
+  rtCkTypeId: string;
 }>;
 
 
-export type GetSecretSafeTypeAttributesQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', attributes?: { __typename?: 'CkTypeAttributeDtoConnection', items?: Array<{ __typename?: 'CkTypeAttribute', attributeName: string, attributeValueType: Types.AttributeValueTypeDto, isOptional: boolean, attribute?: { __typename?: 'CkAttribute', metaData?: Array<{ __typename?: 'CkAttributeMetaData', key: string, value?: string | null } | null> | null, ckRecord?: { __typename?: 'CkRecord', ckRecordId: { __typename?: 'CkRecordId', fullName: string } } | null } | null } | null> | null } | null } | null> | null } | null } | null };
+export type GetSecretSafeTypeAttributesQueryDto = { constructionKit: { types: { items: Array<{ attributes: { items: Array<{ attributeName: string, attributeValueType: Types.AttributeValueTypeDto, isOptional: boolean, attribute: { metaData: Array<{ key: string, value: string | null } | null> | null, ckRecord: { ckRecordId: { fullName: string } } | null } | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const GetSecretSafeTypeAttributesDocumentDto = gql`
     query getSecretSafeTypeAttributes($rtCkTypeId: String!) {

@@ -1,18 +1,18 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetNodeMappingsQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  ckTypeId: Types.Scalars['String']['input'];
-  mapsToRoleId: Types.Scalars['String']['input'];
-  mapsFromRoleId: Types.Scalars['String']['input'];
-  mappingCkTypeId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetNodeMappingsQueryVariablesDto = Exact<{
+  rtId: any;
+  ckTypeId: string;
+  mapsToRoleId: string;
+  mapsFromRoleId: string;
+  mappingCkTypeId: string;
 }>;
 
 
-export type GetNodeMappingsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, associations?: { __typename?: 'RtEntityGenericAssociation', mappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, ckTypeId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', sources?: { __typename?: 'RtAssociationDtoConnection', items?: Array<{ __typename?: 'RtAssociation', targetRtId: any, targetCkTypeId: any } | null> | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetNodeMappingsQueryDto = { runtime: { runtimeEntities: { items: Array<{ rtId: any, ckTypeId: any, associations: { mappings: { totalCount: number | null, items: Array<{ rtId: any, ckTypeId: any, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null, associations: { sources: { items: Array<{ targetRtId: any, targetCkTypeId: any } | null> | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetNodeMappingsDocumentDto = gql`
     query getNodeMappings($rtId: OctoObjectId!, $ckTypeId: String!, $mapsToRoleId: String!, $mapsFromRoleId: String!, $mappingCkTypeId: String!) {

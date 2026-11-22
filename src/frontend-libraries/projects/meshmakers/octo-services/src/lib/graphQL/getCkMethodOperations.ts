@@ -1,20 +1,22 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkMethodOperationsQueryVariablesDto = Types.Exact<{
-  operationId?: Types.InputMaybe<Types.Scalars['ID']['input']>;
-  methodId?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  state?: Types.InputMaybe<Types.CkMethodOperationStateDto>;
-  since?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
-  allOwners?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
-  skip?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  take?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkMethodOperationsQueryVariablesDto = Exact<{
+  operationId?: string | number | null | undefined;
+  methodId?: string | null | undefined;
+  state?: Types.CkMethodOperationStateDto | null | undefined;
+  since?: any;
+  allOwners?: boolean | null | undefined;
+  skip?: number | null | undefined;
+  take?: number | null | undefined;
 }>;
 
 
-export type GetCkMethodOperationsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', operations?: { __typename?: 'CkMethodOperationConnection', totalCount: number, items: Array<{ __typename?: 'CkMethodOperation', operationId: string, methodId: string, invocationId: string, state: Types.CkMethodOperationStateDto, result?: any | null, acceptedAtUtc: any, startedAtUtc?: any | null, completedAtUtc?: any | null, expiresAtUtc?: any | null, progress?: { __typename?: 'CkMethodOperationProgress', percent?: number | null, stageCode?: string | null, parameters: Array<{ __typename?: 'CkMethodOperationParameter', name: string, value: string }> } | null, error?: { __typename?: 'CkMethodOperationError', code: string, parameters: Array<{ __typename?: 'CkMethodOperationParameter', name: string, value: string }>, details: Array<{ __typename?: 'CkMethodOperationErrorDetail', code: string, parameters: Array<{ __typename?: 'CkMethodOperationParameter', name: string, value: string }> }> } | null }> } | null } | null };
+export type GetCkMethodOperationsQueryDto = { runtime: { operations: { totalCount: number, items: Array<{ operationId: string, methodId: string, invocationId: string, state: Types.CkMethodOperationStateDto, result: any, acceptedAtUtc: any, startedAtUtc: any, completedAtUtc: any, expiresAtUtc: any, progress: { percent: number | null, stageCode: string | null, parameters: Array<{ name: string, value: string }> } | null, error: { code: string, parameters: Array<{ name: string, value: string }>, details: Array<{ code: string, parameters: Array<{ name: string, value: string }> }> } | null }> } | null } | null };
 
 export const GetCkMethodOperationsDocumentDto = gql`
     query GetCkMethodOperations($operationId: ID, $methodId: String, $state: CkMethodOperationState, $since: DateTime, $allOwners: Boolean, $skip: Int, $take: Int) {

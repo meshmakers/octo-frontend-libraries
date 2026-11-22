@@ -1,14 +1,14 @@
-import * as Types from './globalTypes';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetCkTypeByRtCkTypeIdQueryVariablesDto = Types.Exact<{
-  rtCkTypeId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetCkTypeByRtCkTypeIdQueryVariablesDto = Exact<{
+  rtCkTypeId: string;
 }>;
 
 
-export type GetCkTypeByRtCkTypeIdQueryDto = { __typename?: 'OctoQuery', constructionKit?: { __typename?: 'ConstructionKitQuery', types?: { __typename?: 'CkTypeDtoConnection', items?: Array<{ __typename?: 'CkType', rtCkTypeId: any, ckTypeId: { __typename?: 'CkTypeId', fullName: string } } | null> | null } | null } | null };
+export type GetCkTypeByRtCkTypeIdQueryDto = { constructionKit: { types: { items: Array<{ rtCkTypeId: any, ckTypeId: { fullName: string } } | null> | null } | null } | null };
 
 export const GetCkTypeByRtCkTypeIdDocumentDto = gql`
     query getCkTypeByRtCkTypeId($rtCkTypeId: String!) {

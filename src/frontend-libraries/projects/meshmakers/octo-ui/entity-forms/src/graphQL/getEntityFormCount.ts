@@ -1,15 +1,17 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type EntityFormGetCountQueryVariablesDto = Types.Exact<{
-  ckTypeId: Types.Scalars['String']['input'];
-  fieldFilters?: Types.InputMaybe<Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type EntityFormGetCountQueryVariablesDto = Exact<{
+  ckTypeId: string;
+  fieldFilters?: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto | null | undefined;
 }>;
 
 
-export type EntityFormGetCountQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null } | null };
+export type EntityFormGetCountQueryDto = { runtime: { runtimeEntities: { totalCount: number | null } | null } | null };
 
 export const EntityFormGetCountDocumentDto = gql`
     query entityFormGetCount($ckTypeId: String!, $fieldFilters: [FieldFilter]) {

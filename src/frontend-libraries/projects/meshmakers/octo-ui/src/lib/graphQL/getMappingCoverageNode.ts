@@ -1,23 +1,25 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetMappingCoverageNodeQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  ckTypeId: Types.Scalars['String']['input'];
-  childRoleId: Types.Scalars['String']['input'];
-  childCkTypeId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetMappingCoverageNodeQueryVariablesDto = Exact<{
+  rtId: any;
+  ckTypeId: string;
+  childRoleId: string;
+  childCkTypeId: string;
   childDirection: Types.GraphDirectionDto;
-  grandChildRoleId: Types.Scalars['String']['input'];
-  grandChildCkTypeId: Types.Scalars['String']['input'];
+  grandChildRoleId: string;
+  grandChildCkTypeId: string;
   grandChildDirection: Types.GraphDirectionDto;
-  mappingRoleId: Types.Scalars['String']['input'];
-  mappingCkTypeId: Types.Scalars['String']['input'];
+  mappingRoleId: string;
+  mappingCkTypeId: string;
 }>;
 
 
-export type GetMappingCoverageNodeQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, rtWellKnownName?: string | null, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', ownMappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, children?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, attributes?: { __typename?: 'RtEntityAttributeDtoConnection', items?: Array<{ __typename?: 'RtEntityAttribute', attributeName?: string | null, value?: any | null } | null> | null } | null, associations?: { __typename?: 'RtEntityGenericAssociation', grandChildren?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null, mappings?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetMappingCoverageNodeQueryDto = { runtime: { runtimeEntities: { items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, rtWellKnownName: string | null, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null, associations: { ownMappings: { totalCount: number | null } | null, children: { totalCount: number | null, items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, attributes: { items: Array<{ attributeName: string | null, value: any } | null> | null } | null, associations: { grandChildren: { totalCount: number | null } | null, mappings: { totalCount: number | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetMappingCoverageNodeDocumentDto = gql`
     query getMappingCoverageNode($rtId: OctoObjectId!, $ckTypeId: String!, $childRoleId: String!, $childCkTypeId: String!, $childDirection: GraphDirection!, $grandChildRoleId: String!, $grandChildCkTypeId: String!, $grandChildDirection: GraphDirection!, $mappingRoleId: String!, $mappingCkTypeId: String!) {

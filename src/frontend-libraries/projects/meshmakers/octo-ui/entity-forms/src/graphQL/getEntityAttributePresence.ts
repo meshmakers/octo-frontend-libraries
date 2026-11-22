@@ -1,16 +1,18 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type EntityFormGetAttributePresenceQueryVariablesDto = Types.Exact<{
-  ckTypeId: Types.Scalars['String']['input'];
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  fieldFilters: Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type EntityFormGetAttributePresenceQueryVariablesDto = Exact<{
+  ckTypeId: string;
+  rtId: any;
+  fieldFilters: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto;
 }>;
 
 
-export type EntityFormGetAttributePresenceQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null } | null };
+export type EntityFormGetAttributePresenceQueryDto = { runtime: { runtimeEntities: { totalCount: number | null } | null } | null };
 
 export const EntityFormGetAttributePresenceDocumentDto = gql`
     query entityFormGetAttributePresence($ckTypeId: String!, $rtId: OctoObjectId!, $fieldFilters: [FieldFilter]!) {

@@ -1,14 +1,16 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type NotificationsUpdatePreferenceMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.SystemNotificationNotificationPreferenceInputUpdateDto>> | Types.InputMaybe<Types.SystemNotificationNotificationPreferenceInputUpdateDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type NotificationsUpdatePreferenceMutationVariablesDto = Exact<{
+  entities: Array<Types.SystemNotificationNotificationPreferenceInputUpdateDto | null | undefined> | Types.SystemNotificationNotificationPreferenceInputUpdateDto;
 }>;
 
 
-export type NotificationsUpdatePreferenceMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemNotificationNotificationPreferences?: { __typename?: 'SystemNotificationNotificationPreferenceMutations', update?: Array<{ __typename?: 'SystemNotificationNotificationPreference', rtId: any } | null> | null } | null } | null };
+export type NotificationsUpdatePreferenceMutationDto = { runtime: { systemNotificationNotificationPreferences: { update: Array<{ rtId: any } | null> | null } | null } | null };
 
 export const NotificationsUpdatePreferenceDocumentDto = gql`
     mutation NotificationsUpdatePreference($entities: [SystemNotificationNotificationPreferenceInputUpdate]!) {

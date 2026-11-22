@@ -1,19 +1,19 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetTreeNodesQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  ckTypeId: Types.Scalars['String']['input'];
-  directRoleId: Types.Scalars['String']['input'];
-  directTargetCkTypeId: Types.Scalars['String']['input'];
-  indirectRoleId: Types.Scalars['String']['input'];
-  indirectTargetCkTypeId: Types.Scalars['String']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetTreeNodesQueryVariablesDto = Exact<{
+  rtId: any;
+  ckTypeId: string;
+  directRoleId: string;
+  directTargetCkTypeId: string;
+  indirectRoleId: string;
+  indirectTargetCkTypeId: string;
 }>;
 
 
-export type GetTreeNodesQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeEntities?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, associations?: { __typename?: 'RtEntityGenericAssociation', targets?: { __typename?: 'RtEntityGenericDtoConnection', items?: Array<{ __typename?: 'RtEntity', rtId: any, rtDisplayName: string, rtDisplayDescription?: string | null, ckTypeId: any, associations?: { __typename?: 'RtEntityGenericAssociation', targets?: { __typename?: 'RtEntityGenericDtoConnection', totalCount?: number | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
+export type GetTreeNodesQueryDto = { runtime: { runtimeEntities: { items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, associations: { targets: { items: Array<{ rtId: any, rtDisplayName: string, rtDisplayDescription: string | null, ckTypeId: any, associations: { targets: { totalCount: number | null } | null } | null } | null> | null } | null } | null } | null> | null } | null } | null };
 
 export const GetTreeNodesDocumentDto = gql`
     query getTreeNodes($rtId: OctoObjectId!, $ckTypeId: String!, $directRoleId: String!, $directTargetCkTypeId: String!, $indirectRoleId: String!, $indirectTargetCkTypeId: String!) {

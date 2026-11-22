@@ -1,19 +1,21 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetConfigurationsQueryVariablesDto = Types.Exact<{
-  after?: Types.InputMaybe<Types.Scalars['String']['input']>;
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  rtIds?: Types.InputMaybe<Array<Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>> | Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>>;
-  searchFilter?: Types.InputMaybe<Types.SearchFilterDto>;
-  fieldFilters?: Types.InputMaybe<Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>>;
-  sort?: Types.InputMaybe<Array<Types.InputMaybe<Types.SortDto>> | Types.InputMaybe<Types.SortDto>>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetConfigurationsQueryVariablesDto = Exact<{
+  after?: string | null | undefined;
+  first?: number | null | undefined;
+  rtIds?: Array<any> | any | null | undefined;
+  searchFilter?: Types.SearchFilterDto | null | undefined;
+  fieldFilters?: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto | null | undefined;
+  sort?: Array<Types.SortDto | null | undefined> | Types.SortDto | null | undefined;
 }>;
 
 
-export type GetConfigurationsQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemConfiguration?: { __typename?: 'SystemConfigurationConnection', totalCount?: number | null, items?: Array<{ __typename?: 'SystemConfiguration', rtId: any, ckTypeId: any, rtWellKnownName?: string | null } | null> | null } | null } | null };
+export type GetConfigurationsQueryDto = { runtime: { systemConfiguration: { totalCount: number | null, items: Array<{ rtId: any, ckTypeId: any, rtWellKnownName: string | null } | null> | null } | null } | null };
 
 export const GetConfigurationsDocumentDto = gql`
     query getConfigurations($after: String, $first: Int, $rtIds: [OctoObjectId], $searchFilter: SearchFilter, $fieldFilters: [FieldFilter], $sort: [Sort]) {

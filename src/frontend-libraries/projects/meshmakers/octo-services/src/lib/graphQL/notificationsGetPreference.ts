@@ -1,14 +1,14 @@
-import * as Types from './globalTypes';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type NotificationsGetPreferenceQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type NotificationsGetPreferenceQueryVariablesDto = Exact<{
+  rtId: any;
 }>;
 
 
-export type NotificationsGetPreferenceQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemNotificationNotificationPreference?: { __typename?: 'SystemNotificationNotificationPreferenceConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationPreference', rtId: any, ckTypeId: any, subjectId: string, cronExpression: string, timeZone?: string | null, deliveryState?: { __typename?: 'SystemNotificationNotificationDeliveryState_DeliveryStateUnionConnection', items?: Array<{ __typename?: 'SystemNotificationNotificationDeliveryState', rtId: any, ckTypeId: any, subjectId?: string | null, lastRunAt?: any | null, lastSentAt?: any | null, lastError?: string | null } | null> | null } | null } | null> | null } | null } | null };
+export type NotificationsGetPreferenceQueryDto = { runtime: { systemNotificationNotificationPreference: { items: Array<{ rtId: any, ckTypeId: any, subjectId: string, cronExpression: string, timeZone: string | null, deliveryState: { items: Array<{ rtId: any, ckTypeId: any, subjectId: string | null, lastRunAt: any, lastSentAt: any, lastError: string | null } | null> | null } | null } | null> | null } | null } | null };
 
 export const NotificationsGetPreferenceDocumentDto = gql`
     query NotificationsGetPreference($rtId: OctoObjectId!) {

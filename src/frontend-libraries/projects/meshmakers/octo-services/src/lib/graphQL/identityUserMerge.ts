@@ -1,15 +1,17 @@
-import * as Types from './globalTypes';
+import type * as Types from './globalTypes';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type IdentityUserMergeMutationVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type IdentityUserMergeMutationVariablesDto = Exact<{
+  rtId: any;
   input: Types.SystemIdentityUserMergeMethodInputDto;
 }>;
 
 
-export type IdentityUserMergeMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemIdentityUsers?: { __typename?: 'SystemIdentityUserMutations', merge?: { __typename?: 'SystemIdentityUserMergeMethodResult', invocationId: string } | null } | null } | null };
+export type IdentityUserMergeMutationDto = { runtime: { systemIdentityUsers: { merge: { invocationId: string } | null } | null } | null };
 
 export const IdentityUserMergeDocumentDto = gql`
     mutation identityUserMerge($rtId: OctoObjectId!, $input: SystemIdentityUserMergeMethodInput!) {

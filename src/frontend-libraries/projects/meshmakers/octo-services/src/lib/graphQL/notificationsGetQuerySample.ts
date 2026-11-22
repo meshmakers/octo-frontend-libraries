@@ -1,18 +1,17 @@
-import * as Types from './globalTypes';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type NotificationsGetQuerySampleQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
-  first?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type NotificationsGetQuerySampleQueryVariablesDto = Exact<{
+  rtId: any;
+  first?: number | null | undefined;
 }>;
 
 
-export type NotificationsGetQuerySampleQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', runtimeQuery?: { __typename?: 'RtQueryDtoConnection', items?: Array<{ __typename?: 'RtQuery', queryRtId: any, rows?: { __typename?: 'RtQueryRowDtoConnection', totalCount?: number | null, items?: Array<
-            | { __typename?: 'RtAggregationQueryRow' }
-            | { __typename?: 'RtGroupingAggregationQueryRow' }
-            | { __typename?: 'RtSimpleQueryRow', rtId?: any | null, cells?: { __typename?: 'RtQueryCellDtoConnection', items?: Array<{ __typename?: 'RtQueryCell', attributePath: string, value?: any | null }> | null } | null }
+export type NotificationsGetQuerySampleQueryDto = { runtime: { runtimeQuery: { items: Array<{ queryRtId: any, rows: { totalCount: number | null, items: Array<
+            | { rtId: any, cells: { items: Array<{ attributePath: string, value: any }> | null } | null }
+            | Record<PropertyKey, never>
           > | null } | null }> | null } | null } | null };
 
 export const NotificationsGetQuerySampleDocumentDto = gql`

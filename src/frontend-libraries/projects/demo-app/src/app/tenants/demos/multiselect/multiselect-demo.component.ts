@@ -6,7 +6,8 @@ import { KENDO_DROPDOWNS } from '@progress/kendo-angular-dropdowns';
 import { KENDO_LABELS } from '@progress/kendo-angular-label';
 import { KENDO_INPUTS } from '@progress/kendo-angular-inputs';
 import { GetSdkCustomersDtoGQL, GetSdkCustomersQueryVariablesDto } from '../../../graphQL/getSdkCustomers';
-import { OctoSdkDemoCustomerDto, SearchFilterTypesDto } from '@meshmakers/octo-services';
+import { SearchFilterTypesDto } from '@meshmakers/octo-services';
+import { SdkCustomer } from '../sdk-customer';
 import { firstValueFrom } from 'rxjs';
 
 // Mock entity interface
@@ -537,8 +538,8 @@ export class MultiselectDemoComponent implements OnInit {
   public selectedEmployees: Employee[] = [];
 
   // Customer data (GraphQL)
-  public filteredCustomers: (OctoSdkDemoCustomerDto & { displayName: string })[] = [];
-  public selectedCustomers: (OctoSdkDemoCustomerDto & { displayName: string })[] = [];
+  public filteredCustomers: (SdkCustomer & { displayName: string })[] = [];
+  public selectedCustomers: (SdkCustomer & { displayName: string })[] = [];
   public customersLoading = false;
 
   // Form data
@@ -587,7 +588,7 @@ export class MultiselectDemoComponent implements OnInit {
   }
 
   // Event handlers - Customer (GraphQL)
-  public onCustomersChange(value: (OctoSdkDemoCustomerDto & { displayName: string })[]): void {
+  public onCustomersChange(value: (SdkCustomer & { displayName: string })[]): void {
     console.log('Customers changed:', value);
   }
 
@@ -615,7 +616,7 @@ export class MultiselectDemoComponent implements OnInit {
       const result = await firstValueFrom(this.getSdkCustomersDtoGQL.fetch({ variables }));
 
       const items = (result.data?.runtime?.octoSdkDemoCustomer?.items ?? [])
-        .filter((item): item is OctoSdkDemoCustomerDto => item !== null)
+        .flatMap((item) => (item !== null ? [item] : []))
         .map(item => ({
           ...item,
           displayName: `${item.contact?.firstName ?? ''} ${item.contact?.lastName ?? ''} (${item.contact?.address?.cityTown ?? ''})`

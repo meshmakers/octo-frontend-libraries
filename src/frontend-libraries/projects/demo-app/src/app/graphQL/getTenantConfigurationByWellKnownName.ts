@@ -1,14 +1,14 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetTenantConfigurationByWellKnownNameQueryVariablesDto = Types.Exact<{
-  wellKnownName?: Types.InputMaybe<Types.Scalars['SimpleScalar']['input']>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetTenantConfigurationByWellKnownNameQueryVariablesDto = Exact<{
+  wellKnownName?: any;
 }>;
 
 
-export type GetTenantConfigurationByWellKnownNameQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemTenantConfiguration?: { __typename?: 'SystemTenantConfigurationConnection', totalCount?: number | null, items?: Array<{ __typename?: 'SystemTenantConfiguration', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, configurationValue?: string | null } | null> | null } | null } | null };
+export type GetTenantConfigurationByWellKnownNameQueryDto = { runtime: { systemTenantConfiguration: { totalCount: number | null, items: Array<{ rtId: any, ckTypeId: any, rtWellKnownName: string | null, configurationValue: string | null } | null> | null } | null } | null };
 
 export const GetTenantConfigurationByWellKnownNameDocumentDto = gql`
     query getTenantConfigurationByWellKnownName($wellKnownName: SimpleScalar) {

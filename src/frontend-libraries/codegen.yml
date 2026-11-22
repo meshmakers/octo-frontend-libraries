@@ -1,4 +1,7 @@
 overwrite: true
+hooks:
+  afterAllFileWrite:
+    - node scripts/codegen-strip-incremental.mjs
 schema:
   - schema.graphql
 generates:
@@ -8,12 +11,31 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+      importSchemaTypesFrom: '~@meshmakers/octo-services'
+      scalars:
+        BigInt: any
+        Byte: any
+        CkVersion: any
+        DateTime: any
+        DateTimeOffset: any
+        Decimal: any
+        LargeBinary: any
+        Long: any
+        OctoObjectId: any
+        RtCkAssociationRoleId: any
+        RtCkEnumId: any
+        RtCkRecordId: any
+        RtCkTypeId: any
+        Seconds: any
+        SimpleScalar: any
+        ULong: any
+        Uri: any
+
 
   # octo-meshboard (uses types from @meshmakers/octo-services)
   projects/meshmakers/octo-meshboard/src/lib/graphQL/:
@@ -21,12 +43,31 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+      importSchemaTypesFrom: '~@meshmakers/octo-services'
+      scalars:
+        BigInt: any
+        Byte: any
+        CkVersion: any
+        DateTime: any
+        DateTimeOffset: any
+        Decimal: any
+        LargeBinary: any
+        Long: any
+        OctoObjectId: any
+        RtCkAssociationRoleId: any
+        RtCkEnumId: any
+        RtCkRecordId: any
+        RtCkTypeId: any
+        Seconds: any
+        SimpleScalar: any
+        ULong: any
+        Uri: any
+
 
   # octo-process-diagrams (uses types from @meshmakers/octo-services)
   projects/meshmakers/octo-process-diagrams/src/lib/graphQL/:
@@ -34,12 +75,31 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+      importSchemaTypesFrom: '~@meshmakers/octo-services'
+      scalars:
+        BigInt: any
+        Byte: any
+        CkVersion: any
+        DateTime: any
+        DateTimeOffset: any
+        Decimal: any
+        LargeBinary: any
+        Long: any
+        OctoObjectId: any
+        RtCkAssociationRoleId: any
+        RtCkEnumId: any
+        RtCkRecordId: any
+        RtCkTypeId: any
+        Seconds: any
+        SimpleScalar: any
+        ULong: any
+        Uri: any
+
 
   # octo-services
   projects/meshmakers/octo-services/src/lib/graphQL/globalTypes.ts:
@@ -57,6 +117,20 @@ generates:
         CkEnumId: string
         CkRecordId: string
         CkTypeId: string
+        BigInt: any
+        Byte: any
+        CkVersion: any
+        DateTimeOffset: any
+        LargeBinary: any
+        Long: any
+        RtCkAssociationRoleId: any
+        RtCkEnumId: any
+        RtCkRecordId: any
+        RtCkTypeId: any
+        Seconds: any
+        SimpleScalar: any
+        ULong: any
+        Uri: any
   projects/meshmakers/octo-services/src/lib/graphQL/possibleTypes.ts:
     plugins:
       - fragment-matcher
@@ -68,24 +142,62 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: globalTypes.ts
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+      importSchemaTypesFrom: 'projects/meshmakers/octo-services/src/lib/graphQL/globalTypes'
+      scalars:
+        BigInt: any
+        Byte: any
+        CkVersion: any
+        DateTime: any
+        DateTimeOffset: any
+        Decimal: any
+        LargeBinary: any
+        Long: any
+        OctoObjectId: any
+        RtCkAssociationRoleId: any
+        RtCkEnumId: any
+        RtCkRecordId: any
+        RtCkTypeId: any
+        Seconds: any
+        SimpleScalar: any
+        ULong: any
+        Uri: any
+
 
   projects/meshmakers/octo-ui/src/lib/graphQL/:
     documents: "projects/meshmakers/octo-ui/src/lib/graphQL/*.graphql"
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+      importSchemaTypesFrom: '~@meshmakers/octo-services'
+      scalars:
+        BigInt: any
+        Byte: any
+        CkVersion: any
+        DateTime: any
+        DateTimeOffset: any
+        Decimal: any
+        LargeBinary: any
+        Long: any
+        OctoObjectId: any
+        RtCkAssociationRoleId: any
+        RtCkEnumId: any
+        RtCkRecordId: any
+        RtCkTypeId: any
+        Seconds: any
+        SimpleScalar: any
+        ULong: any
+        Uri: any
+
 
   # octo-ui/branding feature
   projects/meshmakers/octo-ui/branding/src/graphQL/:
@@ -93,12 +205,31 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+      importSchemaTypesFrom: '~@meshmakers/octo-services'
+      scalars:
+        BigInt: any
+        Byte: any
+        CkVersion: any
+        DateTime: any
+        DateTimeOffset: any
+        Decimal: any
+        LargeBinary: any
+        Long: any
+        OctoObjectId: any
+        RtCkAssociationRoleId: any
+        RtCkEnumId: any
+        RtCkRecordId: any
+        RtCkTypeId: any
+        Seconds: any
+        SimpleScalar: any
+        ULong: any
+        Uri: any
+
 
   # octo-ui/entity-forms feature (AB#5522)
   projects/meshmakers/octo-ui/entity-forms/src/graphQL/:
@@ -106,9 +237,27 @@ generates:
     preset: near-operation-file
     presetConfig:
       extension: .ts
-      baseTypesPath: ~@meshmakers/octo-services
     plugins:
       - "typescript-operations"
       - "typescript-apollo-angular"
     config:
       typesSuffix: Dto
+      importSchemaTypesFrom: '~@meshmakers/octo-services'
+      scalars:
+        BigInt: any
+        Byte: any
+        CkVersion: any
+        DateTime: any
+        DateTimeOffset: any
+        Decimal: any
+        LargeBinary: any
+        Long: any
+        OctoObjectId: any
+        RtCkAssociationRoleId: any
+        RtCkEnumId: any
+        RtCkRecordId: any
+        RtCkTypeId: any
+        Seconds: any
+        SimpleScalar: any
+        ULong: any
+        Uri: any

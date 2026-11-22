@@ -1,20 +1,22 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type TransientDownsamplingQueryVariablesDto = Types.Exact<{
-  archiveRtId: Types.Scalars['OctoObjectId']['input'];
-  from: Types.Scalars['DateTime']['input'];
-  to: Types.Scalars['DateTime']['input'];
-  limit: Types.Scalars['Int']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type TransientDownsamplingQueryVariablesDto = Exact<{
+  archiveRtId: any;
+  from: any;
+  to: any;
+  limit: number;
   columnPaths: Array<Types.StreamDataQueryColumnInputDto> | Types.StreamDataQueryColumnInputDto;
-  rtIds?: Types.InputMaybe<Array<Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>> | Types.InputMaybe<Types.Scalars['OctoObjectId']['input']>>;
-  fieldFilter?: Types.InputMaybe<Array<Types.InputMaybe<Types.FieldFilterDto>> | Types.InputMaybe<Types.FieldFilterDto>>;
+  rtIds?: Array<any> | any | null | undefined;
+  fieldFilter?: Array<Types.FieldFilterDto | null | undefined> | Types.FieldFilterDto | null | undefined;
 }>;
 
 
-export type TransientDownsamplingQueryDto = { __typename?: 'OctoQuery', streamData?: { __typename?: 'StreamDataModelQuery', transientStreamDataQuery: { __typename?: 'StreamDataTransient', downsampling?: { __typename?: 'StreamDataTransientQueryDtoConnection', items?: Array<{ __typename?: 'StreamDataTransientQuery', rows?: { __typename?: 'StreamDataQueryRowDtoConnection', totalCount?: number | null, items?: Array<{ __typename?: 'StreamDataQueryRow', rtId?: any | null, timestamp?: any | null, cells?: { __typename?: 'RtQueryCellDtoConnection', items?: Array<{ __typename?: 'RtQueryCell', attributePath: string, value?: any | null }> | null } | null }> | null } | null }> | null } | null } } | null };
+export type TransientDownsamplingQueryDto = { streamData: { transientStreamDataQuery: { downsampling: { items: Array<{ rows: { totalCount: number | null, items: Array<{ rtId: any, timestamp: any, cells: { items: Array<{ attributePath: string, value: any }> | null } | null }> | null } | null }> | null } | null } } | null };
 
 export const TransientDownsamplingDocumentDto = gql`
     query transientDownsampling($archiveRtId: OctoObjectId!, $from: DateTime!, $to: DateTime!, $limit: Int!, $columnPaths: [StreamDataQueryColumnInput!]!, $rtIds: [OctoObjectId], $fieldFilter: [FieldFilter]) {

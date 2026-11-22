@@ -1,14 +1,14 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetStreamDataQueryArchiveQueryVariablesDto = Types.Exact<{
-  rtId: Types.Scalars['OctoObjectId']['input'];
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetStreamDataQueryArchiveQueryVariablesDto = Exact<{
+  rtId: any;
 }>;
 
 
-export type GetStreamDataQueryArchiveQueryDto = { __typename?: 'OctoQuery', streamData?: { __typename?: 'StreamDataModelQuery', streamDataQuery?: { __typename?: 'StreamDataQueryDtoConnection', items?: Array<{ __typename?: 'StreamDataQuery', queryRtId: any, associatedCkTypeId: any, archiveRtId: any }> | null } | null } | null, runtime?: { __typename?: 'RuntimeModelQuery', systemSimpleSdQuery?: { __typename?: 'SystemSimpleSdQueryConnection', items?: Array<{ __typename?: 'SystemSimpleSdQuery', rtId: any, rtIds?: Array<string> | null } | null> | null } | null } | null };
+export type GetStreamDataQueryArchiveQueryDto = { streamData: { streamDataQuery: { items: Array<{ queryRtId: any, associatedCkTypeId: any, archiveRtId: any }> | null } | null } | null, runtime: { systemSimpleSdQuery: { items: Array<{ rtId: any, rtIds: Array<string> | null } | null> | null } | null } | null };
 
 export const GetStreamDataQueryArchiveDocumentDto = gql`
     query getStreamDataQueryArchive($rtId: OctoObjectId!) {

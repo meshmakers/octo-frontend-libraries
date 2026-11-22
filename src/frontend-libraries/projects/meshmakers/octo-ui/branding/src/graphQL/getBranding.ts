@@ -1,12 +1,12 @@
-import * as Types from '@meshmakers/octo-services';
-
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type GetBrandingQueryVariablesDto = Types.Exact<{ [key: string]: never; }>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type GetBrandingQueryVariablesDto = Exact<{ [key: string]: never; }>;
 
 
-export type GetBrandingQueryDto = { __typename?: 'OctoQuery', runtime?: { __typename?: 'RuntimeModelQuery', systemUIBranding?: { __typename?: 'SystemUIBrandingConnection', totalCount?: number | null, items?: Array<{ __typename?: 'SystemUIBranding', rtId: any, rtWellKnownName?: string | null, appName?: string | null, appTitle?: string | null, headerLogo?: Array<any | null> | null, footerLogo?: Array<any | null> | null, favicon?: Array<any | null> | null, lightTheme?: { __typename?: 'SystemUIThemePalette', primaryColor?: string | null, secondaryColor?: string | null, tertiaryColor?: string | null, neutralColor?: string | null, backgroundColor?: string | null, headerGradient?: { __typename?: 'SystemUIThemeGradient', startColor: string, endColor: string } | null, footerGradient?: { __typename?: 'SystemUIThemeGradient', startColor: string, endColor: string } | null } | null, darkTheme?: { __typename?: 'SystemUIThemePalette', primaryColor?: string | null, secondaryColor?: string | null, tertiaryColor?: string | null, neutralColor?: string | null, backgroundColor?: string | null, headerGradient?: { __typename?: 'SystemUIThemeGradient', startColor: string, endColor: string } | null, footerGradient?: { __typename?: 'SystemUIThemeGradient', startColor: string, endColor: string } | null } | null } | null> | null } | null } | null };
+export type GetBrandingQueryDto = { runtime: { systemUIBranding: { totalCount: number | null, items: Array<{ rtId: any, rtWellKnownName: string | null, appName: string | null, appTitle: string | null, headerLogo: Array<any> | null, footerLogo: Array<any> | null, favicon: Array<any> | null, lightTheme: { primaryColor: string | null, secondaryColor: string | null, tertiaryColor: string | null, neutralColor: string | null, backgroundColor: string | null, headerGradient: { startColor: string, endColor: string } | null, footerGradient: { startColor: string, endColor: string } | null } | null, darkTheme: { primaryColor: string | null, secondaryColor: string | null, tertiaryColor: string | null, neutralColor: string | null, backgroundColor: string | null, headerGradient: { startColor: string, endColor: string } | null, footerGradient: { startColor: string, endColor: string } | null } | null } | null> | null } | null } | null };
 
 export const GetBrandingDocumentDto = gql`
     query getBranding {

@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type UpdateSymbolLibraryMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.SystemUiSymbolLibraryInputUpdateDto>> | Types.InputMaybe<Types.SystemUiSymbolLibraryInputUpdateDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type UpdateSymbolLibraryMutationVariablesDto = Exact<{
+  entities: Array<Types.SystemUiSymbolLibraryInputUpdateDto | null | undefined> | Types.SystemUiSymbolLibraryInputUpdateDto;
 }>;
 
 
-export type UpdateSymbolLibraryMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemUISymbolLibrarys?: { __typename?: 'SystemUISymbolLibraryMutations', update?: Array<{ __typename?: 'SystemUISymbolLibrary', rtId: any, ckTypeId: any, name: string, description?: string | null, version: string, author?: string | null, isBuiltIn?: boolean | null, isReadOnly?: boolean | null, rtChangedDateTime?: any | null } | null> | null } | null } | null };
+export type UpdateSymbolLibraryMutationDto = { runtime: { systemUISymbolLibrarys: { update: Array<{ rtId: any, ckTypeId: any, name: string, description: string | null, version: string, author: string | null, isBuiltIn: boolean | null, isReadOnly: boolean | null, rtChangedDateTime: any } | null> | null } | null } | null };
 
 export const UpdateSymbolLibraryDocumentDto = gql`
     mutation updateSymbolLibrary($entities: [SystemUISymbolLibraryInputUpdate]!) {

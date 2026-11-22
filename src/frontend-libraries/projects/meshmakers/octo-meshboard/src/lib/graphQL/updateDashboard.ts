@@ -1,14 +1,16 @@
-import * as Types from '@meshmakers/octo-services';
+import type * as Types from '@meshmakers/octo-services';
 
 import { gql } from 'apollo-angular';
 import { Injectable } from '@angular/core';
 import * as Apollo from 'apollo-angular';
-export type UpdateDashboardMutationVariablesDto = Types.Exact<{
-  entities: Array<Types.InputMaybe<Types.SystemUiDashboardInputUpdateDto>> | Types.InputMaybe<Types.SystemUiDashboardInputUpdateDto>;
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type UpdateDashboardMutationVariablesDto = Exact<{
+  entities: Array<Types.SystemUiDashboardInputUpdateDto | null | undefined> | Types.SystemUiDashboardInputUpdateDto;
 }>;
 
 
-export type UpdateDashboardMutationDto = { __typename?: 'OctoMutation', runtime?: { __typename?: 'Runtime', systemUIDashboards?: { __typename?: 'SystemUIDashboardMutations', update?: Array<{ __typename?: 'SystemUIDashboard', rtId: any, ckTypeId: any, rtWellKnownName?: string | null, name: string, description: string, columns: number, rowHeight: number, gap: number, rtChangedDateTime?: any | null } | null> | null } | null } | null };
+export type UpdateDashboardMutationDto = { runtime: { systemUIDashboards: { update: Array<{ rtId: any, ckTypeId: any, rtWellKnownName: string | null, name: string, description: string, columns: number, rowHeight: number, gap: number, rtChangedDateTime: any } | null> | null } | null } | null };
 
 export const UpdateDashboardDocumentDto = gql`
     mutation updateDashboard($entities: [SystemUIDashboardInputUpdate]!) {
