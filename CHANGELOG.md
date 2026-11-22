@@ -10,6 +10,15 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### Dependencies: newest versions within the Angular 22 line (AB#9617)
+
+- Chore: Angular and Angular CDK/Material 22.1.5 -> 22.3.0 (CLI/build 22.3.0, ng-packagr 22.3.0), angular-eslint 22.8.0,
+  typescript-eslint 8.73.0, `@apollo/client` 4.3.8, vitest/coverage 5.1.1, jsdom 31, `@stylistic/eslint-plugin` 6, plus the
+  in-range updates of all other dependencies. Kendo UI for Angular stays on the 24 line (24.1.0 -> 24.2.2). No API
+  change of the libraries.
+- Held back on purpose: Kendo UI 26, `@graphql-codegen/*` 8 (changes the shape of the generated GraphQL files),
+  dockview 8, `@progress/kendo-svg-icons` 5, `@dash0/sdk-web` 0.35, katex 0.19, TypeScript 7 (Angular 22 needs 6.0).
+
 ### octo-meshboard: a shifted KPI shows the change to the current period (AB#9245)
 
 - New (additive): `KpiWidgetConfig.showChange?: true`. A KPI on a stream-data query with a time shift can show
