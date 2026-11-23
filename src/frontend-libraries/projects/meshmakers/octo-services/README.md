@@ -12,8 +12,8 @@ Part of the [@meshmakers](https://www.npmjs.com/org/meshmakers) package ecosyste
 - **TUS Upload** - Resumable file uploads for large database restores
 - **Error Handling** - Apollo Link for GraphQL error handling with user notifications
 - **Notification subscriptions** - `System.Notification` subscription and recipient API, imported from the entry point
-  `@meshmakers/octo-services/notifications` (AB#9650; the same names on `@meshmakers/octo-services` are deprecated and
-  will be removed there)
+  `@meshmakers/octo-services/notifications` only (AB#9650; the former names on `@meshmakers/octo-services` were
+  removed in AB#9654)
 
 ## Build & Test
 
