@@ -589,8 +589,9 @@ point (step 3 of AB#9650, after Refinery Studio and energy-community have switch
   bundle of every app (maco-app 2.37 MB -> 5.56 MB, AB#9650). The schedule check therefore uses `cron-parser` directly:
   `nextCronExecutions(cron, count)` has the contract of shared-ui `CronParserService.getNextExecutions` (6 fields,
   empty list when invalid; equivalence pinned in `notification-schedule.spec.ts`), injected through
-  `NOTIFICATION_NEXT_EXECUTIONS` (default `nextCronExecutions`; tests provide their own). Type-only imports of shared-ui
-  are fine; keep new value imports of shared-ui out of octo-services.
+  `NOTIFICATION_NEXT_EXECUTIONS` (default `nextCronExecutions`; tests provide their own). Lint enforces it:
+  `@typescript-eslint/no-restricted-imports` in `eslint.config.js` refuses any import of `@meshmakers/shared-ui` in
+  shipped octo-services code except `import type` (specs are exempt).
 
 The single source of truth for screens that manage `System.Notification` subscriptions and their recipients. The
 Refinery Studio and the EnergyCommunity app each keep their own screens; what a recipient is, how its status reads,
@@ -1161,5 +1162,4 @@ ng test @meshmakers/octo-services --watch=false --coverage
 - `@meshmakers/shared-services` - Shared services (MessageService, PagedResultDto)
 - `@meshmakers/shared-ui` - Shared UI (ProgressWindowService and types); keep **value** imports of it out of code the
   primary entry point loads (AB#9650, see Notification subscriptions)
-- `cron-parser` - a **peer dependency** (`^5.10.0`, already a dependency of every consumer app through shared-ui's cron
-  builder) for the notification schedule check (`nextCronExecutions`, AB#9650)
+- `cron-parser` - a **peer dependency** (`^5.10.0`, a direct dependency of every consumer app) for the notification schedule check (`nextCronExecutions`, AB#9650)

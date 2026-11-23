@@ -32,12 +32,13 @@ const FILES = [
   'notification-recipient-candidates.service'
 ];
 const MODULES: Record<string, unknown>[] = [status, schedule, placeholders, preview, subscriptions, candidates];
-const DECLARATION = /^export (?:declare )?(?:abstract )?(?:const|function|class|interface|type|enum) ([A-Za-z_][A-Za-z0-9_]*)/gm;
+const DECLARATION = /^export (?:declare )?(?:abstract )?(const|function|class|interface|type|enum) ([A-Za-z_][A-Za-z0-9_]*)/gm;
 const DEPRECATED = '/** @deprecated Import from `@meshmakers/octo-services/notifications`; this path will be removed (AB#9650). */';
 
 describe('notification entry point (AB#9650)', () => {
   const base = 'projects/meshmakers/octo-services';
   let declared: string[] = [];
+  let classes: string[] = [];
   let transition = '';
   let publicApi = '';
   let entryPoint = '';
@@ -45,8 +46,10 @@ describe('notification entry point (AB#9650)', () => {
   beforeAll(async () => {
     const fs = await loadFs();
     const root = process.cwd();
-    declared = FILES.flatMap(file =>
-      [...fs.readFileSync(`${root}/${base}/src/lib/notifications/${file}.ts`, 'utf8').matchAll(DECLARATION)].map(match => match[1]));
+    const declarations = FILES.flatMap(file =>
+      [...fs.readFileSync(`${root}/${base}/src/lib/notifications/${file}.ts`, 'utf8').matchAll(DECLARATION)]);
+    declared = declarations.map(match => match[2]);
+    classes = declarations.filter(match => match[1] === 'class').map(match => match[2]);
     transition = fs.readFileSync(`${root}/${base}/src/lib/notifications/notifications-transition-exports.ts`, 'utf8');
     publicApi = fs.readFileSync(`${root}/${base}/src/public-api.ts`, 'utf8');
     entryPoint = fs.readFileSync(`${root}/${base}/notifications/src/public-api.ts`, 'utf8');
@@ -62,6 +65,13 @@ describe('notification entry point (AB#9650)', () => {
   it('keeps every symbol on the primary entry point as a deprecated declaration', () => {
     const missing = declared.filter(name =>
       !new RegExp(`${escapeRegExp(DEPRECATED)}\\nexport (?:const|type) ${name}\\b`).test(transition));
+    expect(missing).toEqual([]);
+  });
+
+  it('keeps a class usable as value and as type under its deprecated name', () => {
+    expect(classes).toContain('NotificationSubscriptionService');
+    const missing = classes.filter(name =>
+      !new RegExp(`\\nexport const ${name} = `).test(transition) || !new RegExp(`\\nexport type ${name} = `).test(transition));
     expect(missing).toEqual([]);
   });
 
