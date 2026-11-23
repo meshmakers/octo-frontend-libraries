@@ -11,6 +11,9 @@ Part of the [@meshmakers](https://www.npmjs.com/org/meshmakers) package ecosyste
 - **Job Management** - Background job execution with progress tracking
 - **TUS Upload** - Resumable file uploads for large database restores
 - **Error Handling** - Apollo Link for GraphQL error handling with user notifications
+- **Notification subscriptions** - `System.Notification` subscription and recipient API, imported from the entry point
+  `@meshmakers/octo-services/notifications` (AB#9650; the same names on `@meshmakers/octo-services` are deprecated and
+  will be removed there)
 
 ## Build & Test
 
@@ -31,6 +34,7 @@ npm run test:octo-services
 octo-services/
 ├── src/
 │   ├── public-api.ts
+│   ├── lib/notifications/              # Notification subscription API (entry point ./notifications)
 │   └── lib/
 │       ├── services/
 │       │   ├── health.service.ts            # Backend health checks
