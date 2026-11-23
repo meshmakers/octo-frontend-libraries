@@ -135,6 +135,7 @@
     "cross-env": "^10.1.0",
     "eslint": "^10.15.0",
     "eslint-plugin-unused-imports": "^4.4.1",
+    "graphql": "16.15.0",
     "jsdom": "^31.0.1",
     "katex": "^0.16.47",
     "marked-katex-extension": "^5.1.13",

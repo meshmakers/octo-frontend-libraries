@@ -100,11 +100,10 @@ export * from './lib/services/communication.service';
 export * from './lib/services/picker-users';
 export * from './lib/shared/name-search-term';
 
-// Notification subscriptions (System.Notification) - moved to the entry point
-// '@meshmakers/octo-services/notifications' (AB#9650). The plain names stay here for a transition and are
-// deprecated. The ɵ-prefixed aliases are not public API: they feed the new entry point, because ng-packagr does not
-// allow the primary entry point to import from a secondary one while the notification code still lives here.
-export * from './lib/notifications/notifications-transition-exports';
+// Notification subscriptions (System.Notification): public only through the entry point
+// '@meshmakers/octo-services/notifications' (AB#9650; the deprecated plain names were removed here in AB#9654).
+// The ɵ-prefixed aliases below are not public API: they feed that entry point, because the notification code still
+// lives in this entry point and ng-packagr does not allow it to import from a secondary one.
 export {
   type NotificationHealth as ɵNotificationHealth,
   type NotificationRecipientProblem as ɵNotificationRecipientProblem,

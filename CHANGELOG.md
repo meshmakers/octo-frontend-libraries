@@ -10,6 +10,19 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services: old notification exports removed, shared-ui lint guard widened (AB#9654, Bug AB#9650)
+
+- **BREAKING:** the notification API is available only from `@meshmakers/octo-services/notifications`. The deprecated
+  names on `@meshmakers/octo-services` (`NotificationSubscriptionService`, `notificationScheduleIssue`,
+  `renderNotificationPreview`, ... — every symbol of the notification API) are removed. Switch with a
+  search-and-replace of the import path; generated DTOs stay on `@meshmakers/octo-services`. Refinery Studio and
+  energy-community already import from the new entry point; no other consumer used the old path (checked on the
+  default branches of all `@meshmakers/octo-services` consumers).
+- Lint: the octo-services guard against runtime imports of `@meshmakers/shared-ui` now also covers its secondary entry
+  points (`@meshmakers/shared-ui/*`); `import type` stays allowed.
+- Dev dependencies: `graphql` pinned to `16.15.0` and `graphql-ws` raised to `6.4.3` in the lock file, the versions
+  Refinery Studio uses, so the Studio specs that compile the library sources resolve the same `graphql` copy.
+
 ### octo-services: notification API on its own entry point, shared-ui out of the initial bundle (AB#9652, Bug AB#9650)
 
 - Fix: `@meshmakers/octo-services` no longer imports `@meshmakers/shared-ui` at runtime. Since beta 0.1.261020007

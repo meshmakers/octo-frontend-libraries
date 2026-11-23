@@ -7,14 +7,16 @@ import * as subscriptions from './notification-subscription.service';
 import * as candidates from './notification-recipient-candidates.service';
 
 /*
- * AB#9650: the notification API has its own entry point '@meshmakers/octo-services/notifications'. During the
- * transition every symbol of lib/notifications must be reachable three ways: as a deprecated name on the primary entry
- * point, as an internal ɵ alias on the primary entry point, and under its own name on the new entry point (which
- * re-exports the ɵ aliases). This spec keeps the four lists in step when a symbol is added or removed.
+ * AB#9650 / AB#9654: the notification API is public only through '@meshmakers/octo-services/notifications'. The code
+ * still lives in the primary entry point, which exports every symbol of lib/notifications as an internal ɵ alias only;
+ * the new entry point re-exports those aliases under their own names. The deprecated plain names on the primary entry
+ * point were removed in AB#9654. This spec keeps the lists in step when a symbol is added or removed, and fails when a
+ * plain notification name comes back on the primary entry point.
  */
 
 interface NodeFs {
   readFileSync(path: string, encoding: 'utf8'): string;
+  existsSync(path: string): boolean;
 }
 declare const process: { cwd(): string };
 
@@ -33,15 +35,13 @@ const FILES = [
 ];
 const MODULES: Record<string, unknown>[] = [status, schedule, placeholders, preview, subscriptions, candidates];
 const DECLARATION = /^export (?:declare )?(?:abstract )?(const|function|class|interface|type|enum) ([A-Za-z_][A-Za-z0-9_]*)/gm;
-const DEPRECATED = '/** @deprecated Import from `@meshmakers/octo-services/notifications`; this path will be removed (AB#9650). */';
 
-describe('notification entry point (AB#9650)', () => {
+describe('notification entry point (AB#9650, AB#9654)', () => {
   const base = 'projects/meshmakers/octo-services';
   let declared: string[] = [];
-  let classes: string[] = [];
-  let transition = '';
   let publicApi = '';
   let entryPoint = '';
+  let transitionFileExists = true;
 
   beforeAll(async () => {
     const fs = await loadFs();
@@ -49,10 +49,9 @@ describe('notification entry point (AB#9650)', () => {
     const declarations = FILES.flatMap(file =>
       [...fs.readFileSync(`${root}/${base}/src/lib/notifications/${file}.ts`, 'utf8').matchAll(DECLARATION)]);
     declared = declarations.map(match => match[2]);
-    classes = declarations.filter(match => match[1] === 'class').map(match => match[2]);
-    transition = fs.readFileSync(`${root}/${base}/src/lib/notifications/notifications-transition-exports.ts`, 'utf8');
     publicApi = fs.readFileSync(`${root}/${base}/src/public-api.ts`, 'utf8');
     entryPoint = fs.readFileSync(`${root}/${base}/notifications/src/public-api.ts`, 'utf8');
+    transitionFileExists = fs.existsSync(`${root}/${base}/src/lib/notifications/notifications-transition-exports.ts`);
   });
 
   it('finds the notification symbols', () => {
@@ -62,22 +61,19 @@ describe('notification entry point (AB#9650)', () => {
     expect(declared.length).toBeGreaterThan(40);
   });
 
-  it('keeps every symbol on the primary entry point as a deprecated declaration', () => {
-    const missing = declared.filter(name =>
-      !new RegExp(`${escapeRegExp(DEPRECATED)}\\nexport (?:const|type) ${name}\\b`).test(transition));
-    expect(missing).toEqual([]);
-  });
-
-  it('keeps a class usable as value and as type under its deprecated name', () => {
-    expect(classes).toContain('NotificationSubscriptionService');
-    const missing = classes.filter(name =>
-      !new RegExp(`\\nexport const ${name} = `).test(transition) || !new RegExp(`\\nexport type ${name} = `).test(transition));
-    expect(missing).toEqual([]);
+  it('has no transition exports any more (AB#9654)', () => {
+    expect(transitionFileExists).toBe(false);
+    expect(publicApi).not.toContain('notifications-transition-exports');
   });
 
   it('exports an internal ɵ alias of every symbol from the primary entry point', () => {
     const missing = declared.filter(name => !new RegExp(`\\b${name} as ɵ${name}(?![A-Za-z0-9_])`).test(publicApi));
     expect(missing).toEqual([]);
+  });
+
+  it('does not export a notification module of lib/notifications under its plain names', () => {
+    // Only the ɵ alias blocks may name lib/notifications; an `export *` of one of its files would publish the plain names.
+    expect(publicApi).not.toMatch(/export \* from '\.\/lib\/notifications\//);
   });
 
   it('exports every symbol under its own name from @meshmakers/octo-services/notifications', () => {
@@ -87,17 +83,13 @@ describe('notification entry point (AB#9650)', () => {
     expect(entryPoint).toContain("from '@meshmakers/octo-services';");
   });
 
-  it('gives the same runtime value under the deprecated name, the ɵ alias and the original module', () => {
+  it('gives the ɵ alias the runtime value of the original module and no plain name on the primary entry point', () => {
     const exported = primary as unknown as Record<string, unknown>;
     const values = MODULES.flatMap(module => Object.entries(module));
     expect(values.length).toBeGreaterThan(20);
     for (const [name, value] of values) {
-      expect(exported[name], name).toBe(value);
       expect(exported[`ɵ${name}`], `ɵ${name}`).toBe(value);
+      expect(name in exported, `plain ${name} on the primary entry point`).toBe(false);
     }
   });
 });
-
-function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
-}

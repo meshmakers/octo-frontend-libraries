@@ -2,11 +2,11 @@
  * Public API Surface of @meshmakers/octo-services/notifications (AB#9650)
  *
  * The notification subscription API (System.Notification): service, recipient candidates, schedule checks,
- * placeholders, preview and status helpers. Import it from here; the same names on '@meshmakers/octo-services' are
- * deprecated and will be removed from the primary entry point.
+ * placeholders, preview and status helpers. This is the only public path; the former names on
+ * '@meshmakers/octo-services' were removed in AB#9654.
  *
- * The code still lives in the primary entry point for the transition and is re-exported here through its internal
- * ɵ aliases (ng-packagr forbids an import cycle between entry points).
+ * The code still lives in the primary entry point and is re-exported here through its internal ɵ aliases
+ * (ng-packagr forbids an import cycle between entry points).
  */
 export {
   // notification-status

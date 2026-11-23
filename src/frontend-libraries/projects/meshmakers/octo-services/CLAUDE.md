@@ -571,27 +571,27 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 
 ### Notification subscriptions (AB#2585)
 
-**Entry point (AB#9650):** import the notification API from `@meshmakers/octo-services/notifications`. The same names
-on `@meshmakers/octo-services` are deprecated (per-symbol `@deprecated`) and will be removed from the primary entry
-point (step 3 of AB#9650, after Refinery Studio and energy-community have switched). How it is built, and why:
+**Entry point (AB#9650):** import the notification API from `@meshmakers/octo-services/notifications` — it is the
+only public path. The deprecated names on `@meshmakers/octo-services` were removed in AB#9654 (**breaking** for a
+consumer still on the old path; Refinery Studio and energy-community switched first). How it is built, and why:
 
 - The code still lives in the primary entry point (`src/lib/notifications/`). ng-packagr refuses an import cycle
   between entry points, and the notification code needs primary internals (generated GQL services, `CommunicationService`,
   `IdentityService`, `GraphQL`, `TENANT_ID_PROVIDER`, ...), so the primary cannot re-export the secondary.
-- `public-api.ts` exports every symbol twice: as a deprecated **declaration** from
-  `src/lib/notifications/notifications-transition-exports.ts` (`export const X = mod.X` / `export type X = mod.X`; the
-  bundled `.d.ts` keeps `@deprecated` only on declarations, not on re-export specifiers) and as an internal alias `ɵX`
-  (not public API). `notifications/src/public-api.ts` re-exports the `ɵX` aliases under their own names, so the new
-  path carries no deprecation. `notifications-entry.spec.ts` fails when a symbol of `lib/notifications` is missing from
-  one of the lists — add a new export in all three places.
+- `public-api.ts` exports every symbol only as an internal alias `ɵX` (not public API, never import it in an app).
+  `notifications/src/public-api.ts` re-exports the `ɵX` aliases under their own names. `notifications-entry.spec.ts`
+  fails when a symbol of `lib/notifications` is missing from one of the two lists, and when a plain notification name
+  reappears on the primary entry point — add a new export in both places.
 - **No `@meshmakers/shared-ui` at runtime.** Every app imports octo-services eagerly; a value import of shared-ui
   here drags shared-ui and Kendo (grid, inputs, dateinputs, dropdowns, layout, conversational-ui) into the initial
   bundle of every app (maco-app 2.37 MB -> 5.56 MB, AB#9650). The schedule check therefore uses `cron-parser` directly:
   `nextCronExecutions(cron, count)` has the contract of shared-ui `CronParserService.getNextExecutions` (6 fields,
   empty list when invalid; equivalence pinned in `notification-schedule.spec.ts`), injected through
   `NOTIFICATION_NEXT_EXECUTIONS` (default `nextCronExecutions`; tests provide their own). Lint enforces it:
-  `@typescript-eslint/no-restricted-imports` in `eslint.config.js` refuses any import of `@meshmakers/shared-ui` in
-  shipped octo-services code except `import type` (specs are exempt).
+  `@typescript-eslint/no-restricted-imports` in `eslint.config.js` refuses any import or re-export of
+  `@meshmakers/shared-ui` and its secondary entry points (`@meshmakers/shared-ui/*`) in shipped octo-services code,
+  both entry points, except `import type` / `export type` (specs are exempt). Proof (AB#9654): a scratch file with
+  `import { CronParserService } from '@meshmakers/shared-ui';` fails `npm run lint:octo-services`.
 
 The single source of truth for screens that manage `System.Notification` subscriptions and their recipients. The
 Refinery Studio and the EnergyCommunity app each keep their own screens; what a recipient is, how its status reads,
