@@ -571,6 +571,28 @@ Manages adapter deployment, pipeline execution, and pipeline debugging.
 
 ### Notification subscriptions (AB#2585)
 
+**Entry point (AB#9650):** import the notification API from `@meshmakers/octo-services/notifications`. The same names
+on `@meshmakers/octo-services` are deprecated (per-symbol `@deprecated`) and will be removed from the primary entry
+point (step 3 of AB#9650, after Refinery Studio and energy-community have switched). How it is built, and why:
+
+- The code still lives in the primary entry point (`src/lib/notifications/`). ng-packagr refuses an import cycle
+  between entry points, and the notification code needs primary internals (generated GQL services, `CommunicationService`,
+  `IdentityService`, `GraphQL`, `TENANT_ID_PROVIDER`, ...), so the primary cannot re-export the secondary.
+- `public-api.ts` exports every symbol twice: as a deprecated **declaration** from
+  `src/lib/notifications/notifications-transition-exports.ts` (`export const X = mod.X` / `export type X = mod.X`; the
+  bundled `.d.ts` keeps `@deprecated` only on declarations, not on re-export specifiers) and as an internal alias `ɵX`
+  (not public API). `notifications/src/public-api.ts` re-exports the `ɵX` aliases under their own names, so the new
+  path carries no deprecation. `notifications-entry.spec.ts` fails when a symbol of `lib/notifications` is missing from
+  one of the lists — add a new export in all three places.
+- **No `@meshmakers/shared-ui` at runtime.** Every app imports octo-services eagerly; a value import of shared-ui
+  here drags shared-ui and Kendo (grid, inputs, dateinputs, dropdowns, layout, conversational-ui) into the initial
+  bundle of every app (maco-app 2.37 MB -> 5.56 MB, AB#9650). The schedule check therefore uses `cron-parser` directly:
+  `nextCronExecutions(cron, count)` has the contract of shared-ui `CronParserService.getNextExecutions` (6 fields,
+  empty list when invalid; equivalence pinned in `notification-schedule.spec.ts`), injected through
+  `NOTIFICATION_NEXT_EXECUTIONS` (default `nextCronExecutions`; tests provide their own). Lint enforces it:
+  `@typescript-eslint/no-restricted-imports` in `eslint.config.js` refuses any import of `@meshmakers/shared-ui` in
+  shipped octo-services code except `import type` (specs are exempt).
+
 The single source of truth for screens that manage `System.Notification` subscriptions and their recipients. The
 Refinery Studio and the EnergyCommunity app each keep their own screens; what a recipient is, how its status reads,
 which schedules are allowed and what a write does around the GraphQL call lives here once. There is no shared screen on
@@ -599,6 +621,7 @@ The behaviour follows established products (Kubernetes, Jira filter subscription
 | `NotificationRecipientCandidatesService`, `NOTIFICATION_RECIPIENT_CANDIDATES` | The users a recipient can be. Default: the identity API (admin list with e-mail for `UserManagement`, the directory otherwise). An app that calls no identity API (EnergyCommunity) provides `GraphQlNotificationRecipientCandidatesService` (`runtime.systemIdentityUser`, id = rtId = preference `subjectId`) |
 | `notificationRecipientStatus`, `notificationSubscriptionHealth`, `notificationErrorText` | The status rules |
 | `notificationScheduleIssue`, `withScheduleTimeZone`, `notificationTimeZones`, `browserTimeZone` | The schedule rules |
+| `nextCronExecutions`, `NOTIFICATION_NEXT_EXECUTIONS` | Next run times of a 6-field cron (`cron-parser`), and the token the service reads them through |
 | `unknownNotificationPlaceholders`, `placeholderList`, `notificationColumnPath` | The placeholder rule: the body may use `${count}` and the query columns, the subject `${count}` only. The message text stays in the app |
 | `renderNotificationPreview`, `formatNotificationCell` | Subject and body as the engine renders them (`NotificationDigest.Render`) |
 
@@ -1137,4 +1160,6 @@ ng test @meshmakers/octo-services --watch=false --coverage
 - `apollo-angular` - Angular Apollo integration
 - `graphql` - GraphQL reference implementation; a **peer dependency** (`^16.0.0 || ^17.0.0`, the range apollo-angular and @apollo/client declare) because the public API exposes its `DocumentNode` type (only that type is imported; the specs use `parse` / `buildSchema`). Do not move it to `dependencies` — a second copy of `graphql` breaks `instanceof` checks in Apollo.
 - `@meshmakers/shared-services` - Shared services (MessageService, PagedResultDto)
-- `@meshmakers/shared-ui` - Shared UI (ProgressWindowService)
+- `@meshmakers/shared-ui` - Shared UI (ProgressWindowService and types); keep **value** imports of it out of code the
+  primary entry point loads (AB#9650, see Notification subscriptions)
+- `cron-parser` - a **peer dependency** (`^5.10.0`, a direct dependency of every consumer app) for the notification schedule check (`nextCronExecutions`, AB#9650)

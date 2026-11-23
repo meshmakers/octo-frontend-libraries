@@ -29,6 +29,22 @@ module.exports = tseslint.config(
     },
   },
   {
+    // AB#9650: every app loads octo-services at start, so a value import of @meshmakers/shared-ui here pulls
+    // shared-ui and Kendo into the initial bundle of every app (maco-app 2.37 MB -> 5.56 MB). Type imports
+    // (`import type`) are erased and stay allowed. Specs may import shared-ui (they are not shipped).
+    files: ["**/*.ts"],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": ["error", {
+        "paths": [{
+          "name": "@meshmakers/shared-ui",
+          "allowTypeImports": true,
+          "message": "octo-services must not import @meshmakers/shared-ui at runtime (it lands in every app's initial bundle, AB#9650). Use `import type`, or move the code out of octo-services."
+        }]
+      }],
+    },
+  },
+  {
     // Ignore generated GraphQL files
     files: ["**/graphQL/*.ts"],
     rules: {

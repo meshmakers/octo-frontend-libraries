@@ -1,3 +1,6 @@
+import { InjectionToken } from '@angular/core';
+import { CronExpressionParser } from 'cron-parser';
+
 export const NOTIFICATION_MIN_INTERVAL_MS = 60_000;
 
 export const NOTIFICATION_SCHEDULE_TYPES = ['minutes', 'hourly', 'daily', 'weekly', 'monthly', 'custom'] as const;
@@ -7,6 +10,36 @@ export const NOTIFICATION_DEFAULT_CRON = '0 0 7 * * *';
 const SAMPLE_SIZE = 20;
 
 export type NextExecutions = (cron: string, count: number) => Date[];
+
+/**
+ * Next `count` run times of a 6-field cron expression (second minute hour day month weekday), or an empty list when the
+ * expression is not a valid 6-field expression. Same contract as `CronParserService.getNextExecutions` of
+ * `@meshmakers/shared-ui`, implemented on `cron-parser` directly so that octo-services does not pull shared-ui (and
+ * with it Kendo) into the initial bundle of every app (AB#9650).
+ */
+export function nextCronExecutions(cron: string, count: number): Date[] {
+  if (!cron || cron.trim() === '') return [];
+  if (cron.trim().split(/\s+/).length !== 6) return [];
+  try {
+    const interval = CronExpressionParser.parse(cron, { currentDate: new Date() });
+    const executions: Date[] = [];
+    for (let i = 0; i < count; i++) {
+      executions.push(interval.next().toDate());
+    }
+    return executions;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Source of the next run times the notification service uses to check a schedule. Defaults to
+ * {@link nextCronExecutions}; tests and apps may provide their own.
+ */
+export const NOTIFICATION_NEXT_EXECUTIONS = new InjectionToken<NextExecutions>('NOTIFICATION_NEXT_EXECUTIONS', {
+  providedIn: 'root',
+  factory: () => nextCronExecutions
+});
 
 export type NotificationScheduleIssue = 'EMPTY' | 'INVALID' | 'TOO_FREQUENT';
 

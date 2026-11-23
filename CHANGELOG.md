@@ -10,6 +10,20 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-services: notification API on its own entry point, shared-ui out of the initial bundle (AB#9652, Bug AB#9650)
+
+- Fix: `@meshmakers/octo-services` no longer imports `@meshmakers/shared-ui` at runtime. Since beta 0.1.261020007
+  (AB#2585) the notification service imported `CronParserService`, and because every app loads octo-services at start,
+  shared-ui and Kendo moved into the initial bundle of every app (maco-app 2.37 MB -> 5.56 MB). The schedule check now
+  uses `cron-parser` directly (`nextCronExecutions`, same results as `CronParserService.getNextExecutions`) through the
+  new token `NOTIFICATION_NEXT_EXECUTIONS`. maco-app is back at 2.37 MB with the local build.
+- New: entry point `@meshmakers/octo-services/notifications` with the whole notification API (service, recipient
+  candidates, status, schedule, placeholder and preview helpers).
+- Deprecated: the same names on `@meshmakers/octo-services`. They keep working for now and will be removed from the
+  primary entry point once Refinery Studio and energy-community import from the new entry point (AB#9650 step 3).
+  Switch with a search-and-replace of the import path; generated DTOs stay on `@meshmakers/octo-services`.
+- Peer dependency: `cron-parser` `^5.10.0` (already installed by every consumer app).
+
 ### GraphQL code generated with graphql-codegen 8 (AB#9634)
 
 - **BREAKING (types only, no runtime change):** `@graphql-codegen/cli` 8, `typescript-operations` 7, `typescript` 7,

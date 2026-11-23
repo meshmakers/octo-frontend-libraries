@@ -1,7 +1,7 @@
 import { Observable, from, map } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { EntitySelectDataSource, EntitySelectResult } from '@meshmakers/shared-services';
-import {
+import type {
   EntitySelectDialogDataSource,
   DialogFetchOptions,
   DialogFetchResult,

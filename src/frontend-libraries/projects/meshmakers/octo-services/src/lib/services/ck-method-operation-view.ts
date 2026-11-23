@@ -1,4 +1,4 @@
-import { OperationProgressStatus, OperationProgressView } from '@meshmakers/shared-ui';
+import type { OperationProgressStatus, OperationProgressView } from '@meshmakers/shared-ui';
 import { CkMethodOperationStateDto } from '../graphQL/globalTypes';
 import { CkMethodOperationItem, CkMethodOperationService } from './ck-method-operation.service';
 

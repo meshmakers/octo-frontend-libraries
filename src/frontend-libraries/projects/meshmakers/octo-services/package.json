@@ -9,6 +9,7 @@
     "@meshmakers/shared-services": "*",
     "@meshmakers/shared-ui": "*",
     "apollo-angular": "^14.0.0",
+    "cron-parser": "^5.10.0",
     "graphql": "^16.0.0 || ^17.0.0",
     "tus-js-client": "^4.3.1"
   },

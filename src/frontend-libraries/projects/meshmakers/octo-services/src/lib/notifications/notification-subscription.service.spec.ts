@@ -1,9 +1,9 @@
 import type { Mock } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { CronParserService } from '@meshmakers/shared-ui';
 import { NotificationRecipientRefusedError, NotificationSubscriptionService } from './notification-subscription.service';
 import { NOTIFICATION_RECIPIENT_CANDIDATES } from './notification-recipient-candidates.service';
+import { NOTIFICATION_NEXT_EXECUTIONS } from './notification-schedule';
 import { CommunicationService } from '../services/communication.service';
 import { TENANT_ID_PROVIDER } from '../services/tenant-provider';
 import { NotificationsGetSubscriptionsDtoGQL } from '../graphQL/notificationsGetSubscriptions';
@@ -42,7 +42,7 @@ describe('NotificationSubscriptionService', () => {
         { provide: NotificationsGetTemplateSubscriptionsDtoGQL, useValue: gql['templateSubscriptions'] ?? {} },
         { provide: NotificationsGetQuerySampleDtoGQL, useValue: gql['querySample'] ?? {} },
         { provide: CommunicationService, useValue: communication },
-        { provide: CronParserService, useValue: { getNextExecutions: (cron: string, count: number) => nextExecutions(cron, count) } },
+        { provide: NOTIFICATION_NEXT_EXECUTIONS, useValue: (cron: string, count: number) => nextExecutions(cron, count) },
         { provide: NOTIFICATION_RECIPIENT_CANDIDATES, useValue: { load: () => loadCandidates() } },
         { provide: TENANT_ID_PROVIDER, useValue: () => Promise.resolve(ambientTenant) }
       ]

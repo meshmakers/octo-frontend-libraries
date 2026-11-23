@@ -1,6 +1,5 @@
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { CronParserService } from '@meshmakers/shared-ui';
 import {
   AssociationModOptionsDto,
   DeleteStrategiesDto,
@@ -23,7 +22,7 @@ import { NotificationsDeleteEntitiesDtoGQL } from '../graphQL/notificationsDelet
 import { NotificationsGetTemplateSubscriptionsDtoGQL } from '../graphQL/notificationsGetTemplateSubscriptions';
 import { NotificationsGetQuerySampleDtoGQL } from '../graphQL/notificationsGetQuerySample';
 import { NotificationHealth, NotificationRecipientStatus, notificationRecipientStatus, notificationSubscriptionHealth } from './notification-status';
-import { NotificationScheduleIssue, notificationScheduleIssue } from './notification-schedule';
+import { NOTIFICATION_NEXT_EXECUTIONS, NotificationScheduleIssue, notificationScheduleIssue } from './notification-schedule';
 import { NotificationQueryRow, NotificationQuerySample } from './notification-preview';
 import { NOTIFICATION_RECIPIENT_CANDIDATES, NotificationRecipientCandidate } from './notification-recipient-candidates.service';
 import { TENANT_ID_PROVIDER } from '../services/tenant-provider';
@@ -178,7 +177,7 @@ export class NotificationSubscriptionService {
   private readonly getTemplateSubscriptionsGQL = inject(NotificationsGetTemplateSubscriptionsDtoGQL);
   private readonly getQuerySampleGQL = inject(NotificationsGetQuerySampleDtoGQL);
   private readonly communication = inject(CommunicationService);
-  private readonly cronParser = inject(CronParserService);
+  private readonly nextExecutions = inject(NOTIFICATION_NEXT_EXECUTIONS);
   private readonly candidates = inject(NOTIFICATION_RECIPIENT_CANDIDATES);
   private readonly tenantIdProvider = inject(TENANT_ID_PROVIDER, { optional: true });
   private readonly usersCache = new Map<string, { loadedAt: number | null; users: Promise<NotificationRecipientCandidate[]> }>();
@@ -240,7 +239,7 @@ export class NotificationSubscriptionService {
   }
 
   scheduleIssue(cronExpression: string | null | undefined): NotificationScheduleIssue | null {
-    return notificationScheduleIssue((cron, count) => this.cronParser.getNextExecutions(cron, count), cronExpression);
+    return notificationScheduleIssue(this.nextExecutions, cronExpression);
   }
 
   async getRecipients(subscriptionRtId: string, request: NotificationRecipientPageRequest): Promise<NotificationRecipientPage> {
