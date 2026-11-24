@@ -106,28 +106,63 @@ try {
     # processes survive and keep 4201/4202 bound. Every run records the PIDs of the servers it
     # started in a file of its own, in a directory under the user's profile (the shared temp
     # directory would let another local user plant a record). The next run ends exactly those
-    # process trees before the ports are checked. Only processes this script started are touched.
+    # process trees before the ports are checked, but only when the run that recorded them is no
+    # longer running: the directory is shared by every checkout and worktree of the user, and a
+    # live run's servers are not leftovers. Only processes this script started are touched.
     $pidDir = Join-Path ([System.Environment]::GetFolderPath("LocalApplicationData", "Create")) "octo-frontend-libraries"
     New-Item -ItemType Directory -Path $pidDir -Force | Out-Null
     $pidFile = Join-Path $pidDir "octo-start-$PID.pids"
 
-    # One line per server: "<pid>|<start time as UTC ticks>". The start time is the PID reuse
-    # guard: a process that now runs under a recorded PID but started at another time is not ours.
+    # Record format: a first line "owner|<start time of this run as UTC ticks>" (the run's PID is in
+    # the file name), then one line per server: "<pid>|<start time as UTC ticks>". The start times are
+    # the PID reuse guard: a process that now runs under a recorded PID but started at another time is
+    # not the one recorded.
+    function Test-SameProcess($id, $ticks) {
+        $process = Get-Process -Id $id -ErrorAction Ignore
+        if (-not $process) { return $null }
+        # An unreadable start time cannot be matched: treat it as a match, so nothing is killed on a guess.
+        try { $startedTicks = $process.StartTime.ToUniversalTime().Ticks } catch { return $process }
+        if ([math]::Abs($startedTicks - [long]$ticks) -gt 20000000) { return $false }
+        return $process
+    }
+
     function Stop-RecordedServers {
         foreach ($record in @(Get-ChildItem -LiteralPath $pidDir -Filter "octo-start-*.pids" -ErrorAction Ignore)) {
-            foreach ($entry in @(Get-Content -LiteralPath $record.FullName | Where-Object { $_ -match '^\d+\|\d+$' })) {
+            $lines = @(Get-Content -LiteralPath $record.FullName -ErrorAction Ignore)
+            # The run that wrote the record is still running (another checkout or worktree of this
+            # user, which shares this directory): its servers are not left over. Leave them alone;
+            # the port check below then reports the busy port. A record without an owner line counts
+            # as owned while any process runs under the PID in its name.
+            $ownerLine = $lines | Where-Object { $_ -match '^owner\|\d+$' } | Select-Object -First 1
+            if ($record.BaseName -match '^octo-start-(\d+)$') {
+                $ownerPid = [int]$Matches[1]
+                if ($ownerLine) { $ownerAlive = [bool](Test-SameProcess $ownerPid ($ownerLine -split '\|')[1]) }
+                else { $ownerAlive = [bool](Get-Process -Id $ownerPid -ErrorAction Ignore) }
+                if ($ownerAlive) {
+                    Write-Output "Dev servers of a running octo-start.ps1 (PID $ownerPid) are not leftovers, leaving them alone"
+                    continue
+                }
+            }
+            $kept = @()
+            foreach ($entry in @($lines | Where-Object { $_ -match '^\d+\|\d+$' })) {
                 $recordedPid, $recordedTicks = $entry -split '\|'
-                $recorded = Get-Process -Id ([int]$recordedPid) -ErrorAction Ignore
-                if (-not $recorded) { continue }
-                try { $startedTicks = $recorded.StartTime.ToUniversalTime().Ticks } catch { $startedTicks = -1 }
-                if ([math]::Abs($startedTicks - [long]$recordedTicks) -gt 20000000) {
+                $recorded = Test-SameProcess ([int]$recordedPid) $recordedTicks
+                if ($null -eq $recorded) { continue }
+                if ($recorded -isnot [System.Diagnostics.Process]) {
                     Write-Output "PID $recordedPid from an earlier run belongs to another process now, leaving it alone"
                     continue
                 }
                 Write-Output "Stopping leftover dev server from an earlier run (PID $recordedPid)"
-                try { $recorded.Kill($true) } catch { Write-Output "Could not stop PID ${recordedPid}: $($_.Exception.Message)" }
+                try { $recorded.Kill($true) }
+                catch {
+                    Write-Output "Could not stop PID ${recordedPid}: $($_.Exception.Message)"
+                    $kept += $entry
+                }
             }
-            Remove-Item -LiteralPath $record.FullName -Force -ErrorAction Ignore
+            # Keep the entries that could not be stopped, so a later run tries again instead of
+            # finding a busy port nobody knows about.
+            if ($kept.Count -gt 0) { Set-Content -LiteralPath $record.FullName -Value (@($ownerLine | Where-Object { $_ }) + $kept) }
+            else { Remove-Item -LiteralPath $record.FullName -Force -ErrorAction Ignore }
         }
     }
 
@@ -194,8 +229,10 @@ try {
     $ports = @(4201, 4202)
 
     try {
-        # Each server is recorded right after its start, so a failed second start still leaves
-        # the first one recorded and reaches the finally block below.
+        # The owner line first, so another run sees that this one is alive. Each server is recorded
+        # right after its start, so a failed second start still leaves the first one recorded and
+        # reaches the finally block below.
+        Set-Content -LiteralPath $pidFile -Value "owner|$((Get-Process -Id $PID).StartTime.ToUniversalTime().Ticks)"
         for ($i = 0; $i -lt $projectNames.Count; $i++) {
             Write-Host "Starting $($projectNames[$i]) on https://localhost:$($ports[$i])" -ForegroundColor Cyan
             $proc = Start-NgServe $projectNames[$i] $ports[$i]
