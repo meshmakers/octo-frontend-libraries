@@ -1,4 +1,5 @@
 .entity-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -21,11 +22,6 @@
   &.error {
     color: var(--kendo-color-error, #dc3545);
   }
-}
-
-.loading-indicator {
-  font-size: 0.875rem;
-  font-style: italic;
 }
 
 .error-message {

@@ -8,6 +8,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { extractPersistentQueryCellValue } from '../../utils/persistent-query-cell';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 
@@ -23,7 +24,7 @@ export interface StatValue {
 @Component({
   selector: 'mm-stats-grid-widget',
   standalone: true,
-  imports: [CommonModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   templateUrl: './stats-grid-widget.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './stats-grid-widget.component.scss'

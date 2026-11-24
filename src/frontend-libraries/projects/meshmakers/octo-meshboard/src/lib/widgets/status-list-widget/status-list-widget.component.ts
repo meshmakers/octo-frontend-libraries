@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { StatusListWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { firstValueFrom } from 'rxjs';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
@@ -17,7 +18,7 @@ interface StatusListItem {
 @Component({
   selector: 'mm-status-list-widget',
   standalone: true,
-  imports: [CommonModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   template: `
     <div class="status-list-widget">
       @if (isNotConfigured()) {
@@ -39,6 +40,9 @@ interface StatusListItem {
           }
         </div>
       }
+      @if (isLoading()) {
+        <mm-widget-loading />
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -50,6 +54,7 @@ interface StatusListItem {
     }
 
     .status-list-widget {
+      position: relative;
       height: 100%;
       display: flex;
       flex-direction: column;

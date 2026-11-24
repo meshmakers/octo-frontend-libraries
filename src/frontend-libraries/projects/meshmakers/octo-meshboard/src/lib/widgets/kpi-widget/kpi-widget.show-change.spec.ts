@@ -548,7 +548,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       fixture.detectChanges();
       const el = fixture.nativeElement as HTMLElement;
 
-      expect(el.querySelector('.loading-indicator')).not.toBeNull();
+      expect(el.querySelector('mm-widget-loading')).not.toBeNull();
       expect(changeLine(el)).toBeNull();
     });
 
@@ -655,14 +655,14 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         fixture.componentRef.setInput('config', kpi({}, source({ entitySelectorId: 'site' })));
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('.loading-indicator')).not.toBeNull();
+        expect(el.querySelector('mm-widget-loading')).not.toBeNull();
 
         fixture.componentRef.setInput('config', kpi({ showChange: undefined, staticValue: '42' }, { type: 'static' } as unknown as PersistentQueryDataSource));
         fixture.detectChanges();
         await fixture.whenStable();
         fixture.detectChanges();
 
-        expect(el.querySelector('.loading-indicator')).toBeNull();
+        expect(el.querySelector('mm-widget-loading')).toBeNull();
         expect(value(el)).toBe('42');
       });
 
@@ -693,7 +693,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
         fixture.componentInstance.refresh();
         fixture.detectChanges();
 
-        expect(el.querySelector('.loading-indicator')).not.toBeNull();
+        expect(el.querySelector('mm-widget-loading')).not.toBeNull();
         expect(changeLine(el)).toBeNull();
         expect(fixture.componentInstance.change()).toBeNull();
       });
@@ -748,7 +748,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       const el = await render(kpi({ outputVariableName: 'shiftedEnergy' }));
 
-      expect(el.querySelector('.loading-indicator')).toBeNull();
+      expect(el.querySelector('mm-widget-loading')).toBeNull();
       expect(value(el)).toBe('40 674,32');
       expect(changeLine(el)).toBeNull();
       expect(state.getVariables().find(v => v.name === 'shiftedEnergy')?.value).toBe('40674.316');
@@ -826,7 +826,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
 
       expect(resolveFamily).not.toHaveBeenCalled();
       expect(execute).not.toHaveBeenCalled();
-      expect(el.querySelector('.loading-indicator')).toBeNull();
+      expect(el.querySelector('mm-widget-loading')).toBeNull();
       expect(value(el)).toBe('-');
     });
 
@@ -845,7 +845,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       fixture.detectChanges();
 
       expect(execute).not.toHaveBeenCalled();
-      expect((fixture.nativeElement as HTMLElement).querySelector('.loading-indicator')).not.toBeNull();
+      expect((fixture.nativeElement as HTMLElement).querySelector('mm-widget-loading')).not.toBeNull();
       expect(changeLine(fixture.nativeElement as HTMLElement)).toBeNull();
     });
 
@@ -933,7 +933,7 @@ describe('KpiWidgetComponent — change to the current period (AB#9245)', () => 
       fixture.detectChanges();
 
       expect(value(el)).toBe('40 674,32');
-      expect(el.querySelector('.loading-indicator')).toBeNull();
+      expect(el.querySelector('mm-widget-loading')).toBeNull();
       expect(plain(el.querySelector('.kpi-change-text')?.textContent)).toBe('+2 316,17 kWh (+5,7 %)');
     });
   });

@@ -5,6 +5,7 @@ import { DashboardWidget } from '../../widgets/widget.interface';
 import { COCKPIT_RECENT_ITEMS, CockpitRecentItem, CockpitRecentItemKind } from '../cockpit-host';
 import { CockpitWidgetMessages, DEFAULT_COCKPIT_WIDGET_MESSAGES, formatCockpitMessage, injectCockpitWidgetMessages } from '../cockpit-messages';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { reportCockpitContentHeight } from './content-height';
 
 /** Rows shown when the config sets none (the former Home panel showed eight). */
@@ -58,6 +59,7 @@ interface RecentItemView {
   selector: 'mm-recent-items-widget',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [WidgetLoadingComponent],
   template: `
     <div class="recent-widget">
       <div class="cw-content" #content>
@@ -93,10 +95,14 @@ interface RecentItemView {
         <p class="cw-message" role="status" data-state="loading">{{ texts().loading }}</p>
       }
       </div>
+      @if (isLoading()) {
+        <mm-widget-loading />
+      }
     </div>
   `,
   styles: [COCKPIT_WIDGET_STYLES, `
     .recent-widget {
+      position: relative;
       height: 100%;
       overflow-y: auto;
       padding: 6px;

@@ -6,6 +6,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { QueryExecutionResult, QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import {CollectionChangesService, KENDO_GAUGES} from '@progress/kendo-angular-gauges';
@@ -20,7 +21,8 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
   imports: [
     CommonModule,
     KENDO_GAUGES,
-    WidgetNotConfiguredComponent
+    WidgetNotConfiguredComponent,
+    WidgetLoadingComponent
   ],
   providers: [CollectionChangesService],
   template: `
@@ -28,9 +30,7 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
       @if (isNotConfigured()) {
         <mm-widget-not-configured></mm-widget-not-configured>
       } @else if (isLoading()) {
-        <div class="loading-indicator">
-          <span>...</span>
-        </div>
+        <mm-widget-loading />
       } @else if (error() || formulaError()) {
         <div class="error-message">
           <span>{{ error() ?? formulaError() }}</span>
@@ -202,6 +202,7 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
     }
 
     .gauge-widget {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -217,18 +218,12 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
       opacity: 0.7;
     }
 
-    .loading-indicator,
     .error-message {
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100%;
       width: 100%;
-    }
-
-    .loading-indicator span {
-      font-size: 1.5rem;
-      color: var(--kendo-color-subtle, #6c757d);
     }
 
     .error-message span {

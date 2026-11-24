@@ -44,6 +44,7 @@
 }
 
 .stats-grid {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(var(--grid-columns, 3), 1fr);
   gap: 12px;

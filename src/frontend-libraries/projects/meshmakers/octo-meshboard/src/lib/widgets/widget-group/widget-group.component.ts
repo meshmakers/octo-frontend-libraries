@@ -27,6 +27,7 @@ import { KpiWidgetComponent } from '../kpi-widget/kpi-widget.component';
 import { GaugeWidgetComponent } from '../gauge-widget/gauge-widget.component';
 import { EntityCardWidgetComponent } from '../entity-card-widget/entity-card-widget.component';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 
 /**
@@ -46,7 +47,8 @@ import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
     KpiWidgetComponent,
     GaugeWidgetComponent,
     EntityCardWidgetComponent,
-    WidgetNotConfiguredComponent
+    WidgetNotConfiguredComponent,
+    WidgetLoadingComponent
   ],
   templateUrl: './widget-group.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,

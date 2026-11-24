@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AiInsightsWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { infoCircleIcon, exclamationCircleIcon, checkCircleIcon, xCircleIcon } from '@progress/kendo-svg-icons';
@@ -11,16 +12,11 @@ import { AiInsightsService, AiInsight, AiInsightContext } from './ai-insights.se
 @Component({
   selector: 'mm-ai-insights-widget',
   standalone: true,
-  imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   template: `
     <div class="ai-insights-widget">
       @if (isLoading() && !insights()) {
-        <div class="loading-state">
-          <div class="loading-dots">
-            <span></span><span></span><span></span>
-          </div>
-          <span class="loading-text">Generating AI insights...</span>
-        </div>
+        <mm-widget-loading />
       } @else if (error()) {
         <div class="error-state">{{ error() }}</div>
       } @else if (insights(); as items) {
@@ -38,7 +34,7 @@ import { AiInsightsService, AiInsight, AiInsightContext } from './ai-insights.se
           }
         </div>
         @if (isLoading()) {
-          <div class="refresh-indicator">Aktualisierung...</div>
+          <mm-widget-loading />
         }
       }
     </div>
@@ -52,44 +48,10 @@ import { AiInsightsService, AiInsight, AiInsightContext } from './ai-insights.se
     }
 
     .ai-insights-widget {
+      position: relative;
       height: 100%;
       overflow-y: auto;
       padding: 8px 12px;
-    }
-
-    .loading-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      gap: 12px;
-      opacity: 0.6;
-    }
-
-    .loading-dots {
-      display: flex;
-      gap: 6px;
-
-      span {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--kendo-color-primary, #06b6d4);
-        animation: pulse-dot 1.4s ease-in-out infinite;
-
-        &:nth-child(2) { animation-delay: 0.2s; }
-        &:nth-child(3) { animation-delay: 0.4s; }
-      }
-    }
-
-    @keyframes pulse-dot {
-      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-      40% { opacity: 1; transform: scale(1.2); }
-    }
-
-    .loading-text {
-      font-size: 0.8rem;
     }
 
     .insights-list {
@@ -145,13 +107,6 @@ import { AiInsightsService, AiInsight, AiInsightContext } from './ai-insights.se
 
     .severity-critical {
       --mm-ai-border-color: var(--mm-ai-critical, #ef4444);
-    }
-
-    .refresh-indicator {
-      text-align: center;
-      padding: 8px;
-      font-size: 0.7rem;
-      opacity: 0.5;
     }
 
     .error-state {

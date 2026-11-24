@@ -72,6 +72,7 @@ import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
 import { WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
 import { DiagramPropertyMapping } from './process-widget-config.model';
 import { RuntimeEntityData } from '../../models/meshboard.models';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 
 /**
  * Process Widget Component
@@ -101,7 +102,7 @@ import { RuntimeEntityData } from '../../models/meshboard.models';
 @Component({
   selector: 'mm-process-widget',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, WidgetLoadingComponent],
   providers: [ProcessDataService, ExpressionEvaluatorService],
   template: `
     <div class="process-widget"
@@ -109,10 +110,7 @@ import { RuntimeEntityData } from '../../models/meshboard.models';
          [class.error]="error()"
          #containerRef>
       @if (isLoading()) {
-        <div class="loading-overlay">
-          <div class="loading-spinner"></div>
-          <span>Loading process diagram...</span>
-        </div>
+        <mm-widget-loading />
       } @else if (error()) {
         <div class="error-container">
           <span class="error-icon">⚠</span>
@@ -1156,28 +1154,6 @@ import { RuntimeEntityData } from '../../models/meshboard.models';
       height: 100%;
       overflow: hidden;
       background-color: var(--process-bg, #fafafa);
-    }
-
-    .loading-overlay {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      color: var(--kendo-color-subtle, #666);
-    }
-
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid #e0e0e0;
-      border-top-color: var(--kendo-color-primary, #1976d2);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
     }
 
     .error-container {

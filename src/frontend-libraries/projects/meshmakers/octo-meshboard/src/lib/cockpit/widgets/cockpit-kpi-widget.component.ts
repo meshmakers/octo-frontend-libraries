@@ -10,6 +10,7 @@ import { CockpitWidgetMessages, injectCockpitWidgetMessages } from '../cockpit-m
 import { CockpitKpi, sparklineGeometry } from '../kpi/cockpit-kpi';
 import { CockpitKpiKind, CockpitKpiResult, CockpitKpiService } from '../kpi/cockpit-kpi.service';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 
 /**
  * The cockpit KPI widgets (AB#5558): "Adapter status", "CK model state" and "Pipeline executions
@@ -21,7 +22,7 @@ import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
 @Component({
   selector: 'mm-cockpit-kpi-widget',
   standalone: true,
-  imports: [RouterLink, NgTemplateOutlet],
+  imports: [RouterLink, NgTemplateOutlet, WidgetLoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-template #tileBody let-k>
@@ -66,8 +67,15 @@ import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
         <p class="cw-message" role="status" data-state="loading" aria-live="polite">{{ loadingText() }}</p>
       }
     }
+    @if (isLoading()) {
+      <mm-widget-loading />
+    }
   `,
   styles: [COCKPIT_WIDGET_STYLES, `
+    :host {
+      position: relative;
+    }
+
     .kpi-tile {
       display: flex;
       flex-direction: column;

@@ -6,13 +6,14 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { PropertyValueDisplayComponent, AttributeValueTypeDto } from '@meshmakers/octo-ui';
 import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'mm-entity-card-widget',
   standalone: true,
-  imports: [CommonModule, WidgetNotConfiguredComponent, PropertyValueDisplayComponent],
+  imports: [CommonModule, WidgetNotConfiguredComponent, WidgetLoadingComponent, PropertyValueDisplayComponent],
   templateUrl: './entity-card-widget.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './entity-card-widget.component.scss'

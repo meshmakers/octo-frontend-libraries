@@ -417,7 +417,7 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   the header looks as before) without a persistent query, for a runtime query, with `ignoreTimeFilter`, for a heatmap with
   its own `timeWindow`, without a valid shift or without an active time filter. A heatmap's own time window, like
   ignoreTimeFilter, takes precedence over the board filter and the shift. Texts from `utils/time-shift-caption.ts`: month `September 2026` (English month
-  names of `TimeRangeUtils.generateMonthOptions`, as the time picker), quarter `Q4 2025`, year `2025`, day and any other
+  names of `TimeRangeUtils.generateMonthOptions()` called without names; the time picker itself follows the Kendo locale since AB#9742), quarter `Q4 2025`, year `2025`, day and any other
   range `dd.MM.yyyy` (`formatBoardDate`, board zone, inclusive last day: `03.11.2026 - 09.11.2026`); tooltip
   `<shift>: <first> - <last> (<zone>)` (`formatExactShiftedRange`: a bound not at local midnight adds `HH:mm`,
   an end at local midnight stays the last day; the caption keeps dates only) with `Previous period`, `Same period last year`, `N periods back`,
@@ -1914,6 +1914,7 @@ Current test files:
 - `association-targets-cache.spec.ts` - `getAssociationTargets` selects `rtId` on every entity row; round trip through a cache keyed by `rtId` (AB#7649)
 - `url-sync.spec.ts` - URL sync on board switch: `:rtId` replace, `meshBoardSyncUrl` opt-in append, no-rewrite default (AB#4457)
 - Chart value labels (AB#7235): see the spec list at the end of *Chart value labels*
+- `widgets/widget-loading.widgets.spec.ts` - every widget shows the table's spinner (Kendo Grid loading mask) exactly while it loads; a KPI load: spinner while the query runs, gone with data, empty result or error, back on reload (AB#9735)
 - `utils/meshboard-language.spec.ts` - `MESHBOARD_LANGUAGE` source (fixed / signal / absent), culture keys, lookup order (AB#7655)
 - `widgets/table-widget/table-column-labels.spec.ts` - column `titles` / `valueLabels` resolution, malformed entries, dialog column merge (AB#7655)
 - `widgets/table-widget/table-widget.labels.spec.ts` - headers follow the host language without refetch, value-label cells, one warning per column, numeric enum cells for the resolver (AB#7655)
@@ -2078,6 +2079,22 @@ The original class names remain for backward compatibility:
 - `@meshmakers/octo-services` - Backend services, DTOs
 - `@meshmakers/octo-ui` - UI components, CK type selector
 - `@meshmakers/shared-ui` - Shared UI utilities
+
+---
+
+## Widget loading spinner (AB#9735)
+
+- Every data-loading widget renders `mm-widget-loading` (`components/widget-loading/`) while its loading state
+  holds (`isLoading()`, service health: `healthStatus() === 'loading'`). The component is the Kendo Grid's loading
+  mask (`.k-loading-mask` with `k-loading-text` / `k-loading-image` / `k-loading-color`), the spinner the table
+  widget shows through `mm-list-view`, so every widget shows the same spinner. It covers its nearest positioned
+  ancestor: the widget root carries `position: relative`.
+- Widgets that showed `...`, "Loading..." or a spinner of their own (bar, line, pie, gauge, heatmap, KPI, entity
+  card, entity with associations, AI insights, process, widget group) show it in that place; the others (stats
+  grid, summary card, status indicator, status list, alert banner, alert list, service health and the cockpit
+  widgets) show it over their content. Status texts ("Checking...", the cockpit's translated loading texts) stay.
+- The markdown widget loads no data and has no spinner.
+- A new widget of this library uses `@if (isLoading()) { <mm-widget-loading /> }` inside a root with `position: relative`.
 
 ---
 

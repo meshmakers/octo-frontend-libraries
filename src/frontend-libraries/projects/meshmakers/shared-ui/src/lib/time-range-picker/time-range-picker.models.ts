@@ -452,10 +452,11 @@ export class TimeRangeUtils {
   }
 
   /**
-   * Generate month options
+   * Generate month options. `monthNames` are the twelve month names of the UI language (January first);
+   * without them the English names are used.
    */
-  static generateMonthOptions(): TimeRangeOption<number>[] {
-    const months = [
+  static generateMonthOptions(monthNames?: readonly string[]): TimeRangeOption<number>[] {
+    const months = monthNames?.length === 12 ? monthNames : [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];

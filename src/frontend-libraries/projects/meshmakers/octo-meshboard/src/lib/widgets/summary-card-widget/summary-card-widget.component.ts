@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { SummaryCardWidgetConfig, SummaryCardTile, PersistentQueryCellSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { GetDashboardEntityDtoGQL } from '../../graphQL/getDashboardEntity';
 import { DashboardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -27,7 +28,7 @@ interface TileValue {
 @Component({
   selector: 'mm-summary-card-widget',
   standalone: true,
-  imports: [CommonModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   template: `
     <div class="summary-card-widget">
       @if (isNotConfigured()) {
@@ -46,6 +47,9 @@ interface TileValue {
           }
         </div>
       }
+      @if (isLoading()) {
+        <mm-widget-loading />
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -57,6 +61,7 @@ interface TileValue {
     }
 
     .summary-card-widget {
+      position: relative;
       height: 100%;
       display: flex;
       align-items: center;

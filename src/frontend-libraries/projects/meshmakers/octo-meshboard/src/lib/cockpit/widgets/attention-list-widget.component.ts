@@ -11,6 +11,7 @@ import { CockpitExplainTarget, CockpitLinkQueryParams } from '../cockpit-host';
 import { CockpitWidgetMessages, formatCockpitMessage, injectCockpitWidgetMessages } from '../cockpit-messages';
 import { formatCount } from '../kpi/cockpit-kpi';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { reportCockpitContentHeight } from './content-height';
 
 /** Findings shown before "and N more" when the config sets none. */
@@ -49,7 +50,7 @@ export interface AttentionFindingView {
 @Component({
   selector: 'mm-attention-list-widget',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, WidgetLoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="attention-widget" [class.message-only]="messageOnly()" [attr.data-layout]="messageOnly() ? 'message' : 'list'">
@@ -101,10 +102,13 @@ export interface AttentionFindingView {
         <p class="cw-message" role="status" data-state="loading">{{ texts().attentionChecking }}</p>
       }
       </div>
+      @if (isLoading()) {
+        <mm-widget-loading />
+      }
     </div>
   `,
   styles: [COCKPIT_WIDGET_STYLES, `
-    .attention-widget { height: 100%; overflow-y: auto; padding: 8px 12px; box-sizing: border-box; }
+    .attention-widget { position: relative; height: 100%; overflow-y: auto; padding: 8px 12px; box-sizing: border-box; }
     /*
      * A lone status message ("All clear", "Checking…", "Not available") sits in the middle of the
      * tile instead of its top-left corner (AB#5622), so a 2-row tile without findings looks

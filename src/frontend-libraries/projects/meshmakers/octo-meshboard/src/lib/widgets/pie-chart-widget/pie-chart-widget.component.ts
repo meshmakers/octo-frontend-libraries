@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { PieChartWidgetConfig, PersistentQueryDataSource, ConstructionKitQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
 import { QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
@@ -54,16 +55,15 @@ const PLOT_AREA_WITHOUT_LABELS: PieChartPlotArea = Object.freeze({ background: '
   imports: [
     CommonModule,
     ChartsModule,
-    WidgetNotConfiguredComponent
+    WidgetNotConfiguredComponent,
+    WidgetLoadingComponent
   ],
   template: `
     <div class="pie-chart-widget" [class.loading]="isLoading()" [class.error]="error()">
       @if (isNotConfigured()) {
         <mm-widget-not-configured></mm-widget-not-configured>
       } @else if (isLoading()) {
-        <div class="loading-indicator">
-          <span>...</span>
-        </div>
+        <mm-widget-loading />
       } @else if (error()) {
         <div class="error-message">
           <span>{{ error() }}</span>
@@ -119,6 +119,7 @@ const PLOT_AREA_WITHOUT_LABELS: PieChartPlotArea = Object.freeze({ background: '
     }
 
     .pie-chart-widget {
+      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -134,7 +135,6 @@ const PLOT_AREA_WITHOUT_LABELS: PieChartPlotArea = Object.freeze({ background: '
       opacity: 0.7;
     }
 
-    .loading-indicator,
     .error-message,
     .no-config-overlay {
       display: flex;
@@ -142,11 +142,6 @@ const PLOT_AREA_WITHOUT_LABELS: PieChartPlotArea = Object.freeze({ background: '
       justify-content: center;
       height: 100%;
       width: 100%;
-    }
-
-    .loading-indicator span {
-      font-size: 1.5rem;
-      color: var(--kendo-color-subtle, #6c757d);
     }
 
     .error-message span {
