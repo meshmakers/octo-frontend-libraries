@@ -4,50 +4,6 @@
 # together with the story that delivers that migration).
 version: 2
 updates:
-  - package-ecosystem: "nuget"
-    directory: "/src/**/*"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
-    groups:
-      runtime-aligned:
-        patterns: ["Microsoft.Extensions.*", "Microsoft.AspNetCore.*", "System.Text.Json", "System.Composition.*", "System.Security.Cryptography.*"]
-        update-types: ["minor", "patch"]
-      test-tooling:
-        patterns: ["xunit*", "TUnit*", "Microsoft.NET.Test.Sdk", "coverlet.*", "Microsoft.Testing.*", "Moq*", "NSubstitute*", "FakeItEasy*", "FluentAssertions*", "Testcontainers*", "MartinCostello.Logging.XUnit*"]
-        update-types: ["minor", "patch"]
-      meshmakers:
-        patterns: ["Meshmakers.*"]
-        update-types: ["minor", "patch"]
-      nuget-minor-patch:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-    ignore:
-      # held until the runtime major is adopted
-      - dependency-name: "Microsoft.Extensions.*"
-        update-types: ["version-update:semver-major"]
-      # held until the runtime major is adopted
-      - dependency-name: "Microsoft.AspNetCore.*"
-        update-types: ["version-update:semver-major"]
-      # held until the runtime major is adopted
-      - dependency-name: "System.Text.Json"
-        update-types: ["version-update:semver-major"]
-      # held until the runtime major is adopted
-      - dependency-name: "System.Composition.*"
-        update-types: ["version-update:semver-major"]
-      # held until the runtime major is adopted
-      - dependency-name: "System.Security.Cryptography.*"
-        update-types: ["version-update:semver-major"]
-      # MassTransit 9 is held on purpose
-      - dependency-name: "MassTransit*"
-        update-types: ["version-update:semver-major"]
-      # Telerik majors follow a licensed upgrade
-      - dependency-name: "Telerik.*"
-        update-types: ["version-update:semver-major"]
-      # KubeOps majors are planned migrations
-      - dependency-name: "KubeOps.*"
-        update-types: ["version-update:semver-major"]
   - package-ecosystem: "npm"
     directories:
       - "/src/frontend-libraries"
@@ -65,6 +21,7 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    versioning-strategy: increase
     groups:
       angular:
         patterns: ["@angular/*", "@angular-devkit/*", "@schematics/*", "ng-packagr", "zone.js", "typescript", "angular-eslint*"]
@@ -89,6 +46,18 @@ updates:
         update-types: ["version-update:semver-major"]
       # Angular majors are planned migrations
       - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+      # Angular majors are planned migrations
+      - dependency-name: "@angular-devkit/*"
+        update-types: ["version-update:semver-major"]
+      # Angular majors are planned migrations
+      - dependency-name: "@schematics/*"
+        update-types: ["version-update:semver-major"]
+      # follows the Angular major
+      - dependency-name: "ng-packagr"
+        update-types: ["version-update:semver-major"]
+      # follows the Angular major
+      - dependency-name: "angular-eslint*"
         update-types: ["version-update:semver-major"]
   - package-ecosystem: "docker"
     directory: "/src/frontend-libraries"
