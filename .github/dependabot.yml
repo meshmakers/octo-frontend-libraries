@@ -1,36 +1,19 @@
 # Dependabot standard configuration.
-# One entry per ecosystem and manifest directory, minor/patch updates grouped, an explicit
-# open-pull-requests-limit, and the majors we hold on purpose ignored (remove an ignore only
-# together with the story that delivers that migration).
+# One entry per ecosystem, run monthly. Only the root package.json has a lockfile; the library
+# projects under projects/meshmakers carry hand-maintained peer ranges and are not listed. All
+# minor and patch updates of an ecosystem arrive in one pull request; the low
+# open-pull-requests-limit keeps majors that are not ignored from piling up. The majors we hold
+# on purpose are ignored (remove an ignore only together with the story that delivers that
+# migration).
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directories:
-      - "/src/frontend-libraries"
-      - "/src/frontend-libraries/projects/meshmakers/octo-ai-console"
-      - "/src/frontend-libraries/projects/meshmakers/octo-meshboard"
-      - "/src/frontend-libraries/projects/meshmakers/octo-process-diagrams"
-      - "/src/frontend-libraries/projects/meshmakers/octo-services"
-      - "/src/frontend-libraries/projects/meshmakers/octo-ui"
-      - "/src/frontend-libraries/projects/meshmakers/octo-ui-legacy"
-      - "/src/frontend-libraries/projects/meshmakers/shared-auth"
-      - "/src/frontend-libraries/projects/meshmakers/shared-services"
-      - "/src/frontend-libraries/projects/meshmakers/shared-ui"
-      - "/src/frontend-libraries/projects/meshmakers/shared-ui-legacy"
+    directory: "/src/frontend-libraries"
     schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 2
     versioning-strategy: increase
     groups:
-      angular:
-        patterns: ["@angular/*", "@angular-devkit/*", "@schematics/*", "ng-packagr", "zone.js", "typescript", "angular-eslint*"]
-      kendo:
-        patterns: ["@progress/*"]
-        update-types: ["minor", "patch"]
-      test-tooling:
-        patterns: ["karma*", "jasmine*", "@types/jasmine", "jest*", "@types/jest", "vitest", "@vitest/*"]
-        update-types: ["minor", "patch"]
       npm-minor-patch:
         patterns: ["*"]
         update-types: ["minor", "patch"]
@@ -59,12 +42,17 @@ updates:
       # follows the Angular major
       - dependency-name: "angular-eslint*"
         update-types: ["version-update:semver-major"]
+      # follows the Angular major
+      - dependency-name: "@angular-eslint/*"
+        update-types: ["version-update:semver-major"]
+      # follows the Angular major
+      - dependency-name: "zone.js"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "docker"
     directory: "/src/frontend-libraries"
     schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 3
+      interval: "monthly"
+    open-pull-requests-limit: 1
     groups:
       docker-minor-patch:
         patterns: ["*"]
