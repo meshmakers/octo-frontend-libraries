@@ -70,9 +70,11 @@ A view switcher is a `kendo-buttongroup selection="single"` of `kendoButton fill
 | Selected, hover | `--theme-accent-hover` | `--theme-accent-hover` | `--theme-text-on-accent` |
 | Disabled | transparent (selected: `--theme-text-muted` at 24 %) | `--theme-border-default` (selected: `--theme-text-muted`) | `--theme-text-muted` (selected: `--theme-text-secondary`) |
 
-Keyboard focus shows `--theme-focus-ring`. The rule (`octo-segmented-toggle` in `_button.scss`) is part of `styles()`
-and of every toolbar that uses `octo-button`, so the group reads the same on a page and in a list toolbar. Measured
-label contrast: selected 4.9:1 (light) and 9.5:1 (dark), unselected at least 6.3:1 on `--theme-bg-app`,
-`--theme-bg-surface` and `--theme-bg-elevated`. It applies only inside a button group: a single outline-primary button,
-a `kendo-splitbutton` (which carries `k-button-group` too), flat toggles (`fillMode="flat"`, quick-view segments) and
-base toggles (no `themeColor`) keep their own look. Hosts need no own rule for it.
+Keyboard focus shows `--theme-focus-ring`. The rule (`octo-segmented-toggle` in `_button.scss`) is emitted once, in the
+`.k-button` block of `styles()`; its specificity also beats the solid primary branch of `octo-button` in the list, grid
+and page toolbars, so the group reads the same on a page and in a toolbar. Measured label contrast: selected 4.9:1
+(light) and 9.5:1 (dark), unselected at least 6.3:1 on `--theme-bg-app`, `--theme-bg-surface` and
+`--theme-bg-elevated`. It applies only to toggles (Kendo sets `aria-pressed` on them) that are direct children of a
+button group: a single outline-primary button, an action group without toggles, a `kendo-splitbutton` (which carries
+`k-button-group` too), flat toggles (`fillMode="flat"`, quick-view segments) and base toggles (no `themeColor`) keep
+their own look. Hosts need no own rule for it.

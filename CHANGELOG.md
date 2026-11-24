@@ -18,8 +18,12 @@ starts a new empty "Unreleased" section.
   segmented control everywhere: unselected quiet (`--theme-text-secondary`, `--theme-border-default`, transparent),
   selected filled with `--theme-accent` and `--theme-text-on-accent` (4.9:1 light, 9.5:1 dark), with hover, focus ring
   and disabled states. New mixin `octo-segmented-toggle` in `_button.scss`, documented in the styles README.
-- Unchanged: a single outline-primary button, `kendo-splitbutton`, flat toggles (quick-view segments) and base toggles.
-- The dead `.k-button-outline-primary` rule (Kendo Angular 24 emits `k-button-outline k-button-primary`) is removed.
+- The rule covers toggles only (`aria-pressed`, set by Kendo) that are direct children of a button group. Unchanged: a
+  single outline-primary button, an action group without toggles, `kendo-splitbutton`, flat toggles (quick-view
+  segments) and base toggles.
+- The dead `.k-button-outline-primary` and `.k-button-outline-base` rules are removed (Kendo Angular 24 emits fill and
+  theme colour as separate classes, `k-button-outline k-button-primary`, so they never matched). This also keeps the
+  compiled `styles()` about as large as before.
 - Hosts can drop their own workaround rules for this (energy-community `styles.scss`, rule
   `.k-button-group .k-button.k-button-outline.k-button-primary`) once they take this release.
 

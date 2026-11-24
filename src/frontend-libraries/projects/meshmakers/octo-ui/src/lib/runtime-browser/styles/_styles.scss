@@ -1679,31 +1679,9 @@
       border-width: 1px;
     }
 
-    // Outline base buttons
-    &.k-button-outline-base {
-      color: var(--theme-text-primary, var(--ash-blue));
-      border-color: var(--theme-border-default, var(--ash-blue-50));
-      background: transparent;
-
-      .k-svg-icon,
-      .k-icon,
-      svg {
-        fill: currentColor;
-        color: currentColor;
-      }
-
-      &:hover:not(:disabled) {
-        border-color: var(--theme-border-strong, var(--octo-mint-50));
-        background: var(--theme-bg-hover, var(--octo-mint-10));
-      }
-
-      &:active:not(:disabled) {
-        background: var(--theme-bg-selected, var(--octo-mint-15));
-      }
-    }
-
-    // Outline-primary toggles in a button group read as a segmented control. A single
-    // outline-primary button keeps Kendo's outline look.
+    // Kendo Angular 24 emits fill and theme colour as separate classes, so the former
+    // `.k-button-outline-base` / `.k-button-outline-primary` rules never matched; outline buttons
+    // keep Kendo's outline look. Outline-primary toggles in a button group are a segmented control.
     @include octo-segmented-toggle;
 
     // Flat error buttons (delete/remove actions)

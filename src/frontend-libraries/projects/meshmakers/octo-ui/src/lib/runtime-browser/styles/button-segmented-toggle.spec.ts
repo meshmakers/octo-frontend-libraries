@@ -18,7 +18,7 @@ interface CssRule {
   position: number;
 }
 
-const SEGMENT_SCOPE = '.k-button-group:not(.k-split-button)';
+const SEGMENT_SCOPE = '.k-button-group > [aria-pressed]';
 
 async function compileScss(source: string): Promise<string> {
   const moduleName = 'sass';
@@ -93,98 +93,98 @@ function findRule(rules: CssRule[], predicate: (selector: string) => boolean): C
   return rule as CssRule;
 }
 
-const isUnselectedBase = (selector: string) => !/k-selected|:hover|:focus|disabled|svg|k-icon/.test(selector);
+const isUnselectedBase = (selector: string) => !/k-selected|:hover|:focus|disabled/.test(selector);
 const isSelectedBase = (selector: string) => /\.k-selected$/.test(selector);
 const isSelectedHover = (selector: string) => /\.k-selected:hover:not\(:disabled\)$/.test(selector);
 const isUnselectedHover = (selector: string) => !selector.includes('k-selected') && /:hover:not\(:disabled\)$/.test(selector);
+const TOOLBARS = ['.list-view-toolbar', '.k-grid-toolbar', '.page-toolbar'];
+const KENDO_OUTLINE_PRIMARY_STATE = 400;
 
 describe('segmented outline-primary toggles in a button group', () => {
-  describe('inside a toolbar that uses the octo-button mixin', () => {
-    let rules: CssRule[];
-    beforeAll(async () => {
-      rules = parseRules(await compileScss('@use "button" as *;\n.k-grid-toolbar .k-button { @include octo-button; }'));
-    });
+  let rules: CssRule[];
+  let segments: CssRule[];
+  beforeAll(async () => {
+    rules = parseRules(await compileScss('@use "styles" as *;\n@include styles;'));
+    segments = segmentRules(rules);
+  });
 
-    it('keeps the unselected buttons quiet', () => {
-      const unselected = findRule(segmentRules(rules), isUnselectedBase);
-      expect(unselected.body).toMatch(/background:\s*transparent/);
-      expect(unselected.body).toMatch(/color:\s*var\(--theme-text-secondary/);
-      expect(unselected.body).toMatch(/border-color:\s*var\(--theme-border-default/);
-    });
+  it('scopes every segmented rule to the toggles of a button group', () => {
+    expect(segments.length).toBeGreaterThan(0);
+    for (const rule of segments) {
+      expect(rule.selector).toContain(SEGMENT_SCOPE);
+    }
+  });
 
-    it('fills the selected button with the accent and keeps the fill on hover', () => {
-      const selected = findRule(segmentRules(rules), isSelectedBase);
-      expect(selected.body).toMatch(/background:\s*var\(--theme-accent[,)]/);
-      expect(selected.body).toMatch(/border-color:\s*var\(--theme-accent[,)]/);
-      expect(selected.body).toMatch(/color:\s*var\(--theme-text-on-accent/);
-      const selectedHover = findRule(segmentRules(rules), isSelectedHover);
-      expect(selectedHover.body).toMatch(/background:\s*var\(--theme-accent-hover/);
-      expect(selectedHover.body).toMatch(/color:\s*var\(--theme-text-on-accent/);
-    });
+  it('keeps the unselected buttons quiet', () => {
+    const unselected = findRule(segments, isUnselectedBase);
+    expect(unselected.body).toMatch(/background:\s*transparent/);
+    expect(unselected.body).toMatch(/color:\s*var\(--theme-text-secondary/);
+    expect(unselected.body).toMatch(/border-color:\s*var\(--theme-border-default/);
+  });
 
-    it('brightens the label of an unselected button on hover', () => {
-      const unselectedHover = findRule(segmentRules(rules), isUnselectedHover);
-      expect(unselectedHover.body).toMatch(/color:\s*var\(--theme-text-primary/);
-    });
+  it('brightens the label of an unselected button on hover', () => {
+    expect(findRule(segments, isUnselectedHover).body).toMatch(/color:\s*var\(--theme-text-primary/);
+  });
 
-    it('outranks the solid primary branch, which comes earlier', () => {
-      const primaryBranch = findRule(rules, (selector) => /\.k-button\.k-button-primary$/.test(selector));
-      const primaryHover = findRule(rules, (selector) => /\.k-button\.k-button-primary:hover:not\(:disabled\)$/.test(selector));
-      const unselected = findRule(segmentRules(rules), isUnselectedBase);
-      const unselectedHover = findRule(segmentRules(rules), isUnselectedHover);
-      expect(unselected.position).toBeGreaterThan(primaryBranch.position);
+  it('fills the selected button with the accent and keeps the fill on hover', () => {
+    const selected = findRule(segments, isSelectedBase);
+    expect(selected.body).toMatch(/background:\s*var\(--theme-accent[,)]/);
+    expect(selected.body).toMatch(/border-color:\s*var\(--theme-accent[,)]/);
+    expect(selected.body).toMatch(/color:\s*var\(--theme-text-on-accent/);
+    const selectedHover = findRule(segments, isSelectedHover);
+    expect(selectedHover.body).toMatch(/background:\s*var\(--theme-accent-hover/);
+    expect(selectedHover.body).toMatch(/color:\s*var\(--theme-text-on-accent/);
+  });
+
+  it('restores the focus ring the quiet reset would remove', () => {
+    const focus = findRule(segments, (selector) => selector.endsWith(':focus-visible'));
+    expect(focus.body).toMatch(/box-shadow:\s*var\(--theme-focus-ring/);
+  });
+
+  it('marks a selected disabled toggle differently from an unselected disabled one', () => {
+    const disabledRules = segments.filter((rule) => rule.selector.includes(':disabled') && !rule.selector.includes(':hover'));
+    const selectedDisabled = disabledRules.find((rule) => rule.selector.includes('.k-selected'));
+    const unselectedDisabled = disabledRules.find((rule) => !rule.selector.includes('.k-selected'));
+    expect(selectedDisabled?.body).toMatch(/background:\s*color-mix/);
+    expect(unselectedDisabled?.body).toMatch(/background:\s*transparent/);
+  });
+
+  it("outranks Kendo's outline-primary hover, active and selected fill", () => {
+    expect(specificity(findRule(segments, isUnselectedBase).selector)).toBeGreaterThan(KENDO_OUTLINE_PRIMARY_STATE);
+    expect(specificity(findRule(segments, isUnselectedHover).selector)).toBeGreaterThan(KENDO_OUTLINE_PRIMARY_STATE + 100);
+  });
+
+  it('outranks the solid primary branch of the list, grid and page toolbars, which comes later', () => {
+    const unselected = findRule(segments, isUnselectedBase);
+    const unselectedHover = findRule(segments, isUnselectedHover);
+    for (const toolbar of TOOLBARS) {
+      const primaryBranch = findRule(rules, (selector) => selector === `${toolbar} .k-button.k-button-primary`);
+      const primaryHover = findRule(rules, (selector) => selector === `${toolbar} .k-button.k-button-primary:hover:not(:disabled)`);
+      expect(primaryBranch.position).toBeGreaterThan(unselected.position);
       expect(specificity(unselected.selector)).toBeGreaterThan(specificity(primaryBranch.selector));
       expect(specificity(unselectedHover.selector)).toBeGreaterThan(specificity(primaryHover.selector));
-    });
+    }
+  });
 
-    it('restores the focus ring the quiet reset would remove', () => {
-      const focus = findRule(segmentRules(rules), (selector) => selector.endsWith(':focus-visible'));
-      expect(focus.body).toMatch(/box-shadow:\s*var\(--theme-focus-ring/);
+  it('drops the dead outline rules whose classes Kendo Angular 24 never emits', () => {
+    expect(rules.some((rule) => rule.selector.includes('.k-button-outline-primary'))).toBe(false);
+    expect(rules.some((rule) => rule.selector.endsWith('.k-button-outline-base'))).toBe(false);
+  });
+
+  describe('octo-button mixin', () => {
+    let mixinRules: CssRule[];
+    beforeAll(async () => {
+      mixinRules = parseRules(await compileScss('@use "button" as *;\n.k-grid-toolbar .k-button { @include octo-button; }'));
     });
 
     it('leaves the flat toggle rule as it was', () => {
-      const flatSelected = findRule(rules, (selector) => /\.k-button-flat\.k-selected$/.test(selector));
+      const flatSelected = findRule(mixinRules, (selector) => /\.k-button-flat\.k-selected$/.test(selector));
       expect(flatSelected.body).toMatch(/background:\s*var\(--theme-bg-selected/);
       expect(flatSelected.body).toMatch(/color:\s*var\(--theme-text-accent/);
     });
 
-    it('scopes every segmented rule to a button group that is not a split button', () => {
-      const outlinePrimaryQuietOrFilled = rules.filter(
-        (rule) =>
-          rule.selector.includes('.k-button-outline') &&
-          !rule.selector.includes('.k-button-error') &&
-          /--theme-text-secondary|--theme-text-on-accent/.test(rule.body)
-      );
-      expect(outlinePrimaryQuietOrFilled.length).toBeGreaterThan(0);
-      for (const rule of outlinePrimaryQuietOrFilled) {
-        expect(rule.selector).toContain(SEGMENT_SCOPE);
-      }
-    });
-  });
-
-  describe('in the global styles', () => {
-    let rules: CssRule[];
-    beforeAll(async () => {
-      rules = parseRules(await compileScss('@use "styles" as *;\n@include styles;'));
-    });
-
-    it('drops the dead k-button-outline-primary selector Kendo Angular 24 never emits', () => {
-      expect(rules.some((rule) => rule.selector.includes('.k-button-outline-primary'))).toBe(false);
-    });
-
-    it('styles a button group outside any toolbar as a segmented control', () => {
-      const unselected = findRule(segmentRules(rules), (selector) => selector.startsWith('.k-button.') && isUnselectedBase(selector));
-      const selected = findRule(segmentRules(rules), (selector) => selector.startsWith('.k-button.') && isSelectedBase(selector));
-      expect(unselected.body).toMatch(/color:\s*var\(--theme-text-secondary/);
-      expect(selected.body).toMatch(/background:\s*var\(--theme-accent[,)]/);
-    });
-
-    it('marks a selected disabled toggle differently from an unselected disabled one', () => {
-      const disabledRules = segmentRules(rules).filter((rule) => rule.selector.includes(':disabled') && !/:hover|:active/.test(rule.selector));
-      const selectedDisabled = disabledRules.find((rule) => rule.selector.includes('.k-selected'));
-      const unselectedDisabled = disabledRules.find((rule) => !rule.selector.includes('.k-selected'));
-      expect(selectedDisabled?.body).toMatch(/background:\s*color-mix/);
-      expect(unselectedDisabled?.body).toMatch(/background:\s*transparent/);
+    it('does not repeat the segmented rule under every include site', () => {
+      expect(mixinRules.some((rule) => rule.selector.includes('.k-button-group'))).toBe(false);
     });
   });
 });
