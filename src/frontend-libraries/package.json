@@ -108,7 +108,7 @@
     "apollo-angular": "^14.2.0",
     "cron-parser": "^5.10.6",
     "cronstrue": "^3.43.0",
-    "dockview-angular": "^5.0.0",
+    "dockview-angular": "^8.9.1",
     "dockview-core": "^5.0.0",
     "expr-eval-fork": "^3.0.3",
     "marked": "^18.2.1",
