@@ -10,6 +10,15 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: the viewer's time range carries over to other MeshBoards (AB#9737)
+
+- A time range the viewer chooses on one MeshBoard (time picker, reset to default, or a link with `tf_*` parameters)
+  is preselected on every MeshBoard opened afterwards in the same app, also over that board's own stored or default
+  selection; a change on any board updates it. A `tf_*` link and a host period still win; a board whose picker does
+  not offer the range's type keeps its own. Kept in memory only (`MeshBoardStateService.viewerTimeSelection`), not
+  persisted, gone after a page reload. No host change needed. A host that fills missing `tf_*` parameters itself
+  (a route guard) reads `viewerTimeSelection()` first and writes it with the now exported `timeFilterQueryParams`.
+
 ### octo-meshboard: loading spinner on every widget; shared-ui: month names in the UI language (AB#9735, AB#9742)
 
 - Every MeshBoard widget shows the table widget's loading spinner (the Kendo Grid loading mask) while its data loads,

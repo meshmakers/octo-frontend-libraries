@@ -32,7 +32,7 @@ import { WidgetRegistryService } from '../../services/widget-registry.service';
 import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
-import { AnyWidgetConfig, WidgetType, MeshBoardConfig, TimeRangeSelection, EntitySelectorConfig, RuntimeEntityData } from '../../models/meshboard.models';
+import { AnyWidgetConfig, WidgetType, MeshBoardConfig, MeshBoardTimeFilterConfig, TimeRangeSelection, EntitySelectorConfig, RuntimeEntityData } from '../../models/meshboard.models';
 import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows } from '../../utils/compact-layout';
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
@@ -657,6 +657,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     const urlSelection = this.hostHasOwnedPeriod ? null : this.readTimeFilterFromUrl();
 
     if (urlSelection) {
+      this.stateService.setViewerTimeSelection(urlSelection);
       // Signal the URL selection so the picker picks it up
       this._urlTimeSelection.set(urlSelection);
       // Update state so widgets use the URL-derived time range
@@ -668,6 +669,19 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
         this.stateService.updateTimeFilterSelection(urlSelection, rangeISO.from, rangeISO.to);
       }
       return;
+    }
+
+    const viewerSelection = this.stateService.viewerTimeSelection();
+    if (viewerSelection && this.pickerOffersType(timeFilter, viewerSelection.type)) {
+      this._urlTimeSelection.set(viewerSelection);
+      const showTime = timeFilter.pickerConfig?.showTime ?? false;
+      const range = TimeRangeUtils.getTimeRangeFromSelection(
+        this.toSharedSelection(viewerSelection), showTime, this.stateService.timeZoneMode());
+      if (range) {
+        const rangeISO = TimeRangeUtils.toISO(range);
+        this.stateService.updateTimeFilterSelection(viewerSelection, rangeISO.from, rangeISO.to);
+        return;
+      }
     }
 
     // Fall back to stored selection, then default selection
@@ -772,6 +786,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     }
     const rangeISO = TimeRangeUtils.toISO(range);
     this.stateService.setTimeFilterVariables(rangeISO.from, rangeISO.to);
+  }
+
+  private pickerOffersType(timeFilter: MeshBoardTimeFilterConfig, type: TimeRangeSelection['type']): boolean {
+    const available = timeFilter.pickerConfig?.availableTypes;
+    return !available?.length || available.includes(type);
   }
 
   /**
@@ -1410,6 +1429,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
     // Update state with new selection and time range values (sets variables first)
     this.stateService.updateTimeFilterSelection(selection, rangeISO.from, rangeISO.to);
+    this.stateService.setViewerTimeSelection(selection);
 
     // Sync selection to URL query parameters and update the URL signal
     // so that the initialTimeSelection computed reflects the new state
@@ -1440,6 +1460,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
     const rangeISO = TimeRangeUtils.toISO(range);
     this.stateService.updateTimeFilterSelection(defaultSel, rangeISO.from, rangeISO.to);
+    this.stateService.setViewerTimeSelection(defaultSel);
     this._urlTimeSelection.set(defaultSel);
     this.writeTimeFilterToUrl(defaultSel);
   }
