@@ -20,7 +20,8 @@ starts a new empty "Unreleased" section.
   and disabled states. New mixin `octo-segmented-toggle` in `_button.scss`, documented in the styles README.
 - The rule covers toggles only (`aria-pressed`, set by Kendo) that are direct children of a button group. Unchanged: a
   single outline-primary button, an action group without toggles, `kendo-splitbutton`, flat toggles (quick-view
-  segments) and base toggles.
+  segments) and base toggles. In dialog and window action rows the flat outline look (`!important`) now skips such
+  toggles, so a group there shows its selection too.
 - The dead `.k-button-outline-primary` and `.k-button-outline-base` rules are removed (Kendo Angular 24 emits fill and
   theme colour as separate classes, `k-button-outline k-button-primary`, so they never matched). This also keeps the
   compiled `styles()` about as large as before.

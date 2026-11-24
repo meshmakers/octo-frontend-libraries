@@ -166,6 +166,16 @@ describe('segmented outline-primary toggles in a button group', () => {
     }
   });
 
+  it('keeps the important flat look of action rows off the toggles of a button group', () => {
+    const importantOutlineRules = rules.filter(
+      (rule) => rule.selector.includes('.k-button-outline') && /background:\s*transparent\s*!important/.test(rule.body)
+    );
+    expect(importantOutlineRules.length).toBeGreaterThan(0);
+    for (const rule of importantOutlineRules) {
+      expect(rule.selector).toContain(`:not(${SEGMENT_SCOPE})`);
+    }
+  });
+
   it('drops the dead outline rules whose classes Kendo Angular 24 never emits', () => {
     expect(rules.some((rule) => rule.selector.includes('.k-button-outline-primary'))).toBe(false);
     expect(rules.some((rule) => rule.selector.endsWith('.k-button-outline-base'))).toBe(false);

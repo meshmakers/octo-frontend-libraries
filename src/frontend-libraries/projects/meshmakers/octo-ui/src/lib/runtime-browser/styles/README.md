@@ -74,7 +74,7 @@ Keyboard focus shows `--theme-focus-ring`. The rule (`octo-segmented-toggle` in 
 `.k-button` block of `styles()`; its specificity also beats the solid primary branch of `octo-button` in the list, grid
 and page toolbars, so the group reads the same on a page and in a toolbar. Measured label contrast: selected 4.9:1
 (light) and 9.5:1 (dark), unselected at least 6.3:1 on `--theme-bg-app`, `--theme-bg-surface` and
-`--theme-bg-elevated`. It applies only to toggles (Kendo sets `aria-pressed` on them) that are direct children of a
+`--theme-bg-elevated`, 5.7:1 on `--theme-bg-overlay` (dialog action rows). It applies only to toggles (Kendo sets `aria-pressed` on them) that are direct children of a
 button group: a single outline-primary button, an action group without toggles, a `kendo-splitbutton` (which carries
 `k-button-group` too), flat toggles (`fillMode="flat"`, quick-view segments) and base toggles (no `themeColor`) keep
 their own look. Hosts need no own rule for it.

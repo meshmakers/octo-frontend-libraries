@@ -2184,9 +2184,9 @@
       .k-button {
         @include octo-button;
 
-        // Flat/outline buttons in action rows get the same outline look
+        // Flat/outline buttons in action rows get the same outline look; segmented toggles keep theirs
         &.k-button-flat,
-        &.k-button-outline {
+        &.k-button-outline:not(.k-button-group > [aria-pressed]) {
           @include flat-button;
         }
       }
@@ -2202,7 +2202,7 @@
       @include octo-button;
 
       &.k-button-flat,
-      &.k-button-outline {
+      &.k-button-outline:not(.k-button-group > [aria-pressed]) {
         @include flat-button;
       }
     }
