@@ -31,6 +31,56 @@
   }
 }
 
+// Segmented control: outline-primary toggles in a `kendo-buttongroup` (Kendo sets `aria-pressed`
+// on toggles only, so single buttons, action groups and `kendo-splitbutton` stay out). Unselected
+// buttons are quiet, the selected one carries the accent fill. Included once, in the `.k-button`
+// block of styles(): the `:is()` scope lifts it above Kendo's outline hover fill and above the solid
+// primary branch of `octo-button` in the list, grid and page toolbars. Without theme() the Kendo
+// colour tokens stand in. Kept compact on purpose: component stylesheets that include styles() run
+// close to their size budget.
+@mixin octo-segmented-toggle {
+  &.k-button-outline.k-button-primary:is(.k-button-group > [aria-pressed]) {
+    background: transparent;
+    border-color: var(--theme-border-default, var(--kendo-color-border));
+    color: var(--theme-text-secondary, var(--kendo-color-subtle));
+
+    &:hover:not(:disabled, .k-disabled) {
+      background: var(--theme-bg-hover, var(--kendo-color-base-hover));
+      border-color: var(--theme-border-strong, var(--kendo-color-border));
+      color: var(--theme-text-primary, var(--kendo-color-on-app-surface));
+    }
+
+    &:focus-visible {
+      box-shadow: var(--theme-focus-ring, 0 0 0 2px var(--kendo-color-primary));
+    }
+
+    &.k-selected {
+      background: var(--theme-accent, var(--kendo-color-primary));
+      border-color: var(--theme-accent, var(--kendo-color-primary));
+      color: var(--theme-text-on-accent, var(--kendo-color-on-primary));
+
+      &:hover:not(:disabled, .k-disabled) {
+        background: var(--theme-accent-hover, var(--kendo-color-primary-hover));
+        border-color: var(--theme-accent-hover, var(--kendo-color-primary-hover));
+        color: var(--theme-text-on-accent, var(--kendo-color-on-primary));
+      }
+    }
+
+    &:is(:disabled, .k-disabled)[class] {
+      opacity: 1;
+      background: transparent;
+      border-color: var(--theme-border-default, var(--kendo-color-border));
+      color: var(--theme-text-muted, var(--kendo-color-subtle));
+    }
+
+    &.k-selected:is(:disabled, .k-disabled)[class] {
+      background: color-mix(in srgb, var(--theme-text-muted, var(--kendo-color-subtle)) 24%, transparent);
+      border-color: var(--theme-text-muted, var(--kendo-color-subtle));
+      color: var(--theme-text-secondary, var(--kendo-color-subtle));
+    }
+  }
+}
+
 // Deep Sea button (AB#5526): flat base/outline style with a flat primary
 // variant. No gradients, no glows, sentence case. Internal to octo.styles():
 // toolbars, dialogs and widget configs in _styles.scss include it (renamed
