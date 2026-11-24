@@ -10,6 +10,20 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui: form hints and other hint text readable in light and dark mode (AB#7365)
+
+- Fix: `kendo-formhint` / `.k-form-hint` (page forms and the MeshBoard settings dialog) and the other hint-type text of
+  `octo.styles()` (panel footer, category count, empty-state and selection hints, file-type and exposed-property hints,
+  property description, expression hint, config field hint, health "last checked", variables-editor hint) used
+  `--ash-blue-70`, the secondary text colour at 70% alpha: 3.3-3.4:1 in light mode and 3.6-4.3:1 in dark mode, below
+  WCAG AA (4.5:1). They now use `var(--theme-text-secondary, var(--ash-blue))` without alpha: 6.5-7.0:1 light,
+  5.8-7.5:1 dark (measured in headless Chrome with Kendo Material + `octo.theme()` on bg-app, bg-surface, bg-elevated
+  and a dialog). No text rule of `octo.styles()` uses `--ash-blue-70` any more; the token itself stays.
+- The two form-hint rules no longer carry `!important` (their specificity already wins over Kendo, which sets no hint
+  colour), so a host can restyle hints without `!important`. Form errors (`kendo-formerror`) are unchanged.
+- energy-community: drop the hint workaround (`kendo-formhint.k-form-hint ... !important`) in `styles.scss` after
+  updating to this release.
+
 ### octo-ui: toggle button groups show the selected option filled (AB#7364)
 
 - Fix: a `kendo-buttongroup` of `fillMode="outline" themeColor="primary"` toggles rendered inverted in list, grid and
