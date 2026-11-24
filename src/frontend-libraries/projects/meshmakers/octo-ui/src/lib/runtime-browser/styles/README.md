@@ -77,4 +77,5 @@ and page toolbars, so the group reads the same on a page and in a toolbar. Measu
 `--theme-bg-elevated`, 5.7:1 on `--theme-bg-overlay` (dialog action rows). It applies only to toggles (Kendo sets `aria-pressed` on them) that are direct children of a
 button group: a single outline-primary button, an action group without toggles, a `kendo-splitbutton` (which carries
 `k-button-group` too), flat toggles (`fillMode="flat"`, quick-view segments) and base toggles (no `themeColor`) keep
-their own look. Hosts need no own rule for it.
+their own look. Hosts need no own rule for it; without `theme()` the Kendo colour tokens (`--kendo-color-primary`, …)
+stand in.

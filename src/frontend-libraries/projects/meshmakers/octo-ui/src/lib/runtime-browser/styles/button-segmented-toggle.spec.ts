@@ -84,7 +84,7 @@ function specificity(selector: string): number {
 }
 
 function segmentRules(rules: CssRule[]): CssRule[] {
-  return rules.filter((rule) => rule.selector.includes(SEGMENT_SCOPE) && rule.selector.includes('.k-button-outline'));
+  return rules.filter((rule) => rule.selector.includes(`:is(${SEGMENT_SCOPE})`));
 }
 
 function findRule(rules: CssRule[], predicate: (selector: string) => boolean): CssRule {
@@ -95,8 +95,9 @@ function findRule(rules: CssRule[], predicate: (selector: string) => boolean): C
 
 const isUnselectedBase = (selector: string) => !/k-selected|:hover|:focus|disabled/.test(selector);
 const isSelectedBase = (selector: string) => /\.k-selected$/.test(selector);
-const isSelectedHover = (selector: string) => /\.k-selected:hover:not\(:disabled\)$/.test(selector);
-const isUnselectedHover = (selector: string) => !selector.includes('k-selected') && /:hover:not\(:disabled\)$/.test(selector);
+const ENABLED_HOVER = ':hover:not(:disabled, .k-disabled)';
+const isSelectedHover = (selector: string) => selector.endsWith(`.k-selected${ENABLED_HOVER}`);
+const isUnselectedHover = (selector: string) => !selector.includes('k-selected') && selector.endsWith(ENABLED_HOVER);
 const TOOLBARS = ['.list-view-toolbar', '.k-grid-toolbar', '.page-toolbar'];
 const KENDO_OUTLINE_PRIMARY_STATE = 400;
 
@@ -163,6 +164,23 @@ describe('segmented outline-primary toggles in a button group', () => {
       expect(primaryBranch.position).toBeGreaterThan(unselected.position);
       expect(specificity(unselected.selector)).toBeGreaterThan(specificity(primaryBranch.selector));
       expect(specificity(unselectedHover.selector)).toBeGreaterThan(specificity(primaryHover.selector));
+    }
+  });
+
+  it('keeps class-disabled toggles muted on hover', () => {
+    const hoverRules = segments.filter((rule) => rule.selector.includes(':hover'));
+    expect(hoverRules.length).toBe(2);
+    for (const rule of hoverRules) {
+      expect(rule.selector.endsWith(ENABLED_HOVER)).toBe(true);
+    }
+  });
+
+  it('falls back to the Kendo colour tokens, never to the brand palette, when theme() is missing', () => {
+    for (const rule of segments) {
+      for (const themeReference of rule.body.matchAll(/var\(--theme-[\w-]+(,[^;]*)?\)/g)) {
+        expect(themeReference[1], themeReference[0]).toMatch(/var\(--kendo-color-|0 0 0 2px/);
+        expect(themeReference[0]).not.toMatch(/--octo-|--deep-sea|--ash-blue/);
+      }
     }
   });
 
