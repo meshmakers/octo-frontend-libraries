@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AlertBannerWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { firstValueFrom } from 'rxjs';
@@ -12,7 +13,7 @@ import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-service
 @Component({
   selector: 'mm-alert-banner-widget',
   standalone: true,
-  imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   template: `
     <div class="alert-banner-widget">
       @if (isNotConfigured()) {
@@ -36,6 +37,9 @@ import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-service
           <span class="alert-message">No active alerts</span>
         </div>
       }
+      @if (isLoading()) {
+        <mm-widget-loading />
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -47,6 +51,7 @@ import { FieldFilterOperatorsDto, SortOrdersDto } from '@meshmakers/octo-service
     }
 
     .alert-banner-widget {
+      position: relative;
       height: 100%;
       display: flex;
       align-items: center;

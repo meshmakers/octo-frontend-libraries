@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { StatusIndicatorWidgetConfig, ServiceCallDataSource } from '../../models/meshboard.models';
 import { CkModelService } from '@meshmakers/octo-services';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 
 @Component({
   selector: 'mm-status-indicator-widget',
   standalone: true,
-  imports: [CommonModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   templateUrl: './status-indicator-widget.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './status-indicator-widget.component.scss'
@@ -94,7 +95,7 @@ export class StatusIndicatorWidgetComponent implements OnInit, OnChanges {
   }
 
   get statusLabel(): string {
-    if (this.isLoading()) return '...';
+    if (this.isLoading()) return '';
     if (this.error()) return 'ERROR';
 
     const isActive = this.status();

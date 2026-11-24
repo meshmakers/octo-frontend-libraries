@@ -134,6 +134,14 @@ interface TimeRangePickerLabels {
 }
 ```
 
+### Month names and date formats (AB#9742)
+
+The month dropdown takes its names from the Kendo `IntlService`, the same source the picker's Kendo date
+pickers use for day names and date formats. A host with `LOCALE_ID` `de-AT` and the Kendo `de` locale data
+loaded shows "Januar" … "Dezember". When the host switches the Kendo locale at runtime
+(`(intl as CldrIntlService).localeId = 'de'`), the names follow without a reload. Without Kendo locale data for
+the current locale the picker shows the English names. The labels above are not affected; they stay host texts.
+
 ---
 
 ## Examples

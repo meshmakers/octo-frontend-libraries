@@ -1,4 +1,5 @@
 .associations-widget {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -236,14 +237,6 @@
 
 .no-data-message {
   font-size: 0.875rem;
-}
-
-.loading-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--kendo-color-subtle, #6c757d);
 }
 
 .error-message {

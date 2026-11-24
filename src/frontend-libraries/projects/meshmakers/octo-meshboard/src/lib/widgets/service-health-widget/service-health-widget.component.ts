@@ -5,13 +5,14 @@ import { ServiceHealthWidgetConfig, ServiceCallDataSource } from '../../models/m
 import { HealthService } from '@meshmakers/octo-services';
 import { Subscription, interval } from 'rxjs';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 
 export type HealthStatus = 'healthy' | 'unhealthy' | 'unknown' | 'loading';
 
 @Component({
   selector: 'mm-service-health-widget',
   standalone: true,
-  imports: [CommonModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   templateUrl: './service-health-widget.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './service-health-widget.component.scss'

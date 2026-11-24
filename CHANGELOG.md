@@ -10,6 +10,16 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: loading spinner on every widget; shared-ui: month names in the UI language (AB#9735, AB#9742)
+
+- Every MeshBoard widget shows the table widget's loading spinner (the Kendo Grid loading mask) while its data loads,
+  hides it once data, an empty result or an error is shown, and shows it again while the data reloads (time filter or
+  variable change). The `...` placeholders and the widgets' own spinners and dots are replaced by it; status texts
+  such as "Checking..." stay.
+- `mm-time-range-picker`: the month dropdown shows the month names of the Kendo locale (e.g. "Januar" with the Kendo
+  `de` data loaded and `LOCALE_ID` `de-AT`), the same source as the picker's date pickers, and follows a runtime
+  change of the Kendo locale. Without locale data the names stay English.
+
 ### octo-ui: form hints and other hint text readable in light and dark mode (AB#7365)
 
 - Fix: `kendo-formhint` / `.k-form-hint` (page forms and the MeshBoard settings dialog) and the other hint-type text of

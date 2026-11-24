@@ -4,6 +4,7 @@ import { EntityWithAssociationsWidgetConfig, RuntimeEntityData, EntityAssociatio
 import { DashboardDataService, TargetEntityWithAttributes } from '../../services/meshboard-data.service';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowRightIcon, arrowLeftIcon, linkIcon, chevronDownIcon, chevronRightIcon } from '@progress/kendo-svg-icons';
 import { catchError, of } from 'rxjs';
@@ -31,7 +32,7 @@ interface TargetEntity {
 @Component({
   selector: 'mm-entity-associations-widget',
   standalone: true,
-  imports: [CommonModule, SVGIconModule, EntityDetailDialogComponent, WidgetNotConfiguredComponent],
+  imports: [CommonModule, SVGIconModule, EntityDetailDialogComponent, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   templateUrl: './entity-associations-widget.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './entity-associations-widget.component.scss'

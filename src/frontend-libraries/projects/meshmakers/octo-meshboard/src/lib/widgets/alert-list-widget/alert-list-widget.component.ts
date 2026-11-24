@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AlertListWidgetConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { firstValueFrom } from 'rxjs';
@@ -14,7 +15,7 @@ import { formatInstant } from '../../utils/meshboard-datetime';
 @Component({
   selector: 'mm-alert-list-widget',
   standalone: true,
-  imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   template: `
     <div class="alert-list-widget">
       @if (isNotConfigured()) {
@@ -40,6 +41,9 @@ import { formatInstant } from '../../utils/meshboard-datetime';
           }
         </div>
       }
+      @if (isLoading()) {
+        <mm-widget-loading />
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -51,6 +55,7 @@ import { formatInstant } from '../../utils/meshboard-datetime';
     }
 
     .alert-list-widget {
+      position: relative;
       height: 100%;
       display: flex;
       flex-direction: column;

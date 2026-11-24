@@ -11,6 +11,7 @@ import { CockpitExplainTarget, CockpitLinkQueryParams } from '../cockpit-host';
 import { CockpitWidgetMessages, formatCockpitMessage, injectCockpitWidgetMessages } from '../cockpit-messages';
 import { formatCount } from '../kpi/cockpit-kpi';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { reportCockpitContentHeight } from './content-height';
 
 /** Findings shown before "and N more" when the config sets none. */
@@ -49,7 +50,7 @@ export interface AttentionFindingView {
 @Component({
   selector: 'mm-attention-list-widget',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, WidgetLoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="attention-widget" [class.message-only]="messageOnly()" [attr.data-layout]="messageOnly() ? 'message' : 'list'">
@@ -101,10 +102,13 @@ export interface AttentionFindingView {
         <p class="cw-message" role="status" data-state="loading">{{ texts().attentionChecking }}</p>
       }
       </div>
+      @if (isLoading()) {
+        <mm-widget-loading />
+      }
     </div>
   `,
   styles: [COCKPIT_WIDGET_STYLES, `
-    .attention-widget { height: 100%; overflow-y: auto; padding: 8px 12px; box-sizing: border-box; }
+    .attention-widget { position: relative; height: 100%; overflow-y: auto; padding: 8px 12px; box-sizing: border-box; }
     /*
      * A lone status message ("All clear", "Checking…", "Not available") sits in the middle of the
      * tile instead of its top-left corner (AB#5622), so a 2-row tile without findings looks
@@ -205,6 +209,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
   /** Message member of the current error, so the text follows a language switch (AB#5622). */
   private readonly _error = signal<'noTenant' | 'attentionLoadFailed' | null>(null);
   private readonly tenantId = signal<string | null>(null);
+  private readonly _pending = signal(false);
   private subscription: Subscription | null = null;
   private loadToken = 0;
 
@@ -213,7 +218,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     const key = this._error();
     return key ? this.texts()[key] : null;
   });
-  readonly isLoading = computed(() => this._state()?.loading ?? this._error() === null);
+  readonly isLoading = computed(() => this._error() === null && (this._pending() || (this._state()?.loading ?? false)));
   readonly data = computed(() => this._state()?.findings ?? null);
 
   /** Findings with resolved links. */
@@ -287,6 +292,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     this.subscription?.unsubscribe();
     this.subscription = null;
     this._error.set(null);
+    this._pending.set(true);
     this.maxItems.set(Math.max(1, this.config?.maxItems ?? DEFAULT_ATTENTION_MAX_ITEMS));
     const [tenantId, builder] = await Promise.all([this.context.tenantId(), this.context.isBuilder()]);
     this.isBuilder.set(builder);
@@ -296,6 +302,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     if (!tenantId) {
       this._state.set(null);
       this._error.set('noTenant');
+      this._pending.set(false);
       return;
     }
     this.tenantId.set(tenantId);
@@ -305,11 +312,17 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
         if (!(state.loading && state.findings.length === 0 && this._state() && !this._state()?.loading)) {
           this._state.set(state);
         }
+        if (!state.loading) {
+          this._pending.set(false);
+        }
         if (this.config?.id) {
           this.boardState.setWidgetHiddenForViewer(this.config.id, !builder && !state.loading && state.visibleProviders === 0);
         }
       },
-      error: () => this._error.set('attentionLoadFailed')
+      error: () => {
+        this._error.set('attentionLoadFailed');
+        this._pending.set(false);
+      }
     });
   }
 }

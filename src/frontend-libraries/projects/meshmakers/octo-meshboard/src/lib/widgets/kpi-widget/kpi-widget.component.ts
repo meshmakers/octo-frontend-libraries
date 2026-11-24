@@ -7,6 +7,7 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { QueryExecutionResult, QueryExecutorService, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons';
 import { catchError, of, firstValueFrom } from 'rxjs';
@@ -31,7 +32,7 @@ export interface KpiChange {
 @Component({
   selector: 'mm-kpi-widget',
   standalone: true,
-  imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent],
+  imports: [CommonModule, SVGIconModule, WidgetNotConfiguredComponent, WidgetLoadingComponent],
   templateUrl: './kpi-widget.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './kpi-widget.component.scss'

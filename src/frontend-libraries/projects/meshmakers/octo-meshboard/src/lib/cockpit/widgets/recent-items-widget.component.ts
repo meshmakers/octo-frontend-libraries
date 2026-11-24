@@ -5,6 +5,7 @@ import { DashboardWidget } from '../../widgets/widget.interface';
 import { COCKPIT_RECENT_ITEMS, CockpitRecentItem, CockpitRecentItemKind } from '../cockpit-host';
 import { CockpitWidgetMessages, DEFAULT_COCKPIT_WIDGET_MESSAGES, formatCockpitMessage, injectCockpitWidgetMessages } from '../cockpit-messages';
 import { COCKPIT_WIDGET_STYLES } from './cockpit-widget.styles';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { reportCockpitContentHeight } from './content-height';
 
 /** Rows shown when the config sets none (the former Home panel showed eight). */
@@ -58,6 +59,7 @@ interface RecentItemView {
   selector: 'mm-recent-items-widget',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [WidgetLoadingComponent],
   template: `
     <div class="recent-widget">
       <div class="cw-content" #content>
@@ -93,10 +95,14 @@ interface RecentItemView {
         <p class="cw-message" role="status" data-state="loading">{{ texts().loading }}</p>
       }
       </div>
+      @if (isLoading()) {
+        <mm-widget-loading />
+      }
     </div>
   `,
   styles: [COCKPIT_WIDGET_STYLES, `
     .recent-widget {
+      position: relative;
       height: 100%;
       overflow-y: auto;
       padding: 6px;
@@ -174,6 +180,7 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
 
   private readonly _items = signal<CockpitRecentItem[] | null>(null);
   private readonly _error = signal(false);
+  private readonly _pending = signal(false);
   /** Ticks every minute so "12 min ago" stays true while the board is open. */
   private readonly now = signal(Date.now());
   private loadToken = 0;
@@ -182,7 +189,7 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
   private loadedRevision: unknown = undefined;
 
   readonly data = this._items.asReadonly();
-  readonly isLoading = computed(() => this._items() === null && !this._error());
+  readonly isLoading = this._pending.asReadonly();
   readonly error = computed(() => this._error() ? this.texts().recentLoadFailed : null);
 
   protected readonly views = computed<RecentItemView[] | null>(() => {
@@ -257,6 +264,7 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
       return;
     }
     const token = ++this.loadToken;
+    this._pending.set(true);
     this.loadedRevision = untracked(() => this.source?.revision?.());
     try {
       const items = await this.source.items(this.maxItems());
@@ -264,11 +272,13 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
         this._error.set(false);
         this.now.set(Date.now());
         this._items.set(items.slice(0, this.maxItems()));
+        this._pending.set(false);
       }
     } catch (error) {
       if (token === this.loadToken) {
         console.warn('Recent items could not be read', error);
         this._error.set(true);
+        this._pending.set(false);
       }
     }
   }

@@ -2,10 +2,7 @@
   @if (isNotConfigured()) {
     <mm-widget-not-configured></mm-widget-not-configured>
   } @else if (isLoading()) {
-    <div class="loading-state">
-      <span class="loading-spinner"></span>
-      <span class="loading-text">Loading...</span>
-    </div>
+    <mm-widget-loading />
   } @else if (error()) {
     <div class="error-state">
       <span class="error-icon">!</span>

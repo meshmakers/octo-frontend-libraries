@@ -8,14 +8,17 @@ import {
   SimpleChanges,
   signal,
   computed,
+  inject,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DropDownListModule } from '@progress/kendo-angular-dropdowns';
 import { DatePickerModule, DateTimePickerModule } from '@progress/kendo-angular-dateinputs';
 import { NumericTextBoxModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
+import { IntlService } from '@progress/kendo-angular-intl';
 
 import {
   TimeRange,
@@ -142,9 +145,13 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
     TimeRangeUtils.generateQuarterOptions(this.mergedLabels())
   );
 
-  protected monthOptions = computed(() =>
-    TimeRangeUtils.generateMonthOptions()
-  );
+  private readonly intl = inject(IntlService);
+  private readonly intlChange = signal(0);
+
+  protected monthOptions = computed(() => {
+    this.intlChange();
+    return TimeRangeUtils.generateMonthOptions(this.localeMonthNames());
+  });
 
   protected dayOptions = computed(() => {
     const year = this.selectedYear();
@@ -213,6 +220,20 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
       this.applySelection(this.initialSelection);
     }
     this.emitChange();
+  }
+
+  constructor() {
+    this.intl.changes.pipe(takeUntilDestroyed()).subscribe(() => this.intlChange.update(version => version + 1));
+  }
+
+  private localeMonthNames(): string[] | undefined {
+    try {
+      const names: unknown = this.intl.dateFormatNames({ type: 'months', nameType: 'wide', standAlone: true });
+      const list: unknown[] = Array.isArray(names) ? names : names && typeof names === 'object' ? Object.values(names) : [];
+      return list.length === 12 && list.every(name => typeof name === 'string' && name !== '') ? list as string[] : undefined;
+    } catch {
+      return undefined;
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {

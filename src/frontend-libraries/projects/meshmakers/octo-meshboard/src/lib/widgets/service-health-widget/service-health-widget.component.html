@@ -29,5 +29,9 @@
         {{ error() }}
       </div>
     }
+
+    @if (healthStatus() === 'loading') {
+      <mm-widget-loading />
+    }
   </div>
 }

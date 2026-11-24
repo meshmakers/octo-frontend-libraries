@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { BarChartWidgetConfig, BarChartType, LineChartQuerySeries, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
+import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { ChartsModule } from '@progress/kendo-angular-charts';
 import { QueryExecutorService, QueryResultRow, StreamDataExecutionArgs } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -93,16 +94,15 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
   imports: [
     CommonModule,
     ChartsModule,
-    WidgetNotConfiguredComponent
+    WidgetNotConfiguredComponent,
+    WidgetLoadingComponent
   ],
   template: `
     <div class="bar-chart-widget" [class.loading]="isLoading()" [class.error]="error()">
       @if (isNotConfigured()) {
         <mm-widget-not-configured></mm-widget-not-configured>
       } @else if (isLoading()) {
-        <div class="loading-indicator">
-          <span>...</span>
-        </div>
+        <mm-widget-loading />
       } @else if (error()) {
         <div class="error-message">
           <span>{{ error() }}</span>
@@ -235,7 +235,6 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
       opacity: 0.7;
     }
 
-    .loading-indicator,
     .error-message,
     .no-config-overlay {
       display: flex;
@@ -243,11 +242,6 @@ const CHART_TYPE_MAPPING: Record<BarChartType, KendoChartConfig> = {
       justify-content: center;
       height: 100%;
       width: 100%;
-    }
-
-    .loading-indicator span {
-      font-size: 1.5rem;
-      color: var(--kendo-color-subtle, #6c757d);
     }
 
     .error-message span {
