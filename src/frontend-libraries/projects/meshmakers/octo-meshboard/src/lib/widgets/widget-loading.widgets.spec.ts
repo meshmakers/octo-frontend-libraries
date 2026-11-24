@@ -41,6 +41,8 @@ import { RecentItemsWidgetComponent } from '../cockpit/widgets/recent-items-widg
 import { CockpitAttentionService } from '../cockpit/attention/attention.service';
 import { CockpitContextService } from '../cockpit/cockpit-context.service';
 import { CockpitKpiService } from '../cockpit/kpi/cockpit-kpi.service';
+import { COCKPIT_RECENT_ITEMS, CockpitRecentItem } from '../cockpit/cockpit-host';
+import { AttentionState } from '../cockpit/attention/attention.service';
 import { KpiWidgetConfig } from '../models/meshboard.models';
 
 /**
@@ -155,7 +157,7 @@ const WIDGETS: WidgetCase[] = [
     name: 'recent items',
     component: RecentItemsWidgetComponent,
     config: { ...BASE, id: 'recent', type: 'recentItems', title: 'Recent', dataSource: { type: 'static' } },
-    setLoading: (widget, loading) => signalOf<unknown>(widget, '_items').set(loading ? null : [])
+    setLoading: (widget, loading) => signalOf<boolean>(widget, '_pending').set(loading)
   }
 ];
 
@@ -317,6 +319,68 @@ describe('widget loading spinner (AB#9735)', () => {
       await settle(fixture);
       expect(spinnerOf(fixture)).toBeNull();
       expect(textOf(fixture)).toContain('7');
+    });
+  });
+
+  describe('AC2/AC3 with a real load (cockpit widgets)', () => {
+    async function settle(fixture: ComponentFixture<unknown>): Promise<void> {
+      await new Promise(resolve => setTimeout(resolve));
+      fixture.detectChanges();
+    }
+
+    it('AC2: the attention list hides the spinner once its error is shown', async () => {
+      const states = new Subject<AttentionState>();
+      TestBed.overrideProvider(CockpitContextService, {
+        useValue: { tenantId: () => Promise.resolve('t-1'), isBuilder: () => Promise.resolve(true), resolveLinkTarget: () => null }
+      });
+      TestBed.overrideProvider(CockpitAttentionService, { useValue: { state: () => states.asObservable() } });
+      const fixture = TestBed.createComponent(AttentionListWidgetComponent);
+      fixture.componentRef.setInput('config', { ...BASE, id: 'attention', type: 'attentionList', title: 'Attention', dataSource: { type: 'static' } });
+      fixture.detectChanges();
+      await settle(fixture);
+      states.next({ findings: [], loading: true, visibleProviders: 1 });
+      fixture.detectChanges();
+      expect(spinnerOf(fixture)).not.toBeNull();
+
+      states.error(new Error('Provider failed'));
+      fixture.detectChanges();
+
+      expect(spinnerOf(fixture)).toBeNull();
+      expect((fixture.nativeElement as HTMLElement).querySelector('.cw-error-text')).not.toBeNull();
+    });
+
+    it('AC3: the recent items widget shows the spinner again while it reloads', async () => {
+      const answers: ((items: CockpitRecentItem[]) => void)[] = [];
+      TestBed.overrideProvider(COCKPIT_RECENT_ITEMS, {
+        useValue: {
+          items: () => new Promise<CockpitRecentItem[]>(resolve => answers.push(resolve)),
+          open: () => undefined
+        }
+      });
+      const fixture = TestBed.createComponent(RecentItemsWidgetComponent);
+      fixture.componentRef.setInput('config', { ...BASE, id: 'recent', type: 'recentItems', title: 'Recent', dataSource: { type: 'static' } });
+      fixture.detectChanges();
+      expect(spinnerOf(fixture)).not.toBeNull();
+
+      answers[0]([]);
+      await settle(fixture);
+      expect(spinnerOf(fixture)).toBeNull();
+
+      (fixture.componentInstance as RecentItemsWidgetComponent).refresh();
+      fixture.detectChanges();
+      expect(spinnerOf(fixture)).not.toBeNull();
+
+      answers[1]([]);
+      await settle(fixture);
+      expect(spinnerOf(fixture)).toBeNull();
+    });
+
+    it('AC2: the recent items widget without a host source shows its message, not the spinner', () => {
+      const fixture = TestBed.createComponent(RecentItemsWidgetComponent);
+      fixture.componentRef.setInput('config', { ...BASE, id: 'recent', type: 'recentItems', title: 'Recent', dataSource: { type: 'static' } });
+      fixture.detectChanges();
+
+      expect(spinnerOf(fixture)).toBeNull();
     });
   });
 });

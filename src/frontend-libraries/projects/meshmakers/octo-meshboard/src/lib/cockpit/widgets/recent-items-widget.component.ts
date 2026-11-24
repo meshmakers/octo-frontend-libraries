@@ -180,6 +180,7 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
 
   private readonly _items = signal<CockpitRecentItem[] | null>(null);
   private readonly _error = signal(false);
+  private readonly _pending = signal(false);
   /** Ticks every minute so "12 min ago" stays true while the board is open. */
   private readonly now = signal(Date.now());
   private loadToken = 0;
@@ -188,7 +189,7 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
   private loadedRevision: unknown = undefined;
 
   readonly data = this._items.asReadonly();
-  readonly isLoading = computed(() => this._items() === null && !this._error());
+  readonly isLoading = this._pending.asReadonly();
   readonly error = computed(() => this._error() ? this.texts().recentLoadFailed : null);
 
   protected readonly views = computed<RecentItemView[] | null>(() => {
@@ -263,6 +264,7 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
       return;
     }
     const token = ++this.loadToken;
+    this._pending.set(true);
     this.loadedRevision = untracked(() => this.source?.revision?.());
     try {
       const items = await this.source.items(this.maxItems());
@@ -270,11 +272,13 @@ export class RecentItemsWidgetComponent implements DashboardWidget<RecentItemsWi
         this._error.set(false);
         this.now.set(Date.now());
         this._items.set(items.slice(0, this.maxItems()));
+        this._pending.set(false);
       }
     } catch (error) {
       if (token === this.loadToken) {
         console.warn('Recent items could not be read', error);
         this._error.set(true);
+        this._pending.set(false);
       }
     }
   }

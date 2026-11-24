@@ -209,6 +209,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
   /** Message member of the current error, so the text follows a language switch (AB#5622). */
   private readonly _error = signal<'noTenant' | 'attentionLoadFailed' | null>(null);
   private readonly tenantId = signal<string | null>(null);
+  private readonly _pending = signal(false);
   private subscription: Subscription | null = null;
   private loadToken = 0;
 
@@ -217,7 +218,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     const key = this._error();
     return key ? this.texts()[key] : null;
   });
-  readonly isLoading = computed(() => this._state()?.loading ?? this._error() === null);
+  readonly isLoading = computed(() => this._error() === null && (this._pending() || (this._state()?.loading ?? false)));
   readonly data = computed(() => this._state()?.findings ?? null);
 
   /** Findings with resolved links. */
@@ -291,6 +292,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     this.subscription?.unsubscribe();
     this.subscription = null;
     this._error.set(null);
+    this._pending.set(true);
     this.maxItems.set(Math.max(1, this.config?.maxItems ?? DEFAULT_ATTENTION_MAX_ITEMS));
     const [tenantId, builder] = await Promise.all([this.context.tenantId(), this.context.isBuilder()]);
     this.isBuilder.set(builder);
@@ -300,6 +302,7 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
     if (!tenantId) {
       this._state.set(null);
       this._error.set('noTenant');
+      this._pending.set(false);
       return;
     }
     this.tenantId.set(tenantId);
@@ -309,11 +312,17 @@ export class AttentionListWidgetComponent implements DashboardWidget<AttentionLi
         if (!(state.loading && state.findings.length === 0 && this._state() && !this._state()?.loading)) {
           this._state.set(state);
         }
+        if (!state.loading) {
+          this._pending.set(false);
+        }
         if (this.config?.id) {
           this.boardState.setWidgetHiddenForViewer(this.config.id, !builder && !state.loading && state.visibleProviders === 0);
         }
       },
-      error: () => this._error.set('attentionLoadFailed')
+      error: () => {
+        this._error.set('attentionLoadFailed');
+        this._pending.set(false);
+      }
     });
   }
 }
