@@ -15,10 +15,6 @@
     align-items: center;
   }
 
-  &.loading {
-    color: var(--kendo-color-primary, #0d6efd);
-  }
-
   &.error {
     color: var(--kendo-color-error, #dc3545);
   }
