@@ -1,4 +1,4 @@
-FROM nginx:1.31.5-alpine AS base
+FROM nginx:1.31.9-alpine AS base
 WORKDIR /usr/share/nginx/html
 EXPOSE 80
 
