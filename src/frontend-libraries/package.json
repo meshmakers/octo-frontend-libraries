@@ -137,7 +137,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "graphql": "16.15.0",
     "jsdom": "^31.0.1",
-    "katex": "^0.16.47",
+    "katex": "^0.19.1",
     "marked-katex-extension": "^5.1.13",
     "ng-packagr": "^22.3.0",
     "typescript": "~6.0.3",
