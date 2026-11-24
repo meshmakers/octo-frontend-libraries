@@ -109,7 +109,7 @@
     "cron-parser": "^5.10.6",
     "cronstrue": "^3.43.0",
     "dockview-angular": "^5.0.0",
-    "dockview-core": "^5.0.0",
+    "dockview-core": "^8.9.1",
     "expr-eval-fork": "^3.0.3",
     "marked": "^18.2.1",
     "ngx-markdown": "^22.1.1",
