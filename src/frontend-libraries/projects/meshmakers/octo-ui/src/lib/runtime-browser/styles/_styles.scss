@@ -1702,23 +1702,9 @@
       }
     }
 
-    // Outline primary buttons - for selected state
-    &.k-button-outline-primary {
-      color: var(--theme-text-accent, var(--octo-mint));
-      border-color: var(--theme-accent, var(--octo-mint-50));
-      background: transparent;
-
-      .k-svg-icon,
-      .k-icon,
-      svg {
-        fill: currentColor;
-        color: currentColor;
-      }
-
-      &:hover:not(:disabled) {
-        background: var(--theme-accent-subtle, var(--octo-mint-15));
-      }
-    }
+    // Outline-primary toggles in a button group read as a segmented control. A single
+    // outline-primary button keeps Kendo's outline look.
+    @include octo-segmented-toggle;
 
     // Flat error buttons (delete/remove actions)
     &.k-button-flat-error {

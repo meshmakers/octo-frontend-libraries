@@ -10,6 +10,19 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-ui: toggle button groups show the selected option filled (AB#7364)
+
+- Fix: a `kendo-buttongroup` of `fillMode="outline" themeColor="primary"` toggles rendered inverted in list, grid and
+  page toolbars: the unselected buttons were solid accent (the `octo-button` primary branch), the selected one a faint
+  tint, and hovering an unselected button showed accent text on accent (1.1:1 dark, 1.3:1 light). Such a group is now a
+  segmented control everywhere: unselected quiet (`--theme-text-secondary`, `--theme-border-default`, transparent),
+  selected filled with `--theme-accent` and `--theme-text-on-accent` (4.9:1 light, 9.5:1 dark), with hover, focus ring
+  and disabled states. New mixin `octo-segmented-toggle` in `_button.scss`, documented in the styles README.
+- Unchanged: a single outline-primary button, `kendo-splitbutton`, flat toggles (quick-view segments) and base toggles.
+- The dead `.k-button-outline-primary` rule (Kendo Angular 24 emits `k-button-outline k-button-primary`) is removed.
+- Hosts can drop their own workaround rules for this (energy-community `styles.scss`, rule
+  `.k-button-group .k-button.k-button-outline.k-button-primary`) once they take this release.
+
 ### octo-services: old notification exports removed, shared-ui lint guard widened (AB#9654, Bug AB#9650)
 
 - **BREAKING:** the notification API is available only from `@meshmakers/octo-services/notifications`. The deprecated
