@@ -199,7 +199,7 @@
       border-top-color: var(--theme-border-default, var(--octo-mint-20)) !important;
 
       .hint {
-        color: var(--ash-blue-70) !important;
+        color: var(--theme-text-secondary, var(--ash-blue)) !important;
       }
     }
   }
@@ -247,7 +247,7 @@
         }
 
         .category-count {
-          color: var(--ash-blue-70) !important;
+          color: var(--theme-text-secondary, var(--ash-blue)) !important;
         }
       }
 
@@ -300,7 +300,7 @@
       font-family: var(--theme-font-ui, "Roboto", sans-serif) !important;
 
       .hint {
-        color: var(--ash-blue-70) !important;
+        color: var(--theme-text-secondary, var(--ash-blue)) !important;
       }
     }
 
@@ -401,7 +401,7 @@
     }
 
     .file-type-hint {
-      color: var(--ash-blue-70) !important;
+      color: var(--theme-text-secondary, var(--ash-blue)) !important;
     }
 
     // Exposed properties
@@ -414,7 +414,7 @@
     }
 
     .exposed-hint {
-      color: var(--ash-blue-70) !important;
+      color: var(--theme-text-secondary, var(--ash-blue)) !important;
     }
   }
 
@@ -601,7 +601,7 @@
       color: var(--ash-blue) !important;
 
       .hint {
-        color: var(--ash-blue-70) !important;
+        color: var(--theme-text-secondary, var(--ash-blue)) !important;
       }
     }
 
@@ -644,7 +644,7 @@
     }
 
     .property-description {
-      color: var(--ash-blue-70) !important;
+      color: var(--theme-text-secondary, var(--ash-blue)) !important;
     }
 
     .color-swatch {
@@ -1032,7 +1032,7 @@
       color: var(--ash-blue) !important;
 
       .hint {
-        color: var(--ash-blue-70) !important;
+        color: var(--theme-text-secondary, var(--ash-blue)) !important;
       }
     }
 
@@ -1095,7 +1095,7 @@
 
     // Expression hint
     .expression-hint {
-      color: var(--ash-blue-70) !important;
+      color: var(--theme-text-secondary, var(--ash-blue)) !important;
 
       code {
         background: var(--deep-sea) !important;
@@ -1679,46 +1679,10 @@
       border-width: 1px;
     }
 
-    // Outline base buttons
-    &.k-button-outline-base {
-      color: var(--theme-text-primary, var(--ash-blue));
-      border-color: var(--theme-border-default, var(--ash-blue-50));
-      background: transparent;
-
-      .k-svg-icon,
-      .k-icon,
-      svg {
-        fill: currentColor;
-        color: currentColor;
-      }
-
-      &:hover:not(:disabled) {
-        border-color: var(--theme-border-strong, var(--octo-mint-50));
-        background: var(--theme-bg-hover, var(--octo-mint-10));
-      }
-
-      &:active:not(:disabled) {
-        background: var(--theme-bg-selected, var(--octo-mint-15));
-      }
-    }
-
-    // Outline primary buttons - for selected state
-    &.k-button-outline-primary {
-      color: var(--theme-text-accent, var(--octo-mint));
-      border-color: var(--theme-accent, var(--octo-mint-50));
-      background: transparent;
-
-      .k-svg-icon,
-      .k-icon,
-      svg {
-        fill: currentColor;
-        color: currentColor;
-      }
-
-      &:hover:not(:disabled) {
-        background: var(--theme-accent-subtle, var(--octo-mint-15));
-      }
-    }
+    // Kendo Angular 24 emits fill and theme colour as separate classes, so the former
+    // `.k-button-outline-base` / `.k-button-outline-primary` rules never matched; outline buttons
+    // keep Kendo's outline look. Outline-primary toggles in a button group are a segmented control.
+    @include octo-segmented-toggle;
 
     // Flat error buttons (delete/remove actions)
     &.k-button-flat-error {
@@ -1881,7 +1845,7 @@
 
     kendo-formhint,
     .k-form-hint {
-      color: var(--ash-blue-70) !important;
+      color: var(--theme-text-secondary, var(--ash-blue));
     }
 
     kendo-formerror,
@@ -1956,7 +1920,7 @@
       }
 
       .field-hint {
-        color: var(--ash-blue-70) !important;
+        color: var(--theme-text-secondary, var(--ash-blue)) !important;
       }
 
       .switch-label {
@@ -2220,9 +2184,9 @@
       .k-button {
         @include octo-button;
 
-        // Flat/outline buttons in action rows get the same outline look
+        // Flat/outline buttons in action rows get the same outline look; segmented toggles keep theirs
         &.k-button-flat,
-        &.k-button-outline {
+        &.k-button-outline:not(.k-button-group > [aria-pressed]) {
           @include flat-button;
         }
       }
@@ -2238,7 +2202,7 @@
       @include octo-button;
 
       &.k-button-flat,
-      &.k-button-outline {
+      &.k-button-outline:not(.k-button-group > [aria-pressed]) {
         @include flat-button;
       }
     }
@@ -3560,7 +3524,7 @@
     }
 
     .last-checked {
-      color: var(--ash-blue-70) !important;
+      color: var(--theme-text-secondary, var(--ash-blue)) !important;
     }
   }
 
@@ -3831,7 +3795,7 @@
         }
 
         kendo-formhint {
-          color: var(--ash-blue-70) !important;
+          color: var(--theme-text-secondary, var(--ash-blue));
         }
       }
     }
@@ -3924,7 +3888,7 @@
       }
 
       .hint {
-        color: var(--ash-blue-70) !important;
+        color: var(--theme-text-secondary, var(--ash-blue)) !important;
       }
     }
 

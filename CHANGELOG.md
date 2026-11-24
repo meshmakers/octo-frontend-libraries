@@ -20,6 +20,38 @@ starts a new empty "Unreleased" section.
   `de` data loaded and `LOCALE_ID` `de-AT`), the same source as the picker's date pickers, and follows a runtime
   change of the Kendo locale. Without locale data the names stay English.
 
+### octo-ui: form hints and other hint text readable in light and dark mode (AB#7365)
+
+- Fix: `kendo-formhint` / `.k-form-hint` (page forms and the MeshBoard settings dialog) and the other hint-type text of
+  `octo.styles()` (panel footer, category count, empty-state and selection hints, file-type and exposed-property hints,
+  property description, expression hint, config field hint, health "last checked", variables-editor hint) used
+  `--ash-blue-70`, the secondary text colour at 70% alpha: 3.3-3.4:1 in light mode and 3.6-4.3:1 in dark mode, below
+  WCAG AA (4.5:1). They now use `var(--theme-text-secondary, var(--ash-blue))` without alpha: 6.5-7.0:1 light,
+  5.8-7.5:1 dark (measured in headless Chrome with Kendo Material + `octo.theme()` on bg-app, bg-surface, bg-elevated
+  and a dialog). No text rule of `octo.styles()` uses `--ash-blue-70` any more; the token itself stays.
+- The two form-hint rules no longer carry `!important` (their specificity already wins over Kendo, which sets no hint
+  colour), so a host can restyle hints without `!important`. Form errors (`kendo-formerror`) are unchanged.
+- energy-community: drop the hint workaround (`kendo-formhint.k-form-hint ... !important`) in `styles.scss` after
+  updating to this release.
+
+### octo-ui: toggle button groups show the selected option filled (AB#7364)
+
+- Fix: a `kendo-buttongroup` of `fillMode="outline" themeColor="primary"` toggles rendered inverted in list, grid and
+  page toolbars: the unselected buttons were solid accent (the `octo-button` primary branch), the selected one a faint
+  tint, and hovering an unselected button showed accent text on accent (1.1:1 dark, 1.3:1 light). Such a group is now a
+  segmented control everywhere: unselected quiet (`--theme-text-secondary`, `--theme-border-default`, transparent),
+  selected filled with `--theme-accent` and `--theme-text-on-accent` (4.9:1 light, 9.5:1 dark), with hover, focus ring
+  and disabled states. New mixin `octo-segmented-toggle` in `_button.scss`, documented in the styles README.
+- The rule covers toggles only (`aria-pressed`, set by Kendo) that are direct children of a button group. Unchanged: a
+  single outline-primary button, an action group without toggles, `kendo-splitbutton`, flat toggles (quick-view
+  segments) and base toggles. In dialog and window action rows the flat outline look (`!important`) now skips such
+  toggles, so a group there shows its selection too.
+- The dead `.k-button-outline-primary` and `.k-button-outline-base` rules are removed (Kendo Angular 24 emits fill and
+  theme colour as separate classes, `k-button-outline k-button-primary`, so they never matched). This also keeps the
+  compiled `styles()` about as large as before.
+- Hosts can drop their own workaround rules for this (energy-community `styles.scss`, rule
+  `.k-button-group .k-button.k-button-outline.k-button-primary`) once they take this release.
+
 ### octo-services: old notification exports removed, shared-ui lint guard widened (AB#9654, Bug AB#9650)
 
 - **BREAKING:** the notification API is available only from `@meshmakers/octo-services/notifications`. The deprecated
