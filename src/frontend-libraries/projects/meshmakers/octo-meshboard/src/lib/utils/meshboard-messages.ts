@@ -56,7 +56,43 @@ export interface MeshBoardMessages {
   dataBadgeClickForDetails?: string;
   /** Hint of a line or bar chart series source without data; `{source}` = its label (AB#9743). Default: 'No data for {source}' */
   noDataForSource?: string;
+  /**
+   * Resolution flags of the line chart data badge, their tooltips and the click-through explanation
+   * (AB#9743); defaults in {@link DEFAULT_MESHBOARD_MESSAGES}. Placeholders: `{requested}`, `{date}`,
+   * `{delivered}`, `{ofRequested}`, `{from}`.
+   */
+  resolutionFlagNoHistory?: string;
+  resolutionFlagLimited?: string;
+  resolutionFlagOfRequested?: string;
+  resolutionFlagNoRollup?: string;
+  resolutionFlagRaw?: string;
+  resolutionFlagNoArchive?: string;
+  resolutionTitleNoHistoryFrom?: string;
+  resolutionTitleNoHistory?: string;
+  resolutionTitleLimited?: string;
+  resolutionTitleNoRollup?: string;
+  resolutionTitleRaw?: string;
+  resolutionTitleNoArchive?: string;
+  resolutionInfoHeading?: string;
+  resolutionInfoClose?: string;
+  resolutionInfoOfRequested?: string;
+  resolutionInfoNoHistoryFrom?: string;
+  resolutionInfoNoHistory?: string;
+  resolutionInfoLimited?: string;
+  resolutionInfoNoRollup?: string;
+  resolutionInfoRaw?: string;
+  resolutionInfoNoArchive?: string;
 }
+
+/** The resolution texts of the line chart (AB#9743), resolved like every other member. */
+const RESOLUTION_MESSAGE_KEYS = [
+  'resolutionFlagNoHistory', 'resolutionFlagLimited', 'resolutionFlagOfRequested', 'resolutionFlagNoRollup',
+  'resolutionFlagRaw', 'resolutionFlagNoArchive', 'resolutionTitleNoHistoryFrom', 'resolutionTitleNoHistory',
+  'resolutionTitleLimited', 'resolutionTitleNoRollup', 'resolutionTitleRaw', 'resolutionTitleNoArchive',
+  'resolutionInfoHeading', 'resolutionInfoClose', 'resolutionInfoOfRequested', 'resolutionInfoNoHistoryFrom',
+  'resolutionInfoNoHistory', 'resolutionInfoLimited', 'resolutionInfoNoRollup', 'resolutionInfoRaw',
+  'resolutionInfoNoArchive'
+] as const;
 
 /** Default texts of {@link MeshBoardMessages} (the list texts default inside `mm-list-view`). */
 export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'tableList'>> = {
@@ -78,7 +114,41 @@ export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'table
   dataBadgeLegend: 'rows = data rows fetched (points × series) · pts = distinct time points plotted (totalCount {total})',
   dataBadgeClickForDetails: 'Click for details.',
   noDataForSource: 'No data for {source}',
+  resolutionFlagNoHistory: '⚠ no history',
+  resolutionFlagLimited: '⚠ limited',
+  resolutionFlagOfRequested: ' (of {requested})',
+  resolutionFlagNoRollup: '⚠ no rollup',
+  resolutionFlagRaw: '⚠ raw',
+  resolutionFlagNoArchive: '⚠ no archive',
+  resolutionTitleNoHistoryFrom: 'History at this resolution is available from {date}',
+  resolutionTitleNoHistory: 'A finer resolution exists but holds no data for this time range.',
+  resolutionTitleLimited: 'Resolution limited: the coarsest available rollup delivers fewer points than requested for this range.',
+  resolutionTitleNoRollup: 'No compatible rollup for this aggregation — the raw archive was returned unreduced.',
+  resolutionTitleRaw: 'Base archive grain unknown — returned unreduced.',
+  resolutionTitleNoArchive: 'No resolvable archive for this series.',
+  resolutionInfoHeading: 'Resolution-aware',
+  resolutionInfoClose: 'Close',
+  resolutionInfoOfRequested: ' (the chart could show ~{requested})',
+  resolutionInfoNoHistoryFrom: ' That resolution only has history from {date} onwards.',
+  resolutionInfoNoHistory: 'A finer resolution exists for this series, but it holds no data for the selected time range, '
+    + 'so the chart fell back to a coarser one ({delivered} point(s){ofRequested}).{from} '
+    + 'The values are correct — narrow the range to a covered period to see finer detail.',
+  resolutionInfoLimited: 'This chart auto-selects the coarsest stored resolution that still fits the view. '
+    + 'For this time range the finest matching rollup only provides {delivered} point(s){ofRequested}, '
+    + 'so the line is drawn at a coarser resolution than the screen could show. The values are correct — '
+    + 'to see finer detail, narrow the time range or provision a finer rollup for this series.',
+  resolutionInfoNoRollup: 'No rollup matches this series\' aggregation, so the raw archive was returned unreduced '
+    + '({delivered} points). Add a matching rollup to enable server-side reduction, or narrow the time range.',
+  resolutionInfoRaw: 'The base archive\'s native resolution is undeclared, so the data was returned unreduced. '
+    + 'Set the archive\'s period/grain to enable resolution-aware selection.',
+  resolutionInfoNoArchive: 'No queryable archive was found for this series, so nothing could be plotted.',
 };
+
+/** Replaces `{name}` placeholders of a MeshBoard message; unknown placeholders stay. */
+export function formatMeshBoardMessage(message: string, values: Record<string, string | number>): string {
+  return message.replace(/\{(\w+)\}/g, (match, key: string) =>
+    Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : match);
+}
 
 /**
  * What a host provides on {@link MESHBOARD_MESSAGES}: a fixed object, or a signal for apps that
@@ -128,6 +198,7 @@ export function resolveMeshBoardMessages(messages: MeshBoardMessages | null | un
     ...(messages?.dataBadgeLegend ? { dataBadgeLegend: messages.dataBadgeLegend } : {}),
     ...(messages?.dataBadgeClickForDetails ? { dataBadgeClickForDetails: messages.dataBadgeClickForDetails } : {}),
     ...(messages?.noDataForSource ? { noDataForSource: messages.noDataForSource } : {}),
+    ...Object.fromEntries(RESOLUTION_MESSAGE_KEYS.filter(key => messages?.[key]).map(key => [key, messages?.[key]])),
   };
 }
 

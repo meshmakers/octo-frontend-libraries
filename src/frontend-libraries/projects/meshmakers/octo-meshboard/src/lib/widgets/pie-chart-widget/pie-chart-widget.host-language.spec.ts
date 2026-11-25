@@ -33,4 +33,8 @@ describe('PieChartWidgetComponent value format in the host language (AB#9743)', 
   it('keeps the de-AT format for a host without a language', () => {
     expect(formatIn(undefined, 0.15)).toBe('0,15');
   });
+
+  it('falls back to the de-AT format for a malformed host locale instead of failing', () => {
+    expect(formatIn('de AT', 0.15)).toBe('0,15');
+  });
 });

@@ -17,7 +17,11 @@ starts a new empty "Unreleased" section.
   `resetTimeFilter` (board toolbar tooltips), the time-shift names `timeShiftPreviousPeriod`,
   `timeShiftSamePeriodLastYear`, `timeShiftPeriodsBack`, `timeShiftYearsBack` (`{count}`) of the shifted widget's
   tooltip, the line chart's data badge `dataBadge` (`{rows}`, `{points}`), its tooltip `dataBadgeLegend` (`{total}`) and
-  `dataBadgeClickForDetails`, and `noDataForSource` (`{source}`, line and bar chart source hints).
+  `dataBadgeClickForDetails`, and `noDataForSource` (`{source}`, line and bar chart source hints). The resolution
+  flags of the line chart data badge, their tooltips and the click-through explanation are members too
+  (`resolutionFlag*`, `resolutionTitle*`, `resolutionInfo*`, English defaults as before).
+- A malformed `MESHBOARD_LANGUAGE` (e.g. `de AT`) counts as no host language, so formats keep `de-AT` instead of
+  `Intl` throwing.
 - With `MESHBOARD_LANGUAGE` set, the KPI, pie, bar, line and table widgets format numbers and dates in that locale, and
   the time-shift caption names its month in it ("Oktober 2026", "10/01/2026" for `en`). Without a host language
   everything stays in the former `de-AT` format. `formatWidgetNumber`, `formatInstant`, `formatBoardDate`,

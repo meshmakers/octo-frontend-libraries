@@ -209,6 +209,20 @@ describe('LineChartWidgetComponent multi-source (AB#7951)', () => {
     expect(s.cmp.badgeTitle(30)).toBe('gesamt 30');
   });
 
+  it('shows a resolution flag, its tooltip and its explanation in the host language (AB#9743)', () => {
+    const german = {
+      resolutionFlagNoRollup: '⚠ kein Rollup',
+      resolutionTitleNoRollup: 'Kein passendes Rollup',
+      resolutionInfoNoRollup: 'Kein Rollup, {delivered} Punkte.'
+    };
+    const s = setup(chartConfig(), {}, [{ provide: MESHBOARD_MESSAGES, useValue: german }]);
+    const internals = s.cmp as unknown as { _resolutionSignal: { set(v: unknown): void }; _showResolutionInfo: { set(v: boolean): void } };
+    internals._resolutionSignal.set({ signal: SeriesResolutionSignalDto.NoSuitableRollupDto, points: 12 });
+
+    expect(s.cmp.resolutionHint()).toEqual({ text: '⚠ kein Rollup', title: 'Kein passendes Rollup' });
+    expect(s.cmp.resolutionExplanation()).toBe('Kein Rollup, 12 Punkte.');
+  });
+
   it('stays loading and sends no query while any source scope is pending', async () => {
     const s = setup(chartConfig(), { 'q-grid': GRID_ROWS, 'q-pv': PV_ROWS, 'q-bat': BATTERY_ROWS });
     s.state.scopes['pv'] = { kind: 'pending' };

@@ -30,7 +30,16 @@ export function readMeshBoardLanguageSource(source: MeshBoardLanguageSource | nu
     return null;
   }
   const normalised = value.trim().replace(/_/g, '-');
-  return normalised === '' ? null : normalised;
+  return normalised === '' || !isValidLocale(normalised) ? null : normalised;
+}
+
+/** A tag `Intl` accepts; a malformed one (e.g. `de AT`) counts as no host language, so formats keep their defaults (AB#9743). */
+function isValidLocale(tag: string): boolean {
+  try {
+    return Intl.getCanonicalLocales(tag).length > 0;
+  } catch {
+    return false;
+  }
 }
 
 /** The host language of {@link MESHBOARD_LANGUAGE} as a signal (`null` without one). Call in an injection context. */
