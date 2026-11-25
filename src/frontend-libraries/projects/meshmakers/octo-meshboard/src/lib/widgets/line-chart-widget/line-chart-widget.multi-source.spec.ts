@@ -207,6 +207,7 @@ describe('LineChartWidgetComponent multi-source (AB#7951)', () => {
     expect(s.cmp.sourceHints()).toEqual([{ kind: 'noData', sourceLabel: 'PV', text: 'Keine Daten für PV' }]);
     expect(s.cmp.dataBadgeText(12, 4)).toBe('12 Zeilen · 4 Pkt.');
     expect(s.cmp.badgeTitle(30)).toBe('gesamt 30');
+    expect((s.cmp as unknown as { noDataText(source: string): string }).noDataText('Cost $& total')).toBe('Keine Daten für Cost $& total');
   });
 
   it('shows a resolution flag, its tooltip and its explanation in the host language (AB#9743)', () => {

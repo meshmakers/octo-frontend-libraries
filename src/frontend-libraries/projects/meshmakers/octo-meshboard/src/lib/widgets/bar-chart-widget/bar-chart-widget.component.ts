@@ -13,7 +13,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
 import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
-import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
+import { formatMeshBoardMessage, injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { isIsoDateTime, formatInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { configuredValueLabel, seriesLabelsByRawValue } from '../../utils/chart-value-labels';
@@ -913,7 +913,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   }
 
   private noDataText(source: string): string {
-    return this.texts().noDataForSource.replace('{source}', source);
+    return formatMeshBoardMessage(this.texts().noDataForSource, { source });
   }
 
   private formatCategoryValue(value: unknown): string {

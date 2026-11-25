@@ -626,17 +626,17 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    */
   badgeTitle(total: number): string {
     const texts = this.texts();
-    const legend = texts.dataBadgeLegend.replace('{total}', String(total));
+    const legend = formatMeshBoardMessage(texts.dataBadgeLegend, { total });
     const hint = this.resolutionHint();
     return hint ? `${hint.title}\n${texts.dataBadgeClickForDetails}\n\n${legend}` : legend;
   }
 
   dataBadgeText(rows: number, points: number): string {
-    return this.texts().dataBadge.replace('{rows}', String(rows)).replace('{points}', String(points));
+    return formatMeshBoardMessage(this.texts().dataBadge, { rows, points });
   }
 
   private noDataText(source: string): string {
-    return this.texts().noDataForSource.replace('{source}', source);
+    return formatMeshBoardMessage(this.texts().noDataForSource, { source });
   }
 
   readonly data = computed(() => this._seriesData());
