@@ -248,3 +248,27 @@ describe('parseCsvDigitsInfo (AB#8836)', () => {
     }
   });
 });
+
+describe('CSV export review round 1 (AB#8836)', () => {
+  it('keeps an ISO date-time on an impossible calendar day as text, and formats a valid leap day', () => {
+    const column: CsvColumn = { title: 'At', value: (r) => (r as { at: unknown }).at, isDate: true };
+    const rows = [{ at: '2025-02-30T10:00:00Z' }, { at: '2025-13-01T10:00:00' }, { at: '2024-02-29T10:00:00' }];
+
+    expect(buildCsv(rows, [column], { separator: ';', locale: 'de-AT' }))
+      .toBe(`${BOM}At\r\n2025-02-30T10:00:00Z\r\n2025-13-01T10:00:00\r\n29.02.2024 10:00:00\r\n`);
+  });
+
+  it('falls back to the raw number when the engine refuses the display number options', () => {
+    const original = Intl.NumberFormat;
+    vi.spyOn(Intl, 'NumberFormat').mockImplementation(function (locales?: string | string[], options?: Intl.NumberFormatOptions) {
+      if (options?.signDisplay) {
+        throw new RangeError('signDisplay not supported');
+      }
+      return new original(locales, options);
+    } as unknown as typeof Intl.NumberFormat);
+    const column: CsvColumn = { title: 'Menge', value: (r) => (r as { v: unknown }).v, numberFormat: '1.2-2' };
+
+    expect(buildCsv([{ v: 12.345 }, { v: 7 }], [column], { separator: ';', locale: 'de-AT' }))
+      .toBe(`${BOM}Menge\r\n12,345\r\n7\r\n`);
+  });
+});

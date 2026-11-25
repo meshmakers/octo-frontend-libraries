@@ -95,10 +95,32 @@ export function parseCsvDigitsInfo(digitsInfo: string | null | undefined): CsvDi
  * `2025-06-01T10:00:00.123+02:00`, `2025-06-01 10:00`). Anything else in a date column, e.g. text a
  * formatter already wrote (`01.11.2026`), is never handed to `new Date()` (AB#8836).
  */
-const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}(:?\d{2})?)?$/i;
+const ISO_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ]\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}(:?\d{2})?)?$/i;
+
+/** The year, month and day name a real calendar day (`2025-02-30` does not; `new Date()` would roll it to March). */
+function isCalendarDay(year: number, month: number, day: number): boolean {
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
 
 /** `Intl.NumberFormat` `signDisplay: 'negative'`: a minus only for values below zero after rounding (ES2023). */
 const SIGN_DISPLAY_NEGATIVE = 'negative' as unknown as Intl.NumberFormatOptions['signDisplay'];
+
+/** The number format of a column display format, or `null` when the engine refuses the options (AB#8836). */
+function createDisplayNumberFormat(locale: string, digits: CsvDigitsInfo): Intl.NumberFormat | null {
+  try {
+    return new Intl.NumberFormat(locale, {
+      useGrouping: false,
+      minimumIntegerDigits: digits.minIntegerDigits,
+      minimumFractionDigits: digits.minFractionDigits,
+      maximumFractionDigits: digits.maxFractionDigits,
+      // ES2023 value; the workspace compiles against the ES2022 lib, whose typings lack it.
+      signDisplay: SIGN_DISPLAY_NEGATIVE
+    });
+  } catch {
+    return null;
+  }
+}
 
 /** Formats cell values for one export; the Intl formatters are created once. */
 export class CsvValueFormatter {
@@ -146,14 +168,17 @@ export class CsvValueFormatter {
         // A date-only value is a calendar day: never shift it through UTC or add a time.
         const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
         if (dateOnly) {
-          const day = new Date(+dateOnly[1], +dateOnly[2] - 1, +dateOnly[3]);
           // No calendar day (e.g. 2025-02-31 would roll over to March): keep the text as it is.
-          const isCalendarDay = day.getFullYear() === +dateOnly[1] && day.getMonth() === +dateOnly[2] - 1 && day.getDate() === +dateOnly[3];
-          return this.dateFormat && isCalendarDay ? this.dateFormat.format(day) : value;
+          if (!this.dateFormat || !isCalendarDay(+dateOnly[1], +dateOnly[2], +dateOnly[3])) {
+            return value;
+          }
+          return this.dateFormat.format(new Date(+dateOnly[1], +dateOnly[2] - 1, +dateOnly[3]));
         }
-        // Only a real ISO 8601 date-time is parsed; other text (e.g. "01.11.2026", which
-        // `new Date()` would read as 11 January) is written as it is (AB#8836).
-        const date = ISO_DATE_TIME.test(value) ? new Date(value) : null;
+        // Only a real ISO 8601 date-time on a real calendar day is parsed; other text (e.g.
+        // "01.11.2026", which `new Date()` would read as 11 January, or "2025-02-30T10:00:00Z",
+        // which it would roll over to March) is written as it is (AB#8836).
+        const isoParts = ISO_DATE_TIME.exec(value);
+        const date = isoParts && isCalendarDay(+isoParts[1], +isoParts[2], +isoParts[3]) ? new Date(value) : null;
         if (date && !Number.isNaN(date.getTime())) {
           return this.formatDate(date);
         }
@@ -172,20 +197,16 @@ export class CsvValueFormatter {
   /**
    * Number format of a column display format (AB#8836): the digits of the format, the decimal
    * sign of the locale (`.` without a locale), no grouping, and no minus for a value that rounds
-   * to zero (`-1.87e-11` with `1.2-2` is `0,00`, not `-0,00`).
+   * to zero (`-1.87e-11` with `1.2-2` is `0,00`, not `-0,00`). `null` (raw value) when the
+   * format is no digits info, or when the engine refuses the options (`signDisplay: 'negative'`
+   * before Chrome 106 / Firefox 116 / Safari 15.4, more than 20 fraction digits before ES2023):
+   * one column then falls back to the raw number instead of aborting the whole export.
    */
   private displayNumberFormat(numberFormat: string): Intl.NumberFormat | null {
     let format = this.displayNumberFormats.get(numberFormat);
     if (format === undefined) {
       const digits = parseCsvDigitsInfo(numberFormat);
-      format = digits ? new Intl.NumberFormat(this.locale ?? 'en-US', {
-        useGrouping: false,
-        minimumIntegerDigits: digits.minIntegerDigits,
-        minimumFractionDigits: digits.minFractionDigits,
-        maximumFractionDigits: digits.maxFractionDigits,
-        // ES2023 value; the workspace compiles against the ES2022 lib, whose typings lack it.
-        signDisplay: SIGN_DISPLAY_NEGATIVE
-      }) : null;
+      format = digits ? createDisplayNumberFormat(this.locale ?? 'en-US', digits) : null;
       this.displayNumberFormats.set(numberFormat, format);
     }
     return format;
