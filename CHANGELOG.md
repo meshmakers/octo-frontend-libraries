@@ -19,6 +19,20 @@ starts a new empty "Unreleased" section.
   after a page reload; a board saved in edit mode stores the active range as its last-used selection, as after a pick. No host change needed. A host that fills missing `tf_*` parameters itself
   (a route guard) reads `viewerTimeSelection()` first and writes it with the now exported `timeFilterQueryParams`.
 
+### shared-ui: command palette text readable in light and dark mode (AB#7627)
+
+- Fix: the group headers, footer key hints, type hints, the empty text and the input placeholder of
+  `mm-command-palette` used `--theme-text-muted`, 3.75:1 on the dark dialog surface (`--theme-bg-overlay`), below WCAG
+  AA (4.5:1). They now use `--theme-text-secondary`: 5.75:1 dark, 7.03:1 light (light was 4.91:1, so these texts are a
+  little darker there).
+- Fix: on the selected row (tinted with `--theme-accent-subtle`) the path, type hint and Tab key use
+  `--theme-text-primary` (dark path 4.46:1, type hint 2.91:1, now 9.13:1) and the matched characters
+  `--theme-accent-hover` (light 4.32:1, now 5.75:1).
+- The row icons and the search icon keep `--theme-text-muted` (decoration, `aria-hidden`). No theme token changed.
+  Measured in headless Chrome with Kendo Material + `octo.theme()`; a spec resolves every palette text colour against
+  the theme tokens and requires 4.5:1 in both modes.
+- Known limitation: the label of the AI row (`--theme-ai`) reads 3.49:1 in dark mode; the AI text token is AB#7366.
+
 ### octo-meshboard: loading spinner on every widget; shared-ui: month names in the UI language (AB#9735, AB#9742)
 
 - Every MeshBoard widget shows the table widget's loading spinner (the Kendo Grid loading mask) while its data loads,

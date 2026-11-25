@@ -66,7 +66,7 @@
   font-size: 15px;
 
   &::placeholder {
-    color: var(--theme-text-muted);
+    color: var(--theme-text-secondary);
   }
 }
 
@@ -90,7 +90,7 @@
   padding: 8px 10px 4px;
   font-size: 11.5px;
   font-weight: 500;
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 // Columns: icon · label · meta · Tab key. The meta column takes its natural width up to
@@ -110,6 +110,17 @@
 
     .cp-icon {
       color: var(--theme-accent, var(--octo-mint, #64ceb9));
+    }
+
+    // The tint lowers the secondary text below 4.5:1 in dark mode.
+    .cp-side,
+    .cp-hint,
+    kbd {
+      color: var(--theme-text-primary);
+    }
+
+    mark {
+      color: var(--theme-accent-hover, var(--theme-accent, var(--octo-mint, #64ceb9)));
     }
   }
 
@@ -166,7 +177,7 @@
   text-overflow: ellipsis;
   font-family: var(--theme-font-mono, 'Roboto Mono', monospace);
   font-size: 11.5px;
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 kbd {
@@ -204,7 +215,7 @@ kbd {
 .cp-empty {
   padding: 24px;
   text-align: center;
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .cp-footer {
@@ -215,7 +226,7 @@ kbd {
   padding: 8px 16px;
   border-top: 1px solid var(--theme-border-subtle);
   font-size: 11px;
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 
   // Each hint stays together; when the dialog is narrow whole hints move to the next line
   // instead of a key being separated from its label (visual check 2026-10-06).
