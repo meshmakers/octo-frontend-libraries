@@ -577,7 +577,8 @@ Example — the daily quality 1/2/3 shown as L1/L2/L3 with German and English he
 author gives the board name and description and every widget its title per UI language, in the board
 configuration (board JSON/YAML, seed data; the config dialogs do not edit them). A widget can also carry an
 optional explanation (`description`, `descriptions`): the widget header then shows a small info icon whose
-tooltip is the explanation in the viewer's language; without an explanation there is no icon.
+tooltip is the explanation in the viewer's language; without an explanation there is no icon. Banner-zone and
+chromeless widgets have no header in view mode, so they show no info icon even with an explanation.
 
 ```typescript
 interface WidgetConfig {
