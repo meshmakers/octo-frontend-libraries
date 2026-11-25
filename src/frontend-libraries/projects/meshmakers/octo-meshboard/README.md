@@ -465,7 +465,15 @@ providers: [
 ```
 
 `tableNotConfigured` translates the placeholder of an unconfigured table; `kpiChangeFavourable` /
-`kpiChangeUnfavourable` the words on a KPI's change line (AB#9245).
+`kpiChangeUnfavourable` the words on a KPI's change line (AB#9245). Since AB#9743 also: `loading` (widget spinner),
+`loadingMeshBoard`, `noDataAvailable` (widget group), `refreshAllWidgets` and `resetTimeFilter` (board toolbar
+tooltips), the time-shift names `timeShiftPreviousPeriod`, `timeShiftSamePeriodLastYear`, `timeShiftPeriodsBack`,
+`timeShiftYearsBack` (`{count}`), the line chart's data badge `dataBadge` (`{rows}`, `{points}`), `dataBadgeLegend`
+(`{total}`), `dataBadgeClickForDetails`, and `noDataForSource` (`{source}`).
+
+**Formats in the host language (AB#9743).** With `MESHBOARD_LANGUAGE` set (e.g. `de-AT`, `en`), the KPI, pie, bar,
+line and table widgets format numbers and dates in that locale and the time-shift caption names its month in it;
+without it they keep the `de-AT` formats.
 
 **Enum labels (AB#5622).** `MESHBOARD_LABEL_RESOLVER` (same pattern as the entity forms'
 `ENTITY_FORM_LABEL_RESOLVER`) translates enum values: `(request) => string | null | undefined`

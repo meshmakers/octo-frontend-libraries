@@ -6,6 +6,7 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { LineChartQuerySeries, LineChartWidgetConfig } from '../../models/meshboard.models';
 import { StreamDataScope } from '../../utils/stream-data-scope';
+import { MESHBOARD_MESSAGES } from '../../utils/meshboard-messages';
 import { CkRollupFunctionDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 
 /**
@@ -57,7 +58,7 @@ interface Setup {
   render(): Promise<HTMLElement>;
 }
 
-function setup(config: LineChartWidgetConfig, rowsByQuery: Record<string, QueryResultRow[] | Error>): Setup {
+function setup(config: LineChartWidgetConfig, rowsByQuery: Record<string, QueryResultRow[] | Error>, extraProviders: unknown[] = []): Setup {
   const state = {
     scopes: {
       netz: { kind: 'scoped', rtIds: ['grid-1'] },
@@ -97,7 +98,8 @@ function setup(config: LineChartWidgetConfig, rowsByQuery: Record<string, QueryR
     providers: [
       { provide: QueryExecutorService, useValue: queryExecutor },
       { provide: MeshBoardStateService, useValue: stateService },
-      { provide: MeshBoardVariableService, useValue: { convertToFieldFilterDto: vi.fn(() => undefined) } }
+      { provide: MeshBoardVariableService, useValue: { convertToFieldFilterDto: vi.fn(() => undefined) } },
+      ...(extraProviders as never[])
     ]
   });
   const fixture = TestBed.createComponent(LineChartWidgetComponent);
@@ -195,6 +197,16 @@ describe('LineChartWidgetComponent multi-source (AB#7951)', () => {
     const s = setup(chartConfig(), { 'q-grid': GRID_ROWS, 'q-pv': [], 'q-bat': BATTERY_ROWS });
     await s.load();
     expect(s.cmp.sourceHints()).toEqual([{ kind: 'noData', sourceLabel: 'PV', text: 'No data for PV' }]);
+  });
+
+  it('shows the "No data for" hint and the data badge in the host language (AB#9743)', async () => {
+    const german = { noDataForSource: 'Keine Daten für {source}', dataBadge: '{rows} Zeilen · {points} Pkt.', dataBadgeLegend: 'gesamt {total}' };
+    const s = setup(chartConfig(), { 'q-grid': GRID_ROWS, 'q-pv': [], 'q-bat': BATTERY_ROWS }, [{ provide: MESHBOARD_MESSAGES, useValue: german }]);
+    await s.load();
+
+    expect(s.cmp.sourceHints()).toEqual([{ kind: 'noData', sourceLabel: 'PV', text: 'Keine Daten für PV' }]);
+    expect(s.cmp.dataBadgeText(12, 4)).toBe('12 Zeilen · 4 Pkt.');
+    expect(s.cmp.badgeTitle(30)).toBe('gesamt 30');
   });
 
   it('stays loading and sends no query while any source scope is pending', async () => {

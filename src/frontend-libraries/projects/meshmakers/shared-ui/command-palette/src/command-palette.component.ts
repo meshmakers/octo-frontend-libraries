@@ -136,7 +136,7 @@ export class CommandPaletteComponent implements OnInit {
     this.parsed().text ? formatCommandPaletteMessage(this.m().noResultsFor, { text: this.parsed().text }) : this.m().typeToSearch);
 
   protected get modifierLabel(): string {
-    return /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Ctrl';
+    return /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent) ? '⌘' : this.m().controlKey ?? 'Ctrl';
   }
 
   constructor() {

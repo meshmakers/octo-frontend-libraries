@@ -11,7 +11,9 @@ import { emptyQueryExecutionResult } from '../../utils/stream-data-scope';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { findCellForField } from '../../utils/widget-data-utils';
+import { findCellForField, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
+import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { isIsoDateTime, formatInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { configuredValueLabel, seriesLabelsByRawValue } from '../../utils/chart-value-labels';
@@ -323,6 +325,14 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   private readonly _error = signal<string | null>(null);
 
   readonly isLoading = this._isLoading.asReadonly();
+
+  private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
+  private readonly texts: ReturnType<typeof injectMeshBoardMessages>;
+
+  constructor() {
+    this.hostLanguage = injectMeshBoardLanguage();
+    this.texts = injectMeshBoardMessages();
+  }
   readonly categories = this._categories.asReadonly();
   readonly seriesData = this._seriesData.asReadonly();
   readonly error = this._error.asReadonly();
@@ -469,7 +479,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
   }
 
   formatValue(value: number): string {
-    return value.toLocaleString('de-AT', {
+    return value.toLocaleString(this.hostLanguage() ?? WIDGET_NUMBER_LOCALE, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     });
@@ -591,7 +601,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
         if (isSourceHintShown(sourceKey, hint.kind, definitions, this.config.primarySeries)) hints.push(hint);
       };
       const noData = (source: BarChartSourceEntry): void => {
-        pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+        pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: this.noDataText(source.label) });
         problems.set(source.key, { label: source.label, problem: 'noData' });
       };
 
@@ -684,14 +694,14 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const mode = this.stateService.timeZoneMode();
     const allInstants = categories.length > 0 && categories.every(c => c.instant !== null);
     const dayOf = (c: CategoryValue): string =>
-      formatInstant(new Date(c.instant as number), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '';
+      formatInstant(new Date(c.instant as number), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }, this.hostLanguage()) ?? '';
     const byDay = allInstants && new Set(categories.map(dayOf)).size === categories.length;
     return uniqueLabels(categories.map(c => {
       const configured = configuredValueLabel(this.config.categoryLabels, String(c.raw ?? ''));
       if (configured !== undefined) return configured;
       if (byDay) return dayOf(c);
       if (c.instant !== null) {
-        return formatInstant(new Date(c.instant), mode, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) ?? String(c.raw);
+        return formatInstant(new Date(c.instant), mode, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }, this.hostLanguage()) ?? String(c.raw);
       }
       return String(c.raw ?? '');
     }));
@@ -902,6 +912,10 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     return configuredValueLabel(this.config.categoryLabels, String(value ?? '')) ?? this.formatCategoryValue(value);
   }
 
+  private noDataText(source: string): string {
+    return this.texts().noDataForSource.replace('{source}', source);
+  }
+
   private formatCategoryValue(value: unknown): string {
     // ISO-8601 date-time values are formatted on the board's timezone basis;
     // everything else passes through as a string.
@@ -909,7 +923,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       const formatted = formatInstant(value, this.stateService.timeZoneMode(), {
         day: '2-digit', month: '2-digit',
         hour: '2-digit', minute: '2-digit'
-      });
+      }, this.hostLanguage());
       if (formatted !== null) {
         return formatted;
       }

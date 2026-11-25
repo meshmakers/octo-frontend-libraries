@@ -3,16 +3,22 @@ import type { AnyWidgetConfig, HeatmapWidgetConfig, MeshBoardTimeShift, Persiste
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { normalizeTimeShift } from '../../utils/time-shift';
 import { isValidHeatmapTimeWindow } from '../../widgets/heatmap-widget/heatmap-buckets';
-import { TimeShiftCaption, timeShiftCaption } from '../../utils/time-shift-caption';
+import { TimeShiftCaption, timeShiftCaption, TimeShiftCaptionLanguage } from '../../utils/time-shift-caption';
+import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
+import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
 
 /**
  * Caption and tooltip of a widget whose stream-data query applies a time shift, or `null` when the
  * shift has no effect: no persistent query, a runtime query, `ignoreTimeFilter`, a heatmap with its own
  * time window, no valid shift or no active time filter.
  */
-export function resolveTimeShiftCaption(widget: AnyWidgetConfig | undefined, stateService: MeshBoardStateService): TimeShiftCaption | null {
+export function resolveTimeShiftCaption(
+  widget: AnyWidgetConfig | undefined,
+  stateService: MeshBoardStateService,
+  language?: TimeShiftCaptionLanguage
+): TimeShiftCaption | null {
   const shifted = resolveCaptionedShift(widget, stateService);
-  return shifted ? timeShiftCaption(shifted.shift, shifted.period, stateService.timeZoneMode()) : null;
+  return shifted ? timeShiftCaption(shifted.shift, shifted.period, stateService.timeZoneMode(), language) : null;
 }
 
 /** True when {@link resolveTimeShiftCaption} renders a caption, without formatting it. */
@@ -75,5 +81,14 @@ export class TimeShiftCaptionComponent {
 
   readonly widget = input<AnyWidgetConfig | undefined>();
 
-  readonly caption = computed(() => resolveTimeShiftCaption(this.widget(), this.stateService));
+  private readonly messages: ReturnType<typeof injectMeshBoardMessages>;
+  private readonly language: ReturnType<typeof injectMeshBoardLanguage>;
+
+  readonly caption = computed(() =>
+    resolveTimeShiftCaption(this.widget(), this.stateService, { messages: this.messages(), locale: this.language() }));
+
+  constructor() {
+    this.messages = injectMeshBoardMessages();
+    this.language = injectMeshBoardLanguage();
+  }
 }

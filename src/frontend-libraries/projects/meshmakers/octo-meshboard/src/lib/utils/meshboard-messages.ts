@@ -30,6 +30,32 @@ export interface MeshBoardMessages {
   kpiChangeFavourable?: string;
   /** Word under the numbers of the KPI change line for a bad change (AB#9245). Default: 'Unfavourable' */
   kpiChangeUnfavourable?: string;
+  /** Accessible text of the widget loading spinner (AB#9743). Default: 'Loading' */
+  loading?: string;
+  /** Accessible text of the board loading mask (AB#9743). Default: 'Loading MeshBoard...' */
+  loadingMeshBoard?: string;
+  /** Text of a widget group without items when the board sets no `emptyMessage` (AB#9743). Default: 'No data available' */
+  noDataAvailable?: string;
+  /** Tooltip of the board's refresh button (AB#9743). Default: 'Refresh All Widgets' */
+  refreshAllWidgets?: string;
+  /** Tooltip of the button that resets the board period to its default (AB#9743). Default: 'Reset to default time filter' */
+  resetTimeFilter?: string;
+  /** Name of a time shift one period back, in the tooltip of a shifted widget (AB#9743). Default: 'Previous period' */
+  timeShiftPreviousPeriod?: string;
+  /** Name of a time shift one year back (AB#9743). Default: 'Same period last year' */
+  timeShiftSamePeriodLastYear?: string;
+  /** Name of a time shift several periods back; `{count}` = the number of periods (AB#9743). Default: '{count} periods back' */
+  timeShiftPeriodsBack?: string;
+  /** Name of a time shift several years back; `{count}` = the number of years (AB#9743). Default: '{count} years back' */
+  timeShiftYearsBack?: string;
+  /** Data badge of a line chart; `{rows}`, `{points}` (AB#9743). Default: '{rows} rows · {points} pts' */
+  dataBadge?: string;
+  /** Tooltip of the line chart data badge; `{total}` = total count (AB#9743). Default: 'rows = data rows fetched (points × series) · pts = distinct time points plotted (totalCount {total})' */
+  dataBadgeLegend?: string;
+  /** Line under a resolution hint in the data badge tooltip (AB#9743). Default: 'Click for details.' */
+  dataBadgeClickForDetails?: string;
+  /** Hint of a line or bar chart series source without data; `{source}` = its label (AB#9743). Default: 'No data for {source}' */
+  noDataForSource?: string;
 }
 
 /** Default texts of {@link MeshBoardMessages} (the list texts default inside `mm-list-view`). */
@@ -39,6 +65,19 @@ export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'table
   scopePickRequired: 'Pick a {label} to see this data.',
   kpiChangeFavourable: 'Favourable',
   kpiChangeUnfavourable: 'Unfavourable',
+  loading: 'Loading',
+  loadingMeshBoard: 'Loading MeshBoard...',
+  noDataAvailable: 'No data available',
+  refreshAllWidgets: 'Refresh All Widgets',
+  resetTimeFilter: 'Reset to default time filter',
+  timeShiftPreviousPeriod: 'Previous period',
+  timeShiftSamePeriodLastYear: 'Same period last year',
+  timeShiftPeriodsBack: '{count} periods back',
+  timeShiftYearsBack: '{count} years back',
+  dataBadge: '{rows} rows · {points} pts',
+  dataBadgeLegend: 'rows = data rows fetched (points × series) · pts = distinct time points plotted (totalCount {total})',
+  dataBadgeClickForDetails: 'Click for details.',
+  noDataForSource: 'No data for {source}',
 };
 
 /**
@@ -76,6 +115,19 @@ export function resolveMeshBoardMessages(messages: MeshBoardMessages | null | un
     ...(messages?.scopePickRequired ? { scopePickRequired: messages.scopePickRequired } : {}),
     ...(messages?.kpiChangeFavourable ? { kpiChangeFavourable: messages.kpiChangeFavourable } : {}),
     ...(messages?.kpiChangeUnfavourable ? { kpiChangeUnfavourable: messages.kpiChangeUnfavourable } : {}),
+    ...(messages?.loading ? { loading: messages.loading } : {}),
+    ...(messages?.loadingMeshBoard ? { loadingMeshBoard: messages.loadingMeshBoard } : {}),
+    ...(messages?.noDataAvailable ? { noDataAvailable: messages.noDataAvailable } : {}),
+    ...(messages?.refreshAllWidgets ? { refreshAllWidgets: messages.refreshAllWidgets } : {}),
+    ...(messages?.resetTimeFilter ? { resetTimeFilter: messages.resetTimeFilter } : {}),
+    ...(messages?.timeShiftPreviousPeriod ? { timeShiftPreviousPeriod: messages.timeShiftPreviousPeriod } : {}),
+    ...(messages?.timeShiftSamePeriodLastYear ? { timeShiftSamePeriodLastYear: messages.timeShiftSamePeriodLastYear } : {}),
+    ...(messages?.timeShiftPeriodsBack ? { timeShiftPeriodsBack: messages.timeShiftPeriodsBack } : {}),
+    ...(messages?.timeShiftYearsBack ? { timeShiftYearsBack: messages.timeShiftYearsBack } : {}),
+    ...(messages?.dataBadge ? { dataBadge: messages.dataBadge } : {}),
+    ...(messages?.dataBadgeLegend ? { dataBadgeLegend: messages.dataBadgeLegend } : {}),
+    ...(messages?.dataBadgeClickForDetails ? { dataBadgeClickForDetails: messages.dataBadgeClickForDetails } : {}),
+    ...(messages?.noDataForSource ? { noDataForSource: messages.noDataForSource } : {}),
   };
 }
 

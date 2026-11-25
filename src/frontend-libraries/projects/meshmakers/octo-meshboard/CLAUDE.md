@@ -416,12 +416,12 @@ calls; widgets pass their source's `timeShift` and do no date arithmetic. Pure h
   widget loads or shows its empty state. `resolveTimeShiftCaption(widget, state)` returns `null` (nothing rendered,
   the header looks as before) without a persistent query, for a runtime query, with `ignoreTimeFilter`, for a heatmap with
   its own `timeWindow`, without a valid shift or without an active time filter. A heatmap's own time window, like
-  ignoreTimeFilter, takes precedence over the board filter and the shift. Texts from `utils/time-shift-caption.ts`: month `September 2026` (English month
-  names of `TimeRangeUtils.generateMonthOptions()` called without names; the time picker itself follows the Kendo locale since AB#9742), quarter `Q4 2025`, year `2025`, day and any other
-  range `dd.MM.yyyy` (`formatBoardDate`, board zone, inclusive last day: `03.11.2026 - 09.11.2026`); tooltip
+  ignoreTimeFilter, takes precedence over the board filter and the shift. Texts from `utils/time-shift-caption.ts`: month `September 2026` (month name
+  in the `MESHBOARD_LANGUAGE` locale, AB#9743; without a host language the English names of `TimeRangeUtils.generateMonthOptions()`), quarter `Q4 2025`, year `2025`, day and any other
+  range `dd.MM.yyyy` (`formatBoardDate`, board zone, host locale or `de-AT`, inclusive last day: `03.11.2026 - 09.11.2026`); tooltip
   `<shift>: <first> - <last> (<zone>)` (`formatExactShiftedRange`: a bound not at local midnight adds `HH:mm`,
   an end at local midnight stays the last day; the caption keeps dates only) with `Previous period`, `Same period last year`, `N periods back`,
-  `N years back` and the IANA zone (`local` = the browser's, `utc` = `UTC`). It is a computed signal over the state
+  `N years back` (`MeshBoardMessages.timeShift*`, AB#9743) and the IANA zone (`local` = the browser's, `utc` = `UTC`). It is a computed signal over the state
   service, so it follows a change of the board time filter. A chromeless tile keeps its header while a caption applies
   (`hasTimeShiftCaption`, class `chromeless-header` off) and its card-less look (class `chromeless-card`). Banner-zone widgets and widget-group children show no caption (no title in view mode); nor do
   stats-grid / summary-card cells and process bindings with a `timeShift` (the caption reads only `widget.dataSource`).

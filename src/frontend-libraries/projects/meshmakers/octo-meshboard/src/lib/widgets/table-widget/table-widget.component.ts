@@ -234,6 +234,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     // the same basis the time filter is computed on. Reading it here makes the
     // columns recompute when the mode changes.
     const mode = this.stateService.timeZoneMode();
+    const locale = this.language();
     // Only plain-text columns get the datetime formatter — columns the user
     // explicitly typed ('date', 'numeric', 'iso8601', …) keep their own
     // rendering, and any value that is not an ISO-8601 date-time passes through
@@ -258,12 +259,12 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
       const valueType = valueTypes.get(column.field) || undefined;
       const translate = !!resolver && (optedIn || !valueType || /ENUM/i.test(valueType));
       if (!translate) {
-        return { ...column, formatter: (value: unknown) => formatTableCellValue(value, mode) };
+        return { ...column, formatter: (value: unknown) => formatTableCellValue(value, mode, locale) };
       }
       return {
         ...column,
         formatter: (value: unknown) => {
-          const text = formatTableCellValue(value, mode);
+          const text = formatTableCellValue(value, mode, locale);
           // String cells as before; numeric cells when the query reports an enum value type
           // (numeric enum codes, AB#7655) or the column opted in via `labelFields` (AB#7728).
           // The resolver gets the number as string.
@@ -295,7 +296,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     // language signal here re-labels the columns without refetching data.
     if (this.config?.columns && this.config.columns.length > 0) {
       const language = this.language();
-      const textFormatter = (value: unknown): string => formatTableCellValue(value, mode);
+      const textFormatter = (value: unknown): string => formatTableCellValue(value, mode, locale);
       return this.config.columns.map(col => {
         const problems: TableColumnLabelProblems = emptyLabelProblems();
         const base: ListViewTableColumn = {

@@ -38,6 +38,8 @@ export interface CommandPaletteMessages {
   footerMove: string;
   footerOpen: string;
   footerNewTab: string;
+  /** Name of the Control key in the "new tab" hint outside Apple platforms (AB#9743), e.g. "Strg". Default: "Ctrl" */
+  controlKey?: string;
   footerActions: string;
   prefixActions: string;
   prefixEntities: string;
@@ -73,6 +75,7 @@ export const DEFAULT_COMMAND_PALETTE_MESSAGES: CommandPaletteMessages = {
   footerMove: 'move',
   footerOpen: 'open',
   footerNewTab: 'new tab',
+  controlKey: 'Ctrl',
   footerActions: 'actions',
   prefixActions: 'actions',
   prefixEntities: 'entities',

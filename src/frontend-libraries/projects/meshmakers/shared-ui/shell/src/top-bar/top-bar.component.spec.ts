@@ -304,3 +304,23 @@ describe('ShellTopBarComponent user menu entries (AB#5621)', () => {
     expect(element.querySelector('.user-panel')).toBeNull();
   });
 });
+
+describe('ShellTopBarComponent shortcut hint in the host language (AB#9743)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  async function shortcutShown(providers: unknown[]): Promise<string | undefined> {
+    vi.spyOn(navigator, 'platform', 'get').mockReturnValue('Win32');
+    TestBed.resetTestingModule();
+    const fixture = await createTopBar(providers);
+    fixture.detectChanges();
+    return (fixture.nativeElement as HTMLElement).querySelector('.search-shortcut')?.textContent?.trim();
+  }
+
+  it('names the Control key as the host calls it, e.g. "Strg" on German keyboards', async () => {
+    expect(await shortcutShown([{ provide: SHELL_MESSAGES, useValue: { controlKey: 'Strg' } }])).toBe('Strg K');
+  });
+
+  it('keeps "Ctrl" without a host text', async () => {
+    expect(await shortcutShown([])).toBe('Ctrl K');
+  });
+});
