@@ -14,6 +14,7 @@ import { DataSourceBase, FetchDataOptions } from '../data-sources/data-source-ba
 import { FetchResult, FetchResultBase } from '../models/fetchResult';
 import { MmListViewDataBindingDirective } from '../directives/mm-list-view-data-binding.directive';
 import { DEFAULT_PDF_EXPORT_ROW_LIMIT } from './list-view-export';
+import { TableColumn } from './list-view.model';
 
 interface Call {
   state: State;
@@ -37,6 +38,8 @@ class ExportDataSourceDirective extends DataSourceBase {
   public failAt: number | null = null;
   /** The error the failing request throws. */
   public failWith: unknown = new Error('server error');
+  /** Fixed rows instead of the generated `row-<i>` rows (set `total` to their count). */
+  public rows: Record<string, unknown>[] | null = null;
 
   constructor() {
     super(inject(ListViewComponent));
@@ -49,7 +52,7 @@ class ExportDataSourceDirective extends DataSourceBase {
       const error = this.failWith;
       return throwError(() => error);
     }
-    const all = Array.from({ length: this.total }, (_, i) => ({ name: `row-${i}` }));
+    const all: Record<string, unknown>[] = this.rows ?? Array.from({ length: this.total }, (_, i) => ({ name: `row-${i}` }));
     if (this.clientSide) {
       return of(new FetchResultBase(all, this.total));
     }
@@ -73,7 +76,7 @@ class ExportDataSourceDirective extends DataSourceBase {
 class HostComponent {
   @ViewChild(ExportDataSourceDirective) dataSource!: ExportDataSourceDirective;
   @ViewChild(ListViewComponent) listView!: ListViewComponent;
-  columns = [{ field: 'name', displayName: 'Name', dataType: 'text' as const }];
+  columns: TableColumn[] = [{ field: 'name', displayName: 'Name', dataType: 'text' }];
   exportPageSize = 20;
   exportRowLimit = 50000;
   pdfExportRowLimit = 5000;
@@ -367,6 +370,57 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
       const text = await csvFiles[0].text;
       expect(text.replace(/^\uFEFF/, '').split('\r\n').length).toBe(1 + 70 + 1);
       expect(messages.showWarning).toHaveBeenCalledWith('Export limited to 70 of 120 rows.');
+    });
+
+    describe('formatted columns (AB#8836)', () => {
+      // A MeshBoard table column with a display formatter (the table widget sets one for
+      // `labelFields`, e.g. voest `window_start`): the formatter decides the day text.
+      const dayText = (locale: string) => (value: unknown) =>
+        new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
+          .format(new Date(typeof value === 'string' ? value : 0));
+      const rows = [
+        { day: '2026-11-01T00:00:00Z', raw: '2026-11-01T10:00:00', amount: 1199364, plain: 0.1 + 0.2, mixed: 2.5 },
+        { day: '2026-11-12T00:00:00Z', raw: '2026-11-12', amount: -1.8701e-11, plain: -1.8701e-11, mixed: -2.5 },
+        { day: '2026-11-13T00:00:00Z', raw: null, amount: 12.345, plain: 7, mixed: 0 }
+      ];
+      const columns = (locale: string): TableColumn[] => [
+        { field: 'day', displayName: 'Tag', dataType: 'iso8601', format: 'dd.MM.yyyy', formatter: dayText(locale) },
+        { field: 'raw', displayName: 'Raw', dataType: 'iso8601' },
+        { field: 'amount', displayName: 'Menge', dataType: 'numeric', format: '1.2-2' },
+        { field: 'plain', displayName: 'Plain', dataType: 'numeric' },
+        { field: 'mixed', displayName: 'Mixed', dataType: 'numeric', format: '1.2-2', formatter: (v) => `${v} kWh` }
+      ];
+
+      async function exportLines(locale: string): Promise<string[]> {
+        create((h) => {
+          h.columns = columns(locale);
+          h.csvLocale = locale;
+        });
+        host.dataSource.rows = rows;
+        host.dataSource.total = rows.length;
+        await fixture.whenStable();
+        api().runExport('csv');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect(csvFiles.length).toBe(1);
+        return (await csvFiles[0].text).replace(String.fromCharCode(0xfeff), '').split('\r\n');
+      }
+
+      it('writes formatted days as shown (de-AT), days 1-12 not swapped, numbers in the column format', async () => {
+        const lines = await exportLines('de-AT');
+
+        expect(lines[0]).toBe('Tag;Raw;Menge;Plain;Mixed');
+        expect(lines[1]).toBe('01.11.2026;01.11.2026 10:00:00;1199364,00;0,3;2.5 kWh');
+        expect(lines[2]).toBe("12.11.2026;12.11.2026;0,00;-0,000000000018701;'-2.5 kWh");
+        expect(lines[3]).toBe('13.11.2026;;12,35;7;0 kWh');
+      });
+
+      it('writes formatted days as shown (en-GB) with the locale decimal sign', async () => {
+        const lines = await exportLines('en-GB');
+
+        expect(lines[1].split(';').slice(0, 3)).toEqual(['01/11/2026', '01/11/2026 10:00:00', '1199364.00']);
+        expect(lines[2].split(';').slice(0, 3)).toEqual(['12/11/2026', '12/11/2026', '0.00']);
+        expect(lines[3].split(';').slice(0, 3)).toEqual(['13/11/2026', '', '12.35']);
+      });
     });
 
     it('writes no file when a fetch fails', async () => {
