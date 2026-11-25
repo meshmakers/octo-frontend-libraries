@@ -10,7 +10,7 @@
     </div>
   } @else if (childConfigs().length === 0) {
     <div class="empty-state">
-      <span class="empty-message">{{ config.emptyMessage || 'No data available' }}</span>
+      <span class="empty-message">{{ config.emptyMessage || messages().noDataAvailable }}</span>
     </div>
   } @else {
     <div

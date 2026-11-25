@@ -11,7 +11,8 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
+import { findCellForField, matchesAttributePath, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
+import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
 import { categoryStatus, chartSeriesColors, humanizeCategory, resolveChartColor, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
@@ -203,6 +204,12 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   private readonly _error = signal<string | null>(null);
 
   readonly isLoading = this._isLoading.asReadonly();
+
+  private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
+
+  constructor() {
+    this.hostLanguage = injectMeshBoardLanguage();
+  }
   /** Keeps its reference while categories, values and colours are unchanged (AB#5568). */
   readonly chartData = computed<ChartDataItem[]>(() => {
     this.chartTheme();
@@ -383,7 +390,7 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   }
 
   formatValue(value: number): string {
-    return value.toLocaleString('de-AT', {
+    return value.toLocaleString(this.hostLanguage() ?? WIDGET_NUMBER_LOCALE, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     });

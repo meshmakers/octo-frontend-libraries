@@ -87,6 +87,8 @@ export interface ShellMessages {
   greetingWithName: string;
   /** Meta line label of the tenant. */
   tenant: string;
+  /** Name of the Control key in the shortcut hints of the top bar outside Apple platforms (AB#9743), e.g. "Strg". Default: "Ctrl" */
+  controlKey?: string;
 }
 
 /** English defaults of {@link ShellMessages}. */
@@ -131,6 +133,7 @@ export const DEFAULT_SHELL_MESSAGES: ShellMessages = {
   greetingEvening: 'Good evening',
   greetingWithName: '{greeting}, {name}',
   tenant: 'Tenant',
+  controlKey: 'Ctrl',
 };
 
 /**

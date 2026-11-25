@@ -12,7 +12,8 @@ import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
-import { applyValueMultiplier, findCellForField, formatWidgetNumber, getNumberFormat, matchesAttributePath } from '../../utils/widget-data-utils';
+import { applyValueMultiplier, findCellForField, formatWidgetNumber, getNumberFormat, matchesAttributePath, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
+import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { QueryFamily } from '../../utils/query-family';
@@ -86,7 +87,14 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     return this._config() ?? this.config;
   }
 
+  private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
+
+  private get numberLocale(): string {
+    return this.hostLanguage() ?? WIDGET_NUMBER_LOCALE;
+  }
+
   constructor() {
+    this.hostLanguage = injectMeshBoardLanguage();
     // Publishes the raw value as runtime MeshBoard variable (AB#5364).
     effect(() => {
       const config = this.currentConfig();
@@ -276,7 +284,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
       return strValue;
     }
 
-    return numValue.toLocaleString('de-AT', {
+    return numValue.toLocaleString(this.numberLocale, {
       minimumFractionDigits: numValue % 1 !== 0 ? 2 : 0,
       maximumFractionDigits: 2
     });
@@ -295,7 +303,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
 
     const negative = numValue < 0 || Object.is(numValue, -0);
     const shown = negative && Number(getNumberFormat('en-US', 0, decimals, false).format(numValue)) === 0 ? 0 : numValue;
-    return formatWidgetNumber(shown, decimals, 'exact');
+    return formatWidgetNumber(shown, decimals, 'exact', this.numberLocale);
   }
 
   readonly label = computed(() => {
@@ -649,11 +657,11 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     const diff = now - base;
     const shownDiff = Number(getNumberFormat('en-US', 0, decimals ?? 2, false).format(Math.abs(diff)));
     const diffText = decimals !== undefined
-      ? formatWidgetNumber(shownDiff, decimals, 'exact')
-      : shownDiff.toLocaleString('de-AT', { minimumFractionDigits: shownDiff % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
+      ? formatWidgetNumber(shownDiff, decimals, 'exact', this.numberLocale)
+      : shownDiff.toLocaleString(this.numberLocale, { minimumFractionDigits: shownDiff % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
     const percent = shownDiff === 0 ? 0 : diff / Math.abs(base) * 100;
     const shownPercent = Number(getNumberFormat('en-US', 0, 1, false).format(Math.abs(percent)));
-    const percentText = formatWidgetNumber(shownPercent, 1, 'exact');
+    const percentText = formatWidgetNumber(shownPercent, 1, 'exact', this.numberLocale);
     const sign = (shown: number, raw: number): string => shown === 0 ? '' : raw > 0 ? '+' : '\u2212';
     const config = this.currentConfig();
     const unit = config?.suffix ? ` ${config.suffix}` : '';

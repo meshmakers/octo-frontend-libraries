@@ -370,4 +370,13 @@ describe('CommandPaletteComponent tokens and messages', () => {
     expect(element.querySelector('.cp-status')?.textContent?.trim()).toBe('2 Treffer');
     expect(element.querySelector('input')?.getAttribute('placeholder')).toBe('Search pages, entities, boards…');
   });
+
+  it('names the Control key of the new-tab hint as the host calls it (AB#9743)', async () => {
+    vi.spyOn(navigator, 'platform', 'get').mockReturnValue('Win32');
+    const element = await render([{ provide: COMMAND_PALETTE_MESSAGES, useValue: { controlKey: 'Strg', footerNewTab: 'neuer Tab' } }]);
+    const hints = Array.from(element.querySelectorAll('.cp-footer kbd')).map(kbd => kbd.textContent?.trim());
+
+    expect(hints).toContain('Strg↵');
+    expect(hints).not.toContain('Ctrl↵');
+  });
 });

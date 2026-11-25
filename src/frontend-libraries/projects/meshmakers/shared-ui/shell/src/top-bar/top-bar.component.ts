@@ -120,9 +120,9 @@ export class ShellTopBarComponent {
 
   /** ⌘K on Apple platforms, Ctrl K elsewhere — the shortcut the palette binds. */
   private readonly isApple = /Mac|iPhone|iPad/i.test(navigator.platform ?? '');
-  protected readonly shortcutLabel = this.isApple ? '⌘K' : 'Ctrl K';
+  protected readonly shortcutLabel = computed(() => this.isApple ? '⌘K' : `${this.m().controlKey ?? 'Ctrl'} K`);
   /** ⌘J / Ctrl J — the assistant shortcut the host binds. */
-  protected readonly assistantShortcutLabel = this.isApple ? '⌘J' : 'Ctrl J';
+  protected readonly assistantShortcutLabel = computed(() => this.isApple ? '⌘J' : `${this.m().controlKey ?? 'Ctrl'} J`);
   /** Both chords work everywhere; the platform's usual one is listed first. */
   protected readonly assistantKeyShortcut = this.isApple ? 'Meta+J Control+J' : 'Control+J Meta+J';
 

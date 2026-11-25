@@ -145,23 +145,26 @@ export function zonedDateKey(parts: ZonedDateParts): string {
  * Formats an instant honoring the board's timezone mode, with caller-supplied
  * `Intl.DateTimeFormatOptions`. The `timeZone` option is injected from `mode`
  * and overrides any passed in. Returns `null` when the value is not a valid
- * instant, so callers can fall back to their own rendering.
+ * instant, so callers can fall back to their own rendering. `locale` is the host
+ * language of `MESHBOARD_LANGUAGE` (AB#9743); without one `de-AT` applies, so the
+ * `dd.MM.yyyy` forms below hold only for German locales.
  */
 export function formatInstant(
   value: unknown,
   mode: MeshBoardTimeZoneMode,
-  options: Intl.DateTimeFormatOptions
+  options: Intl.DateTimeFormatOptions,
+  locale?: string | null
 ): string | null {
   const date = toInstant(value);
   if (!date) {
     return null;
   }
-  return date.toLocaleString(MESHBOARD_LOCALE, { ...options, timeZone: timeZoneOption(mode) });
+  return date.toLocaleString(locale || MESHBOARD_LOCALE, { ...options, timeZone: timeZoneOption(mode) });
 }
 
 /** Full date with `dd.MM.yyyy` in the board's timezone, or `null`. */
-export function formatBoardDate(value: unknown, mode: MeshBoardTimeZoneMode): string | null {
-  return formatInstant(value, mode, { day: '2-digit', month: '2-digit', year: 'numeric' });
+export function formatBoardDate(value: unknown, mode: MeshBoardTimeZoneMode, locale?: string | null): string | null {
+  return formatInstant(value, mode, { day: '2-digit', month: '2-digit', year: 'numeric' }, locale);
 }
 
 /**
@@ -172,9 +175,9 @@ export function formatBoardDate(value: unknown, mode: MeshBoardTimeZoneMode): st
  * the output is exactly `dd.MM.yyyy HH:mm:ss` — the locale's combined format
  * would otherwise insert a comma (`dd.MM.yyyy, HH:mm:ss`).
  */
-export function formatBoardDateTime(value: unknown, mode: MeshBoardTimeZoneMode): string | null {
-  const datePart = formatInstant(value, mode, { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const timePart = formatInstant(value, mode, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+export function formatBoardDateTime(value: unknown, mode: MeshBoardTimeZoneMode, locale?: string | null): string | null {
+  const datePart = formatInstant(value, mode, { day: '2-digit', month: '2-digit', year: 'numeric' }, locale);
+  const timePart = formatInstant(value, mode, { hour: '2-digit', minute: '2-digit', second: '2-digit' }, locale);
   if (datePart === null || timePart === null) {
     return null;
   }
@@ -186,9 +189,9 @@ export function formatBoardDateTime(value: unknown, mode: MeshBoardTimeZoneMode)
  * timezone (`dd.MM.yyyy HH:mm:ss`); every other value passes through unchanged.
  * Safe to attach to all columns — non-datetime cells are returned via `String`.
  */
-export function formatTableCellValue(value: unknown, mode: MeshBoardTimeZoneMode): string {
+export function formatTableCellValue(value: unknown, mode: MeshBoardTimeZoneMode, locale?: string | null): string {
   if (isIsoDateTime(value)) {
-    return formatBoardDateTime(value, mode) ?? String(value);
+    return formatBoardDateTime(value, mode, locale) ?? String(value);
   }
   return value === null || value === undefined ? '' : String(value);
 }

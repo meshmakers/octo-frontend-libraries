@@ -472,7 +472,7 @@ export function getNumberFormat(
   return format;
 }
 
-export function formatWidgetNumber(value: number, fractionDigits: number, mode: FractionDigitsMode): string {
+export function formatWidgetNumber(value: number, fractionDigits: number, mode: FractionDigitsMode, locale?: string | null): string {
   const minimumFractionDigits = mode === 'exact' ? fractionDigits : 0;
-  return getNumberFormat(WIDGET_NUMBER_LOCALE, minimumFractionDigits, fractionDigits).format(value);
+  return getNumberFormat(locale || WIDGET_NUMBER_LOCALE, minimumFractionDigits, fractionDigits).format(value);
 }

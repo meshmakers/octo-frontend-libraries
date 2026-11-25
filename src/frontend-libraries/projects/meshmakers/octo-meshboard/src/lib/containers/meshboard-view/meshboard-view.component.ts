@@ -1325,7 +1325,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // Assigned in the constructor: a field initialised from a relative import breaks under the
   // Vitest module runner (see the frontend-libraries CLAUDE.md).
-  private readonly messages: ReturnType<typeof injectMeshBoardMessages>;
+  protected readonly messages: ReturnType<typeof injectMeshBoardMessages>;
 
   /**
    * One notice per entity selector whose stream-data scope could not be

@@ -10,6 +10,25 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard, shared-ui: board texts, numbers and dates in the host language (AB#9743)
+
+- `MeshBoardMessages` has thirteen new optional members, all with the former English text as default: `loading` (widget
+  spinner), `loadingMeshBoard`, `noDataAvailable` (widget group without `emptyMessage`), `refreshAllWidgets`,
+  `resetTimeFilter` (board toolbar tooltips), the time-shift names `timeShiftPreviousPeriod`,
+  `timeShiftSamePeriodLastYear`, `timeShiftPeriodsBack`, `timeShiftYearsBack` (`{count}`) of the shifted widget's
+  tooltip, the line chart's data badge `dataBadge` (`{rows}`, `{points}`), its tooltip `dataBadgeLegend` (`{total}`) and
+  `dataBadgeClickForDetails`, and `noDataForSource` (`{source}`, line and bar chart source hints). The resolution
+  flags of the line chart data badge, their tooltips and the click-through explanation are members too
+  (`resolutionFlag*`, `resolutionTitle*`, `resolutionInfo*`, English defaults as before).
+- A malformed `MESHBOARD_LANGUAGE` (e.g. `de AT`) counts as no host language, so formats keep `de-AT` instead of
+  `Intl` throwing.
+- With `MESHBOARD_LANGUAGE` set, the KPI, pie, bar, line and table widgets format numbers and dates in that locale, and
+  the time-shift caption names its month in it ("Oktober 2026", "10/01/2026" for `en`). Without a host language
+  everything stays in the former `de-AT` format. `formatWidgetNumber`, `formatInstant`, `formatBoardDate`,
+  `formatBoardDateTime` and `formatTableCellValue` take an optional `locale`.
+- shared-ui: `ShellMessages.controlKey` and `CommandPaletteMessages.controlKey` (default "Ctrl") name the Control key in
+  the shortcut hints of the top bar and the palette, e.g. "Strg K" on German keyboards. Apple platforms keep "⌘".
+
 ### octo-meshboard: the viewer's time range carries over to other MeshBoards (AB#9737)
 
 - A time range the viewer chooses on one MeshBoard (time picker, reset to default, or a link with `tf_*` parameters)

@@ -2,7 +2,7 @@
   @if (isLoading()) {
     <div class="loading-container">
       <div class="k-loading-mask">
-        <span class="k-loading-text">Loading MeshBoard...</span>
+        <span class="k-loading-text">{{ messages().loadingMeshBoard }}</span>
         <div class="k-loading-image"></div>
         <div class="k-loading-color"></div>
       </div>
@@ -59,8 +59,8 @@
                 kendoButton
                 [svgIcon]="undoIcon"
                 (click)="resetTimeFilterToDefault()"
-                title="Reset to default time filter"
-                aria-label="Reset to default time filter"
+                [title]="messages().resetTimeFilter"
+                [attr.aria-label]="messages().resetTimeFilter"
                 fillMode="flat"
                 size="small">
               </button>
@@ -115,8 +115,8 @@
             kendoButton
             [svgIcon]="arrowRotateCwIcon"
             (click)="refresh()"
-            title="Refresh All Widgets"
-            aria-label="Refresh All Widgets"
+            [title]="messages().refreshAllWidgets"
+            [attr.aria-label]="messages().refreshAllWidgets"
             fillMode="flat">
           </button>
 

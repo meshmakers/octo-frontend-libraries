@@ -29,6 +29,7 @@ import { EntityCardWidgetComponent } from '../entity-card-widget/entity-card-wid
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
+import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 
 /**
  * Widget Group Component
@@ -58,8 +59,13 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
   private readonly dataService = inject(MeshBoardDataService);
   private readonly variableService = inject(MeshBoardVariableService);
   private readonly stateService = inject(MeshBoardStateService);
+  protected readonly messages: ReturnType<typeof injectMeshBoardMessages>;
 
   @Input() config!: WidgetGroupConfig;
+
+  constructor() {
+    this.messages = injectMeshBoardMessages();
+  }
 
   // Signal mirror of the config input so computed() signals can track changes.
   private readonly _config = signal<WidgetGroupConfig | undefined>(undefined);

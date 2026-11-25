@@ -10,7 +10,9 @@ import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { catchError, firstValueFrom } from 'rxjs';
 import { CkRollupFunctionDto, FieldFilterDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
-import { findCellForField, matchesAttributePath } from '../../utils/widget-data-utils';
+import { findCellForField, matchesAttributePath, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
+import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { formatMeshBoardMessage, injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
 import { streamDataRowFieldValue } from '../../utils/stream-data-row-fields';
 import { injectChartTheme } from '../../utils/chart-theme';
@@ -152,7 +154,7 @@ interface ValueAxisConfig {
             <span class="data-count" [class.warn]="!!resolutionHint()" [class.has-info]="!!resolutionHint()"
                   [title]="badgeTitle(info.total)"
                   (click)="resolutionHint() && toggleResolutionInfo($event)">
-              {{ info.rows }} rows · {{ info.points }} pts@if (resolutionHint(); as hint) {<span class="rl-flag"> · {{ hint.text }}</span>}
+              {{ dataBadgeText(info.rows, info.points) }}@if (resolutionHint(); as hint) {<span class="rl-flag"> · {{ hint.text }}</span>}
             </span>
           }
         }
@@ -168,8 +170,8 @@ interface ValueAxisConfig {
         @if (showResolutionInfo() && resolutionExplanation(); as msg) {
           <div class="resolution-info">
             <div class="ri-head">
-              <span>Resolution-aware</span>
-              <button type="button" class="ri-close" (click)="closeResolutionInfo($event)" aria-label="Close">✕</button>
+              <span>{{ texts().resolutionInfoHeading }}</span>
+              <button type="button" class="ri-close" (click)="closeResolutionInfo($event)" [attr.aria-label]="texts().resolutionInfoClose">✕</button>
             </div>
             <p class="ri-body">{{ msg }}</p>
           </div>
@@ -478,7 +480,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   private readonly variableService = inject(MeshBoardVariableService);
   private readonly expressionEvaluator = inject(ExpressionEvaluatorService);
 
+  private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
+  protected readonly texts: ReturnType<typeof injectMeshBoardMessages>;
+
   constructor() {
+    this.hostLanguage = injectMeshBoardLanguage();
+    this.texts = injectMeshBoardMessages();
     // Assigned here, not as a field initialiser: a relative import in a field initialiser is
     // undefined under the Vitest module runner (see frontend-libraries CLAUDE.md).
     this.downsamplingLimiter = new ConcurrencyLimiter(MAX_CONCURRENT_DOWNSAMPLING);
@@ -529,6 +536,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     const s = this._resolutionSignal();
     if (!s) return null;
     const diag = s.diagnostic ?? '';
+    const t = this.texts();
     switch (s.signal) {
       case SeriesResolutionSignalDto.CoverageLimitedDto: {
         // Coverage, not density (AB#5157): the finer rung was skipped because it holds NO data
@@ -536,12 +544,12 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         // coarse line is still the wrong answer to "where is my history?". Always flagged.
         const availableFrom = formatInstant(s.finerRungAvailableFrom, this.stateService.timeZoneMode(), {
           day: '2-digit', month: '2-digit', year: 'numeric'
-        });
+        }, this.hostLanguage());
         return {
-          text: '⚠ no history',
+          text: t.resolutionFlagNoHistory,
           title: availableFrom
-            ? `History at this resolution is available from ${availableFrom}`
-            : diag || 'A finer resolution exists but holds no data for this time range.'
+            ? formatMeshBoardMessage(t.resolutionTitleNoHistoryFrom, { date: availableFrom })
+            : diag || t.resolutionTitleNoHistory
         };
       }
       case SeriesResolutionSignalDto.ResolutionLimitedDto: {
@@ -552,15 +560,15 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         // below the pixel-ideal target, so it must not warn.
         const width = (this.elementRef.nativeElement as HTMLElement)?.offsetWidth ?? 0;
         if (width > 0 && delivered > 0 && width / delivered < RESOLUTION_LIMIT_WARN_PX) return null;
-        const ofReq = requested && requested > delivered ? ` (of ${requested})` : '';
-        return { text: `⚠ limited${ofReq}`, title: diag || 'Resolution limited: the coarsest available rollup delivers fewer points than requested for this range.' };
+        const ofReq = requested && requested > delivered ? formatMeshBoardMessage(t.resolutionFlagOfRequested, { requested }) : '';
+        return { text: `${t.resolutionFlagLimited}${ofReq}`, title: diag || t.resolutionTitleLimited };
       }
       case SeriesResolutionSignalDto.NoSuitableRollupDto:
-        return { text: '⚠ no rollup', title: diag || 'No compatible rollup for this aggregation — the raw archive was returned unreduced.' };
+        return { text: t.resolutionFlagNoRollup, title: diag || t.resolutionTitleNoRollup };
       case SeriesResolutionSignalDto.UnknownBaseGrainDto:
-        return { text: '⚠ raw', title: diag || 'Base archive grain unknown — returned unreduced.' };
+        return { text: t.resolutionFlagRaw, title: diag || t.resolutionTitleRaw };
       case SeriesResolutionSignalDto.EmptyLadderDto:
-        return { text: '⚠ no archive', title: diag || 'No resolvable archive for this series.' };
+        return { text: t.resolutionFlagNoArchive, title: diag || t.resolutionTitleNoArchive };
       default:
         return null;
     }
@@ -575,34 +583,26 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     if (!s || !this.resolutionHint()) return null;
     const delivered = s.actualPoints ?? s.points;
     const requested = this._resolutionTarget();
-    const ofReq = requested ? ` (the chart could show ~${requested})` : '';
+    const t = this.texts();
+    const ofReq = requested ? formatMeshBoardMessage(t.resolutionInfoOfRequested, { requested }) : '';
     const diag = s.diagnostic ?? '';
     switch (s.signal) {
       case SeriesResolutionSignalDto.CoverageLimitedDto: {
         const availableFrom = formatInstant(s.finerRungAvailableFrom, this.stateService.timeZoneMode(), {
           day: '2-digit', month: '2-digit', year: 'numeric'
-        });
-        const from = availableFrom
-          ? ` That resolution only has history from ${availableFrom} onwards.`
-          : '';
-        return `A finer resolution exists for this series, but it holds no data for the selected time range, `
-          + `so the chart fell back to a coarser one (${delivered} point(s)${ofReq}).${from} `
-          + `The values are correct — narrow the range to a covered period to see finer detail.`
+        }, this.hostLanguage());
+        const from = availableFrom ? formatMeshBoardMessage(t.resolutionInfoNoHistoryFrom, { date: availableFrom }) : '';
+        return formatMeshBoardMessage(t.resolutionInfoNoHistory, { delivered, ofRequested: ofReq, from })
           + (diag ? ` ${diag}` : '');
       }
       case SeriesResolutionSignalDto.ResolutionLimitedDto:
-        return `This chart auto-selects the coarsest stored resolution that still fits the view. `
-          + `For this time range the finest matching rollup only provides ${delivered} point(s)${ofReq}, `
-          + `so the line is drawn at a coarser resolution than the screen could show. The values are correct — `
-          + `to see finer detail, narrow the time range or provision a finer rollup for this series.`;
+        return formatMeshBoardMessage(t.resolutionInfoLimited, { delivered, ofRequested: ofReq });
       case SeriesResolutionSignalDto.NoSuitableRollupDto:
-        return `No rollup matches this series' aggregation, so the raw archive was returned unreduced `
-          + `(${delivered} points). Add a matching rollup to enable server-side reduction, or narrow the time range.`;
+        return formatMeshBoardMessage(t.resolutionInfoNoRollup, { delivered });
       case SeriesResolutionSignalDto.UnknownBaseGrainDto:
-        return `The base archive's native resolution is undeclared, so the data was returned unreduced. `
-          + `Set the archive's period/grain to enable resolution-aware selection.`;
+        return t.resolutionInfoRaw;
       case SeriesResolutionSignalDto.EmptyLadderDto:
-        return `No queryable archive was found for this series, so nothing could be plotted.`;
+        return t.resolutionInfoNoArchive;
       default:
         return null;
     }
@@ -625,9 +625,18 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    * warning is present — prefixes the diagnostic and prompts the click-through explanation.
    */
   badgeTitle(total: number): string {
-    const legend = `rows = data rows fetched (points × series) · pts = distinct time points plotted (totalCount ${total})`;
+    const texts = this.texts();
+    const legend = formatMeshBoardMessage(texts.dataBadgeLegend, { total });
     const hint = this.resolutionHint();
-    return hint ? `${hint.title}\nClick for details.\n\n${legend}` : legend;
+    return hint ? `${hint.title}\n${texts.dataBadgeClickForDetails}\n\n${legend}` : legend;
+  }
+
+  dataBadgeText(rows: number, points: number): string {
+    return formatMeshBoardMessage(this.texts().dataBadge, { rows, points });
+  }
+
+  private noDataText(source: string): string {
+    return formatMeshBoardMessage(this.texts().noDataForSource, { source });
   }
 
   readonly data = computed(() => this._seriesData());
@@ -795,7 +804,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   }
 
   formatValue(value: number): string {
-    return value.toLocaleString('de-AT', {
+    return value.toLocaleString(this.hostLanguage() ?? WIDGET_NUMBER_LOCALE, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     });
@@ -1201,7 +1210,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       const active: MultiSourceEntry[] = [];
       sources.forEach((source, i) => {
         if (scopes[i].kind === 'empty') {
-          pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+          pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: this.noDataText(source.label) });
           problems.set(source.key, { label: source.label, problem: 'noData' });
         } else {
           active.push(source);
@@ -1262,7 +1271,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
           : [queryRowsToSeries(f.value.rows, source.label, source.valueField, f.value.downsampled)];
         const withData = series.filter(s => s.points.size > 0);
         if (withData.length === 0) {
-          pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: `No data for ${source.label}` });
+          pushHint(source.key, { kind: 'noData', sourceLabel: source.label, text: this.noDataText(source.label) });
           problems.set(source.key, { label: source.label, problem: 'noData' });
           return;
         }
@@ -1446,7 +1455,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   /** Writes aligned series into the chart signals (multi-source path, AB#7951). */
   private applyAlignedGrid(instants: number[], series: ComposedChartSeries[]): void {
     const mode = this.stateService.timeZoneMode();
-    const days = new Set(instants.map(t => formatInstant(new Date(t), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '?'));
+    const days = new Set(instants.map(t => formatInstant(new Date(t), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }, this.hostLanguage()) ?? '?'));
     const needsTime = days.size < instants.length;
     const categories = uniqueCategoryLabels(instants, d => needsTime ? this.formatDateTime(d) : this.formatDate(d));
 
@@ -1648,7 +1657,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     // consistent with the time filter and the rest of the board.
     const mode = this.stateService.timeZoneMode();
     const dateOnlySet = new Set(
-      sortedCategoryEntries.map(([, date]) => formatInstant(date, mode, { day: '2-digit', month: '2-digit', year: 'numeric' }) ?? '?')
+      sortedCategoryEntries.map(([, date]) => formatInstant(date, mode, { day: '2-digit', month: '2-digit', year: 'numeric' }, this.hostLanguage()) ?? '?')
     );
     const needsTime = dateOnlySet.size < sortedCategoryEntries.length;
 
@@ -1722,7 +1731,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    }) ?? '?';
+    }, this.hostLanguage()) ?? '?';
   }
 
   /**
@@ -1732,8 +1741,8 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
    */
   private formatDateTime(date: Date): string {
     const mode = this.stateService.timeZoneMode();
-    const datePart = formatInstant(date, mode, { day: '2-digit', month: '2-digit' });
-    const timePart = formatInstant(date, mode, { hour: '2-digit', minute: '2-digit' });
+    const datePart = formatInstant(date, mode, { day: '2-digit', month: '2-digit' }, this.hostLanguage());
+    const timePart = formatInstant(date, mode, { hour: '2-digit', minute: '2-digit' }, this.hostLanguage());
     if (datePart === null || timePart === null) return '?';
     return `${datePart} ${timePart}`;
   }
