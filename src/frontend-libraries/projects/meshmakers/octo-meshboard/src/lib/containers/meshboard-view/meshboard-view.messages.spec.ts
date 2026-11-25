@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { DialogService, WindowService } from '@progress/kendo-angular-dialog';
 import { WindowStateService } from '@meshmakers/shared-ui';
 import { MeshBoardViewComponent } from './meshboard-view.component';
@@ -42,7 +43,7 @@ describe('MeshBoardViewComponent — board texts in the host language (AB#9743)'
     } as AnyWidgetConfig;
   }
 
-  async function render(widgets: AnyWidgetConfig[], loading = false): Promise<HTMLElement> {
+  async function render(widgets: AnyWidgetConfig[], loading = false, timeFilter?: Record<string, unknown>): Promise<HTMLElement> {
     const config = signal({ name: 'Board', columns: 4, rowHeight: 200, gap: 16, widgets, autoRefreshSeconds: 0 });
     const stateService = {
       meshBoardConfig: config,
@@ -56,8 +57,10 @@ describe('MeshBoardViewComponent — board texts in the host language (AB#9743)'
       needsPickEntitySelectorIds: signal<string[]>([]),
       pickerScopes: signal({}),
       timeZoneMode: signal('Europe/Vienna'),
-      isTimeFilterEnabled: () => false,
-      getTimeFilterConfig: () => undefined,
+      isTimeFilterEnabled: () => !!timeFilter,
+      getTimeFilterConfig: () => timeFilter,
+      setTimeFilterVariables: vi.fn(),
+      resolveCurrentTimeRange: () => null,
       getEntitySelectors: () => [],
       getConfig: () => config(),
       resolveShiftedPeriod: (shift?: MeshBoardTimeShift) => (shift ? SEPTEMBER_2026 : null),
@@ -77,6 +80,7 @@ describe('MeshBoardViewComponent — board texts in the host language (AB#9743)'
       imports: [HostComponent],
       providers: [
         provideRouter([]),
+        provideNoopAnimations(),
         { provide: ActivatedRoute, useValue: route },
         { provide: MeshBoardStateService, useValue: stateService },
         { provide: MeshBoardVariableService, useValue: {} },
@@ -105,6 +109,18 @@ describe('MeshBoardViewComponent — board texts in the host language (AB#9743)'
 
     expect(refresh?.getAttribute('title')).toBe('Alle aktualisieren');
     expect(el.textContent).not.toContain('Refresh All Widgets');
+  });
+
+  it('shows the reset tooltip of the period selector in the host language', async () => {
+    const el = await render([kpi('a', 'Verbrauch')], false, {
+      enabled: true,
+      selection: { type: 'month', year: 2026, month: 9 },
+      defaultSelection: { type: 'month', year: 2026, month: 10 }
+    });
+    const reset = el.querySelector<HTMLButtonElement>('.toolbar-center button[aria-label="Auf den Standardzeitraum zurücksetzen"]');
+
+    expect(reset?.getAttribute('title')).toBe('Auf den Standardzeitraum zurücksetzen');
+    expect(el.querySelector('[aria-label="Reset to default time filter"]')).toBeNull();
   });
 
   it('shows the loading text of the board in the host language', async () => {
