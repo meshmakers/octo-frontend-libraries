@@ -78,20 +78,8 @@ such project without a prior build. `npm test -- <flag>` reaches only the last c
   Exceptions: `CHANGELOG.md` references the work item of every entry by convention (`CHANGELOG.md:4`), and the
   `workItem` field of `scripts/system-ck-exceptions.json` is required by the System CK guard
   (`scripts/check-system-ck-only.mjs:139`).
-- **The libraries use System CK models only.** `scripts/check-system-ck-only.mjs --strict` runs as the first step of
-  `npm run lint` and of the Lint step in `azure-pipelines.yml`; use System examples in code, GraphQL documents, README
-  and library notes, and never import `demo-app` or `legacy-demo-app` from a library
-  (`scripts/system-ck-allowlist.json`, `importBoundaries`). Exceptions are listed in
-  `scripts/system-ck-exceptions.json`: the `maxCount` of an entry may only go down, and a new entry needs `reason`
-  and `workItem`, which the script checks (`scripts/check-system-ck-only.mjs:137-139`).
-- **A library that ships translations keeps `i18n/en.json` and `i18n/de.json` in parity.** `npm run i18n:check`
-  (`src/frontend-libraries/scripts/i18n-check.mjs`) fails on a key present in one file only, on differing
-  placeholders and on a key outside the library's `MM.<LIB>.` namespace; it runs in `npm run lint` and in the Lint
-  step of CI.
-- **A new feature or changed behaviour comes with a spec in the same library.** CI runs
-  `npm run test:<lib>` for every library with a test target (`azure-pipelines.yml:204-237`, "Run library unit tests"),
-  and a failing spec stops the Publish stage. Specs live next to the code as `*.spec.ts` (Vitest through
-  `@angular/build:unit-test`). Exception: `shared-ui-legacy` and `octo-ui-legacy` have no test target.
-- **`package.json` and `package-lock.json` change together, by targeted `npm install`/`npm uninstall`.** CI runs
-  `npm ci` (`azure-pipelines.yml:104`), which fails when they disagree; a full lock
-  file regeneration floats every transitive dependency and is its own reviewed commit, not part of a feature.
+- **The libraries use System CK models only.** Use System examples in code, GraphQL documents, README and library
+  notes, and never import `demo-app` or `legacy-demo-app` from a library; `npm run lint` runs
+  `scripts/check-system-ck-only.mjs --strict` and fails otherwise. Known findings are listed in
+  `scripts/system-ck-exceptions.json`: the `maxCount` of an entry only goes down, and a new entry needs `reason` and
+  `workItem` (checked at `scripts/check-system-ck-only.mjs:137-139`).
