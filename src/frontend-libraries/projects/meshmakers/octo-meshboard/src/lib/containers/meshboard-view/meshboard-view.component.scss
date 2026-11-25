@@ -230,6 +230,7 @@ kendo-tilelayout {
 
 // Widget header
 .widget-header {
+  --widget-actions-gap: 0.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -255,14 +256,14 @@ kendo-tilelayout {
     text-overflow: ellipsis;
   }
 
-  .widget-title-row {
+  .widget-trailing {
     display: flex;
     align-items: center;
-    gap: 4px;
-    min-width: 0;
+    gap: var(--widget-actions-gap);
+    flex-shrink: 0;
 
-    .widget-title {
-      flex: 0 1 auto;
+    &:empty {
+      display: none;
     }
   }
 
@@ -290,7 +291,7 @@ kendo-tilelayout {
   .widget-actions {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: var(--widget-actions-gap);
     flex-shrink: 0;
   }
 

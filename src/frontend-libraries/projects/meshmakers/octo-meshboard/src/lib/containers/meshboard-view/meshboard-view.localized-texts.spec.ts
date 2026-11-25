@@ -61,6 +61,7 @@ describe('MeshBoardViewComponent - author texts in the host language', () => {
     messages?: MeshBoardMessages;
     routeLabels?: TimeRangePickerLabels;
     timeFilter?: boolean;
+    editMode?: boolean;
   }): Promise<Rendered> {
     const config = signal(options.config);
     const language = signal<string | null>(options.language ?? null);
@@ -113,9 +114,9 @@ describe('MeshBoardViewComponent - author texts in the host language', () => {
         { provide: ActivatedRoute, useValue: route },
         { provide: MeshBoardStateService, useValue: stateService },
         { provide: MeshBoardVariableService, useValue: {} },
-        { provide: EditModeStateService, useValue: { isEditMode: signal(false), isSaving: signal(false), reset: vi.fn(), hasUnsavedChanges: () => false, enterEditMode: vi.fn() } },
+        { provide: EditModeStateService, useValue: { isEditMode: signal(options.editMode ?? false), isSaving: signal(false), reset: vi.fn(), hasUnsavedChanges: () => false, enterEditMode: vi.fn() } },
         { provide: WidgetFactoryService, useValue: {} },
-        { provide: WidgetRegistryService, useValue: { getWidgetComponent: () => null } },
+        { provide: WidgetRegistryService, useValue: { getWidgetComponent: () => null, getRegistration: () => undefined } },
         { provide: MeshBoardDataService, useValue: {} },
         { provide: MeshBoardGridService, useValue: {} },
         { provide: DialogService, useValue: {} },
@@ -293,6 +294,31 @@ describe('MeshBoardViewComponent - author texts in the host language', () => {
       const r = await render({ config: board([widget({ descriptions: { 'de-AT': 'Nur Deutsch' } })]), language: 'en-GB' });
 
       expect(infoIcon(r.el)).toBeNull();
+    });
+  });
+
+  describe('info icon position', () => {
+    const described = () => widget({ description: 'Sum of all metering points per month' });
+
+    it('sits at the far right of the header, outside the title block, so a long title truncates before it', async () => {
+      const r = await render({ config: board([described()]), language: 'en-GB' });
+      const header = r.el.querySelector<HTMLElement>('.widget-header');
+      const icon = infoIcon(r.el);
+
+      expect(icon?.closest('.widget-title-block')).toBeNull();
+      expect(icon?.parentElement?.classList.contains('widget-trailing')).toBe(true);
+      expect(header?.lastElementChild).toBe(icon?.parentElement ?? null);
+      expect(header?.firstElementChild?.classList.contains('widget-title-block')).toBe(true);
+    });
+
+    it('in edit mode sits immediately left of the widget actions, in the same row as them', async () => {
+      const r = await render({ config: board([described()]), language: 'en-GB', editMode: true });
+      const icon = infoIcon(r.el);
+      const actions = r.el.querySelector<HTMLElement>('.widget-header .widget-actions');
+
+      expect(actions).not.toBeNull();
+      expect(icon?.nextElementSibling).toBe(actions);
+      expect(icon?.parentElement).toBe(actions?.parentElement ?? null);
     });
   });
 

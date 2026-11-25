@@ -313,14 +313,7 @@
                    [class.chromeless-header]="widget.chromeless && !isEditMode() && !hasTimeShiftCaption(widget)">
                 @if (!(widget.chromeless && !isEditMode())) {
                   <div class="widget-title-block">
-                    <div class="widget-title-row">
-                      <span class="widget-title">{{ widgetTitle(widget) }}</span>
-                      @if (widgetDescription(widget); as info) {
-                        <span class="widget-info" tabindex="0" role="img" [title]="info" [attr.aria-label]="info">
-                          <kendo-svg-icon [icon]="infoCircleIcon" size="small"></kendo-svg-icon>
-                        </span>
-                      }
-                    </div>
+                    <span class="widget-title">{{ widgetTitle(widget) }}</span>
                     <mm-time-shift-caption [widget]="widget"></mm-time-shift-caption>
                   </div>
                   @if (isWidgetUnconfigured(widget)) {
@@ -330,6 +323,14 @@
                   <div class="widget-title-block">
                     <mm-time-shift-caption [widget]="widget"></mm-time-shift-caption>
                   </div>
+                }
+                <div class="widget-trailing">
+                @if (!(widget.chromeless && !isEditMode())) {
+                  @if (widgetDescription(widget); as info) {
+                    <span class="widget-info" tabindex="0" role="img" [title]="info" [attr.aria-label]="info">
+                      <kendo-svg-icon [icon]="infoCircleIcon" size="small"></kendo-svg-icon>
+                    </span>
+                  }
                 }
                 @if (isEditMode()) {
                   <div class="widget-actions" (pointerdown)="$event.stopPropagation()">
@@ -379,6 +380,7 @@
                     </button>
                   </div>
                 }
+                </div>
               </div>
             </kendo-tilelayout-item-header>
             <kendo-tilelayout-item-body>
