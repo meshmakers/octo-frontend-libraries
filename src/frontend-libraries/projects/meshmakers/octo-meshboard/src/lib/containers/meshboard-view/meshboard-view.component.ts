@@ -657,7 +657,6 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     const urlSelection = this.hostHasOwnedPeriod ? null : this.readTimeFilterFromUrl();
 
     if (urlSelection) {
-      this.stateService.setViewerTimeSelection(urlSelection);
       // Signal the URL selection so the picker picks it up
       this._urlTimeSelection.set(urlSelection);
       // Update state so widgets use the URL-derived time range
@@ -667,6 +666,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       if (range) {
         const rangeISO = TimeRangeUtils.toISO(range);
         this.stateService.updateTimeFilterSelection(urlSelection, rangeISO.from, rangeISO.to);
+        this.stateService.setViewerTimeSelection(urlSelection);
       }
       return;
     }
@@ -1428,8 +1428,11 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     const rangeISO = TimeRangeUtils.toISO(range);
 
     // Update state with new selection and time range values (sets variables first)
+    const hadActiveSelection = !!currentSelection || this._urlTimeSelection() !== null;
     this.stateService.updateTimeFilterSelection(selection, rangeISO.from, rangeISO.to);
-    this.stateService.setViewerTimeSelection(selection);
+    if (hadActiveSelection) {
+      this.stateService.setViewerTimeSelection(selection);
+    }
 
     // Sync selection to URL query parameters and update the URL signal
     // so that the initialTimeSelection computed reflects the new state

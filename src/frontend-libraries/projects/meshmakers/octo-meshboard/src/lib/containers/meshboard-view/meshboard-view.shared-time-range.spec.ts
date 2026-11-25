@@ -7,6 +7,7 @@ import { TimeRangePickerComponent, TimeRangeSelection as SharedTimeRangeSelectio
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 import { MeshBoardViewComponent } from './meshboard-view.component';
+import { MeshBoardHostTimeRange } from './host-time-range';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardPersistenceService } from '../../services/meshboard-persistence.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
@@ -113,10 +114,13 @@ describe('MeshBoardViewComponent - time range shared across MeshBoards (AB#9737)
   });
 
   /** Opens a board in a new view (the previous view is gone, as after a tab switch) and waits for its load. */
-  async function openBoard(config: MeshBoardConfig): Promise<ComponentFixture<MeshBoardViewComponent>> {
+  async function openBoard(config: MeshBoardConfig, hostTimeRange?: MeshBoardHostTimeRange): Promise<ComponentFixture<MeshBoardViewComponent>> {
     open.splice(0).forEach(fixture => fixture.destroy());
     boardConfig = config;
     const fixture = TestBed.createComponent(MeshBoardViewComponent);
+    if (hostTimeRange) {
+      fixture.componentRef.setInput('timeRange', hostTimeRange);
+    }
     open.push(fixture);
     for (let i = 0; i < 3; i++) {
       fixture.detectChanges();
@@ -221,6 +225,24 @@ describe('MeshBoardViewComponent - time range shared across MeshBoards (AB#9737)
     const statistics = await openBoard(board('statistics', STATISTICS_FILTER));
     expect(preselected(statistics)).toEqual({ type: 'quarter', year: 2026, quarter: 2, month: undefined });
     expect(windowFrom()).toBe(Q2_2026_FROM);
+  });
+
+  it('a board without a default or stored range shares nothing until the viewer picks one', async () => {
+    await openBoard(board('dashboard', { enabled: true, pickerConfig: { showTime: false } }));
+    expect(state.viewerTimeSelection()).toBeNull();
+
+    const statistics = await openBoard(board('statistics', STATISTICS_FILTER));
+    expect(preselected(statistics)).toEqual({ type: 'year', year: 2025, quarter: undefined, month: undefined });
+    expect(windowFrom()).toBe(YEAR_2025_FROM);
+  });
+
+  it('a period set by the host page wins over the shared range', async () => {
+    const dashboard = await openBoard(board('dashboard', DASHBOARD_FILTER));
+    await choose(dashboard, { type: 'month', year: 2026, month: 2 });
+
+    await openBoard(board('statistics', STATISTICS_FILTER), { from: '2026-03-28T05:00:00Z', to: '2026-03-29T04:00:00Z' });
+    expect(windowFrom()).toBe('2026-03-28T05:00:00.000Z');
+    expect(state.getVariable('timeRangeTo')?.value).toBe('2026-03-29T04:00:00.000Z');
   });
 
   it('a board whose picker does not offer the shared range type keeps its own default', async () => {
