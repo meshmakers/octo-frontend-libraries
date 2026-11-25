@@ -25,7 +25,8 @@ The repository is public.
 |---|---|
 <!-- <<< end generated: routing -->
 
-This repository has no routed `docs/` yet. Each library keeps its notes in a hand-written file next to its code
+This repository has no routed `docs/` yet, so the detail the opening sentence mentions lives in the notes files
+below. Each library keeps its notes in a hand-written file next to its code
 (some agents load it automatically when working in that folder); read the one of the library you change:
 
 - `src/frontend-libraries/CLAUDE.md`: workspace-wide toolchain, testing (Vitest), linting, CI.
@@ -63,8 +64,10 @@ such project without a prior build. `npm test -- <flag>` reaches only the last c
 ## Before you commit
 
 1. `npm run lint` in `src/frontend-libraries`: 0 errors (CI runs it first and fails the build otherwise).
-2. `npm run build:prod`, then `npm test`: both green. For a change inside one library, its `build:<lib>` and
-   `test:<lib>` are enough while you work; run the full chain before the commit that touches more than one library.
+2. `npm run build:prod`, then `npm test`: both green. Keep this order even though the checklist in
+   `src/frontend-libraries/CLAUDE.md` lists the tests first: on a fresh checkout they need the built `dist/`. For a
+   change inside one library, its `build:<lib>` and `test:<lib>` are enough while you work; run the full chain before
+   the commit that touches more than one library.
 3. Changed dependencies: use `npm install <pkg>` or `npm uninstall <pkg>` so `package.json` and `package-lock.json`
    stay in sync (CI runs `npm ci`); never regenerate the lock file as a side effect.
 4. Update the `README.md` and the notes file of the library you changed in the same commit.
