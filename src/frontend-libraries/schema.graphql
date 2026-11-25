@@ -54240,7 +54240,7 @@ input SystemAttributeSearchFilterInput {
 }
 
 """
-Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1'
+Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1'
 """
 type SystemAutoIncrement implements SystemEntityInterface {
   associations(
@@ -54318,6 +54318,7 @@ type SystemAutoIncrement implements SystemEntityInterface {
   constructionKitType: CkType
   currentValue: Int!
   end: Int!
+  fiscalYearStartMonth: Int
   format: String
   mapsFrom(
     """Only return edges after the specified cursor."""
@@ -54387,6 +54388,9 @@ type SystemAutoIncrement implements SystemEntityInterface {
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemCommunicationDataPointMapping_MapsToUnionConnection
+  periodKind: SystemAutoIncrementPeriodKinds
+  periods: [SystemAutoIncrementPeriod!]
+  referenceTimeZone: String
   relatesFrom(
     """Only return edges after the specified cursor."""
     after: String
@@ -54455,6 +54459,7 @@ type SystemAutoIncrement implements SystemEntityInterface {
     """Sort order for items"""
     sortOrder: [Sort]
   ): SystemEntity_RelatesToUnionConnection
+  release: SystemNumberRangeRelease
   rtBlueprintAppliedAt: DateTime
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
@@ -54478,6 +54483,7 @@ type SystemAutoIncrement implements SystemEntityInterface {
   rtId: OctoObjectId!
   rtVersion: ULong
   rtWellKnownName: String
+  startValue: Int
   taggedBy(
     """Only return edges after the specified cursor."""
     after: String
@@ -54554,15 +54560,21 @@ input SystemAutoIncrementInput {
   configuredBy: [RtAssociationInput]
   currentValue: Int
   end: Int
+  fiscalYearStartMonth: Int
   format: String
   mapsFrom: [RtAssociationInput]
   mapsTo: [RtAssociationInput]
+  periodKind: SystemAutoIncrementPeriodKinds
+  periods: [SystemAutoIncrementPeriodInput]
+  referenceTimeZone: String
   relatesFrom: [RtAssociationInput]
   relatesTo: [RtAssociationInput]
+  release: SystemNumberRangeReleaseInput
   rtBlueprintAppliedAt: DateTime
   rtBlueprintLocked: Boolean
   rtBlueprintSource: String
   rtWellKnownName: String
+  startValue: Int
   taggedBy: [RtAssociationInput]
 }
 
@@ -54583,6 +54595,35 @@ type SystemAutoIncrementMutations {
 
   """Updates existing entity of type 'SystemAutoIncrement'."""
   update(entities: [SystemAutoIncrementInputUpdate]!): [SystemAutoIncrement]
+}
+
+"""
+Runtime entities of construction kit record 'System/AutoIncrementPeriod'
+"""
+type SystemAutoIncrementPeriod {
+  constructionKitType: CkType
+  currentValue: Int!
+  fiscalYear: Int!
+}
+
+input SystemAutoIncrementPeriodInput {
+  currentValue: Int
+  fiscalYear: Int
+}
+
+"""
+Runtime entities of construction kit enum 'System/AutoIncrementPeriodKinds'
+"""
+enum SystemAutoIncrementPeriodKinds {
+  """
+  One counter per fiscal year (Periods); the counter restarts at StartValue (or 1) when a fiscal year starts.
+  """
+  FISCAL_YEAR
+
+  """
+  One counter for the whole range (CurrentValue), as before System 2.9.0.
+  """
+  NONE
 }
 
 type SystemAutoIncrementUpdate {
@@ -90651,6 +90692,24 @@ type SystemNotificationStatefulEventUpdate {
 type SystemNotificationStatefulEventUpdateMessage {
   """The corresponding items"""
   items: [SystemNotificationStatefulEventUpdate]
+}
+
+"""
+Runtime entities of construction kit record 'System/NumberRangeRelease'
+"""
+type SystemNumberRangeRelease {
+  changeableAttributes: [String!]
+  constructionKitType: CkType
+  releasedValues: [String!]!
+  stateAttribute: String!
+  stornoCkTypeId: String
+}
+
+input SystemNumberRangeReleaseInput {
+  changeableAttributes: [String!]
+  releasedValues: [String!]
+  stateAttribute: String
+  stornoCkTypeId: String
 }
 
 """

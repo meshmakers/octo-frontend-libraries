@@ -731,6 +731,13 @@ npm run codegen
 The System.Communication 4.x merge (AB#5842) used the test-2-dev `meshdev` introspection with
 System.Communication 4.5.0.
 
+The System 2.9.0 number-range merge (AB#9810, `--prefix SystemAutoIncrement`) used the local `numbering-demo`
+introspection: that tenant carries only System and NumberingDemo, so the domain came without association fields of
+other models (a `meshtest` source adds `extractedSourceArtifacts` of System.Ai and pulls in 66 System.Ai types). It
+added `SystemAutoIncrementPeriod(Input)`, the enum `SystemAutoIncrementPeriodKinds` and the referenced
+`SystemNumberRangeRelease(Input)`. Before it, `schema.graphql` was put into the script's canonical order with a
+self-merge (0 types changed); keep running the script so the order stays canonical.
+
 **Watch `possibleTypes.ts` on the way out.** The committed file is ahead of the committed
 `schema.graphql` (it carries union members the snapshot lacks), so any `codegen` run deletes
 those entries as collateral. Revert that file unless the change actually touches unions —
