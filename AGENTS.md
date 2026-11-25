@@ -11,8 +11,8 @@ run every npm command from that folder.
 
 - Ten libraries under `projects/meshmakers/`: `shared-services`, `shared-auth`, `shared-ui`, `shared-ui-legacy`,
   `octo-services`, `octo-ui`, `octo-ui-legacy`, `octo-process-diagrams`, `octo-meshboard`, `octo-ai-console`.
-- `projects/demo-app` (the demo application, also built as a Docker image), `projects/legacy-demo-app` and
-  `projects/template-app`.
+- `projects/demo-app` (the demo application, also built as a Docker image) and `projects/legacy-demo-app`
+  (`projects/template-app` only holds a version file, it is no project).
 - Root `azure-pipelines.yml` runs lint, build and tests, then publishes the packages (public feed for tags `r*`,
   private feed for `main` and `test/*`). `scripts/` at the root holds the System CK guard.
 
@@ -26,7 +26,7 @@ The repository is public.
 <!-- <<< end generated: routing -->
 
 This repository has no routed `docs/` yet. Each library keeps its notes in a hand-written file next to its code
-(Claude Code loads it automatically when working in that folder); read the one of the library you change:
+(some agents load it automatically when working in that folder); read the one of the library you change:
 
 - `src/frontend-libraries/CLAUDE.md`: workspace-wide toolchain, testing (Vitest), linting, CI.
 - `src/frontend-libraries/projects/meshmakers/octo-meshboard/CLAUDE.md`
@@ -44,7 +44,7 @@ guard and the Telerik/Kendo licence setup.
 ## Build & test
 
 Needs Node.js 22.22.3 or newer (24.15 or 26 also work; Angular CLI 22 refuses older ones) and the environment
-variable `TELERIK_LICENSE` (`npm run build` and `npm start` activate the Kendo licence through
+variable `TELERIK_LICENSE` (`npm run build`, `npm run build:prod` and `npm start` activate the Kendo licence through
 `scripts/setup-license.js`). All commands run in `src/frontend-libraries`.
 
 ```bash
