@@ -10,6 +10,17 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### shared-ui: CSV export writes formatted dates as shown and numbers in the column format (AB#8836)
+
+- Fix: a column with a `formatter` (e.g. a MeshBoard table column in `labelFields`) was still marked as a date
+  column, and its formatted text was parsed again with `new Date()`: `01.11.2026` came out as `11.01.2026 00:00:00`
+  (days 1-12 swapped). Formatter text is now written exactly as the list shows it; only raw ISO 8601 strings of
+  `date` / `iso8601` columns without a formatter are parsed and written in the CSV locale.
+- `numeric` columns with a display `format` (Angular digits info, e.g. `1.2-2`) and no formatter are exported with
+  those digits and the locale decimal sign, without grouping, and a value that rounds to zero has no minus
+  (`-1.87e-11` is `0,00`). Columns without `format` keep the raw value. Affects the CSV export of every list view
+  (Refinery Studio, MeshBoard tables, apps). The Excel export is unchanged (raw field values).
+
 ### shared-ui: command palette text readable in light and dark mode (AB#7627)
 
 - Fix: the group headers, footer key hints, type hints, the empty text and the input placeholder of
