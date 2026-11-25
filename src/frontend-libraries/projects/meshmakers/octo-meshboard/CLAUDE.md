@@ -1978,7 +1978,7 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
 - `MeshBoardViewComponent`: `displayName` / `displayDescription` (computed: header and breadcrumb; an effect updates the
   breadcrumb after the initial load when the language changes), `widgetTitle(widget)` / `widgetDescription(widget)`
   (template, every `widget.title` of the view). `localizedText` logs one warning per subject, field and key list.
-- Info icon: `.widget-info` at the right end of the grid tile header, in `.widget-trailing` before the edit-mode actions with their gap `--widget-actions-gap`; the title truncates before it (`infoCircleIcon`, native `title` tooltip and
+- Info icon: `.widget-info` in the grid tile header directly after the title, centred on the title line, the title truncates before it (`infoCircleIcon` size `medium` = 16px, colour `--kendo-color-subtle` like the time-shift caption, native `title` tooltip and
   `aria-label`, focusable), only when `widgetDescription` is not empty. Banner widgets and chromeless tiles have no
   header in view mode, so no icon.
 - Persistence: `mapWidgetToInput` writes `titles` / `description` / `descriptions` into the `Config` JSON only when set;
