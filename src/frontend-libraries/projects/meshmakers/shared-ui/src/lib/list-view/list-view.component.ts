@@ -767,11 +767,16 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   /**
    * Writes the CSV file (AB#8123): header row with the column titles as in the Excel export, one
    * line per row; a column `formatter` wins over the raw value, as in the list.
+   *
+   * AB#8836: text a `formatter` wrote is exported as it is shown, never parsed as a date again;
+   * only raw `date` / `iso8601` values are dates. A `numeric` column without a formatter is
+   * written with its display format (`column.format`, e.g. `1.2-2`), as the list shows it.
    */
   private writeCsv(rows: unknown[]): void {
     const columns: CsvColumn[] = this._columns.map((column) => ({
       title: this.csvColumnTitle(column),
-      isDate: column.dataType === 'date' || column.dataType === 'iso8601',
+      isDate: !column.formatter && (column.dataType === 'date' || column.dataType === 'iso8601'),
+      numberFormat: !column.formatter && column.dataType === 'numeric' && column.format ? column.format : undefined,
       value: (row: unknown) => {
         const element = row as Record<string, unknown>;
         return column.formatter ? this.getFormattedValue(element, column) : this.getValue(element, column);

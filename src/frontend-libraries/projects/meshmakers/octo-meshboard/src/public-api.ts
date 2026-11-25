@@ -49,6 +49,7 @@ export type { CategoryStatus } from './lib/utils/chart-categories';
 
 // `?edit=1` opens a board in edit mode
 export { MESHBOARD_EDIT_QUERY_PARAM } from './lib/utils/edit-mode-url';
+export { timeFilterQueryParams } from './lib/utils/time-filter-url';
 
 // Header mode of an embedded board (input `headerMode` / route data `meshBoardHeaderMode`)
 export type { MeshBoardHeaderMode } from './lib/utils/meshboard-header';

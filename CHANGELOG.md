@@ -29,6 +29,26 @@ starts a new empty "Unreleased" section.
 - shared-ui: `ShellMessages.controlKey` and `CommandPaletteMessages.controlKey` (default "Ctrl") name the Control key in
   the shortcut hints of the top bar and the palette, e.g. "Strg K" on German keyboards. Apple platforms keep "⌘".
 
+### octo-meshboard: the viewer's time range carries over to other MeshBoards (AB#9737)
+
+- A time range the viewer chooses on one MeshBoard (time picker, reset to default, or a link with `tf_*` parameters)
+  is preselected on every MeshBoard opened afterwards in the same app, also over that board's own stored or default
+  selection; a change on any board updates it. A `tf_*` link and a host period still win; a board whose picker does
+  not offer the range's type keeps its own. Kept in memory only (`MeshBoardStateService.viewerTimeSelection`), gone
+  after a page reload; a board saved in edit mode stores the active range as its last-used selection, as after a pick. No host change needed. A host that fills missing `tf_*` parameters itself
+  (a route guard) reads `viewerTimeSelection()` first and writes it with the now exported `timeFilterQueryParams`.
+
+### shared-ui: CSV export writes formatted dates as shown and numbers in the column format (AB#8836)
+
+- Fix: a column with a `formatter` (e.g. a MeshBoard table column in `labelFields`) was still marked as a date
+  column, and its formatted text was parsed again with `new Date()`: `01.11.2026` came out as `11.01.2026 00:00:00`
+  (days 1-12 swapped). Formatter text is now written exactly as the list shows it; only raw ISO 8601 strings of
+  `date` / `iso8601` columns without a formatter are parsed and written in the CSV locale.
+- `numeric` columns with a display `format` (Angular digits info, e.g. `1.2-2`) and no formatter are exported with
+  those digits and the locale decimal sign, without grouping, and a value that rounds to zero has no minus
+  (`-1.87e-11` is `0,00`). Columns without `format` keep the raw value. Affects the CSV export of every list view
+  (Refinery Studio, MeshBoard tables, apps). The Excel export is unchanged (raw field values).
+
 ### shared-ui: command palette text readable in light and dark mode (AB#7627)
 
 - Fix: the group headers, footer key hints, type hints, the empty text and the input placeholder of
