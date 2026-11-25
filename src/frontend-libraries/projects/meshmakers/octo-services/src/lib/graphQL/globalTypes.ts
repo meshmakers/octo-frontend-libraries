@@ -32503,7 +32503,7 @@ export type SystemAttributeSearchFilterInputDto = {
   searchValue?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1' */
+/** Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1' */
 export type SystemAutoIncrementDto = SystemEntityInterfaceDto & {
   __typename?: 'SystemAutoIncrement';
   associations?: Maybe<RtEntityGenericDtoConnectionDto>;
@@ -32512,11 +32512,16 @@ export type SystemAutoIncrementDto = SystemEntityInterfaceDto & {
   constructionKitType?: Maybe<CkTypeDto>;
   currentValue: Scalars['Int']['output'];
   end: Scalars['Int']['output'];
+  fiscalYearStartMonth?: Maybe<Scalars['Int']['output']>;
   format?: Maybe<Scalars['String']['output']>;
   mapsFrom?: Maybe<SystemCommunicationDataPointMapping_MapsFromUnionConnectionDto>;
   mapsTo?: Maybe<SystemCommunicationDataPointMapping_MapsToUnionConnectionDto>;
+  periodKind?: Maybe<SystemAutoIncrementPeriodKindsDto>;
+  periods?: Maybe<Array<SystemAutoIncrementPeriodDto>>;
+  referenceTimeZone?: Maybe<Scalars['String']['output']>;
   relatesFrom?: Maybe<SystemEntity_RelatesFromUnionConnectionDto>;
   relatesTo?: Maybe<SystemEntity_RelatesToUnionConnectionDto>;
+  release?: Maybe<SystemNumberRangeReleaseDto>;
   rtBlueprintAppliedAt?: Maybe<Scalars['DateTime']['output']>;
   rtBlueprintLocked?: Maybe<Scalars['Boolean']['output']>;
   rtBlueprintSource?: Maybe<Scalars['String']['output']>;
@@ -32531,11 +32536,12 @@ export type SystemAutoIncrementDto = SystemEntityInterfaceDto & {
   rtId: Scalars['OctoObjectId']['output'];
   rtVersion?: Maybe<Scalars['ULong']['output']>;
   rtWellKnownName?: Maybe<Scalars['String']['output']>;
+  startValue?: Maybe<Scalars['Int']['output']>;
   taggedBy?: Maybe<SystemCommunicationTag_TaggedByUnionConnectionDto>;
 };
 
 
-/** Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1' */
+/** Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1' */
 export type SystemAutoIncrementAssociationsArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -32550,7 +32556,7 @@ export type SystemAutoIncrementAssociationsArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1' */
+/** Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1' */
 export type SystemAutoIncrementConfiguredByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -32564,7 +32570,7 @@ export type SystemAutoIncrementConfiguredByArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1' */
+/** Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1' */
 export type SystemAutoIncrementMapsFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -32578,7 +32584,7 @@ export type SystemAutoIncrementMapsFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1' */
+/** Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1' */
 export type SystemAutoIncrementMapsToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -32592,7 +32598,7 @@ export type SystemAutoIncrementMapsToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1' */
+/** Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1' */
 export type SystemAutoIncrementRelatesFromArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -32606,7 +32612,7 @@ export type SystemAutoIncrementRelatesFromArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1' */
+/** Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1' */
 export type SystemAutoIncrementRelatesToArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -32620,7 +32626,7 @@ export type SystemAutoIncrementRelatesToArgsDto = {
 };
 
 
-/** Runtime entities of construction kit type 'System-2.5.0/AutoIncrement-1' */
+/** Runtime entities of construction kit type 'System-2.9.0/AutoIncrement-1' */
 export type SystemAutoIncrementTaggedByArgsDto = {
   after?: InputMaybe<Scalars['String']['input']>;
   aggregations?: InputMaybe<ResultAggregationInputDto>;
@@ -32663,15 +32669,21 @@ export type SystemAutoIncrementInputDto = {
   configuredBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   currentValue?: InputMaybe<Scalars['Int']['input']>;
   end?: InputMaybe<Scalars['Int']['input']>;
+  fiscalYearStartMonth?: InputMaybe<Scalars['Int']['input']>;
   format?: InputMaybe<Scalars['String']['input']>;
   mapsFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   mapsTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  periodKind?: InputMaybe<SystemAutoIncrementPeriodKindsDto>;
+  periods?: InputMaybe<Array<InputMaybe<SystemAutoIncrementPeriodInputDto>>>;
+  referenceTimeZone?: InputMaybe<Scalars['String']['input']>;
   relatesFrom?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
   relatesTo?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
+  release?: InputMaybe<SystemNumberRangeReleaseInputDto>;
   rtBlueprintAppliedAt?: InputMaybe<Scalars['DateTime']['input']>;
   rtBlueprintLocked?: InputMaybe<Scalars['Boolean']['input']>;
   rtBlueprintSource?: InputMaybe<Scalars['String']['input']>;
   rtWellKnownName?: InputMaybe<Scalars['String']['input']>;
+  startValue?: InputMaybe<Scalars['Int']['input']>;
   taggedBy?: InputMaybe<Array<InputMaybe<RtAssociationInputDto>>>;
 };
 
@@ -32700,6 +32712,27 @@ export type SystemAutoIncrementMutationsCreateArgsDto = {
 export type SystemAutoIncrementMutationsUpdateArgsDto = {
   entities: Array<InputMaybe<SystemAutoIncrementInputUpdateDto>>;
 };
+
+/** Runtime entities of construction kit record 'System/AutoIncrementPeriod' */
+export type SystemAutoIncrementPeriodDto = {
+  __typename?: 'SystemAutoIncrementPeriod';
+  constructionKitType?: Maybe<CkTypeDto>;
+  currentValue: Scalars['Int']['output'];
+  fiscalYear: Scalars['Int']['output'];
+};
+
+export type SystemAutoIncrementPeriodInputDto = {
+  currentValue?: InputMaybe<Scalars['Int']['input']>;
+  fiscalYear?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** Runtime entities of construction kit enum 'System/AutoIncrementPeriodKinds' */
+export enum SystemAutoIncrementPeriodKindsDto {
+  /** One counter per fiscal year (Periods); the counter restarts at StartValue (or 1) when a fiscal year starts. */
+  FiscalYearDto = 'FISCAL_YEAR',
+  /** One counter for the whole range (CurrentValue), as before System 2.9.0. */
+  NoneDto = 'NONE'
+}
 
 export type SystemAutoIncrementUpdateDto = {
   __typename?: 'SystemAutoIncrementUpdate';
@@ -54143,6 +54176,23 @@ export type SystemNotificationStatefulEventUpdateMessageDto = {
   __typename?: 'SystemNotificationStatefulEventUpdateMessage';
   /** The corresponding items */
   items?: Maybe<Array<Maybe<SystemNotificationStatefulEventUpdateDto>>>;
+};
+
+/** Runtime entities of construction kit record 'System/NumberRangeRelease' */
+export type SystemNumberRangeReleaseDto = {
+  __typename?: 'SystemNumberRangeRelease';
+  changeableAttributes?: Maybe<Array<Scalars['String']['output']>>;
+  constructionKitType?: Maybe<CkTypeDto>;
+  releasedValues: Array<Scalars['String']['output']>;
+  stateAttribute: Scalars['String']['output'];
+  stornoCkTypeId?: Maybe<Scalars['String']['output']>;
+};
+
+export type SystemNumberRangeReleaseInputDto = {
+  changeableAttributes?: InputMaybe<Array<Scalars['String']['input']>>;
+  releasedValues?: InputMaybe<Array<Scalars['String']['input']>>;
+  stateAttribute?: InputMaybe<Scalars['String']['input']>;
+  stornoCkTypeId?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Runtime entities of construction kit type 'System-2.5.0/PersistentQuery-1' */
