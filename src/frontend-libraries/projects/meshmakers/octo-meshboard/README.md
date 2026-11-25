@@ -1075,7 +1075,8 @@ Which range a board opens with:
 
 The shared range is kept in memory (`MeshBoardStateService.viewerTimeSelection`) and lasts as long as the app is
 open; a reload of the page starts without it. A board's picker emitting its built-in start value (a board with neither
-a stored nor a default selection) is not a choice and is not shared. Applied to a board, the shared range becomes that
+a stored nor a default selection) is not a choice and is not shared, nor are the `tf_*` parameters the view writes
+itself when the viewer switches boards inside the same view (only the link the view was opened with counts). Applied to a board, the shared range becomes that
 board's active selection like a pick: saving the board in edit mode stores it as the board's last-used selection. A host whose route guard
 fills missing `tf_*` parameters itself (the Energy Community statistics pages do) must take
 `MeshBoardStateService.viewerTimeSelection()` first, serialized with `timeFilterQueryParams(selection)` (drop the

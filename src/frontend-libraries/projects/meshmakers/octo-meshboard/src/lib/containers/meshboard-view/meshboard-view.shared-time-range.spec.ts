@@ -130,6 +130,16 @@ describe('MeshBoardViewComponent - time range shared across MeshBoards (AB#9737)
     return fixture;
   }
 
+  async function switchInView(fixture: ComponentFixture<MeshBoardViewComponent>, config: MeshBoardConfig): Promise<void> {
+    boardConfig = config;
+    await state.switchToMeshBoard(config.id);
+    for (let i = 0; i < 3; i++) {
+      fixture.detectChanges();
+      await fixture.whenStable();
+    }
+    fixture.detectChanges();
+  }
+
   function picker(fixture: ComponentFixture<MeshBoardViewComponent>): TimeRangePickerComponent {
     const element = fixture.debugElement.query(By.directive(TimeRangePickerComponent));
     expect(element).not.toBeNull();
@@ -243,6 +253,32 @@ describe('MeshBoardViewComponent - time range shared across MeshBoards (AB#9737)
     await openBoard(board('statistics', STATISTICS_FILTER), { from: '2026-03-28T05:00:00Z', to: '2026-03-29T04:00:00Z' });
     expect(windowFrom()).toBe('2026-03-28T05:00:00.000Z');
     expect(state.getVariable('timeRangeTo')?.value).toBe('2026-03-29T04:00:00.000Z');
+  });
+
+  it('a board switch inside one view does not turn the tf_* the view wrote itself into a viewer choice', async () => {
+    const view = await openBoard(board('dashboard', DASHBOARD_FILTER));
+    queryParams = { tf_type: 'year', tf_year: '2026' };
+
+    await switchInView(view, board('statistics', STATISTICS_FILTER));
+    expect(state.viewerTimeSelection()).toBeNull();
+
+    queryParams = {};
+    const later = await openBoard(board('later', STATISTICS_FILTER));
+    expect(preselected(later)).toEqual({ type: 'year', year: 2025, quarter: undefined, month: undefined });
+  });
+
+  it('a board switch inside one view shows the new board\'s own range when the shared one does not apply', async () => {
+    const view = await openBoard(board('dashboard', DASHBOARD_FILTER));
+    await choose(view, { type: 'month', year: 2026, month: 2 });
+    queryParams = {};
+
+    await switchInView(view, board('statistics', {
+      ...STATISTICS_FILTER,
+      pickerConfig: { showTime: false, availableTypes: ['year'] },
+      selection: { type: 'year', year: 2024 }
+    }));
+    expect(preselected(view)).toEqual({ type: 'year', year: 2024, quarter: undefined, month: undefined });
+    expect(windowFrom()).toBe('2023-12-31T23:00:00.000Z');
   });
 
   it('a board whose picker does not offer the shared range type keeps its own default', async () => {

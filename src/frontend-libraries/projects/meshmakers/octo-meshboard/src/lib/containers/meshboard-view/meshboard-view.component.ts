@@ -297,6 +297,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly isTimeFilterEnabled = computed(() => this.stateService.isTimeFilterEnabled());
   protected readonly timeFilterConfig = computed(() => this.stateService.getTimeFilterConfig());
   private readonly _urlTimeSelection = signal<TimeRangeSelection | null>(null);
+  private timeFilterInitialized = false;
   protected readonly initialTimeSelection = computed(() => {
     // Priority: URL selection > stored selection > default selection
     const urlSelection = this._urlTimeSelection();
@@ -644,6 +645,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * A period set by the host (`timeRange`, AB#7582) takes precedence over both.
    */
   private initializeTimeFilterVariables(): void {
+    this._urlTimeSelection.set(null);
     if (this.applyHostTimeRange(this.parsedHostTimeRange())) {
       return;
     }
@@ -651,6 +653,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     if (!timeFilter?.enabled) {
       return;
     }
+    const urlIsOpeningLink = !this.timeFilterInitialized;
+    this.timeFilterInitialized = true;
 
     // Check URL query params first (takes precedence over stored selection). Once the host has
     // owned the period, the tf_* of the opening URL are stale and are not applied again.
@@ -666,7 +670,9 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       if (range) {
         const rangeISO = TimeRangeUtils.toISO(range);
         this.stateService.updateTimeFilterSelection(urlSelection, rangeISO.from, rangeISO.to);
-        this.stateService.setViewerTimeSelection(urlSelection);
+        if (urlIsOpeningLink) {
+          this.stateService.setViewerTimeSelection(urlSelection);
+        }
       }
       return;
     }
