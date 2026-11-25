@@ -1134,6 +1134,18 @@ export class MeshBoardStateService {
   /** The view (or other caller) that set the current host period, if it said so. */
   private hostTimeRangeOwner: object | null = null;
 
+  /**
+   * Time range the viewer last chose on any MeshBoard of this app (AB#9737). Every board opened
+   * afterwards starts with it instead of its own stored or default selection. Transient: lives as
+   * long as the app, never persisted, never cleared on board switch.
+   */
+  private readonly _viewerTimeSelection = signal<TimeRangeSelection | null>(null);
+  readonly viewerTimeSelection = this._viewerTimeSelection.asReadonly();
+
+  setViewerTimeSelection(selection: TimeRangeSelection | null): void {
+    this._viewerTimeSelection.set(selection ? { ...selection } : null);
+  }
+
   /** The period set by the embedding host, or `null` when the board's own selection applies. */
   readonly hostTimeRange = this._hostTimeRange.asReadonly();
 

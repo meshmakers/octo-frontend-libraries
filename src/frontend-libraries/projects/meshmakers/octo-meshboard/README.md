@@ -1058,6 +1058,30 @@ interface MeshBoardTimeFilterConfig {
 }
 ```
 
+### The viewer's time range carries over to other MeshBoards (AB#9737)
+
+The time range a viewer chooses on one MeshBoard is preselected on every MeshBoard opened afterwards in the same
+app, like Kibana's global time in a session: switching from one board to another (for example two tabs of an app,
+each a route with its own `mm-meshboard-view`) keeps the range. Every change counts: a pick in the time picker, the
+reset to the board's default and a link that opens a board with `tf_*` parameters. Hosts need no change.
+
+Which range a board opens with:
+
+1. the host period (`timeRange` input, AB#7582);
+2. `tf_*` parameters in the URL;
+3. the viewer's shared range, also over the board's own stored or default selection, as long as the board's picker
+   offers its type (`pickerConfig.availableTypes`); otherwise the board keeps its own;
+4. the board's stored selection, then its default selection.
+
+The shared range is kept in memory (`MeshBoardStateService.viewerTimeSelection`) and lasts as long as the app is
+open; a reload of the page starts without it. A board's picker emitting its built-in start value (a board with neither
+a stored nor a default selection) is not a choice and is not shared, nor are the `tf_*` parameters the view writes
+itself when the viewer switches boards inside the same view (only the link the view was opened with counts). Applied to a board, the shared range becomes that
+board's active selection like a pick: saving the board in edit mode stores it as the board's last-used selection. A host whose route guard
+fills missing `tf_*` parameters itself (the Energy Community statistics pages do) must take
+`MeshBoardStateService.viewerTimeSelection()` first, serialized with `timeFilterQueryParams(selection)` (drop the
+`null` entries), or its parameters win over the shared range.
+
 ### Stream-data widgets: automatic time-range binding
 
 For widgets backed by a **stream-data** persistent query, the active time filter
