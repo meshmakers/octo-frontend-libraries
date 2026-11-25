@@ -25,8 +25,8 @@ The repository is public.
 |---|---|
 <!-- <<< end generated: routing -->
 
-This repository has no routed `docs/` yet. Each library keeps its notes in a hand-written file next to its code,
-loaded automatically when you work in that folder; read the one of the library you change:
+This repository has no routed `docs/` yet. Each library keeps its notes in a hand-written file next to its code
+(Claude Code loads it automatically when working in that folder); read the one of the library you change:
 
 - `src/frontend-libraries/CLAUDE.md`: workspace-wide toolchain, testing (Vitest), linting, CI.
 - `src/frontend-libraries/projects/meshmakers/octo-meshboard/CLAUDE.md`
@@ -52,7 +52,7 @@ npm ci --prefer-offline --no-audit --no-fund   # install exactly the locked vers
 npm run lint                                   # System CK guard, i18n check, ng lint of all 12 projects
 npm run build:prod                             # every library and the demo app, each with its lint first
 npm test                                       # Vitest, one project after the other (ten scripts)
-npm run test:shared-auth                       # one project; ng test <project> --watch=false --include=<spec>
+npm run test:shared-auth                       # one project; add `-- --include=<spec>` for a single spec
 ```
 
 Build before you test on a fresh checkout: `tsconfig.json` maps `@meshmakers/*` to `./dist/meshmakers/*`, so the
@@ -75,20 +75,23 @@ such project without a prior build. `npm test -- <flag>` reaches only the last c
 
 - **This repository is public.** No work item ids, internal hostnames, customer or tenant names, or secrets in docs
   and in new or changed code comments and test names; remove an existing one when you touch its line.
-  Exception: the `workItem` field of `scripts/system-ck-exceptions.json`, which the System CK guard requires
+  Exceptions: `CHANGELOG.md` references the work item of every entry by convention (`CHANGELOG.md:4`), and the
+  `workItem` field of `scripts/system-ck-exceptions.json` is required by the System CK guard
   (`scripts/check-system-ck-only.mjs:139`).
 - **The libraries use System CK models only.** `scripts/check-system-ck-only.mjs --strict` runs as the first step of
   `npm run lint` and of the Lint step in `azure-pipelines.yml`; use System examples in code, GraphQL documents, README
   and library notes, and never import `demo-app` or `legacy-demo-app` from a library
-  (`scripts/system-ck-allowlist.json`, `importBoundaries`). Exception: the baseline in
-  `scripts/system-ck-exceptions.json` may only shrink; a new entry needs a reason and a work item
-  (the script rejects one without).
+  (`scripts/system-ck-allowlist.json`, `importBoundaries`). Exceptions are listed in
+  `scripts/system-ck-exceptions.json`: the `maxCount` of an entry may only go down, and a new entry needs `reason`
+  and `workItem`, which the script checks (`scripts/check-system-ck-only.mjs:137-139`).
 - **A library that ships translations keeps `i18n/en.json` and `i18n/de.json` in parity.** `npm run i18n:check`
-  (`src/frontend-libraries/scripts/i18n-check.mjs`) fails on a key present in one file only; it runs in `npm run lint`
-  and in CI.
-- **A new feature or changed behaviour comes with a spec in the same library.** `npm test` runs the specs of every
-  library in CI; a failing spec stops the publish stage (`azure-pipelines.yml`, Build stage). Specs live next to the
-  code as `*.spec.ts` (Vitest through `@angular/build:unit-test`).
+  (`src/frontend-libraries/scripts/i18n-check.mjs`) fails on a key present in one file only, on differing
+  placeholders and on a key outside the library's `MM.<LIB>.` namespace; it runs in `npm run lint` and in the Lint
+  step of CI.
+- **A new feature or changed behaviour comes with a spec in the same library.** CI runs
+  `npm run test:<lib>` for every library with a test target (`azure-pipelines.yml:204-237`, "Run library unit tests"),
+  and a failing spec stops the Publish stage. Specs live next to the code as `*.spec.ts` (Vitest through
+  `@angular/build:unit-test`). Exception: `shared-ui-legacy` and `octo-ui-legacy` have no test target.
 - **`package.json` and `package-lock.json` change together, by targeted `npm install`/`npm uninstall`.** CI runs
-  `npm ci`, which fails when they disagree; a full lock file regeneration floats every transitive dependency and is its
-  own reviewed commit, not part of a feature.
+  `npm ci` (`azure-pipelines.yml:104`), which fails when they disagree; a full lock
+  file regeneration floats every transitive dependency and is its own reviewed commit, not part of a feature.
