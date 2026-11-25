@@ -1,4 +1,4 @@
-import { buildCsv, CsvColumn, CsvValueFormatter, quoteCsvField } from './list-view-csv';
+import { buildCsv, CsvColumn, CsvValueFormatter, parseCsvDigitsInfo, quoteCsvField } from './list-view-csv';
 
 const BOM = '\uFEFF';
 
@@ -155,5 +155,120 @@ describe('CsvValueFormatter', () => {
     expect(formatter.format(Number.NaN)).toBe('');
     expect(formatter.format(1234567.891)).toBe('1234567.891');
     expect(formatter.format(undefined)).toBe('');
+  });
+});
+
+describe('CSV export of formatted dates (AB#8836)', () => {
+  const dayColumn = (isDate: boolean): CsvColumn => ({ title: 'Tag', value: (r) => (r as { day: unknown }).day, isDate });
+
+  it('never re-parses formatter text in a date column: days 1-12 keep their order', () => {
+    for (const locale of ['de-AT', 'en-GB', null]) {
+      const csv = buildCsv([{ day: '01.11.2026' }, { day: '12.11.2026' }, { day: '13.11.2026' }, { day: '01/11/2026' }],
+        [dayColumn(true)], { separator: ';', locale });
+
+      expect(csv).toBe(`${BOM}Tag\r\n01.11.2026\r\n12.11.2026\r\n13.11.2026\r\n01/11/2026\r\n`);
+    }
+  });
+
+  it('writes formatter text of an unmarked column as it is (the list view marks no formatted column as date)', () => {
+    const csv = buildCsv([{ day: '01.11.2026' }, { day: '01/11/2026' }], [dayColumn(false)], { separator: ';', locale: 'de-AT' });
+
+    expect(csv).toBe(`${BOM}Tag\r\n01.11.2026\r\n01/11/2026\r\n`);
+  });
+
+  it('formats real ISO 8601 strings of unformatted date columns in the locale (de-AT, en-GB) or as ISO without one', () => {
+    const rows = [{ day: '2026-11-01T10:00:00' }, { day: '2026-11-12 10:30' }, { day: '2026-11-13T10:00:00.5' }, { day: '2026-11-01' }];
+
+    expect(buildCsv(rows, [dayColumn(true)], { separator: ';', locale: 'de-AT' }))
+      .toBe(`${BOM}Tag\r\n01.11.2026 10:00:00\r\n12.11.2026 10:30:00\r\n13.11.2026 10:00:00\r\n01.11.2026\r\n`);
+    expect(buildCsv(rows, [dayColumn(true)], { separator: ';', locale: 'en-GB' }))
+      .toBe(`${BOM}Tag\r\n01/11/2026 10:00:00\r\n12/11/2026 10:30:00\r\n13/11/2026 10:00:00\r\n01/11/2026\r\n`);
+    expect(buildCsv([{ day: '2026-11-01T10:00:00Z' }, { day: '2026-11-01T11:00:00+01:00' }], [dayColumn(true)], { separator: ';', locale: null }))
+      .toBe(`${BOM}Tag\r\n2026-11-01T10:00:00.000Z\r\n2026-11-01T10:00:00.000Z\r\n`);
+  });
+
+  it('keeps text that only looks like a date-time as text', () => {
+    const csv = buildCsv([{ day: '2026-11-01T25:99' }, { day: 'Nov 1, 2026' }, { day: '1.11.2026 10:00' }], [dayColumn(true)],
+      { separator: ';', locale: 'de-AT' });
+
+    expect(csv).toBe(`${BOM}Tag\r\n2026-11-01T25:99\r\nNov 1, 2026\r\n1.11.2026 10:00\r\n`);
+  });
+});
+
+describe('CSV export of numbers in the column display format (AB#8836)', () => {
+  const amountColumn = (numberFormat?: string): CsvColumn => ({ title: 'Menge', value: (r) => (r as { v: unknown }).v, numberFormat });
+  const lines = (csv: string) => csv.replace(BOM, '').split('\r\n').slice(1, -1);
+
+  it('writes the digits of the format with the locale decimal sign and no grouping', () => {
+    const rows = [{ v: 1199364 }, { v: 12.345 }, { v: 1234567.891 }, { v: -3.5 }];
+
+    expect(lines(buildCsv(rows, [amountColumn('1.2-2')], { separator: ';', locale: 'de-AT' })))
+      .toEqual(['1199364,00', '12,35', '1234567,89', '-3,50']);
+    expect(lines(buildCsv(rows, [amountColumn('1.2-2')], { separator: ';', locale: 'en-GB' })))
+      .toEqual(['1199364.00', '12.35', '1234567.89', '-3.50']);
+    expect(lines(buildCsv(rows, [amountColumn('1.2-2')], { separator: ';', locale: null })))
+      .toEqual(['1199364.00', '12.35', '1234567.89', '-3.50']);
+  });
+
+  it('writes a negative residue that rounds to zero without a minus', () => {
+    const rows = [{ v: -1.8701e-11 }, { v: -0.004 }, { v: -0 }];
+
+    expect(lines(buildCsv(rows, [amountColumn('1.2-2')], { separator: ';', locale: 'de-AT' }))).toEqual(['0,00', '0,00', '0,00']);
+    expect(lines(buildCsv(rows, [amountColumn('1.0-0')], { separator: ';', locale: 'en-GB' }))).toEqual(['0', '0', '0']);
+  });
+
+  it('keeps the raw value without a format or with a format that is no digits info', () => {
+    const rows = [{ v: -1.8701e-11 }, { v: 1199364 }];
+
+    for (const format of [undefined, '', 'n2', '1.3-2']) {
+      expect(lines(buildCsv(rows, [amountColumn(format)], { separator: ';', locale: 'de-AT' })))
+        .toEqual(['-0,000000000018701', '1199364']);
+    }
+  });
+
+  it('leaves non-number values of a formatted numeric column alone', () => {
+    const rows = [{ v: null }, { v: '12,5 kWh' }, { v: Number.NaN }];
+
+    expect(lines(buildCsv(rows, [amountColumn('1.2-2')], { separator: ';', locale: 'de-AT' }))).toEqual(['', '12,5 kWh', '']);
+  });
+});
+
+describe('parseCsvDigitsInfo (AB#8836)', () => {
+  it('reads Angular DecimalPipe digits info with its defaults', () => {
+    expect(parseCsvDigitsInfo('1.2-2')).toEqual({ minIntegerDigits: 1, minFractionDigits: 2, maxFractionDigits: 2 });
+    expect(parseCsvDigitsInfo('3.1-5')).toEqual({ minIntegerDigits: 3, minFractionDigits: 1, maxFractionDigits: 5 });
+    expect(parseCsvDigitsInfo('.0-0')).toEqual({ minIntegerDigits: 1, minFractionDigits: 0, maxFractionDigits: 0 });
+    expect(parseCsvDigitsInfo('1.')).toEqual({ minIntegerDigits: 1, minFractionDigits: 0, maxFractionDigits: 3 });
+    expect(parseCsvDigitsInfo('1.5')).toEqual({ minIntegerDigits: 1, minFractionDigits: 5, maxFractionDigits: 5 });
+  });
+
+  it('refuses anything else', () => {
+    for (const text of [null, undefined, '', 'n2', '1.3-2', '0.2-2', '1-2', 'abc']) {
+      expect(parseCsvDigitsInfo(text)).toBeNull();
+    }
+  });
+});
+
+describe('CSV export review round 1 (AB#8836)', () => {
+  it('keeps an ISO date-time on an impossible calendar day as text, and formats a valid leap day', () => {
+    const column: CsvColumn = { title: 'At', value: (r) => (r as { at: unknown }).at, isDate: true };
+    const rows = [{ at: '2025-02-30T10:00:00Z' }, { at: '2025-13-01T10:00:00' }, { at: '2024-02-29T10:00:00' }];
+
+    expect(buildCsv(rows, [column], { separator: ';', locale: 'de-AT' }))
+      .toBe(`${BOM}At\r\n2025-02-30T10:00:00Z\r\n2025-13-01T10:00:00\r\n29.02.2024 10:00:00\r\n`);
+  });
+
+  it('falls back to the raw number when the engine refuses the display number options', () => {
+    const original = Intl.NumberFormat;
+    vi.spyOn(Intl, 'NumberFormat').mockImplementation(function (locales?: string | string[], options?: Intl.NumberFormatOptions) {
+      if (options?.signDisplay) {
+        throw new RangeError('signDisplay not supported');
+      }
+      return new original(locales, options);
+    } as unknown as typeof Intl.NumberFormat);
+    const column: CsvColumn = { title: 'Menge', value: (r) => (r as { v: unknown }).v, numberFormat: '1.2-2' };
+
+    expect(buildCsv([{ v: 12.345 }, { v: 7 }], [column], { separator: ';', locale: 'de-AT' }))
+      .toBe(`${BOM}Menge\r\n12,345\r\n7\r\n`);
   });
 });
