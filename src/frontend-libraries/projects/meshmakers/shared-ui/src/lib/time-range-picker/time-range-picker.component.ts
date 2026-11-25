@@ -73,9 +73,16 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
   @Input() config: TimeRangePickerConfig = {};
 
   /**
-   * Custom labels for the UI
+   * Custom labels for the UI. A new object relabels the picker.
    */
-  @Input() labels: TimeRangePickerLabels = {};
+  @Input()
+  set labels(value: TimeRangePickerLabels | null | undefined) {
+    this.labelsInput.set(value ?? {});
+  }
+  get labels(): TimeRangePickerLabels {
+    return this.labelsInput();
+  }
+  private readonly labelsInput = signal<TimeRangePickerLabels>({});
 
   /**
    * Initial selection to set
@@ -113,7 +120,7 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
   // Merged labels with defaults
   protected mergedLabels = computed(() => ({
     ...DEFAULT_TIME_RANGE_LABELS,
-    ...this.labels
+    ...this.labelsInput()
   }));
 
   // Options for dropdowns
@@ -242,9 +249,6 @@ export class TimeRangePickerComponent implements OnInit, OnChanges {
         this.applySelection(this.initialSelection);
         this.emitChange();
       }
-    }
-    if (changes['labels']) {
-      // Labels are handled by computed signal
     }
   }
 

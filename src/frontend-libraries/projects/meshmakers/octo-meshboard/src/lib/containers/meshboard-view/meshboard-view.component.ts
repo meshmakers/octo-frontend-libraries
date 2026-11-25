@@ -37,6 +37,7 @@ import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmpty
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
+import { injectMeshBoardLanguage, resolveLocalizedText } from '../../utils/meshboard-language';
 import {
   MeshBoardHostTimeRange,
   MeshBoardTimeFilterControl,
@@ -169,6 +170,18 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   // State signals
   protected readonly config = this.stateService.meshBoardConfig;
+  private readonly language: ReturnType<typeof injectMeshBoardLanguage>;
+  private readonly warnedLocalizedTexts = new Set<string>();
+  /** The board name in the host language (`names`, else `name`); header and breadcrumb. */
+  protected readonly displayName = computed(() => {
+    const config = this.config();
+    return this.localizedText(`MeshBoard "${config.name}"`, 'names', config.name, config.names);
+  });
+  /** The board description in the host language (`descriptions`, else `description`). */
+  protected readonly displayDescription = computed(() => {
+    const config = this.config();
+    return this.localizedText(`MeshBoard "${config.name}"`, 'descriptions', config.description ?? '', config.descriptions);
+  });
   protected readonly isEditMode = this.editModeService.isEditMode;
   protected readonly isSaving = this.editModeService.isSaving;
   protected readonly isLoading = this.stateService.isLoading;
@@ -183,7 +196,10 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
   protected readonly isReadonly = this._isReadonly.asReadonly();
   private readonly _hideEntitySelectors = signal(false);
   protected readonly hideEntitySelectors = this._hideEntitySelectors.asReadonly();
-  protected readonly timeRangeLabels = signal<TimeRangePickerLabels>({});
+  private readonly routeTimeRangeLabels = signal<TimeRangePickerLabels | undefined>(undefined);
+  /** Picker labels: route data `timeRangeLabels` when set, else the host's MeshBoard messages. */
+  protected readonly timeRangeLabels = computed<TimeRangePickerLabels>(() =>
+    this.routeTimeRangeLabels() ?? this.messages().timeRangeLabels ?? {});
 
   /**
    * How much of the header the host shows: `full` (default) with name and description,
@@ -339,6 +355,14 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
 
   constructor() {
     this.messages = injectMeshBoardMessages();
+    this.language = injectMeshBoardLanguage();
+
+    effect(() => {
+      this.displayName();
+      if (this.initialLoadComplete) {
+        untracked(() => this.updateBreadcrumb());
+      }
+    });
 
     // Effect to sync URL when dashboard changes (after initial load)
     effect(() => {
@@ -384,7 +408,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       this.navigationSubscription = this.router.events
         .pipe(filter(event => event instanceof NavigationEnd))
         .subscribe(() => {
-          const name = this.config().name;
+          const name = this.displayName();
           if (name) {
             this.breadCrumbService!.updateBreadcrumbLabels({ name });
           }
@@ -392,11 +416,38 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     }
   }
 
+  /** The widget title in the host language (`titles`, else `title`). */
+  protected widgetTitle(widget: AnyWidgetConfig): string {
+    return this.localizedText(`widget "${widget.title}" (${widget.id})`, 'titles', widget.title, widget.titles);
+  }
+
+  /** The widget explanation in the host language (`descriptions`, else `description`); '' = no info icon. */
+  protected widgetDescription(widget: AnyWidgetConfig): string {
+    return this.localizedText(`widget "${widget.title}" (${widget.id})`, 'descriptions', widget.description ?? '', widget.descriptions);
+  }
+
+  /**
+   * Resolves an author text for the host language. Ignored per-language entries are logged once per
+   * subject, field and set of keys; the single text is shown instead.
+   */
+  private localizedText(subject: string, field: string, fallback: string, texts: unknown): string {
+    const resolution = resolveLocalizedText(fallback, texts, this.language());
+    if (resolution.ignoredKeys.length > 0) {
+      const keys = resolution.ignoredKeys.map(key => `"${key}"`).join(', ');
+      const warningKey = `${subject}|${field}|${keys}`;
+      if (!this.warnedLocalizedTexts.has(warningKey)) {
+        this.warnedLocalizedTexts.add(warningKey);
+        console.warn(`octo-meshboard: ${subject}: ignoring ${field} entries ${keys} (no culture key or no text)`);
+      }
+    }
+    return resolution.text;
+  }
+
   /**
    * Updates the breadcrumb with the current MeshBoard name.
    */
   private updateBreadcrumb(): void {
-    const name = this.config().name;
+    const name = this.displayName();
     if (name && this.breadCrumbService) {
       this.breadCrumbService.updateBreadcrumbLabels({ name });
     }
@@ -469,7 +520,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
       this.routeHeaderMode.set(this.route.snapshot.data[MESHBOARD_HEADER_MODE_ROUTE_DATA]);
       this.routeChrome.set(this.route.snapshot.data[MESHBOARD_CHROME_ROUTE_DATA]);
       const labels = this.route.snapshot.data['timeRangeLabels'] as TimeRangePickerLabels | undefined;
-      if (labels) this.timeRangeLabels.set(labels);
+      if (labels) this.routeTimeRangeLabels.set(labels);
 
       if (rtIdFromRoute) {
         // Load specific MeshBoard from URL parameter

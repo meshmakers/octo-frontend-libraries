@@ -94,3 +94,60 @@ export function pickLocalizedText(texts: Readonly<Record<string, string>> | null
   }
   return languageMatch;
 }
+
+/**
+ * Keeps the usable entries of a per-language text map: culture keys with a non-empty string text.
+ * Bad culture keys are pushed to `unknownCultureKeys`; the keys of entries with a non-string or
+ * empty text are returned as `malformedKeys`.
+ */
+export function cleanLocalizedTexts(
+  texts: Record<string, unknown>,
+  unknownCultureKeys: string[]
+): { texts: Record<string, string>; malformedKeys: string[] } {
+  const clean: Record<string, string> = {};
+  const malformedKeys: string[] = [];
+  for (const [key, text] of Object.entries(texts)) {
+    if (!isCultureKey(key)) {
+      unknownCultureKeys.push(key);
+      continue;
+    }
+    if (typeof text !== 'string' || text === '') {
+      malformedKeys.push(key);
+      continue;
+    }
+    clean[key] = text;
+  }
+  return { texts: clean, malformedKeys };
+}
+
+/** An author text resolved for the host language, with the entries that were ignored. */
+export interface LocalizedTextResolution {
+  /** The text to show: the per-language entry for the language, else the single fallback text. */
+  text: string;
+  /**
+   * Ignored entries of the per-language map: keys that are no culture code, keys with a non-string
+   * or empty text, and `'*'` when the map itself is no object. Empty when nothing was ignored.
+   */
+  ignoredKeys: string[];
+}
+
+/**
+ * Resolves an author text that has a single default (`title`, `name`, `description`) and an
+ * optional per-language map (`titles`, `names`, `descriptions`) for the host language, with
+ * {@link pickLocalizedText}. Unusable entries are ignored and reported in `ignoredKeys`; without a
+ * language or a matching entry the single text is returned.
+ */
+export function resolveLocalizedText(fallback: string, texts: unknown, language: string | null | undefined): LocalizedTextResolution {
+  if (texts === undefined || texts === null) {
+    return { text: fallback, ignoredKeys: [] };
+  }
+  if (typeof texts !== 'object' || Array.isArray(texts)) {
+    return { text: fallback, ignoredKeys: ['*'] };
+  }
+  const unknownCultureKeys: string[] = [];
+  const cleaned = cleanLocalizedTexts(texts as Record<string, unknown>, unknownCultureKeys);
+  return {
+    text: pickLocalizedText(cleaned.texts, language) ?? fallback,
+    ignoredKeys: [...unknownCultureKeys, ...cleaned.malformedKeys]
+  };
+}

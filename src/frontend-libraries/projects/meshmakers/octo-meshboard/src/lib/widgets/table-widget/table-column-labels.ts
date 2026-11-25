@@ -1,6 +1,6 @@
 import { formatDate, formatNumber } from '@angular/common';
 import { TableColumn } from '../../models/meshboard.models';
-import { isCultureKey, pickLocalizedText } from '../../utils/meshboard-language';
+import { cleanLocalizedTexts, pickLocalizedText } from '../../utils/meshboard-language';
 
 /**
  * Pure helpers for the per-language titles and value labels of table widget columns (AB#7655).
@@ -33,31 +33,6 @@ export function emptyLabelProblems(): TableColumnLabelProblems {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/**
- * Keeps the usable entries of a per-language text map: culture keys with a non-empty string text.
- * Bad culture keys are reported; the keys of entries with a non-string or empty text are returned
- * as `malformedKeys`.
- */
-function cleanLocalizedTexts(
-  texts: Record<string, unknown>,
-  unknownCultureKeys: string[]
-): { texts: Record<string, string>; malformedKeys: string[] } {
-  const clean: Record<string, string> = {};
-  const malformedKeys: string[] = [];
-  for (const [key, text] of Object.entries(texts)) {
-    if (!isCultureKey(key)) {
-      unknownCultureKeys.push(key);
-      continue;
-    }
-    if (typeof text !== 'string' || text === '') {
-      malformedKeys.push(key);
-      continue;
-    }
-    clean[key] = text;
-  }
-  return { texts: clean, malformedKeys };
 }
 
 /**

@@ -1970,6 +1970,25 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
   `ngOnChanges`, so a new config on the same instance recomputes them.
 - `warnOnce` keys are `<widget id or per-instance key>|<field>|<hash of the problem list>`.
 
+## Board and widget texts per language
+
+- `resolveLocalizedText(fallback, texts, language)` in `utils/meshboard-language.ts` is the one resolver for an author
+  text with a single default and a per-language map (`pickLocalizedText` lookup, `cleanLocalizedTexts` validation,
+  shared with the table column labels). It returns the text and the ignored keys (`'*'` = the map is no object).
+- `MeshBoardViewComponent`: `displayName` / `displayDescription` (computed: header and breadcrumb; an effect updates the
+  breadcrumb after the initial load when the language changes), `widgetTitle(widget)` / `widgetDescription(widget)`
+  (template, every `widget.title` of the view). `localizedText` logs one warning per subject, field and key list.
+- Info icon: `.widget-info` in the grid tile header next to the title (`infoCircleIcon`, native `title` tooltip and
+  `aria-label`, focusable), only when `widgetDescription` is not empty. Banner widgets and chromeless tiles have no
+  header in view mode, so no icon.
+- Persistence: `mapWidgetToInput` writes `titles` / `description` / `descriptions` into the `Config` JSON only when set;
+  `buildBaseConfig` reads them back verbatim (`localizedWidgetTextsOf`), every registration spreads the base. Board
+  `names` / `descriptions` live in the description blob (`encodeVariablesInDescription`, omitted when unset).
+- Period labels: `timeRangeLabels` is a computed of route data (wins) and `MeshBoardMessages.timeRangeLabels`.
+- Specs: `utils/meshboard-language.localized-text.spec.ts`, `containers/meshboard-view/meshboard-view.localized-texts.spec.ts`,
+  `services/meshboard-persistence.localized-texts.spec.ts`, `registrations/default-widget-registrations.localized-texts.spec.ts`,
+  `dialogs/meshboard-manager-dialog/meshboard-manager-dialog.localized-texts.spec.ts`.
+
 ---
 
 ## GraphQL Queries

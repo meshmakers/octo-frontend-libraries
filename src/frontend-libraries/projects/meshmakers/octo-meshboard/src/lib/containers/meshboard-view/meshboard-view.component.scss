@@ -255,6 +255,24 @@ kendo-tilelayout {
     text-overflow: ellipsis;
   }
 
+  .widget-title-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+
+    .widget-title {
+      flex: 0 1 auto;
+    }
+  }
+
+  .widget-info {
+    display: inline-flex;
+    flex: none;
+    color: var(--kendo-color-subtle, currentColor);
+    cursor: help;
+  }
+
   .unconfigured-badge {
     display: inline-flex;
     align-items: center;

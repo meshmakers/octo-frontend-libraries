@@ -317,7 +317,21 @@ export interface WidgetConfig {
   /** Backend-generated ID (rtId from GraphQL). Only set after persistence. */
   rtId?: string;
   type: WidgetType;
+  /** Header text; the fallback when `titles` has no text for the host language. */
   title: string;
+  /**
+   * Header text per culture code, e.g. `{ "de-AT": "Energiemengen", "en-GB": "Energy quantities" }`.
+   * Resolved like table column `titles` (`MESHBOARD_LANGUAGE`): exact culture, then the language
+   * part (`de`), then `title`. Stored in the widget `Config` JSON.
+   */
+  titles?: Record<string, string>;
+  /**
+   * Optional explanation of what the widget shows. When set, the widget header shows an info icon
+   * whose tooltip is this text; the fallback when `descriptions` has no text for the host language.
+   */
+  description?: string;
+  /** Explanation per culture code, resolved like `titles`. */
+  descriptions?: Record<string, string>;
   dataSource: DataSource;
   // TileLayout positioning
   col: number;
@@ -1900,8 +1914,14 @@ export interface EntitySelectorConfig {
  */
 export interface MeshBoardConfig {
   id: string;
+  /** Board name; the fallback when `names` has no text for the host language. */
   name: string;
+  /** Board name per culture code, resolved like widget `titles`. Stored in the encoded description blob. */
+  names?: Record<string, string>;
+  /** Board description; the fallback when `descriptions` has no text for the host language. */
   description?: string;
+  /** Board description per culture code, resolved like widget `titles`. Stored in the encoded description blob. */
+  descriptions?: Record<string, string>;
   /** Well-known name for routing (e.g., 'cockpit', 'sales-dashboard') */
   rtWellKnownName?: string | null;
   columns: number;

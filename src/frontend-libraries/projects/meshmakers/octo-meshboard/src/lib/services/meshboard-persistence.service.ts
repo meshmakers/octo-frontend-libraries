@@ -164,7 +164,8 @@ export class MeshBoardPersistenceService {
       config.entitySelectors,
       config.autoRefreshSeconds,
       config.timeZoneMode,
-      config.navigation
+      config.navigation,
+      { names: config.names, descriptions: config.descriptions }
     );
 
     const dashboardInput: Record<string, unknown> = {
@@ -219,7 +220,8 @@ export class MeshBoardPersistenceService {
       config.entitySelectors,
       config.autoRefreshSeconds,
       config.timeZoneMode,
-      config.navigation
+      config.navigation,
+      { names: config.names, descriptions: config.descriptions }
     );
 
     const dashboardItem: Record<string, unknown> = {
@@ -302,12 +304,14 @@ export class MeshBoardPersistenceService {
   toMeshBoardConfig(meshBoard: PersistedMeshBoard, widgets: PersistedWidget[]): MeshBoardConfig {
     // Decode variables, timeFilter, entitySelectors, and autoRefresh from description field
     // (temporary until backend adds first-class config field)
-    const { description, variables, timeFilter, entitySelectors, autoRefreshSeconds, timeZoneMode, navigation } = this.decodeVariablesFromDescription(meshBoard.description);
+    const { description, variables, timeFilter, entitySelectors, autoRefreshSeconds, timeZoneMode, navigation, names, descriptions } = this.decodeVariablesFromDescription(meshBoard.description);
 
     return {
       id: meshBoard.rtId,
       name: meshBoard.name,
+      ...(names !== undefined ? { names } : {}),
       description,
+      ...(descriptions !== undefined ? { descriptions } : {}),
       rtWellKnownName: meshBoard.rtWellKnownName,
       columns: meshBoard.columns,
       rowHeight: meshBoard.rowHeight,
@@ -374,7 +378,10 @@ export class MeshBoardPersistenceService {
       config: JSON.stringify({
         ...persistenceData.config,
         ...(widget.chromeless ? { chromeless: true } : {}),
-        ...(widget.zone && widget.zone !== 'grid' ? { zone: widget.zone } : {})
+        ...(widget.zone && widget.zone !== 'grid' ? { zone: widget.zone } : {}),
+        ...(widget.titles !== undefined && widget.titles !== null ? { titles: widget.titles } : {}),
+        ...(widget.description ? { description: widget.description } : {}),
+        ...(widget.descriptions !== undefined && widget.descriptions !== null ? { descriptions: widget.descriptions } : {})
       })
     };
 
@@ -489,7 +496,8 @@ export class MeshBoardPersistenceService {
     entitySelectors?: EntitySelectorConfig[],
     autoRefreshSeconds?: number,
     timeZoneMode?: MeshBoardTimeZoneMode,
-    navigation?: MeshBoardNavigationConfig
+    navigation?: MeshBoardNavigationConfig,
+    localizedTexts?: { names?: Record<string, string>; descriptions?: Record<string, string> }
   ): string {
     // Filter out timeFilter and entitySelector variables (they are derived, not persisted directly)
     const staticVariables = variables?.filter(v => v.source !== 'timeFilter' && v.source !== 'entitySelector');
@@ -500,9 +508,12 @@ export class MeshBoardPersistenceService {
     const hasAutoRefresh = !!autoRefreshSeconds && autoRefreshSeconds > 0;
     const hasTimeZoneMode = !!timeZoneMode && timeZoneMode !== 'local';
     const storedNavigation = normalizeNavigation(navigation);
+    const names = localizedTexts?.names ?? undefined;
+    const descriptions = localizedTexts?.descriptions ?? undefined;
     if (
       (!staticVariables || staticVariables.length === 0) &&
-      !timeFilter?.enabled && !hasEntitySelectors && !hasAutoRefresh && !hasTimeZoneMode && !storedNavigation
+      !timeFilter?.enabled && !hasEntitySelectors && !hasAutoRefresh && !hasTimeZoneMode && !storedNavigation &&
+      names === undefined && descriptions === undefined
     ) {
       return description;
     }
@@ -515,6 +526,8 @@ export class MeshBoardPersistenceService {
         entitySelectors?: EntitySelectorConfig[];
         autoRefreshSeconds?: number;
         navigation?: MeshBoardNavigationConfig;
+        names?: Record<string, string>;
+        descriptions?: Record<string, string>;
       } = {};
 
       if (staticVariables && staticVariables.length > 0) {
@@ -535,6 +548,14 @@ export class MeshBoardPersistenceService {
 
       if (storedNavigation) {
         data.navigation = storedNavigation;
+      }
+
+      if (names !== undefined) {
+        data.names = names;
+      }
+
+      if (descriptions !== undefined) {
+        data.descriptions = descriptions;
       }
 
       if (hasEntitySelectors) {
@@ -594,6 +615,8 @@ export class MeshBoardPersistenceService {
     entitySelectors?: EntitySelectorConfig[];
     autoRefreshSeconds?: number;
     navigation?: MeshBoardNavigationConfig;
+    names?: Record<string, string>;
+    descriptions?: Record<string, string>;
   } {
     // Use the marker without newlines for detection, since the backend may trim
     // leading whitespace (removing the \n before the marker when description is empty).
@@ -624,7 +647,9 @@ export class MeshBoardPersistenceService {
         timeZoneMode: typeof parsed.timeZoneMode === 'string' && parsed.timeZoneMode !== 'local' ? parsed.timeZoneMode : undefined,
         entitySelectors: parsed.entitySelectors,
         autoRefreshSeconds: typeof parsed.autoRefreshSeconds === 'number' ? parsed.autoRefreshSeconds : undefined,
-        navigation: normalizeNavigation(parsed.navigation)
+        navigation: normalizeNavigation(parsed.navigation),
+        ...(parsed.names !== undefined && parsed.names !== null ? { names: parsed.names } : {}),
+        ...(parsed.descriptions !== undefined && parsed.descriptions !== null ? { descriptions: parsed.descriptions } : {})
       };
     } catch (error) {
       console.error('Failed to decode MeshBoard config data:', error);
