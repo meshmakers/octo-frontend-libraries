@@ -239,6 +239,8 @@ describe('MeshBoardViewComponent - author texts in the host language', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
       const r = await render({ config: board([widget({ titles: { 'de-AT': '', 'en-GB': 42 as unknown as string } })]), language: 'de-AT' });
       rerender(r);
+      expect(header(r.el)).toBe('Energy quantities');
+
       r.language.set('en-GB');
       rerender(r);
 

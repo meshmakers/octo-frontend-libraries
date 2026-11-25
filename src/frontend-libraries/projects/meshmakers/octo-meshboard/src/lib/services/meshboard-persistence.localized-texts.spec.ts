@@ -130,6 +130,12 @@ describe('MeshBoardPersistenceService - texts per language', () => {
     expect(createDashboard.mock.calls[0][0].variables.entities[0].description).toBe(LEGACY_DESCRIPTION);
   });
 
+  it('stores a board without any setting with its plain description, without an encoded settings block', async () => {
+    await service.createMeshBoard(board([]));
+
+    expect(createDashboard.mock.calls[0][0].variables.entities[0].description).toBe('Monthly values');
+  });
+
   it('stores a widget without per-language texts with the same config as before', async () => {
     const plain = widgetOf('markdown', 'local-1');
 
