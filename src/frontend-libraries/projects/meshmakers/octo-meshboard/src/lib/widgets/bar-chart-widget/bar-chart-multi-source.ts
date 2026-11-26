@@ -23,6 +23,7 @@ export interface CategoryValue {
 /** The series of one source, keyed by category key. */
 export interface CategorySeriesInput {
   name: string;
+  color?: string;
   values: Map<string, number | null>;
 }
 
@@ -120,7 +121,7 @@ export function primaryRowsToCategorySeries(
   }
 
   const fields = config.series ?? [];
-  const series = fields.map(f => ({ name: f.name ?? f.field, values: new Map<string, number | null>() }));
+  const series: CategorySeriesInput[] = fields.map(f => ({ name: f.name ?? f.field, ...(f.color && { color: f.color }), values: new Map<string, number | null>() }));
   for (const row of rows) {
     const category = rowCategory(row, config.categoryField);
     if (!category) continue;
@@ -183,6 +184,7 @@ export function alignOnCategories(sources: readonly CategorySourceInput[]): Cate
       series.push({
         sourceKey: source.sourceKey,
         name: s.name,
+        ...(s.color && { color: s.color }),
         data: categories.map(c => (s.values.has(c.key) ? (s.values.get(c.key) as number | null) : null))
       });
     }

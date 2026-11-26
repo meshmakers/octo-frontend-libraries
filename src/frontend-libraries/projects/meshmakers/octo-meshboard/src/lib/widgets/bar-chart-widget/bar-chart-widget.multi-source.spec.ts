@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { BarChartWidgetComponent } from './bar-chart-widget.component';
 import { QueryExecutorService, QueryResultRow } from '../../services/query-executor.service';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
@@ -222,6 +222,21 @@ describe('BarChartWidgetComponent multi-source (AB#7953)', () => {
     expect(pvCall[2].scopeRtIds).toEqual(['pv-1', 'pv-2']);
   });
 
+  it('keeps the configured colour of each static series when two static series and a query series show the same name', async () => {
+    const s = setup(dailyConfig({
+      series: [{ field: 'importEnergy', name: 'Energy', color: '#aa0000' }, { field: 'exportEnergy', name: 'Energy', color: '#00bb00' }],
+      additionalSeries: [query('pv', { label: 'Energy' })]
+    }));
+    await s.load();
+
+    expect(s.cmp.isMultiSource()).toBe(true);
+    expect(s.cmp.seriesData().map(x => [x.data, x.color])).toEqual([
+      [[3, null, 4], '#aa0000'],
+      [[0, null, 2], '#00bb00'],
+      [[5, 8, 6], undefined]
+    ]);
+  });
+
   it('an incomplete query series (no category field) does not switch to the multi-source path', () => {
     const s = setup(dailyConfig({ additionalSeries: [query('pv', { categoryField: '' })] }));
     expect(s.cmp.hasAdditionalSeries()).toBe(false);
@@ -270,6 +285,24 @@ describe('BarChartWidgetComponent single source unchanged (AB#7953 regression)',
       { name: 'Credit', data: [20, 2] },
       { name: 'Debit', data: [10, 0] }
     ]);
+  });
+
+  it('an older load that fails after a newer load rendered leaves the newer result and sets no error', async () => {
+    const s = single({ series: [{ field: 'a', name: 'A' }] }, []);
+    const older = new Subject<never>();
+    s.execute
+      .mockImplementationOnce(() => older.asObservable())
+      .mockImplementationOnce(() => result([rtRow({ cat: 'x', a: 7 })]));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    const olderLoad = s.load();
+    await s.load();
+    older.error(new Error('timeout'));
+    await olderLoad;
+
+    expect(s.cmp.error()).toBeNull();
+    expect(s.cmp.isLoading()).toBe(false);
+    expect(s.cmp.seriesData()).toEqual([{ name: 'A', data: [7], color: undefined }]);
   });
 
   it('sends exactly one query, as before', async () => {

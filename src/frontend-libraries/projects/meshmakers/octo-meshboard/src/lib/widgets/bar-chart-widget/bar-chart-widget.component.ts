@@ -594,6 +594,9 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       this._isLoading.set(false);
 
     } catch (err) {
+      if (generation !== this.loadGeneration) {
+        return;
+      }
       console.error('Error loading Bar Chart data:', err);
       this._error.set('Failed to load data');
       this._isLoading.set(false);
@@ -700,12 +703,11 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       });
       hints.push(...composed.hints);
 
-      const colors = new Map(this.localizedStaticSeries().map(s => [s.name ?? s.field, s.color]));
       this._categories.set(this.categoryLabels(aligned.categories));
       this._seriesData.set(composed.series.map(s => ({
         name: s.name,
         data: this.hasColorThresholds() ? this.applyColorThresholds(s.data) : s.data,
-        color: s.color ?? colors.get(s.name),
+        color: s.color,
         ...(s.asLine && { asLine: true }),
         ...(s.dashType && { dashType: s.dashType }),
         ...(s.secondaryAxis && { secondaryAxis: true })

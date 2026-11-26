@@ -373,7 +373,7 @@ export function composeChartSeries(args: {
   if (primary?.visible !== false) {
     for (const s of gridSeries) {
       // The primary query yields one series per group value: no single colour for all of them.
-      if (s.sourceKey === PRIMARY_SOURCE_KEY) series.push({ name: s.name, data: s.data, unit: s.unit, ...placement(primary), ...style(primary, false) });
+      if (s.sourceKey === PRIMARY_SOURCE_KEY) series.push({ name: s.name, data: s.data, unit: s.unit, ...placement(primary), ...style(primary, false), ...(s.color && { color: s.color }) });
     }
   }
 
