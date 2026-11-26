@@ -82,6 +82,17 @@ describe('angularToExcelDateFormat (AB#9857)', () => {
     expect(angularToExcelDateFormat("dd.MM.yyyy 'um' HH:mm")).toBe('dd.mm.yyyy "um" hh:mm');
   });
 
+  it('keeps minutes and months where Excel reads them the same way', () => {
+    expect(angularToExcelDateFormat('mm:ss')).toBe('mm:ss');
+    expect(angularToExcelDateFormat('HH.mm')).toBe('hh.mm');
+    // Excel would show the month for a minute without an hour or seconds next to it ...
+    expect(angularToExcelDateFormat('mm')).toBeNull();
+    expect(angularToExcelDateFormat('dd.MM.yyyy mm')).toBeNull();
+    // ... and minutes for a month right after an hour or before seconds.
+    expect(angularToExcelDateFormat('HH MM')).toBeNull();
+    expect(angularToExcelDateFormat('MM:ss')).toBeNull();
+  });
+
   it("keeps an escaped quote ('') inside and outside a quoted literal", () => {
     expect(angularToExcelDateFormat("h 'o''clock' a")).toBe('h "o\'clock" AM/PM');
     expect(angularToExcelDateFormat("HH''mm")).toBe('hh"\'"mm');

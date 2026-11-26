@@ -118,7 +118,8 @@ const ANGULAR_DATE_TOKENS: Record<string, string> = {
  * Translates an Angular date format such as `dd.MM.yyyy HH:mm` into an Excel date format
  * (`dd.mm.yyyy hh:mm`) for the export (AB#9857). `null` for named formats (`short`), time zone
  * and other letters Excel has no token for, and for a 12-hour clock without `a` or a 24-hour
- * clock with it (Excel decides the clock by `AM/PM`): the caller then uses the locale default.
+ * clock with it (Excel decides the clock by `AM/PM`), and for a minute or month Excel would read
+ * as the other (see {@link minutesWhereExcelReadsThem}): the caller then uses the locale default.
  */
 export function angularToExcelDateFormat(format: string | null | undefined): string | null {
   if (!format) {
@@ -128,6 +129,8 @@ export function angularToExcelDateFormat(format: string | null | undefined): str
   let hours12 = false;
   let hours24 = false;
   let amPm = false;
+  /** Angular letter runs of the date tokens in order, to check the context Excel reads `m` in. */
+  const runs: string[] = [];
   let i = 0;
   while (i < format.length) {
     const char = format[i];
@@ -172,6 +175,7 @@ export function angularToExcelDateFormat(format: string | null | undefined): str
       hours12 ||= char === 'h';
       hours24 ||= char === 'H';
       amPm ||= char === 'a';
+      runs.push(run);
       result += token;
       continue;
     }
@@ -182,10 +186,28 @@ export function angularToExcelDateFormat(format: string | null | undefined): str
     result += excelLiteral(format.slice(i, end));
     i = end;
   }
-  if ((hours12 && !amPm) || (hours24 && amPm)) {
+  if ((hours12 && !amPm) || (hours24 && amPm) || !minutesWhereExcelReadsThem(runs)) {
     return null;
   }
   return result;
+}
+
+/**
+ * Excel reads `m` / `mm` as minutes only right after an hour token or right before a seconds
+ * token (separators in between do not count), and as the month anywhere else. `true` when every
+ * Angular minute (`m`, `mm`) stands in such a place and no one- or two-letter month (`M`, `MM`,
+ * `L`, `LL`) does: `mm` alone would show the month, `HH MM` the minutes.
+ */
+function minutesWhereExcelReadsThem(runs: readonly string[]): boolean {
+  return runs.every((run, index) => {
+    const minute = run === 'm' || run === 'mm';
+    const shortMonth = /^[ML]{1,2}$/.test(run);
+    if (!minute && !shortMonth) {
+      return true;
+    }
+    const minuteContext = /^[hH]{1,2}$/.test(runs[index - 1] ?? '') || /^s{1,2}$/.test(runs[index + 1] ?? '');
+    return minute ? minuteContext : !minuteContext;
+  });
 }
 
 function createDateTimeFormat(locale: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
