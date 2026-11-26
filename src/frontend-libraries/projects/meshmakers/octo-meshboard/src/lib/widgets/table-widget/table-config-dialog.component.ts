@@ -622,7 +622,7 @@ export class TableConfigDialogComponent implements OnInit {
   // Row action and value markers (AB#7728)
   rowActionEnabled = false;
   rowActionLabel = '';
-  valueMarkers: { field: string; tooltip: string; icon: string; color?: string; showValue?: boolean }[] = [];
+  valueMarkers: { field: string; tooltip: string; tooltips?: Record<string, string>; icon: string; color?: string; showValue?: boolean }[] = [];
 
   /** Field suggestions for markers: the configured columns (query columns are only known at run time). */
   get markerFieldOptions(): string[] {
@@ -705,6 +705,7 @@ export class TableConfigDialogComponent implements OnInit {
     this.valueMarkers = (this.initialValueMarkers ?? []).map(m => ({
       field: m.field,
       tooltip: m.tooltip,
+      ...(m.tooltips !== undefined ? { tooltips: m.tooltips } : {}),
       icon: m.icon ?? TABLE_VALUE_MARKER_ICONS[0],
       ...(m.color ? { color: m.color } : {}),
       ...(m.showValue ? { showValue: true } : {})
@@ -878,12 +879,15 @@ export class TableConfigDialogComponent implements OnInit {
     const markers: TableValueMarkerConfig[] = this.valueMarkers.map(m => ({
       field: m.field.trim(),
       tooltip: m.tooltip.trim(),
+      ...(m.tooltips !== undefined ? { tooltips: m.tooltips } : {}),
       icon: m.icon,
       ...(m.color ? { color: m.color } : {}),
       ...(m.showValue ? { showValue: true } : {})
     }));
     return {
-      ...(this.rowActionEnabled && label ? { rowAction: { label } } : {}),
+      ...(this.rowActionEnabled && label ? {
+        rowAction: { label, ...(this.initialRowAction?.labels !== undefined ? { labels: this.initialRowAction.labels } : {}) }
+      } : {}),
       ...(markers.length > 0 ? { valueMarkers: markers } : {})
     };
   }

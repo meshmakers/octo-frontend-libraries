@@ -8,7 +8,7 @@ import { formatTableCellValue } from '../../utils/meshboard-datetime';
 import { TableWidgetDataSourceDirective, QueryColumn } from './table-widget-data-source.directive';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
-import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { createWidgetTextResolver, injectMeshBoardLanguage, WidgetTextResolver } from '../../utils/meshboard-language';
 import {
   TableColumnLabelProblems,
   emptyLabelProblems,
@@ -32,11 +32,11 @@ const ICON_MAP: Record<string, SVGIcon> = {
   'circle': circleIcon,
 };
 
-function resolveStatusMapping(config: Record<string, TableColumnStatusIconMapping>): StatusMapping {
+function resolveStatusMapping(config: Record<string, TableColumnStatusIconMapping>, tooltipOf: (key: string, mapping: TableColumnStatusIconMapping) => string): StatusMapping {
   return Object.fromEntries(
     Object.entries(config).map(([key, val]) => [
       key,
-      { icon: ICON_MAP[val.icon] ?? questionCircleIcon, tooltip: val.tooltip, color: val.color }
+      { icon: ICON_MAP[val.icon] ?? questionCircleIcon, tooltip: tooltipOf(key, val), color: val.color }
     ])
   );
 }
@@ -77,7 +77,7 @@ function readCellValue(item: unknown, field: string): unknown {
 }
 
 /** Turns a column into a marker column (AB#7728): icon + tooltip when the value is above zero. */
-function withValueMarker(column: ListViewTableColumn, marker: TableValueMarkerConfig): ListViewTableColumn {
+function withValueMarker(column: ListViewTableColumn, marker: TableValueMarkerConfig, tooltip: string): ListViewTableColumn {
   const icon = ICON_MAP[marker.icon ?? ''] ?? exclamationCircleIcon;
   return {
     ...column,
@@ -88,7 +88,7 @@ function withValueMarker(column: ListViewTableColumn, marker: TableValueMarkerCo
     cellInputs: (row: unknown) => ({
       value: readCellValue(row, column.field),
       icon,
-      tooltip: marker.tooltip,
+      tooltip,
       color: marker.color,
       showValue: marker.showValue === true
     })
@@ -175,6 +175,12 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   private readonly _queryColumnValueTypes = signal<ReadonlyMap<string, string>>(new Map());
   /** Host UI language (`MESHBOARD_LANGUAGE`, AB#7655) for column `titles` / `valueLabels`; `null` = `title` / raw texts. */
   private readonly language: Signal<string | null>;
+  /** Row action label, marker and status tooltips in the host language. */
+  private readonly widgetText: WidgetTextResolver;
+
+  private subject(): string {
+    return `widget "${this.config?.title}" (${this.config?.id})`;
+  }
   /**
    * Problems already warned about (`<widget id or instance>|<field>|<problem hash>`), so a bad config
    * logs once, not on every language change, while a new problem after a config edit is reported again.
@@ -193,6 +199,7 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   constructor() {
     // Assigned here, not as a field initialiser: relative-import initialisers break under the Vitest runner (CLAUDE.md).
     this.language = injectMeshBoardLanguage();
+    this.widgetText = createWidgetTextResolver(this.language);
   }
 
   // Widget state signals
@@ -288,7 +295,9 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
     const markers = new Map((this.config?.valueMarkers ?? []).filter(m => !!m?.field).map(m => [m.field, m]));
     const withMarker = (column: ListViewTableColumn): ListViewTableColumn => {
       const marker = markers.get(column.field);
-      return marker ? withValueMarker(column, marker) : column;
+      return marker
+        ? withValueMarker(column, marker, this.widgetText(`${this.subject()} marker "${marker.field}"`, 'tooltips', marker.tooltip ?? '', marker.tooltips))
+        : column;
     };
 
     // If explicit columns are configured, use them (works for both data source types).
@@ -305,7 +314,10 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
           dataType: (col.dataType ?? 'text') as ListViewTableColumn['dataType'],
           width: col.width,
           ...(col.format ? { format: col.format } : {}),
-          ...(col.statusMapping ? { statusMapping: resolveStatusMapping(col.statusMapping) } : {})
+          ...(col.statusMapping ? {
+            statusMapping: resolveStatusMapping(col.statusMapping, (key, mapping) =>
+              this.widgetText(`${this.subject()} column "${col.field}" status "${key}"`, 'tooltips', mapping.tooltip ?? '', mapping.tooltips))
+          } : {})
         };
         const labels = resolveValueLabels(col, language, problems);
         if (labels && (col.statusMapping || col.dataType === 'statusIcons')) {
@@ -356,7 +368,9 @@ export class TableWidgetComponent implements DashboardWidget<TableWidgetConfig, 
   private _rowActions: MmListRowAction[] = [];
 
   rowActions(): MmListRowAction[] {
-    const label = this.rowActionHandler ? this.config?.rowAction?.label?.trim() ?? '' : '';
+    const label = this.rowActionHandler && this.config?.rowAction?.label?.trim()
+      ? this.widgetText(`${this.subject()} row action`, 'labels', this.config.rowAction.label.trim(), this.config.rowAction.labels).trim()
+      : '';
     if (label !== this._rowActionsKey) {
       this._rowActionsKey = label;
       this._rowActions = label ? [{ id: ROW_ACTION_ID, label, icon: MM_ACTION_ICONS.view }] : [];

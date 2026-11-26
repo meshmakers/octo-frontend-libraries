@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, OnDestroy, AfterViewInit, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PieChartWidgetConfig, PersistentQueryDataSource, ConstructionKitQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
+import { ChartValueLabels, PieChartWidgetConfig, PersistentQueryDataSource, ConstructionKitQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
@@ -12,11 +12,11 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
-import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { createWidgetTextResolver, injectMeshBoardLanguage, WidgetTextResolver } from '../../utils/meshboard-language';
 import { categoryStatus, chartSeriesColors, humanizeCategory, resolveChartColor, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
-import { configuredValueLabel } from '../../utils/chart-value-labels';
+import { configuredValueLabel, resolveChartValueLabels } from '../../utils/chart-value-labels';
 
 /**
  * Data item for the pie chart
@@ -206,15 +206,18 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   readonly isLoading = this._isLoading.asReadonly();
 
   private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
+  private readonly widgetText: WidgetTextResolver;
 
   constructor() {
     this.hostLanguage = injectMeshBoardLanguage();
+    this.widgetText = createWidgetTextResolver(this.hostLanguage);
   }
   /** Keeps its reference while categories, values and colours are unchanged (AB#5568). */
   readonly chartData = computed<ChartDataItem[]>(() => {
     this.chartTheme();
     const palette = chartSeriesColors();
-    return this._rawData().map((item, index) => this.toItem(item.category, item.value, index, palette));
+    const categoryLabels = this.resolvedCategoryLabels();
+    return this._rawData().map((item, index) => this.toItem(item.category, item.value, index, palette, categoryLabels));
   }, { equal: sameChartItems });
   readonly error = this._error.asReadonly();
 
@@ -282,14 +285,23 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     this.resizeObserver?.disconnect();
   }
 
+  /** `categoryLabels` with the per-language names resolved for the host language. */
+  private resolvedCategoryLabels(): ChartValueLabels | undefined {
+    return resolveChartValueLabels(this.config?.categoryLabels, (raw, texts) =>
+      this.widgetText(`widget "${this.config?.title}" (${this.config?.id}) category "${raw}"`, 'categoryLabels', '', texts));
+  }
+
   /**
    * Label and colour for a raw category value (exposed for tests). The label is the `categoryLabels`
    * entry of the widget config (AB#7235), else the host resolver's text (AB#5622), else the
    * humanized category. The colour still follows the raw value (and, as before, the resolver text).
    */
-  toItem(rawCategory: string, value: number, index = 0, palette: readonly string[] = chartSeriesColors()): ChartDataItem {
+  toItem(
+    rawCategory: string, value: number, index = 0, palette: readonly string[] = chartSeriesColors(),
+    categoryLabels: ChartValueLabels | undefined = this.resolvedCategoryLabels()
+  ): ChartDataItem {
     const hostLabel = this.categoryLabel(rawCategory);
-    const category = configuredValueLabel(this.config?.categoryLabels, rawCategory) ?? hostLabel;
+    const category = configuredValueLabel(categoryLabels, rawCategory) ?? hostLabel;
     const status = categoryStatus(rawCategory);
     const color = this.configuredColor(rawCategory, hostLabel)
       ?? (status ? statusColor(status) : undefined)

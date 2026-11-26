@@ -9,6 +9,7 @@ import { WidgetConfigResult } from '../../services/widget-registry.service';
 import { SummaryCardTile, PersistentQueryCellSource, EntitySelectorConfig } from '../../models/meshboard.models';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { PersistentQueryCellEditorComponent } from '../../components/persistent-query-cell-editor/persistent-query-cell-editor.component';
+import { ItemLocalizedTexts, localizedItemTexts } from '../../utils/meshboard-language';
 
 export interface SummaryCardConfigResult extends WidgetConfigResult {
   columns: number;
@@ -31,6 +32,7 @@ interface EditableTile {
   aggregation: string;
   aggAttribute: string;
   persistentQuerySource?: PersistentQueryCellSource;
+  localizedTexts?: ItemLocalizedTexts;
 }
 
 @Component({
@@ -153,7 +155,8 @@ export class SummaryCardConfigDialogComponent implements OnInit {
         attributePath: t.entitySource?.attributePath ?? '',
         aggregation: t.aggregationSource?.aggregation ?? 'count',
         aggAttribute: t.aggregationSource?.attribute ?? '',
-        persistentQuerySource: t.persistentQuerySource
+        persistentQuerySource: t.persistentQuerySource,
+        localizedTexts: localizedItemTexts(t)
       }));
     }
   }
@@ -181,7 +184,8 @@ export class SummaryCardConfigDialogComponent implements OnInit {
         prefix: t.prefix || undefined,
         suffix: t.suffix || undefined,
         color: (t.color as SummaryCardTile['color']) || undefined,
-        size: (t.size as SummaryCardTile['size']) || undefined
+        size: (t.size as SummaryCardTile['size']) || undefined,
+        ...t.localizedTexts
       };
 
       if (t.sourceType === 'persistentQuery') {

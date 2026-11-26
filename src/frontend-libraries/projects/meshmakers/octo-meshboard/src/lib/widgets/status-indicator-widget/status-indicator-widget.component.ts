@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StatusIndicatorWidgetConfig, ServiceCallDataSource } from '../../models/meshboard.models';
+import { injectWidgetTextResolver, WidgetTextResolver } from '../../utils/meshboard-language';
 import { CkModelService } from '@meshmakers/octo-services';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
@@ -15,6 +16,11 @@ import { WidgetLoadingComponent } from '../../components/widget-loading/widget-l
 })
 export class StatusIndicatorWidgetComponent implements OnInit, OnChanges {
   private readonly ckModelService = inject(CkModelService);
+  private readonly widgetText: WidgetTextResolver;
+
+  constructor() {
+    this.widgetText = injectWidgetTextResolver();
+  }
 
   @Input() config!: StatusIndicatorWidgetConfig;
 
@@ -100,9 +106,9 @@ export class StatusIndicatorWidgetComponent implements OnInit, OnChanges {
 
     const isActive = this.status();
     if (isActive) {
-      return this.config.trueLabel ?? 'ENABLED';
+      return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})`, 'trueLabels', this.config.trueLabel ?? 'ENABLED', this.config.trueLabels);
     } else {
-      return this.config.falseLabel ?? 'DISABLED';
+      return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})`, 'falseLabels', this.config.falseLabel ?? 'DISABLED', this.config.falseLabels);
     }
   }
 

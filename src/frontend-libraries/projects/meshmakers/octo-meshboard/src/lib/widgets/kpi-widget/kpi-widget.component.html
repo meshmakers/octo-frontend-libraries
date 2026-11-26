@@ -10,12 +10,12 @@
   } @else {
     <div class="kpi-content">
       <div class="kpi-value-container">
-        @if (config.prefix) {
-          <span class="kpi-prefix">{{ config.prefix }}</span>
+        @if (prefix(); as shownPrefix) {
+          <span class="kpi-prefix">{{ shownPrefix }}</span>
         }
         <span class="kpi-value" [attr.title]="valueTooltip()">{{ value() }}</span>
-        @if (config.suffix) {
-          <span class="kpi-suffix">{{ config.suffix }}</span>
+        @if (suffix(); as shownSuffix) {
+          <span class="kpi-suffix">{{ shownSuffix }}</span>
         }
       </div>
 

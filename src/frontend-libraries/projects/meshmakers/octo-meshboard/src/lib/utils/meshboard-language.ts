@@ -151,3 +151,61 @@ export function resolveLocalizedText(fallback: string, texts: unknown, language:
     ignoredKeys: [...unknownCultureKeys, ...cleaned.malformedKeys]
   };
 }
+
+/**
+ * Resolves an author text of a widget for the host language: `fallback` is the single text
+ * (`suffix`, `label`, ...), `texts` its per-language map (`suffixes`, `labels`, ...). `subject`
+ * names the widget or item in the console warning that is logged once per ignored set of keys.
+ */
+export type WidgetTextResolver = (subject: string, field: string, fallback: string, texts: unknown) => string;
+
+/**
+ * The {@link WidgetTextResolver} of a widget, bound to {@link MESHBOARD_LANGUAGE}. Reading
+ * a text inside a `computed` or a template makes it follow a language signal without reloading data.
+ * Call in an injection context.
+ */
+export function injectWidgetTextResolver(): WidgetTextResolver {
+  return createWidgetTextResolver(injectMeshBoardLanguage());
+}
+
+/** A {@link WidgetTextResolver} for a language signal; see {@link injectWidgetTextResolver}. */
+export function createWidgetTextResolver(language: Signal<string | null>): WidgetTextResolver {
+  const warned = new Set<string>();
+  return (subject, field, fallback, texts) => {
+    const resolution = resolveLocalizedText(fallback, texts, language());
+    if (resolution.ignoredKeys.length > 0) {
+      const keys = resolution.ignoredKeys.map(key => `"${key}"`).join(', ');
+      const warningKey = `${subject}|${field}|${keys}`;
+      if (!warned.has(warningKey)) {
+        warned.add(warningKey);
+        console.warn(`octo-meshboard: ${subject}: ignoring ${field} entries ${keys} (no culture key or no text)`);
+      }
+    }
+    return resolution.text;
+  };
+}
+
+/** Per-language maps an item of a widget config can carry (stat, tile, series, marker, ...). */
+export const ITEM_LOCALIZED_TEXT_KEYS = ['labels', 'prefixes', 'suffixes', 'names', 'tooltips', 'titleTemplates'] as const;
+
+/** The per-language maps of a config item. */
+export type ItemLocalizedTexts = Partial<Record<typeof ITEM_LOCALIZED_TEXT_KEYS[number], Record<string, string>>>;
+
+/**
+ * The per-language maps of {@link ITEM_LOCALIZED_TEXT_KEYS} an item carries, taken as stored. Config
+ * dialogs edit the single texts only; they keep these maps on their form row and write them back on
+ * save, so the translations follow the item when rows are added, removed or reordered.
+ */
+export function localizedItemTexts(item: unknown): ItemLocalizedTexts {
+  const texts: ItemLocalizedTexts = {};
+  if (!item || typeof item !== 'object') {
+    return texts;
+  }
+  const source = item as Record<string, unknown>;
+  for (const key of ITEM_LOCALIZED_TEXT_KEYS) {
+    if (source[key] !== undefined && source[key] !== null) {
+      texts[key] = source[key] as Record<string, string>;
+    }
+  }
+  return texts;
+}

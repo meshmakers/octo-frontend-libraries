@@ -634,6 +634,53 @@ Example — a statistics board in German and English:
 }
 ```
 
+**Every other widget text per language.** Besides the title, every text an author writes into a widget can be
+given per UI language the same way: the single text stays the fallback and a map with the same name in plural
+holds the translations. They resolve exactly like `titles` (exact culture, then its language part, then the
+single text) and follow a language switch.
+
+| Widget | Single text | Per-language map |
+|--------|-------------|------------------|
+| `kpi` | `prefix`, `suffix` (unit), `comparisonText` | `prefixes`, `suffixes`, `comparisonTexts` |
+| `gauge` | `prefix`, `suffix` | `prefixes`, `suffixes` |
+| `barChart` | `dataLabelSuffix`; `series[].name` | `dataLabelSuffixes`; `series[].names` |
+| `lineChart` | `valueAxisTitle`; `referenceLines[].label` | `valueAxisTitles`; `referenceLines[].labels` |
+| `barChart`, `lineChart` | `additionalSeries[].label` | `additionalSeries[].labels` |
+| `pieChart`, `barChart`, `lineChart` | a name in `categoryLabels` / `seriesLabels` | the name itself as a map, see below |
+| `statsGrid` | `stats[].label`, `prefix`, `suffix` | `stats[].labels`, `prefixes`, `suffixes` |
+| `summaryCard` | `tiles[].label`, `prefix`, `suffix` | `tiles[].labels`, `prefixes`, `suffixes` |
+| `statusIndicator` | `trueLabel`, `falseLabel` | `trueLabels`, `falseLabels` |
+| `statusList` | `statusColors[status].label` | `statusColors[status].labels` |
+| `widgetGroup` | `emptyMessage`; `childTemplate.titleTemplate`; `prefix` / `suffix` of a KPI or gauge `childTemplate.staticConfig` | `emptyMessages`; `childTemplate.titleTemplates` (each a template with the same variables); `prefixes` / `suffixes` |
+| `markdown` | `content` | `contents` (a whole markdown text per language) |
+| `table` | `rowAction.label`; `valueMarkers[].tooltip`; the `tooltip` of a column `statusMapping` entry | `rowAction.labels`; `valueMarkers[].tooltips`; `tooltips` |
+
+Table column headers and value labels have their own per-language keys (above). Texts that come from the data
+(attribute values, query results) and the library's own texts (loading, empty, error, paging) are not author texts
+and are not covered here. Process diagram texts belong to the process diagram, not to the widget configuration.
+
+A chart category or series name is given per language by writing the name as a map instead of a string; a value
+without a match for the viewer's language shows the raw value, as a value without a name does:
+
+```json
+"categoryLabels": {
+  "1-1:2.9.0 G.03": { "de-AT": "Einspeisung", "en-GB": "Feed-in" },
+  "1-1:2.9.0 P.01T": "Surplus"
+}
+```
+
+- No host language, no entry for it, or an empty or non-string entry: the single text is shown, exactly as before;
+  an ignored entry logs one console warning naming the widget. Boards without these maps render and store unchanged.
+- Storage: the widget-level maps (`prefixes`, `suffixes`, `comparisonTexts`, `dataLabelSuffixes`, `valueAxisTitles`,
+  `trueLabels`, `falseLabels`, `emptyMessages`, `contents`) are written to the widget's `Config` JSON next to `titles`
+  for every widget type; the maps on items (stats, tiles, series, reference lines, statuses, markers, the child
+  template) are stored with their item.
+- The config dialogs edit the single texts only. Saving a dialog keeps the maps on their item, also when other items
+  are removed, reordered or the single text is changed; the chart name editors list only single names and keep the
+  per-language names of the board.
+- Language switch: every widget relabels without reloading its data, except the bar and line chart, which load their
+  data again because their category and series names are part of the loaded series.
+
 **Label fields (AB#7728).** `labelFields: ['dataquality_max', 'rtWellKnownName']` on a table offers
 these columns to the resolver whatever their type, also numeric or typed text query columns that are
 otherwise skipped. The resolver gets the same `tableCell` request for string and number cells, with

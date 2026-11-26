@@ -395,7 +395,11 @@ export interface KpiWidgetConfig extends WidgetConfig {
   valueAttribute: string;
   labelAttribute?: string;
   prefix?: string;
+  /** Prefix per culture code, resolved like `titles`; `prefix` is the fallback. */
+  prefixes?: Record<string, string>;
   suffix?: string;
+  /** Suffix (unit) per culture code, resolved like `titles`; `suffix` is the fallback. */
+  suffixes?: Record<string, string>;
   icon?: string;
   trend?: 'up' | 'down' | 'neutral';
   /** Query mode when using persistent query data source */
@@ -412,6 +416,8 @@ export interface KpiWidgetConfig extends WidgetConfig {
   staticValue?: string;
   /** Comparison text displayed below the value in trend color (e.g., '+3,1% vs. Vorwoche'). Supports ${variables}. */
   comparisonText?: string;
+  /** Comparison text per culture code, resolved like `titles`; `comparisonText` is the fallback. */
+  comparisonTexts?: Record<string, string>;
   /** Fixed number of fraction digits (integer 0-3) for a numeric value; unset or invalid: two digits for a fractional value, none for a whole number. */
   decimalPlaces?: number;
   /**
@@ -512,6 +518,8 @@ export interface TableWidgetConfig extends WidgetConfig {
 export interface TableRowActionConfig {
   /** Label of the action: tooltip, menu text and accessible name (e.g. "Details"). */
   label: string;
+  /** Label per culture code, resolved like widget `titles`; `label` is the fallback. */
+  labels?: Record<string, string>;
 }
 
 /** Marker of a table column (AB#7728): icon + tooltip when the numeric cell value is above zero. */
@@ -520,6 +528,8 @@ export interface TableValueMarkerConfig {
   field: string;
   /** Tooltip and accessible name of the marker (e.g. "Contains manual values"). */
   tooltip: string;
+  /** Tooltip per culture code, resolved like widget `titles`; `tooltip` is the fallback. */
+  tooltips?: Record<string, string>;
   /** Icon name of the status icon set (`check-circle`, `exclamation-circle`, …); default `exclamation-circle`. */
   icon?: string;
   /** CSS colour of the icon; default the cell's text colour. */
@@ -531,6 +541,8 @@ export interface TableValueMarkerConfig {
 export interface TableColumnStatusIconMapping {
   icon: string;
   tooltip: string;
+  /** Tooltip per culture code, resolved like widget `titles`; `tooltip` is the fallback. */
+  tooltips?: Record<string, string>;
   color?: string;
 }
 
@@ -541,6 +553,13 @@ export interface TableColumnStatusIconMapping {
  * matching the raw value.
  */
 export type ChartValueLabels = Record<string, string>;
+
+/**
+ * `categoryLabels` / `seriesLabels` as configured: the name of a raw value is a single text
+ * or a text per culture code, e.g. `{ "1-1:2.9.0 G.03": { "de-AT": "Einspeisung", "en-GB": "Feed-in" } }`.
+ * A per-language name is resolved like widget `titles`; without a match the raw value shows as before.
+ */
+export type LocalizedChartValueLabels = Record<string, string | Record<string, string>>;
 
 /**
  * Display label of one raw cell value of a table column (AB#7655), e.g. `{ label: 'L2' }` for `2`.
@@ -623,8 +642,12 @@ export interface GaugeWidgetConfig extends WidgetConfig {
   labelAttribute?: string;
   /** Prefix for value display (e.g., '$') */
   prefix?: string;
+  /** Prefix per culture code, resolved like `titles`; `prefix` is the fallback. */
+  prefixes?: Record<string, string>;
   /** Suffix for value display (e.g., '%', 'units') */
   suffix?: string;
+  /** Suffix per culture code, resolved like `titles`; `suffix` is the fallback. */
+  suffixes?: Record<string, string>;
   /** Reverse the gauge direction */
   reverse?: boolean;
   /** Query mode when using persistent query data source */
@@ -687,7 +710,7 @@ export interface PieChartWidgetConfig extends WidgetConfig {
    * tooltip. Wins over `MESHBOARD_LABEL_RESOLVER`; a category without an entry keeps the host
    * label or today's text.
    */
-  categoryLabels?: ChartValueLabels;
+  categoryLabels?: LocalizedChartValueLabels;
   /**
    * Where slice labels sit while `showLabels` is on (AB#5622): `outside` (with connector lines),
    * `inside` or `none` (no labels). Absent = the chart default (outside, unchanged).
@@ -723,6 +746,8 @@ export interface BarChartSeries {
   field: string;
   /** Display name for legend (defaults to field name) */
   name?: string;
+  /** Legend name per culture code, resolved like widget `titles`; `name` is the fallback. */
+  names?: Record<string, string>;
   /** Optional custom color for this series */
   color?: string;
 }
@@ -764,14 +789,16 @@ export interface BarChartWidgetConfig extends WidgetConfig {
   /** Field filters for data source */
   filters?: WidgetFilterConfig[];
   /** Names shown instead of the raw `categoryField` values (AB#7235): axis labels and tooltip. */
-  categoryLabels?: ChartValueLabels;
+  categoryLabels?: LocalizedChartValueLabels;
   /**
    * Names shown instead of the raw `seriesGroupField` values (AB#7235; Dynamic Series Mode): legend
    * and tooltip. Series of other queries and static value fields keep their own names.
    */
-  seriesLabels?: ChartValueLabels;
+  seriesLabels?: LocalizedChartValueLabels;
   /** Suffix appended to data labels (e.g. ' kW') */
   dataLabelSuffix?: string;
+  /** Data label suffix per culture code, resolved like `titles`; `dataLabelSuffix` is the fallback. */
+  dataLabelSuffixes?: Record<string, string>;
   /**
    * Factor every raw value is multiplied with before charting (default 1). Lets a widget render
    * engine units in display units without a second query — e.g. 1/3600000 turns the
@@ -857,6 +884,8 @@ export interface LineChartWidgetConfig extends WidgetConfig {
   filters?: WidgetFilterConfig[];
   /** Title for the value axis (e.g. 'kW') */
   valueAxisTitle?: string;
+  /** Value axis title per culture code, resolved like `titles`; `valueAxisTitle` is the fallback. */
+  valueAxisTitles?: Record<string, string>;
   /** Horizontal reference/threshold lines displayed on the value axis */
   referenceLines?: ChartReferenceLine[];
   /**
@@ -894,7 +923,7 @@ export interface LineChartWidgetConfig extends WidgetConfig {
    * (AB#7235): legend and tooltip. Display only: grouping, `excludedSeriesGroupValues` and the
    * queries keep matching the raw value. Series of `additionalSeries` keep their own labels.
    */
-  seriesLabels?: ChartValueLabels;
+  seriesLabels?: LocalizedChartValueLabels;
 }
 
 /** Fixed bucket sizes of a line chart in minutes (AB#8046). All divide one hour, so they stay on the wall-clock grid across DST changes. */
@@ -978,6 +1007,8 @@ export interface LineChartFormulaSeries extends LineChartSeriesDisplayOptions {
   key: string;
   /** Legend label; the key when absent. */
   label?: string;
+  /** Legend label per culture code, resolved like widget `titles`; `label` is the fallback. */
+  labels?: Record<string, string>;
   /** Formula with `${key}` operands, evaluated by the board formula evaluator (expr-eval). */
   formula: string;
 }
@@ -995,6 +1026,8 @@ export interface LineChartQuerySeries extends LineChartSeriesDisplayOptions {
   key: string;
   /** Legend label; the key when absent. */
   label?: string;
+  /** Legend label per culture code, resolved like widget `titles`; `label` is the fallback. */
+  labels?: Record<string, string>;
   /**
    * The stream-data query of this series with its own time-filter opt-out, entity-selector scope
    * and resolution-aware routing (same fields as the primary data source; `aggregateSeriesByGroup`
@@ -1018,6 +1051,8 @@ export interface ChartReferenceLine {
   value: number;
   /** Optional label displayed next to the line */
   label?: string;
+  /** Line label per culture code, resolved like widget `titles`; `label` is the fallback. */
+  labels?: Record<string, string>;
   /** CSS color for the line (default: '#ef4444') */
   color?: string;
   /** Opacity 0-1 (default: 0.8) */
@@ -1182,6 +1217,8 @@ export type StatColor = 'mint' | 'cyan' | 'violet' | 'toffee' | 'lilac' | 'bubbl
 export interface StatItem {
   /** Display label */
   label: string;
+  /** Label per culture code, resolved like widget `titles`; `label` is the fallback. */
+  labels?: Record<string, string>;
   /**
    * Reference to the aggregation query ID in the widget's `AggregationDataSource`.
    * Used when `persistentQuerySource` is absent (the default runtime aggregation).
@@ -1198,8 +1235,12 @@ export interface StatItem {
   format?: 'number' | 'percent' | 'currency';
   /** Prefix for display (e.g., '$') */
   prefix?: string;
+  /** Prefix per culture code; `prefix` is the fallback. */
+  prefixes?: Record<string, string>;
   /** Suffix for display (e.g., '%') */
   suffix?: string;
+  /** Suffix per culture code; `suffix` is the fallback. */
+  suffixes?: Record<string, string>;
 }
 
 /**
@@ -1226,8 +1267,12 @@ export interface StatusIndicatorWidgetConfig extends WidgetConfig {
   type: 'statusIndicator';
   /** Label to show when status is true */
   trueLabel?: string;
+  /** `trueLabel` per culture code, resolved like `titles`. */
+  trueLabels?: Record<string, string>;
   /** Label to show when status is false */
   falseLabel?: string;
+  /** `falseLabel` per culture code, resolved like `titles`. */
+  falseLabels?: Record<string, string>;
   /** Custom true color (CSS color) */
   trueColor?: string;
   /** Custom false color (CSS color) */
@@ -1291,6 +1336,8 @@ export interface WidgetGroupChildTemplate {
    * Available variables: $rtWellKnownName, $rtId, $ckTypeId, and any attribute with $attributeName
    */
   titleTemplate?: string;
+  /** Title template per culture code, resolved like widget `titles`; `titleTemplate` is the fallback. */
+  titleTemplates?: Record<string, string>;
   /** Maps data item attributes to widget properties */
   attributeMappings: WidgetGroupAttributeMappings;
   /** Static configuration merged into each child widget */
@@ -1323,6 +1370,8 @@ export interface WidgetGroupConfig extends WidgetConfig {
   gap?: number;
   /** Message to show when no items are returned */
   emptyMessage?: string;
+  /** Empty message per culture code, resolved like `titles`; `emptyMessage` is the fallback. */
+  emptyMessages?: Record<string, string>;
 }
 
 // ============================================================================
@@ -1342,6 +1391,8 @@ export interface MarkdownWidgetConfig extends WidgetConfig {
   type: 'markdown';
   /** The markdown content to display */
   content: string;
+  /** Markdown content per culture code, resolved like `titles`; `content` is the fallback. */
+  contents?: Record<string, string>;
   /** Whether to resolve MeshBoard variables ($name or ${name}) in content */
   resolveVariables?: boolean;
   /** Custom padding (CSS value, default: 16px) */
@@ -1367,7 +1418,7 @@ export interface StatusListWidgetConfig extends WidgetConfig {
   /** Attribute path for the status value (e.g. 'complianceStatus') */
   statusField: string;
   /** Map of status enum values to badge colors and labels */
-  statusColors?: Record<string, { color: string; label?: string }>;
+  statusColors?: Record<string, { color: string; label?: string; labels?: Record<string, string> }>;
 }
 
 // ============================================================================
@@ -1389,8 +1440,14 @@ export interface SummaryCardWidgetConfig extends WidgetConfig {
 export interface SummaryCardTile {
   id: string;
   label: string;
+  /** Label per culture code, resolved like widget `titles`; `label` is the fallback. */
+  labels?: Record<string, string>;
   prefix?: string;
+  /** Prefix per culture code; `prefix` is the fallback. */
+  prefixes?: Record<string, string>;
   suffix?: string;
+  /** Suffix per culture code; `suffix` is the fallback. */
+  suffixes?: Record<string, string>;
   color?: 'default' | 'primary' | 'success' | 'warning' | 'error';
   size?: 'normal' | 'full';
   /** Fetch a single attribute from a runtime entity */

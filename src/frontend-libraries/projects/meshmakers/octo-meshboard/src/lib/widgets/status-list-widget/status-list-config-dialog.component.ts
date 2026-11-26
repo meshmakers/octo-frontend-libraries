@@ -5,12 +5,13 @@ import { WindowRef } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { InputsModule } from '@progress/kendo-angular-inputs';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
+import { ItemLocalizedTexts, localizedItemTexts } from '../../utils/meshboard-language';
 
 export interface StatusListConfigResult extends WidgetConfigResult {
   ckTypeId: string;
   labelField: string;
   statusField: string;
-  statusColors?: Record<string, { color: string; label?: string }>;
+  statusColors?: Record<string, { color: string; label?: string; labels?: Record<string, string> }>;
 }
 
 @Component({
@@ -79,7 +80,7 @@ export class StatusListConfigDialogComponent implements OnInit {
   @Input() initialCkTypeId?: string;
   @Input() initialLabelField?: string;
   @Input() initialStatusField?: string;
-  @Input() initialStatusColors?: Record<string, { color: string; label?: string }>;
+  @Input() initialStatusColors?: Record<string, { color: string; label?: string; labels?: Record<string, string> }>;
 
   form = {
     ckTypeId: '',
@@ -87,7 +88,7 @@ export class StatusListConfigDialogComponent implements OnInit {
     statusField: ''
   };
 
-  statusColorEntries: { key: string; color: string; label: string }[] = [];
+  statusColorEntries: { key: string; color: string; label: string; localizedTexts?: ItemLocalizedTexts }[] = [];
 
   get isValid(): boolean {
     return !!this.form.ckTypeId && !!this.form.labelField && !!this.form.statusField;
@@ -102,7 +103,8 @@ export class StatusListConfigDialogComponent implements OnInit {
       this.statusColorEntries = Object.entries(this.initialStatusColors).map(([key, val]) => ({
         key,
         color: val.color,
-        label: val.label ?? ''
+        label: val.label ?? '',
+        localizedTexts: localizedItemTexts(val)
       }));
     }
   }
@@ -116,10 +118,14 @@ export class StatusListConfigDialogComponent implements OnInit {
   }
 
   onSave(): void {
-    const statusColors: Record<string, { color: string; label?: string }> = {};
+    const statusColors: Record<string, { color: string; label?: string; labels?: Record<string, string> }> = {};
     for (const entry of this.statusColorEntries) {
       if (entry.key) {
-        statusColors[entry.key] = { color: entry.color, label: entry.label || undefined };
+        statusColors[entry.key] = {
+          color: entry.color,
+          label: entry.label || undefined,
+          ...(entry.localizedTexts?.labels !== undefined ? { labels: entry.localizedTexts.labels } : {})
+        };
       }
     }
 

@@ -35,7 +35,7 @@ import {
   AiInsightsWidgetConfig,
   DataSource,
   WidgetFilterConfig,
-  ChartValueLabels,
+  LocalizedChartValueLabels,
   MeshBoardTimeShift
 } from '../models/meshboard.models';
 import { normalizeTimeShift } from '../utils/time-shift';
@@ -133,6 +133,7 @@ export function parseTableRowExtras(config: Record<string, unknown>): Pick<Table
     .map(m => ({
       field: m['field'] as string,
       tooltip: m['tooltip'] as string,
+      ...(m['tooltips'] !== undefined && m['tooltips'] !== null ? { tooltips: m['tooltips'] as Record<string, string> } : {}),
       ...(typeof m['icon'] === 'string' ? { icon: m['icon'] } : {}),
       ...(typeof m['color'] === 'string' ? { color: m['color'] } : {}),
       ...(m['showValue'] === true ? { showValue: true } : {})
@@ -140,7 +141,7 @@ export function parseTableRowExtras(config: Record<string, unknown>): Pick<Table
   const rawLabelFields: unknown[] = Array.isArray(config['labelFields']) ? config['labelFields'] : [];
   const labelFields = rawLabelFields.filter((f): f is string => typeof f === 'string' && f !== '');
   return {
-    ...(label ? { rowAction: { label } } : {}),
+    ...(label ? { rowAction: { label, ...(rawAction?.['labels'] !== undefined && rawAction['labels'] !== null ? { labels: rawAction['labels'] as Record<string, string> } : {}) } } : {}),
     ...(valueMarkers.length > 0 ? { valueMarkers } : {}),
     ...(labelFields.length > 0 ? { labelFields } : {})
   };
@@ -802,7 +803,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
           filters: widget.filters,
           pageSize: widget.pageSize,
           sortable: widget.sortable,
-          ...(widget.rowAction?.label && { rowAction: { label: widget.rowAction.label } }),
+          ...(widget.rowAction?.label && { rowAction: { label: widget.rowAction.label, ...(widget.rowAction.labels !== undefined && { labels: widget.rowAction.labels }) } }),
           ...(widget.valueMarkers?.length && { valueMarkers: widget.valueMarkers }),
           ...(widget.labelFields?.length && { labelFields: widget.labelFields }),
           ...(queryDataSource && {
@@ -1182,7 +1183,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         legendPosition: result.legendPosition,
         filters,
         categoryColors: result.categoryColors,
-        categoryLabels: result.categoryLabels,
+        categoryLabels: withPerLanguageValueLabels(result.categoryLabels, widget.categoryLabels),
         labelPosition: result.labelPosition,
         hideLabelsBelowPercent: result.hideLabelsBelowPercent
       };
@@ -1374,8 +1375,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         filters,
         additionalSeries: result.additionalSeries?.length ? result.additionalSeries : undefined,
         primarySeries: barPrimaryOrUndefined(result.primarySeries),
-        categoryLabels: result.categoryLabels,
-        seriesLabels: result.seriesLabels
+        categoryLabels: withPerLanguageValueLabels(result.categoryLabels, widget.categoryLabels),
+        seriesLabels: withPerLanguageValueLabels(result.seriesLabels, widget.seriesLabels)
       } as BarChartWidgetConfig;
     },
 
@@ -1547,7 +1548,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         primarySeries: displayOptionsOrUndefined(result.primarySeries),
         bucketMinutes: bucketMinutesOrUndefined(result.bucketMinutes),
         excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(result.excludedSeriesGroupValues),
-        seriesLabels: result.seriesLabels
+        seriesLabels: withPerLanguageValueLabels(result.seriesLabels, widget.seriesLabels)
       } as LineChartWidgetConfig;
     },
 
@@ -1612,7 +1613,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...(excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues) && {
           excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues)
         }),
-        ...chartValueLabelsConfig('seriesLabels', widget.seriesLabels)
+        ...chartValueLabelsConfig('seriesLabels', widget.seriesLabels),
+        ...(widget.valueAxisTitle && { valueAxisTitle: widget.valueAxisTitle })
       }
     }),
 
@@ -1637,6 +1639,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         referenceLines: config['referenceLines'] as LineChartWidgetConfig['referenceLines'],
         filters: config['filters'] as WidgetFilterConfig[] | undefined,
         ...chartValueLabelsConfig('seriesLabels', config['seriesLabels']),
+        ...(typeof config['valueAxisTitle'] === 'string' && config['valueAxisTitle'] !== '' && { valueAxisTitle: config['valueAxisTitle'] }),
         ...lineChartSeriesFromPersisted(config)
       };
     }
@@ -2634,7 +2637,7 @@ function stringEntries(record: Record<string, unknown>): Record<string, string> 
 }
 
 /** `{ [key]: labels }` when the map has a usable entry, else nothing, so charts without names encode exactly as before. */
-function chartValueLabelsConfig(key: 'categoryLabels' | 'seriesLabels', labels: unknown): Partial<Record<'categoryLabels' | 'seriesLabels', ChartValueLabels>> {
+function chartValueLabelsConfig(key: 'categoryLabels' | 'seriesLabels', labels: unknown): Partial<Record<'categoryLabels' | 'seriesLabels', LocalizedChartValueLabels>> {
   const normalized = normalizeChartValueLabels(labels);
   return normalized ? { [key]: normalized } : {};
 }
@@ -2659,7 +2662,7 @@ import { WidgetRegistration } from '../services/widget-registry.service';
 import { MESHBOARD_MESSAGES, MeshBoardMessagesSource } from '../utils/meshboard-messages';
 import { MESHBOARD_LANGUAGE, MeshBoardLanguageSource } from '../utils/meshboard-language';
 import { normalizeKpiDecimalPlaces } from '../utils/kpi-decimal-places';
-import { normalizeChartValueLabels } from '../utils/chart-value-labels';
+import { normalizeChartValueLabels, withPerLanguageValueLabels } from '../utils/chart-value-labels';
 
 /**
  * Configuration options for MeshBoard

@@ -30,6 +30,7 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
 import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
+import { injectWidgetTextResolver, WidgetTextResolver } from '../../utils/meshboard-language';
 
 /**
  * Widget Group Component
@@ -59,11 +60,13 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
   private readonly dataService = inject(MeshBoardDataService);
   private readonly variableService = inject(MeshBoardVariableService);
   private readonly stateService = inject(MeshBoardStateService);
+  private readonly widgetText: WidgetTextResolver;
   protected readonly messages: ReturnType<typeof injectMeshBoardMessages>;
 
   @Input() config!: WidgetGroupConfig;
 
   constructor() {
+    this.widgetText = injectWidgetTextResolver();
     this.messages = injectMeshBoardMessages();
   }
 
@@ -205,11 +208,13 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
 
     // Resolve title template
     const title = this.resolveTemplate(template.titleTemplate, item) || `Item ${index + 1}`;
+    const titles = this.resolveTemplates(template.titleTemplates, item);
 
     // Base config shared by all widget types
     const baseConfig = {
       id: childId,
       title,
+      ...(titles !== undefined ? { titles } : {}),
       col: 1,
       row: 1,
       colSpan: 1,
@@ -234,7 +239,7 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
    * Creates a KPI widget config for a child widget.
    */
   private createKpiChildConfig(
-    baseConfig: { id: string; title: string; col: number; row: number; colSpan: number; rowSpan: number; configurable: boolean },
+    baseConfig: ChildBaseConfig,
     item: RepeaterDataItem,
     template: WidgetGroupConfig['childTemplate']
   ): KpiWidgetConfig {
@@ -255,6 +260,7 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
       labelAttribute: template.attributeMappings.labelAttribute,
       prefix: staticConfig?.prefix,
       suffix: staticConfig?.suffix,
+      ...childTextMaps(staticConfig),
       trend: staticConfig?.trend,
       icon: staticConfig?.icon,
       decimalPlaces: normalizeKpiDecimalPlaces(staticConfig?.decimalPlaces)
@@ -265,7 +271,7 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
    * Creates a Gauge widget config for a child widget.
    */
   private createGaugeChildConfig(
-    baseConfig: { id: string; title: string; col: number; row: number; colSpan: number; rowSpan: number; configurable: boolean },
+    baseConfig: ChildBaseConfig,
     item: RepeaterDataItem,
     template: WidgetGroupConfig['childTemplate']
   ): GaugeWidgetConfig {
@@ -291,6 +297,7 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
       showLabel: staticConfig?.showLabel ?? true,
       prefix: staticConfig?.prefix,
       suffix: staticConfig?.suffix,
+      ...childTextMaps(staticConfig),
       reverse: staticConfig?.reverse
     };
   }
@@ -299,7 +306,7 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
    * Creates an Entity Card widget config for a child widget.
    */
   private createEntityCardChildConfig(
-    baseConfig: { id: string; title: string; col: number; row: number; colSpan: number; rowSpan: number; configurable: boolean },
+    baseConfig: ChildBaseConfig,
     item: RepeaterDataItem,
     template: WidgetGroupConfig['childTemplate']
   ): EntityCardWidgetConfig {
@@ -341,6 +348,32 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
     };
   }
 
+  /** The empty-state message in the host language (`emptyMessages`, else `emptyMessage`); '' = the default text. */
+  emptyMessage(): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})`, 'emptyMessages', this.config?.emptyMessage ?? '', this.config?.emptyMessages);
+  }
+
+  /** A child's header in the host language: its `titles` (from `titleTemplates`), else its `title`. */
+  childTitle(child: AnyWidgetConfig): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id}) child "${child.title}"`, 'titleTemplates', child.title, child.titles);
+  }
+
+  /** `titleTemplates` with every text template resolved for the item; other entries are kept so the resolver reports them. */
+  private resolveTemplates(templates: unknown, item: RepeaterDataItem): Record<string, string> | undefined {
+    if (templates === undefined || templates === null) {
+      return undefined;
+    }
+    if (typeof templates !== 'object' || Array.isArray(templates)) {
+      return templates as Record<string, string>;
+    }
+    const resolved: Record<string, unknown> = {};
+    for (const [culture, template] of Object.entries(templates as Record<string, unknown>)) {
+      const text = typeof template === 'string' ? this.resolveTemplate(template, item) : template;
+      if (text !== '' || template === '') resolved[culture] = text;
+    }
+    return resolved as Record<string, string>;
+  }
+
   /**
    * Resolves a template string with variable substitution.
    * Supports $rtWellKnownName, $rtId, $ckTypeId, and $attributeName syntax.
@@ -368,4 +401,13 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
 
     return resolved.trim();
   }
+}
+
+interface ChildBaseConfig { id: string; title: string; titles?: Record<string, string>; col: number; row: number; colSpan: number; rowSpan: number; configurable: boolean }
+
+function childTextMaps(staticConfig: Partial<KpiWidgetConfig | GaugeWidgetConfig> | undefined): Pick<KpiWidgetConfig, 'prefixes' | 'suffixes'> {
+  return {
+    ...(staticConfig?.prefixes !== undefined ? { prefixes: staticConfig.prefixes } : {}),
+    ...(staticConfig?.suffixes !== undefined ? { suffixes: staticConfig.suffixes } : {})
+  };
 }

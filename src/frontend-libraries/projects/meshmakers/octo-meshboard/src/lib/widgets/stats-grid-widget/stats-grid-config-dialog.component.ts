@@ -10,6 +10,7 @@ import { StatItem, StatColor, AggregationQuery, AggregationType, PersistentQuery
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { PersistentQueryCellEditorComponent } from '../../components/persistent-query-cell-editor/persistent-query-cell-editor.component';
 import { MM_ACTION_ICONS } from '@meshmakers/shared-ui';
+import { ItemLocalizedTexts, localizedItemTexts } from '../../utils/meshboard-language';
 
 export interface StatsGridConfigResult extends WidgetConfigResult {
   ckTypeId: string;
@@ -41,6 +42,7 @@ interface EditableStat {
   color: StatColor;
   prefix?: string;
   suffix?: string;
+  localizedTexts?: ItemLocalizedTexts;
 }
 
 @Component({
@@ -407,7 +409,8 @@ export class StatsGridConfigDialogComponent implements OnInit {
           persistentQuerySource: stat.persistentQuerySource,
           color: stat.color ?? 'default',
           prefix: stat.prefix,
-          suffix: stat.suffix
+          suffix: stat.suffix,
+          localizedTexts: localizedItemTexts(stat)
         };
       });
     }
@@ -452,7 +455,8 @@ export class StatsGridConfigDialogComponent implements OnInit {
           persistentQuerySource: stat.persistentQuerySource,
           color: stat.color,
           prefix: stat.prefix,
-          suffix: stat.suffix
+          suffix: stat.suffix,
+          ...stat.localizedTexts
         });
         continue;
       }
@@ -462,7 +466,8 @@ export class StatsGridConfigDialogComponent implements OnInit {
         queryId,
         color: stat.color,
         prefix: stat.prefix,
-        suffix: stat.suffix
+        suffix: stat.suffix,
+        ...stat.localizedTexts
       });
 
       queries.push({

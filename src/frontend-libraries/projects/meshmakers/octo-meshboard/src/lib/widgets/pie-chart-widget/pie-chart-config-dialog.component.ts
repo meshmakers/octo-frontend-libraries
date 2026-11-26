@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { searchIcon, chartPieIcon, plusIcon, trashIcon } from '@progress/kendo-svg-icons';
 import { firstValueFrom } from 'rxjs';
-import { PieChartType, PieChartLabelPosition, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig, ChartValueLabels, MeshBoardTimeShift } from '../../models/meshboard.models';
+import { PieChartType, PieChartLabelPosition, CkQueryTarget, DataSourceType, WidgetFilterConfig, EntitySelectorConfig, ChartValueLabels, LocalizedChartValueLabels, MeshBoardTimeShift } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
 import { WidgetConfigResult } from '../../services/widget-registry.service';
@@ -488,7 +488,7 @@ export class PieChartConfigDialogComponent implements OnInit, AfterViewInit {
   @Input() initialCkGroupBy?: string;
   @Input() initialFilters?: WidgetFilterConfig[];
   @Input() initialCategoryColors?: Record<string, string>;
-  @Input() initialCategoryLabels?: ChartValueLabels;
+  @Input() initialCategoryLabels?: LocalizedChartValueLabels;
   @Input() initialLabelPosition?: PieChartLabelPosition;
   @Input() initialHideLabelsBelowPercent?: number;
 

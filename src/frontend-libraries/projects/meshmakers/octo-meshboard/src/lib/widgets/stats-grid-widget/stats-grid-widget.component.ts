@@ -11,13 +11,18 @@ import { WidgetNotConfiguredComponent } from '../../components/widget-not-config
 import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
+import { injectWidgetTextResolver, WidgetTextResolver } from '../../utils/meshboard-language';
 
 export interface StatValue {
   label: string;
+  /** `label` per culture code. */
+  labels?: Record<string, string>;
   value: number | null;
   color: string;
   prefix?: string;
+  prefixes?: Record<string, string>;
   suffix?: string;
+  suffixes?: Record<string, string>;
   isLoading: boolean;
 }
 
@@ -34,6 +39,11 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+  private readonly widgetText: WidgetTextResolver;
+
+  constructor() {
+    this.widgetText = injectWidgetTextResolver();
+  }
 
   @Input() config!: StatsGridWidgetConfig;
 
@@ -80,6 +90,7 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
       color: this.getColorClass(stat.color),
       prefix: stat.prefix,
       suffix: stat.suffix,
+      ...statTextMaps(stat),
       isLoading: true
     }));
     this._statValues.set(initialValues);
@@ -111,6 +122,7 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
           color: this.getColorClass(stat.color),
           prefix: stat.prefix,
           suffix: stat.suffix,
+          ...statTextMaps(stat),
           isLoading: false
         }))
       );
@@ -194,12 +206,31 @@ export class StatsGridWidgetComponent implements OnInit, OnChanges {
     if (stat.value === null) return '-';
 
     let formatted = stat.value.toLocaleString();
-    if (stat.prefix) formatted = stat.prefix + formatted;
-    if (stat.suffix) formatted = formatted + stat.suffix;
+    const prefix = this.statText(stat, 'prefixes', stat.prefix, stat.prefixes);
+    const suffix = this.statText(stat, 'suffixes', stat.suffix, stat.suffixes);
+    if (prefix) formatted = prefix + formatted;
+    if (suffix) formatted = formatted + suffix;
     return formatted;
+  }
+
+  /** The stat label in the host language (`labels`, else `label`). */
+  statLabel(stat: StatValue): string {
+    return this.statText(stat, 'labels', stat.label, stat.labels);
+  }
+
+  private statText(stat: StatValue, field: string, fallback: string | undefined, texts: unknown): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id}) stat "${stat.label}"`, field, fallback ?? '', texts);
   }
 
   get gridColumns(): number {
     return this.config?.columns ?? 3;
   }
+}
+
+function statTextMaps(stat: StatItem): Pick<StatValue, 'labels' | 'prefixes' | 'suffixes'> {
+  return {
+    ...(stat.labels !== undefined ? { labels: stat.labels } : {}),
+    ...(stat.prefixes !== undefined ? { prefixes: stat.prefixes } : {}),
+    ...(stat.suffixes !== undefined ? { suffixes: stat.suffixes } : {})
+  };
 }

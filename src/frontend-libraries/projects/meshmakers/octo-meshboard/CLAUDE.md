@@ -1429,7 +1429,7 @@ single-cell resolver would collapse.)
 
 ## Chart value labels (`categoryLabels` / `seriesLabels`, AB#7235)
 
-A chart that groups by a code shows a configured name instead (`ChartValueLabels`, a flat `Record<string, string>`
+A chart that groups by a code shows a configured name instead (`ChartValueLabels`, a flat `Record<string, string>`; a configured name may also be a per-language map, see *Other widget texts per language*,
 from the raw value to the text). Pie: `categoryLabels`; bar: `categoryLabels` and `seriesLabels`; line: `seriesLabels`.
 The names live in the widget `Config`, so every host renders the same. User-facing description: README, *Chart value labels*.
 
@@ -1988,6 +1988,31 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
 - Specs: `utils/meshboard-language.localized-text.spec.ts`, `containers/meshboard-view/meshboard-view.localized-texts.spec.ts`,
   `services/meshboard-persistence.localized-texts.spec.ts`, `registrations/default-widget-registrations.localized-texts.spec.ts`,
   `dialogs/meshboard-manager-dialog/meshboard-manager-dialog.localized-texts.spec.ts`.
+
+## Other widget texts per language
+
+- One shape: a single text `<prop>` stays the fallback, `<prop>s` (`Record<string, string>`) holds the translations;
+  a chart category or series name may itself be such a map (`LocalizedChartValueLabels`). The README lists every key.
+- Widgets resolve through `injectWidgetTextResolver()` / `createWidgetTextResolver(language)` in
+  `utils/meshboard-language.ts`: `resolveLocalizedText` plus one console warning per subject, field and key list. Assign
+  it in the constructor (Vitest class-field rule above), and read it in a `computed` or the template so it follows the
+  language signal. Chart names: `resolveChartValueLabels(labels, resolve)` before `configuredValueLabel` /
+  `seriesLabelsByRawValue`; `additionalSeries` go through `localizedAdditionalSeries()` (label replaced, key unchanged).
+- Bar and line charts bake names into the loaded series (series are keyed by name), so an effect reloads them on a
+  language change; every other widget relabels without a query.
+- Persistence: widget-level maps are listed in `WIDGET_LOCALIZED_TEXT_KEYS` (`services/widget-registry.service.ts`);
+  `mapWidgetToInput` writes them for every type like `titles`, `localizedWidgetTextsOf` reads them into the base config,
+  so registrations and dialogs need no change for them. Item maps ride with the item (stats, tiles, series, reference
+  lines and child templates are stored whole; `parseTableRowExtras` and the table registration carry `labels` /
+  `tooltips`; `normalizeChartValueLabels` keeps per-language names). The line chart registration stores the single
+  `valueAxisTitle` (fallback of `valueAxisTitles`) only when it is set, so line charts without it encode unchanged.
+- Dialogs: item rows keep `localizedItemTexts(item)` (`ITEM_LOCALIZED_TEXT_KEYS`) and spread them back on save (stats
+  grid, summary card, status list); the bar dialog copies `names` of a kept static series, the table dialog marker
+  `tooltips` and the row action `labels`, the widget-group dialog `titleTemplates` and the child's maps; chart
+  registrations merge the board's per-language names back with `withPerLanguageValueLabels`.
+- Specs: `widgets/widget-texts.localized-texts.spec.ts`, `widgets/chart-widgets.localized-texts.spec.ts`,
+  `widgets/config-dialogs.localized-texts.spec.ts`, `services/meshboard-persistence.widget-texts.spec.ts`,
+  `utils/chart-value-labels.localized-texts.spec.ts`.
 
 ---
 

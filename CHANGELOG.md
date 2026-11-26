@@ -10,6 +10,21 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: every author text of a widget per language (AB#9739)
+
+- Besides the title, every text an author writes into a widget can be given per UI language: a map with the plural
+  name next to the single text (`prefixes`, `suffixes`, `comparisonTexts`, `dataLabelSuffixes`, `valueAxisTitles`,
+  `trueLabels`, `falseLabels`, `emptyMessages`, `contents`, and `labels` / `names` / `tooltips` / `titleTemplates` on
+  stats, tiles, series, reference lines, statuses, table markers and the row action). Chart category and series
+  names may be a per-language map instead of a string (`LocalizedChartValueLabels`). Same resolver and fallback as
+  widget `titles`; without a host language or an entry the single text is shown as before.
+- Widget-level maps are stored in the widget `Config` JSON for every widget type; item maps stay with their item.
+  Config dialogs keep them on save. Boards without them store and load unchanged. The line chart now also stores its
+  single `valueAxisTitle`, the fallback of `valueAxisTitles` (written only when set).
+- Bar and line charts load their data again on a language switch; other widgets relabel without a query.
+- `categoryLabels` / `seriesLabels` are typed `LocalizedChartValueLabels` (string or per-language map per value); code
+  that reads them as plain strings must handle the map.
+
 ### octo-meshboard, shared-ui: board names, widget titles and widget explanations per language (AB#7890, AB#9740)
 
 - `WidgetConfig.titles`, `MeshBoardConfig.names` and `MeshBoardConfig.descriptions` (`Record<string, string>` per

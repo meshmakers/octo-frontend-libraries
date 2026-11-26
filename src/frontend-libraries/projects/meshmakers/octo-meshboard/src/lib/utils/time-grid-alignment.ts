@@ -51,6 +51,7 @@ export interface AlignedTimeSeries {
   sourceKey: string;
   data: (number | null)[];
   unit?: string;
+  color?: string;
 }
 
 /** A source left out because its buckets do not sit on the grid. */

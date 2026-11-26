@@ -14,6 +14,7 @@ import { FieldFilterDto } from '@meshmakers/octo-services';
 import { matchesAttributePath } from '../../utils/widget-data-utils';
 import { evaluateFormula, FormulaEvaluationResult, requireNumericFormulaResult } from '../../utils/meshboard-formula';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
+import { injectWidgetTextResolver, WidgetTextResolver } from '../../utils/meshboard-language';
 
 @Component({
   selector: 'mm-gauge-widget',
@@ -62,7 +63,7 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
                   <ng-template kendoArcGaugeCenterTemplate let-value="value">
                     <div class="gauge-center-label">
                       <span class="value-text" [attr.title]="valueTooltip()">
-                        {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
+                        {{ prefix() }}{{ formattedValue() }}{{ suffix() }}
                       </span>
                       @if (label()) {
                         <span class="label-text">{{ label() }}</span>
@@ -85,7 +86,7 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
                   <ng-template kendoCircularGaugeCenterTemplate let-value="value">
                     <div class="gauge-center-label">
                       <span class="value-text" [attr.title]="valueTooltip()">
-                        {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
+                        {{ prefix() }}{{ formattedValue() }}{{ suffix() }}
                       </span>
                       @if (label()) {
                         <span class="label-text">{{ label() }}</span>
@@ -118,7 +119,7 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
               </kendo-radialgauge>
               @if (config.showLabel !== false) {
                 <div class="gauge-value-label" [attr.title]="valueTooltip()">
-                  {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
+                  {{ prefix() }}{{ formattedValue() }}{{ suffix() }}
                   @if (label()) {
                     <span class="label-text">{{ label() }}</span>
                   }
@@ -156,7 +157,7 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
                 }
                 @if (config.showLabel !== false) {
                   <div class="gauge-value-label" [attr.title]="valueTooltip()">
-                    {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
+                    {{ prefix() }}{{ formattedValue() }}{{ suffix() }}
                     @if (label()) {
                       <span class="label-text">{{ label() }}</span>
                     }
@@ -178,7 +179,7 @@ import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
                   <ng-template kendoArcGaugeCenterTemplate let-value="value">
                     <div class="gauge-center-label">
                       <span class="value-text" [attr.title]="valueTooltip()">
-                        {{ config.prefix ?? '' }}{{ formattedValue() }}{{ config.suffix ?? '' }}
+                        {{ prefix() }}{{ formattedValue() }}{{ suffix() }}
                       </span>
                       @if (label()) {
                         <span class="label-text">{{ label() }}</span>
@@ -364,6 +365,22 @@ export class GaugeWidgetComponent implements DashboardWidget<GaugeWidgetConfig, 
   readonly isLoading = this._isLoading.asReadonly();
   readonly data = this._data.asReadonly();
   readonly error = this._error.asReadonly();
+
+  private readonly widgetText: WidgetTextResolver;
+
+  constructor() {
+    this.widgetText = injectWidgetTextResolver();
+  }
+
+  /** Prefix in the host language (`prefixes`, else `prefix`); '' = none. */
+  prefix(): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})`, 'prefixes', this.config?.prefix ?? '', this.config?.prefixes);
+  }
+
+  /** Suffix in the host language (`suffixes`, else `suffix`); '' = none. */
+  suffix(): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})`, 'suffixes', this.config?.suffix ?? '', this.config?.suffixes);
+  }
 
   /**
    * Check if widget is not configured (needs data source setup).

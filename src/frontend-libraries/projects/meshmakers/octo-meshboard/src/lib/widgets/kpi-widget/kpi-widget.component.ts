@@ -13,7 +13,7 @@ import { arrowUpIcon, arrowDownIcon, minusIcon } from '@progress/kendo-svg-icons
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { applyValueMultiplier, findCellForField, formatWidgetNumber, getNumberFormat, matchesAttributePath, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
-import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { injectMeshBoardLanguage, injectWidgetTextResolver, WidgetTextResolver } from '../../utils/meshboard-language';
 import { evaluateFormula, findVariableCycles, FormulaEvaluationResult } from '../../utils/meshboard-formula';
 import { normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { QueryFamily } from '../../utils/query-family';
@@ -88,12 +88,24 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   }
 
   private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
+  private readonly widgetText: WidgetTextResolver;
+
+  /** Prefix in the host language (`prefixes`, else `prefix`); '' = none. */
+  readonly prefix = computed(() => this.localized('prefixes', this.currentConfig()?.prefix, this.currentConfig()?.prefixes));
+  /** Suffix (unit) in the host language (`suffixes`, else `suffix`); '' = none. */
+  readonly suffix = computed(() => this.localized('suffixes', this.currentConfig()?.suffix, this.currentConfig()?.suffixes));
+
+  private localized(field: string, fallback: string | undefined, texts: unknown): string {
+    const config = this.currentConfig();
+    return this.widgetText(`widget "${config?.title}" (${config?.id})`, field, fallback ?? '', texts);
+  }
 
   private get numberLocale(): string {
     return this.hostLanguage() ?? WIDGET_NUMBER_LOCALE;
   }
 
   constructor() {
+    this.widgetText = injectWidgetTextResolver();
     this.hostLanguage = injectMeshBoardLanguage();
     // Publishes the raw value as runtime MeshBoard variable (AB#5364).
     effect(() => {
@@ -375,7 +387,7 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
   });
 
   readonly comparisonText = computed(() => {
-    const comparisonText = this.currentConfig()?.comparisonText;
+    const comparisonText = this.localized('comparisonTexts', this.currentConfig()?.comparisonText, this.currentConfig()?.comparisonTexts);
     if (!comparisonText) return null;
     const variables = this.stateService.getVariables();
     return this.variableService.resolveVariables(comparisonText, variables);
@@ -664,7 +676,8 @@ export class KpiWidgetComponent implements DashboardWidget<KpiWidgetConfig, Runt
     const percentText = formatWidgetNumber(shownPercent, 1, 'exact', this.numberLocale);
     const sign = (shown: number, raw: number): string => shown === 0 ? '' : raw > 0 ? '+' : '\u2212';
     const config = this.currentConfig();
-    const unit = config?.suffix ? ` ${config.suffix}` : '';
+    const suffix = this.suffix();
+    const unit = suffix ? ` ${suffix}` : '';
     const direction = shownDiff === 0 ? 'neutral' : diff > 0 ? 'up' : 'down';
     const good = config?.increaseIsGood === false ? 'down' : 'up';
     return {
