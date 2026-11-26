@@ -208,6 +208,7 @@
   [filterable]="_showRowFilter && !isCardMode"
   [resizable]="resizable"
   [rowClass]="rowClass ?? defaultRowClass"
+  (excelExport)="onExcelExport($event)"
 >
   <kendo-grid-messages
     [pagerItemsPerPage]="_messages.pagerItemsPerPage"

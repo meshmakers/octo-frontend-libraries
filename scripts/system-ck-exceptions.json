@@ -574,5 +574,12 @@
     "maxCount": 1,
     "reason": "Demo app still uses Basic tree types; demo apps get their own OctoSdkDemo schema/codegen (decision 2026-10-09).",
     "workItem": "AB#6208"
+  },
+  {
+    "path": "src/frontend-libraries/projects/meshmakers/shared-ui/src/lib/list-view/list-view-excel.ts",
+    "pattern": "^AM/PM$",
+    "maxCount": 3,
+    "reason": "Excel number-format marker, not a CK id.",
+    "workItem": "AB#9857"
   }
 ]

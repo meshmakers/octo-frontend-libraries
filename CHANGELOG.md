@@ -38,6 +38,18 @@ starts a new empty "Unreleased" section.
   after a page reload; a board saved in edit mode stores the active range as its last-used selection, as after a pick. No host change needed. A host that fills missing `tf_*` parameters itself
   (a route guard) reads `viewerTimeSelection()` first and writes it with the now exported `timeFilterQueryParams`.
 
+### shared-ui: Excel export shows the list's display values, with real numbers and dates (AB#9857)
+
+- Fix: the Excel export of list views wrote the raw field values. Like the CSV export (AB#8836), a column with a
+  `formatter` (e.g. a MeshBoard table column in `labelFields`) is now written as the text the list shows.
+- `numeric` columns with a display `format` (e.g. `1.2-2`) and no formatter stay numbers (still calculable) and get
+  the matching Excel number format (`#,##0.00`) instead of showing full precision (`-1.87E-11`).
+- Raw `date` / `iso8601` values (ISO 8601 strings) become real Excel date cells with a date format: the column's
+  Angular date format when Excel can show it, otherwise the `LOCALE_ID` format of the list (`dd.mm.yyyy hh:mm:ss`;
+  the day only for date-only values, named date-only formats such as `mediumDate` and `iso8601` columns without
+  `format`, as the list shows them). Before they were text. Other columns are unchanged. The CSV export is unchanged.
+  Affects every list view (Refinery Studio, MeshBoard tables, apps); no host change needed.
+
 ### shared-ui: CSV export writes formatted dates as shown and numbers in the column format (AB#8836)
 
 - Fix: a column with a `formatter` (e.g. a MeshBoard table column in `labelFields`) was still marked as a date
