@@ -733,6 +733,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
       formatted: !!column.formatter,
       isDate: !column.formatter && (column.dataType === 'date' || column.dataType === 'iso8601'),
       dateFormat: column.format || undefined,
+      // An iso8601 cell goes through `| date:column.format`, whose default (mediumDate) shows no time.
+      dateOnlyByDefault: column.dataType === 'iso8601',
       numberFormat: !column.formatter && column.dataType === 'numeric' && column.format ? column.format : undefined,
       value: (row: unknown) => {
         const element = row as Record<string, unknown>;

@@ -15,6 +15,12 @@ export interface ExcelColumn {
   /** Angular date format of a date column (`column.format`, e.g. `dd.MM.yyyy HH:mm`); unset = locale default. */
   dateFormat?: string;
   /**
+   * Without {@link dateFormat} the list shows the column's dates without a time (an `iso8601`
+   * column goes through Angular's `DatePipe`, whose default is `mediumDate`): Excel then uses the
+   * date-only format of the locale too.
+   */
+  dateOnlyByDefault?: boolean;
+  /**
    * Display format of a numeric column as an Angular `DecimalPipe` digits info (`1.2-2`): the
    * number stays a number and gets the matching Excel number format. Unset or not parseable = raw.
    */
@@ -126,11 +132,26 @@ export function angularToExcelDateFormat(format: string | null | undefined): str
   while (i < format.length) {
     const char = format[i];
     if (char === "'") {
-      // Quoted literal; '' is a single quote.
-      const end = format.indexOf("'", i + 1);
-      const text = end < 0 ? format.slice(i + 1) : format.slice(i + 1, end);
-      result += text ? excelLiteral(text) : excelLiteral("'");
-      i = end < 0 ? format.length : end + 1;
+      // Quoted literal ('o''clock'); '' is a single quote, inside and outside a literal.
+      if (format[i + 1] === "'") {
+        result += excelLiteral("'");
+        i += 2;
+        continue;
+      }
+      let text = '';
+      let end = i + 1;
+      while (end < format.length) {
+        if (format[end] === "'") {
+          if (format[end + 1] !== "'") {
+            break;
+          }
+          end++;
+        }
+        text += format[end];
+        end++;
+      }
+      result += excelLiteral(text);
+      i = end + 1;
       continue;
     }
     if (/[A-Za-z]/.test(char)) {
@@ -187,10 +208,14 @@ function intlToExcelFormat(format: Intl.DateTimeFormat): string {
     .join('');
 }
 
+/** Angular's named date formats that show no time: Excel shows the locale's date-only format for them. */
+const DATE_ONLY_NAMED_FORMATS = new Set(['shortDate', 'mediumDate', 'longDate', 'fullDate']);
+
 /**
  * Excel date formats for one export (AB#9857): the column's Angular date format when it can be
  * translated, otherwise the locale default the list and the CSV export use (`dd.mm.yyyy hh:mm:ss`
- * for `de-AT`, a calendar day without the time).
+ * for `de-AT`; a calendar day, a named date-only format such as `mediumDate`, or a column the list
+ * shows without a time, without the time).
  */
 export class ExcelDateFormats {
   private readonly dateFormat: string;
@@ -212,6 +237,9 @@ export class ExcelDateFormats {
       }
       if (excel) {
         return excel;
+      }
+      if (DATE_ONLY_NAMED_FORMATS.has(angularFormat)) {
+        return this.dateFormat;
       }
     }
     return dateOnly ? this.dateFormat : this.dateTimeFormat;
@@ -269,7 +297,7 @@ export function applyExcelDisplayValues(
         const date = toExcelDate(value);
         if (date) {
           cell.value = date.date;
-          cell.format = dateFormats.get(column.dateFormat, date.dateOnly);
+          cell.format = dateFormats.get(column.dateFormat, date.dateOnly || (!column.dateFormat && !!column.dateOnlyByDefault));
         } else if (value === null || value === undefined || value === '') {
           cell.value = null;
         } else if (typeof value === 'string') {

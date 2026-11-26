@@ -328,9 +328,9 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
     // The three cases of AB#9857: a formatter column (MeshBoard table `labelFields`), a numeric
     // column with format 1.2-2 and a raw ISO date column; plus a numeric column without format.
     const rows = [
-      { day: '2026-11-01T00:00:00Z', amount: 1199364, at: '2026-11-12T10:00:00Z', plain: 0.1 + 0.2 },
-      { day: '2026-11-12T00:00:00Z', amount: -1.8701e-11, at: '2026-11-01', plain: 7 },
-      { day: '2026-11-13T00:00:00Z', amount: 12.345, at: '01.11.2026', plain: null }
+      { day: '2026-11-01T00:00:00Z', amount: 1199364, at: '2026-11-12T10:00:00Z', plain: 0.1 + 0.2, stamp: '2026-11-12T10:00:00Z' },
+      { day: '2026-11-12T00:00:00Z', amount: -1.8701e-11, at: '2026-11-01', plain: 7, stamp: null },
+      { day: '2026-11-13T00:00:00Z', amount: 12.345, at: '01.11.2026', plain: null, stamp: null }
     ];
     const dayText = (value: unknown) =>
       new Intl.DateTimeFormat('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
@@ -339,7 +339,8 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
       { field: 'day', displayName: 'Tag', dataType: 'iso8601', format: 'dd.MM.yyyy', formatter: dayText },
       { field: 'amount', displayName: 'Menge', dataType: 'numeric', format: '1.2-2' },
       { field: 'at', displayName: 'Zeit', dataType: 'iso8601' },
-      { field: 'plain', displayName: 'Plain', dataType: 'numeric' }
+      { field: 'plain', displayName: 'Plain', dataType: 'numeric' },
+      { field: 'stamp', displayName: 'Stamp', dataType: 'date' }
     ];
 
     /** Excel serial number of a local date-time, as Excel stores date cells. */
@@ -408,10 +409,19 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
     it('writes raw ISO values of date columns as Excel dates (AC3)', async () => {
       const xlsx = await exportXlsx();
 
-      const dateTime = xlsx.cell('C2');
+      // iso8601 without format: the list shows DatePipe's mediumDate (no time), so Excel shows the day;
+      // the cell still holds the full date-time.
+      const isoDateTime = xlsx.cell('C2');
+      expect(isoDateTime.type).toBeNull();
+      expect(+isoDateTime.value!).toBeCloseTo(serial(new Date('2026-11-12T10:00:00Z')), 8);
+      expect(isoDateTime.format).toBe('mm/dd/yyyy');
+
+      // date column without format: the list shows date and time.
+      const dateTime = xlsx.cell('E2');
       expect(dateTime.type).toBeNull();
       expect(+dateTime.value!).toBeCloseTo(serial(new Date('2026-11-12T10:00:00Z')), 8);
       expect(dateTime.format).toBe('mm/dd/yyyy hh:mm:ss AM/PM');
+      expect(xlsx.cell('E3').value).toBeNull();
 
       const day = xlsx.cell('C3');
       expect(day.type).toBeNull();

@@ -45,8 +45,9 @@ starts a new empty "Unreleased" section.
 - `numeric` columns with a display `format` (e.g. `1.2-2`) and no formatter stay numbers (still calculable) and get
   the matching Excel number format (`#,##0.00`) instead of showing full precision (`-1.87E-11`).
 - Raw `date` / `iso8601` values (ISO 8601 strings) become real Excel date cells with a date format: the column's
-  Angular date format when Excel can show it, otherwise the `LOCALE_ID` format of the list (`dd.mm.yyyy hh:mm:ss`,
-  a date-only value as the day). Before they were text. Other columns are unchanged. The CSV export is unchanged.
+  Angular date format when Excel can show it, otherwise the `LOCALE_ID` format of the list (`dd.mm.yyyy hh:mm:ss`;
+  the day only for date-only values, named date-only formats such as `mediumDate` and `iso8601` columns without
+  `format`, as the list shows them). Before they were text. Other columns are unchanged. The CSV export is unchanged.
   Affects every list view (Refinery Studio, MeshBoard tables, apps); no host change needed.
 
 ### shared-ui: CSV export writes formatted dates as shown and numbers in the column format (AB#8836)

@@ -82,6 +82,11 @@ describe('angularToExcelDateFormat (AB#9857)', () => {
     expect(angularToExcelDateFormat("dd.MM.yyyy 'um' HH:mm")).toBe('dd.mm.yyyy "um" hh:mm');
   });
 
+  it("keeps an escaped quote ('') inside and outside a quoted literal", () => {
+    expect(angularToExcelDateFormat("h 'o''clock' a")).toBe('h "o\'clock" AM/PM');
+    expect(angularToExcelDateFormat("HH''mm")).toBe('hh"\'"mm');
+  });
+
   it('returns null for what Excel cannot show the same way', () => {
     expect(angularToExcelDateFormat('short')).toBeNull();
     expect(angularToExcelDateFormat('mediumDate')).toBeNull();
@@ -104,6 +109,13 @@ describe('ExcelDateFormats (AB#9857)', () => {
     const formats = new ExcelDateFormats('de-AT');
     expect(formats.get('dd.MM.yyyy HH:mm', false)).toBe('dd.mm.yyyy hh:mm');
     expect(formats.get('short', false)).toBe('dd.mm.yyyy hh:mm:ss');
+  });
+
+  it('shows named date-only formats without the time', () => {
+    const formats = new ExcelDateFormats('de-AT');
+    expect(formats.get('mediumDate', false)).toBe('dd.mm.yyyy');
+    expect(formats.get('shortDate', false)).toBe('dd.mm.yyyy');
+    expect(formats.get('fullDate', false)).toBe('dd.mm.yyyy');
   });
 });
 
@@ -168,6 +180,17 @@ describe('applyExcelDisplayValues (AB#9857)', () => {
     expect(cells[0][2]?.format).toBe('dd.mm.yyyy hh:mm');
     expect(cells.map((row) => row[3])).toEqual([{value: 'a'}, {value: 'b'}, {value: 'c'}, {value: 'd'}]);
     expect(workbook.sheets![0].rows![0].cells).toEqual(fields.map((name) => ({value: name})));
+  });
+
+  it('uses the date-only format for columns the list shows without a time, unless they have a format', () => {
+    const workbook = kendoWorkbook(rows, fields);
+    applyExcelDisplayValues(workbook, rows, [columns[0], columns[1], {...columns[2], dateOnlyByDefault: true}, columns[3]], 'de-AT');
+    expect(dataCells(workbook)[0][2]?.format).toBe('dd.mm.yyyy');
+
+    const withFormat = kendoWorkbook(rows, fields);
+    applyExcelDisplayValues(withFormat, rows,
+      [columns[0], columns[1], {...columns[2], dateOnlyByDefault: true, dateFormat: 'dd.MM.yyyy HH:mm'}, columns[3]], 'de-AT');
+    expect(dataCells(withFormat)[0][2]?.format).toBe('dd.mm.yyyy hh:mm');
   });
 
   it('changes nothing when the data rows do not match the rows', () => {
