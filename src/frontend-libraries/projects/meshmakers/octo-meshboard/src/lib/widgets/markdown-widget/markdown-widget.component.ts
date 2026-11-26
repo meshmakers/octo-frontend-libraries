@@ -26,6 +26,7 @@ export class MarkdownWidgetComponent implements DashboardWidget<MarkdownWidgetCo
   private readonly _isLoading = signal(false);
   private readonly _data = signal<string | null>(null);
   private readonly _error = signal<string | null>(null);
+  private readonly _configVersion = signal(0);
 
   readonly isLoading = this._isLoading.asReadonly();
   readonly data = this._data.asReadonly();
@@ -54,6 +55,7 @@ export class MarkdownWidgetComponent implements DashboardWidget<MarkdownWidgetCo
    * Resolved markdown content with variables interpolated.
    */
   readonly resolvedContent = computed(() => {
+    this._configVersion();
     const content = this.localizedContent();
     if (!content || !this.config?.resolveVariables) {
       return content;
@@ -76,6 +78,7 @@ export class MarkdownWidgetComponent implements DashboardWidget<MarkdownWidgetCo
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['config'] && !changes['config'].firstChange) {
+      this._configVersion.update(version => version + 1);
       this._data.set(this.config?.content ?? '');
     }
   }

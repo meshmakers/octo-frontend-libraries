@@ -1,4 +1,4 @@
-import { signal, WritableSignal } from '@angular/core';
+import { signal, SimpleChange, WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { KpiWidgetComponent } from './kpi-widget/kpi-widget.component';
 import { GaugeWidgetComponent } from './gauge-widget/gauge-widget.component';
@@ -129,6 +129,20 @@ describe('Widget texts per language', () => {
     expect(cmp.resolvedContent()).toBe('# Hello');
   });
 
+  it('AC 1: an edited markdown config shows its new per-language content without a language switch', () => {
+    const cmp = create(() => new MarkdownWidgetComponent());
+    const first: MarkdownWidgetConfig = { ...base, id: 'm1', type: 'markdown', title: 'Notes', dataSource: { type: 'static' }, content: '', contents: { 'de-AT': 'Erste' } };
+    cmp.config = first;
+    cmp.ngOnInit();
+    expect(cmp.resolvedContent()).toBe('Erste');
+
+    const second: MarkdownWidgetConfig = { ...first, contents: { 'de-AT': 'Zweite' } };
+    cmp.config = second;
+    cmp.ngOnChanges({ config: new SimpleChange(first, second, false) });
+
+    expect(cmp.resolvedContent()).toBe('Zweite');
+  });
+
   it('AC 1: a markdown widget with only per-language content counts as configured', () => {
     const cmp = create(() => new MarkdownWidgetComponent());
     cmp.config = { ...base, id: 'm2', type: 'markdown', title: 'Notes', dataSource: { type: 'static' }, content: '', contents: { 'de-AT': 'Text' } };
@@ -250,6 +264,18 @@ describe('Widget texts per language', () => {
       expect(child.suffixes).toEqual({ 'de-AT': 'kWh (de)' });
       language.set('en-GB');
       expect(cmp.childTitle(child)).toBe('Meter A');
+    });
+
+    it('AC 2: a title template that resolves to nothing for an item falls back to the single title without a warning', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const cmp = group({
+        childTemplate: { widgetType: 'kpi', titleTemplate: 'Meter $rtId', titleTemplates: { 'de-AT': '$label' }, attributeMappings: { valueAttribute: 'v' } }
+      });
+      const child = (cmp as unknown as { createChildConfig(item: unknown, index: number): KpiWidgetConfig })
+        .createChildConfig({ rtId: 'r1', ckTypeId: 'System/Adapter', attributes: new Map() }, 0);
+
+      expect(cmp.childTitle(child)).toBe('Meter r1');
+      expect(warn).not.toHaveBeenCalled();
     });
 
     it('AC 1 / AC 2: the empty message follows the language, else the single message', () => {

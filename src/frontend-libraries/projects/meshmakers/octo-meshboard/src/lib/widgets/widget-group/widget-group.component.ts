@@ -348,10 +348,6 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
     };
   }
 
-  /**
-   * Resolves a template string with variable substitution.
-   * Supports $rtWellKnownName, $rtId, $ckTypeId, and $attributeName syntax.
-   */
   /** The empty-state message in the host language (`emptyMessages`, else `emptyMessage`); '' = the default text. */
   emptyMessage(): string {
     return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})`, 'emptyMessages', this.config?.emptyMessage ?? '', this.config?.emptyMessages);
@@ -372,11 +368,16 @@ export class WidgetGroupComponent implements DashboardWidget<WidgetGroupConfig, 
     }
     const resolved: Record<string, unknown> = {};
     for (const [culture, template] of Object.entries(templates as Record<string, unknown>)) {
-      resolved[culture] = typeof template === 'string' ? this.resolveTemplate(template, item) : template;
+      const text = typeof template === 'string' ? this.resolveTemplate(template, item) : template;
+      if (text !== '' || template === '') resolved[culture] = text;
     }
     return resolved as Record<string, string>;
   }
 
+  /**
+   * Resolves a template string with variable substitution.
+   * Supports $rtWellKnownName, $rtId, $ckTypeId, and $attributeName syntax.
+   */
   private resolveTemplate(template: string | undefined, item: RepeaterDataItem): string {
     if (!template) return '';
 

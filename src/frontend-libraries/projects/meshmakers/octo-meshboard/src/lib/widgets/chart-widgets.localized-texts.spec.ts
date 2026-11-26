@@ -1,6 +1,6 @@
 import { signal, WritableSignal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { PieChartWidgetComponent } from './pie-chart-widget/pie-chart-widget.component';
 import { BarChartWidgetComponent } from './bar-chart-widget/bar-chart-widget.component';
 import { LineChartWidgetComponent } from './line-chart-widget/line-chart-widget.component';
@@ -156,15 +156,45 @@ describe('Chart widget texts per language', () => {
       await vi.waitFor(() => expect(cmp.seriesData().map(s => s.name)).toEqual(['Energy (GB)']));
     });
 
-    it('AC 1 / AC 2: the legend label of an additional query series follows the language, else the single label', async () => {
+    it.each([
+      ['one query', {}],
+      ['additional series', { additionalSeries: [{
+        kind: 'query' as const, key: 'pv', label: 'PV', categoryField: 'obisCode', valueField: 'energy_sum', visible: false,
+        dataSource: { type: 'persistentQuery' as const, queryRtId: 'q-pv', queryFamily: 'streamData' as const }
+      }] }]
+    ])('AC 1: a load started before a language switch that answers last does not overwrite the newer chart (%s)', async (_mode, extra) => {
+      const { cmp, execute, load } = bar({
+        series: [{ field: 'energy_sum', name: 'Energy', names: { 'de-AT': 'Energie', 'en-GB': 'Energy (GB)' } }],
+        ...extra
+      }, { 'q-main': staticRows, 'q-pv': staticRows });
+      const slow = new Subject<unknown>();
+      execute.mockImplementationOnce(() => slow as never);
+
+      const older = load();
+      language.set('en-GB');
+      await load();
+      expect(cmp.seriesData().map(s => [s.name, s.data])).toEqual([['Energy (GB)', [10, 4]]]);
+
+      slow.next({ family: 'streamData', queryRtId: 'q-main', associatedCkTypeId: null, columns: [], rows: [row({ obisCode: FEED_IN, energy_sum: 99 })], totalCount: 1, hasNextPage: false, endCursor: null });
+      slow.complete();
+      await older;
+
+      expect(cmp.seriesData().map(s => [s.name, s.data])).toEqual([['Energy (GB)', [10, 4]]]);
+    });
+
+    it('AC 1 / AC 2: with additional series, their labels and the static series names follow the language, else the single texts', async () => {
       const additional = {
         kind: 'query' as const, key: 'pv', label: 'PV', labels: { 'de-AT': 'Photovoltaik' },
         categoryField: 'obisCode', valueField: 'energy_sum',
         dataSource: { type: 'persistentQuery' as const, queryRtId: 'q-pv', queryFamily: 'streamData' as const }
       };
-      const german = bar({ additionalSeries: [additional] }, { 'q-main': staticRows, 'q-pv': staticRows });
+      const german = bar({
+        additionalSeries: [additional],
+        series: [{ field: 'energy_sum', name: 'Energy', names: { 'de-AT': 'Energie' }, color: '#123456' }]
+      }, { 'q-main': staticRows, 'q-pv': staticRows });
       await german.load();
-      expect(german.cmp.seriesData().map(s => s.name)).toEqual(['Energy', 'Photovoltaik']);
+      expect(german.cmp.seriesData().map(s => s.name)).toEqual(['Energie', 'Photovoltaik']);
+      expect(german.cmp.seriesData()[0].color).toBe('#123456');
 
       TestBed.resetTestingModule();
       language.set('fr-FR');

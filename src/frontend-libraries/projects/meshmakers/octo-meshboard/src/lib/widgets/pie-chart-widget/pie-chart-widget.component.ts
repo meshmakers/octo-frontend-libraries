@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, OnDestroy, AfterViewInit, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PieChartWidgetConfig, PersistentQueryDataSource, ConstructionKitQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
+import { ChartValueLabels, PieChartWidgetConfig, PersistentQueryDataSource, ConstructionKitQueryDataSource, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
@@ -216,7 +216,8 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   readonly chartData = computed<ChartDataItem[]>(() => {
     this.chartTheme();
     const palette = chartSeriesColors();
-    return this._rawData().map((item, index) => this.toItem(item.category, item.value, index, palette));
+    const categoryLabels = this.resolvedCategoryLabels();
+    return this._rawData().map((item, index) => this.toItem(item.category, item.value, index, palette, categoryLabels));
   }, { equal: sameChartItems });
   readonly error = this._error.asReadonly();
 
@@ -284,15 +285,22 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
     this.resizeObserver?.disconnect();
   }
 
+  /** `categoryLabels` with the per-language names resolved for the host language. */
+  private resolvedCategoryLabels(): ChartValueLabels | undefined {
+    return resolveChartValueLabels(this.config?.categoryLabels, (raw, texts) =>
+      this.widgetText(`widget "${this.config?.title}" (${this.config?.id}) category "${raw}"`, 'categoryLabels', '', texts));
+  }
+
   /**
    * Label and colour for a raw category value (exposed for tests). The label is the `categoryLabels`
    * entry of the widget config (AB#7235), else the host resolver's text (AB#5622), else the
    * humanized category. The colour still follows the raw value (and, as before, the resolver text).
    */
-  toItem(rawCategory: string, value: number, index = 0, palette: readonly string[] = chartSeriesColors()): ChartDataItem {
+  toItem(
+    rawCategory: string, value: number, index = 0, palette: readonly string[] = chartSeriesColors(),
+    categoryLabels: ChartValueLabels | undefined = this.resolvedCategoryLabels()
+  ): ChartDataItem {
     const hostLabel = this.categoryLabel(rawCategory);
-    const categoryLabels = resolveChartValueLabels(this.config?.categoryLabels, (raw, texts) =>
-      this.widgetText(`widget "${this.config?.title}" (${this.config?.id}) category "${raw}"`, 'categoryLabels', '', texts));
     const category = configuredValueLabel(categoryLabels, rawCategory) ?? hostLabel;
     const status = categoryStatus(rawCategory);
     const color = this.configuredColor(rawCategory, hostLabel)
