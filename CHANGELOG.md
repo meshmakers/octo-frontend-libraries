@@ -19,7 +19,8 @@ starts a new empty "Unreleased" section.
   names may be a per-language map instead of a string (`LocalizedChartValueLabels`). Same resolver and fallback as
   widget `titles`; without a host language or an entry the single text is shown as before.
 - Widget-level maps are stored in the widget `Config` JSON for every widget type; item maps stay with their item.
-  Config dialogs keep them on save. Boards without them store and load unchanged.
+  Config dialogs keep them on save. Boards without them store and load unchanged. The line chart now also stores its
+  single `valueAxisTitle`, the fallback of `valueAxisTitles` (written only when set).
 - Bar and line charts load their data again on a language switch; other widgets relabel without a query.
 - `categoryLabels` / `seriesLabels` are typed `LocalizedChartValueLabels` (string or per-language map per value); code
   that reads them as plain strings must handle the map.

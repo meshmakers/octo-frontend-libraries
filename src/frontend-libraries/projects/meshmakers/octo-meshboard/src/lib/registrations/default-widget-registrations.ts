@@ -1613,7 +1613,8 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         ...(excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues) && {
           excludedSeriesGroupValues: excludedSeriesGroupValuesOrUndefined(widget.excludedSeriesGroupValues)
         }),
-        ...chartValueLabelsConfig('seriesLabels', widget.seriesLabels)
+        ...chartValueLabelsConfig('seriesLabels', widget.seriesLabels),
+        ...(widget.valueAxisTitle && { valueAxisTitle: widget.valueAxisTitle })
       }
     }),
 
@@ -1638,6 +1639,7 @@ export function registerDefaultWidgets(registry: WidgetRegistryService): void {
         referenceLines: config['referenceLines'] as LineChartWidgetConfig['referenceLines'],
         filters: config['filters'] as WidgetFilterConfig[] | undefined,
         ...chartValueLabelsConfig('seriesLabels', config['seriesLabels']),
+        ...(typeof config['valueAxisTitle'] === 'string' && config['valueAxisTitle'] !== '' && { valueAxisTitle: config['valueAxisTitle'] }),
         ...lineChartSeriesFromPersisted(config)
       };
     }

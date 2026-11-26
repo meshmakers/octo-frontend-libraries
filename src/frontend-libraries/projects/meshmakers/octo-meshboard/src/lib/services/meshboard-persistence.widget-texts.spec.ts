@@ -131,6 +131,29 @@ describe('MeshBoardPersistenceService - widget texts per language beyond the tit
     expect(at('widgetGroup', 'childTemplate')).toMatchObject({ titleTemplates: DE, staticConfig: { suffixes: DE } });
   });
 
+  it('AC 2: keeps the single line chart value axis title next to its per-language map, so the map has its fallback after reload', async () => {
+    const lineWidget = widgetOf('lineChart', 'local-1', { valueAxisTitle: 'Energy', valueAxisTitles: { 'de-AT': 'Energie' } } as Partial<AnyWidgetConfig>);
+
+    const loaded = await saveAndLoad(board([lineWidget]));
+
+    expect(loaded.widgets[0]).toMatchObject({ valueAxisTitle: 'Energy', valueAxisTitles: { 'de-AT': 'Energie' } });
+  });
+
+  it('AC 2: a line chart edited in its config dialog keeps its value axis title', () => {
+    const lineWidget = widgetOf('lineChart', 'local-1', { valueAxisTitle: 'Energy' } as Partial<AnyWidgetConfig>);
+
+    const edited = registry.applyConfigResult(lineWidget, registry.getInitialConfig(lineWidget) as unknown as Parameters<WidgetRegistryService['applyConfigResult']>[1]);
+
+    expect(edited).toMatchObject({ valueAxisTitle: 'Energy' });
+  });
+
+  it('AC 2: a line chart without a value axis title stores the same config keys as before', async () => {
+    await service.createMeshBoard(board([widgetOf('lineChart', 'local-1')]));
+
+    const stored = JSON.parse(createWidgets.mock.calls[0][0].variables.entities[0].config as string) as Record<string, unknown>;
+    expect(Object.keys(stored)).not.toContain('valueAxisTitle');
+  });
+
   it('stores a widget without per-language texts with the same config as before', async () => {
     const plain = widgetOf('kpi', 'local-1', { suffix: 'kWh' } as Partial<AnyWidgetConfig>);
 

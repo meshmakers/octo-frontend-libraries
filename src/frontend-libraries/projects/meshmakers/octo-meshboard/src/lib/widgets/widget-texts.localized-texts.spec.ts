@@ -13,7 +13,7 @@ import { DashboardDataService, MeshBoardDataService } from '../services/meshboar
 import { MeshBoardStateService } from '../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../services/meshboard-variable.service';
 import { QueryExecutorService } from '../services/query-executor.service';
-import { MESHBOARD_LANGUAGE } from '../utils/meshboard-language';
+import { createWidgetTextResolver, MESHBOARD_LANGUAGE } from '../utils/meshboard-language';
 import { MESHBOARD_TABLE_ROW_ACTION_HANDLER } from '../utils/meshboard-table-row-action';
 import { CkModelService } from '@meshmakers/octo-services';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
@@ -173,6 +173,48 @@ describe('Widget texts per language', () => {
     expect(cmp.tileText(tile, 'labels', 'Members', { 'de-AT': 'Mitglieder' })).toBe('Members');
   });
 
+  it('AC 1: the stats grid keeps the per-language texts of a configured stat when it loads its values', async () => {
+    const fetchAggregations = vi.fn().mockResolvedValue(new Map([['q1', 5]]));
+    const cmp = create(() => new StatsGridWidgetComponent(), true, [{ provide: MeshBoardDataService, useValue: { fetchAggregations } }]);
+    cmp.config = {
+      ...base, id: 'sg', type: 'statsGrid', title: 'Stats',
+      dataSource: { type: 'aggregation', queries: [{ id: 'q1', ckTypeId: 'System/Adapter', aggregation: 'count' }] },
+      stats: [{
+        queryId: 'q1', label: 'Meters', labels: { 'de-AT': 'Zähler' },
+        prefix: '#', prefixes: { 'de-AT': 'Nr. ' }, suffix: ' pcs', suffixes: { 'en-GB': ' pieces' }
+      }]
+    } as StatsGridWidgetConfig;
+
+    cmp.ngOnInit();
+    await vi.waitFor(() => expect(cmp.statValues()[0]?.value).toBe(5));
+
+    const [stat] = cmp.statValues();
+    expect([cmp.statLabel(stat), cmp.formatValue(stat)]).toEqual(['Zähler', 'Nr. 5 pcs']);
+    language.set('en-GB');
+    expect([cmp.statLabel(stat), cmp.formatValue(stat)]).toEqual(['Meters', '#5 pieces']);
+  });
+
+  it('AC 1: the summary card keeps the per-language texts of a configured tile when it loads its values', async () => {
+    const cmp = create(() => new SummaryCardWidgetComponent());
+    cmp.config = {
+      ...base, id: 'sc', type: 'summaryCard', title: 'Summary', dataSource: { type: 'static' },
+      tiles: [{
+        id: 't1', label: 'Members', labels: { 'de-AT': 'Mitglieder' },
+        prefix: '', prefixes: { 'de-AT': 'ca. ' }, suffix: '', suffixes: { 'de-AT': ' Pers.' }
+      }]
+    } as SummaryCardWidgetConfig;
+
+    cmp.ngOnInit();
+    await vi.waitFor(() => expect(cmp.tileValues().length).toBe(1));
+
+    const [tile] = cmp.tileValues();
+    expect([
+      cmp.tileText(tile, 'labels', tile.label, tile.labels),
+      cmp.tileText(tile, 'prefixes', tile.prefix, tile.prefixes),
+      cmp.tileText(tile, 'suffixes', tile.suffix, tile.suffixes)
+    ]).toEqual(['Mitglieder', 'ca. ', ' Pers.']);
+  });
+
   it('AC 1 / AC 2: status list badge text follows the language, else the single label, else the status', () => {
     const cmp = create(() => new StatusListWidgetComponent());
     cmp.config = {
@@ -248,6 +290,22 @@ describe('Widget texts per language', () => {
       expect(tooltips()).toEqual(['Manuelle Werte', 'In Ordnung']);
       language.set(null);
       expect(tooltips()).toEqual(['Manual values', 'Fine']);
+    });
+  });
+
+  describe('ignored entries', () => {
+    it('AC 2: the single text stays and one warning is logged per ignored set of entries, not on every read', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const resolve = createWidgetTextResolver(signal<string | null>('de-AT'));
+
+      const reads = [1, 2, 3].map(() => resolve('widget "Energy"', 'suffixes', 'kWh', { 'de-AT': '', german: 'x' }));
+      expect(reads).toEqual(['kWh', 'kWh', 'kWh']);
+      expect(warn).toHaveBeenCalledTimes(1);
+
+      resolve('widget "Energy"', 'suffixes', 'kWh', { 'de-AT': '' });
+      resolve('widget "Energy"', 'prefixes', '', { 'de-AT': '' });
+      resolve('widget "Energy"', 'prefixes', '', { 'de-AT': '' });
+      expect(warn).toHaveBeenCalledTimes(3);
     });
   });
 });

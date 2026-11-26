@@ -141,6 +141,38 @@ describe('Chart widget texts per language', () => {
       expect(cmp.seriesData().map(s => s.name)).toEqual(['Energy (GB)']);
     });
 
+    it('AC 1: a language switch loads the data again, so the series names baked into the loaded series follow', async () => {
+      const { cmp, fixture, execute } = bar({
+        series: [{ field: 'energy_sum', name: 'Energy', names: { 'de-AT': 'Energie', 'en-GB': 'Energy (GB)' } }]
+      }, { 'q-main': staticRows });
+      fixture.detectChanges();
+      await vi.waitFor(() => expect(cmp.seriesData().map(s => s.name)).toEqual(['Energie']));
+      const queriesBefore = execute.mock.calls.length;
+
+      language.set('en-GB');
+      fixture.detectChanges();
+
+      await vi.waitFor(() => expect(execute.mock.calls.length).toBe(queriesBefore + 1));
+      await vi.waitFor(() => expect(cmp.seriesData().map(s => s.name)).toEqual(['Energy (GB)']));
+    });
+
+    it('AC 1 / AC 2: the legend label of an additional query series follows the language, else the single label', async () => {
+      const additional = {
+        kind: 'query' as const, key: 'pv', label: 'PV', labels: { 'de-AT': 'Photovoltaik' },
+        categoryField: 'obisCode', valueField: 'energy_sum',
+        dataSource: { type: 'persistentQuery' as const, queryRtId: 'q-pv', queryFamily: 'streamData' as const }
+      };
+      const german = bar({ additionalSeries: [additional] }, { 'q-main': staticRows, 'q-pv': staticRows });
+      await german.load();
+      expect(german.cmp.seriesData().map(s => s.name)).toEqual(['Energy', 'Photovoltaik']);
+
+      TestBed.resetTestingModule();
+      language.set('fr-FR');
+      const fallback = bar({ additionalSeries: [additional] }, { 'q-main': staticRows, 'q-pv': staticRows });
+      await fallback.load();
+      expect(fallback.cmp.seriesData().map(s => s.name)).toEqual(['Energy', 'PV']);
+    });
+
     it('AC 1: dynamic series names per language name the legend entries', async () => {
       const rows = [
         row({ day: 'Mon', obisCode: FEED_IN, energy: 1 }),
@@ -180,15 +212,31 @@ describe('Chart widget texts per language', () => {
 
     function line(overrides: Partial<LineChartWidgetConfig>, rowsByQuery: Record<string, QueryResultRow[]>, withLanguage = true, timeArgs?: { from: Date; to: Date }) {
       const execute = providers(rowsByQuery, withLanguage, timeArgs);
-      const cmp = TestBed.createComponent(LineChartWidgetComponent).componentInstance;
+      const fixture = TestBed.createComponent(LineChartWidgetComponent);
+      const cmp = fixture.componentInstance;
       cmp.config = {
         id: 'w1', type: 'lineChart', title: 'Energy', col: 1, row: 1, colSpan: 4, rowSpan: 2,
         dataSource: { type: 'persistentQuery', queryRtId: 'q-main', queryFamily: 'streamData' },
         chartType: 'line', categoryField: 'window_start', seriesGroupField: 'obisCode', valueField: 'energy',
         ...overrides
       };
-      return { cmp, execute, load: () => (cmp as unknown as { loadData(): Promise<void> }).loadData() };
+      return { cmp, fixture, execute, load: () => (cmp as unknown as { loadData(): Promise<void> }).loadData() };
     }
+
+    it('AC 1: a language switch loads the data again, so the series names baked into the loaded series follow', async () => {
+      const { cmp, fixture, execute } = line({
+        seriesLabels: { [FEED_IN]: { 'de-AT': 'Einspeisung', 'en-GB': 'Feed-in' } }
+      }, { 'q-main': rows });
+      fixture.detectChanges();
+      await vi.waitFor(() => expect(cmp.seriesData().map(s => s.name)).toEqual(['Einspeisung', SURPLUS]));
+      const queriesBefore = execute.mock.calls.length;
+
+      language.set('en-GB');
+      fixture.detectChanges();
+
+      await vi.waitFor(() => expect(execute.mock.calls.length).toBe(queriesBefore + 1));
+      await vi.waitFor(() => expect(cmp.seriesData().map(s => s.name)).toEqual(['Feed-in', SURPLUS]));
+    });
 
     it('AC 1: series names, value axis title and reference line label appear in the viewer language', async () => {
       const { cmp, load } = line({

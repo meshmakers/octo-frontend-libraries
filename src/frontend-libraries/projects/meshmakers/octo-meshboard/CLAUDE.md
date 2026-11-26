@@ -2004,7 +2004,8 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
   `mapWidgetToInput` writes them for every type like `titles`, `localizedWidgetTextsOf` reads them into the base config,
   so registrations and dialogs need no change for them. Item maps ride with the item (stats, tiles, series, reference
   lines and child templates are stored whole; `parseTableRowExtras` and the table registration carry `labels` /
-  `tooltips`; `normalizeChartValueLabels` keeps per-language names).
+  `tooltips`; `normalizeChartValueLabels` keeps per-language names). The line chart registration stores the single
+  `valueAxisTitle` (fallback of `valueAxisTitles`) only when it is set, so line charts without it encode unchanged.
 - Dialogs: item rows keep `localizedItemTexts(item)` (`ITEM_LOCALIZED_TEXT_KEYS`) and spread them back on save (stats
   grid, summary card, status list); the bar dialog copies `names` of a kept static series, the table dialog marker
   `tooltips` and the row action `labels`, the widget-group dialog `titleTemplates` and the child's maps; chart
