@@ -1,7 +1,6 @@
-import { Component, WritableSignal, signal } from '@angular/core';
+import { ApplicationRef, Component, WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { DialogService, WindowService } from '@progress/kendo-angular-dialog';
 import { TimeRangePickerLabels, WindowStateService } from '@meshmakers/shared-ui';
 import { BreadCrumbService } from '@meshmakers/shared-services';
@@ -16,6 +15,7 @@ import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AnyWidgetConfig, MeshBoardConfig } from '../../models/meshboard.models';
 import { MESHBOARD_LANGUAGE } from '../../utils/meshboard-language';
 import { MESHBOARD_MESSAGES, MeshBoardMessages } from '../../utils/meshboard-messages';
+import { hoverTooltip, leaveTooltip, openTooltips, tooltipTestProviders, tooltipText } from '../../testing/meshboard-tooltip.helpers';
 
 @Component({
   standalone: true,
@@ -109,7 +109,7 @@ describe('MeshBoardViewComponent - author texts in the host language', () => {
       imports: [HostComponent],
       providers: [
         provideRouter([]),
-        provideNoopAnimations(),
+        ...tooltipTestProviders(),
         { provide: ActivatedRoute, useValue: route },
         { provide: MeshBoardStateService, useValue: stateService },
         { provide: MeshBoardVariableService, useValue: {} },
@@ -269,19 +269,73 @@ describe('MeshBoardViewComponent - author texts in the host language', () => {
       const r = await render({ config: board([widget({ description: 'Sum of all metering points per month', descriptions })]), language: 'de-AT' });
       const icon = infoIcon(r.el);
       expect(icon).not.toBeNull();
-      expect(icon?.getAttribute('title')).toBe('Summe aller Zählpunkte im Monat');
+      expect(hoverTooltip(r.fixture, icon!)).toBe('Summe aller Zählpunkte im Monat');
       expect(icon?.getAttribute('aria-label')).toBe('Summe aller Zählpunkte im Monat');
+      leaveTooltip(r.fixture, icon!);
 
       r.language.set('en-GB');
       rerender(r);
 
-      expect(infoIcon(r.el)?.getAttribute('title')).toBe('Sum of all metering points per month');
+      expect(hoverTooltip(r.fixture, infoIcon(r.el)!)).toBe('Sum of all metering points per month');
+      expect(infoIcon(r.el)?.getAttribute('aria-label')).toBe('Sum of all metering points per month');
     });
 
     it('shows the info icon for an explanation given only per language', async () => {
       const r = await render({ config: board([widget({ descriptions })]), language: 'en-GB' });
 
-      expect(infoIcon(r.el)?.getAttribute('title')).toBe('Sum of all metering points per month');
+      expect(hoverTooltip(r.fixture, infoIcon(r.el)!)).toBe('Sum of all metering points per month');
+    });
+
+    it('criterion 1: hovering the info icon opens a Kendo tooltip with the explanation, leaving closes it', async () => {
+      const r = await render({ config: board([widget({ descriptions })]), language: 'en-GB' });
+      const icon = infoIcon(r.el)!;
+
+      expect(tooltipText()).toBeNull();
+      expect(hoverTooltip(r.fixture, icon)).toBe('Sum of all metering points per month');
+      leaveTooltip(r.fixture, icon);
+      expect(tooltipText()).toBeNull();
+    });
+
+    it('criterion 3: the info icon keeps the explanation as its accessible name and stays keyboard focusable', async () => {
+      const r = await render({ config: board([widget({ descriptions })]), language: 'en-GB' });
+      const icon = infoIcon(r.el)!;
+
+      expect(icon.getAttribute('role')).toBe('img');
+      expect(icon.getAttribute('aria-label')).toBe('Sum of all metering points per month');
+      expect(icon.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('criterion 2: keyboard focus on the info icon shows the tooltip, Escape hides it', async () => {
+      const r = await render({ config: board([widget({ descriptions })]), language: 'en-GB' });
+      const icon = infoIcon(r.el)!;
+
+      icon.dispatchEvent(new FocusEvent('focus'));
+      r.fixture.detectChanges();
+      expect(tooltipText()).toBe('Sum of all metering points per month');
+      icon.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+      r.fixture.detectChanges();
+      expect(tooltipText()).toBeNull();
+    });
+
+    it('criterion 4: the info icon has no native title, also while the tooltip is open', async () => {
+      const r = await render({ config: board([widget({ descriptions })]), language: 'en-GB' });
+      const icon = infoIcon(r.el)!;
+
+      expect(icon.hasAttribute('title')).toBe(false);
+      hoverTooltip(r.fixture, icon);
+      expect(icon.hasAttribute('title')).toBe(false);
+      expect(openTooltips().length).toBe(1);
+    });
+
+    it('criterion 5: an open tooltip switches to the new language without reopening', async () => {
+      const r = await render({ config: board([widget({ descriptions })]), language: 'de-AT' });
+      hoverTooltip(r.fixture, infoIcon(r.el)!);
+
+      r.language.set('en-GB');
+      rerender(r);
+      TestBed.inject(ApplicationRef).tick();
+
+      expect(tooltipText()).toBe('Sum of all metering points per month');
     });
 
     it('shows no info icon when the widget has no explanation', async () => {

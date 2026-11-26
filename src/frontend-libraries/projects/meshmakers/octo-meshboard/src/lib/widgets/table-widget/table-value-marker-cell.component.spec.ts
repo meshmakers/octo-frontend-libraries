@@ -1,4 +1,5 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { hoverTooltip, leaveTooltip, openTooltips, tooltipTestProviders, tooltipText } from '../../testing/meshboard-tooltip.helpers';
 import { exclamationCircleIcon } from '@progress/kendo-svg-icons';
 import { TableValueMarkerCellComponent } from './table-value-marker-cell.component';
 import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
@@ -30,7 +31,6 @@ describe('TableValueMarkerCellComponent (AB#7728)', () => {
   it('shows the icon with tooltip for a value above zero', () => {
     const marker = render(2).querySelector('.value-marker');
     expect(marker).not.toBeNull();
-    expect(marker!.getAttribute('title')).toBe('Contains manual values');
     const image = marker!.querySelector('[role="img"]');
     expect(image!.getAttribute('aria-label')).toBe('Contains manual values');
     expect(image!.querySelector('kendo-svgicon')).not.toBeNull();
@@ -59,7 +59,6 @@ describe('TableValueMarkerCellComponent (AB#7728)', () => {
     const marker = render(2, true).querySelector('.value-marker');
     expect(marker!.querySelector('kendo-svgicon')).not.toBeNull();
     expect(marker!.querySelector('.value-marker-value')!.textContent).toBe('2');
-    expect(marker!.getAttribute('title')).toBe('Contains manual values');
   });
 
   it('stays empty for zero with showValue', () => {
@@ -74,5 +73,52 @@ describe('TableValueMarkerCellComponent (AB#7728)', () => {
 
   it('stays empty without a value', () => {
     expect(render(null).querySelector('.value-marker')).toBeNull();
+  });
+});
+
+describe('TableValueMarkerCellComponent styled tooltip', () => {
+  let fixture: ComponentFixture<TableValueMarkerCellComponent>;
+
+  function render(showValue = false): HTMLElement {
+    TestBed.configureTestingModule({ imports: [TableValueMarkerCellComponent], providers: tooltipTestProviders() });
+    fixture = TestBed.createComponent(TableValueMarkerCellComponent);
+    fixture.componentRef.setInput('value', 3);
+    fixture.componentRef.setInput('icon', exclamationCircleIcon);
+    fixture.componentRef.setInput('tooltip', 'Contains manual values');
+    fixture.componentRef.setInput('showValue', showValue);
+    fixture.detectChanges();
+    return (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.value-marker')!;
+  }
+
+  afterEach(() => fixture?.destroy());
+
+  it('criterion 1: hovering the marker shows the tooltip text in a Kendo tooltip, leaving hides it', () => {
+    const marker = render();
+    expect(tooltipText()).toBeNull();
+    expect(hoverTooltip(fixture, marker)).toBe('Contains manual values');
+    leaveTooltip(fixture, marker);
+    expect(tooltipText()).toBeNull();
+  });
+
+  it('criterion 1: a changed tooltip text is what the next hover shows', () => {
+    const marker = render();
+    fixture.componentRef.setInput('tooltip', 'Corrected by hand');
+    fixture.detectChanges();
+    expect(hoverTooltip(fixture, marker)).toBe('Corrected by hand');
+  });
+
+  it('criterion 3: the marker image keeps the tooltip text as its accessible name', () => {
+    const marker = render();
+    expect(marker.querySelector('[role="img"]')!.getAttribute('aria-label')).toBe('Contains manual values');
+  });
+
+  it('criterion 4: no element of the marker carries a native title, also while the tooltip is open', () => {
+    const marker = render(true);
+    expect(marker.closest('[title]')).toBeNull();
+    expect(marker.querySelectorAll('[title]').length).toBe(0);
+    hoverTooltip(fixture, marker);
+    expect(marker.hasAttribute('title')).toBe(false);
+    expect(marker.querySelectorAll('[title]').length).toBe(0);
+    expect(openTooltips().length).toBe(1);
   });
 });

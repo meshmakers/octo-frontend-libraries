@@ -69,6 +69,7 @@ import type { EntitySelectorScopeState } from '../../utils/stream-data-scope';
 import { AddWidgetDialogComponent } from '../../dialogs/add-widget-dialog/add-widget-dialog.component';
 import { MeshBoardEmptyStateComponent } from '../../components/meshboard-empty-state/meshboard-empty-state.component';
 import { hasTimeShiftCaption, TimeShiftCaptionComponent } from '../../components/time-shift-caption/time-shift-caption.component';
+import { MeshBoardTooltipDirective } from '../../components/meshboard-tooltip/meshboard-tooltip.directive';
 import { MeshBoardManagerDialogComponent } from '../../dialogs/meshboard-manager-dialog/meshboard-manager-dialog.component';
 import { EditWidgetDialogComponent, WidgetPositionUpdate } from '../../dialogs/edit-widget-dialog/edit-widget-dialog.component';
 import { TENANT_ID_PROVIDER } from '@meshmakers/octo-services';
@@ -104,7 +105,8 @@ import {
     TimeRangePickerComponent,
     EntitySelectorToolbarComponent,
     MeshBoardEmptyStateComponent,
-    TimeShiftCaptionComponent
+    TimeShiftCaptionComponent,
+    MeshBoardTooltipDirective
   ],
   hostDirectives: [UnsavedChangesDirective],
   providers: [

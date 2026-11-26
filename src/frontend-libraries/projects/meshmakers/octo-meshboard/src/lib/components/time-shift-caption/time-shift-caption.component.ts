@@ -6,6 +6,7 @@ import { isValidHeatmapTimeWindow } from '../../widgets/heatmap-widget/heatmap-b
 import { TimeShiftCaption, timeShiftCaption, TimeShiftCaptionLanguage } from '../../utils/time-shift-caption';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { MeshBoardTooltipDirective } from '../meshboard-tooltip/meshboard-tooltip.directive';
 
 /**
  * Caption and tooltip of a widget whose stream-data query applies a time shift, or `null` when the
@@ -52,10 +53,12 @@ function resolveCaptionedShift(
 @Component({
   selector: 'mm-time-shift-caption',
   standalone: true,
+  imports: [MeshBoardTooltipDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (caption(); as shifted) {
-      <span class="time-shift-caption" [attr.title]="shifted.tooltip">{{ shifted.caption }}</span>
+      <span class="time-shift-caption" role="note" [attr.aria-label]="shifted.tooltip" [mmMeshBoardTooltip]="captionTooltip">{{ shifted.caption }}</span>
+      <ng-template #captionTooltip>{{ shifted.tooltip }}</ng-template>
     }
   `,
   styles: [`

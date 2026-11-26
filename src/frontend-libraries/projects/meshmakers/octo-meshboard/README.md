@@ -12,6 +12,22 @@ MeshBoard provides a grid-based dashboard system with configurable widgets that 
 npm install @meshmakers/octo-meshboard
 ```
 
+The library's Kendo peer dependencies have to be installed by the host in the same major version as the
+other Kendo packages, among them `@progress/kendo-angular-tooltip` (needed for the hover texts on a board:
+the widget info icon, the time-shift caption and the table value markers):
+
+```bash
+npm install @progress/kendo-angular-tooltip@<the Kendo version of the host, 24.x>
+```
+
+The tooltip takes its look from the host's Kendo theme (`kendo-theme--styles()`, or the tooltip and popup
+modules of a slim theme), so it follows the light and dark theme without extra styles.
+
+**Hover texts.** The widget info icon, the time-shift caption and the table value markers show their text in a
+Kendo tooltip, not in the browser's native `title` tooltip: it opens on hover and, for the focusable info icon,
+on keyboard focus, and closes on mouse leave, blur and Escape. Each element keeps the text as its accessible name
+(`aria-label`) and has no `title` attribute, so exactly one tooltip shows.
+
 ## Quick Start
 
 ### Basic Integration
@@ -446,7 +462,7 @@ throws (or rejects) is logged and does not break the table.
 
 **Value markers (AB#7728).** `valueMarkers` turns a column into a marker column: the cell shows the
 icon (status icon set: `exclamation-circle` (default), `warning-triangle`, `check-circle`, `x-circle`,
-`minus-circle`, `question-circle`, `circle`) with `tooltip` as title and accessible name when the value
+`minus-circle`, `question-circle`, `circle`) with `tooltip` as Kendo tooltip and accessible name when the value
 is a number (or numeric string) above zero, and stays empty otherwise (`isPositiveMarkerValue`). It
 works for configured columns and for columns derived from a persistent query; set it in the dialog's
 *Value Markers* card. With `showValue: true` the cell shows the value next to the icon (default: icon

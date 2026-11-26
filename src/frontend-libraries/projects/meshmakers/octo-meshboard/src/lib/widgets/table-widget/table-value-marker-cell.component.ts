@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { SVGIcon } from '@progress/kendo-svg-icons';
 import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
+import { MeshBoardTooltipDirective } from '../../components/meshboard-tooltip/meshboard-tooltip.directive';
 
 /**
  * Cell of a marker column (AB#7728): an icon with tooltip when the value is a number above zero,
@@ -11,11 +12,11 @@ import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
 @Component({
   selector: 'mm-table-value-marker-cell',
   standalone: true,
-  imports: [SVGIconModule],
+  imports: [SVGIconModule, MeshBoardTooltipDirective],
   template: `
     @if (marked) {
       <!-- Only the icon is the image; the value stays outside it, so screen readers announce it. -->
-      <span class="value-marker" [title]="tooltip" [style.color]="color">
+      <span class="value-marker" [style.color]="color" [mmMeshBoardTooltip]="markerTooltip">
         <span
           class="value-marker-icon"
           [attr.role]="tooltip ? 'img' : null"
@@ -27,6 +28,7 @@ import { isPositiveMarkerValue } from '../../utils/meshboard-table-row-action';
           <span class="value-marker-value">{{ value }}</span>
         }
       </span>
+      <ng-template #markerTooltip>{{ tooltip }}</ng-template>
     }
   `,
   styles: [`

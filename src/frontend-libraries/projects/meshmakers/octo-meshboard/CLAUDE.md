@@ -1978,7 +1978,7 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
 - `MeshBoardViewComponent`: `displayName` / `displayDescription` (computed: header and breadcrumb; an effect updates the
   breadcrumb after the initial load when the language changes), `widgetTitle(widget)` / `widgetDescription(widget)`
   (template, every `widget.title` of the view). `localizedText` logs one warning per subject, field and key list.
-- Info icon: `.widget-info` in the grid tile header directly after the title, centred on the title line, the title truncates before it (`infoCircleIcon` size `medium` = 16px, colour `--kendo-color-subtle` like the time-shift caption, native `title` tooltip and
+- Info icon: `.widget-info` in the grid tile header directly after the title, centred on the title line, the title truncates before it (`infoCircleIcon` size `medium` = 16px, colour `--kendo-color-subtle` like the time-shift caption, Kendo tooltip through `mmMeshBoardTooltip` and
   `aria-label`, focusable), only when `widgetDescription` is not empty. Banner widgets and chromeless tiles have no
   header in view mode, so no icon.
 - Persistence: `mapWidgetToInput` writes `titles` / `description` / `descriptions` into the `Config` JSON only when set;
@@ -1988,6 +1988,23 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
 - Specs: `utils/meshboard-language.localized-text.spec.ts`, `containers/meshboard-view/meshboard-view.localized-texts.spec.ts`,
   `services/meshboard-persistence.localized-texts.spec.ts`, `registrations/default-widget-registrations.localized-texts.spec.ts`,
   `dialogs/meshboard-manager-dialog/meshboard-manager-dialog.localized-texts.spec.ts`.
+
+## Hover texts: Kendo tooltip instead of `title`
+
+- `MeshBoardTooltipDirective` (`[mmMeshBoardTooltip]="templateRef"`, `components/meshboard-tooltip/`, internal) puts
+  Kendo's `TooltipDirective` on its host as a host directive (`showOn: 'none'`, `filter: ''`, `position: 'top'`) and
+  opens it on `mouseenter` and `focus`, closes it on `mouseleave`, `blur` and Escape. The content is an `ng-template`
+  next to the host, so a text that changes (language switch, time filter) also changes in an open tooltip.
+- Used by the widget info icon (view), `mm-time-shift-caption` (`role="note"`, `aria-label` = the tooltip text) and
+  `mm-table-value-marker-cell` (the `aria-label` stays on the icon image). None of them has a `title` attribute: Kendo
+  copies a `title` into its own tooltip only on hover, so the browser's tooltip would still appear on focus or
+  before Kendo removes it. Do not add `title` next to the directive.
+- No styles of its own: the look comes from the host's Kendo theme (`--kendo-color-*`), light and dark.
+- `@progress/kendo-angular-tooltip` is a peer dependency (`^24.1.0` like the other Kendo peers) and a workspace
+  dependency in the exact Kendo version of the workspace.
+- Specs: `components/meshboard-tooltip/meshboard-tooltip.directive.spec.ts` (focus, blur, Escape, one tooltip, live
+  text), the styled-tooltip blocks of `time-shift-caption.component.spec.ts` and `table-value-marker-cell.component.spec.ts`,
+  and the info icon tests of `meshboard-view.localized-texts.spec.ts`; helpers in `testing/meshboard-tooltip.helpers.ts`.
 
 ## Other widget texts per language
 

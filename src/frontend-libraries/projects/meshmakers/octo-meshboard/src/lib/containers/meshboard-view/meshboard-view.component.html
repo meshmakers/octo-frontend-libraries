@@ -316,9 +316,10 @@
                     <div class="widget-title-row">
                       <span class="widget-title">{{ widgetTitle(widget) }}</span>
                       @if (widgetDescription(widget); as info) {
-                        <span class="widget-info" tabindex="0" role="img" [title]="info" [attr.aria-label]="info">
+                        <span class="widget-info" tabindex="0" role="img" [attr.aria-label]="info" [mmMeshBoardTooltip]="infoTooltip">
                           <kendo-svg-icon [icon]="infoCircleIcon" size="medium"></kendo-svg-icon>
                         </span>
+                        <ng-template #infoTooltip>{{ info }}</ng-template>
                       }
                     </div>
                     <mm-time-shift-caption [widget]="widget"></mm-time-shift-caption>
