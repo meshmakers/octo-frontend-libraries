@@ -12,11 +12,11 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
-import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { createWidgetTextResolver, injectMeshBoardLanguage, WidgetTextResolver } from '../../utils/meshboard-language';
 import { categoryStatus, chartSeriesColors, humanizeCategory, resolveChartColor, responsiveLegendPosition, sameChartItems, statusColor } from '../../utils/chart-categories';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { MESHBOARD_LABEL_RESOLVER, resolveMeshBoardLabel } from '../../utils/meshboard-labels';
-import { configuredValueLabel } from '../../utils/chart-value-labels';
+import { configuredValueLabel, resolveChartValueLabels } from '../../utils/chart-value-labels';
 
 /**
  * Data item for the pie chart
@@ -206,9 +206,11 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
   readonly isLoading = this._isLoading.asReadonly();
 
   private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
+  private readonly widgetText: WidgetTextResolver;
 
   constructor() {
     this.hostLanguage = injectMeshBoardLanguage();
+    this.widgetText = createWidgetTextResolver(this.hostLanguage);
   }
   /** Keeps its reference while categories, values and colours are unchanged (AB#5568). */
   readonly chartData = computed<ChartDataItem[]>(() => {
@@ -289,7 +291,9 @@ export class PieChartWidgetComponent implements DashboardWidget<PieChartWidgetCo
    */
   toItem(rawCategory: string, value: number, index = 0, palette: readonly string[] = chartSeriesColors()): ChartDataItem {
     const hostLabel = this.categoryLabel(rawCategory);
-    const category = configuredValueLabel(this.config?.categoryLabels, rawCategory) ?? hostLabel;
+    const categoryLabels = resolveChartValueLabels(this.config?.categoryLabels, (raw, texts) =>
+      this.widgetText(`widget "${this.config?.title}" (${this.config?.id}) category "${raw}"`, 'categoryLabels', '', texts));
+    const category = configuredValueLabel(categoryLabels, rawCategory) ?? hostLabel;
     const status = categoryStatus(rawCategory);
     const color = this.configuredColor(rawCategory, hostLabel)
       ?? (status ? statusColor(status) : undefined)

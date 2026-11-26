@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
+import { Component, Input, OnChanges, AfterViewInit, OnDestroy, SimpleChanges, inject, signal, computed, effect, untracked, ChangeDetectionStrategy, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES, LineChartQuerySeries, LineChartWidgetConfig, MeshBoardTimeShift, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
+import { DEFAULT_CARRY_FORWARD_LOOKBACK_MINUTES, LineChartQuerySeries, LineChartSeriesDefinition, LineChartWidgetConfig, MeshBoardTimeShift, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
@@ -11,13 +11,13 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { CkRollupFunctionDto, FieldFilterDto, QueryModeDto, SeriesResolutionSignalDto } from '@meshmakers/octo-services';
 import { findCellForField, matchesAttributePath, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
-import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { createWidgetTextResolver, injectMeshBoardLanguage, WidgetTextResolver } from '../../utils/meshboard-language';
 import { formatMeshBoardMessage, injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { formatInstant, toInstant } from '../../utils/meshboard-datetime';
 import { streamDataRowFieldValue } from '../../utils/stream-data-row-fields';
 import { injectChartTheme } from '../../utils/chart-theme';
 import { alignOnTimeGrid, TimeGridSeriesInput, TimeGridSourceInput } from '../../utils/time-grid-alignment';
-import { seriesLabelsByRawValue } from '../../utils/chart-value-labels';
+import { resolveChartValueLabels, seriesLabelsByRawValue } from '../../utils/chart-value-labels';
 import { alignOnFixedGrid, FixedBucketWindow, lastValue, snapWindowToBuckets } from '../../utils/series-options';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { ConcurrencyLimiter, QueuedTaskCancelledError } from '../../utils/concurrency-limiter';
@@ -212,7 +212,7 @@ interface ValueAxisConfig {
             <kendo-chart-value-axis>
               <kendo-chart-value-axis-item
                 [name]="''"
-                [title]="{ text: config.valueAxisTitle ?? '', color: chartTheme().muted }"
+                [title]="{ text: valueAxisTitle(), color: chartTheme().muted }"
                 [line]="{ visible: false }"
                 [labels]="{ color: chartTheme().muted }"
                 [majorGridLines]="{ color: chartTheme().grid }"
@@ -483,9 +483,21 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
   private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
   protected readonly texts: ReturnType<typeof injectMeshBoardMessages>;
 
+  private readonly widgetText: WidgetTextResolver;
+
   constructor() {
     this.hostLanguage = injectMeshBoardLanguage();
     this.texts = injectMeshBoardMessages();
+    this.widgetText = createWidgetTextResolver(this.hostLanguage);
+    let firstLanguage = true;
+    effect(() => {
+      this.hostLanguage();
+      if (firstLanguage) {
+        firstLanguage = false;
+        return;
+      }
+      untracked(() => this.loadData());
+    });
     // Assigned here, not as a field initialiser: a relative import in a field initialiser is
     // undefined under the Vitest module runner (see frontend-libraries CLAUDE.md).
     this.downsamplingLimiter = new ConcurrencyLimiter(MAX_CONCURRENT_DOWNSAMPLING);
@@ -641,18 +653,41 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   readonly data = computed(() => this._seriesData());
 
+  private chartText(item: string, field: string, fallback: string, texts: unknown): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})${item}`, field, fallback, texts);
+  }
+
+  /** The value axis title in the host language (`valueAxisTitles`, else `valueAxisTitle`). */
+  valueAxisTitle(): string {
+    return this.chartText('', 'valueAxisTitles', this.config?.valueAxisTitle ?? '', this.config?.valueAxisTitles);
+  }
+
+  /** `seriesLabels` with the per-language names resolved for the host language. */
+  private seriesLabelMap() {
+    return resolveChartValueLabels(this.config?.seriesLabels, (raw, texts) => this.chartText(` series "${raw}"`, 'seriesLabels', '', texts));
+  }
+
+  /** `additionalSeries` with each `label` in the host language (`labels`, else `label`). */
+  private localizedAdditionalSeries(): LineChartSeriesDefinition[] {
+    return (this.config?.additionalSeries ?? []).map(def => {
+      const label = this.chartText(` series "${def.key}"`, 'labels', def.label ?? '', def.labels);
+      return label === (def.label ?? '') ? def : { ...def, label };
+    });
+  }
+
   readonly plotBands = computed(() => {
     if (!this.config?.referenceLines?.length) return [];
-    return this.config.referenceLines.map(ref => {
+    return this.config.referenceLines.map((ref, index) => {
       const lineColor = ref.color ?? '#ef4444';
+      const refLabel = this.chartText(` reference line ${index + 1}`, 'labels', ref.label ?? '', ref.labels);
       const bandWidth = ref.value * 0.002 || 1;
       return {
         from: ref.value - bandWidth,
         to: ref.value + bandWidth,
         color: lineColor,
         opacity: ref.opacity ?? 0.8,
-        label: ref.label ? {
-          text: ref.label,
+        label: refLabel ? {
+          text: refLabel,
           position: 'top' as const,
           align: 'right' as const,
           color: lineColor,
@@ -1179,7 +1214,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
         valueField: this.config.valueField,
         primary: true
       },
-      ...(this.config.additionalSeries ?? [])
+      ...this.localizedAdditionalSeries()
         .filter(isCompleteQuerySeries)
         .map((def: LineChartQuerySeries) => ({
           key: def.key,
@@ -1201,7 +1236,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
     try {
       const hints: LineChartSourceHint[] = [];
-      const definitions = this.config.additionalSeries ?? [];
+      const definitions = this.localizedAdditionalSeries();
       // Hidden sources and zero-filled empty sources give no chart-level hint (AB#8046).
       const pushHint = (sourceKey: string, hint: LineChartSourceHint): void => {
         if (isSourceHintShown(sourceKey, hint.kind, definitions, this.config.primarySeries)) hints.push(hint);
@@ -1335,7 +1370,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     generation: number
   ): Promise<Map<string, number | null>> {
     const seeds = new Map<string, number | null>();
-    const definitions = this.config.additionalSeries ?? [];
+    const definitions = this.localizedAdditionalSeries();
     await Promise.all(active.map(async (source, i) => {
       if (source.primary) return;
       const def = definitions.find(d => d.kind === 'query' && d.key === source.key);
@@ -1681,7 +1716,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
     }
 
     // Names replace the raw group values only here, after grouping; the tooltip unit is looked up by the shown name.
-    const seriesNames = seriesLabelsByRawValue(seriesGroups, this.config.seriesLabels);
+    const seriesNames = seriesLabelsByRawValue(seriesGroups, this.seriesLabelMap());
     const unitByShownName = new Map<string, string>();
     for (const [rawGroup, unit] of seriesUnitMap) {
       unitByShownName.set(seriesNames.get(rawGroup) ?? rawGroup, unit);
@@ -1719,7 +1754,7 @@ export class LineChartWidgetComponent implements DashboardWidget<LineChartWidget
 
   /** Series of the primary query shown under their `seriesLabels` names (AB#7235); the grouping itself stays on the raw values. */
   private withSeriesLabels(series: TimeGridSeriesInput[]): TimeGridSeriesInput[] {
-    const names = seriesLabelsByRawValue(series.map(s => s.name), this.config.seriesLabels);
+    const names = seriesLabelsByRawValue(series.map(s => s.name), this.seriesLabelMap());
     return series.map(s => ({ ...s, name: names.get(s.name) ?? s.name }));
   }
 

@@ -1,4 +1,4 @@
-import type { ChartValueLabels } from '../models/meshboard.models';
+import type { ChartValueLabels, LocalizedChartValueLabels } from '../models/meshboard.models';
 
 /**
  * Display names for the raw values of a chart field (`categoryLabels` / `seriesLabels`).
@@ -7,21 +7,72 @@ import type { ChartValueLabels } from '../models/meshboard.models';
 
 /**
  * Cleans a label map from a dialog or a persisted config: keeps the entries with a non-empty key and
- * a non-blank string name (the name is trimmed, the key is kept exactly as stored) and returns
+ * a non-blank string name (the name is trimmed, the key is kept exactly as stored) and the entries
+ * whose name is given per language (a non-empty object, kept as stored), and returns
  * `undefined` when nothing is left, so an empty map is never stored.
  */
-export function normalizeChartValueLabels(labels: unknown): ChartValueLabels | undefined {
+export function normalizeChartValueLabels(labels: unknown): LocalizedChartValueLabels | undefined {
   if (!labels || typeof labels !== 'object' || Array.isArray(labels)) {
     return undefined;
   }
-  const normalized: ChartValueLabels = {};
+  const normalized: LocalizedChartValueLabels = {};
   for (const [rawValue, label] of Object.entries(labels as Record<string, unknown>)) {
+    if (rawValue === '') {
+      continue;
+    }
+    if (isPerLanguageName(label)) {
+      normalized[rawValue] = label as Record<string, string>;
+      continue;
+    }
     const text = typeof label === 'string' ? label.trim() : '';
-    if (rawValue !== '' && text !== '') {
+    if (text !== '') {
       normalized[rawValue] = text;
     }
   }
   return Object.keys(normalized).length > 0 ? normalized : undefined;
+}
+
+function isPerLanguageName(label: unknown): boolean {
+  return typeof label === 'object' && label !== null && !Array.isArray(label) && Object.keys(label).length > 0;
+}
+
+/**
+ * The names of a label map for the host language: a single name is kept, a per-language
+ * name is resolved by `resolve(rawValue, texts)` (the widget's `WidgetTextResolver` with an empty
+ * fallback) and left out when nothing matches, so the value shows as without a name.
+ */
+export function resolveChartValueLabels(
+  labels: LocalizedChartValueLabels | null | undefined,
+  resolve: (rawValue: string, texts: unknown) => string
+): ChartValueLabels | undefined {
+  if (!labels || typeof labels !== 'object') {
+    return undefined;
+  }
+  const resolved: ChartValueLabels = {};
+  for (const [rawValue, label] of Object.entries(labels)) {
+    const text = typeof label === 'string' ? label : resolve(rawValue, label);
+    if (text !== '') {
+      resolved[rawValue] = text;
+    }
+  }
+  return resolved;
+}
+
+/**
+ * The label map a config dialog saves: the dialog edits single names only, so the
+ * per-language names of `previous` are kept for every raw value the dialog did not name.
+ */
+export function withPerLanguageValueLabels(
+  edited: LocalizedChartValueLabels | null | undefined,
+  previous: LocalizedChartValueLabels | null | undefined
+): LocalizedChartValueLabels | undefined {
+  const merged: LocalizedChartValueLabels = { ...(edited ?? {}) };
+  for (const [rawValue, label] of Object.entries(previous ?? {})) {
+    if (isPerLanguageName(label) && !Object.prototype.hasOwnProperty.call(merged, rawValue)) {
+      merged[rawValue] = label;
+    }
+  }
+  return Object.keys(merged).length > 0 ? merged : undefined;
 }
 
 /**
@@ -66,8 +117,10 @@ export interface ValueLabelRow {
 }
 
 /** Editor rows of a label map, in the order the map lists them; ids start at `firstId`. */
-export function toValueLabelRows(labels: ChartValueLabels | null | undefined, firstId = 1): ValueLabelRow[] {
-  return Object.entries(normalizeChartValueLabels(labels) ?? {}).map(([value, label], index) => ({ id: firstId + index, value, label }));
+export function toValueLabelRows(labels: LocalizedChartValueLabels | null | undefined, firstId = 1): ValueLabelRow[] {
+  return Object.entries(normalizeChartValueLabels(labels) ?? {})
+    .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+    .map(([value, label], index) => ({ id: firstId + index, value, label }));
 }
 
 /**
@@ -84,7 +137,7 @@ export function fromValueLabelRows(rows: readonly ValueLabelRow[] | null | undef
       labels[value] = label;
     }
   }
-  return normalizeChartValueLabels(labels);
+  return normalizeChartValueLabels(labels) as ChartValueLabels | undefined;
 }
 
 /** Raw values that more than one complete row lists (trimmed; unfinished rows are ignored), each reported once. */

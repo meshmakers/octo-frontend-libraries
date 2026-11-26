@@ -14,13 +14,17 @@ import { extractPersistentQueryCellValue } from '../../utils/persistent-query-ce
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { firstValueFrom } from 'rxjs';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
+import { injectWidgetTextResolver, WidgetTextResolver } from '../../utils/meshboard-language';
 
 interface TileValue {
   id: string;
   label: string;
+  labels?: Record<string, string>;
   value: string;
   prefix: string;
+  prefixes?: Record<string, string>;
   suffix: string;
+  suffixes?: Record<string, string>;
   color: string;
   fullWidth: boolean;
 }
@@ -40,9 +44,9 @@ interface TileValue {
           @for (tile of tileValues(); track tile.id) {
             <div class="tile" [class]="tile.color" [class.full-width]="tile.fullWidth">
               <div class="tile-value">
-                {{ tile.prefix }}{{ tile.value }}{{ tile.suffix }}
+                {{ tileText(tile, 'prefixes', tile.prefix, tile.prefixes) }}{{ tile.value }}{{ tileText(tile, 'suffixes', tile.suffix, tile.suffixes) }}
               </div>
-              <div class="tile-label">{{ tile.label }}</div>
+              <div class="tile-label">{{ tileText(tile, 'labels', tile.label, tile.labels) }}</div>
             </div>
           }
         </div>
@@ -116,6 +120,11 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
   private readonly queryExecutor = inject(QueryExecutorService);
   private readonly stateService = inject(MeshBoardStateService);
   private readonly variableService = inject(MeshBoardVariableService);
+  private readonly widgetText: WidgetTextResolver;
+
+  constructor() {
+    this.widgetText = injectWidgetTextResolver();
+  }
 
   @Input() config!: SummaryCardWidgetConfig;
 
@@ -130,6 +139,11 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
 
   isNotConfigured(): boolean {
     return !this.config?.tiles?.length;
+  }
+
+  /** A tile text in the host language: the per-language map, else the single text. */
+  tileText(tile: TileValue, field: string, fallback: string, texts: unknown): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id}) tile "${tile.id}"`, field, fallback, texts);
   }
 
   ngOnInit(): void {
@@ -174,6 +188,9 @@ export class SummaryCardWidgetComponent implements DashboardWidget<SummaryCardWi
         value: this.formatValue(results[i]),
         prefix: tile.prefix ?? '',
         suffix: tile.suffix ?? '',
+        ...(tile.labels !== undefined ? { labels: tile.labels } : {}),
+        ...(tile.prefixes !== undefined ? { prefixes: tile.prefixes } : {}),
+        ...(tile.suffixes !== undefined ? { suffixes: tile.suffixes } : {}),
         color: tile.color ?? 'default',
         fullWidth: tile.size === 'full'
       }));

@@ -8,7 +8,7 @@ import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { firstValueFrom } from 'rxjs';
-import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartSeriesDefinition, LineChartSeriesDisplayOptions, LINE_CHART_BUCKET_MINUTES, ChartValueLabels, MeshBoardTimeShift } from '../../models/meshboard.models';
+import { LineChartType, WidgetFilterConfig, ChartReferenceLine, EntitySelectorConfig, SeriesAggregationFunction, LineChartSeriesDefinition, LineChartSeriesDisplayOptions, LINE_CHART_BUCKET_MINUTES, ChartValueLabels, LocalizedChartValueLabels, MeshBoardTimeShift } from '../../models/meshboard.models';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
 import { QueryExecutorService } from '../../services/query-executor.service';
@@ -584,7 +584,7 @@ export class LineChartConfigDialogComponent implements OnInit {
   @Input() initialPrimarySeries?: LineChartSeriesDisplayOptions;
   @Input() initialBucketMinutes?: number;
   @Input() initialExcludedSeriesGroupValues?: string[];
-  @Input() initialSeriesLabels?: ChartValueLabels;
+  @Input() initialSeriesLabels?: LocalizedChartValueLabels;
 
   /** Rows of the series name editor (AB#7235). */
   seriesLabelRows: ValueLabelRow[] = [];

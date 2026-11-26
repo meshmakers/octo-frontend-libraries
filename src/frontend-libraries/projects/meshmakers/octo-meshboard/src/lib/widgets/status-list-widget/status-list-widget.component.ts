@@ -7,6 +7,7 @@ import { WidgetLoadingComponent } from '../../components/widget-loading/widget-l
 import { GetEntitiesByCkTypeDtoGQL } from '../../graphQL/getEntitiesByCkType';
 import { firstValueFrom } from 'rxjs';
 import { SecretSafeAttributeNamesService } from '@meshmakers/octo-ui';
+import { injectWidgetTextResolver, WidgetTextResolver } from '../../utils/meshboard-language';
 
 interface StatusListItem {
   label: string;
@@ -31,7 +32,7 @@ interface StatusListItem {
             <div class="status-list-item">
               <span class="item-label">{{ item.label }}</span>
               <span class="item-badge" [style.background-color]="item.color">
-                {{ item.displayLabel }}
+                {{ statusLabel(item) }}
               </span>
             </div>
           }
@@ -111,8 +112,21 @@ interface StatusListItem {
 export class StatusListWidgetComponent implements DashboardWidget<StatusListWidgetConfig, StatusListItem[]>, OnInit, OnChanges {
   private readonly getEntitiesByCkTypeGQL = inject(GetEntitiesByCkTypeDtoGQL);
   private readonly secretSafeNames = inject(SecretSafeAttributeNamesService);
+  private readonly widgetText: WidgetTextResolver;
+
+  constructor() {
+    this.widgetText = injectWidgetTextResolver();
+  }
 
   @Input() config!: StatusListWidgetConfig;
+
+  /** The badge text of an item's status in the host language: the status's `labels`, else `label`, else the status. */
+  statusLabel(item: StatusListItem): string {
+    const colorConfig = Object.prototype.hasOwnProperty.call(this.config?.statusColors ?? {}, item.status)
+      ? this.config.statusColors?.[item.status]
+      : undefined;
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id}) status "${item.status}"`, 'labels', item.displayLabel, colorConfig?.labels);
+  }
 
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);

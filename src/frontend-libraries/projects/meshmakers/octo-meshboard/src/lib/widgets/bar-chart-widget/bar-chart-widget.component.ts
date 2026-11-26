@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, computed, effect, untracked, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BarChartWidgetConfig, BarChartType, LineChartQuerySeries, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
+import { BarChartWidgetConfig, BarChartSeriesDefinition, BarChartType, LineChartQuerySeries, PersistentQueryDataSource, SeriesDashType, WidgetFilterConfig } from '../../models/meshboard.models';
 import { DashboardWidget } from '../widget.interface';
 import { WidgetNotConfiguredComponent } from '../../components/widget-not-configured/widget-not-configured.component';
 import { WidgetLoadingComponent } from '../../components/widget-loading/widget-loading.component';
@@ -12,11 +12,11 @@ import { MeshBoardVariableService } from '../../services/meshboard-variable.serv
 import { catchError, firstValueFrom } from 'rxjs';
 import { FieldFilterDto } from '@meshmakers/octo-services';
 import { findCellForField, WIDGET_NUMBER_LOCALE } from '../../utils/widget-data-utils';
-import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { createWidgetTextResolver, injectMeshBoardLanguage, WidgetTextResolver } from '../../utils/meshboard-language';
 import { formatMeshBoardMessage, injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { isIsoDateTime, formatInstant } from '../../utils/meshboard-datetime';
 import { injectChartTheme } from '../../utils/chart-theme';
-import { configuredValueLabel, seriesLabelsByRawValue } from '../../utils/chart-value-labels';
+import { configuredValueLabel, resolveChartValueLabels, seriesLabelsByRawValue } from '../../utils/chart-value-labels';
 import { ExpressionEvaluatorService } from '@meshmakers/octo-process-diagrams';
 import {
   composeChartSeries,
@@ -328,10 +328,43 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
 
   private readonly hostLanguage: ReturnType<typeof injectMeshBoardLanguage>;
   private readonly texts: ReturnType<typeof injectMeshBoardMessages>;
+  private readonly widgetText: WidgetTextResolver;
 
   constructor() {
     this.hostLanguage = injectMeshBoardLanguage();
     this.texts = injectMeshBoardMessages();
+    this.widgetText = createWidgetTextResolver(this.hostLanguage);
+    let firstLanguage = true;
+    effect(() => {
+      this.hostLanguage();
+      if (firstLanguage) {
+        firstLanguage = false;
+        return;
+      }
+      untracked(() => this.loadData());
+    });
+  }
+
+  private chartText(item: string, field: string, fallback: string, texts: unknown): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})${item}`, field, fallback, texts);
+  }
+
+  /** `categoryLabels` with the per-language names resolved for the host language. */
+  private categoryLabelMap() {
+    return resolveChartValueLabels(this.config?.categoryLabels, (raw, texts) => this.chartText(` category "${raw}"`, 'categoryLabels', '', texts));
+  }
+
+  /** `seriesLabels` with the per-language names resolved for the host language. */
+  private seriesLabelMap() {
+    return resolveChartValueLabels(this.config?.seriesLabels, (raw, texts) => this.chartText(` series "${raw}"`, 'seriesLabels', '', texts));
+  }
+
+  /** `additionalSeries` with each `label` in the host language (`labels`, else `label`). */
+  private localizedAdditionalSeries(): BarChartSeriesDefinition[] {
+    return (this.config?.additionalSeries ?? []).map(def => {
+      const label = this.chartText(` series "${def.key}"`, 'labels', def.label ?? '', def.labels);
+      return label === (def.label ?? '') ? def : { ...def, label };
+    });
   }
   readonly categories = this._categories.asReadonly();
   readonly seriesData = this._seriesData.asReadonly();
@@ -570,7 +603,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const primaryDs = this.config.dataSource as PersistentQueryDataSource;
     const sources: BarChartSourceEntry[] = [
       { key: PRIMARY_SOURCE_KEY, label: primaryDs.queryName?.trim() || 'Primary query', dataSource: primaryDs, primary: true },
-      ...(this.config.additionalSeries ?? [])
+      ...this.localizedAdditionalSeries()
         .filter((s): s is LineChartQuerySeries => this.isLoadableQuerySeries(s))
         .map(def => ({
           key: def.key,
@@ -595,7 +628,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     try {
       const hints: LineChartSourceHint[] = [];
       const problems = new Map<string, { label: string; problem: LineChartSourceProblem }>();
-      const definitions = this.config.additionalSeries ?? [];
+      const definitions = this.localizedAdditionalSeries();
       // Hidden sources and zero-filled empty sources give no chart-level hint (AB#8046).
       const pushHint = (sourceKey: string, hint: LineChartSourceHint): void => {
         if (isSourceHintShown(sourceKey, hint.kind, definitions, this.config.primarySeries)) hints.push(hint);
@@ -696,8 +729,9 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const dayOf = (c: CategoryValue): string =>
       formatInstant(new Date(c.instant as number), mode, { day: '2-digit', month: '2-digit', year: 'numeric' }, this.hostLanguage()) ?? '';
     const byDay = allInstants && new Set(categories.map(dayOf)).size === categories.length;
+    const categoryLabels = this.categoryLabelMap();
     return uniqueLabels(categories.map(c => {
-      const configured = configuredValueLabel(this.config.categoryLabels, String(c.raw ?? ''));
+      const configured = configuredValueLabel(categoryLabels, String(c.raw ?? ''));
       if (configured !== undefined) return configured;
       if (byDay) return dayOf(c);
       if (c.instant !== null) {
@@ -715,7 +749,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     if (!this.isDynamicSeriesMode()) {
       return converted;
     }
-    const names = seriesLabelsByRawValue(converted.series.map(s => s.name), this.config.seriesLabels);
+    const names = seriesLabelsByRawValue(converted.series.map(s => s.name), this.seriesLabelMap());
     return { ...converted, series: converted.series.map(s => ({ ...s, name: names.get(s.name) ?? s.name })) };
   }
 
@@ -780,7 +814,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const seriesData: SeriesData[] = (this.config.series ?? []).map(seriesConfig => {
       const rawData = seriesMap.get(seriesConfig.field) ?? [];
       return {
-        name: seriesConfig.name ?? seriesConfig.field,
+        name: this.chartText(` series "${seriesConfig.field}"`, 'names', seriesConfig.name ?? '', seriesConfig.names) || seriesConfig.field,
         data: this.hasColorThresholds() ? this.applyColorThresholds(rawData) : rawData,
         color: seriesConfig.color
       };
@@ -816,6 +850,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
     const allSeriesGroups = new Set<string>();
     // Maps stay keyed by the formatted raw category; only a configured name replaces it at the end.
     const categoryNames = new Map<string, string>();
+    const categoryLabels = this.categoryLabelMap();
 
     for (const row of filteredRows) {
       // Exact match wins over the loose aggregation-suffix fallback (AB#4293).
@@ -830,7 +865,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
       if (categoryValue && seriesGroupValue) {
         allCategories.add(categoryValue);
         allSeriesGroups.add(seriesGroupValue);
-        const configured = configuredValueLabel(this.config.categoryLabels, String(categoryCell?.value ?? ''));
+        const configured = configuredValueLabel(categoryLabels, String(categoryCell?.value ?? ''));
         if (configured !== undefined && !categoryNames.has(categoryValue)) {
           categoryNames.set(categoryValue, configured);
         }
@@ -848,7 +883,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
 
     // Build series data
     const valueScale = this.config?.valueScale ?? 1;
-    const seriesNames = seriesLabelsByRawValue(seriesGroups, this.config.seriesLabels);
+    const seriesNames = seriesLabelsByRawValue(seriesGroups, this.seriesLabelMap());
     const seriesData: SeriesData[] = seriesGroups.map(seriesGroup => {
       const rawData = categories.map(category => {
         const cell = dataMap.get(category);
@@ -873,7 +908,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
    * Replaces dots with underscores (same as table widget).
    */
   readonly dataLabelFormat = computed(() => {
-    const suffix = this.config?.dataLabelSuffix ?? '';
+    const suffix = this.chartText('', 'dataLabelSuffixes', this.config?.dataLabelSuffix ?? '', this.config?.dataLabelSuffixes);
     return `{0:n0}${suffix}`;
   });
 
@@ -909,7 +944,7 @@ export class BarChartWidgetComponent implements DashboardWidget<BarChartWidgetCo
 
   /** Axis text of a category: its `categoryLabels` name (looked up by the raw value), else the formatted value. */
   private categoryText(value: unknown): string {
-    return configuredValueLabel(this.config.categoryLabels, String(value ?? '')) ?? this.formatCategoryValue(value);
+    return configuredValueLabel(this.categoryLabelMap(), String(value ?? '')) ?? this.formatCategoryValue(value);
   }
 
   private noDataText(source: string): string {

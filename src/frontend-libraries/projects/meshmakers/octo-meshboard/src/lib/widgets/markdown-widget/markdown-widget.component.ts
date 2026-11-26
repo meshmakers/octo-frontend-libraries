@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, inject, signal, com
 import { CommonModule } from '@angular/common';
 import { LazyMarkdownComponent } from '../../components/lazy-markdown/lazy-markdown.component';
 import { MarkdownWidgetConfig } from '../../models/meshboard.models';
+import { injectWidgetTextResolver, WidgetTextResolver } from '../../utils/meshboard-language';
 import { MeshBoardStateService } from '../../services/meshboard-state.service';
 import { MeshBoardVariableService } from '../../services/meshboard-variable.service';
 import { DashboardWidget } from '../widget.interface';
@@ -35,14 +36,25 @@ export class MarkdownWidgetComponent implements DashboardWidget<MarkdownWidgetCo
    * This is a method (not computed) to ensure it re-evaluates when config changes via @Input.
    */
   isNotConfigured(): boolean {
-    return !this.config?.content || this.config.content.trim() === '';
+    return this.localizedContent().trim() === '';
+  }
+
+  private readonly widgetText: WidgetTextResolver;
+
+  constructor() {
+    this.widgetText = injectWidgetTextResolver();
+  }
+
+  /** The markdown in the host language (`contents`, else `content`). */
+  private localizedContent(): string {
+    return this.widgetText(`widget "${this.config?.title}" (${this.config?.id})`, 'contents', this.config?.content ?? '', this.config?.contents);
   }
 
   /**
    * Resolved markdown content with variables interpolated.
    */
   readonly resolvedContent = computed(() => {
-    const content = this.config?.content ?? '';
+    const content = this.localizedContent();
     if (!content || !this.config?.resolveVariables) {
       return content;
     }

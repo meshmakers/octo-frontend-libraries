@@ -10,7 +10,7 @@ import { GetDashboardWithWidgetsDtoGQL } from '../graphQL/getDashboardWithWidget
 import { MeshBoardConfig, AnyWidgetConfig, MeshBoardVariable, MeshBoardTimeFilterConfig, MeshBoardTimeZoneMode, EntitySelectorConfig, MeshBoardNavigationConfig } from '../models/meshboard.models';
 import { MESHBOARD_DESCRIPTION_MARKER, normalizeNavigation, withMeshBoardNavigation } from '../utils/meshboard-description-codec';
 import { AssociationModOptionsDto, DeleteStrategiesDto, RtAssociationInputDto, SystemUiDashboardWidgetInputDto } from '@meshmakers/octo-services';
-import { WidgetRegistryService, PersistedWidgetData } from './widget-registry.service';
+import { WidgetRegistryService, PersistedWidgetData, WIDGET_LOCALIZED_TEXT_KEYS } from './widget-registry.service';
 
 /**
  * Defines how parent associations should be handled when mapping widget input
@@ -381,7 +381,8 @@ export class MeshBoardPersistenceService {
         ...(widget.zone && widget.zone !== 'grid' ? { zone: widget.zone } : {}),
         ...(widget.titles !== undefined && widget.titles !== null ? { titles: widget.titles } : {}),
         ...(widget.description ? { description: widget.description } : {}),
-        ...(widget.descriptions !== undefined && widget.descriptions !== null ? { descriptions: widget.descriptions } : {})
+        ...(widget.descriptions !== undefined && widget.descriptions !== null ? { descriptions: widget.descriptions } : {}),
+        ...localizedTextMapsOf(widget)
       })
     };
 
@@ -656,4 +657,16 @@ export class MeshBoardPersistenceService {
       return { description, variables: [] };
     }
   }
+}
+
+/** The set per-language maps of {@link WIDGET_LOCALIZED_TEXT_KEYS} of a widget, for its `Config` JSON. */
+function localizedTextMapsOf(widget: AnyWidgetConfig): Record<string, unknown> {
+  const source = widget as unknown as Record<string, unknown>;
+  const maps: Record<string, unknown> = {};
+  for (const key of WIDGET_LOCALIZED_TEXT_KEYS) {
+    if (source[key] !== undefined && source[key] !== null) {
+      maps[key] = source[key];
+    }
+  }
+  return maps;
 }

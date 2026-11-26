@@ -30,7 +30,31 @@ export interface BaseWidgetConfig {
   titles?: Record<string, string>;
   description?: string;
   descriptions?: Record<string, string>;
+  prefixes?: Record<string, string>;
+  suffixes?: Record<string, string>;
+  comparisonTexts?: Record<string, string>;
+  dataLabelSuffixes?: Record<string, string>;
+  valueAxisTitles?: Record<string, string>;
+  trueLabels?: Record<string, string>;
+  falseLabels?: Record<string, string>;
+  emptyMessages?: Record<string, string>;
+  contents?: Record<string, string>;
 }
+
+/**
+ * Per-language maps of widget-level texts other than the title: `prefixes` / `suffixes`
+ * (KPI, gauge), `comparisonTexts` (KPI), `dataLabelSuffixes` (bar chart), `valueAxisTitles` (line
+ * chart), `trueLabels` / `falseLabels` (status indicator), `emptyMessages` (widget group) and
+ * `contents` (markdown). Like `titles` they are stored in the widget `Config` JSON for every widget
+ * type, so no registration and no config dialog has to carry them.
+ */
+export const WIDGET_LOCALIZED_TEXT_KEYS = [
+  'prefixes', 'suffixes', 'comparisonTexts', 'dataLabelSuffixes', 'valueAxisTitles',
+  'trueLabels', 'falseLabels', 'emptyMessages', 'contents'
+] as const;
+
+/** A key of {@link WIDGET_LOCALIZED_TEXT_KEYS}. */
+export type WidgetLocalizedTextKey = typeof WIDGET_LOCALIZED_TEXT_KEYS[number];
 
 /**
  * Persisted widget data from the backend.
@@ -516,11 +540,18 @@ export class WidgetRegistryService {
 
 /**
  * The author texts every widget carries in its `Config` JSON (`titles`, `description`,
- * `descriptions`). Stored values are taken as they are, so a malformed entry still reaches the
+ * `descriptions` and the maps of {@link WIDGET_LOCALIZED_TEXT_KEYS}). Stored values are taken as they are, so a malformed entry still reaches the
  * view, which ignores it with a warning; absent keys stay absent.
  */
-export function localizedWidgetTextsOf(config: Record<string, unknown>): Pick<BaseWidgetConfig, 'titles' | 'description' | 'descriptions'> {
-  const texts: Pick<BaseWidgetConfig, 'titles' | 'description' | 'descriptions'> = {};
+export function localizedWidgetTextsOf(
+  config: Record<string, unknown>
+): Pick<BaseWidgetConfig, 'titles' | 'description' | 'descriptions' | WidgetLocalizedTextKey> {
+  const texts: Pick<BaseWidgetConfig, 'titles' | 'description' | 'descriptions' | WidgetLocalizedTextKey> = {};
+  for (const key of WIDGET_LOCALIZED_TEXT_KEYS) {
+    if (config[key] !== undefined && config[key] !== null) {
+      texts[key] = config[key] as Record<string, string>;
+    }
+  }
   if (config['titles'] !== undefined && config['titles'] !== null) {
     texts.titles = config['titles'] as Record<string, string>;
   }

@@ -25,6 +25,7 @@ import { QuerySelectorComponent } from '../../components/query-selector/query-se
 import { LoadingOverlayComponent } from '../../components/loading-overlay/loading-overlay.component';
 import { KPI_MAX_DECIMAL_PLACES, normalizeKpiDecimalPlaces } from '../../utils/kpi-decimal-places';
 import { columnProbeWindow } from '../../utils/column-probe-window';
+import { localizedItemTexts } from '../../utils/meshboard-language';
 
 /**
  * Data source type selection
@@ -856,10 +857,14 @@ export class WidgetGroupConfigDialogComponent implements OnInit {
     const childTemplate: WidgetGroupChildTemplate = {
       widgetType: this.form.childWidgetType,
       titleTemplate: this.form.titleTemplate || undefined,
+      ...(this.initialChildTemplate?.titleTemplates !== undefined ? { titleTemplates: this.initialChildTemplate.titleTemplates } : {}),
       attributeMappings: {
         valueAttribute: this.form.valueAttribute || undefined
       },
-      staticConfig: this.buildStaticConfig()
+      staticConfig: {
+        ...this.buildStaticConfig(),
+        ...(this.form.childWidgetType !== 'entityCard' ? localizedItemTexts(this.initialChildTemplate?.staticConfig) : {})
+      }
     };
 
     // Convert filters to DTO format

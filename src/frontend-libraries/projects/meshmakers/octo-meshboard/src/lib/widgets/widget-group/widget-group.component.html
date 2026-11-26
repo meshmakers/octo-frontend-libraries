@@ -10,7 +10,7 @@
     </div>
   } @else if (childConfigs().length === 0) {
     <div class="empty-state">
-      <span class="empty-message">{{ config.emptyMessage || messages().noDataAvailable }}</span>
+      <span class="empty-message">{{ emptyMessage() || messages().noDataAvailable }}</span>
     </div>
   } @else {
     <div
@@ -20,7 +20,7 @@
       @for (childConfig of childConfigs(); track childConfig.id) {
         <div class="widget-group-item">
           <div class="widget-group-item-header">
-            <span class="widget-group-item-title">{{ childConfig.title }}</span>
+            <span class="widget-group-item-title">{{ childTitle(childConfig) }}</span>
           </div>
           <div class="widget-group-item-content">
             @switch (config.childTemplate.widgetType) {

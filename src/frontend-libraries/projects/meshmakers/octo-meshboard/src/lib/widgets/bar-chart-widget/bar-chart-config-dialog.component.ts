@@ -18,6 +18,7 @@ import {
   EntitySelectorConfig,
   LineChartSeriesDisplayOptions,
   ChartValueLabels,
+  LocalizedChartValueLabels,
   MeshBoardTimeShift
 } from '../../models/meshboard.models';
 import { GetRuntimeQueryColumnsDtoGQL } from '../../graphQL/getRuntimeQueryColumns';
@@ -575,8 +576,8 @@ export class BarChartConfigDialogComponent implements OnInit {
   @Input() initialFilters?: WidgetFilterConfig[];
   @Input() initialAdditionalSeries?: BarChartSeriesDefinition[];
   @Input() initialPrimarySeries?: BarChartWidgetConfig['primarySeries'];
-  @Input() initialCategoryLabels?: ChartValueLabels;
-  @Input() initialSeriesLabels?: ChartValueLabels;
+  @Input() initialCategoryLabels?: LocalizedChartValueLabels;
+  @Input() initialSeriesLabels?: LocalizedChartValueLabels;
 
   /** Rows of the category and series name editors (AB#7235). */
   categoryLabelRows: ValueLabelRow[] = [];
@@ -846,6 +847,7 @@ export class BarChartConfigDialogComponent implements OnInit {
         return {
           field,
           name: existingSeries?.name,
+          ...(existingSeries?.names !== undefined ? { names: existingSeries.names } : {}),
           color: existingSeries?.color
         };
       })
