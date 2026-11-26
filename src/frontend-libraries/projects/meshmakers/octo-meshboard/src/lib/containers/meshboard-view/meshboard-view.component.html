@@ -37,9 +37,9 @@
       <div class="meshboard-toolbar" [class.compact]="effectiveHeaderMode() === 'compact'">
         @if (effectiveHeaderMode() === 'full') {
           <div class="toolbar-left">
-            <h2 class="meshboard-title">{{ config().name }}</h2>
-            @if (config().description) {
-              <span class="meshboard-description">{{ config().description }}</span>
+            <h2 class="meshboard-title">{{ displayName() }}</h2>
+            @if (displayDescription()) {
+              <span class="meshboard-description">{{ displayDescription() }}</span>
             }
           </div>
         }
@@ -219,7 +219,7 @@
       <div class="banner-zone-item" [class.banner-edit]="isEditMode()">
         @if (isEditMode()) {
           <div class="banner-edit-header">
-            <span class="widget-title">{{ widget.title }}</span>
+            <span class="widget-title">{{ widgetTitle(widget) }}</span>
             <div class="widget-actions">
               <button
                 kendoButton
@@ -229,7 +229,7 @@
                 size="small"
                 [disabled]="first"
                 title="Move up"
-                [attr.aria-label]="'Move up ' + widget.title">
+                [attr.aria-label]="'Move up ' + widgetTitle(widget)">
               </button>
               <button
                 kendoButton
@@ -239,7 +239,7 @@
                 size="small"
                 [disabled]="last"
                 title="Move down"
-                [attr.aria-label]="'Move down ' + widget.title">
+                [attr.aria-label]="'Move down ' + widgetTitle(widget)">
               </button>
               @if (supportsConfiguration(widget)) {
                 <button
@@ -251,7 +251,7 @@
                   class="config-widget-btn"
                   [class.needs-config]="isWidgetUnconfigured(widget)"
                   [title]="isWidgetUnconfigured(widget) ? 'Configure data source (required)' : 'Configure data source'"
-                  [attr.aria-label]="(isWidgetUnconfigured(widget) ? 'Configure data source (required) ' : 'Configure data source ') + widget.title">
+                  [attr.aria-label]="(isWidgetUnconfigured(widget) ? 'Configure data source (required) ' : 'Configure data source ') + widgetTitle(widget)">
                 </button>
               }
               <button
@@ -262,7 +262,7 @@
                 size="small"
                 class="edit-widget-btn"
                 title="Edit widget"
-                [attr.aria-label]="'Edit widget ' + widget.title">
+                [attr.aria-label]="'Edit widget ' + widgetTitle(widget)">
               </button>
               <button
                 kendoButton
@@ -273,7 +273,7 @@
                 size="small"
                 class="remove-widget-btn"
                 title="Delete widget"
-                [attr.aria-label]="'Delete widget ' + widget.title">
+                [attr.aria-label]="'Delete widget ' + widgetTitle(widget)">
               </button>
             </div>
           </div>
@@ -313,7 +313,14 @@
                    [class.chromeless-header]="widget.chromeless && !isEditMode() && !hasTimeShiftCaption(widget)">
                 @if (!(widget.chromeless && !isEditMode())) {
                   <div class="widget-title-block">
-                    <span class="widget-title">{{ widget.title }}</span>
+                    <div class="widget-title-row">
+                      <span class="widget-title">{{ widgetTitle(widget) }}</span>
+                      @if (widgetDescription(widget); as info) {
+                        <span class="widget-info" tabindex="0" role="img" [title]="info" [attr.aria-label]="info">
+                          <kendo-svg-icon [icon]="infoCircleIcon" size="medium"></kendo-svg-icon>
+                        </span>
+                      }
+                    </div>
                     <mm-time-shift-caption [widget]="widget"></mm-time-shift-caption>
                   </div>
                   @if (isWidgetUnconfigured(widget)) {
@@ -336,7 +343,7 @@
                         class="config-widget-btn"
                         [class.needs-config]="isWidgetUnconfigured(widget)"
                         [title]="isWidgetUnconfigured(widget) ? 'Configure data source (required)' : 'Configure data source'"
-                  [attr.aria-label]="(isWidgetUnconfigured(widget) ? 'Configure data source (required) ' : 'Configure data source ') + widget.title">
+                  [attr.aria-label]="(isWidgetUnconfigured(widget) ? 'Configure data source (required) ' : 'Configure data source ') + widgetTitle(widget)">
                       </button>
                     }
                     <button
@@ -347,7 +354,7 @@
                       size="small"
                       class="edit-widget-btn"
                       title="Edit position"
-                      [attr.aria-label]="'Edit position ' + widget.title">
+                      [attr.aria-label]="'Edit position ' + widgetTitle(widget)">
                     </button>
                     <button
                       kendoButton
@@ -357,7 +364,7 @@
                       size="small"
                       class="duplicate-widget-btn"
                       title="Duplicate widget"
-                      [attr.aria-label]="'Duplicate widget ' + widget.title">
+                      [attr.aria-label]="'Duplicate widget ' + widgetTitle(widget)">
                     </button>
                     <button
                       kendoButton
@@ -368,7 +375,7 @@
                       size="small"
                       class="remove-widget-btn"
                       title="Delete widget"
-                [attr.aria-label]="'Delete widget ' + widget.title">
+                [attr.aria-label]="'Delete widget ' + widgetTitle(widget)">
                     </button>
                   </div>
                 }

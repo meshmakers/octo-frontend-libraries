@@ -573,6 +573,67 @@ Example — the daily quality 1/2/3 shown as L1/L2/L3 with German and English he
 }
 ```
 
+**Board name, widget titles and widget explanations per language.** Like table column `titles`, a board
+author gives the board name and description and every widget its title per UI language, in the board
+configuration (board JSON/YAML, seed data; the config dialogs do not edit them). A widget can also carry an
+optional explanation (`description`, `descriptions`): the widget header then shows a small info icon whose
+tooltip is the explanation in the viewer's language; without an explanation there is no icon. Banner-zone and
+chromeless widgets have no header in view mode, so they show no info icon even with an explanation.
+
+```typescript
+interface WidgetConfig {
+  title: string;                          // fallback header
+  titles?: Record<string, string>;        // header per culture code
+  description?: string;                   // fallback explanation (info icon)
+  descriptions?: Record<string, string>;  // explanation per culture code
+  // ...
+}
+interface MeshBoardConfig {
+  name: string; names?: Record<string, string>;
+  description?: string; descriptions?: Record<string, string>;
+  // ...
+}
+```
+
+- Every text resolves with the lookup of column `titles` above (exact culture, then its language part, a culture
+  never picks a sibling culture) from the host language of `MESHBOARD_LANGUAGE` / `provideMeshBoard({ language })`,
+  and follows a language signal without reloading the board or refetching data. The board header, the breadcrumb
+  and the widget headers use it; `resolveLocalizedText(fallback, texts, language)` is exported for hosts.
+- No host language, or no entry for it: the single `title` / `name` / `description` is shown, exactly as before.
+  An empty or non-string entry, or a key that is no culture code, is ignored; the view logs one console warning
+  naming the board or widget and still shows the single text, never an empty header.
+- Storage: widget `titles`, `description` and `descriptions` go into the widget's `Config` JSON, board `names` and
+  `descriptions` into the encoded board description next to variables and time filter. Saving, reloading and the
+  board export / import keep them; boards without them store and load as before.
+- Refinery Studio keeps them when an author saves a widget config dialog, the widget edit dialog, the board
+  settings or a rename without touching them. When the author changes the single title or name, the per-language
+  entries stay and the changed single text is the new fallback. Duplicating a widget adds " (Copy)" to the single
+  title only; the per-language titles are copied unchanged.
+- Period labels: the time-range picker of the board takes its labels from route data `timeRangeLabels` when set
+  (unchanged), else from `MeshBoardMessages.timeRangeLabels`; with a messages signal the picker relabels on a
+  language change.
+
+Example — a statistics board in German and English:
+
+```json
+{
+  "name": "Energy quantity statistics",
+  "names": { "de-AT": "Energiemengen-Statistik", "en-GB": "Energy quantity statistics" },
+  "widgets": [
+    {
+      "type": "kpi",
+      "title": "Energy quantities",
+      "titles": { "de-AT": "Energiemengen", "en-GB": "Energy quantities" },
+      "description": "Sum of all metering points in the selected period",
+      "descriptions": {
+        "de-AT": "Summe aller Zählpunkte im gewählten Zeitraum",
+        "en-GB": "Sum of all metering points in the selected period"
+      }
+    }
+  ]
+}
+```
+
 **Label fields (AB#7728).** `labelFields: ['dataquality_max', 'rtWellKnownName']` on a table offers
 these columns to the resolver whatever their type, also numeric or typed text query columns that are
 otherwise skipped. The resolver gets the same `tableCell` request for string and number cells, with

@@ -1,5 +1,5 @@
 import { InjectionToken, Signal, computed, inject, isSignal } from '@angular/core';
-import { ListViewMessages } from '@meshmakers/shared-ui';
+import { ListViewMessages, TimeRangePickerLabels } from '@meshmakers/shared-ui';
 
 /**
  * Host translations of the MeshBoard widget texts (AB#5622). Every member is optional; a missing
@@ -12,6 +12,12 @@ export interface MeshBoardMessages {
    * defaults (`DEFAULT_LIST_VIEW_MESSAGES`).
    */
   tableList?: Partial<ListViewMessages>;
+  /**
+   * Labels of the board's time-range picker (period types, relative options, buttons). Used when the
+   * route sets no `timeRangeLabels` data; route data wins. A signal source relabels the picker on a
+   * language change. Default: the picker's English labels.
+   */
+  timeRangeLabels?: TimeRangePickerLabels;
   /** Placeholder of a table widget without data source / columns. Default: "Table not configured" */
   tableNotConfigured?: string;
   /**
@@ -95,7 +101,7 @@ const RESOLUTION_MESSAGE_KEYS = [
 ] as const;
 
 /** Default texts of {@link MeshBoardMessages} (the list texts default inside `mm-list-view`). */
-export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'tableList'>> = {
+export const DEFAULT_MESHBOARD_MESSAGES: Required<Omit<MeshBoardMessages, 'tableList' | 'timeRangeLabels'>> = {
   tableNotConfigured: 'Table not configured',
   scopeResolutionFailed: 'Could not resolve the scope of "{label}" - widgets bound to it show no data.',
   scopePickRequired: 'Pick a {label} to see this data.',
@@ -180,6 +186,7 @@ export function resolveMeshBoardMessages(messages: MeshBoardMessages | null | un
   return {
     ...DEFAULT_MESHBOARD_MESSAGES,
     ...(messages?.tableList ? { tableList: messages.tableList } : {}),
+    ...(messages?.timeRangeLabels ? { timeRangeLabels: messages.timeRangeLabels } : {}),
     ...(messages?.tableNotConfigured ? { tableNotConfigured: messages.tableNotConfigured } : {}),
     ...(messages?.scopeResolutionFailed ? { scopeResolutionFailed: messages.scopeResolutionFailed } : {}),
     ...(messages?.scopePickRequired ? { scopePickRequired: messages.scopePickRequired } : {}),

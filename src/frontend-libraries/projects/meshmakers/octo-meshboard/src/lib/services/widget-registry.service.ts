@@ -27,6 +27,9 @@ export interface BaseWidgetConfig {
   configurable?: boolean;
   chromeless?: boolean;
   zone?: WidgetZone;
+  titles?: Record<string, string>;
+  description?: string;
+  descriptions?: Record<string, string>;
 }
 
 /**
@@ -314,7 +317,8 @@ export class WidgetRegistryService {
       rowSpan: data.rowSpan,
       configurable: true,
       chromeless: chromeless || undefined,
-      zone
+      zone,
+      ...localizedWidgetTextsOf(parsedConfig)
     };
   }
 
@@ -508,4 +512,23 @@ export class WidgetRegistryService {
     document.head.appendChild(style);
     WidgetRegistryService.scrollbarStylesInjected = true;
   }
+}
+
+/**
+ * The author texts every widget carries in its `Config` JSON (`titles`, `description`,
+ * `descriptions`). Stored values are taken as they are, so a malformed entry still reaches the
+ * view, which ignores it with a warning; absent keys stay absent.
+ */
+export function localizedWidgetTextsOf(config: Record<string, unknown>): Pick<BaseWidgetConfig, 'titles' | 'description' | 'descriptions'> {
+  const texts: Pick<BaseWidgetConfig, 'titles' | 'description' | 'descriptions'> = {};
+  if (config['titles'] !== undefined && config['titles'] !== null) {
+    texts.titles = config['titles'] as Record<string, string>;
+  }
+  if (typeof config['description'] === 'string' && config['description'] !== '') {
+    texts.description = config['description'];
+  }
+  if (config['descriptions'] !== undefined && config['descriptions'] !== null) {
+    texts.descriptions = config['descriptions'] as Record<string, string>;
+  }
+  return texts;
 }

@@ -10,6 +10,20 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard, shared-ui: board names, widget titles and widget explanations per language (AB#7890, AB#9740)
+
+- `WidgetConfig.titles`, `MeshBoardConfig.names` and `MeshBoardConfig.descriptions` (`Record<string, string>` per
+  culture code) give the widget headers, the board header and the breadcrumb a text per UI language, resolved like
+  table column `titles` from `MESHBOARD_LANGUAGE` and switched live; without a host language or an entry the single
+  `title` / `name` / `description` is shown as before. Ignored entries log one warning per board or widget.
+- `WidgetConfig.description` / `descriptions`: an optional explanation per widget; the widget header shows an info
+  icon whose tooltip is the explanation in the viewer's language, no icon without one.
+- Widget texts are stored in the widget `Config` JSON, board texts in the encoded board description; old boards store
+  and load unchanged. Duplicating a widget adds " (Copy)" to the single title only.
+- `MeshBoardMessages.timeRangeLabels`: picker labels from the host messages (route data `timeRangeLabels` still wins).
+- `resolveLocalizedText` is exported; the table widget uses the same per-language map cleaning.
+- shared-ui: `mm-time-range-picker` relabels when the host binds new `labels`; before, the first labels stayed.
+
 ### octo-meshboard, shared-ui: board texts, numbers and dates in the host language (AB#9743)
 
 - `MeshBoardMessages` has thirteen new optional members, all with the former English text as default: `loading` (widget
