@@ -6,6 +6,7 @@ import {
   CellTemplateDirective, CheckboxColumnComponent,
   ColumnComponent, CommandColumnComponent, CustomMessagesComponent,
   DateFilterCellComponent,
+  ExcelExportEvent,
   ExcelModule,
   FilterCellTemplateDirective,
   GridComponent,
@@ -56,6 +57,7 @@ import {CronHumanizerService} from '../cron-builder/services/cron-humanizer.serv
 import {EmptyStateComponent} from '../empty-state/empty-state.component';
 import {ExportFetchProgress, ExportFetchResult, formatExportMessage} from './list-view-export';
 import {buildCsv, CsvColumn, downloadCsv} from './list-view-csv';
+import {applyExcelDisplayValues, ExcelColumn} from './list-view-excel';
 import {ListViewDateFormatter} from './list-view-date';
 import {loadPdfExportFont} from './list-view-pdf-font';
 
@@ -342,6 +344,8 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
   private exportSubscription: Subscription | null = null;
   /** Rows the next Excel export writes; `null` = the rows the grid holds. */
   private excelExportRows: unknown[] | null = null;
+  /** Rows Kendo is writing into the Excel workbook right now, for {@link onExcelExport} (AB#9857). */
+  private excelWorkbookRows: unknown[] | null = null;
   @Input() public pageable: PagerSettings = {
     buttonCount: 5,
     info: true,
@@ -707,8 +711,35 @@ export class ListViewComponent extends CommandBaseService implements OnDestroy, 
     return () => {
       const rows = this.excelExportRows ?? this.gridRows();
       this.excelExportRows = null;
+      this.excelWorkbookRows = rows;
       return {data: rows};
     };
+  }
+
+  /**
+   * `(excelExport)` of the grid (AB#9857): Kendo built the workbook from the rows of
+   * {@link excelExportData} (synchronously, before it saves the file). Writes the list's display
+   * values into it, mirroring the CSV export (AB#8836): formatter text as shown, `numeric` columns
+   * with `format` as numbers with the matching Excel number format, raw `date` / `iso8601` values
+   * as Excel dates.
+   */
+  protected onExcelExport(event: ExcelExportEvent): void {
+    const rows = this.excelWorkbookRows;
+    this.excelWorkbookRows = null;
+    if (!rows) {
+      return;
+    }
+    const columns: ExcelColumn[] = this._columns.map((column) => ({
+      formatted: !!column.formatter,
+      isDate: !column.formatter && (column.dataType === 'date' || column.dataType === 'iso8601'),
+      dateFormat: column.format || undefined,
+      numberFormat: !column.formatter && column.dataType === 'numeric' && column.format ? column.format : undefined,
+      value: (row: unknown) => {
+        const element = row as Record<string, unknown>;
+        return column.formatter ? this.getFormattedValue(element, column) : this.getValue(element, column);
+      }
+    }));
+    applyExcelDisplayValues(event.workbook, rows, columns, this.localeId);
   }
 
   private writeExport(format: ListViewExportFormat, result: ExportFetchResult | null): void {

@@ -95,10 +95,10 @@ export function parseCsvDigitsInfo(digitsInfo: string | null | undefined): CsvDi
  * `2025-06-01T10:00:00.123+02:00`, `2025-06-01 10:00`). Anything else in a date column, e.g. text a
  * formatter already wrote (`01.11.2026`), is never handed to `new Date()` (AB#8836).
  */
-const ISO_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ]\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}(:?\d{2})?)?$/i;
+export const ISO_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})[T ]\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}(:?\d{2})?)?$/i;
 
 /** The year, month and day name a real calendar day (`2025-02-30` does not; `new Date()` would roll it to March). */
-function isCalendarDay(year: number, month: number, day: number): boolean {
+export function isCalendarDay(year: number, month: number, day: number): boolean {
   const date = new Date(year, month - 1, day);
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }

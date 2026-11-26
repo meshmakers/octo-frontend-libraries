@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { CommandSettingsService, MessageService } from '@meshmakers/shared-services';
 import { GridComponent, PDFComponent } from '@progress/kendo-angular-grid';
+import { Workbook, WorkbookOptions } from '@progress/kendo-angular-excel-export';
 import { State } from '@progress/kendo-data-query/dist/npm/state';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
@@ -81,6 +82,11 @@ class HostComponent {
   exportRowLimit = 50000;
   pdfExportRowLimit = 5000;
   csvLocale: string | null = null;
+}
+
+/** The xlsx zip of a Kendo workbook: `toZIP()` exists at runtime (kendo-ooxml) but is not in the typings. */
+interface XlsxWorkbook {
+  toZIP(): { file(name: string): { async(type: 'string'): Promise<string> } };
 }
 
 interface ListViewExportApi {
@@ -317,6 +323,105 @@ describe('ListViewComponent export of all rows (AB#8122)', () => {
     expect(directive.currentState.take).toBe(50);
     flush();
   }));
+
+  describe('Excel display values (AB#9857)', () => {
+    // The three cases of AB#9857: a formatter column (MeshBoard table `labelFields`), a numeric
+    // column with format 1.2-2 and a raw ISO date column; plus a numeric column without format.
+    const rows = [
+      { day: '2026-11-01T00:00:00Z', amount: 1199364, at: '2026-11-12T10:00:00Z', plain: 0.1 + 0.2 },
+      { day: '2026-11-12T00:00:00Z', amount: -1.8701e-11, at: '2026-11-01', plain: 7 },
+      { day: '2026-11-13T00:00:00Z', amount: 12.345, at: '01.11.2026', plain: null }
+    ];
+    const dayText = (value: unknown) =>
+      new Intl.DateTimeFormat('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
+        .format(new Date(typeof value === 'string' ? value : 0));
+    const columns: TableColumn[] = [
+      { field: 'day', displayName: 'Tag', dataType: 'iso8601', format: 'dd.MM.yyyy', formatter: dayText },
+      { field: 'amount', displayName: 'Menge', dataType: 'numeric', format: '1.2-2' },
+      { field: 'at', displayName: 'Zeit', dataType: 'iso8601' },
+      { field: 'plain', displayName: 'Plain', dataType: 'numeric' }
+    ];
+
+    /** Excel serial number of a local date-time, as Excel stores date cells. */
+    const serial = (date: Date) =>
+      (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds())
+        - Date.UTC(1899, 11, 30)) / 86400000;
+
+    /** Runs the real Kendo Excel export (no download) and returns the xlsx parts of the workbook. */
+    async function exportXlsx(): Promise<{ cell: (ref: string) => { type: string | null; value: string | null; format: string | null } }> {
+      create((h) => (h.columns = columns));
+      vi.mocked(grid.saveAsExcel).mockRestore();
+      host.dataSource.rows = rows;
+      host.dataSource.total = rows.length;
+      await fixture.whenStable();
+      let workbook: unknown = null;
+      // Subscribed after the list view's own (excelExport) handler, so it sees the final workbook.
+      grid.excelExport.subscribe((event: { workbook: unknown; preventDefault: () => void }) => {
+        workbook = event.workbook;
+        event.preventDefault();
+      });
+      api().runExport('excel');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(workbook).not.toBeNull();
+
+      // Write the xlsx exactly as Kendo would save it and read the sheet, strings and styles back.
+      const zip = (new Workbook(workbook as WorkbookOptions) as unknown as XlsxWorkbook).toZIP();
+      const parse = async (name: string) => new DOMParser().parseFromString(await zip.file(name).async('string'), 'application/xml');
+      const sheet = await parse('xl/worksheets/sheet1.xml');
+      const strings = Array.from((await parse('xl/sharedStrings.xml')).getElementsByTagName('t')).map((t) => t.textContent);
+      const styles = await parse('xl/styles.xml');
+      const numFmts = new Map(Array.from(styles.getElementsByTagName('numFmt'))
+        .map((f) => [f.getAttribute('numFmtId'), f.getAttribute('formatCode')]));
+      const xfs = Array.from(styles.getElementsByTagName('cellXfs')[0].getElementsByTagName('xf'));
+      const builtIn: Record<string, string> = { '0': 'General', '4': '#,##0.00' };
+      return {
+        cell: (ref: string) => {
+          const c = Array.from(sheet.getElementsByTagName('c')).find((e) => e.getAttribute('r') === ref);
+          const type = c?.getAttribute('t') ?? null;
+          const raw = c?.getElementsByTagName('v')[0]?.textContent ?? null;
+          const value = type === 's' && raw !== null ? strings[+raw] : raw;
+          const numFmtId = xfs[+(c?.getAttribute('s') ?? 0)]?.getAttribute('numFmtId') ?? '0';
+          return { type, value, format: numFmts.get(numFmtId) ?? builtIn[numFmtId] ?? null };
+        }
+      };
+    }
+
+    it('writes formatter columns as the list shows them (AC1)', async () => {
+      const xlsx = await exportXlsx();
+
+      expect(xlsx.cell('A1').value).toBe('Tag');
+      expect(xlsx.cell('A2')).toEqual({ type: 's', value: '01.11.2026', format: 'General' });
+      expect(xlsx.cell('A3').value).toBe('12.11.2026');
+      expect(xlsx.cell('A4').value).toBe('13.11.2026');
+    });
+
+    it('keeps numeric columns with format as numbers with the Excel number format (AC2)', async () => {
+      const xlsx = await exportXlsx();
+
+      expect(xlsx.cell('B2')).toEqual({ type: 'n', value: '1199364', format: '#,##0.00' });
+      expect(xlsx.cell('B3')).toEqual({ type: 'n', value: '-1.8701e-11', format: '#,##0.00' });
+      expect(xlsx.cell('B4')).toEqual({ type: 'n', value: '12.345', format: '#,##0.00' });
+      // Without format the raw number stays, as before.
+      expect(xlsx.cell('D2')).toEqual({ type: 'n', value: String(0.1 + 0.2), format: 'General' });
+    });
+
+    it('writes raw ISO values of date columns as Excel dates (AC3)', async () => {
+      const xlsx = await exportXlsx();
+
+      const dateTime = xlsx.cell('C2');
+      expect(dateTime.type).toBeNull();
+      expect(+dateTime.value!).toBeCloseTo(serial(new Date('2026-11-12T10:00:00Z')), 8);
+      expect(dateTime.format).toBe('mm/dd/yyyy hh:mm:ss AM/PM');
+
+      const day = xlsx.cell('C3');
+      expect(day.type).toBeNull();
+      expect(+day.value!).toBe(serial(new Date(2026, 10, 1)));
+      expect(day.format).toBe('mm/dd/yyyy');
+
+      // Text that is no ISO date stays text.
+      expect(xlsx.cell('C4')).toEqual({ type: 's', value: '01.11.2026', format: 'General' });
+    });
+  });
 
   describe('CSV (AB#8123)', () => {
     let csvFiles: { name: string; text: Promise<string> }[];
