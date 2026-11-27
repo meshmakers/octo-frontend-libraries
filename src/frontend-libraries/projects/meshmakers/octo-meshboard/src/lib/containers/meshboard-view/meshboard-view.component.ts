@@ -1821,7 +1821,7 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
    * Called after Angular change detection so @Input() values are current.
    */
   private syncAllWidgetPositionsFromTileLayout(): void {
-    if (!this.tileLayout) return;
+    if (!this.tileLayout || !this.isEditMode()) return;
 
     const tileItems = this.tileLayout.items?.toArray();
     if (!tileItems) return;

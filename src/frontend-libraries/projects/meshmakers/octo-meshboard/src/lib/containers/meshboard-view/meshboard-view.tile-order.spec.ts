@@ -182,4 +182,20 @@ describe('MeshBoardViewComponent — Tab order follows the layout', () => {
       'Row 4 Col 1', 'Row 3 Col 4'
     ]);
   });
+
+  it('edit mode: a move whose position read-back runs after edit mode ended keeps every other widget in its place', async () => {
+    await render(storedOrder);
+    isEditMode.set(true);
+    await settle();
+
+    const moved = kendoItemOf('Row 4 Col 1');
+    view().onReorder({ oldIndex: moved.order, newCol: 3, newRow: 3 } as Parameters<MeshBoardViewComponent['onReorder']>[0]);
+    isEditMode.set(false);
+    await settle();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await settle();
+
+    const expected = storedOrder.map(w => (w.id === 'Row 4 Col 1' ? `${w.id}@3/3` : `${w.id}@${w.row}/${w.col}`));
+    expect(config().widgets.map(w => `${w.id}@${w.row}/${w.col}`)).toEqual(expected);
+  });
 });
