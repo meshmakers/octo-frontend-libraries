@@ -256,14 +256,44 @@ try {
         # After both servers have exited, a child of a server can still hold a pipe open, silent or
         # writing. The drain therefore has a time limit, counted from the moment the loop first sees
         # both servers exited: at the start of a pass, or after a forwarded line, so a child that keeps
-        # writing cannot hold a pass. The limit is checked after each line and at the end of each pass,
-        # so it can be passed by one 20 ms wait per open stream. While the drain runs, each stream gets
-        # at most 100 ms per pass, so one writing stream does not hide the last lines of the others.
-        # While a server runs, $drain stays $null and the loop forwards as before; the only addition
-        # there is reading HasExited of both servers after each forwarded line. Only a server whose
-        # HasExited reads $true counts as exited; one whose state cannot be read counts as running.
+        # writing cannot hold a pass. When the script ends because one server exited on its own (below),
+        # the drain starts with that decision instead. The limit is checked after each line and at the
+        # end of each pass, so it can be passed by one 20 ms wait per open stream. As soon as one server
+        # has exited, each stream gets at most $turnLimitMs per pass, so a stream that keeps writing
+        # neither hides the last lines of the others nor holds the pass away from the exit check below.
+        # While both servers run, a turn has no such limit. HasExited of both servers is read after each
+        # forwarded line and once per pass for the exit check. Only a server whose HasExited reads $true
+        # counts as exited; one whose state cannot be read counts as running.
         $drainLimitMs = 2000
+        $turnLimitMs = 100
         $drain = $null
+
+        # The dev servers only make sense together, so the script ends when one of them exits on its
+        # own. Its exit code tells a caller that reads it (octo-devstack) a failure from a clean end;
+        # Start-Octo reacts to the end of the script. Each pass, after forwarding, looks at the servers
+        # until it has judged their exits once:
+        # - A stop of the script ends both servers with the stop exit code of the platform: Windows
+        #   0xC000013A (Ctrl+C, CTRL_BREAK, closed console window), Linux and macOS 128 + the signal
+        #   (129 SIGHUP, 130 SIGINT, 143 SIGTERM). When both have exited with one of these codes, that
+        #   is a stop, whoever sent the signal: nothing is reported and the script ends as before.
+        # - One server can also get such a signal alone. A stop exit code therefore counts as a stop
+        #   only when the other server has exited too by the first pass that runs after the stop grace,
+        #   counted from the pass that first saw the exit. The grace is checked once per pass, so a
+        #   second exit between the end of the grace and that pass still counts as a stop; at a real
+        #   stop the two exits lie well below it. When one server needs longer than the stop grace to
+        #   exit at a stop, the first one is reported.
+        # - Any other exit code (also 0), or a stop exit code with the other server still running after
+        #   the stop grace, ends the script: each server that has exited gets one line with its exit
+        #   code, a server still running is stopped by the script (a "Stopping" line, no line with an
+        #   exit code for it), the drain forwards the last lines (they can follow the report), and the
+        #   script ends with exit code 1 when a reported exit code is not 0, else with 0.
+        # A stop that reaches the script first (Stop-Octo, Ctrl+C in a Windows console) goes straight to
+        # the finally block below, which reports nothing.
+        $stopExitCodes = if ($onWindows) { @(-1073741510) } else { @(129, 130, 143) }
+        $stopGraceMs = 2000
+        $stopGrace = $null
+        $exitsJudged = $false
+        $serverExitCode = $null
         while ($true) {
             if (-not $drain -and @(@($processes.HasExited) -eq $true).Count -eq $processes.Count) { $drain = [System.Diagnostics.Stopwatch]::StartNew() }
 
@@ -275,21 +305,66 @@ try {
                     if ($null -eq $line) { $reader.Pending = $null; break }
                     if ($line) { Write-Output "[$($reader.Name)] $line" }
                     $reader.Pending = $reader.Stream.ReadLineAsync()
-                    if (-not $drain -and @(@($processes.HasExited) -eq $true).Count -eq $processes.Count) { $drain = [System.Diagnostics.Stopwatch]::StartNew() }
-                    if ($drain -and ($drain.ElapsedMilliseconds -ge $drainLimitMs -or $turn.ElapsedMilliseconds -ge 100)) { break }
+                    $exitedNow = @(@($processes.HasExited) -eq $true).Count
+                    if (-not $drain -and $exitedNow -eq $processes.Count) { $drain = [System.Diagnostics.Stopwatch]::StartNew() }
+                    if ($drain -and $drain.ElapsedMilliseconds -ge $drainLimitMs) { break }
+                    if ($exitedNow -gt 0 -and $turn.ElapsedMilliseconds -ge $turnLimitMs) { break }
+                }
+            }
+
+            if (-not $exitsJudged) {
+                # One read of HasExited per server, so the servers reported and the servers stopped below
+                # are told apart from the same state.
+                $exited = @(foreach ($proc in $processes) { try { $proc.HasExited -eq $true } catch { $false } })
+                $exitCodes = @(for ($i = 0; $i -lt $processes.Count; $i++) { if ($exited[$i]) { $processes[$i].ExitCode } else { $null } })
+                $exitedCount = @($exited -eq $true).Count
+                $failed = @(for ($i = 0; $i -lt $processes.Count; $i++) { if ($exited[$i] -and $exitCodes[$i] -notin $stopExitCodes) { $i } }).Count -gt 0
+                $endScript = $false
+                if ($failed) { $endScript = $true }
+                elseif ($exitedCount -eq $processes.Count) { $exitsJudged = $true }
+                elseif ($exitedCount -gt 0) {
+                    if (-not $stopGrace) { $stopGrace = [System.Diagnostics.Stopwatch]::StartNew() }
+                    elseif ($stopGrace.ElapsedMilliseconds -ge $stopGraceMs) { $endScript = $true }
+                }
+                if ($endScript) {
+                    $exitsJudged = $true
+                    $serverExitCode = 0
+                    $stillRunning = @()
+                    for ($i = 0; $i -lt $processes.Count; $i++) {
+                        if ($exited[$i]) {
+                            $code = $exitCodes[$i]
+                            $text = "$($projectNames[$i]) exited with exit code $code"
+                            if ($code -lt 0) { $text += " ($('0x{0:X8}' -f $code))" }
+                            if ($code -ne 0) { $text = "ERROR: $text"; $serverExitCode = 1 }
+                            Write-Output $text
+                        }
+                        else { $stillRunning += $i }
+                    }
+                    foreach ($i in $stillRunning) {
+                        Write-Output "Stopping $($projectNames[$i]): the dev servers run only together"
+                        try { $processes[$i].Kill($true) } catch { Write-Output "Could not stop PID $($processes[$i].Id): $($_.Exception.Message)" }
+                    }
+                    # The drain forwards the last lines; started here, a server that could not be stopped
+                    # cannot hold the loop beyond the drain limit.
+                    if (-not $drain) { $drain = [System.Diagnostics.Stopwatch]::StartNew() }
                 }
             }
 
             if ($drain) {
                 # The pipes may still hold the servers' last lines: keep forwarding until every stream
-                # has reported its end or the time limit is reached; a cut drain says so.
+                # has reported its end and every server has exited, or the time limit is reached; a cut
+                # drain says so, and a server the script could not stop is named instead of the closing line.
                 $streamsOpen = @($readers | Where-Object { $null -ne $_.Pending }).Count
                 $remainingMs = $drainLimitMs - $drain.ElapsedMilliseconds
-                if ($streamsOpen -eq 0 -or $remainingMs -le 0) {
+                $running = @(for ($i = 0; $i -lt $processes.Count; $i++) {
+                        if (-not $(try { $processes[$i].HasExited -eq $true } catch { $false })) { "$($projectNames[$i]) (PID $($processes[$i].Id))" }
+                    })
+                if (($streamsOpen -eq 0 -and $running.Count -eq 0) -or $remainingMs -le 0) {
                     if ($streamsOpen -gt 0) {
                         Write-Output "Stopped forwarding at the $drainLimitMs ms drain limit: $streamsOpen of $($readers.Count) output streams still open (held by another process, such as a child of a server)."
                     }
-                    Write-Output "All processes have exited."
+                    if ($running.Count -eq 0) { Write-Output "All processes have exited." }
+                    else { Write-Output "Still running at the end of the drain: $($running -join ', ')" }
                     break
                 }
                 Start-Sleep -Milliseconds ([math]::Min(50, $remainingMs))
@@ -318,3 +393,6 @@ try {
 finally {
     Pop-Location
 }
+
+# Set only when the monitor loop above ended the script because a dev server exited on its own.
+if ($null -ne $serverExitCode) { exit $serverExitCode }
