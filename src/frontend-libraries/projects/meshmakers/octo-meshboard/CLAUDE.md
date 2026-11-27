@@ -86,6 +86,20 @@ pure and unit-tested) and feeds the `displayColumns` / `displayGridWidgets` comp
 Edit mode (drag/resize/reorder) is only offered in the `none` tier (`canEditLayout`), because
 dragging against remapped positions would corrupt the stored anchors.
 
+**Tile order and keyboard focus.** Tab follows DOM order, so outside edit mode
+`displayGridWidgets` renders the `none` tier in reading order too (`inReadingOrder`: row, then col; the
+compact tiers already sort); the stored widget order and anchors stay untouched. Edit mode keeps the
+stored order, because `onReorder` maps Kendo's `event.oldIndex` and `syncAllWidgetPositionsFromTileLayout`
+maps the tile items by index onto `gridWidgets()` (it runs only while edit mode is on: a read-back whose
+0 ms timer fires after edit mode ended would see the tiles in reading order). Each tile binds `[order]="$index"`: Kendo sets an
+item's `order` only once (`setItemsOrder` skips items that have one), so without the binding a drag after
+the board was first shown in view mode would report the reading-order index and move the wrong widget.
+Keyboard focus: `kendo-tilelayout-item.k-tilelayout-item:focus-visible` draws a 2px
+`--kendo-color-primary` outline (offset -2px, drawn inside the tile, so the grid's `overflow: auto` does not
+clip it at the edges in plain chrome or with banners; Kendo's own focus shadow loses to the card shadow and is
+barely visible on dark themes); a mouse click does not match `:focus-visible`. Spec:
+`containers/meshboard-view/meshboard-view.tile-order.spec.ts`.
+
 ---
 
 ## Core Services

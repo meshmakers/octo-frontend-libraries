@@ -10,6 +10,14 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: keyboard focus on the tiles of a board (AB#9938, AB#9939)
+
+- The tile that has keyboard focus shows a visible focus ring (2 px outline in `--kendo-color-primary`, light and
+  dark theme); a mouse click shows none. Before, Kendo's focus shadow was hidden by the card shadow (AB#9938).
+- In view mode Tab moves through the tiles by row, then by column, as they appear on screen, instead of the order
+  in which the widgets were added or stored. Stored boards load unchanged, no data migration; edit mode keeps the
+  stored order, and moving a tile there still moves the right widget (AB#9939).
+
 ### octo-meshboard: styled tooltips for the hover texts of a board (AB#9831)
 
 - The widget info icon, the time-shift caption and the table value markers show their text in a Kendo tooltip in
