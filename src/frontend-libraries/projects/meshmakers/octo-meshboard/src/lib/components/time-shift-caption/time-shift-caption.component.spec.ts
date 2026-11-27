@@ -5,7 +5,7 @@ import { MeshBoardPersistenceService } from '../../services/meshboard-persistenc
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AnyWidgetConfig, DataSource, MeshBoardTimeShift, PersistentQueryDataSource, TimeRangeSelection } from '../../models/meshboard.models';
 import { TimeShiftCaptionComponent } from './time-shift-caption.component';
-import { hoverTooltip, leaveTooltip, openTooltips, tooltipTestProviders, tooltipText } from '../../testing/meshboard-tooltip.helpers';
+import { hoverTooltip, leaveTooltip, openTooltips, tooltipSide, tooltipTestProviders, tooltipText } from '../../testing/meshboard-tooltip.helpers';
 
 /**
  * AB#9095 criterion 5: the caption of a shifted widget and its tooltip, board zone Europe/Vienna.
@@ -273,6 +273,39 @@ describe('TimeShiftCaptionComponent (AB#9095)', () => {
       hoverTooltip(fixture, caption()!);
       expect(caption()?.hasAttribute('title')).toBe(false);
       expect(openTooltips().length).toBe(1);
+    });
+
+    it('the caption shows that it has a tooltip: dotted underline and help cursor', () => {
+      const style = getComputedStyle(caption()!);
+      expect(style.cursor).toBe('help');
+      expect(style.textDecoration).toContain('dotted');
+    });
+
+    it('criterion 2: the caption is in the tab order', () => {
+      expect(caption()?.tabIndex).toBe(0);
+      expect(caption()?.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('criterion 2: keyboard focus shows the caption tooltip, blur hides it', () => {
+      caption()!.dispatchEvent(new FocusEvent('focus'));
+      fixture.detectChanges();
+      expect(tooltipText()).toBe(TOOLTIP);
+      caption()!.dispatchEvent(new FocusEvent('blur'));
+      fixture.detectChanges();
+      expect(tooltipText()).toBeNull();
+    });
+
+    it('criterion 2: Escape hides the caption tooltip while the caption keeps focus', () => {
+      caption()!.dispatchEvent(new FocusEvent('focus'));
+      fixture.detectChanges();
+      caption()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+      fixture.detectChanges();
+      expect(tooltipText()).toBeNull();
+    });
+
+    it('criterion 1: the caption tooltip opens below the caption, so it does not cover the widget title', () => {
+      hoverTooltip(fixture, caption()!);
+      expect(tooltipSide()).toBe('bottom');
     });
   });
 });

@@ -30,3 +30,13 @@ export function leaveTooltip(fixture: ComponentFixture<unknown>, anchor: Element
   anchor.dispatchEvent(new MouseEvent('mouseleave'));
   fixture.detectChanges();
 }
+
+export function tooltipSide(): 'top' | 'bottom' | 'left' | 'right' | null {
+  const callout = openTooltips()[0]?.querySelector('.k-callout');
+  if (!callout) {
+    return null;
+  }
+  const sides = { 'k-callout-s': 'top', 'k-callout-n': 'bottom', 'k-callout-e': 'left', 'k-callout-w': 'right' } as const;
+  const match = (Object.keys(sides) as (keyof typeof sides)[]).find(cls => callout.classList.contains(cls));
+  return match ? sides[match] : null;
+}

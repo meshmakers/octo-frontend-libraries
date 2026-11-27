@@ -24,9 +24,12 @@ The tooltip takes its look from the host's Kendo theme (`kendo-theme--styles()`,
 modules of a slim theme), so it follows the light and dark theme without extra styles.
 
 **Hover texts.** The widget info icon, the time-shift caption and the table value markers show their text in a
-Kendo tooltip, not in the browser's native `title` tooltip: it opens on hover and, for the focusable info icon,
-on keyboard focus, and closes on mouse leave, blur and Escape. Each element keeps the text as its accessible name
-(`aria-label`) and has no `title` attribute, so exactly one tooltip shows.
+Kendo tooltip, not in the browser's native `title` tooltip: it opens on hover and, for the focusable info icon and
+time-shift caption, on keyboard focus, and closes on mouse leave, blur and Escape. Each element keeps the text as its
+accessible name (`aria-label`) and has no `title` attribute, so exactly one tooltip shows. The time-shift caption
+marks that it has a tooltip with a dotted underline in its own text colour and the help cursor (the "definition
+tooltip" pattern) and opens its tooltip below itself, so the widget title above it stays visible; the info icon and
+the value markers open theirs above.
 
 ## Quick Start
 

@@ -1992,10 +1992,16 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
 ## Hover texts: Kendo tooltip instead of `title`
 
 - `MeshBoardTooltipDirective` (`[mmMeshBoardTooltip]="templateRef"`, `components/meshboard-tooltip/`, internal) puts
-  Kendo's `TooltipDirective` on its host as a host directive (`showOn: 'none'`, `filter: ''`, `position: 'top'`) and
+  Kendo's `TooltipDirective` on its host as a host directive (`showOn: 'none'`, `filter: ''`) and
   opens it on `mouseenter` and `focus`, closes it on `mouseleave`, `blur` and Escape. The content is an `ng-template`
-  next to the host, so a text that changes (language switch, time filter) also changes in an open tooltip.
-- Used by the widget info icon (view), `mm-time-shift-caption` (`role="note"`, `aria-label` = the tooltip text) and
+  next to the host, so a text that changes (language switch, time filter) also changes in an open tooltip. The side is
+  `mmMeshBoardTooltipPosition` (Kendo `Position`, default `top`), read when the tooltip opens.
+- The time-shift caption is text, not an icon, so it marks its tooltip with the definition-tooltip cue: dotted
+  underline in `currentColor` (the caption's `--kendo-color-subtle`), `text-decoration-thickness: from-font`,
+  `cursor: help`, and a `:focus-visible` outline in `--kendo-color-primary`. It has `tabindex="0"` and opens its
+  tooltip `bottom`, because above it sits the widget title. The info icon (at the top of the tile header) and the
+  value markers (table cells) keep `top`: nothing of their own widget is above them that the tooltip would hide.
+- Used by the widget info icon (view), `mm-time-shift-caption` (`role="note"`, `tabindex="0"`, `aria-label` = the tooltip text) and
   `mm-table-value-marker-cell` (the `aria-label` stays on the icon image). None of them has a `title` attribute: Kendo
   copies a `title` into its own tooltip only on hover, so the browser's tooltip would still appear on focus or
   before Kendo removes it. Do not add `title` next to the directive.

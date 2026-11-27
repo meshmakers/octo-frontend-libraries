@@ -57,7 +57,8 @@ function resolveCaptionedShift(
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (caption(); as shifted) {
-      <span class="time-shift-caption" role="note" [attr.aria-label]="shifted.tooltip" [mmMeshBoardTooltip]="captionTooltip">{{ shifted.caption }}</span>
+      <span class="time-shift-caption" tabindex="0" role="note" [attr.aria-label]="shifted.tooltip"
+            [mmMeshBoardTooltip]="captionTooltip" mmMeshBoardTooltipPosition="bottom">{{ shifted.caption }}</span>
       <ng-template #captionTooltip>{{ shifted.tooltip }}</ng-template>
     }
   `,
@@ -76,6 +77,15 @@ function resolveCaptionedShift(
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-decoration: underline dotted currentColor;
+      text-decoration-thickness: from-font;
+      text-underline-offset: 0.15em;
+      cursor: help;
+    }
+
+    .time-shift-caption:focus-visible {
+      outline: 1px solid var(--kendo-color-primary);
+      outline-offset: -1px;
     }
   `]
 })

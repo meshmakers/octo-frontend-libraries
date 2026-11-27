@@ -1,7 +1,7 @@
 import { ApplicationRef, ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MeshBoardTooltipDirective } from './meshboard-tooltip.directive';
-import { hoverTooltip, leaveTooltip, openTooltips, tooltipTestProviders, tooltipText } from '../../testing/meshboard-tooltip.helpers';
+import { hoverTooltip, leaveTooltip, openTooltips, tooltipSide, tooltipTestProviders, tooltipText } from '../../testing/meshboard-tooltip.helpers';
 
 @Component({
   standalone: true,
@@ -63,6 +63,11 @@ describe('MeshBoardTooltipDirective', () => {
     expect(anchor.hasAttribute('title')).toBe(false);
     leaveTooltip(fixture, anchor);
     expect(tooltipText()).toBeNull();
+  });
+
+  it('opens above its host by default', () => {
+    hoverTooltip(fixture, anchor);
+    expect(tooltipSide()).toBe('top');
   });
 
   it('criterion 5: an open tooltip follows a change of its text without reopening', () => {
