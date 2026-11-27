@@ -6,6 +6,7 @@ import { isValidHeatmapTimeWindow } from '../../widgets/heatmap-widget/heatmap-b
 import { TimeShiftCaption, timeShiftCaption, TimeShiftCaptionLanguage } from '../../utils/time-shift-caption';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
 import { injectMeshBoardLanguage } from '../../utils/meshboard-language';
+import { MeshBoardTooltipDirective } from '../meshboard-tooltip/meshboard-tooltip.directive';
 
 /**
  * Caption and tooltip of a widget whose stream-data query applies a time shift, or `null` when the
@@ -52,10 +53,13 @@ function resolveCaptionedShift(
 @Component({
   selector: 'mm-time-shift-caption',
   standalone: true,
+  imports: [MeshBoardTooltipDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (caption(); as shifted) {
-      <span class="time-shift-caption" [attr.title]="shifted.tooltip">{{ shifted.caption }}</span>
+      <span class="time-shift-caption" tabindex="0" role="note" [attr.aria-label]="shifted.tooltip"
+            [mmMeshBoardTooltip]="captionTooltip" mmMeshBoardTooltipPosition="bottom">{{ shifted.caption }}</span>
+      <ng-template #captionTooltip>{{ shifted.tooltip }}</ng-template>
     }
   `,
   styles: [`
@@ -73,6 +77,15 @@ function resolveCaptionedShift(
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-decoration: underline dotted currentColor;
+      text-decoration-thickness: from-font;
+      text-underline-offset: 0.15em;
+      cursor: help;
+    }
+
+    .time-shift-caption:focus-visible {
+      outline: 1px solid var(--kendo-color-primary);
+      outline-offset: -1px;
     }
   `]
 })

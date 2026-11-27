@@ -55,7 +55,7 @@ describe('TimeShiftCaptionComponent in the host language (AB#9743)', () => {
     ]);
 
     expect(caption?.textContent?.trim()).toBe('Oktober 2026');
-    expect(caption?.getAttribute('title')).toBe('Vorperiode: 01.10.2026 - 31.10.2026 (Europe/Vienna)');
+    expect(caption?.getAttribute('aria-label')).toBe('Vorperiode: 01.10.2026 - 31.10.2026 (Europe/Vienna)');
   });
 
   it('German host: several years back with the count in the German text', () => {
@@ -65,20 +65,20 @@ describe('TimeShiftCaptionComponent in the host language (AB#9743)', () => {
     ]);
 
     expect(caption?.textContent?.trim()).toBe('November 2024');
-    expect(caption?.getAttribute('title')).toBe('2 Jahre zurück: 01.11.2024 - 30.11.2024 (Europe/Vienna)');
+    expect(caption?.getAttribute('aria-label')).toBe('2 Jahre zurück: 01.11.2024 - 30.11.2024 (Europe/Vienna)');
   });
 
   it('English host: English month and dates in the English format', () => {
     const caption = render({ by: 'period', count: -1 }, [{ provide: MESHBOARD_LANGUAGE, useValue: 'en' }]);
 
     expect(caption?.textContent?.trim()).toBe('October 2026');
-    expect(caption?.getAttribute('title')).toBe('Previous period: 10/01/2026 - 10/31/2026 (Europe/Vienna)');
+    expect(caption?.getAttribute('aria-label')).toBe('Previous period: 10/01/2026 - 10/31/2026 (Europe/Vienna)');
   });
 
   it('host without a language keeps the former texts', () => {
     const caption = render({ by: 'period', count: -1 }, []);
 
     expect(caption?.textContent?.trim()).toBe('October 2026');
-    expect(caption?.getAttribute('title')).toBe('Previous period: 01.10.2026 - 31.10.2026 (Europe/Vienna)');
+    expect(caption?.getAttribute('aria-label')).toBe('Previous period: 01.10.2026 - 31.10.2026 (Europe/Vienna)');
   });
 });

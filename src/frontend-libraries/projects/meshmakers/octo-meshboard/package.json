@@ -21,6 +21,7 @@
     "@progress/kendo-angular-inputs": "^24.1.0",
     "@progress/kendo-angular-label": "^24.1.0",
     "@progress/kendo-angular-layout": "^24.1.0",
+    "@progress/kendo-angular-tooltip": "^24.1.0",
     "apollo-angular": "^14.0.0"
   },
   "dependencies": {

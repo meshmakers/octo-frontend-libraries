@@ -96,6 +96,7 @@
     "@progress/kendo-angular-pdf-export": "24.2.2",
     "@progress/kendo-angular-popup": "24.2.2",
     "@progress/kendo-angular-progressbar": "24.2.2",
+    "@progress/kendo-angular-tooltip": "24.2.2",
     "@progress/kendo-angular-treeview": "24.2.2",
     "@progress/kendo-angular-utils": "24.2.2",
     "@progress/kendo-data-query": "^1.7.3",

@@ -106,7 +106,7 @@ describe('MeshBoardViewComponent — time shift caption in the tile header (AB#9
     expect(plain.querySelector('.time-shift-caption')).toBeNull();
     expect(shifted.querySelector('.widget-title')?.textContent?.trim()).toBe('Verbrauch Vorjahr');
     expect(shifted.querySelector('.time-shift-caption')?.textContent?.trim()).toBe('September 2026');
-    expect(shifted.querySelector('.time-shift-caption')?.getAttribute('title'))
+    expect(shifted.querySelector('.time-shift-caption')?.getAttribute('aria-label'))
       .toBe('Previous period: 01.09.2026 - 30.09.2026 (Europe/Vienna)');
   });
 

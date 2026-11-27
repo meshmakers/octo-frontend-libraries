@@ -10,6 +10,21 @@ starts a new empty "Unreleased" section.
 
 ## Unreleased
 
+### octo-meshboard: styled tooltips for the hover texts of a board (AB#9831)
+
+- The widget info icon, the time-shift caption and the table value markers show their text in a Kendo tooltip in
+  the host's Kendo theme instead of the browser's native `title` tooltip: on hover and, for the info icon and the
+  time-shift caption, on keyboard focus; it closes on mouse leave, blur and Escape (also when opened by hover while the
+  focus is elsewhere) and follows a language switch while open. Texts and accessible names (`aria-label`) are
+  unchanged; the elements no longer carry a `title` attribute.
+- The time-shift caption shows that it has a tooltip with a dotted underline in its own text colour and the help
+  cursor (the "definition tooltip" pattern), is in the tab order, and opens its tooltip below the caption so it no
+  longer covers the widget title.
+- **BREAKING** (install): new peer dependency `@progress/kendo-angular-tooltip` `^24.1.0`. Hosts install it in
+  exactly the version of their other Kendo packages (24.1.0 or later), e.g.
+  `npm install @progress/kendo-angular-tooltip@24.2.2 --save-exact`; another patch version ends in a peer conflict
+  (`ERESOLVE`), because the tooltip package requires the other Kendo packages in its own exact version.
+
 ### octo-meshboard: every author text of a widget per language (AB#9739)
 
 - Besides the title, every text an author writes into a widget can be given per UI language: a map with the plural
