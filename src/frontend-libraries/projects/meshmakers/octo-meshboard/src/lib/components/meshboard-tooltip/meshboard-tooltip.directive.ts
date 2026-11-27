@@ -22,7 +22,8 @@ import { Position, TooltipDirective } from '@progress/kendo-angular-tooltip';
     '(mouseenter)': 'open()',
     '(mouseleave)': 'close()',
     '(focus)': 'open()',
-    '(blur)': 'close()'
+    '(blur)': 'close()',
+    '(keydown.escape)': 'close()'
   }
 })
 export class MeshBoardTooltipDirective {
