@@ -372,6 +372,11 @@ kendo-tilelayout {
   padding-bottom: 1.5rem !important;
 }
 
+:host ::ng-deep kendo-tilelayout-item.k-tilelayout-item:focus-visible {
+  outline: 2px solid var(--kendo-color-primary);
+  outline-offset: 2px;
+}
+
 // Chromeless grid widgets: collapse header and hide card styling in view mode.
 // Since Kendo TileLayout components ignore Angular host bindings ([class], [attr]),
 // we target the inner .chromeless-header (header hidden) and .chromeless-card

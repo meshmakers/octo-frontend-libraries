@@ -33,7 +33,7 @@ import { MeshBoardDataService } from '../../services/meshboard-data.service';
 import { MeshBoardGridService } from '../../services/meshboard-grid.service';
 import { AutoRefreshTimerService } from '../../services/auto-refresh-timer.service';
 import { AnyWidgetConfig, WidgetType, MeshBoardConfig, MeshBoardTimeFilterConfig, TimeRangeSelection, EntitySelectorConfig, RuntimeEntityData } from '../../models/meshboard.models';
-import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows } from '../../utils/compact-layout';
+import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows, inReadingOrder } from '../../utils/compact-layout';
 import { buildUrlWithRtId, buildInitialUrlWithRtId } from '../../utils/url-sync';
 import { applyTimeFilterParams, applyQueryParams } from '../../utils/time-filter-url';
 import { injectMeshBoardMessages } from '../../utils/meshboard-messages';
@@ -308,7 +308,8 @@ export class MeshBoardViewComponent implements OnInit, OnDestroy, HasUnsavedChan
     const contentSizing = tier === 'phone' || (tier === 'none' && !this.isEditMode())
       ? { heights: this.stateService.widgetContentHeights(), rowHeight: config.rowHeight, gap: config.gap }
       : undefined;
-    return placeWidgetsForTier(this.gridWidgets(), tier, config.columns, contentSizing);
+    const widgets = this.isEditMode() ? this.gridWidgets() : inReadingOrder(this.gridWidgets());
+    return placeWidgetsForTier(widgets, tier, config.columns, contentSizing);
   });
 
   // Time Filter computed signals

@@ -92,6 +92,11 @@ export interface ContentSizing {
   gap: number;
 }
 
+/** The widgets sorted by row, then by column; returns a new array. */
+export function inReadingOrder<T extends { row: number; col: number }>(widgets: readonly T[]): T[] {
+  return [...widgets].sort((a, b) => (a.row - b.row) || (a.col - b.col));
+}
+
 export function placeWidgetsForTier(
   widgets: AnyWidgetConfig[],
   tier: MeshBoardCompactTier,
@@ -110,8 +115,7 @@ export function placeWidgetsForTier(
   }
 
   const columns = columnsForTier(tier, configuredColumns);
-  const placements = [...widgets]
-    .sort((a, b) => (a.row - b.row) || (a.col - b.col))
+  const placements = inReadingOrder(widgets)
     .map(widget => ({
       widget,
       colSpan: scaleColSpan(widget.colSpan, configuredColumns, columns),

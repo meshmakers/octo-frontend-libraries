@@ -1,4 +1,4 @@
-import { compactTierForWidth, columnsForTier, placeWidgetsForTier, collapseEmptyRows, scaleColSpan, rowSpanForContent, MAX_CONTENT_ROWS, TILE_CHROME_HEIGHT } from './compact-layout';
+import { compactTierForWidth, columnsForTier, placeWidgetsForTier, inReadingOrder, collapseEmptyRows, scaleColSpan, rowSpanForContent, MAX_CONTENT_ROWS, TILE_CHROME_HEIGHT } from './compact-layout';
 import { AnyWidgetConfig } from '../models/meshboard.models';
 
 describe('compact-layout', () => {
@@ -40,6 +40,27 @@ describe('compact-layout', () => {
     it('clamps to at most 3 columns on tablets, keeping smaller configs', () => {
       expect(columnsForTier('tablet', 6)).toBe(3);
       expect(columnsForTier('tablet', 2)).toBe(2);
+    });
+  });
+
+  describe('inReadingOrder', () => {
+    it('orders widgets by row, then by column, whatever their stored order', () => {
+      const stored = [widget('r1c2', 2, 1), widget('r1c1', 1, 1), widget('r1c4', 4, 1), widget('r2c1', 1, 2),
+        widget('r2c4', 4, 2), widget('r2c2', 2, 2), widget('r3c4', 4, 3), widget('r4c1', 1, 4), widget('r1c3', 3, 1)];
+      expect(inReadingOrder(stored).map(w => w.id))
+        .toEqual(['r1c1', 'r1c2', 'r1c3', 'r1c4', 'r2c1', 'r2c2', 'r2c4', 'r3c4', 'r4c1']);
+    });
+
+    it('a wide tile starting in an earlier column comes before a later tile of the same row', () => {
+      expect(inReadingOrder([widget('right', 5, 1), widget('wide', 1, 1, 4, 2), widget('below', 5, 2)]).map(w => w.id))
+        .toEqual(['wide', 'right', 'below']);
+    });
+
+    it('leaves the input array and the configs unchanged', () => {
+      const stored = [widget('b', 2, 1), widget('a', 1, 1)];
+      inReadingOrder(stored);
+      expect(stored.map(w => w.id)).toEqual(['b', 'a']);
+      expect(stored[0]).toEqual(expect.objectContaining({ col: 2, row: 1 }));
     });
   });
 

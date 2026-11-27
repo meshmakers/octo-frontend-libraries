@@ -37,6 +37,11 @@ marks that it has a tooltip with a dotted underline in its own text colour and t
 tooltip" pattern) and opens its tooltip below itself, so the widget title above it stays visible; the info icon and
 the value markers open theirs above.
 
+**Keyboard focus on the tiles.** In view mode Tab moves through the tiles left to right and top to bottom (by row,
+then by column), as they appear on screen, whatever order the widgets are stored in. The tile that has keyboard
+focus shows a 2 px outline in the theme's primary colour (`--kendo-color-primary`); a mouse click shows none. Enter
+moves into the tile and Escape back out, as in Kendo's TileLayout. In edit mode the tiles keep the stored order.
+
 ## Quick Start
 
 ### Basic Integration

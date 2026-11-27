@@ -302,6 +302,7 @@
         @for (placement of displayGridWidgets(); track placement.widget.id) {
           @let widget = placement.widget;
           <kendo-tilelayout-item
+            [order]="$index"
             [col]="$any(placement.col)"
             [row]="$any(placement.row)"
             [colSpan]="placement.colSpan"
