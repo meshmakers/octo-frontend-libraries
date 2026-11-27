@@ -277,9 +277,11 @@ try {
         #   (129 SIGHUP, 130 SIGINT, 143 SIGTERM). When both have exited with one of these codes, that
         #   is a stop, whoever sent the signal: nothing is reported and the script ends as before.
         # - One server can also get such a signal alone. A stop exit code therefore counts as a stop
-        #   only while the other server exits too within the stop grace, counted from the pass that
-        #   first saw the exit; at a real stop the two exits lie well below it. When one server needs
-        #   longer than the stop grace to exit at a stop, the first one is reported.
+        #   only when the other server has exited too by the first pass that runs after the stop grace,
+        #   counted from the pass that first saw the exit. The grace is checked once per pass, so a
+        #   second exit between the end of the grace and that pass still counts as a stop; at a real
+        #   stop the two exits lie well below it. When one server needs longer than the stop grace to
+        #   exit at a stop, the first one is reported.
         # - Any other exit code (also 0), or a stop exit code with the other server still running after
         #   the stop grace, ends the script: each server that has exited gets one line with its exit
         #   code, a server still running is stopped by the script (a "Stopping" line, no line with an
