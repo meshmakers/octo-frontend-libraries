@@ -121,4 +121,21 @@ describe('TableValueMarkerCellComponent styled tooltip', () => {
     expect(marker.querySelectorAll('[title]').length).toBe(0);
     expect(openTooltips().length).toBe(1);
   });
+
+  it('a marker without tooltip text opens no tooltip on hover', () => {
+    const marker = render();
+    fixture.componentRef.setInput('tooltip', '');
+    fixture.detectChanges();
+    expect(hoverTooltip(fixture, marker)).toBeNull();
+    expect(openTooltips().length).toBe(0);
+  });
+
+  it('criterion 2: Escape hides a marker tooltip opened by hover while the focus is elsewhere', () => {
+    const marker = render();
+    hoverTooltip(fixture, marker);
+    expect(document.activeElement).not.toBe(marker);
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    expect(tooltipText()).toBeNull();
+  });
 });

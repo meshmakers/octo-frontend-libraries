@@ -65,6 +65,21 @@ describe('MeshBoardTooltipDirective', () => {
     expect(tooltipText()).toBeNull();
   });
 
+  it('criterion 2: Escape hides a tooltip opened by hover while the focus is elsewhere', () => {
+    hoverTooltip(fixture, anchor);
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    expect(tooltipText()).toBeNull();
+  });
+
+  it('a later hover opens the tooltip again after Escape closed it', () => {
+    hoverTooltip(fixture, anchor);
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    leaveTooltip(fixture, anchor);
+    expect(hoverTooltip(fixture, anchor)).toBe('Sum of all metering points per month');
+  });
+
   it('opens above its host by default', () => {
     hoverTooltip(fixture, anchor);
     expect(tooltipSide()).toBe('top');

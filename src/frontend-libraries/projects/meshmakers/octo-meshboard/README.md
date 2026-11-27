@@ -12,20 +12,26 @@ MeshBoard provides a grid-based dashboard system with configurable widgets that 
 npm install @meshmakers/octo-meshboard
 ```
 
-The library's Kendo peer dependencies have to be installed by the host in the same major version as the
-other Kendo packages, among them `@progress/kendo-angular-tooltip` (needed for the hover texts on a board:
-the widget info icon, the time-shift caption and the table value markers):
+The host installs the library's Kendo peer dependencies in exactly the version of its other Kendo packages, and
+that version has to be 24.1.0 or later; a host on an older 24.x upgrades all its Kendo packages together first. One
+of them is `@progress/kendo-angular-tooltip` (needed for the hover texts on a board: the widget info icon, the
+time-shift caption and the table value markers). Take the version of `@progress/kendo-angular-common` from the
+host's `package.json`, for example 24.2.2:
 
 ```bash
-npm install @progress/kendo-angular-tooltip@<the Kendo version of the host, 24.x>
+npm install @progress/kendo-angular-tooltip@24.2.2 --save-exact
 ```
+
+npm installs a missing peer by itself, but the tooltip package requires the other Kendo packages in its own exact
+version, so a tooltip of another patch version than the host's Kendo packages ends in a peer conflict (`ERESOLVE`).
 
 The tooltip takes its look from the host's Kendo theme (`kendo-theme--styles()`, or the tooltip and popup
 modules of a slim theme), so it follows the light and dark theme without extra styles.
 
 **Hover texts.** The widget info icon, the time-shift caption and the table value markers show their text in a
 Kendo tooltip, not in the browser's native `title` tooltip: it opens on hover and, for the focusable info icon and
-time-shift caption, on keyboard focus, and closes on mouse leave, blur and Escape. Each element keeps the text as its
+time-shift caption, on keyboard focus, and closes on mouse leave, blur and Escape (Escape also closes a tooltip
+opened by hover while the keyboard focus is elsewhere). Each element keeps the text as its
 accessible name (`aria-label`) and has no `title` attribute, so exactly one tooltip shows. The time-shift caption
 marks that it has a tooltip with a dotted underline in its own text colour and the help cursor (the "definition
 tooltip" pattern) and opens its tooltip below itself, so the widget title above it stays visible; the info icon and

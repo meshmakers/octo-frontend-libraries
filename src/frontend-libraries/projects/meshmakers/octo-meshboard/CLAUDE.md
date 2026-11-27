@@ -1993,9 +1993,12 @@ The list binding (shared-ui) owns `skip`; the table widget's data source only de
 
 - `MeshBoardTooltipDirective` (`[mmMeshBoardTooltip]="templateRef"`, `components/meshboard-tooltip/`, internal) puts
   Kendo's `TooltipDirective` on its host as a host directive (`showOn: 'none'`, `filter: ''`) and
-  opens it on `mouseenter` and `focus`, closes it on `mouseleave`, `blur` and Escape. The content is an `ng-template`
+  opens it on `mouseenter` and `focus`, closes it on `mouseleave` and `blur`. While it is open a `keydown` listener on
+  the document closes it on Escape, also when the tooltip was opened by hover and the focus is elsewhere (the value
+  marker is not focusable); the listener is removed on close and on destroy. The content is an `ng-template`
   next to the host, so a text that changes (language switch, time filter) also changes in an open tooltip. The side is
-  `mmMeshBoardTooltipPosition` (Kendo `Position`, default `top`), read when the tooltip opens.
+  `mmMeshBoardTooltipPosition` (Kendo `Position`, default `top`), read when the tooltip opens. `null` instead of a
+  template opens nothing; the value marker passes `null` when its `tooltip` text is empty.
 - The time-shift caption is text, not an icon, so it marks its tooltip with the definition-tooltip cue: dotted
   underline in `currentColor` (the caption's `--kendo-color-subtle`), `text-decoration-thickness: from-font`,
   `cursor: help`, and a `:focus-visible` outline in `--kendo-color-primary`. It has `tabindex="0"` and opens its

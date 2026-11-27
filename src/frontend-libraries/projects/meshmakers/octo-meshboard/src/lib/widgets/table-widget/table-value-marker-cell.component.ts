@@ -16,7 +16,7 @@ import { MeshBoardTooltipDirective } from '../../components/meshboard-tooltip/me
   template: `
     @if (marked) {
       <!-- Only the icon is the image; the value stays outside it, so screen readers announce it. -->
-      <span class="value-marker" [style.color]="color" [mmMeshBoardTooltip]="markerTooltip">
+      <span class="value-marker" [style.color]="color" [mmMeshBoardTooltip]="tooltip ? markerTooltip : null">
         <span
           class="value-marker-icon"
           [attr.role]="tooltip ? 'img' : null"
